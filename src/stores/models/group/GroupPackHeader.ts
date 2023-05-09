@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import Duration from '../Duration/Duration';
+import Duration from '../duration/Duration';
 import Group from './Group';
 import GroupPack from './GroupPack';
 import db from 'src/stores/localbase';

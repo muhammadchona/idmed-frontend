@@ -6,7 +6,7 @@ import ClinicSector from 'src/stores/models/clinicSector/ClinicSector';
 import ClinicSectorType from 'src/stores/models/clinicSectorType/ClinicSectorType';
 import DispenseType from 'src/stores/models/dispenseType/DispenseType';
 import Drug from 'src/stores/models/drug/Drug';
-import Duration from 'src/stores/models/Duration/Duration';
+import Duration from 'src/stores/models/duration/Duration';
 import EpisodeType from 'src/stores/models/episodeType/EpisodeType';
 import FacilityType from 'src/stores/models/facilityType/FacilityType';
 import Form from 'src/stores/models/form/Form';
@@ -18,7 +18,7 @@ import SpetialPrescriptionMotive from 'src/stores/models/prescription/SpetialPre
 import ProvincialServer from 'src/stores/models/provincialServer/ProvincialServer';
 import StartStopReason from 'src/stores/models/startStopReason/StartStopReason';
 import Inventory from 'src/stores/models/stockinventory/Inventory';
-import PatientTransReferenceType from 'src/stores/models/tansreference/PatientTransReferenceType';
+import PatientTransReferenceType from 'src/stores/models/transreference/PatientTransReferenceType';
 import TherapeuticLine from 'src/stores/models/therapeuticLine/TherapeuticLine';
 import TherapeuticRegimen from 'src/stores/models/therapeuticRegimen/TherapeuticRegimen';
 import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';

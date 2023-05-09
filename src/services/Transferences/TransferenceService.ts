@@ -21,7 +21,7 @@ import Episode from 'src/stores/models/episode/Episode';
 // import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails'
 // import PatientVisit from 'src/stores/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
-import Duration from 'src/stores/models/Duration/Duration';
+import Duration from 'src/stores/models/duration/Duration';
 import Doctor from 'src/stores/models/doctor/Doctor';
 import { SessionStorage } from 'quasar';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
