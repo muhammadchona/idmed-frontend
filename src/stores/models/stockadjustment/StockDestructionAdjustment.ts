@@ -15,20 +15,4 @@ export class StockDestructionAdjustment extends StockAdjustment {
       destruction: this.belongsTo(DestroyedStock, 'destruction_id'),
     };
   }
-
-  static async apiSave(adjustment) {
-    return await this.api().post('/stockDestructionAdjustment', adjustment);
-  }
-
-  static async apiRemove(id) {
-    return await this.api().delete(`/stockDestructionAdjustment/${id}`);
-  }
-
-  static async apiUpdate(adjustment) {
-    return await this.api().patch('/stockDestructionAdjustment', adjustment);
-  }
-
-  static async apiGetAll() {
-    return await this.api().get('/stockDestructionAdjustment');
-  }
 }
