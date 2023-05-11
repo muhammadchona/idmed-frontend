@@ -43,19 +43,5 @@ export class StockAdjustment extends Model {
     };
   }
 
-  isPosetiveAdjustment() {
-    return this.operation.code === 'AJUSTE_POSETIVO';
-  }
-
-  isNegativeAdjustment() {
-    return this.operation.code === 'AJUSTE_NEGATIVO';
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('stockAdjustments').delete();
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('stockAdjustments').doc({ id: id }).get();
-  }
+  
 }
