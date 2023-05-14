@@ -6,12 +6,10 @@ const healthInformationSystem = useRepo(HealthInformationSystem);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('healthInformationSystem', params)
-      .then((resp) => {
-        healthInformationSystem.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('healthInformationSystem', params);
+    healthInformationSystem.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,33 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('healthInformationSystem/' + id, params)
-      .then((resp) => {
-        healthInformationSystem.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('healthInformationSystem/' + id, params);
+    healthInformationSystem.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('healthInformationSystem/' + id)
-      .then(() => {
-        healthInformationSystem.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('healthInformationSystem/' + id);
+    healthInformationSystem.destroy(id);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/healthInformationSystem/${id}`);
+  },
+
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/healthInformationSystem?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiSave(his: any) {
+    return await api().post('/healthInformationSystem', his);
+  },
+
+  async apiUpdate(his: any) {
+    return await api().patch('/healthInformationSystem/' + his.id, his);
   },
   // Local Storage Pinia
   newInstanceEntity() {

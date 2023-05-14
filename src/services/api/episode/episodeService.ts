@@ -40,11 +40,55 @@ export default {
         episode.destroy(id);
       });
   },
+
+  async apiSave(episode: any, isNew: boolean) {
+    if (isNew) {
+      return await api().post('/episode', episode);
+    } else {
+      return await api().patch('/episode/' + episode.id, episode);
+    }
+  },
+
+  async apiUpdate(episode: any) {
+    return await api().patch('/episode/' + episode.id, episode);
+  },
+
+  async apiRemove(episode: any) {
+    return await api().delete(`/episode/${episode.id}`);
+  },
+
+  async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
+    return await api().get(
+      '/episode/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/episode/${id}`);
+  },
+
+  async apiGetAllByIdentifierId(
+    identifierId: string,
+    offset: number,
+    max: number
+  ) {
+    return await api().get(
+      '/episode/identifier/' +
+        identifierId +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
+    );
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return episode.getModel().$newInstance();
   },
   getAllFromStorage() {
     return episode.all();
+  },
+  getEntity() {
+    return episode.getModel();
   },
 };

@@ -6,12 +6,9 @@ const startStopReason = useRepo(StartStopReason);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('startStopReason', params)
-      .then((resp) => {
-        startStopReason.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('startStopReason', params);
+    startStopReason.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,20 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('startStopReason/' + id, params)
-      .then((resp) => {
-        startStopReason.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('startStopReason/' + id, params);
+    startStopReason.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('startStopReason/' + id)
-      .then(() => {
-        startStopReason.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('startStopReason/' + id);
+    startStopReason.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/startStopReason?offset=' + offset + '&max=' + max);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/startStopReason/${id}`);
   },
   // Local Storage Pinia
   newInstanceEntity() {

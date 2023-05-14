@@ -40,6 +40,13 @@ export default {
         dispenseMode.destroy(id);
       });
   },
+  async apiGetAll() {
+    return await api().get('/dispenseMode');
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/dispenseMode/${id}`);
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return dispenseMode.getModel().$newInstance();

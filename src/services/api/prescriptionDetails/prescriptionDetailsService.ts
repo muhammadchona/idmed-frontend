@@ -6,12 +6,9 @@ const prescriptionDetails = useRepo(PrescriptionDetails);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('prescriptionDetails', params)
-      .then((resp) => {
-        prescriptionDetails.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('prescriptionDetails', params);
+    prescriptionDetails.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,20 +23,29 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('prescriptionDetails/' + id, params)
-      .then((resp) => {
-        prescriptionDetails.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('prescriptionDetails/' + id, params);
+    prescriptionDetails.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('prescriptionDetails/' + id)
-      .then(() => {
-        prescriptionDetails.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('prescriptionDetails/' + id);
+    prescriptionDetails.destroy(id);
   },
+
+  async apiGetAllByPrescriptionId(prescriptionId: string) {
+    return await api().get(
+      '/prescriptionDetail/prescription/' + prescriptionId
+    );
+  },
+
+  async apiGetAll() {
+    return await api().get('/prescriptionDetail?offset=' + 0 + '&max=' + 200);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/prescriptionDetail/${id}`);
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return prescriptionDetails.getModel().$newInstance();

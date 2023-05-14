@@ -4,7 +4,6 @@ import Pack from '../packaging/Pack';
 import Prescription from '../prescription/Prescription';
 import PatientVisit from '../patientVisit/PatientVisit';
 import Clinic from '../clinic/Clinic';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientVisitDetails extends Model {
@@ -28,4 +27,7 @@ export default class PatientVisitDetails extends Model {
       prescription: this.belongsTo(Prescription, 'prescription_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

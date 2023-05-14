@@ -6,12 +6,10 @@ const packagedDrugStock = useRepo(PackagedDrugStock);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('packagedDrugStock', params)
-      .then((resp) => {
-        packagedDrugStock.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('packagedDrugStock', params);
+    packagedDrugStock.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,19 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('packagedDrugStock/' + id, params)
-      .then((resp) => {
-        packagedDrugStock.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('packagedDrugStock/' + id, params);
+    packagedDrugStock.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('packagedDrugStock/' + id)
-      .then(() => {
-        packagedDrugStock.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('packagedDrugStock/' + id);
+    packagedDrugStock.destroy(id);
+  },
+
+  async apiGetAll() {
+    return await api().get('/packagedDrugStock?offset=' + 0 + '&max=' + 200);
   },
   // Local Storage Pinia
   newInstanceEntity() {

@@ -6,12 +6,10 @@ const patient = useRepo(Patient);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('patient', params)
-      .then((resp) => {
-        patient.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('patient', params);
+    patient.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,49 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('patient/' + id, params)
-      .then((resp) => {
-        patient.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('patient/' + id, params);
+    patient.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('patient/' + id)
-      .then(() => {
-        patient.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('patient/' + id);
+    patient.destroy(id);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/patient/${id}`);
+  },
+
+  async apiSearch(patient: any) {
+    return await api().post('/patient/search', patient);
+  },
+
+  async apisearchByParam(searchParam: string, clinicId: string) {
+    return await api().get(`/patient/searchByParam/${searchParam}/${clinicId}`);
+  },
+
+  async apiSave(patient: any, isNew: boolean) {
+    if (isNew) {
+      return await api().post('/patient', patient);
+    } else {
+      return await api().patch('/patient/' + patient.id, patient);
+    }
+  },
+
+  async apiUpdate(patient: any) {
+    return await api().patch('/patient/' + patient.id, patient);
+  },
+
+  async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
+    return await api().get(
+      '/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+  async syncPatient(patient: any) {
+    if (patient.syncStatus === 'R') await this.apiSave(patient, true);
+    if (patient.syncStatus === 'U') await this.apiUpdate(patient);
   },
   // Local Storage Pinia
   newInstanceEntity() {

@@ -13,4 +13,7 @@ export default class AttributeType extends Model {
       datatype: this.attr(''),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

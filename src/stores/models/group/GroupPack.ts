@@ -1,7 +1,6 @@
 import { Model } from 'pinia-orm';
 import Pack from '../packaging/Pack';
 import GroupPackHeader from './GroupPackHeader';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class GroupPack extends Model {
@@ -18,52 +17,7 @@ export default class GroupPack extends Model {
       header: this.belongsTo(GroupPackHeader, 'header_id'),
     };
   }
-
-  static async apiFetchById(id) {
-    return await this.api().get(`/groupPack/${id}`);
-  }
-
-  static async apiSave(groupPack) {
-    return await this.api().post('/groupPack', groupPack);
-  }
-
-  static async apiUpdate(groupPack) {
-    return await this.api().post('/groupPack', groupPack);
-  }
-
-  static localDbAdd(groupPack) {
-    return db.newDb().collection('groupPacks').add(groupPack);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('groupPacks').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('groupPacks').get();
-  }
-
-  static localDbUpdate(groupPack) {
-    return db
-      .newDb()
-      .collection('groupPacks')
-      .doc({ id: groupPack.id })
-      .set(groupPack);
-  }
-
-  static localDbUpdateAll(groupPacks) {
-    return db.newDb().collection('groupPacks').set(groupPacks);
-  }
-
-  static localDbDelete(groupPack) {
-    return db
-      .newDb()
-      .collection('groupPacks')
-      .doc({ id: groupPack.id })
-      .delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('groupPacks').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

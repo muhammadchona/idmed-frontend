@@ -34,6 +34,11 @@ export default class Clinic extends Model {
       sectors: this.hasMany(ClinicSector, 'clinic_id'),
       patients: this.hasMany(Patient, 'patients'),
     };
+
+  }
+
+    static piniaOptions = {
+      persist: true
   }
 
   static apiFetchById(id) {

@@ -1,6 +1,5 @@
 import { Model } from 'pinia-orm';
 import PatientVisit from '../patientVisit/PatientVisit';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class TBScreening extends Model {
@@ -25,46 +24,7 @@ export default class TBScreening extends Model {
       visit: this.belongsTo(PatientVisit, 'patient_visit_id'),
     };
   }
-
-  static async apiGetAll(offset, max) {
-    return await this.api().get(
-      '/TBScreening?offset=' + offset + '&max=' + max
-    );
-  }
-
-  static localDbAdd(TBScreening) {
-    return db.newDb().collection('TBScreenings').add(TBScreening);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('TBScreenings').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('TBScreenings').get();
-  }
-
-  static localDbUpdate(TBScreening) {
-    return db
-      .newDb()
-      .collection('TBScreenings')
-      .doc({ id: TBScreening.id })
-      .set(TBScreening);
-  }
-
-  static localDbUpdateAll(TBScreenings) {
-    return db.newDb().collection('TBScreenings').set(TBScreenings);
-  }
-
-  static localDbDelete(TBScreening) {
-    return db
-      .newDb()
-      .collection('TBScreenings')
-      .doc({ id: TBScreening.id })
-      .delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('TBScreenings').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

@@ -3,7 +3,6 @@ import Clinic from '../clinic/Clinic';
 import Group from '../group/Group';
 import GroupMemberPrescription from '../group/GroupMemberPrescription';
 import Patient from '../patient/Patient';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class GroupMember extends Model {
@@ -28,41 +27,7 @@ export default class GroupMember extends Model {
       ),
     };
   }
-
-  isActive() {
-    return this.endDate === null;
-  }
-
-  static async apiUpdate(member) {
-    // return await this.api().post('/groupMember', member)
-    return await this.api().patch('/groupMember/' + member.id, member);
-  }
-
-  static localDbAdd(member) {
-    return db.newDb().collection('members').add(member);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('members').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('members').get();
-  }
-
-  static localDbUpdate(member) {
-    return db.newDb().collection('members').doc({ id: member.id }).set(member);
-  }
-
-  static localDbUpdateAll(members) {
-    return db.newDb().collection('members').set(members);
-  }
-
-  static localDbDelete(member) {
-    return db.newDb().collection('members').doc({ id: member.id }).delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('members').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

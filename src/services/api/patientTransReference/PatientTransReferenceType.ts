@@ -1,17 +1,15 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import PatientTransReferenceType from 'src/stores/models/patientTransReferenceType/PatientTransReferenceType';
+import PatientTransReferenceType from 'src/stores/models/transreference/PatientTransReferenceType';
 
 const patientTransReferenceType = useRepo(PatientTransReferenceType);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('patientTransReferenceType', params)
-      .then((resp) => {
-        patientTransReferenceType.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('patientTransReferenceType', params);
+    patientTransReferenceType.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,20 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('patientTransReferenceType/' + id, params)
-      .then((resp) => {
-        patientTransReferenceType.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('patientTransReferenceType/' + id, params);
+    patientTransReferenceType.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('patientTransReferenceType/' + id)
-      .then(() => {
-        patientTransReferenceType.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('patientTransReferenceType/' + id);
+    patientTransReferenceType.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/patientTransReferenceType?offset=' + offset + '&max=' + max
+    );
   },
   // Local Storage Pinia
   newInstanceEntity() {

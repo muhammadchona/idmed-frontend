@@ -10,7 +10,7 @@ const instance = axios.create({
 let numTries = 0;
 // Request interceptor for API calls
 axios.interceptors.request.use(
-  async (config) => {
+  async (config: any) => {
     config.headers = {
       Accept: 'application/json',
     };
@@ -29,12 +29,6 @@ axios.interceptors.request.use(
         localStorage.getItem('id_token'),
       ].join(' ');
     } else {
-      console.log(
-        '>>VFF2 ' +
-          JSON.parse(localStorage.getItem('id_token')) +
-          '------------' +
-          JSON.stringify(localStorage)
-      );
       delete config.headers.Authorization; // ["Authorization"]
     }
     return config;

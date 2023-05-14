@@ -112,64 +112,63 @@
   </q-page>
 </template>
 
-<script>
-import Clinic from '../../store/models/clinic/Clinic'
-import mixinplatform from 'src/mixins/mixin-system-platform'
-import mixinutils from 'src/mixins/mixin-utils'
-import SynchronizationService from 'src/services/Synchronization/SynchronizationService'
-export default {
-  mixins: [mixinplatform, mixinutils],
-  components: {},
-  methods: {
-    init () {
-      // this.showloading()
-      if (this.website) {
-        this.loadWebRegimensToVueX()
-        this.loadWebDrugsToVueX()
-        this.loadWebStockToVueX()
-        this.showloading()
-        this.loadWebParamsToVueX()
-      } else {
-        if (this.isAppSyncDone) {
-          this.showloading()
-          this.loadParamsToVueX()
-        }
-      }
-    },
-    menusVisible (name) {
-      const menus = localStorage.getItem('role_menus')
-      if (!menus.includes(name)) {
-        return false
-      } else {
-        return true
-      }
-    },
-    loadClinics () {
-      Clinic.localDbGetAll().then((clinics) => {
-        console.log(clinics)
-        Clinic.insertOrUpdate({ data: clinics })
-      })
+<script setup>
+// import Clinic from '../../store/models/clinic/Clinic';
+// import mixinplatform from 'src/mixins/mixin-system-platform';
+// import mixinutils from 'src/mixins/mixin-utils';
+// import SynchronizationService from 'src/services/Synchronization/SynchronizationService';
+import { useMediaQuery } from '@vueuse/core';
+import { computed, onMounted } from 'vue';
+// import clinicService from 'src/services/api/clinicService/clinicService';
+
+// mixins: [mixinplatform, mixinutils],
+// components: {},
+// methods: {
+const isWebScreen = useMediaQuery('(min-width: 1024px)');
+const website = computed(() => (isWebScreen.value ? true : false));
+
+const init = () => {
+  showloading()
+  if (website.value) {
+    this.loadWebRegimensToVueX();
+    this.loadWebDrugsToVueX();
+    this.loadWebStockToVueX();
+    this.showloading();
+    this.loadWebParamsToVueX();
+  } else {
+    if (this.isAppSyncDone) {
+      this.showloading();
+      this.loadParamsToVueX();
     }
-  },
-  mounted () {
-     // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
-        // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
-    this.init()
-    setTimeout(() => {
-      if (this.mobile) {
-        console.log(this.isAppSyncDone)
-        if (!this.isAppSyncDone) {
-          SynchronizationService.start(this.$q, this.currClinic.id)
-        } else {
-          this.hideLoading()
-        }
-      }
-    }, 3000)
-  },
-  created () {
-   // this.showloading()
   }
-}
+};
+
+const menusVisible = (name) => {
+  const menus = localStorage.getItem('role_menus');
+  if (menus !== null)
+    if (!menus.includes(name)) {
+      return false;
+    } else {
+      return true;
+    }
+};
+
+onMounted(() => {
+  // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
+  // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
+  // init();
+  setTimeout(() => {
+    console.log(website.value);
+    // if (isWeb.value) {
+    //      console.log(this.isAppSyncDone);
+    //   if (!this.isAppSyncDone) {
+    //     SynchronizationService.start(this.$q, this.currClinic.id);
+    //   } else {
+    //     hideLoading();
+    //   }
+    // }
+  }, 3000);
+});
 </script>
 
 <style></style>

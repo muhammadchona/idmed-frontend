@@ -6,12 +6,9 @@ const vitalSignsScreening = useRepo(VitalSignsScreening);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('vitalSignsScreening', params)
-      .then((resp) => {
-        vitalSignsScreening.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('vitalSignsScreening', params);
+    vitalSignsScreening.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,18 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('vitalSignsScreening/' + id, params)
-      .then((resp) => {
-        vitalSignsScreening.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('vitalSignsScreening/' + id, params);
+    vitalSignsScreening.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('vitalSignsScreening/' + id)
-      .then(() => {
-        vitalSignsScreening.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('vitalSignsScreening/' + id);
+    vitalSignsScreening.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/vitalSignsScreening?offset=' + offset + '&max=' + max
+    );
   },
   // Local Storage Pinia
   newInstanceEntity() {

@@ -56,4 +56,7 @@ export default class Patient extends Model {
       patientVisits: this.hasMany(PatientVisit, 'patient_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

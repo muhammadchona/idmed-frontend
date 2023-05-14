@@ -3,7 +3,6 @@ import PatientTransReferenceType from './PatientTransReferenceType';
 import Clinic from '../clinic/Clinic';
 import Patient from '../patient/Patient';
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientTransReference extends Model {
@@ -32,70 +31,7 @@ export default class PatientTransReference extends Model {
       patient: this.belongsTo(Patient, 'patientId'),
     };
   }
-
-  static async apiGetAll(offset, max) {
-    return await this.api().get(
-      '/patientTransReference?offset=' + offset + '&max=' + max
-    );
-  }
-
-  static async apiSave(transReference) {
-    return await this.api().post('/patientTransReference', transReference);
-  }
-
-  static async apiRemove(transReference) {
-    return await this.api().delete(
-      `/patientTransReference/${transReference.id}`
-    );
-  }
-
-  static async apiFetchById(id) {
-    return await this.api().get(`/patientTransReference/${id}`);
-  }
-
-  static localDbAdd(patientTransReference) {
-    return db
-      .newDb()
-      .collection('patientTransReferences')
-      .add(patientTransReference);
-  }
-
-  static localDbGetById(id) {
-    return db
-      .newDb()
-      .collection('patientTransReferences')
-      .doc({ id: id })
-      .get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('patientTransReferences').get();
-  }
-
-  static localDbUpdate(patientTransReference) {
-    return db
-      .newDb()
-      .collection('patientTransReferences')
-      .doc({ id: patientTransReference.id })
-      .set(patientTransReference);
-  }
-
-  static localDbUpdateAll(patientTransReferences) {
-    return db
-      .newDb()
-      .collection('patientTransReferences')
-      .set(patientTransReferences);
-  }
-
-  static localDbDelete(patientTransReference) {
-    return db
-      .newDb()
-      .collection('patientTransReferences')
-      .doc({ id: patientTransReference.id })
-      .delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('patientTransReferences').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

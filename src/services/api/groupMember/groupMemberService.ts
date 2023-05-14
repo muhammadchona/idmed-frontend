@@ -40,6 +40,9 @@ export default {
         groupMember.destroy(id);
       });
   },
+  async apiUpdate(member: any) {
+    return await api().patch('/groupMember/' + member.id, member);
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return groupMember.getModel().$newInstance();

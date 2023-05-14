@@ -6,12 +6,9 @@ const pregnancyScreening = useRepo(PregnancyScreening);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('pregnancyScreening', params)
-      .then((resp) => {
-        pregnancyScreening.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('pregnancyScreening', params);
+    pregnancyScreening.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,33 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('pregnancyScreening/' + id, params)
-      .then((resp) => {
-        pregnancyScreening.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('pregnancyScreening/' + id, params);
+    pregnancyScreening.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('pregnancyScreening/' + id)
-      .then(() => {
-        pregnancyScreening.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('pregnancyScreening/' + id);
+    pregnancyScreening.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/pregnancyScreening?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiGetAllByPatientVisitId(
+    patientVisitId: string,
+    offset: number,
+    max: number
+  ) {
+    return await api().get(
+      '/pregnancyScreening/patientVisit/' +
+        patientVisitId +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
+    );
   },
   // Local Storage Pinia
   newInstanceEntity() {

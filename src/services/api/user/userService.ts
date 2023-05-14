@@ -6,12 +6,10 @@ const secUser = useRepo(SecUser);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('secUser', params)
-      .then((resp) => {
-        secUser.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('secUser', params);
+    secUser.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,21 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('secUser/' + id, params)
-      .then((resp) => {
-        secUser.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('secUser/' + id, params);
+    secUser.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('secUser/' + id)
-      .then(() => {
-        secUser.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('secUser/' + id);
+    secUser.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/secUser?offset=' + offset + '&max=' + max);
+  },
+  async apiSave(userLogin: number) {
+    return await api().post('/secUser', userLogin);
   },
   // Local Storage Pinia
   newInstanceEntity() {

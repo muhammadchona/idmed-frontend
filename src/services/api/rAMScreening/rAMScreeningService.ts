@@ -6,12 +6,9 @@ const rAMScreening = useRepo(RAMScreening);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('rAMScreening', params)
-      .then((resp) => {
-        rAMScreening.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('rAMScreening', params);
+    rAMScreening.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,16 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('rAMScreening/' + id, params)
-      .then((resp) => {
-        rAMScreening.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('rAMScreening/' + id, params);
+    rAMScreening.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('rAMScreening/' + id)
-      .then(() => {
-        rAMScreening.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('rAMScreening/' + id);
+    rAMScreening.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/RAMScreening?offset=' + offset + '&max=' + max);
   },
   // Local Storage Pinia
   newInstanceEntity() {

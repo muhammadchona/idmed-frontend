@@ -6,12 +6,10 @@ const pack = useRepo(Pack);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('pack', params)
-      .then((resp) => {
-        pack.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('pack', params);
+    pack.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,20 +24,55 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('pack/' + id, params)
-      .then((resp) => {
-        pack.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('pack/' + id, params);
+    pack.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('pack/' + id)
-      .then(() => {
-        pack.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('pack/' + id);
+    pack.destroy(id);
   },
+  async apiSave(pack: any) {
+    return await api().post('/pack', pack);
+  },
+
+  async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
+    return await api().get(
+      '/pack/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiGetAllLastOfClinic(clinicId: string, offset: number, max: number) {
+    return await api().get(
+      '/pack/AllLastOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiGetAllByPatientVisitDetailsId(
+    patientVisitDetailsId: string,
+    offset: number,
+    max: number
+  ) {
+    return await api().get(
+      '/pack/patientVisitDetails/' +
+        patientVisitDetailsId +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
+    );
+  },
+
+  async apiGetAllByPrescriptionId(prescriptionId: string) {
+    return await api().get('/pack/prescription/' + prescriptionId);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/pack/${id}`);
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return pack.getModel().$newInstance();

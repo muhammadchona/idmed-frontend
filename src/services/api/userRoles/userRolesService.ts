@@ -6,12 +6,10 @@ const userRole = useRepo(UserRoles);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('userRole', params)
-      .then((resp) => {
-        userRole.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('userRole', params);
+    userRole.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,15 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('userRole/' + id, params)
-      .then((resp) => {
-        userRole.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('userRole/' + id, params);
+    userRole.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('userRole/' + id)
-      .then(() => {
-        userRole.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('userRole/' + id);
+    userRole.destroy(id);
   },
   // Local Storage Pinia
   newInstanceEntity() {

@@ -40,6 +40,19 @@ export default {
         groupPack.destroy(id);
       });
   },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/groupPack/${id}`);
+  },
+
+  async apiSave(groupPack: any) {
+    return await api().post('/groupPack', groupPack);
+  },
+
+  async apiUpdate(groupPack: any) {
+    return await api().post('/groupPack', groupPack);
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return groupPack.getModel().$newInstance();

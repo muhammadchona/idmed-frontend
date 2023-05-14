@@ -1,24 +1,24 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import Episode from 'src/stores/models/episode/Episode';
+import EpisodeType from 'src/stores/models/episodeType/EpisodeType';
 
-const episode = useRepo(Episode);
+const episodeType = useRepo(EpisodeType);
 
 export default {
   // Axios API call
   post(params: string) {
     return api()
-      .post('episode', params)
+      .post('episodeType', params)
       .then((resp) => {
-        episode.save(resp.data);
+        episodeType.save(resp.data);
       });
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('episode?offset=' + offset + '&limit=100')
+        .get('episodeType?offset=' + offset + '&limit=100')
         .then((resp) => {
-          episode.save(resp.data);
+          episodeType.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -28,23 +28,30 @@ export default {
   },
   patch(id: number, params: string) {
     return api()
-      .patch('episode/' + id, params)
+      .patch('episodeType/' + id, params)
       .then((resp) => {
-        episode.save(resp.data);
+        episodeType.save(resp.data);
       });
   },
   delete(id: number) {
     return api()
-      .delete('episode/' + id)
+      .delete('episodeType/' + id)
       .then(() => {
-        episode.destroy(id);
+        episodeType.destroy(id);
       });
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/episodeType?offset=' + offset + '&max=' + max);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/episodeType/${id}`);
   },
   // Local Storage Pinia
   newInstanceEntity() {
-    return episode.getModel().$newInstance();
+    return episodeType.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return episode.all();
+    return episodeType.all();
   },
 };

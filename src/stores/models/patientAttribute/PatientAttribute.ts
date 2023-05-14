@@ -18,4 +18,7 @@ export default class PatientAttribute extends Model {
       attributeType: this.belongsTo(AttributeType, 'attributeType_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

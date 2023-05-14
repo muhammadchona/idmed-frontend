@@ -6,12 +6,10 @@ const patientVisit = useRepo(PatientVisit);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('patientVisit', params)
-      .then((resp) => {
-        patientVisit.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('patientVisit', params);
+    patientVisit.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,20 +24,70 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('patientVisit/' + id, params)
-      .then((resp) => {
-        patientVisit.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('patientVisit/' + id, params);
+    patientVisit.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('patientVisit/' + id)
-      .then(() => {
-        patientVisit.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('patientVisit/' + id);
+    patientVisit.destroy(id);
   },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/patientVisit/${id}`);
+  },
+
+  async apiSave(patientVisit: any) {
+    return await api().post('/patientVisit', patientVisit);
+  },
+
+  async apiMySave(patientVisit: any) {
+    return await api().post('/patientVisit/mySave', patientVisit);
+  },
+
+  async apiSaveRec(patientVisit: any) {
+    return await api().post('/patientVisit/saveRecord', patientVisit);
+  },
+
+  async apiUpdate(patientVisit: any) {
+    return await api().patch(`/patientVisit/${patientVisit.id}`, patientVisit);
+  },
+
+  async apiRemove(id: string) {
+    return await api().delete(`/patientVisit/${id}`);
+  },
+
+  async apiGetAllByPatientId(patientId: string) {
+    return await api().get('/patientVisit/patient/' + patientId);
+  },
+
+  async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
+    return await api().get(
+      '/patientVisit/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiGetAllLastWithScreeningOfClinic(
+    clinicId: string,
+    offset: number,
+    max: number
+  ) {
+    return await api().get(
+      '/patientVisit/AllLastWithScreeningOfClinic/' +
+        clinicId +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
+    );
+  },
+
+  async apiGetLastVisitOfPatient(patientId: string) {
+    return await api().get('/patientVisit/getLastVisitOfPatient/' + patientId);
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisit.getModel().$newInstance();
