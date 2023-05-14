@@ -10,4 +10,8 @@ export default class UserClinics extends Model {
       clinic_id: this.attr(null),
     };
   }
+
+  static piniaOptions = {
+    persist: true,
+  };
 }

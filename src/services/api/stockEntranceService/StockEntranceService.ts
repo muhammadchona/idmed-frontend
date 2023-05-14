@@ -1,13 +1,14 @@
 import { useRepo } from 'pinia-orm';
 import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
 import api from '../apiService/apiService';
-import { alert } from 'src/components/Shared/Dialog/Dialog';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+const { alertSucess, alertError, alertWarning } = useSwal();
 
 const stockEntrance = useRepo(StockEntrance);
 
 export default {
   // Axios API call
- apiSave(params: string) {
+  apiSave(params: string) {
     return api()
       .post('stockEntrance', params)
       .then((resp) => {
@@ -24,7 +25,8 @@ export default {
           if (resp.data.length > 0) {
             this.get(offset);
           }
-        }).catch((error) => {
+        })
+        .catch((error) => {
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = [];
@@ -35,11 +37,11 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alert('Erro no registo', listErrors, null, null, null);
+            alertError('Erro no registo', listErrors);
           } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
+            alertError('Erro no registo', error.request);
           } else {
-            alert('Erro no registo', error.message, null, null, null);
+            alertError('Erro no registo', error.message);
           }
         });
     }
@@ -60,18 +62,17 @@ export default {
   },
 
   apiFetchById(id: string) {
-    return api().get(
-      '/inventory/' + id ) .then((resp) => {
+    return api()
+      .get('/inventory/' + id)
+      .then((resp) => {
         stockEntrance.save(resp.data);
-      if (resp.data.length > 0) {
-        setTimeout(this.get, 2);
-      }
-    });
+        if (resp.data.length > 0) {
+          setTimeout(this.get, 2);
+        }
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {
     return stockEntrance.getModel().$newInstance();
   },
-  
-
 };

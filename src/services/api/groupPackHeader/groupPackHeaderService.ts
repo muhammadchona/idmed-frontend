@@ -40,6 +40,22 @@ export default {
         groupPackHeader.destroy(id);
       });
   },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/groupPackHeader/${id}`);
+  },
+
+  async apiSave(groupPackHeader: any) {
+    return await api().post('/groupPackHeader', groupPackHeader);
+  },
+
+  async apiUpdate(groupPackHeader: any) {
+    return await api().post('/groupPackHeader', groupPackHeader);
+  },
+
+  async apiDelete(groupPackHeader: any) {
+    return await api().delete(`/groupPackHeader/${groupPackHeader.id}`);
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return groupPackHeader.getModel().$newInstance();

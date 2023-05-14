@@ -40,6 +40,29 @@ export default {
         groupMemberPrescription.destroy(id);
       });
   },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/groupMemberPrescription/${id}`);
+  },
+
+  async apiFetchByMemberId(id: string) {
+    return await api().get(`/groupMemberPrescription/member/${id}`);
+  },
+
+  async apiSave(groupMemberPrescription: any) {
+    return await api().post(
+      '/groupMemberPrescription',
+      groupMemberPrescription
+    );
+  },
+
+  async apiUpdate(groupMemberPrescription: any) {
+    return await api().post(
+      '/groupMemberPrescription',
+      groupMemberPrescription
+    );
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return groupMemberPrescription.getModel().$newInstance();

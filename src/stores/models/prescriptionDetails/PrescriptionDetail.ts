@@ -4,7 +4,6 @@ import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen';
 import DispenseType from '../dispenseType/DispenseType';
 import TherapeuticLine from '../therapeuticLine/TherapeuticLine';
 import SpetialPrescriptionMotive from '../prescription/SpetialPrescriptionMotive';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PrescriptionDetail extends Model {
@@ -33,4 +32,7 @@ export default class PrescriptionDetail extends Model {
       ),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

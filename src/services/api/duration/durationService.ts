@@ -6,12 +6,9 @@ const duration = useRepo(Duration);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('duration', params)
-      .then((resp) => {
-        duration.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('duration', params);
+    duration.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,20 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('duration/' + id, params)
-      .then((resp) => {
-        duration.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('duration/' + id, params);
+    duration.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('duration/' + id)
-      .then(() => {
-        duration.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('duration/' + id);
+    duration.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/duration?offset=' + offset + '&max=' + max);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/duration/${id}`);
   },
   // Local Storage Pinia
   newInstanceEntity() {

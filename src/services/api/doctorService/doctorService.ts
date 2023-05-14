@@ -1,7 +1,8 @@
 import { Doctor } from 'src/stores/models/doctor/Doctor';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import { alert } from 'src/components/Shared/Dialog/Dialog';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+const { alertSucess, alertError, alertWarning } = useSwal();
 
 const doctor = useRepo(Doctor);
 
@@ -11,13 +12,7 @@ export default {
       .post('doctor', params)
       .then((resp) => {
         Doctor.save(resp.data);
-        alert(
-          'Sucesso!',
-          'O Registo foi efectuado com sucesso',
-          null,
-          null,
-          null
-        );
+        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -30,11 +25,11 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alert('Erro no registo', listErrors, null, null, null);
+          alertError('Erro no registo', listErrors);
         } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+          alertError('Erro no registo', error.request);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          alertError('Erro no registo', error.message);
         }
       });
   },
@@ -47,7 +42,7 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
-            setTimeout(this.get, 2)
+            setTimeout(this.get, 2);
           }
         })
         .catch((error) => {
@@ -61,11 +56,11 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alert('Erro no registo', listErrors, null, null, null);
+            alertError('Erro no registo', listErrors);
           } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
+            alertError('Erro no registo', error.request);
           } else {
-            alert('Erro no registo', error.message, null, null, null);
+            alertError('Erro no registo', error.message);
           }
         });
     }
@@ -75,13 +70,7 @@ export default {
       .patch('doctor/' + id, params)
       .then((resp) => {
         doctor.save(resp.data);
-        alert(
-          'Sucesso!',
-          'O Registo foi alterado com sucesso',
-          null,
-          null,
-          null
-        );
+        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -94,11 +83,11 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alert('Erro no registo', listErrors, null, null, null);
+          alertError('Erro no registo', listErrors);
         } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+          alertError('Erro no registo', error.request);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          alertError('Erro no registo', error.message);
         }
       });
   },

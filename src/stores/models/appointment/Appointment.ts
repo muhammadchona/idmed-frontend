@@ -15,4 +15,7 @@ export default class Appointment extends Model {
       patient: this.belongsTo(Patient, 'patient_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

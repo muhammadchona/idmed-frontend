@@ -1,5 +1,4 @@
 import { Model } from 'pinia-orm';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class SpetialPrescriptionMotive extends Model {
@@ -13,4 +12,7 @@ export default class SpetialPrescriptionMotive extends Model {
       description: this.attr(''),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

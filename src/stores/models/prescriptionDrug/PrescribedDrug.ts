@@ -1,7 +1,6 @@
 import { Model } from 'pinia-orm';
 import Drug from '../drug/Drug';
 import Prescription from '../prescription/Prescription';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PrescribedDrug extends Model {
@@ -24,4 +23,7 @@ export default class PrescribedDrug extends Model {
       drug: this.belongsTo(Drug, 'drug_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

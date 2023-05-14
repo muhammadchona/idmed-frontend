@@ -6,12 +6,9 @@ const prescribedDrug = useRepo(PrescribedDrug);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('prescribedDrug', params)
-      .then((resp) => {
-        prescribedDrug.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('prescribedDrug', params);
+    prescribedDrug.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,20 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('prescribedDrug/' + id, params)
-      .then((resp) => {
-        prescribedDrug.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('prescribedDrug/' + id, params);
+    prescribedDrug.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('prescribedDrug/' + id)
-      .then(() => {
-        prescribedDrug.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('prescribedDrug/' + id);
+    prescribedDrug.destroy(id);
+  },
+  async apiGetAllByPrescriptionId(prescriptionId: string) {
+    return await api().get('/prescribedDrug/prescription/' + prescriptionId);
+  },
+
+  async apiGetAll() {
+    return await api().get('/prescribedDrug?offset=' + 0 + '&max=' + 200);
   },
   // Local Storage Pinia
   newInstanceEntity() {

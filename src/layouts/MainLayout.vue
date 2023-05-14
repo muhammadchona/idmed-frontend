@@ -110,7 +110,7 @@
               <div class="row items-center no-wrap">
                 <q-avatar size="lg" icon="account_circle"> </q-avatar>
                 <div class="text-center q-pa-sm">
-                  {{ this.username }}
+                  {{ username }}
                 </div>
               </div>
             </template>
@@ -122,7 +122,7 @@
                 </q-item-section>
                 <q-item-section>
                   <q-item-label lines="1">
-                    <div class="">{{ this.username }}</div>
+                    <div class="">{{ username }}</div>
                   </q-item-label>
                 </q-item-section>
               </q-item>
@@ -185,116 +185,114 @@
   </q-layout>
 </template>
 
-<script>
-import { defineComponent, ref } from 'vue';
+<script setup>
+import { computed, onMounted, reactive, ref } from 'vue';
 import { Notify } from 'quasar';
-import SystemConfigs from '../store/models/systemConfigs/SystemConfigs.js';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import mixinutils from 'src/mixins/mixin-utils';
-import SynchronizationService from 'src/services/Synchronization/SynchronizationService';
+// import mixinplatform from 'src/mixins/mixin-system-platform';
+// import mixinutils from 'src/mixins/mixin-utils';
+// import SynchronizationService from 'src/services/Synchronization/SynchronizationService';
 import isOnline from 'is-online';
-// import schedule from 'node-schedule'
-import mixinEncryption from 'src/mixins/mixin-encryption';
+import { useMediaQuery } from '@vueuse/core';
+import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
+// import schedule from 'node-schedule';
+import clinicService from 'src/services/api/clinicService/clinicService';
+// import mixinEncryption from 'src/mixins/mixin-encryption';
 // import mixinIsOnline from 'src/mixins/mixin-is-online'
-const schedule = require('node-schedule');
-export default defineComponent({
-  name: 'MainLayout',
-  mixins: [mixinplatform, mixinEncryption, mixinutils],
-  setup() {
-    return {
-      leftDrawerOpen: false,
-      userInfoOpen: false,
-      onMainClick: '',
-      onItemClick: '',
-      username: localStorage.getItem('user'),
-      tab: ref('home'),
-      // menusVisible: true,
-      menusArray: [
-        'Tela Inicial',
-        'Pacientes',
-        'Grupos',
-        'Stock',
-        'Dashboard',
-        'Administracao',
-        'Migracao',
-      ],
-    };
-  },
-  mounted() {
-    console.log(this.website);
-    if (this.website) {
-      //  SystemConfigs.apiGetAll()
-    }
+// const schedule = require('node-schedule');
+// mixins: [mixinplatform, mixinEncryption, mixinutils],
+
+const leftDrawerOpen = ref(false);
+const userInfoOpen = ref(false);
+const onMainClick = ref('');
+const onItemClick = ref('');
+const username = ref(localStorage.getItem('user'));
+const tab = ref('home');
+const mobile = reactive(ref(false));
+const currClinic = reactive(ref(clinicService.newInstanceEntity()));
+// menusVisible: true,
+// const menusArray = ref([
+//   'Tela Inicial',
+//   'Pacientes',
+//   'Grupos',
+//   'Stock',
+//   'Dashboard',
+//   'Administracao',
+//   'Migracao',
+// ]);
+
+const isWebScreen = useMediaQuery('(min-width: 1024px)');
+const isWeb = computed(() => (isWebScreen.value ? true : false));
+
+onMounted(() => {
+  if (isWeb.value) {
+    mobile.value = false;
+    systemConfigsService.apiGetAll();
     // this.getRolesToMenu()
-    if (this.mobile) {
-      this.schedulerSync();
-    }
-  },
-  computed: {
-    activateMigration() {
-      if (this.migrationConfig === null) return false;
-      return this.migrationConfig.value === 'true';
-    },
-    migrationConfig() {
-      return SystemConfigs.query()
-        .where('key', 'ACTIVATE_DATA_MIGRATION')
-        .first();
-    },
-  },
-  components: {},
-  methods: {
-    menusVisible(name) {
-      const menus = localStorage.getItem('role_menus');
-      if (menus !== null) {
-        if (!menus.includes(name)) {
-          return false;
-        } else {
-          return true;
-        }
-      }
-    },
-    schedulerSync() {
-      schedule.scheduleJob('0 * * * *', () => {
-        this.sync();
-      });
-    },
-    async sync() {
-      await isOnline().then((resp) => {
-        if (resp === true) {
-          if (localStorage.getItem('isSyncronizing') === 'true') {
-            Notify.create({
-              icon: 'announcement',
-              message: 'Já Existe uma sincronização em curso.',
-              type: 'warning',
-              progress: true,
-              timeout: 3000,
-              position: 'top',
-              color: 'warning',
-              textColor: 'white',
-              classes: 'glossy',
-            });
-          } else {
-            localStorage.setItem('isSyncronizing', 'true');
-            const userPass = localStorage.getItem('sync_pass');
-            const decryptedPass = this.decryptPlainText(userPass);
-            SynchronizationService.send(decryptedPass);
-          }
-        } else if (resp === false) {
-          Notify.create({
-            icon: 'announcement',
-            message:
-              'Nao Possui conectividade com a internet , Sincronização nao efectuda',
-            type: 'negative',
-            progress: true,
-            timeout: 3000,
-            position: 'top',
-            color: 'negative',
-            textColor: 'white',
-            classes: 'glossy',
-          });
-        }
-      });
-    },
-  },
+  } else {
+    mobile.value = true;
+    // schedulerSync();
+  }
 });
+
+const activateMigration = computed(() => {
+  if (migrationConfig.value === null) return false;
+  return migrationConfig.value.value === 'true';
+});
+const migrationConfig = computed(() => {
+  return systemConfigsService.getActiveDataMigration();
+});
+
+const menusVisible = (name) => {
+  const menus = localStorage.getItem('role_menus');
+  if (menus !== null) {
+    if (!menus.includes(name)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+};
+// const schedulerSync = () => {
+//   schedule.scheduleJob('0 * * * *', () => {
+//     sync();
+//   });
+// };
+
+const sync = async () => {
+  await isOnline().then((resp) => {
+    if (resp === true) {
+      if (localStorage.getItem('isSyncronizing') === 'true') {
+        Notify.create({
+          icon: 'announcement',
+          message: 'Já Existe uma sincronização em curso.',
+          type: 'warning',
+          progress: true,
+          timeout: 3000,
+          position: 'top',
+          color: 'warning',
+          textColor: 'white',
+          classes: 'glossy',
+        });
+      } else {
+        localStorage.setItem('isSyncronizing', 'true');
+        const userPass = localStorage.getItem('sync_pass');
+        // const decryptedPass = decryptPlainText(userPass);
+        // SynchronizationService.send(decryptedPass);
+      }
+    } else if (resp === false) {
+      Notify.create({
+        icon: 'announcement',
+        message:
+          'Nao Possui conectividade com a internet , Sincronização nao efectuda',
+        type: 'negative',
+        progress: true,
+        timeout: 3000,
+        position: 'top',
+        color: 'negative',
+        textColor: 'white',
+        classes: 'glossy',
+      });
+    }
+  });
+};
 </script>

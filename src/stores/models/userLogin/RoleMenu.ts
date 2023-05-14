@@ -10,4 +10,8 @@ export default class RoleMenu extends Model {
       menu_id: this.attr(null),
     };
   }
+
+  static piniaOptions = {
+    persist: true,
+  };
 }

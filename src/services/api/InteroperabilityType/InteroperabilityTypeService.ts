@@ -40,6 +40,16 @@ export default {
         interoperabilityType.destroy(id);
       });
   },
+
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/interoperabilityType?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/interoperabilityType/${id}`);
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return interoperabilityType.getModel().$newInstance();

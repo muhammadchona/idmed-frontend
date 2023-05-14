@@ -6,12 +6,9 @@ const adherenceScreening = useRepo(AdherenceScreening);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('adherenceScreening', params)
-      .then((resp) => {
-        adherenceScreening.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('adherenceScreening', params);
+    adherenceScreening.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,18 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('adherenceScreening/' + id, params)
-      .then((resp) => {
-        adherenceScreening.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('adherenceScreening/' + id, params);
+    adherenceScreening.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('adherenceScreening/' + id)
-      .then(() => {
-        adherenceScreening.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('adherenceScreening/' + id);
+    adherenceScreening.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/adherenceScreening?offset=' + offset + '&max=' + max
+    );
   },
   // Local Storage Pinia
   newInstanceEntity() {

@@ -1,5 +1,4 @@
 import { Model } from 'pinia-orm';
-import db from 'src/stores/localbase';
 export default class Menu extends Model {
   static entity = 'menus';
 
@@ -17,15 +16,7 @@ export default class Menu extends Model {
     };
   }
 
-  static async apiGetAll() {
-    return await this.api().get('/menu');
-  }
-
-  static localDbUpdateAll(menus) {
-    return db.newDb().collection('menus').set(menus);
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('menus').get();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

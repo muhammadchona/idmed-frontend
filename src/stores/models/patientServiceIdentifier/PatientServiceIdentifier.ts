@@ -4,7 +4,6 @@ import IdentifierType from '../identifierType/IdentifierType';
 import Patient from '../patient/Patient';
 import ClinicalService from '../ClinicalService/ClinicalService';
 import Clinic from '../clinic/Clinic';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientServiceIdentifier extends Model {
@@ -32,4 +31,7 @@ export default class PatientServiceIdentifier extends Model {
       clinic: this.belongsTo(Clinic, 'clinic_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

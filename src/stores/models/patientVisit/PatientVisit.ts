@@ -7,7 +7,6 @@ import AdherenceScreening from '../screening/AdherenceScreening';
 import VitalSignsScreening from '../screening/VitalSignsScreening';
 import Patient from '../patient/Patient';
 import Clinic from '../clinic/Clinic';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientVisit extends Model {
@@ -35,4 +34,7 @@ export default class PatientVisit extends Model {
       patient: this.belongsTo(Patient, 'patient_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

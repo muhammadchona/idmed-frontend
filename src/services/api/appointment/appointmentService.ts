@@ -6,12 +6,10 @@ const appointment = useRepo(Appointment);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('appointment', params)
-      .then((resp) => {
-        appointment.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('appointment', params);
+    appointment.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,15 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('appointment/' + id, params)
-      .then((resp) => {
-        appointment.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('appointment/' + id, params);
+    appointment.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('appointment/' + id)
-      .then(() => {
-        appointment.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('appointment/' + id);
+    appointment.destroy(id);
   },
   // Local Storage Pinia
   newInstanceEntity() {

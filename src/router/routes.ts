@@ -6,6 +6,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     beforeEnter(to, from, next) {
+      // next();
       const authUser = localStorage.getItem('user');
       if (authUser === null || String(authUser).includes('null')) {
         next('/Login');

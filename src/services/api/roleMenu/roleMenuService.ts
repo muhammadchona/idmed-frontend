@@ -6,12 +6,10 @@ const roleMenu = useRepo(RoleMenu);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('roleMenu', params)
-      .then((resp) => {
-        roleMenu.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('roleMenu', params);
+    roleMenu.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,15 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('roleMenu/' + id, params)
-      .then((resp) => {
-        roleMenu.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('roleMenu/' + id, params);
+    roleMenu.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('roleMenu/' + id)
-      .then(() => {
-        roleMenu.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('roleMenu/' + id);
+    roleMenu.destroy(id);
   },
   // Local Storage Pinia
   newInstanceEntity() {

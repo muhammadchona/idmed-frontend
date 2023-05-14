@@ -40,6 +40,27 @@ export default {
         group.destroy(id);
       });
   },
+  async apiFetchById(id: string) {
+    return await api().get(`/groupInfo/${id}`);
+  },
+
+  async apiSave(group: any) {
+    return await api().post('/groupInfo', group);
+  },
+
+  async apiUpdate(group: any) {
+    return await api().patch('/groupInfo/' + group.id, group);
+  },
+
+  async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
+    return await api().get(
+      '/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+
+  async apiValidateBeforeAdd(patientId: string, code: string) {
+    return await api().get(`/groupInfo/validadePatient/${patientId}/${code}`);
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return group.getModel().$newInstance();

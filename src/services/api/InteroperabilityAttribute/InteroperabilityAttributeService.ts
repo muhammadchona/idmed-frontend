@@ -6,12 +6,9 @@ const interoperabilityAttribute = useRepo(InteroperabilityAttribute);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('interoperabilityAttribute', params)
-      .then((resp) => {
-        interoperabilityAttribute.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('interoperabilityAttribute', params);
+    interoperabilityAttribute.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,19 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('interoperabilityAttribute/' + id, params)
-      .then((resp) => {
-        interoperabilityAttribute.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('interoperabilityAttribute/' + id, params);
+    interoperabilityAttribute.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('interoperabilityAttribute/' + id)
-      .then(() => {
-        interoperabilityAttribute.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('interoperabilityAttribute/' + id);
+    interoperabilityAttribute.destroy(id);
+  },
+
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/interoperabilityAttribute?offset=' + offset + '&max=' + max
+    );
   },
   // Local Storage Pinia
   newInstanceEntity() {

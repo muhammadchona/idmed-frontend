@@ -40,6 +40,10 @@ export default {
         groupType.destroy(id);
       });
   },
+
+  async apiGetAll() {
+    return await api().get('/groupType');
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return groupType.getModel().$newInstance();

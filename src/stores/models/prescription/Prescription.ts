@@ -6,7 +6,6 @@ import GroupMemberPrescription from '../group/GroupMemberPrescription';
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails';
 import PrescriptionDetail from '../prescriptionDetails/PrescriptionDetail';
 import PrescribedDrug from '../prescriptionDrug/PrescribedDrug';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class Prescription extends Model {
@@ -41,4 +40,7 @@ export default class Prescription extends Model {
       ),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

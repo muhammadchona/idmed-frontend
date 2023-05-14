@@ -1,7 +1,8 @@
 import { useRepo } from 'pinia-orm';
 import Drug from 'src/stores/models/drug/drug';
 import api from '../apiService/apiService';
-import { alert } from 'src/components/Shared/Dialog/Dialog';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+const { alertSucess, alertError, alertWarning } = useSwal();
 const drug = useRepo(Drug);
 
 export default {
@@ -10,13 +11,7 @@ export default {
       .post('drug', params)
       .then((resp) => {
         drug.save(resp.data);
-        alert(
-          'Sucesso!',
-          'O Registo foi efectuado com sucesso',
-          null,
-          null,
-          null
-        );
+        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       });
   },
   get(offset: number) {
@@ -37,13 +32,7 @@ export default {
       .patch('drug?id=eq.' + id, params)
       .then((resp) => {
         drug.save(JSON.parse(resp.config.data));
-        alert(
-          'Sucesso!',
-          'O Registo foi alterado com sucesso',
-          null,
-          null,
-          null
-        );
+        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       });
   },
   delete(id: number) {

@@ -1,47 +1,39 @@
-import { Query, useRepo } from 'pinia-orm';
-import Clinic from 'src/stores/models/clinic/clinic';
+import { useRepo } from 'pinia-orm';
+import Clinic from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
-import District from 'src/stores/models/district/district';
-import { alert } from 'src/components/Shared/Dialog/Dialog';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useStorage } from '@vueuse/core';
 
 const clinic = useRepo(Clinic);
 
+const { alertSucess, alertError, alertWarning } = useSwal();
+
 export default {
-  post(params: string) {
-    return api()
-      .post('clinic', params)
-      .then((resp) => {
-        const clinicData = JSON.parse(resp.config.data);
-        const restLocation = String(resp.headers.location);
-        const restId = restLocation.substring(restLocation.indexOf('.') + 1);
-        clinicData.id = Number(restId);
-        clinic.save(clinicData);
-        alert(
-          'Sucesso!',
-          'O Registo foi efectuado com sucesso',
-          null,
-          null,
-          null
-        );
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alert('Erro no registo', listErrors, null, null, null);
-        } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+  async post(params: string) {
+    try {
+      const resp = await api().post('clinic', params);
+      const clinicData = JSON.parse(resp.config.data);
+      clinic.save(clinicData);
+      useStorage('clinic', clinicData);
+      alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+    } catch (error: any) {
+      if (error.request != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        const listErrors = [];
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          arrayErrors._embedded.errors.forEach((element: any) => {
+            listErrors.push(element.message);
+          });
         }
-      });
+        alertError('Erro no registo', listErrors);
+      } else if (error.request) {
+        alertError('Erro no registo', error.request);
+      } else {
+        alertError('Erro no registo', error.message);
+      }
+    }
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -49,6 +41,7 @@ export default {
         .get('clinic?offset=' + offset + '&limit=100')
         .then((resp) => {
           clinic.save(resp.data);
+          useStorage('clinic', resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -61,87 +54,115 @@ export default {
             if (arrayErrors.total == null) {
               listErrors.push(arrayErrors.message);
             } else {
-              arrayErrors._embedded.errors.forEach((element) => {
+              arrayErrors._embedded.errors.forEach((element: any) => {
                 listErrors.push(element.message);
               });
             }
-            alert('Erro no registo', listErrors, null, null, null);
+            alertError('Erro no registo', listErrors);
           } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
+            alertError('Erro no registo', error.request);
           } else {
-            alert('Erro no registo', error.message, null, null, null);
+            alertError('Erro no registo', error.message);
           }
         });
     }
   },
-  patch(uid: string, params: string) {
-    return api()
-      .patch('clinic?uuid=eq.' + uid, params)
-      .then((resp) => {
-        clinic.save(JSON.parse(resp.config.data));
-        alert(
-          'Sucesso!',
-          'O Registo foi alterado com sucesso',
-          null,
-          null,
-          null
-        );
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alert('Erro no registo', listErrors, '', '', '');
-        } else if (error.request) {
-          alert('Erro no registo', error.request, '', '', '');
+  async patch(uid: string, params: string) {
+    try {
+      const resp = await api().patch('clinic?uuid=eq.' + uid, params);
+      clinic.save(JSON.parse(resp.config.data));
+      useStorage('clinic', JSON.parse(resp.config.data));
+      alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+    } catch (error: any) {
+      if (error.request != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        const listErrors = [];
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
         } else {
-          alert('Erro no registo', error.message, '', '', '');
+          arrayErrors._embedded.errors.forEach((element: any) => {
+            listErrors.push(element.message);
+          });
         }
-      });
+        alertError('Erro no registo', listErrors);
+      } else if (error.request) {
+        alertError('Erro no registo', error.request);
+      } else {
+        alertError('Erro no registo', error.message);
+      }
+    }
   },
-  delete(uuid: string) {
-    return api()
-      .delete('clinic?uuid=eq.' + uuid)
-      .then((resp) => {
-        clinic.destroy(uuid);
-        alert(
-          'Sucesso!',
-          'O Registo foi removido com sucesso',
-          null,
-          null,
-          null
-        );
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alert(
-            'Erro no registo',
-            'Esta farmácia tem pacientes assossiados e não pode ser removida',
-            null,
-            null,
-            null
-          );
-        } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+  async delete(uuid: string) {
+    try {
+      const resp = await api().delete('clinic?uuid=eq.' + uuid);
+      clinic.destroy(uuid);
+      alertSucess('Sucesso!', 'O Registo foi removido com sucesso');
+    } catch (error: any) {
+      if (error.request != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        const listErrors = [];
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          arrayErrors._embedded.errors.forEach((element: any) => {
+            listErrors.push(element.message);
+          });
         }
-      });
+        alertWarning(
+          'Alerta!',
+          'Esta farmácia tem pacientes assossiados e não pode ser removida'
+        );
+      } else if (error.request) {
+        alertError('Erro no registo', error.request);
+      } else {
+        alertError('Erro no registo', error.message);
+      }
+    }
   },
-}
+  apiFetchById(id: string) {
+    return api().get(`/clinic/${id}`);
+  },
+  apiFetchMainClinic() {
+    return api().get('/clinic/mainClinic');
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/clinic?offset=' + offset + '&max=' + max);
+  },
+  async apiGetByUUID(uuid: string) {
+    return await api().get('/clinic/uuid/' + uuid);
+  },
+  async apiSave(clinic: any) {
+    return await api().post('/clinic', clinic);
+  },
+  async apiUpdate(clinic: any) {
+    // return await api().post('/clinic', clinic)
+    return await api().patch('/clinic/' + clinic.id, clinic);
+  },
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return clinic.getModel().$newInstance();
+  },
+  getAllFromStorage() {
+    return clinic.all();
+  },
+  getClinicsByDistrictId(districtid: string) {
+    return clinic
+      .query()
+      .with('province')
+      .with('district')
+      .with('district.province')
+      .where('district_id', districtid)
+      .get();
+  },
+
+  currClinic() {
+    return clinic
+      .query()
+      .with('province.*')
+      .with('facilityType.*')
+      .with('district.*')
+      .with('sectors.*')
+      .where('mainClinic', true)
+      .first();
+  },
+};

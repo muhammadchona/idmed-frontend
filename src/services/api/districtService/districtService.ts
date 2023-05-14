@@ -1,42 +1,35 @@
 import { useRepo } from 'pinia-orm';
 import District from 'src/stores/models/district/District';
 import api from '../apiService/apiService';
-import { alert } from 'src/components/Shared/Dialog/Dialog';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+const { alertSucess, alertError, alertWarning } = useSwal();
 
 const district = useRepo(District);
 
 export default {
-  post(params: string) {
-    return api()
-      .post('district', params)
-      .then((resp) => {
-        district.save(resp.data);
-        alert(
-          'Sucesso!',
-          'O Registo foi efectuado com sucesso',
-          null,
-          null,
-          null
-        );
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alert('Erro no registo', listErrors, null, null, null);
-        } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+  async post(params: string) {
+    try {
+      const resp = await api().post('district', params);
+      district.save(resp.data);
+      alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+    } catch (error) {
+      if (error.request != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        const listErrors = [];
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          arrayErrors._embedded.errors.forEach((element) => {
+            listErrors.push(element.message);
+          });
         }
-      });
+        alertError('Erro no registo', listErrors);
+      } else if (error.request) {
+        alertError('Erro no registo', error.requestlistErrors);
+      } else {
+        alertError('Erro no registo', error.messagelistErrors);
+      }
+    }
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -47,7 +40,7 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
-            setTimeout(this.get, 2)
+            setTimeout(this.get, 2);
           }
         })
         .catch((error) => {
@@ -61,52 +54,51 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alert('Erro no registo', listErrors, null, null, null);
+            alertError('Erro no registo', listErrors);
           } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
+            alertError('Erro no registo', error.requestlistErrors);
           } else {
-            alert('Erro no registo', error.message, null, null, null);
+            alertError('Erro no registo', error.messagelistErrors);
           }
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('district/' + id, params)
-      .then((resp) => {
-        district.save(resp.data);
-        alert(
-          'Sucesso!',
-          'O Registo foi alterado com sucesso',
-          null,
-          null,
-          null
-        );
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = {};
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alert('Erro no registo', listErrors, null, null, null);
-        } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+  async patch(id: number, params: string) {
+    try {
+      const resp = await api().patch('district/' + id, params);
+      district.save(resp.data);
+      alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+    } catch (error) {
+      if (error.request != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        const listErrors = {};
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          arrayErrors._embedded.errors.forEach((element) => {
+            listErrors.push(element.message);
+          });
         }
-      });
+        alertError('Erro no registo', listErrors);
+      } else if (error.request) {
+        alertError('Erro no registo', error.requestlistErrors);
+      } else {
+        alertError('Erro no registo', error.messagelistErrors);
+      }
+    }
   },
-  delete(id: number) {
-    return api()
-      .delete('district/' + id)
-      .then(() => {
-        district.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('district/' + id);
+    district.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/district?offset=' + offset + '&max=' + max);
+  },
+  getAllDistrictByProvinceId(provinceid: string) {
+    return district
+      .query()
+      .with('province')
+      .where('province_id', provinceid)
+      .get();
   },
 };

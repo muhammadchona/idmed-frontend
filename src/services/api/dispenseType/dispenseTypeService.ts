@@ -6,12 +6,9 @@ const dispenseType = useRepo(DispenseType);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('dispenseType', params)
-      .then((resp) => {
-        dispenseType.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('dispenseType', params);
+    dispenseType.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +23,20 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('dispenseType/' + id, params)
-      .then((resp) => {
-        dispenseType.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('dispenseType/' + id, params);
+    dispenseType.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('dispenseType/' + id)
-      .then(() => {
-        dispenseType.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('dispenseType/' + id);
+    dispenseType.destroy(id);
+  },
+  async apiGetAll(offset: number, max: number) {
+    return await api().get('/dispenseType?offset=' + offset + '&max=' + max);
+  },
+
+  async apiFetchById(id: string) {
+    return await api().get(`/dispenseType/${id}`);
   },
   // Local Storage Pinia
   newInstanceEntity() {

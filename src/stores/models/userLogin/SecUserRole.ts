@@ -11,7 +11,7 @@ export default class SecUserRole extends Model {
     };
   }
 
-  static async apiSave(secUserRole: string) {
-    return await this.api().post('/secUserRole', secUserRole);
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

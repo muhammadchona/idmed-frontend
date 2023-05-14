@@ -22,40 +22,7 @@ export default class District extends Model {
       localidades: this.hasMany(Localidade, 'district_id'),
     };
   }
-
-  static async apiGetAll(offset, max) {
-    return await this.api().get('/district?offset=' + offset + '&max=' + max);
-  }
-
-  static localDbAdd(district) {
-    return db.newDb().collection('districts').add(district);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('districts').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('districts').get();
-  }
-
-  static localDbUpdate(district) {
-    return db
-      .newDb()
-      .collection('districts')
-      .doc({ id: district.id })
-      .set(district);
-  }
-
-  static localDbUpdateAll(districts) {
-    return db.newDb().collection('districts').set(districts);
-  }
-
-  static localDbDelete(district) {
-    return db.newDb().collection('districts').doc({ id: district.id }).delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('districts').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

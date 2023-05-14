@@ -6,12 +6,9 @@ const systemConfigs = useRepo(SystemConfigs);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('systemConfigs', params)
-      .then((resp) => {
-        systemConfigs.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('systemConfigs', params);
+    systemConfigs.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,25 +23,36 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('systemConfigs/' + id, params)
-      .then((resp) => {
-        systemConfigs.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('systemConfigs/' + id, params);
+    systemConfigs.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('systemConfigs/' + id)
-      .then(() => {
-        systemConfigs.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('systemConfigs/' + id);
+    systemConfigs.destroy(id);
   },
+  async apiFetchById(id: any) {
+    return await api().get(`/systemConfigs/${id}`);
+  },
+  async apiGetAll() {
+    return await api().get('/systemConfigs');
+  },
+  async apiSave(systemConfigs: any) {
+    return await api().post('/systemConfigs', systemConfigs);
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return systemConfigs.getModel().$newInstance();
   },
   getAllFromStorage() {
     return systemConfigs.all();
+  },
+
+  getActiveDataMigration() {
+    return systemConfigs
+      .query()
+      .where('key', 'ACTIVATE_DATA_MIGRATION')
+      .first();
   },
 };
