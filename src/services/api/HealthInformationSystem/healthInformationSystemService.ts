@@ -7,8 +7,7 @@ const healthInformationSystem = useRepo(HealthInformationSystem);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('healthInformationSystem', params);
+    const resp = await api().post('healthInformationSystem', params);
     healthInformationSystem.save(resp.data);
   },
   get(offset: number) {
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('healthInformationSystem/' + id, params);
+    const resp = await api().patch('healthInformationSystem/' + id, params);
     healthInformationSystem.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('healthInformationSystem/' + id);
+    await api().delete('healthInformationSystem/' + id);
     healthInformationSystem.destroy(id);
   },
 
@@ -56,7 +53,17 @@ export default {
   newInstanceEntity() {
     return healthInformationSystem.getModel().$newInstance();
   },
+  localSave(healthInformationSystem: any) {
+    healthInformationSystem.save(healthInformationSystem);
+  },
   getAllFromStorage() {
     return healthInformationSystem.all();
+  },
+  getAllWithActiveAtributtes() {
+    healthInformationSystem
+      .query()
+      .with('interoperabilityAttributes.*')
+      .where('active', true)
+      .all();
   },
 };

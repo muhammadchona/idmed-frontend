@@ -5,6 +5,7 @@ export function useSwal() {
     return swal({
       title: title,
       text: message,
+      
       icon: 'success',
       // buttons: 'Aceitar',
     });

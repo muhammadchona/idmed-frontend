@@ -1,14 +1,15 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Patient from 'src/stores/models/patient/Patient';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading } = useLoading();
 const patient = useRepo(Patient);
 
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('patient', params);
+    const resp = await api().post('patient', params);
     patient.save(resp.data);
   },
   get(offset: number) {
@@ -25,13 +26,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('patient/' + id, params);
+    const resp = await api().patch('patient/' + id, params);
     patient.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('patient/' + id);
+    await api().delete('patient/' + id);
     patient.destroy(id);
   },
 
@@ -45,6 +44,16 @@ export default {
 
   async apisearchByParam(searchParam: string, clinicId: string) {
     return await api().get(`/patient/searchByParam/${searchParam}/${clinicId}`);
+  },
+
+  async apiSearchPatientOnOpenMRS(
+    hisId: string,
+    nid: string,
+    encodeBase64: string
+  ) {
+    return await api().get(
+      '/patient/openmrsSearch/' + hisId + '/' + nid + '/' + encodeBase64
+    );
   },
 
   async apiSave(patient: any, isNew: boolean) {
