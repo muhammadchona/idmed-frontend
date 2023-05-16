@@ -130,18 +130,11 @@
 
 <script setup>
 /*imports*/
-// import Clinic from '../../../stores/models/clinic/Clinic';
-// import Province from '../../../stores/models/province/Province';
-// import District from '../../../stores/models/district/District';
 import { ref, inject, onMounted, computed } from 'vue';
-// import { v4 as uuidv4 } from 'uuid';
-// import FacilityType from '../../../stores/models/facilityType/FacilityType';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
 import facilityTypeService from 'src/services/api/facilityTypeService/facilityTypeService.ts';
 import districtService from 'src/services/api/districtService/districtService.ts';
-// import mixinplatform from 'src/mixins/mixin-system-platform';
-// import mixinutils from 'src/mixins/mixin-utils';
 
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
@@ -153,7 +146,6 @@ import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
 const databaseCodes = ref([]);
 const submitting = ref(false);
 const clinic = inject('clinic');
-// const stepp = inject('step');
 const selectedClinic = inject('clinic');
 const alert = ref({
   type: '',
@@ -196,9 +188,8 @@ const districts = computed(() => {
   }
 });
 
-/*Methods [Depois tirar daqui]*/
+/*Methods*/
 const extractDatabaseCodes = () => {
-  console.log(clinics.value);
   clinics.value.forEach((element) => {
     databaseCodes.value.push(element.code);
   });
@@ -211,175 +202,6 @@ const codeRules = (val) => {
     return databaseCodes.value.includes(val) || 'o Código indicado ja existe';
   }
 };
-
-// export default {
-//   // props: ['selectedClinic', 'onlyView', 'stepp'],
-//   // mixins: [mixinplatform, mixinutils],
-//   // data() {
-//   //   return {
-//   //     databaseCodes: [],
-//   //     submitting: false,
-//   //     clinic: new Clinic(),
-//   //     clinico: '',
-//   //     alert: ref({
-//   //       type: '',
-//   //       visible: false,
-//   //       msg: '',
-//   //     }),
-//   //   };
-//   // },
-
-//   mounted() { // vou usar injecvts
-//     // this.setStep(this.stepp);
-//     this.extractDatabaseCodes();
-//   },
-//   computed: {
-//     clinicos() {
-//       return Clinic.query()
-//         .with('province')
-//         .with('district.province')
-//         .with('facilityType')
-//         .has('code')
-//         .get();
-//     },
-//     provinces() {
-//       return Province.query().with('districts').has('code').get();
-//     },
-//     facilityTypes() {
-//       return FacilityType.all();
-//     },
-//     districts() {
-//       if (this.clinic.province !== null) {
-//         return District.query()
-//           .with('province')
-//           .where('province_id', this.clinic.province.id)
-//           .get();
-//       } else {
-//         return null;
-//       }
-//     },
-//   },
-//   methods: {
-//     validateClinic() {
-//       this.$refs.nome.$refs.ref.validate();
-//       this.$refs.code.$refs.ref.validate();
-//       this.$refs.province.validate();
-//       this.$refs.district.validate();
-//       this.$refs.facilityType.validate();
-
-//       if (
-//         !this.$refs.nome.$refs.ref.hasError &&
-//         !this.$refs.code.$refs.ref.hasError &&
-//         !this.$refs.facilityType.hasError &&
-//         !this.$refs.province.hasError &&
-//         !this.$refs.district.hasError
-//       ) {
-//         this.submitClinic();
-//       }
-//     },
-//     submitClinic() {
-//       this.clinic = new Clinic(JSON.parse(JSON.stringify(this.clinic)));
-//       this.submitting = true;
-//       this.clinic.mainClinic = 0;
-//       this.clinic.active = true;
-//       this.clinic.province.districts = [];
-//       if (this.clinic.uuid === null) this.clinic.uuid = uuidv4();
-//       if (this.mobile) {
-//         console.log(this.clinic);
-//         if (this.isCreateStep) {
-//           this.clinic.syncStatus = 'R';
-//           console.log(this.clinic);
-//           Clinic.localDbAdd(JSON.parse(JSON.stringify(this.clinic)));
-//           Clinic.insert({ data: this.clinic });
-//           this.displayAlert(
-//             'info',
-//             !this.isEditStep
-//               ? 'Farmácia Cadastrada Com Sucesso'
-//               : 'Farmácia actualizada com sucesso.'
-//           );
-//         } else {
-//           if (this.clinic.syncStatus !== 'R') this.clinic.syncStatus = 'U';
-//           const gclinicUpdate = new Clinic(
-//             JSON.parse(JSON.stringify(this.clinic))
-//           );
-//           Clinic.localDbUpdate(gclinicUpdate).then((clinicRes) => {
-//             Clinic.update({ data: gclinicUpdate });
-//             this.displayAlert(
-//               'info',
-//               !this.isEditStep
-//                 ? 'Farmácia Cadastrada Com Sucesso'
-//                 : 'Farmácia actualizada com sucesso.'
-//             );
-//           });
-//         }
-//       } else {
-//         if (this.isCreateStep) {
-//           console.log('Create Step_Online_Mode');
-//           Clinic.apiSave(this.clinic)
-//             .then((resp) => {
-//               this.submitting = false;
-//               this.displayAlert(
-//                 'info',
-//                 !this.isEditStep
-//                   ? 'Farmácia Cadastrada Com Sucesso'
-//                   : 'Farmácia actualizada com sucesso.'
-//               );
-//             })
-//             .catch((error) => {
-//               this.submitting = false;
-//               this.displayAlert('error', error);
-//             });
-//         } else {
-//           console.log('Edit Step_Online_Mode');
-//           Clinic.apiUpdate(this.clinic)
-//             .then((resp) => {
-//               this.submitting = false;
-//               this.displayAlert(
-//                 'info',
-//                 !this.isEditStep
-//                   ? 'Farmácia Cadastrada Com Sucesso'
-//                   : 'Farmácia actualizada com sucesso.'
-//               );
-//             })
-//             .catch((error) => {
-//               this.submitting = false;
-//               this.displayAlert('error', error);
-//             });
-//         }
-//       }
-//     },
-//     displayAlert(type, msg) {
-//       this.alert.type = type;
-//       this.alert.msg = msg;
-//       this.alert.visible = true;
-//     },
-//     closeDialog() {
-//       if (this.alert.type === 'info') {
-//         this.$emit('close');
-//       }
-//     },
-//     extractDatabaseCodes() {
-//       this.clinicos.forEach((element) => {
-//         this.databaseCodes.push(element.code);
-//       });
-//     },
-//     codeRules(val) {
-//       if (this.clinic.code === '') {
-//         return 'o Código e obrigatorio';
-//       } else if (!this.clinic.id && this.selectedClinic.id === this.clinic.id) {
-//         return (
-//           !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
-//         );
-//       }
-//     },
-//   },
-//   components: {
-//     nameInput: require('components/Shared/NameInput.vue').default,
-//     codeInput: require('components/Shared/CodeInput.vue').default,
-//     PhoneField: require('components/Shared/Input/PhoneField.vue').default,
-//     Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-//   },
-// };
 </script>
 
 <style>

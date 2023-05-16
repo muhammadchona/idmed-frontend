@@ -82,31 +82,12 @@
                 >
                   <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                 </q-btn>
-                <!-- <q-btn
-                  flat
-                  round
-                  class="q-ml-md"
-                  :color="getColorActive(props.row)"
-                  :icon="getIconActive(props.row)"
-                  @click.stop="promptToConfirm(props.row)"
-                  v-if="this.showAddButton"
-                >
-                  <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? 'Inactivar' : 'Activar'
-                  }}</q-tooltip>
-                </q-btn> -->
               </div>
             </q-td>
           </q-tr>
         </template>
       </q-table>
     </div>
-
-    <!-- <div class="absolute-bottomg" v-if="showAddButton">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <q-btn size="xl" fab icon="add" @click="addClinic" color="primary" />
-      </q-page-sticky>
-    </div> -->
 
     <q-dialog persistent v-model="showClinicRegistrationScreen">
       <addClinic
@@ -116,35 +97,20 @@
         @close="showClinicRegistrationScreen = false"
       />
     </q-dialog>
-    <!--
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog> -->
   </div>
 </template>
 <script setup>
 /*Imports*/
 import { useQuasar } from 'quasar';
-import Clinic from '../../../stores/models/clinic/Clinic';
 import { inject, ref, onMounted, computed } from 'vue';
-// // import mixinplatform from 'src/mixins/mixin-system-platform';
-// // import mixinutils from 'src/mixins/mixin-utils';
-// // import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
-import Province from 'src/stores/models/province/Province';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
-import stockService from 'src/services/api/stockService/StockService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-// /*Components Import*/
+/*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
-// import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
 
-// /*Variables*/
-// // mixins = [mixinplatform, mixinutils];
+/*Variables*/
 const { alertSucess, alertError, alertWarning } = useSwal();
 const $q = useQuasar();
 const showClinicRegistrationScreen = ref(false);
@@ -154,15 +120,7 @@ const step = inject('step');
 const clinic = inject('clinic');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
-// const configs = inject('systemConfigs');
-
-// const alert = ref({
-//           type = '',
-//           visible = false,
-//           msg = ''
-//         });
 const filter = ref('');
-// const showAddButton = ref(false);
 const columns = [
   {
     name: 'clinicName',
@@ -215,143 +173,13 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 
-// /*Methods*/
-// const getAllClinics = (offset) => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   Clinic.api()
-//     .get('/clinic?offset=' + offset + '&max=100')
-//     .then((resp) => {
-//       offset = offset + 100;
-//       if (resp.response.data.length > 0) {
-//         setTimeout(this.getAllClinics(offset), 2);
-//       } else {
-//         let listaFinal = [];
-//         let orderedList = [];
-//         const mapaListas = new Map();
-//         const clinics = Clinic.query()
-//           .with('province')
-//           .with('district.province')
-//           .with('facilityType')
-//           .has('code')
-//           .get();
-//         Province.all().forEach((prov) => {
-//           listaFinal = clinics
-//             .filter((x) => x.province.description === prov.description)
-//             .sort((a, b) => a.clinicName.localeCompare(b.clinicName));
-//           if (
-//             listaFinal.length > 0 &&
-//             prov !== 'undefined' &&
-//             prov !== undefined
-//           ) {
-//             mapaListas.set(prov.description, listaFinal);
-//           }
-//         });
-//         const ascMap = new Map([...mapaListas.entries()].sort());
-//         const lista = [...ascMap.values()];
-//         lista.forEach((item) => {
-//           orderedList = orderedList.concat(item);
-//         });
-//         this.clinics = orderedList;
-//         this.hideLoading();
-//       }
-//     })
-//     .catch((error) => {
-//       console.log(error);
-//     });
-// };
-// const getIconActive = (clinic) => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   if (clinic.active) {
-//     return 'stop_circle';
-//   } else if (!clinic.active) {
-//     return 'play_circle';
-//   }
-// };
-// const getColorActive = (clinic) => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   if (clinic.active) {
-//     return 'red';
-//   } else if (!clinic.active) {
-//     return 'green';
-//   }
-// };
-// const getTooltipClassv = (clinic) => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   if (clinic.active) {
-//     return 'bg-red-5';
-//   } else if (!clinic.active) {
-//     return 'bg-green-5';
-//   }
-// };
-// const editClinic = (clinicParam) => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   clinic.value = Object.assign({}, clinicParam);
-//   step.value = 'edit';
-//   showClinicRegistrationScreen.value = true;
-//   editMode.value = true;
-//   viewMode.value = false;
-// };
-// addClinic = () => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   clinic.value = new Clinic();
-//   step.value = 'create';
-//   showClinicRegistrationScreen.value = true;
-//   editMode.value = false;
-//   viewMode.value = false;
-// };
+/*Methods*/
 const visualizeClinic = (clinicParam) => {
-  // ESTE METODO DEVERA SAIR DAQUI
   clinic.value = Object.assign({}, clinicParam);
   viewMode.value = true;
   editMode.value = false;
   showClinicRegistrationScreen.value = true;
 };
-// const promptToConfirm = (clinic) => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   let msg = '';
-//   $q.dialog({
-//     title: 'Confirmação',
-//     message: clinic.active
-//       ? 'Deseja Inactivar a Farmácia?'
-//       : 'Deseja Activar a Farmácia?',
-//     cancel: true,
-//     persistent: true,
-//   }).onOk(() => {
-//     if (clinic.value.active) {
-//       clinic.value.active = false;
-//       msg = 'Farmácia inactivada com sucesso.';
-//     } else if (!clinic.value.active) {
-//       clinic.value.active = true;
-//       msg = 'Farmácia activada com sucesso.';
-//     }
-//     if (this.mobile) {
-//       if (clinic.value.syncStatus !== 'R') clinic.value.syncStatus = 'U';
-//       clinicService.localDbAdd(JSON.parse(JSON.stringify(clinic)));
-//       clinicService.insertOrUpdate({ data: clinic });
-//       displayAlert('info', msg);
-//     } else {
-//       Clinic.apiUpdate(clinic)
-//         .then((resp) => {
-//           this.displayAlert('info', msg);
-//         })
-//         .catch((error) => {
-//           this.displayAlert('error', error);
-//         });
-//     }
-//   });
-// };
-// const displayAlert = (type, msg) => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   alert.value.type = type;
-//   alert.value.msg = msg;
-//   alert.value.visible = true;
-// };
-// const closeDialog = () => {
-//   // ESTE METODO DEVERA SAIR DAQUI
-//   if (alert.value.type === 'info') {
-//     this.$emit('close');
-//   }
-// };
 
 /*Hooks*/
 const allProvinces = computed(() => {
@@ -370,15 +198,5 @@ const clinics = computed(() => {
 });
 onMounted(() => {
   clinicService.get(0);
-  // console.log(stockService.get(0));
-  // showAddButton.value = true;
 });
-// onMounted(async () => {
-//   showloading();
-//   const offset = 0;
-//   getAllClinics(offset);
-//   if (configs.value === 'PROVINCIAL') {
-//     showAddButton.value = true;
-//   }
-// });
 </script>
