@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios, { Axios } from 'axios';
+import UsersService from 'src/services/UsersService';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -9,41 +10,76 @@ const instance = axios.create({
 
 let numTries = 0;
 // Request interceptor for API calls
-axios.interceptors.request.use(
-  async (config: any) => {
-    config.headers = {
+instance.interceptors.request.use(
+  (request) => {
+    const userloged = localStorage.getItem('user');
+    request.headers = {
       Accept: 'application/json',
     };
     if (
-      config.url === '/province' ||
-      config.url === '/district' ||
-      config.url.includes('/clinic/district') ||
-      config.url === '/systemConfigs' ||
-      config.url === '/menu' ||
-      config.url.includes('/clinic/uuid')
+      request.url === '/province' ||
+      request.url === '/district' ||
+      request.url.includes('/clinic/district') ||
+      request.url === '/systemConfigs' ||
+      request.url === '/menu' ||
+      request.url.includes('/clinic/uuid')
     ) {
-      delete config.headers.Authorization;
-    } else if (localStorage.getItem('id_token') != null) {
-      config.headers['X-Auth-Token'] = [
-        '',
-        localStorage.getItem('id_token'),
-      ].join(' ');
+      delete request.headers.Authorization;
+    } else if (userloged != null && userloged != 'null') {
+      const localuser = UsersService.getUserByUserName(String(userloged));
+      request.headers['X-Auth-Token'] = ['', localuser.access_token].join(' ');
     } else {
-      delete config.headers.Authorization; // ["Authorization"]
+      delete request.headers.Authorization;
     }
-    return config;
+    return request;
   },
   (error) => {
     Promise.reject(error);
   }
 );
+// axios.interceptors.request.use(
+//   (config) => {
+//     config.headers = {
+//       Accept: 'application/json',
+//     };
+//     console.log('Utilizador 2', userloged);
+//     if (
+//       config.url === '/province' ||
+//       config.url === '/district' ||
+//       config.url.includes('/clinic/district') ||
+//       config.url === '/systemConfigs' ||
+//       config.url === '/menu' ||
+//       config.url.includes('/clinic/uuid')
+//     ) {
+//       delete config.headers.Authorization;
+//     } else if (userloged != null) {
+//       const localuser = UsersService.getUserByUserName(String(userloged));
+//       config.headers['X-Auth-Token'] = [
+//         '',
+//         localuser.access_token,
+//         // localStorage.getItem('id_token'),
+//       ].join(' ');
+//     } else {
+//       delete config.headers.Authorization; // ["Authorization"]
+//     }
+//     return config;
+//   },
+//   (error) => {
+//     console.log('Utilizador 3', userloged);
+//     Promise.reject(error);
+//   }
+// );
 
 // Response interceptor for API calls
 axios.interceptors.response.use(
   (response) => {
+    console.log('Utilizador 4', userloged);
+
     return response;
   },
   async function (error) {
+    console.log('Utilizador 5', userloged);
+
     const originalRequest = error.config;
     // const rToken = localStorage.getItem('id_token')
     const rToken = localStorage.getItem('refresh_token');

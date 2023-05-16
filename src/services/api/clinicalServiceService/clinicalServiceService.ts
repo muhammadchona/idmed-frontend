@@ -98,4 +98,12 @@ export default {
         clinicalService.destroy(id);
       });
   },
+
+  getByIdentifierTypeCode(identifierTypeCode: string) {
+    clinicalService
+      .query()
+      .with('identifierType')
+      .where('code', identifierTypeCode)
+      .first();
+  },
 };

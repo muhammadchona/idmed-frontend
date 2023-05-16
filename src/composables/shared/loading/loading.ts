@@ -1,4 +1,5 @@
 import {
+  Loading,
   useQuasar,
   QSpinnerGears,
   QSpinnerFacebook,
@@ -15,7 +16,7 @@ export function useLoading() {
     backgroundColor: string,
     message: string
   ) {
-    return $q.loading.show({
+    return Loading.show({
       spinner: QSpinnerGears,
       spinnerColor: spinnerColor,
       spinnerSize: spinnerSize,
@@ -32,7 +33,7 @@ export function useLoading() {
     backgroundColor: string,
     message: string
   ) {
-    return $q.loading.show({
+    return Loading.show({
       spinner: QSpinnerFacebook,
       spinnerColor: spinnerColor,
       spinnerSize: spinnerSize,
@@ -43,7 +44,7 @@ export function useLoading() {
   }
 
   function showloading() {
-    return $q.loading.show({
+    return Loading.show({
       spinner: QSpinnerBall,
       spinnerColor: 'gray',
       spinnerSize: 140,
@@ -53,7 +54,7 @@ export function useLoading() {
   }
 
   function closeLoading() {
-    return $q.loading.hide();
+    return Loading.hide();
   }
 
   return { QSpinnerGearsShow, QSpinnerFacebookShow, closeLoading, showloading };
