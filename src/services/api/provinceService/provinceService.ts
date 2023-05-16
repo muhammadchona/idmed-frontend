@@ -12,10 +12,7 @@ export default {
       .post('province', params)
       .then((resp) => {
         province.save(resp.data);
-        alertSucess(
-          'Sucesso!',
-          'O Registo foi efectuado com sucesso',
-        );
+        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -28,7 +25,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-           alertError('Erro no registo', listErrors);
+          alertError('Erro no registo', listErrors);
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {
@@ -73,10 +70,7 @@ export default {
       .patch('province/' + id, params)
       .then((resp) => {
         province.save(resp.data);
-        alertSucess(
-          'Sucesso!',
-          'O Registo foi alterado com sucesso',
-        );
+        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -89,7 +83,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-           alertError('Erro no registo', listErrors);
+          alertError('Erro no registo', listErrors);
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {
@@ -114,6 +108,11 @@ export default {
 
   // Pinia LocalBase
   async apiGetAllWithDistricts() {
-    return province.query().with('districts').has('code').get();
+    // return province.query().with('districts').has('code').get();
+    return province.query().with('districts').get();
+  },
+
+  getAllProvinces() {
+    return province.query().with('districts').get();
   },
 };
