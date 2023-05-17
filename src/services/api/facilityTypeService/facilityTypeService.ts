@@ -97,4 +97,9 @@ export default {
     await api().delete('facilityType/' + id);
     facilityType.destroy(id);
   },
+
+  /*Pinia Methods*/
+  getAllFacilityTypes() {
+    return facilityType.query().get();
+  },
 };
