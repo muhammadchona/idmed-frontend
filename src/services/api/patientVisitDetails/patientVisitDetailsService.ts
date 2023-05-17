@@ -7,14 +7,13 @@ const patientVisitDetails = useRepo(PatientVisitDetails);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('patientVisitDetails', params);
+    const resp = await api().post('patientVisitDetails', params);
     patientVisitDetails.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('patientVisitDetails?offset=' + offset + '&limit=100')
+        .get('patientVisitDetails?offset=' + offset + '&max=100')
         .then((resp) => {
           patientVisitDetails.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('patientVisitDetails/' + id, params);
+    const resp = await api().patch('patientVisitDetails/' + id, params);
     patientVisitDetails.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('patientVisitDetails/' + id);
+    await api().delete('patientVisitDetails/' + id);
     patientVisitDetails.destroy(id);
   },
 

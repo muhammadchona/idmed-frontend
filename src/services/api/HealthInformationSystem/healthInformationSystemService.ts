@@ -1,7 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import HealthInformationSystem from 'src/stores/models/healthInformationSystem/HealthInformationSystem';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
 const healthInformationSystem = useRepo(HealthInformationSystem);
 
 export default {
@@ -13,12 +15,14 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('healthInformationSystem?offset=' + offset + '&limit=100')
+        .get('healthInformationSystem?offset=' + offset + '&max=100')
         .then((resp) => {
           healthInformationSystem.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }
@@ -53,17 +57,16 @@ export default {
   newInstanceEntity() {
     return healthInformationSystem.getModel().$newInstance();
   },
-  localSave(healthInformationSystem: any) {
-    healthInformationSystem.save(healthInformationSystem);
+  localSave(healtSystem: any) {
+    healthInformationSystem.save(healtSystem);
   },
   getAllFromStorage() {
     return healthInformationSystem.all();
   },
-  getAllWithActiveAtributtes() {
-    healthInformationSystem
-      .query()
-      .with('interoperabilityAttributes.*')
+  getAllActive() {
+    return healthInformationSystem
+      .with('interoperabilityAttributes')
       .where('active', true)
-      .all();
+      .get();
   },
 };

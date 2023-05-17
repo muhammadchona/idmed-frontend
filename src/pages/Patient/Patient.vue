@@ -1,6 +1,6 @@
 <template>
   <div>
-    <search v-if="isSearch" @goToPatientPanel="showSelected" />
+    <search v-if="isSearch" />
     <!-- <PatientPanel :selectedPatient="currPatient" v-if="isPatientDetails" /> -->
   </div>
 </template>
@@ -8,29 +8,44 @@
 <script setup>
 import { computed, onMounted, provide, reactive, ref } from 'vue';
 // import Patient from '../../store/models/patient/Patient';
-import patientService from 'src/services/api/patientService/patientService';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import search from 'components/Patient/Search.vue';
 import Patient from 'src/stores/models/patient/Patient';
+import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
+import { useLoading } from 'src/composables/shared/loading/loading';
 // import PatientPanel from 'src/pages/Patient/Panel/PatientPanel.vue';
 
+const { showloading, closeLoading } = useLoading();
 const isSearch = reactive(ref(true));
 const isPatientDetails = reactive(ref(false));
 const currPatient = reactive(ref(new Patient()));
 
-const { closeLoading, showloading } = useLoading();
-
 onMounted(() => {
   showloading();
-  patientService.get(0);
+  saveDefaultHIS();
 });
 
 const clinic = computed(() => {
   return clinicService.currClinic();
 });
 
+const dataSources = computed(() => {
+  return healthInformationSystemService.getAllActive();
+});
+
+const saveDefaultHIS = () => {
+  const defaultHIS = {
+    id: '-1',
+    abbreviation: 'iDMED',
+    description: 'iDMED',
+    active: true,
+  };
+  healthInformationSystemService.localSave(defaultHIS);
+  closeLoading();
+};
+
 provide('clinic', clinic);
+provide('dataSources', dataSources);
 provide('currPatient', currPatient);
 provide('isSearch', isSearch);
 provide('isPatientDetails', isPatientDetails);

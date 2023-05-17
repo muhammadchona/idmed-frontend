@@ -13,7 +13,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('patientTransReference?offset=' + offset + '&limit=100')
+        .get('patientTransReference?offset=' + offset + '&max=100')
         .then((resp) => {
           patientTransReference.save(resp.data);
           offset = offset + 100;

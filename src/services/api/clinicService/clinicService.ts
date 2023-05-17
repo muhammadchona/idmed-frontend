@@ -4,8 +4,10 @@ import Clinic from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useStorage } from '@vueuse/core';
+import { useLoading } from 'src/composables/shared/loading/loading';
 import provinceService from '../provinceService/provinceService';
 
+const { closeLoading, showloading } = useLoading();
 const clinic = useRepo(Clinic);
 
 const { alertSucess, alertError, alertWarning } = useSwal();
@@ -29,7 +31,7 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no registo', listErrors);
+        alertError('Erro no porcessamento', String(listErrors));
       } else if (error.request) {
         alertError('Erro no registo', error.request);
       } else {
@@ -43,10 +45,11 @@ export default {
         .get('clinic?offset=' + offset + '&max=100')
         .then((resp) => {
           clinic.save(resp.data);
-          useStorage('clinic', resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {
@@ -60,7 +63,7 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no registo', listErrors);
+            alertError('Erro no porcessamento', String(listErrors));
           } else if (error.request) {
             alertError('Erro no registo', error.request);
           } else {
@@ -86,7 +89,7 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no registo', listErrors);
+        alertError('Erro no porcessamento', String(listErrors));
       } else if (error.request) {
         alertError('Erro no registo', error.request);
       } else {

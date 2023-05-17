@@ -1,44 +1,39 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import InteroperabilityType from 'src/stores/models/interoperabilityType/InteroperabilityType';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
 const interoperabilityType = useRepo(InteroperabilityType);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('interoperabilityType', params)
-      .then((resp) => {
-        interoperabilityType.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('interoperabilityType', params);
+    interoperabilityType.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('interoperabilityType?offset=' + offset + '&limit=100')
+        .get('interoperabilityType?offset=' + offset + '&max=100')
         .then((resp) => {
           interoperabilityType.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('interoperabilityType/' + id, params)
-      .then((resp) => {
-        interoperabilityType.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('interoperabilityType/' + id, params);
+    interoperabilityType.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('interoperabilityType/' + id)
-      .then(() => {
-        interoperabilityType.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('interoperabilityType/' + id);
+    interoperabilityType.destroy(id);
   },
 
   async apiGetAll(offset: number, max: number) {

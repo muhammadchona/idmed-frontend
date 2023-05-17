@@ -13,7 +13,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('patientServiceIdentifier?offset=' + offset + '&limit=100')
+        .get('patientServiceIdentifier?offset=' + offset + '&max=100')
         .then((resp) => {
           patientServiceIdentifier.save(resp.data);
           offset = offset + 100;

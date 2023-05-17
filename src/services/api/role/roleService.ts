@@ -7,14 +7,13 @@ const role = useRepo(Role);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('role', params);
+    const resp = await api().post('role', params);
     role.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('role?offset=' + offset + '&limit=100')
+        .get('role?offset=' + offset + '&max=100')
         .then((resp) => {
           role.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('role/' + id, params);
+    const resp = await api().patch('role/' + id, params);
     role.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('role/' + id);
+    await api().delete('role/' + id);
     role.destroy(id);
   },
 

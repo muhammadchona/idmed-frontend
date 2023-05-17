@@ -13,7 +13,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('rAMScreening?offset=' + offset + '&limit=100')
+        .get('rAMScreening?offset=' + offset + '&max=100')
         .then((resp) => {
           rAMScreening.save(resp.data);
           offset = offset + 100;

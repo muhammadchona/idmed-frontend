@@ -16,7 +16,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('patientAttribute?offset=' + offset + '&limit=100')
+        .get('patientAttribute?offset=' + offset + '&max=100')
         .then((resp) => {
           patientAttribute.save(resp.data);
           offset = offset + 100;

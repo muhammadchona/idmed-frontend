@@ -16,7 +16,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('attributeType?offset=' + offset + '&limit=100')
+        .get('attributeType?offset=' + offset + '&max=100')
         .then((resp) => {
           attributeType.save(resp.data);
           offset = offset + 100;

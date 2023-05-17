@@ -2,8 +2,10 @@ import { useRepo } from 'pinia-orm';
 import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-const { alertSucess, alertError, alertWarning } = useSwal();
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
+const { alertSucess, alertError, alertWarning } = useSwal();
 const clinicalService = useRepo(ClinicalService);
 
 export default {
@@ -25,7 +27,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no registo', listErrors);
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {
@@ -36,16 +38,19 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('clinicalService?offset=' + offset + '&limit=100')
+        .get('clinicalService?offset=' + offset + '&max=100')
         .then((resp) => {
           clinicalService.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
             setTimeout(this.get, 2);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {
+          closeLoading;
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = {};
@@ -56,7 +61,7 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no registo', listErrors);
+            alertError('Erro no porcessamento', String(listErrors));
           } else if (error.request) {
             alertError('Erro no registo', error.request);
           } else {
@@ -83,7 +88,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no registo', listErrors);
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {

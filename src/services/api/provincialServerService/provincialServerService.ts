@@ -1,5 +1,5 @@
 import { useRepo } from 'pinia-orm';
-import ClinicSectorType from 'src/stores/models/clinicSectorType/ClinicSectorType';
+import ProvincialServer from 'src/stores/models/provincialServer/ProvincialServer';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -7,13 +7,13 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 
-const clinicSectorType = useRepo(ClinicSectorType);
+const provincialServer = useRepo(ProvincialServer);
 
 export default {
   async post(params: string) {
     try {
-      const resp = await api().post('clinicSectorType', params);
-      clinicSectorType.save(resp.data);
+      const resp = await api().post('provincialServer', params);
+      provincialServer.save(resp.data);
       alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -37,9 +37,9 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('clinicSectorType?offset=' + offset + '&max=100')
+        .get('provincialServer?offset=' + offset + '&max=100')
         .then((resp) => {
-          clinicSectorType.save(resp.data);
+          provincialServer.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -70,8 +70,8 @@ export default {
   },
   async patch(id: number, params: string) {
     try {
-      const resp = await api().patch('clinicSectorType/' + id, params);
-      clinicSectorType.save(resp.data);
+      const resp = await api().patch('provincialServer/' + id, params);
+      provincialServer.save(resp.data);
       alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -83,8 +83,8 @@ export default {
           arrayErrors._embedded.errors.forEach((element) => {
             listErrors.push(element.message);
           });
-          alertError('Erro no porcessamento', String(listErrors));
         }
+        alertError('Erro no porcessamento', String(listErrors));
       } else if (error.request) {
         alertError('Erro no registo', error.request);
       } else {
@@ -93,12 +93,21 @@ export default {
     }
   },
   async delete(id: number) {
-    await api().delete('clinicSectorType/' + id);
-    clinicSectorType.destroy(id);
+    await api().delete('provincialServer/' + id);
+    provincialServer.destroy(id);
+  },
+  async apiFetchById(id) {
+    return await api().get(`/provincialServer/${id}`);
   },
 
-  /*Pinia Methods*/
-  getAllClinicSectorTypes() {
-    return clinicSectorType.withAll().get();
+  async apiGetAll(offset: number, max: number) {
+    return await api().get(
+      '/provincialServer?offset=' + offset + '&max=' + max
+    );
+  },
+
+  // Pinia LocalBase
+  async apiGetAllWithDistricts() {
+    return provincialServer.query().with('districts').has('code').get();
   },
 };

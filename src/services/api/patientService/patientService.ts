@@ -3,7 +3,7 @@ import api from '../apiService/apiService';
 import Patient from 'src/stores/models/patient/Patient';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const patient = useRepo(Patient);
 
 export default {
@@ -15,13 +15,18 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('patient?offset=' + offset + '&limit=100')
+        .get('patient?offset=' + offset + '&max=100')
         .then((resp) => {
           patient.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
+        })
+        .catch((error) => {
+          closeLoading();
         });
     }
   },
@@ -39,7 +44,21 @@ export default {
   },
 
   async apiSearch(patient: any) {
-    return await api().post('/patient/search', patient);
+    let offset = 0;
+    return await api()
+      .post('/patient/search', patient)
+      .then((resp) => {
+        patient.save(resp.data);
+        offset = offset + 100;
+        if (resp.data.length > 0) {
+          this.get(offset);
+        } else {
+          closeLoading();
+        }
+      })
+      .catch((error) => {
+        closeLoading();
+      });
   },
 
   async apisearchByParam(searchParam: string, clinicId: string) {
@@ -53,6 +72,12 @@ export default {
   ) {
     return await api().get(
       '/patient/openmrsSearch/' + hisId + '/' + nid + '/' + encodeBase64
+    );
+  },
+
+  async apiCheckOpenmRSisOn(hisId: string, encodeBase64: string) {
+    return await api().get(
+      '/patient/openmrsSession/' + hisId + '/' + encodeBase64
     );
   },
 
@@ -83,5 +108,29 @@ export default {
   },
   getAllFromStorage() {
     return patient.all();
+  },
+
+  getPatientSearchList() {
+    return (
+      patient
+        .query()
+        // .with([
+        //   'identifiers.identifierType',
+        //   'identifiers.service.identifierType',
+        //   'identifiers.clinic.province',
+        // ])
+        // .with('province')
+        // .with('attributes')
+        // .with('appointments')
+        // .with('district')
+        // .with('postoAdministrativo')
+        // .with('bairro')
+        // .with(['clinic.province', 'clinic.district.province'])
+        // .where('clinic_id', this.clinic.id)
+        .withAllRecursive(2)
+        .orderBy('firstNames')
+        .orderBy('identifiers.value', 'asc')
+        .get()
+    );
   },
 };
