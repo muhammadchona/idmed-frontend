@@ -80,7 +80,7 @@ export function usePatient() {
 
   function preferedIdentifierValue(patient: any) {
     if (patient.identifiers.length <= 0) return 'Sem identificador';
-    let preferedId = {} ;
+    let preferedId = {};
     Object.keys(patient.identifiers).forEach(
       function (k: any) {
         const id = patient.identifiers[k];

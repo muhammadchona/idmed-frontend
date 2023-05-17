@@ -7,14 +7,13 @@ const userRole = useRepo(UserRoles);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('userRole', params);
+    const resp = await api().post('userRole', params);
     userRole.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('userRole?offset=' + offset + '&limit=100')
+        .get('userRole?offset=' + offset + '&max=100')
         .then((resp) => {
           userRole.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('userRole/' + id, params);
+    const resp = await api().patch('userRole/' + id, params);
     userRole.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('userRole/' + id);
+    await api().delete('userRole/' + id);
     userRole.destroy(id);
   },
   // Local Storage Pinia

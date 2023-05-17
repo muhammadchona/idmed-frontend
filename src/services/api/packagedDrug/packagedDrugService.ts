@@ -13,7 +13,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('packagedDrug?offset=' + offset + '&limit=100')
+        .get('packagedDrug?offset=' + offset + '&max=100')
         .then((resp) => {
           packagedDrug.save(resp.data);
           offset = offset + 100;

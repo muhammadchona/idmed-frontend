@@ -16,7 +16,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('groupMemberPrescription?offset=' + offset + '&limit=100')
+        .get('groupMemberPrescription?offset=' + offset + '&max=100')
         .then((resp) => {
           groupMemberPrescription.save(resp.data);
           offset = offset + 100;

@@ -2,16 +2,19 @@ import { useRepo } from 'pinia-orm';
 import ClinicSector from 'src/stores/models/clinicSector/ClinicSector';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 
-const clinicsector = useRepo(ClinicSector);
+const clinicSector = useRepo(ClinicSector);
 
 export default {
   post(params: string) {
     return api()
-      .post('clinicsector', params)
+      .post('clinicSector', params)
       .then((resp) => {
-        clinicsector.save(resp.data);
+        clinicSector.save(resp.data);
         alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
@@ -25,7 +28,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no registo', listErrors);
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {
@@ -36,16 +39,19 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('clinicsector?offset=' + offset + '&limit=100')
+        .get('clinicSector?offset=' + offset + '&max=100')
         .then((resp) => {
-          clinicsector.save(resp.data);
+          clinicSector.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
             setTimeout(this.get, 2);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {
+          closeLoading();
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = {};
@@ -56,7 +62,7 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no registo', listErrors);
+            alertError('Erro no porcessamento', String(listErrors));
           } else if (error.request) {
             alertError('Erro no registo', error.request);
           } else {
@@ -67,9 +73,9 @@ export default {
   },
   patch(id: number, params: string) {
     return api()
-      .patch('clinicsector/' + id, params)
+      .patch('clinicSector/' + id, params)
       .then((resp) => {
-        clinicsector.save(resp.data);
+        clinicSector.save(resp.data);
         alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       })
       .catch((error) => {
@@ -83,7 +89,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no registo', listErrors);
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {
@@ -93,9 +99,9 @@ export default {
   },
   delete(id: number) {
     return api()
-      .delete('clinicsector/' + id)
+      .delete('clinicSector/' + id)
       .then(() => {
-        clinicsector.destroy(id);
+        clinicSector.destroy(id);
       });
   },
 };

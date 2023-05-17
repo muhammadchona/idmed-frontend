@@ -1,7 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import GroupType from 'src/stores/models/groupType/GroupType';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
 const groupType = useRepo(GroupType);
 
 export default {
@@ -16,12 +18,14 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('groupType?offset=' + offset + '&limit=100')
+        .get('groupType?offset=' + offset + '&max=100')
         .then((resp) => {
           groupType.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }

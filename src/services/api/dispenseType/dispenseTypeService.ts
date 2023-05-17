@@ -1,6 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import DispenseType from 'src/stores/models/dispenseType/DispenseType';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 const dispenseType = useRepo(DispenseType);
 
@@ -13,12 +16,14 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('dispenseType?offset=' + offset + '&limit=100')
+        .get('dispenseType?offset=' + offset + '&max=100')
         .then((resp) => {
           dispenseType.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }

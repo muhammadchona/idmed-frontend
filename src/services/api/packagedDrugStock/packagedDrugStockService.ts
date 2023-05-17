@@ -7,14 +7,13 @@ const packagedDrugStock = useRepo(PackagedDrugStock);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('packagedDrugStock', params);
+    const resp = await api().post('packagedDrugStock', params);
     packagedDrugStock.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('packagedDrugStock?offset=' + offset + '&limit=100')
+        .get('packagedDrugStock?offset=' + offset + '&max=100')
         .then((resp) => {
           packagedDrugStock.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('packagedDrugStock/' + id, params);
+    const resp = await api().patch('packagedDrugStock/' + id, params);
     packagedDrugStock.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('packagedDrugStock/' + id);
+    await api().delete('packagedDrugStock/' + id);
     packagedDrugStock.destroy(id);
   },
 

@@ -1,5 +1,5 @@
 import { useRepo } from 'pinia-orm';
-import ClinicSectorType from 'src/stores/models/clinicSectorType/ClinicSectorType';
+import Form from 'src/stores/models/form/Form';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -7,13 +7,13 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 
-const clinicSectorType = useRepo(ClinicSectorType);
+const form = useRepo(Form);
 
 export default {
   async post(params: string) {
     try {
-      const resp = await api().post('clinicSectorType', params);
-      clinicSectorType.save(resp.data);
+      const resp = await api().post('form', params);
+      form.save(resp.data);
       alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -37,9 +37,9 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('clinicSectorType?offset=' + offset + '&max=100')
+        .get('form?offset=' + offset + '&max=100')
         .then((resp) => {
-          clinicSectorType.save(resp.data);
+          form.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -70,8 +70,8 @@ export default {
   },
   async patch(id: number, params: string) {
     try {
-      const resp = await api().patch('clinicSectorType/' + id, params);
-      clinicSectorType.save(resp.data);
+      const resp = await api().patch('form/' + id, params);
+      form.save(resp.data);
       alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -83,8 +83,8 @@ export default {
           arrayErrors._embedded.errors.forEach((element) => {
             listErrors.push(element.message);
           });
-          alertError('Erro no porcessamento', String(listErrors));
         }
+        alertError('Erro no porcessamento', String(listErrors));
       } else if (error.request) {
         alertError('Erro no registo', error.request);
       } else {
@@ -93,7 +93,7 @@ export default {
     }
   },
   async delete(id: number) {
-    await api().delete('clinicSectorType/' + id);
-    clinicSectorType.destroy(id);
+    await api().delete('form/' + id);
+    form.destroy(id);
   },
 };

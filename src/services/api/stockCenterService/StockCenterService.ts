@@ -2,18 +2,18 @@ import { useRepo } from 'pinia-orm';
 import StockCenter from 'src/stores/models/stockcenter/StockCenter';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 
 const stockCenter = useRepo(StockCenter);
 
 export default {
   // Axios API call
-  apiSave(params: string) {
-    return api()
-      .post('stockCenter', params)
-      .then((resp) => {
-        stockCenter.save(resp.data);
-      });
+  async apiSave(params: string) {
+    const resp = await api().post('stockCenter', params);
+    stockCenter.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -24,6 +24,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {
@@ -37,7 +39,7 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no registo', listErrors);
+            alertError('Erro no porcessamento', String(listErrors));
           } else if (error.request) {
             alertError('Erro no registo', error.request);
           } else {
@@ -46,30 +48,21 @@ export default {
         });
     }
   },
-  apiUpdate(id: number, params: string) {
-    return api()
-      .patch('stockCenter/' + id, params)
-      .then((resp) => {
-        stockCenter.save(resp.data);
-      });
+  async apiUpdate(id: number, params: string) {
+    const resp = await api().patch('stockCenter/' + id, params);
+    stockCenter.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('stockCenter/' + id)
-      .then(() => {
-        stockCenter.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('stockCenter/' + id);
+    stockCenter.destroy(id);
   },
 
-  apiFetchById(id: string) {
-    return api()
-      .get('/stockCenter/' + id)
-      .then((resp) => {
-        stockCenter.save(resp.data);
-        if (resp.data.length > 0) {
-          setTimeout(this.get, 2);
-        }
-      });
+  async apiFetchById(id: string) {
+    const resp = await api().get('/stockCenter/' + id);
+    stockCenter.save(resp.data);
+    if (resp.data.length > 0) {
+      setTimeout(this.get, 2);
+    }
   },
   // Local Storage Pinia
   newInstanceEntity() {

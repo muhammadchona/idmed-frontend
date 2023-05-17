@@ -16,7 +16,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('groupMember?offset=' + offset + '&limit=100')
+        .get('groupMember?offset=' + offset + '&max=100')
         .then((resp) => {
           groupMember.save(resp.data);
           offset = offset + 100;

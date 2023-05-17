@@ -1,7 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Duration from 'src/stores/models/duration/Duration';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
 const duration = useRepo(Duration);
 
 export default {
@@ -13,12 +15,14 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('duration?offset=' + offset + '&limit=100')
+        .get('duration?offset=' + offset + '&max=100')
         .then((resp) => {
           duration.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }

@@ -7,14 +7,13 @@ const secUser = useRepo(SecUser);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('secUser', params);
+    const resp = await api().post('secUser', params);
     secUser.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('secUser?offset=' + offset + '&limit=100')
+        .get('secUser?offset=' + offset + '&max=100')
         .then((resp) => {
           secUser.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('secUser/' + id, params);
+    const resp = await api().patch('secUser/' + id, params);
     secUser.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('secUser/' + id);
+    await api().delete('secUser/' + id);
     secUser.destroy(id);
   },
   async apiGetAll(offset: number, max: number) {

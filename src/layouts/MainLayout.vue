@@ -21,7 +21,7 @@
                 class="text-bold text-italic"
                 style="font-family: 'Gill Sans'; font-size: 25px"
                 >{{
-                  currClinic !== undefined ? currClinic.clinicName : ''
+                  currClinic !== null ? currClinic.clinicName : ''
                 }}</q-item-label
               >
             </q-item-section>
@@ -208,7 +208,6 @@ const onItemClick = ref('');
 const username = ref(localStorage.getItem('user'));
 const tab = ref('home');
 const mobile = reactive(ref(false));
-const currClinic = reactive(ref(clinicService.newInstanceEntity()));
 // menusVisible: true,
 // const menusArray = ref([
 //   'Tela Inicial',
@@ -240,6 +239,10 @@ const activateMigration = computed(() => {
 });
 const migrationConfig = computed(() => {
   return systemConfigsService.getActiveDataMigration();
+});
+
+const currClinic = computed(() => {
+  return clinicService.currClinic();
 });
 
 const menusVisible = (name) => {
