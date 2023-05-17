@@ -1,8 +1,10 @@
+import { Province } from 'src/stores/models/province/Province';
 import { useRepo } from 'pinia-orm';
 import Clinic from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useStorage } from '@vueuse/core';
+import provinceService from '../provinceService/provinceService';
 
 const clinic = useRepo(Clinic);
 
@@ -155,6 +157,7 @@ export default {
       .get();
   },
 
+  /*PINIA*/
   currClinic() {
     return clinic
       .query()
@@ -164,5 +167,39 @@ export default {
       .with('sectors.*')
       .where('mainClinic', true)
       .first();
+  },
+
+  getAllClinics() {
+    return (
+      clinic
+        .query()
+        .with('province')
+        // .with('facilityType.*')
+        .with('district')
+        // .with('sectors.*')
+        // .where('mainClinic', true)
+        .get()
+    );
+  },
+
+  getAllClinicsOrdered(provinces: Province[], clinics: Clinic[]) {
+    let listaFinal = [];
+    let orderedList: any[] = [];
+    const mapaListas = new Map();
+
+    provinces.forEach((prov) => {
+      listaFinal = clinics
+        .filter((x) => x.province.description === prov.description)
+        .sort((a, b) => a.clinicName.localeCompare(b.clinicName));
+      if (listaFinal.length > 0 && prov !== undefined) {
+        mapaListas.set(prov.description, listaFinal);
+      }
+    });
+    const ascMap = new Map([...mapaListas.entries()].sort());
+    const lista = [...ascMap.values()];
+    lista.forEach((item) => {
+      orderedList = orderedList.concat(item);
+    });
+    return orderedList;
   },
 };

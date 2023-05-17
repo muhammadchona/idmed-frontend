@@ -98,4 +98,9 @@ export default {
         facilityType.destroy(id);
       });
   },
+
+  /*Pinia Methods*/
+  getAllFacilityTypes() {
+    return facilityType.query().get();
+  },
 };
