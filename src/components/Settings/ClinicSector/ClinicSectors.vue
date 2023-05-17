@@ -84,35 +84,38 @@
           size="xl"
           fab
           icon="add"
-          @click="addClinicSector"
+          @click="addClinicSectorr()"
           color="primary"
         />
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showClinicSectorRegistrationScreen">
-      <addClinicSector
-        :selectedClinicSector="clinicSector"
-        :editMode="editMode"
-        :stepp="step"
-        :onlyView="viewMode"
-        @close="showClinicSectorRegistrationScreen = false"
-      />
+      <addClinicSector @close="showClinicSectorRegistrationScreen = false" />
     </q-dialog>
+
+    <!--
     <q-dialog v-model="alert.visible">
       <Dialog :type="alert.type" @closeDialog="closeDialog">
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{ alert.msg }} </template>
       </Dialog>
-    </q-dialog>
+    </q-dialog> -->
   </div>
 </template>
-<script>
+<script setup>
+/*imports*/
 import { useQuasar } from 'quasar';
-import { ref } from 'vue';
+import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import mixinutils from 'src/mixins/mixin-utils';
+import clinicService from 'src/services/api/clinicService/clinicService.ts';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
+import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 
+/*components import*/
+import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
+// import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
+
+/*Declarations*/
 const columns = [
   {
     name: 'code',
@@ -143,134 +146,133 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-export default {
-  mixins: [mixinplatform, mixinutils],
-  data() {
-    const $q = useQuasar();
+const $q = useQuasar();
+const showClinicSectorRegistrationScreen = ref(false);
+const alert = ref({
+  type: '',
+  visible: false,
+  msg: '',
+});
+const filter = ref('');
+const clinicSector = reactive(ref(clinicSectorService.newInstanceEntity()));
 
-    return {
-      columns,
-      $q,
-      showClinicSectorRegistrationScreen: false,
-      editMode: false,
-      step: '',
-      viewMode: false,
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: '',
-      }),
-      filter: ref(''),
-    };
-  },
-  computed: {
-    clinicSectors() {
-      const clinics = ClinicSector.query().withAll().has('code').get();
-      this.hideLoading();
-      return clinics;
-    },
-  },
-  methods: {
-    getIconActive(clinicSector) {
-      if (clinicSector.active) {
-        return 'stop_circle';
-      } else if (!clinicSector.active) {
-        return 'play_circle';
-      }
-    },
-    getColorActive(clinicSector) {
-      if (clinicSector.active) {
-        return 'red';
-      } else if (!clinicSector.active) {
-        return 'green';
-      }
-    },
-    getTooltipClass(clinicSector) {
-      if (clinicSector.active) {
-        return 'bg-red-5';
-      } else if (!clinicSector.active) {
-        return 'bg-green-5';
-      }
-    },
-    editClinicSector(clinicSector) {
-      this.clinicSector = Object.assign({}, clinicSector);
-      this.step = 'edit';
-      this.showClinicSectorRegistrationScreen = true;
-      this.editMode = true;
-      this.viewMode = false;
-    },
-    addClinicSector() {
-      this.clinicSector = new ClinicSector();
-      this.step = 'create';
-      this.showClinicSectorRegistrationScreen = true;
-      this.editMode = false;
-      this.viewMode = false;
-    },
-    visualizeClinicSector(clinicSector) {
-      this.clinicSector = Object.assign({}, clinicSector);
-      this.viewMode = true;
-      this.showClinicSectorRegistrationScreen = true;
-      this.editMode = false;
-    },
-    promptToConfirm(clinicSector) {
-      this.$q
-        .dialog({
-          title: 'Confirmação',
-          message: clinicSector.active
-            ? 'Deseja Inactivar o Sector Clinico?'
-            : 'Deseja Activar o Sector Clinico?',
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          if (clinicSector.active) {
-            clinicSector.active = false;
-          } else if (!clinicSector.active) {
-            clinicSector.active = true;
-          }
-          console.log(clinicSector);
-          if (this.mobile) {
-            console.log('FrontEnd');
-            if (clinicSector.syncStatus !== 'R') clinicSector.syncStatus = 'U';
-            ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSector)));
-            ClinicSector.insertOrUpdate({ data: clinicSector });
-            this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-          } else {
-            console.log('BackEnd');
-            ClinicSector.apiUpdate(clinicSector)
-              .then((resp) => {
-                const operation = clinicSector.active
-                  ? 'activado'
-                  : 'inactivado';
-                this.displayAlert(
-                  'info',
-                  `Sector Clinico ${operation} com sucesso`
-                );
-              })
-              .catch((error) => {
-                this.displayAlert('error', error);
-              });
-          }
-        });
-    },
-    displayAlert(type, msg) {
-      this.alert.type = type;
-      this.alert.msg = msg;
-      this.alert.visible = true;
-    },
-    closeDialog() {
-      if (this.alert.type === 'info') {
-        this.$emit('close');
-      }
-    },
-  },
-  mounted() {
-    this.showloading();
-  },
-  components: {
-    addClinicSector:
-      require('components/Settings/ClinicSector/AddClinicSector.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-  },
+/*injects*/
+const step = inject('step');
+const editMode = inject('editMode');
+const viewMode = inject('viewMode');
+const currClinic = inject('currClinic');
+
+/*Hooks*/
+const clinicSectors = computed(() => {
+  return clinicSectorService.getAllClinicSectors();
+});
+
+/*provides*/
+provide('selectedClinicSector', clinicSector);
+provide('stepp', step);
+
+onMounted(() => {
+  //Pegar no backend as clinic Sectors
+  clinicSectorService.get(0);
+  clinicSectorTypeService.get(0);
+});
+
+/*Methods*/
+const getIconActive = (clinicSector) => {
+  if (clinicSector.active) {
+    return 'stop_circle';
+  } else if (!clinicSector.active) {
+    return 'play_circle';
+  }
 };
+const getColorActive = (clinicSector) => {
+  if (clinicSector.active) {
+    return 'red';
+  } else if (!clinicSector.active) {
+    return 'green';
+  }
+};
+const getTooltipClass = (clinicSector) => {
+  if (clinicSector.active) {
+    return 'bg-red-5';
+  } else if (!clinicSector.active) {
+    return 'bg-green-5';
+  }
+};
+const editClinicSector = (clinicSector) => {
+  this.clinicSector = Object.assign({}, clinicSector);
+  this.step = 'edit';
+  this.showClinicSectorRegistrationScreen = true;
+  this.editMode = true;
+  this.viewMode = false;
+};
+const addClinicSectorr = () => {
+  step.value = 'create';
+  showClinicSectorRegistrationScreen.value = true;
+  editMode.value = false;
+  viewMode.value = false;
+};
+const visualizeClinicSector = (clinicSector) => {
+  this.clinicSector = Object.assign({}, clinicSector);
+  this.viewMode = true;
+  this.showClinicSectorRegistrationScreen = true;
+  this.editMode = false;
+};
+const promptToConfirm = (clinicSector) => {
+  this.$q
+    .dialog({
+      title: 'Confirmação',
+      message: clinicSector.active
+        ? 'Deseja Inactivar o Sector Clinico?'
+        : 'Deseja Activar o Sector Clinico?',
+      cancel: true,
+      persistent: true,
+    })
+    .onOk(() => {
+      if (clinicSector.active) {
+        clinicSector.active = false;
+      } else if (!clinicSector.active) {
+        clinicSector.active = true;
+      }
+      console.log(clinicSector);
+      if (this.mobile) {
+        console.log('FrontEnd');
+        if (clinicSector.syncStatus !== 'R') clinicSector.syncStatus = 'U';
+        ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSector)));
+        ClinicSector.insertOrUpdate({ data: clinicSector });
+        this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      } else {
+        console.log('BackEnd');
+        ClinicSector.apiUpdate(clinicSector)
+          .then((resp) => {
+            const operation = clinicSector.active ? 'activado' : 'inactivado';
+            this.displayAlert(
+              'info',
+              `Sector Clinico ${operation} com sucesso`
+            );
+          })
+          .catch((error) => {
+            this.displayAlert('error', error);
+          });
+      }
+    });
+};
+const displayAlert = (type, msg) => {
+  this.alert.type = type;
+  this.alert.msg = msg;
+  this.alert.visible = true;
+};
+const closeDialog = () => {
+  if (this.alert.type === 'info') {
+    this.$emit('close');
+  }
+};
+
+// computed: {
+//   clinicSectors() {
+//     const clinics = ClinicSector.query().withAll().has('code').get();
+//     this.hideLoading();
+//     return clinics;
+//   },
+// },
 </script>

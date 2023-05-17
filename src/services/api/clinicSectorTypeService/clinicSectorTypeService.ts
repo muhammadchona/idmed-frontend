@@ -12,10 +12,7 @@ export default {
       .post('clinicSectorType', params)
       .then((resp) => {
         clinicSectorType.save(resp.data);
-        alertSucess(
-          'Sucesso!',
-          'O Registo foi efectuado com sucesso'
-        );
+        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -39,7 +36,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('clinicSectorType?offset=' + offset + '&limit=100')
+        .get('clinicSectorType?offset=' + offset + '&max=100')
         .then((resp) => {
           clinicSectorType.save(resp.data);
           offset = offset + 100;
@@ -60,11 +57,11 @@ export default {
               });
             }
             alertError('Erro no registo', listErrors);
-        } else if (error.request) {
-          alertError('Erro no registo', error.request);
-        } else {
-          alertError('Erro no registo', error.message);
-        }
+          } else if (error.request) {
+            alertError('Erro no registo', error.request);
+          } else {
+            alertError('Erro no registo', error.message);
+          }
         });
     }
   },
@@ -73,10 +70,7 @@ export default {
       .patch('clinicSectorType/' + id, params)
       .then((resp) => {
         clinicSectorType.save(resp.data);
-        alertSucess(
-          'Sucesso!',
-          'O Registo foi alterado com sucesso'
-        );
+        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -89,11 +83,12 @@ export default {
               listErrors.push(element.message);
             });
             alertError('Erro no registo', listErrors);
-          } else if (error.request) {
-            alertError('Erro no registo', error.request);
-          } else {
-            alertError('Erro no registo', error.message);
           }
+        } else if (error.request) {
+          alertError('Erro no registo', error.request);
+        } else {
+          alertError('Erro no registo', error.message);
+        }
       });
   },
   delete(id: number) {
@@ -102,5 +97,10 @@ export default {
       .then(() => {
         clinicSectorType.destroy(id);
       });
+  },
+
+  /*Pinia Methods*/
+  getAllClinicSectorTypes() {
+    return clinicSectorType.withAll().get();
   },
 };

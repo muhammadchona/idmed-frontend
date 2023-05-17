@@ -40,7 +40,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('clinic?offset=' + offset + '&limit=100')
+        .get('clinic?offset=' + offset + '&max=100')
         .then((resp) => {
           clinic.save(resp.data);
           useStorage('clinic', resp.data);
@@ -160,26 +160,22 @@ export default {
   /*PINIA*/
   currClinic() {
     return clinic
-      .query()
-      .with('province.*')
-      .with('facilityType.*')
-      .with('district.*')
-      .with('sectors.*')
-      .where('mainClinic', true)
+      .where('mainClinic', false)
+      .with('province')
+      .with('facilityType')
+      .with('district')
+      .with('sectors')
       .first();
   },
 
   getAllClinics() {
-    return (
-      clinic
-        .query()
-        .with('province')
-        // .with('facilityType.*')
-        .with('district')
-        // .with('sectors.*')
-        // .where('mainClinic', true)
-        .get()
-    );
+    return clinic
+      .query()
+      .with('province')
+      .with('facilityType')
+      .with('district')
+      .with('sectors')
+      .get();
   },
 
   getAllClinicsOrdered(provinces: Province[], clinics: Clinic[]) {
