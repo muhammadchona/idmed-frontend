@@ -7,14 +7,13 @@ const menu = useRepo(Menu);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('menu', params);
+    const resp = await api().post('menu', params);
     menu.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('menu?offset=' + offset + '&limit=100')
+        .get('menu?offset=' + offset + '&max=100')
         .then((resp) => {
           menu.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('menu/' + id, params);
+    const resp = await api().patch('menu/' + id, params);
     menu.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('menu/' + id);
+    await api().delete('menu/' + id);
     menu.destroy(id);
   },
 

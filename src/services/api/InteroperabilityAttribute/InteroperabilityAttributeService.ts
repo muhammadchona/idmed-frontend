@@ -1,7 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import InteroperabilityAttribute from 'src/stores/models/interoperabilityAttribute/InteroperabilityAttribute';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
 const interoperabilityAttribute = useRepo(InteroperabilityAttribute);
 
 export default {
@@ -13,12 +15,14 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('interoperabilityAttribute?offset=' + offset + '&limit=100')
+        .get('interoperabilityAttribute?offset=' + offset + '&max=100')
         .then((resp) => {
           interoperabilityAttribute.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }

@@ -16,7 +16,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('episode?offset=' + offset + '&limit=100')
+        .get('episode?offset=' + offset + '&max=100')
         .then((resp) => {
           episode.save(resp.data);
           offset = offset + 100;

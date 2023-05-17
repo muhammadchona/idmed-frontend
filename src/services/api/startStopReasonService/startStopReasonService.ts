@@ -1,7 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import StartStopReason from 'src/stores/models/startStopReason/StartStopReason';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
 const startStopReason = useRepo(StartStopReason);
 
 export default {
@@ -13,12 +15,14 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('startStopReason?offset=' + offset + '&limit=100')
+        .get('startStopReason?offset=' + offset + '&max=100')
         .then((resp) => {
           startStopReason.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }

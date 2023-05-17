@@ -16,7 +16,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('groupPackHeader?offset=' + offset + '&limit=100')
+        .get('groupPackHeader?offset=' + offset + '&max=100')
         .then((resp) => {
           groupPackHeader.save(resp.data);
           offset = offset + 100;

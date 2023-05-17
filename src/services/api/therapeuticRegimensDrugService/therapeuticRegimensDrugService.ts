@@ -25,7 +25,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no registo', listErrors);
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {
@@ -36,7 +36,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('therapeuticRegimensDrug?offset=' + offset + '&limit=100')
+        .get('therapeuticRegimensDrug?offset=' + offset + '&max=100')
         .then((resp) => {
           therapeuticRegimensDrug.save(resp.data);
           offset = offset + 100;
@@ -56,7 +56,7 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no registo', listErrors);
+            alertError('Erro no porcessamento', String(listErrors));
           } else if (error.request) {
             alertError('Erro no registo', error.request);
           } else {
@@ -83,7 +83,7 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no registo', listErrors);
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
           alertError('Erro no registo', error.request);
         } else {

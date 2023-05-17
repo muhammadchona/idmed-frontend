@@ -1,44 +1,39 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import DispenseMode from 'src/stores/models/dispenseMode/DispenseMode';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
 const dispenseMode = useRepo(DispenseMode);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('dispenseMode', params)
-      .then((resp) => {
-        dispenseMode.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api().post('dispenseMode', params);
+    dispenseMode.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('dispenseMode?offset=' + offset + '&limit=100')
+        .get('dispenseMode?offset=' + offset + '&max=100')
         .then((resp) => {
           dispenseMode.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('dispenseMode/' + id, params)
-      .then((resp) => {
-        dispenseMode.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api().patch('dispenseMode/' + id, params);
+    dispenseMode.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('dispenseMode/' + id)
-      .then(() => {
-        dispenseMode.destroy(id);
-      });
+  async delete(id: number) {
+    await api().delete('dispenseMode/' + id);
+    dispenseMode.destroy(id);
   },
   async apiGetAll() {
     return await api().get('/dispenseMode');

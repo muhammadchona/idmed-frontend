@@ -117,18 +117,25 @@
 // import mixinplatform from 'src/mixins/mixin-system-platform';
 // import mixinutils from 'src/mixins/mixin-utils';
 // import SynchronizationService from 'src/services/Synchronization/SynchronizationService';
-import { useMediaQuery } from '@vueuse/core';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useOnline } from 'src/composables/shared/loadParams/online';
+import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { computed, onMounted } from 'vue';
+import clinicService from 'src/services/api/clinicService/clinicService';
 // import clinicService from 'src/services/api/clinicService/clinicService';
 
 // mixins: [mixinplatform, mixinutils],
 // components: {},
 // methods: {
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const website = computed(() => (isWebScreen.value ? true : false));
+const { alertSucess, alertError, alertInfo } = useSwal();
+const { closeLoading, showloading } = useLoading();
+const { website, isDeskTop, isMobile } = useSystemUtils();
+
+const { loadSettingParams } = useOnline();
 
 const init = () => {
-  showloading()
+  showloading();
   if (website.value) {
     this.loadWebRegimensToVueX();
     this.loadWebDrugsToVueX();
@@ -154,11 +161,16 @@ const menusVisible = (name) => {
 };
 
 onMounted(() => {
+  if (website.value) {
+    showloading();
+    loadSettingParams();
+  }
   // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
   // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
   // init();
   setTimeout(() => {
     console.log(website.value);
+
     // if (isWeb.value) {
     //      console.log(this.isAppSyncDone);
     //   if (!this.isAppSyncDone) {
@@ -167,6 +179,7 @@ onMounted(() => {
     //     hideLoading();
     //   }
     // }
+    closeLoading();
   }, 3000);
 });
 </script>

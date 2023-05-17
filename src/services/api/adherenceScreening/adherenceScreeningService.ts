@@ -13,7 +13,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('adherenceScreening?offset=' + offset + '&limit=100')
+        .get('adherenceScreening?offset=' + offset + '&max=100')
         .then((resp) => {
           adherenceScreening.save(resp.data);
           offset = offset + 100;

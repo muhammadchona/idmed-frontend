@@ -37,7 +37,7 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no registo', listErrors);
+            alertError('Erro no porcessamento', String(listErrors));
           } else if (error.request) {
             alertError('Erro no registo', error.request);
           } else {

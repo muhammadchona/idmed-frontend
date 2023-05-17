@@ -13,7 +13,7 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('tBScreening?offset=' + offset + '&limit=100')
+        .get('tBScreening?offset=' + offset + '&max=100')
         .then((resp) => {
           tBScreening.save(resp.data);
           offset = offset + 100;

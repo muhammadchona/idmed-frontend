@@ -7,14 +7,13 @@ const pack = useRepo(Pack);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('pack', params);
+    const resp = await api().post('pack', params);
     pack.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('pack?offset=' + offset + '&limit=100')
+        .get('pack?offset=' + offset + '&max=100')
         .then((resp) => {
           pack.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('pack/' + id, params);
+    const resp = await api().patch('pack/' + id, params);
     pack.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('pack/' + id);
+    await api().delete('pack/' + id);
     pack.destroy(id);
   },
   async apiSave(pack: any) {

@@ -7,14 +7,13 @@ const userClinic = useRepo(UserClinics);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('userClinic', params);
+    const resp = await api().post('userClinic', params);
     userClinic.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('userClinic?offset=' + offset + '&limit=100')
+        .get('userClinic?offset=' + offset + '&max=100')
         .then((resp) => {
           userClinic.save(resp.data);
           offset = offset + 100;
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('userClinic/' + id, params);
+    const resp = await api().patch('userClinic/' + id, params);
     userClinic.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('userClinic/' + id);
+    await api().delete('userClinic/' + id);
     userClinic.destroy(id);
   },
   // Local Storage Pinia
