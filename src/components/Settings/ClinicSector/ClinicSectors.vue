@@ -148,7 +148,6 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-const $q = useQuasar();
 const showClinicSectorRegistrationScreen = ref(false);
 const filter = ref('');
 const clinicSector = reactive(ref(clinicSectorService.newInstanceEntity()));
@@ -166,6 +165,16 @@ const clinicSectors = computed(() => {
   return clinicSectorService.getAllClinicSectors();
 });
 
+onMounted(() => {
+  isEditStep.value = false;
+  isCreateStep.value = false;
+  step.value = '';
+  editMode.value = false;
+  viewMode.value = false;
+  clinicSectorService.get(0);
+  clinicSectorTypeService.get(0);
+});
+
 /*provides*/
 provide('selectedClinicSector', clinicSector);
 provide(
@@ -173,12 +182,6 @@ provide(
   showClinicSectorRegistrationScreen
 );
 provide('stepp', step);
-
-onMounted(() => {
-  //Pegar no backend as clinic Sectors
-  clinicSectorService.get(0);
-  clinicSectorTypeService.get(0);
-});
 
 /*Methods*/
 const getIconActive = (clinicSector) => {
@@ -262,22 +265,4 @@ const promptToConfirm = (clinicSectorParam) => {
     }
   );
 };
-const displayAlert = (type, msg) => {
-  this.alert.type = type;
-  this.alert.msg = msg;
-  this.alert.visible = true;
-};
-const closeDialog = () => {
-  if (this.alert.type === 'info') {
-    this.$emit('close');
-  }
-};
-
-// computed: {
-//   clinicSectors() {
-//     const clinics = ClinicSector.query().withAll().has('code').get();
-//     this.hideLoading();
-//     return clinics;
-//   },
-// },
 </script>

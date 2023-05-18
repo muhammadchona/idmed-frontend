@@ -96,11 +96,12 @@
             <clinicSectors> </clinicSectors>
           </q-tab-panel>
 
-          <!--
           <q-tab-panel name="doctor">
             <div class="text-h4 q-mb-md"></div>
             <doctor> </doctor>
           </q-tab-panel>
+
+          <!--
           <q-tab-panel name="drugs">
             <div class="text-h4 q-mb-md"></div>
             <drug> </drug>
@@ -143,7 +144,7 @@ import clinicService from 'src/services/api/clinicService/clinicService.ts';
 /*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
 import clinicSectors from 'src/components/Settings/ClinicSector/ClinicSectors.vue';
-// import doctor from 'src/components/Settings/Doctor/Doctors.vue';
+import doctor from 'src/components/Settings/Doctor/Doctors.vue';
 // import drug from 'src/components/Settings/Drug/Drugs.vue';
 // import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue';
 // import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';

@@ -197,6 +197,9 @@ const clinics = computed(() => {
   );
 });
 onMounted(() => {
+  step.value = '';
+  editMode.value = false;
+  viewMode.value = false;
   clinicService.get(0);
 });
 </script>

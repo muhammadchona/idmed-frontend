@@ -153,6 +153,7 @@ export default {
   getClinicsByDistrictId(districtid: string) {
     return clinic
       .query()
+      .with('nationalClinic')
       .with('province')
       .with('district')
       .with('district.province')
@@ -174,6 +175,7 @@ export default {
   getAllClinics() {
     return clinic
       .query()
+      .with('nationalClinic')
       .with('province')
       .with('facilityType')
       .with('district')
