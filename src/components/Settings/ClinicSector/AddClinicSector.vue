@@ -79,12 +79,6 @@
           v-if="!onlyView"
         />
       </q-card-actions>
-      <q-dialog v-model="alert.visible" persistent>
-        <Dialog :type="alert.type" @closeDialog="closeDialog">
-          <template v-slot:title> Informação</template>
-          <template v-slot:msg> {{ alert.msg }} </template>
-        </Dialog>
-      </q-dialog>
     </form>
   </q-card>
 </template>
@@ -92,7 +86,7 @@
 <script setup>
 /*imports*/
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { ref, inject, onMounted, computed } from 'vue';
+import { ref, inject, onMounted, computed, reactive } from 'vue';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
 import ClinicSectorType from '../../../stores/models/clinicSectorType/ClinicSectorType';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
@@ -103,24 +97,27 @@ import { v4 as uuidv4 } from 'uuid';
 /*components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
 import codeInput from 'src/components/Shared/CodeInput.vue';
-import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
 
 /*Declarations*/
-const databaseCodes = [];
+const databaseCodes = ref([]);
 const submitting = ref(false);
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
 
 /*injects*/
-const clinicSector = inject('selectedClinicSector');
+const selectedClinicSector = inject('selectedClinicSector');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const currClinic = inject('currClinic');
+const isEditStep = inject('isEditStep');
+const isCreateStep = inject('isCreateStep');
+const showClinicSectorRegistrationScreen = inject(
+  'showClinicSectorRegistrationScreen'
+);
 
 /*Hooks*/
+const clinicSector = computed(() => {
+  return selectedClinicSector.value;
+});
+
 const onlyView = computed(() => {
   return viewMode.value;
 });
@@ -138,9 +135,7 @@ const clinicSectorTypes = computed(() => {
 });
 
 onMounted(() => {
-  // this.setStep(this.stepp);
   extractDatabaseCodes();
-  clinicSector.value.clinic = currClinic.value;
 });
 
 /*Methods*/
@@ -168,7 +163,6 @@ const validateClinicSector = () => {
 const submitClinicSector = () => {
   clinicSector.value.active = true;
   if (clinicSector.value.uuid === null) clinicSector.value.uuid = uuidv4();
-  console.log(clinicSector);
   // if (mobile) {
   //   console.log('Mobile');
   //   clinicSector.clinic_id = currClinic.id;
@@ -201,78 +195,57 @@ const submitClinicSector = () => {
   //       : 'Sector Clínico actualizado com sucesso.'
   //   );
   // } else {
-  // if (this.isCreateStep) {
-  console.log('Create Step_Online_Mode');
-  console.log(clinicSector.value);
-  if (clinicSector.value.clinic !== null)
-    clinicSector.value.clinic_id = clinicSector.value.clinic.id;
-  console.log(clinicSector.value.clinic_id);
-  console.log(clinicSector.value.clinic);
-  console.log(clinicSector.value);
-  clinicSectorService
-    .post(clinicSector.value)
-    .then((resp) => {
-      console.log('Salvo com sucesso');
+  if (isCreateStep.value) {
+    console.log('Create Step_Online_Mode');
+    if (clinicSector.value.clinic !== null) {
+      clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+    }
+    clinicSectorService
+      .post(clinicSector.value)
+      .then((resp) => {
+        submitting.value = false;
+        showClinicSectorRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        submitting.value = false;
+        showClinicSectorRegistrationScreen.value = false;
+      });
+  }
+  if (isEditStep.value) {
+    console.log('Edit Step_Online_Mode');
+    if (clinicSector.value.clinic !== null) {
+      clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+    }
 
-      // this.submitting = false;
-      // this.displayAlert(
-      //   'info',
-      //   !this.isEditStep
-      //     ? 'Sector Clínico adicionado com sucesso.'
-      //     : 'Sector Clínico actualizado com sucesso.'
-      // );
-    })
-    .catch((error) => {
-      // this.displayAlert('error', error);
-      // this.submitting = false;
-      console.log('Nao salvo');
-    });
-  // } else {
-  //   console.log('Edit Step_Online_Mode');
-  //   ClinicSector.apiUpdate(this.clinicSector)
-  //     .then((resp) => {
-  //       console.log(resp.response.data);
-  //       this.displayAlert(
-  //         'info',
-  //         !this.isEditStep
-  //           ? 'Sector Clínico adicionado com sucesso.'
-  //           : 'Sector Clínico actualizado com sucesso.'
-  //       );
-  //     })
-  //     .catch((error) => {
-  //       this.displayAlert('error', error);
-  //     });
-  // }
+    clinicSectorService
+      .patch(clinicSector.value.id, clinicSector.value)
+      .then((resp) => {
+        submitting.value = false;
+        showClinicSectorRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        submitting.value = false;
+        showClinicSectorRegistrationScreen.value = false;
+      });
+  }
   // }
 };
-// displayAlert(type, msg) {
-//   this.alert.type = type;
-//   this.alert.msg = msg;
-//   this.alert.visible = true;
-// },
-// closeDialog() {
-//   if (this.alert.type === 'info') {
-//     this.$emit('close');
-//   }
-// },
 
-//     codeRules(val) {
-//       if (this.clinicSector.code === '') {
-//         return 'o Código é obrigatorio';
-//       } else if (
-//         (this.databaseCodes.includes(val) &&
-//           this.selectedClinicSector.id === this.clinicSector.id &&
-//           !this.isEditStep) ||
-//         (this.databaseCodes.includes(val) &&
-//           this.clinicSectors.filter((x) => x.code === val)[0].id !==
-//             this.clinicSector.id &&
-//           this.isEditStep)
-//       ) {
-//         return (
-//           !this.databaseCodes.includes(val) || 'o Código indicado já existe'
-//         );
-//       }
-//     },
+const codeRules = (val) => {
+  if (clinicSector.value.code === '') {
+    return 'o Código é obrigatorio';
+  } else if (
+    (databaseCodes.value.includes(val) &&
+      selectedClinicSector.value.id === clinicSector.value.id &&
+      !isEditStep.value) ||
+    (databaseCodes.value.includes(val) &&
+      clinicSectors.value.filter((x) => x.code === val)[0].id !==
+        clinicSector.value.id &&
+      isEditStep.value)
+  ) {
+    return !databaseCodes.value.includes(val) || 'o Código indicado já existe';
+  }
+};
 </script>
 
 <style>

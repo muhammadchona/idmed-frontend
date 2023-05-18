@@ -163,6 +163,8 @@ const splitterModel = ref(15);
 const step = ref('');
 const clinic = ref();
 const clinicSector = ref();
+const isEditStep = ref(false);
+const isCreateStep = ref(false);
 const tabs = [
   // { name: 'national_clinic', icon: 'local_convenience_store', label: 'Unidade Sanitaria' },
   {
@@ -225,6 +227,8 @@ provide('clinicSector', clinicSector);
 provide('viewMode', viewMode);
 provide('editMode', editMode);
 provide('currClinic', currClinic);
+provide('isEditStep', isEditStep);
+provide('isCreateStep', isCreateStep);
 
 /*Methods*/
 // const changeMenu = (label) => {

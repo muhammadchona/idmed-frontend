@@ -16,8 +16,7 @@ export default {
       .post('clinicSector', params)
       .then((resp) => {
         clinicsector.save(resp.data);
-        // alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
-        alert('O Registo foi efectuado com sucesso');
+        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -30,46 +29,14 @@ export default {
               listErrors.push(element.message);
             });
           }
-          // alertError('Erro no registo', listErrors);
+          alertError('Erro no registo', listErrors);
         } else if (error.request) {
-          // alertError('Erro no registo', error.request);
+          alertError('Erro no registo', error.request);
         } else {
-          // alertError('Erro no registo', error.message);
+          alertError('Erro no registo', error.message);
         }
       });
   },
-  // get(offset: number) {
-  //   if (offset >= 0) {
-  //     return api()
-  //       .get('clinicsector?offset=' + offset + '&limit=100')
-  //       .then((resp) => {
-  //         clinicsector.save(resp.data);
-  //         offset = offset + 100;
-  //         if (resp.data.length > 0) {
-  //           this.get(offset);
-  //           setTimeout(this.get, 2);
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         if (error.request != null) {
-  //           const arrayErrors = JSON.parse(error.request.response);
-  //           const listErrors = {};
-  //           if (arrayErrors.total == null) {
-  //             listErrors.push(arrayErrors.message);
-  //           } else {
-  //             arrayErrors._embedded.errors.forEach((element) => {
-  //               listErrors.push(element.message);
-  //             });
-  //           }
-  //           alertError('Erro no registo', listErrors);
-  //         } else if (error.request) {
-  //           alertError('Erro no registo', error.request);
-  //         } else {
-  //           alertError('Erro no registo', error.message);
-  //         }
-  //       });
-  //   }
-  // },
   get(offset: number) {
     if (offset >= 0) {
       return api()
@@ -103,11 +70,11 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
+  patch(id: string, params: string) {
     return api()
       .patch('clinicSector/' + id, params)
       .then((resp) => {
-        clinicSector.save(resp.data);
+        clinicsector.save(resp.data);
         alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       })
       .catch((error) => {

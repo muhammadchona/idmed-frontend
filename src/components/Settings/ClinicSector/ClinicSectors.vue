@@ -110,6 +110,8 @@ import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+const { alertWarningAction } = useSwal();
 
 /*components import*/
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
@@ -148,11 +150,6 @@ const columns = [
 ];
 const $q = useQuasar();
 const showClinicSectorRegistrationScreen = ref(false);
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
 const filter = ref('');
 const clinicSector = reactive(ref(clinicSectorService.newInstanceEntity()));
 
@@ -161,6 +158,8 @@ const step = inject('step');
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');
+const isEditStep = inject('isEditStep');
+const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const clinicSectors = computed(() => {
@@ -169,6 +168,10 @@ const clinicSectors = computed(() => {
 
 /*provides*/
 provide('selectedClinicSector', clinicSector);
+provide(
+  'showClinicSectorRegistrationScreen',
+  showClinicSectorRegistrationScreen
+);
 provide('stepp', step);
 
 onMounted(() => {
@@ -199,63 +202,65 @@ const getTooltipClass = (clinicSector) => {
     return 'bg-green-5';
   }
 };
-const editClinicSector = (clinicSector) => {
-  this.clinicSector = Object.assign({}, clinicSector);
-  this.step = 'edit';
-  this.showClinicSectorRegistrationScreen = true;
-  this.editMode = true;
-  this.viewMode = false;
+const editClinicSector = (clinicSectorParam) => {
+  isCreateStep.value = false;
+  isEditStep.value = true;
+  clinicSector.value = clinicSectorParam;
+  step.value = 'edit';
+  showClinicSectorRegistrationScreen.value = true;
+  editMode.value = true;
+  viewMode.value = false;
 };
 const addClinicSectorr = () => {
+  isEditStep.value = false;
+  isCreateStep.value = true;
+  clinicSector.value = reactive(ref(clinicSectorService.newInstanceEntity()));
+  clinicSector.value.clinic = currClinic.value;
   step.value = 'create';
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = false;
   viewMode.value = false;
 };
-const visualizeClinicSector = (clinicSector) => {
-  this.clinicSector = Object.assign({}, clinicSector);
-  this.viewMode = true;
-  this.showClinicSectorRegistrationScreen = true;
-  this.editMode = false;
+const visualizeClinicSector = (clinicSectorParam) => {
+  isCreateStep.value = false;
+  isEditStep.value = false;
+  clinicSector.value = clinicSectorParam;
+  viewMode.value = true;
+  showClinicSectorRegistrationScreen.value = true;
+  editMode.value = false;
 };
-const promptToConfirm = (clinicSector) => {
-  this.$q
-    .dialog({
-      title: 'Confirmação',
-      message: clinicSector.active
-        ? 'Deseja Inactivar o Sector Clinico?'
-        : 'Deseja Activar o Sector Clinico?',
-      cancel: true,
-      persistent: true,
-    })
-    .onOk(() => {
-      if (clinicSector.active) {
-        clinicSector.active = false;
-      } else if (!clinicSector.active) {
-        clinicSector.active = true;
-      }
-      console.log(clinicSector);
-      if (this.mobile) {
-        console.log('FrontEnd');
-        if (clinicSector.syncStatus !== 'R') clinicSector.syncStatus = 'U';
-        ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSector)));
-        ClinicSector.insertOrUpdate({ data: clinicSector });
-        this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-      } else {
+const promptToConfirm = (clinicSectorParam) => {
+  const question = clinicSectorParam.active
+    ? 'Deseja Inactivar o Sector Clinico?'
+    : 'Deseja Activar o Sector Clinico?';
+  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
+    (response) => {
+      if (response) {
+        if (clinicSectorParam.active) {
+          clinicSectorParam.active = false;
+        } else {
+          clinicSectorParam.active = true;
+        }
+        // if (this.mobile) {
+        //   console.log('FrontEnd');
+        //   if (clinicSectorParam.syncStatus !== 'R') clinicSectorParam.syncStatus = 'U';
+        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSectorParam)));
+        //   ClinicSector.insertOrUpdate({ data: clinicSectorParam });
+        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+        // } else {
         console.log('BackEnd');
-        ClinicSector.apiUpdate(clinicSector)
+        clinicSectorService
+          .patch(clinicSectorParam.id, clinicSectorParam)
           .then((resp) => {
-            const operation = clinicSector.active ? 'activado' : 'inactivado';
-            this.displayAlert(
-              'info',
-              `Sector Clinico ${operation} com sucesso`
-            );
+            //
           })
           .catch((error) => {
-            this.displayAlert('error', error);
+            //
           });
+        // }
       }
-    });
+    }
+  );
 };
 const displayAlert = (type, msg) => {
   this.alert.type = type;
