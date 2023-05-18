@@ -153,6 +153,7 @@ export default {
   getClinicsByDistrictId(districtid: string) {
     return clinic
       .query()
+      .with('nationalClinic')
       .with('province')
       .with('district')
       .with('district.province')
@@ -163,26 +164,23 @@ export default {
   /*PINIA*/
   currClinic() {
     return clinic
-      .query()
+      .where('mainClinic', false)
       .with('province')
       .with('facilityType')
       .with('district')
       .with('sectors')
-      .where('mainClinic', true)
       .first();
   },
 
   getAllClinics() {
-    return (
-      clinic
-        .query()
-        .with('province')
-        // .with('facilityType.*')
-        .with('district')
-        // .with('sectors.*')
-        // .where('mainClinic', true)
-        .get()
-    );
+    return clinic
+      .query()
+      .with('nationalClinic')
+      .with('province')
+      .with('facilityType')
+      .with('district')
+      .with('sectors')
+      .get();
   },
 
   getAllClinicsOrdered(provinces: Province[], clinics: Clinic[]) {

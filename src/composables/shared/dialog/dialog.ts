@@ -5,7 +5,7 @@ export function useSwal() {
     return swal({
       title: title,
       text: message,
-      
+
       icon: 'success',
       // buttons: 'Aceitar',
     });
@@ -44,7 +44,7 @@ export function useSwal() {
     botaoCancelar: string,
     botaoAceitar: string
   ) {
-    swal({
+    return swal({
       title: title,
       text: message,
       icon: 'warning',

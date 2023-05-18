@@ -91,14 +91,17 @@
             <nationalClinic> </nationalClinic>
           </q-tab-panel-->
 
-          <!-- <q-tab-panel name="clinic_sector">
+          <q-tab-panel name="clinic_sector">
             <div class="text-h4 q-mb-md"></div>
             <clinicSectors> </clinicSectors>
           </q-tab-panel>
+
           <q-tab-panel name="doctor">
             <div class="text-h4 q-mb-md"></div>
             <doctor> </doctor>
           </q-tab-panel>
+
+          <!--
           <q-tab-panel name="drugs">
             <div class="text-h4 q-mb-md"></div>
             <drug> </drug>
@@ -134,14 +137,14 @@
 </template>
 <script setup>
 /*Imports*/
-import { ref, provide, reactive } from 'vue';
+import { ref, provide, computed, inject, onMounted } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 // import mixinplatform from 'src/mixins/mixin-system-platform';
 
 /*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
-// import clinicSectors from 'src/components/Settings/ClinicSector/ClinicSectors.vue';
-// import doctor from 'src/components/Settings/Doctor/Doctors.vue';
+import clinicSectors from 'src/components/Settings/ClinicSector/ClinicSectors.vue';
+import doctor from 'src/components/Settings/Doctor/Doctors.vue';
 // import drug from 'src/components/Settings/Drug/Drugs.vue';
 // import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue';
 // import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';
@@ -160,6 +163,9 @@ const editMode = ref(false);
 const splitterModel = ref(15);
 const step = ref('');
 const clinic = ref();
+const clinicSector = ref();
+const isEditStep = ref(false);
+const isCreateStep = ref(false);
 const tabs = [
   // { name: 'national_clinic', icon: 'local_convenience_store', label: 'Unidade Sanitaria' },
   {
@@ -204,16 +210,31 @@ const tabs = [
   { name: 'roles', icon: 'manage_accounts', label: 'Perfis', separator: true },
 ];
 
+/*Hooks*/
+const currClinic = computed(() => {
+  return clinicService.currClinic();
+});
+
+onMounted(() => {
+  // console.log(currClinic.value);
+});
+
+/*injects*/
+
+/*provides*/
+provide('step', step);
+provide('clinic', clinic);
+provide('clinicSector', clinicSector);
+provide('viewMode', viewMode);
+provide('editMode', editMode);
+provide('currClinic', currClinic);
+provide('isEditStep', isEditStep);
+provide('isCreateStep', isCreateStep);
+
 /*Methods*/
 // const changeMenu = (label) => {
 //   activeMenu.value = label;
 //   drawer.value = false;
 // };
-
-/*provides*/
-provide('step', step);
-provide('clinic', clinic);
-provide('viewMode', viewMode);
-provide('editMode', editMode);
 </script>
 <style></style>
