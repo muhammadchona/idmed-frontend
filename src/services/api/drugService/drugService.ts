@@ -30,12 +30,28 @@ export default {
     }
   },
   async patch(id: string, params: string) {
-    const resp = await api().patch('drug?id=eq.' + id, params);
+    console.log(params);
+    const resp = await api().patch('drug/' + id, params);
     drug.save(JSON.parse(resp.config.data));
     alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
   },
   async delete(id: number) {
     await api().delete('drug/' + id);
     drug.destroy(id);
+  },
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return drug.getModel().$newInstance();
+  },
+
+  /*Pinia Methods*/
+  getAllDrugs() {
+    return drug
+      .with('clinicalService', (query) => {
+        query.with('identifierType');
+      })
+      .with('form')
+      .orderBy('name')
+      .get();
   },
 };
