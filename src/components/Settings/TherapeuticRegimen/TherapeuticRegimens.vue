@@ -52,7 +52,6 @@
                    @click="editTherapeuticRegimen(props.row)">
                     <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                   </q-btn> -->
-
                 <q-btn
                   flat
                   round
@@ -93,21 +92,24 @@
         @close="showTherapeuticRegimenRegistrationScreen = false"
       />
     </q-dialog>
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog>
   </div>
 </template>
-<script>
+<script setup>
+/*Imports*/
 import { useQuasar } from 'quasar';
-import { ref } from 'vue';
 import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/TherapeuticRegimen';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import mixinutils from 'src/mixins/mixin-utils';
+import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService.ts';
+import formService from 'src/services/api/formService/formService.ts';
+import clinicalService from 'src/services/api/clinicalServiceService/clinicalServiceService.ts';
+import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import drugService from 'src/services/api/drugService/drugService.ts';
 
+/*Components import*/
+import AddTherapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue';
+
+/*Declarations*/
+const { alertWarningAction } = useSwal();
 const columns = [
   {
     name: 'regimenScheme',
@@ -138,116 +140,124 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-export default {
-  mixins: [mixinplatform, mixinutils],
-  data() {
-    const $q = useQuasar();
+const filter = ref('');
+const showTherapeuticRegimenRegistrationScreen = ref(false);
+const therapeuticRegimen = reactive(
+  ref(therapeuticalRegimenService.newInstanceEntity())
+);
 
-    return {
-      filter: ref(''),
-      columns,
-      $q,
-      showTherapeuticRegimenRegistrationScreen: false,
-      viewMode: false,
-    };
-  },
-  computed: {
-    therapeuticRegimens() {
-      return TherapeuticRegimen.query()
-        .with('drugs.form')
-        .with('clinicalService.identifierType')
-        .with('drugs.clinicalService')
-        .orderBy('regimenScheme')
-        .get();
-    },
-  },
-  methods: {
-    getIconActive(therapeuticRegimen) {
-      if (therapeuticRegimen.active) {
-        return 'stop_circle';
-      } else if (!therapeuticRegimen.active) {
-        return 'play_circle';
+/*injects*/
+const step = inject('step');
+const clinic = inject('clinic');
+const viewMode = inject('viewMode');
+const editMode = inject('editMode');
+const isEditStep = inject('isEditStep');
+const isCreateStep = inject('isCreateStep');
+
+/*Hooks*/
+const therapeuticRegimens = computed(() => {
+  return therapeuticalRegimenService.getAllTherapeuticalRegimens();
+});
+
+const forms = computed(() => {
+  return formService.getAllForms();
+});
+
+const drugs = computed(() => {
+  return drugService.getAllDrugs();
+});
+
+/*Provides*/
+provide('forms', forms);
+provide('drugs', drugs);
+provide('selectedTherapeuticRegimen', therapeuticRegimen);
+provide('therapeuticRegimens', therapeuticRegimens);
+
+onMounted(() => {
+  isEditStep.value = false;
+  isCreateStep.value = false;
+  step.value = '';
+  editMode.value = false;
+  viewMode.value = false;
+  formService.get(0);
+  clinicalService.get(0);
+  therapeuticalRegimenService.get(0);
+});
+
+/*methods*/
+const getIconActive = (therapeuticRegimen) => {
+  if (therapeuticRegimen.active) {
+    return 'stop_circle';
+  } else if (!therapeuticRegimen.active) {
+    return 'play_circle';
+  }
+};
+const getColorActive = (therapeuticRegimen) => {
+  if (therapeuticRegimen.active) {
+    return 'red';
+  } else if (!therapeuticRegimen.active) {
+    return 'green';
+  }
+};
+const getTooltipClass = (therapeuticRegimen) => {
+  if (therapeuticRegimen.active) {
+    return 'bg-red-5';
+  } else if (!therapeuticRegimen.active) {
+    return 'bg-green-5';
+  }
+};
+// editTherapeuticRegimen(therapeuticRegimen) {
+//   this.viewMode = false;
+//   this.therapeuticRegimen = Object.assign({}, therapeuticRegimen);
+//   this.showTherapeuticRegimenRegistrationScreen = true;
+// },
+// addTherapeuticRegimen() {
+//   this.viewMode = false;
+//   this.therapeuticRegimen = new TherapeuticRegimen();
+//   this.showTherapeuticRegimenRegistrationScreen = true;
+// },
+const visualizeTherapeuticRegimen = (therapeuticRegimenParam) => {
+  isCreateStep.value = false;
+  isEditStep.value = false;
+  isCreateStep.value = false;
+  isEditStep.value = false;
+  therapeuticRegimen.value = therapeuticRegimenParam;
+  viewMode.value = true;
+  showTherapeuticRegimenRegistrationScreen.value = true;
+  editMode.value = false;
+};
+
+const promptToConfirm = (therapeuticRegimenParam) => {
+  console.log(therapeuticRegimenParam);
+  const question = therapeuticRegimenParam.active
+    ? 'Deseja Inactivar o Regime?'
+    : 'Deseja Activar o Regime?';
+  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
+    (response) => {
+      if (response) {
+        if (therapeuticRegimenParam.active) {
+          therapeuticRegimenParam.active = false;
+        } else {
+          therapeuticRegimenParam.active = true;
+        }
+        // if (this.mobile) {
+        //   console.log('FrontEnd');
+        //   if (therapeuticRegimenParam.syncStatus !== 'R') therapeuticRegimenParam.syncStatus = 'U';
+        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimenParam)));
+        //   ClinicSector.insertOrUpdate({ data: therapeuticRegimenParam });
+        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+        // } else {
+        therapeuticalRegimenService
+          .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
+          .then((resp) => {
+            //
+          })
+          .catch((error) => {
+            //
+          });
+        // }
       }
-    },
-    getColorActive(therapeuticRegimen) {
-      if (therapeuticRegimen.active) {
-        return 'red';
-      } else if (!therapeuticRegimen.active) {
-        return 'green';
-      }
-    },
-    getTooltipClass(therapeuticRegimen) {
-      if (therapeuticRegimen.active) {
-        return 'bg-red-5';
-      } else if (!therapeuticRegimen.active) {
-        return 'bg-green-5';
-      }
-    },
-    editTherapeuticRegimen(therapeuticRegimen) {
-      this.viewMode = false;
-      this.therapeuticRegimen = Object.assign({}, therapeuticRegimen);
-      this.showTherapeuticRegimenRegistrationScreen = true;
-    },
-    addTherapeuticRegimen() {
-      this.viewMode = false;
-      this.therapeuticRegimen = new TherapeuticRegimen();
-      this.showTherapeuticRegimenRegistrationScreen = true;
-    },
-    visualizeTherapeuticRegimen(therapeuticRegimen) {
-      this.therapeuticRegimen = Object.assign({}, therapeuticRegimen);
-      this.viewMode = true;
-      this.showTherapeuticRegimenRegistrationScreen = true;
-    },
-    promptToConfirm(therapeuticRegimen) {
-      let msg = '';
-      this.$q
-        .dialog({
-          title: 'Confirmação',
-          message: therapeuticRegimen.active
-            ? 'Deseja Inactivar o Regime?'
-            : 'Deseja Activar o Regime?',
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          if (therapeuticRegimen.active) {
-            therapeuticRegimen.active = false;
-            msg = 'Regime inactivado com sucesso.';
-          } else if (!therapeuticRegimen.active) {
-            therapeuticRegimen.active = true;
-            msg = 'Regime activado com sucesso.';
-          }
-          if (this.mobile) {
-            console.log('FrontEnd');
-            if (therapeuticRegimen.syncStatus !== 'R')
-              therapeuticRegimen.syncStatus = 'U';
-            TherapeuticRegimen.localDbAdd(
-              JSON.parse(JSON.stringify(therapeuticRegimen))
-            );
-            TherapeuticRegimen.insertOrUpdate({ data: therapeuticRegimen });
-            this.displayAlert('info', msg);
-          } else {
-            TherapeuticRegimen.apiUpdate(therapeuticRegimen)
-              .then((resp) => {
-                this.displayAlert('info', msg);
-              })
-              .catch((error) => {
-                console.log(therapeuticRegimen.id);
-                console.log(error);
-              });
-          }
-        });
-    },
-  },
-  mounted() {
-    // const offset = 0
-    // this.getTherapeuticRegimens()
-    // this.getAllForms(offset)
-  },
-  components: {
-    AddTherapeuticRegimen:
-      require('components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue')
-        .default,
-  },
+    }
+  );
 };
 </script>

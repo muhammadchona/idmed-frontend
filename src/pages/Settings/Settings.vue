@@ -106,15 +106,17 @@
             <drug> </drug>
           </q-tab-panel>
 
+          <q-tab-panel name="therapeutic_regimen">
+            <div class="text-h4 q-mb-md"></div>
+            <therapeuticRegimen> </therapeuticRegimen>
+          </q-tab-panel>
+
           <!--
           <q-tab-panel name="clinical_service">
             <div class="text-h4 q-mb-md"></div>
             <clinicalServices> </clinicalServices>
           </q-tab-panel>
-          <q-tab-panel name="therapeutic_regimen">
-            <div class="text-h4 q-mb-md"></div>
-            <therapeuticRegimen> </therapeuticRegimen>
-          </q-tab-panel> -->
+           -->
           <!-- <q-tab-panel name="identifier_type">
             <div class="text-h4 q-mb-md"></div>
             <identifierType /> -->
@@ -147,7 +149,7 @@ import clinics from 'src/components/Settings/Clinic/Clinics.vue';
 import clinicSectors from 'src/components/Settings/ClinicSector/ClinicSectors.vue';
 import doctor from 'src/components/Settings/Doctor/Doctors.vue';
 import drug from 'src/components/Settings/Drug/Drugs.vue';
-// import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue';
+import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue';
 // import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';
 // import identifierType from 'src/components/Settings/IdentifierType/IdentifierTypeList.vue';
 // import interoperability from 'src/components/Settings/Interoperability/His.vue';

@@ -46,12 +46,6 @@ export default {
 
   /*Pinia Methods*/
   getAllDrugs() {
-    return drug
-      .with('clinicalService', (query) => {
-        query.with('identifierType');
-      })
-      .with('form')
-      .orderBy('name')
-      .get();
+    return drug.withAll().orderBy('name').get();
   },
 };

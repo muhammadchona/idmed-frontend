@@ -104,15 +104,10 @@ export default {
 
   /*Pinia Methods*/
   getAlldoctors() {
-    // return doctor.withAll().get();
     return doctor
       .with('clinic', (query) => {
         query.with('province');
-      })
-      .with('clinic', (query) => {
         query.with('district');
-      })
-      .with('clinic', (query) => {
         query.with('facilityType');
       })
       .orderBy('firstnames')

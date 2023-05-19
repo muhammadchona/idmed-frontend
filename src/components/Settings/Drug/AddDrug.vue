@@ -118,19 +118,11 @@ const periodsTime = ref(['Ano', 'Mes', 'Semana', 'Dia']);
 /*injects*/
 const drug = inject('selectedDrug');
 const viewMode = inject('viewMode');
-const editMode = inject('editMode');
-const currClinic = inject('currClinic');
-const isEditStep = inject('isEditStep');
-const isCreateStep = inject('isCreateStep');
 const forms = inject('forms');
 const drugs = inject('drugs');
 
 /*Hooks*/
 const onlyView = computed(() => {
-  return viewMode.value;
-});
-
-const formOptions = computed(() => {
   return viewMode.value;
 });
 
@@ -144,56 +136,6 @@ const extractDatabaseCodes = () => {
     databaseCodes.value.push(element.fnmCode);
   });
 };
-// validateDrug () {
-//               this.$refs.nome.$refs.ref.validate()
-//               this.$refs.code.$refs.ref.validate()
-//               this.$refs.packSize.$refs.ref.validate()
-//               this.$refs.defaultTimes.$refs.ref.validate()
-//               this.$refs.tomar.$refs.ref.validate()
-//               this.$refs.periodo.validate()
-//               this.$refs.forma.validate()
-//               if (this.drug.packSize <= 0) {
-//                  this.displayAlert('error', 'Por favor indique um tamanho de pacote maior que zero ')
-//               } else if (this.drug.defaultTimes <= 0) {
-//                     this.displayAlert('error', 'Por favor indique um numero de toma maior que zero ')
-//               } else if (this.drug.defaultTreatment <= 0) {
-//                     this.displayAlert('error', 'Por favor indique um numero de vezes a tomar maior que zero ')
-//               } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
-//         !this.$refs.packSize.$refs.ref.hasError && !this.$refs.defaultTimes.$refs.ref.hasError &&
-//         !this.$refs.tomar.$refs.ref.hasError && !this.$refs.periodo.hasError &&
-//              !this.$refs.forma.hasError) {
-//                 this.submitDrug()
-//             }
-//         },
-//         submitDrug () {
-//             this.submitting = true
-//            this.drug.active = true
-//            Drug.apiSave(this.drug).then(resp => {
-//                this.submitting = false
-//                 console.log(resp.response.data)
-//                  Drug.apiFetchById(resp.response.data.id)
-//                 this.displayAlert('info', this.drug.id === null ? 'Medicamento adicionado com sucesso.' : 'Medicamento actualizado com sucesso.')
-//             }).catch(error => {
-//                 this.submitting = false
-//                 this.displayAlert('error', error)
-//             })
-//         },
-//         displayAlert (type, msg) {
-//           this.alert.type = type
-//           this.alert.msg = msg
-//           this.alert.visible = true
-//         },
-//         closeDialog () {
-//           if (this.alert.type === 'info') {
-//             this.$emit('close')
-//           }
-//         },
-
-//     codeRules (val) {
-//        if (!this.drug.id && this.selectedDrug.id === this.drug.id) {
-//       return !this.databaseCodes.includes(val) || 'o Código indicado ja existe'
-//          }
-//     }
 </script>
 
 <style></style>

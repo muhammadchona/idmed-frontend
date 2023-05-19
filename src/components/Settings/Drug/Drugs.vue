@@ -151,13 +151,13 @@ const columns = [
 ];
 const showDrugRegistrationScreen = ref(false);
 const drug = reactive(ref(drugService.newInstanceEntity()));
+const filter = ref('');
 
 /*injects*/
 const step = inject('step');
 const clinic = inject('clinic');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
-const filter = ref('');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 

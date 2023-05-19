@@ -68,7 +68,7 @@ export default {
         });
     }
   },
-  async patch(id: number, params: string) {
+  async patch(id: string, params: string) {
     try {
       const resp = await api().patch('therapeuticRegimen/' + id, params);
       therapeuticRegimen.save(resp.data);
@@ -95,5 +95,24 @@ export default {
   async delete(id: number) {
     await api().delete('therapeuticRegimen/' + id);
     therapeuticRegimen.destroy(id);
+  },
+
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return therapeuticRegimen.getModel().$newInstance();
+  },
+
+  getAllTherapeuticalRegimens() {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .with('clinicalService')
+      .with('prescriptionDetails')
+      .get();
   },
 };
