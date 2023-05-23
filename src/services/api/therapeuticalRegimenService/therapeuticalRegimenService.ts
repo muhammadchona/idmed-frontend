@@ -115,4 +115,58 @@ export default {
       .with('prescriptionDetails')
       .get();
   },
+
+  getAllActiveTherapeuticalRegimens() {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where('active', true)
+      .get();
+  },
+
+  getAllActiveTherapeuticalRegimensByclinicalService(clinicalServiceId: any) {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where((therapeuticRegimen) => {
+        return (
+          (therapeuticRegimen.clinical_service_id === clinicalServiceId ||
+            therapeuticRegimen.clinicalServiceId === '') &&
+          therapeuticRegimen.active === true
+        );
+      })
+      .get();
+  },
+
+  getAllTherapeuticalByclinicalService(clinicalServiceId: any) {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where('clinical_service_id', clinicalServiceId)
+      .get();
+  },
+  getAllActiveTherapeuticalHasNoClinicalService() {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+      })
+      .whereIn('clinical_service_id', [null, ''])
+      .get();
+  },
 };

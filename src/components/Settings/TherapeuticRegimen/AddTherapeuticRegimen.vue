@@ -93,7 +93,6 @@ import drugService from 'src/services/api/drugService/drugService.ts';
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
 import codeInput from 'src/components/Shared/CodeInput.vue';
-import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
 
 /*Declarations*/
 const columnsDrug = [

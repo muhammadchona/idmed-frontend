@@ -77,29 +77,23 @@
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showAddEditIdentifierType">
-      <AddEditIdentifierType
-        :selectedIdentifierType="identifierType"
-        :stepp="step"
-        :editMode="editMode"
-        :onlyView="viewMode"
-        @close="showAddEditIdentifierType = false"
-      />
-    </q-dialog>
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
+      <AddEditIdentifierType @close="showAddEditIdentifierType = false" />
     </q-dialog>
   </div>
 </template>
-<script>
+<script setup>
+/*Imports*/
 import { useQuasar } from 'quasar';
-import { ref } from 'vue';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import IdentifierType from '../../../stores/models/identifierType/IdentifierType';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import mixinutils from 'src/mixins/mixin-utils';
+import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 
+/*Components Import*/
+// import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
+
+/*Declarations*/
+const { alertWarningAction } = useSwal();
 const columns = [
   {
     name: 'code',
@@ -130,126 +124,128 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-export default {
-  mixins: [mixinplatform, mixinutils],
-  data() {
-    const $q = useQuasar();
+const showAddEditIdentifierType = ref(false);
+const identifierType = reactive(ref(identifierTypeService.newInstanceEntity()));
+const filter = ref('');
 
-    return {
-      columns,
-      $q,
-      step: '',
-      showAddEditIdentifierType: false,
-      editMode: false,
-      viewMode: false,
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: '',
-      }),
-      filter: ref(''),
-    };
-  },
-  computed: {
-    identifierTypes() {
-      return IdentifierType.query().has('code').get();
-    },
-  },
-  methods: {
-    getIconActive(clinicSector) {
-      if (clinicSector.active) {
-        return 'stop_circle';
-      } else if (!clinicSector.active) {
-        return 'play_circle';
-      }
-    },
-    getColorActive(clinicSector) {
-      if (clinicSector.active) {
-        return 'red';
-      } else if (!clinicSector.active) {
-        return 'green';
-      }
-    },
-    getTooltipClass(clinicSector) {
-      if (clinicSector.active) {
-        return 'bg-red-5';
-      } else if (!clinicSector.active) {
-        return 'bg-green-5';
-      }
-    },
-    editIdentifierType(identifierType) {
-      this.identifierType = identifierType;
-      this.step = 'edit';
-      this.showAddEditIdentifierType = true;
-      this.editMode = true;
-      this.viewMode = false;
-    },
-    addIdentifierType() {
-      this.identifierType = new IdentifierType();
-      this.step = 'create';
-      this.showAddEditIdentifierType = true;
-      this.editMode = false;
-      this.viewMode = false;
-    },
-    showIdentifierType(identifierType) {
-      this.identifierType = identifierType;
-      this.step = 'display';
-      this.viewMode = true;
-      this.editMode = false;
-      this.showAddEditIdentifierType = true;
-    },
-    promptToConfirm(identifierType) {
-      this.$q
-        .dialog({
-          title: 'Confirmação',
-          message: identifierType.active
-            ? 'Deseja Inactivar o Sector Clinico?'
-            : 'Deseja Activar o Sector Clinico?',
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          identifierType.active = !identifierType.active;
-          if (this.mobile) {
-            console.log('FrontEnd');
-            if (identifierType.syncStatus !== 'R')
-              identifierType.syncStatus = 'U';
-            IdentifierType.localDbAdd(
-              JSON.parse(JSON.stringify(identifierType))
-            );
-            IdentifierType.insertOrUpdate({ data: identifierType });
+/*injects*/
+const step = inject('step');
+const clinic = inject('clinic');
+const viewMode = inject('viewMode');
+const editMode = inject('editMode');
+const isEditStep = inject('isEditStep');
+const isCreateStep = inject('isCreateStep');
+
+/*Hooks*/
+const identifierTypes = computed(() => {
+  return identifierTypeService.getAllIdentifierTypes();
+});
+
+onMounted(() => {
+  isEditStep.value = false;
+  isCreateStep.value = false;
+  step.value = '';
+  editMode.value = false;
+  viewMode.value = false;
+  identifierTypeService.get(0);
+});
+
+/*Provides*/
+provide('selectedIdentifierType', identifierType);
+provide('stepp', step);
+
+/*Methods*/
+const getIconActive = (clinicSector) => {
+  if (clinicSector.active) {
+    return 'stop_circle';
+  } else if (!clinicSector.active) {
+    return 'play_circle';
+  }
+};
+const getColorActive = (clinicSector) => {
+  if (clinicSector.active) {
+    return 'red';
+  } else if (!clinicSector.active) {
+    return 'green';
+  }
+};
+const getTooltipClass = (clinicSector) => {
+  if (clinicSector.active) {
+    return 'bg-red-5';
+  } else if (!clinicSector.active) {
+    return 'bg-green-5';
+  }
+};
+
+const showIdentifierType = (identifierTypeParam) => {
+  isCreateStep.value = false;
+  isEditStep.value = false;
+  isCreateStep.value = false;
+  isEditStep.value = false;
+  identifierType.value = identifierTypeParam;
+  step.value = 'display';
+  viewMode.value = true;
+  editMode = false;
+  showAddEditIdentifierType.value = true;
+};
+
+const editIdentifierType = (identifierTypeParam) => {
+  isCreateStep.value = false;
+  isEditStep.value = true;
+  isCreateStep.value = false;
+  isEditStep.value = true;
+  identifierType.value = identifierTypeParam;
+  step.value = 'edit';
+  showAddEditIdentifierType.value = true;
+  editMode.value = true;
+  viewMode.value = false;
+};
+
+const addIdentifierType = () => {
+  isCreateStep.value = true;
+  isEditStep.value = false;
+  isCreateStep.value = true;
+  isEditStep.value = false;
+  step.value = 'create';
+  showAddEditIdentifierType.value = true;
+  editMode.value = false;
+  viewMode.value = false;
+};
+
+const promptToConfirm = (identifierType) => {
+  this.$q
+    .dialog({
+      title: 'Confirmação',
+      message: identifierType.active
+        ? 'Deseja Inactivar o Sector Clinico?'
+        : 'Deseja Activar o Sector Clinico?',
+      cancel: true,
+      persistent: true,
+    })
+    .onOk(() => {
+      identifierType.active = !identifierType.active;
+      if (this.mobile) {
+        console.log('FrontEnd');
+        if (identifierType.syncStatus !== 'R') identifierType.syncStatus = 'U';
+        IdentifierType.localDbAdd(JSON.parse(JSON.stringify(identifierType)));
+        IdentifierType.insertOrUpdate({ data: identifierType });
+        this.displayAlert(
+          'info',
+          'Tipo de identificador actualizado com sucesso'
+        );
+      } else {
+        console.log('BackEnd');
+        IdentifierType.apiUpdate(identifierType)
+          .then((resp) => {
             this.displayAlert(
               'info',
               'Tipo de identificador actualizado com sucesso'
             );
-          } else {
-            console.log('BackEnd');
-            IdentifierType.apiUpdate(identifierType)
-              .then((resp) => {
-                this.displayAlert(
-                  'info',
-                  'Tipo de identificador actualizado com sucesso'
-                );
-              })
-              .catch((error) => {
-                this.displayAlert('error', error);
-              });
-          }
-        });
-    },
-    displayAlert(type, msg) {
-      this.alert.type = type;
-      this.alert.msg = msg;
-      this.alert.visible = true;
-    },
-    closeDialog() {
-      this.alert.visible = false;
-    },
-  },
-  components: {
-    AddEditIdentifierType:
-      require('components/Settings/IdentifierType/IdentifierType.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-  },
+          })
+          .catch((error) => {
+            this.displayAlert('error', error);
+          });
+      }
+    });
 };
 </script>

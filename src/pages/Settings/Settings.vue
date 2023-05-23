@@ -111,16 +111,16 @@
             <therapeuticRegimen> </therapeuticRegimen>
           </q-tab-panel>
 
-          <!--
           <q-tab-panel name="clinical_service">
             <div class="text-h4 q-mb-md"></div>
             <clinicalServices> </clinicalServices>
           </q-tab-panel>
-           -->
-          <!-- <q-tab-panel name="identifier_type">
+
+          <q-tab-panel name="identifier_type">
             <div class="text-h4 q-mb-md"></div>
-            <identifierType /> -->
-          <!-- </q-tab-panel> -->
+            <identifierType />
+          </q-tab-panel>
+
           <!-- <q-tab-panel name="interoperability">
             <div class="text-h4 q-mb-md"></div>
             <interoperability> </interoperability>
@@ -150,8 +150,8 @@ import clinicSectors from 'src/components/Settings/ClinicSector/ClinicSectors.vu
 import doctor from 'src/components/Settings/Doctor/Doctors.vue';
 import drug from 'src/components/Settings/Drug/Drugs.vue';
 import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue';
-// import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';
-// import identifierType from 'src/components/Settings/IdentifierType/IdentifierTypeList.vue';
+import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';
+import identifierType from 'src/components/Settings/IdentifierType/IdentifierTypeList.vue';
 // import interoperability from 'src/components/Settings/Interoperability/His.vue';
 // import users from 'src/components/Settings/User/Users.vue';
 // import roles from 'src/components/Settings/User/Roles.vue';

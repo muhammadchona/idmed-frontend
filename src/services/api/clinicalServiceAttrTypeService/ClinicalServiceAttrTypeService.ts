@@ -1,20 +1,19 @@
+import ClinicalServiceAttributeType from 'src/stores/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import IdentifierType from 'src/stores/models/identifierType/IdentifierType';
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
-
-const identifiertype = useRepo(IdentifierType);
+const clinicalserviceAttrType = useRepo(ClinicalServiceAttributeType);
 
 export default {
   post(params: string) {
     return api()
-      .post('identifierType', params)
+      .post('clinicalServiceAttributeType', params)
       .then((resp) => {
-        identifiertype.save(resp.data);
+        clinicalserviceAttrType.save(resp.data);
         alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
@@ -39,10 +38,9 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('identifierType?offset=' + offset + '&max=100')
+        .get('clinicalServiceAttributeType?offset=' + offset + '&max=100')
         .then((resp) => {
-          console.log(resp.data);
-          identifiertype.save(resp.data);
+          clinicalserviceAttrType.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -52,7 +50,7 @@ export default {
           }
         })
         .catch((error) => {
-          closeLoading();
+          closeLoading;
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = {};
@@ -74,9 +72,9 @@ export default {
   },
   patch(id: number, params: string) {
     return api()
-      .patch('identifierType/' + id, params)
+      .patch('clinicalServiceAttributeType/' + id, params)
       .then((resp) => {
-        identifiertype.save(resp.data);
+        clinicalserviceAttrType.save(resp.data);
         alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       })
       .catch((error) => {
@@ -100,18 +98,19 @@ export default {
   },
   delete(id: number) {
     return api()
-      .delete('identifierType/' + id)
+      .delete('clinicalServiceAttributeType/' + id)
       .then(() => {
-        identifiertype.destroy(id);
+        clinicalserviceAttrType.destroy(id);
       });
   },
 
   // Local Storage Pinia
   newInstanceEntity() {
-    return identifiertype.getModel().$newInstance();
+    return clinicalserviceAttrType.getModel().$newInstance();
   },
 
-  getAllIdentifierTypes() {
-    return identifiertype.query().withAll().get();
+  /*Pinia Methods*/
+  getAllClinicalServiceAttrTypes() {
+    return clinicalserviceAttrType.query().withAll().get();
   },
 };

@@ -87,8 +87,6 @@
     </div>
     <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
       <AddTherapeuticRegimen
-        :selectedTherapeuticRegimen="therapeuticRegimen"
-        :onlyView="viewMode"
         @close="showTherapeuticRegimenRegistrationScreen = false"
       />
     </q-dialog>
