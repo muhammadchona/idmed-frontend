@@ -148,6 +148,19 @@ export default {
       .get();
   },
 
+  getAllTherapeuticalRegimensByclinicalService(clinicalServiceId: any) {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where('clinical_service_id', clinicalServiceId)
+      .get();
+  },
+
   getAllTherapeuticalByclinicalService(clinicalServiceId: any) {
     return therapeuticRegimen
       .query()
@@ -166,7 +179,13 @@ export default {
       .with('drugs', (query) => {
         query.with('form');
       })
-      .whereIn('clinical_service_id', [null, ''])
+      .where((therapeuticRegimen) => {
+        return (
+          therapeuticRegimen.active &&
+          (therapeuticRegimen.clinical_service_id === null ||
+            therapeuticRegimen.clinical_service_id === '')
+        );
+      })
       .get();
   },
 };

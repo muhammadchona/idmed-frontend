@@ -90,7 +90,7 @@
               <div class="q-pa-md">
                 <q-table
                   title="Atributos Para a Prescrição"
-                  :data="clinicalServiceAttributes"
+                  :rows="clinicalServiceAttributes"
                   :columns="columnAttributes"
                   :filter="filter"
                   row-key="code"
@@ -146,6 +146,7 @@
               </div>
             </q-card-section>
           </q-step>
+
           <q-step
             v-if="isRegimenAttrSelected"
             :name="4"
@@ -187,9 +188,9 @@
         <q-stepper-navigation>
           <q-btn label="Cancelar" color="red" @click="$emit('close')" />
           <q-btn
-            v-if="stepScreens > 1 && !onlyView"
+            v-if="notFirstStep"
             color="primary"
-            @click="$refs.stepper.previous()"
+            @click="stepper.previous()"
             label="Voltar"
             class="q-ml-sm"
           />
@@ -229,6 +230,7 @@ import nameInput from 'src/components/Shared/NameInput.vue';
 import codeInput from 'src/components/Shared/CodeInput.vue';
 
 /*Declarations*/
+const { alertSucess, alertError, alertWarning, alertInfo } = useSwal();
 const stepScreens = ref(1);
 const columnsRegimen = [
   {
@@ -280,6 +282,7 @@ const columnAttributes = [
     align: 'left',
     field: (row) => row.description,
     format: (val) => `${val}`,
+    sortable: true,
   },
 ];
 const selected = ref([]);
@@ -294,6 +297,9 @@ const selectedTherapeuticRegimens = ref([]);
 const selectedAttributes = ref([]);
 const stepper = ref();
 const nome = ref();
+const clinicalService = reactive(
+  ref(clinicalServiceService.newInstanceEntity())
+);
 
 /*injects*/
 const selectedClinicalService = inject('selectedClinicalService');
@@ -306,72 +312,75 @@ const isCreateStep = inject('isCreateStep');
 const showClinicServiceRegistrationScreen = inject(
   'showClinicServiceRegistrationScreen'
 );
+const therapeuticRegimens = inject('therapeuticRegimens');
+const clinicalServiceAttributes = inject('clinicalServiceAttributes');
+const clinicSectors = inject('clinicSectors');
+const identifierTypes = inject('identifierTypes');
 
 /*Hooks*/
-const clinicalService = computed(() => {
-  return selectedClinicalService.value;
+const notFirstStep = computed(() => {
+  return stepScreens.value > 1 && !onlyView.value;
 });
 
 const onlyView = computed(() => {
   return viewMode.value;
 });
 
-const therapeuticRegimens = computed(() => {
-  if (editMode.value) {
-    return therapeuticalRegimenService.getAllActiveTherapeuticalRegimensByclinicalService(
-      clinicalService.value.id
-    );
-  }
-  if (onlyView.value) {
-    return therapeuticalRegimenService.getAllTherapeuticalByclinicalService(
-      clinicalService.value.id
-    );
-  } else {
-    return therapeuticalRegimenService.getAllActiveTherapeuticalHasNoClinicalService();
-  }
-});
-const clinicalServiceAttributes = computed(() => {
-  if (onlyView.value) {
-    const attrTypes = [];
-    const listAttributes =
-      clinicalServiceAttrService.getAllClinicalServiceAttrByClinicalService(
-        clinicalService.value.id
-      );
-    listAttributes.forEach((item) => {
-      attrTypes.push(item.clinicalServiceAttributeType);
-    });
-    return attrTypes;
-  } else {
-    return clinicalServiceAttrTypeService.getAllClinicalServiceAttrTypes();
-  }
-});
+// const therapeuticRegimens = computed(() => {
+//   if (editMode.value) {
+//     return therapeuticalRegimenService.getAllActiveTherapeuticalRegimensByclinicalService(
+//       clinicalService.value.id
+//     );
+//   }
+//   if (onlyView.value) {
+//     return therapeuticalRegimenService.getAllTherapeuticalByclinicalService(
+//       clinicalService.value.id
+//     );
+//   } else {
+//     return therapeuticalRegimenService.getAllActiveTherapeuticalHasNoClinicalService();
+//   }
+// });
+// const clinicalServiceAttributes = computed(() => {
+//   if (onlyView.value) {
+//     const attrTypes = [];
+//     const listAttributes =
+//       clinicalServiceAttrService.getAllClinicalServiceAttrByClinicalService(
+//         clinicalService.value.id
+//       );
+//     listAttributes.forEach((item) => {
+//       attrTypes.push(item.clinicalServiceAttributeType);
+//     });
+//     return attrTypes;
+//   } else {
+//     return clinicalServiceAttrTypeService.getAllClinicalServiceAttrTypes();
+//   }
+// });
 
-const identifierTypes = computed(() => {
-  return identifierTypeService.getAllIdentifierTypes();
-});
+// const identifierTypes = computed(() => {
+//   return identifierTypeService.getAllIdentifierTypes();
+// });
 
 const clinicalServices = computed(() => {
   return clinicalServiceService.getAllClinicalServicesPersonalized();
 });
 
-const clinicSectors = computed(() => {
-  if (onlyView.value) {
-    const clinicServiceObj = clinicalServiceService.getbyIdWithSectors(
-      clinicalService.value.id
-    );
-    return clinicServiceObj.clinicSectors;
-  } else {
-    return clinicSectorService.getActivebyClinicId(currClinic.value.id);
-  }
-});
+// const clinicSectors = computed(() => {
+//   if (onlyView.value) {
+//     const clinicServiceObj = clinicalServiceService.getbyIdWithSectors(
+//       clinicalService.value.id
+//     );
+//     return clinicServiceObj.clinicSectors;
+//   } else {
+//     return clinicSectorService.getActivebyClinicId(currClinic.value.id);
+//   }
+// });
 
 const isRegimenAttrSelected = computed(() => {
-  console.log(selectedAttributes);
   if (selectedAttributes.value.length <= 0) return false;
   const isSelected = selectedAttributes.value.some((attr) => {
     return attr.code === 'THERAPEUTICAL_REGIMEN';
   });
-  return isSelected.value;
+  return isSelected;
 });
 
 const submitNextButtonLabel = computed(() => {
@@ -379,13 +388,15 @@ const submitNextButtonLabel = computed(() => {
     (stepScreens.value === 3 && !isRegimenAttrSelected.value) ||
     stepScreens.value === 4
   )
-    return 'Submeter';
+    return 'Gravar';
   return 'Próximo';
 });
 
 onMounted(() => {
+  console.log('ABCD: ', clinicalServiceAttributes.value);
   if (clinicalService.value !== '') {
     if (selectedClinicalService.value != null) {
+      clinicalService.value = selectedClinicalService.value;
       clinicalService.value.attributes.forEach((attribute) => {
         selectedAttributes.value.push(attribute.clinicalServiceAttributeType);
       });
@@ -454,56 +465,57 @@ onMounted(() => {
 //   return 'Próximo'
 // }
 // },
+
 /*methods*/
-// submitClinicalService () {
-//        createClinicServiceAttribute()
-//   clinicalService.attributes = clinicalServiceAttributeTypes
-//   clinicalService.active = true
-//     console.log(clinicalService)
-//     if (mobile) {
-//     console.log('Mobile')
-//       if (!isEditStep) {
-//         clinicalService.syncStatus = 'R'
-//         console.log(clinicalService)
-//         ClinicalService.localDbAdd(JSON.parse(JSON.stringify(clinicalService)))
-//         ClinicalService.insert({ data: clinicalService })
-//         closeDialog()
-//         displayAlert('info', clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
-//       } else {
-//           if (clinicalService.syncStatus !== 'R') clinicalService.syncStatus = 'U'
-//           const clinicalServiceUpdate = new ClinicalService(JSON.parse(JSON.stringify((clinicalService))))
-//           ClinicalService.localDbUpdate(clinicalServiceUpdate)
-//           closeDialog()
-//           displayAlert('info', clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
-//       }
-//     } else {
-//       if (!isEditStep) {
-//       ClinicalService.apiSave(clinicalService).then(resp => {
-//           displayAlert('info', clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
-//       ClinicalService.apiFetchById(resp.response.data.id)
-//       console.log(resp.response.data)
-//       TherapeuticRegimen.apiGetAll(0, 200)
-//       }).catch(error => {
-//           displayAlert('error', error)
-//       })
-//     } else {
-//       ClinicalService.apiUpdate(clinicalService).then(resp => {
-//         ClinicalServiceAttribute.delete((clinicalServiceAttribute) => {
-//          return clinicalServiceAttribute.service_id === clinicalService.id
-//           })
-//         ClinicalService.update({ where: clinicalService.id, data: clinicalService })
-//         ClinicalServiceAttribute.insertOrUpdate({ data: clinicalService.attributes })
-//         ClinicalService.apiFetchById(resp.response.data.id).then(resp0 => {
-//           console.log(resp0)
-//         })
-//         TherapeuticRegimen.apiGetAll(0, 200)
-//           displayAlert('info', 'Serviço Clínico actualizado com sucesso.')
-//       }).catch(error => {
-//           displayAlert('error', error)
-//       })
-//     }
-//  }
-// },
+const submitClinicalService = () => {
+  createClinicServiceAttribute();
+  clinicalService.value.attributes = clinicalServiceAttributeTypes.value;
+  clinicalService.value.active = true;
+  console.log(clinicalService.value);
+  // if (mobile) {
+  // console.log('Mobile')
+  //   if (!isEditStep) {
+  //     clinicalService.syncStatus = 'R'
+  //     console.log(clinicalService)
+  //     ClinicalService.localDbAdd(JSON.parse(JSON.stringify(clinicalService)))
+  //     ClinicalService.insert({ data: clinicalService })
+  //     closeDialog()
+  //     displayAlert('info', clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
+  //   } else {
+  //       if (clinicalService.syncStatus !== 'R') clinicalService.syncStatus = 'U'
+  //       const clinicalServiceUpdate = new ClinicalService(JSON.parse(JSON.stringify((clinicalService))))
+  //       ClinicalService.localDbUpdate(clinicalServiceUpdate)
+  //       closeDialog()
+  //       displayAlert('info', clinicalService.id === null ? 'Serviço Clínico adicionado com sucesso.' : 'Serviço Clínico actualizado com sucesso.')
+  //   }
+  // } else {
+  if (!isEditStep.value) {
+    clinicalServiceService
+      .post(clinicalService.value)
+      .then((resp) => {
+        showClinicServiceRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        showClinicServiceRegistrationScreen.value = false;
+      });
+  } else {
+    // ClinicalService.apiUpdate(clinicalService).then(resp => {
+    //   ClinicalServiceAttribute.delete((clinicalServiceAttribute) => {
+    //    return clinicalServiceAttribute.service_id === clinicalService.id
+    //     })
+    //   ClinicalService.update({ where: clinicalService.id, data: clinicalService })
+    //   ClinicalServiceAttribute.insertOrUpdate({ data: clinicalService.attributes })
+    //   ClinicalService.apiFetchById(resp.response.data.id).then(resp0 => {
+    //     console.log(resp0)
+    //   })
+    //   TherapeuticRegimen.apiGetAll(0, 200)
+    //     displayAlert('info', 'Serviço Clínico actualizado com sucesso.')
+    // }).catch(error => {
+    //     displayAlert('error', error)
+    // })
+  }
+  //  }
+};
 
 const extractDatabaseCodes = () => {
   clinicalServices.value.forEach((element) => {
@@ -523,33 +535,33 @@ const goToNextStep = () => {
     //   !$refs.identifierType.hasError
     // ) {
     stepper.value.next();
-    console.log(onlyView.value);
-    console.log(clinicalServiceAttributes.value.length);
     // }
   } else if (stepScreens.value === 2) {
     if (selectedAttributes.value.length <= 0) {
-      // displayAlert(
-      //   'error',
-      //   'Por Favor seleccione pelo menos um atributo para o Serviço Clínicos'
-      // );
+      alertError(
+        'Error',
+        'Por Favor seleccione pelo menos um atributo para o Serviço Clínicos'
+      );
+      stepper.value.next(); //remover depois
     } else {
       stepper.value.next();
     }
   } else if (stepScreens.value === 3) {
     if (clinicalService.value.clinicSectors.length <= 0) {
-      // displayAlert(
-      //   'error',
-      //   'Por Favor seleccione pelo menos um sector para o Serviço Clínicos'
-      // );
+      alertError(
+        'error',
+        'Por Favor seleccione pelo menos um sector para o Serviço Clínicos'
+      );
     } else {
       const attribute = selectedAttributes.value.filter(
         (x) => x.code === 'THERAPEUTICAL_REGIMEN'
       );
+      console.log(attribute[0].code);
       if (
-        attribute.value.length >= 1 &&
-        attribute.value[0].code === 'THERAPEUTICAL_REGIMEN'
+        attribute.length >= 1 &&
+        attribute[0].code === 'THERAPEUTICAL_REGIMEN'
       ) {
-        $refs.stepper.next();
+        stepper.value.next();
       } else {
         submitClinicalService();
       }
@@ -557,7 +569,7 @@ const goToNextStep = () => {
   } else if (stepScreens.value === 4) {
     clinicalService.value.therapeuticRegimens = selectedTherapeuticRegimens;
     if (clinicalService.value.therapeuticRegimens.length <= 0) {
-      // displayAlert(
+      // alertError(
       //   'error',
       //   'Por Favor seleccione pelo menos um regime terapeutico para o Serviço Clínicos'
       // );

@@ -99,7 +99,9 @@ import clinicalServiceService from 'src/services/api/clinicalServiceService/clin
 import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/TherapeuticRegimen';
 import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService.ts';
 import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
-import clinicalServiceAttrService from 'src/services/api/clinicalServiceAttributeService/clinicalServiceAttributeService.ts';
+import clinicalServiceAttributeService from 'src/services/api/clinicalServiceAttributeService/clinicalServiceAttributeService.ts';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
+import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 
 /*Components imports*/
 import addClinicalService from 'src/components/Settings/ClinicalService/AddClinicalService.vue';
@@ -139,8 +141,12 @@ const columns = [
 const clinicalService = reactive(
   ref(clinicalServiceService.newInstanceEntity())
 );
+const clinicalServiceAttributes = ref([]);
 const showClinicServiceRegistrationScreen = ref(false);
 const filter = ref('');
+const therapeuticRegimens = ref([]);
+const clinicSectors = ref([]);
+const identifierTypes = ref([]);
 
 /*injects*/
 const step = inject('step');
@@ -149,6 +155,7 @@ const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
+const currClinic = inject('currClinic');
 
 /*Hooks*/
 const clinicalServices = computed(() => {
@@ -167,6 +174,10 @@ provide(
   'showClinicServiceRegistrationScreen',
   showClinicServiceRegistrationScreen
 );
+provide('clinicalServiceAttributes', clinicalServiceAttributes);
+provide('therapeuticRegimens', therapeuticRegimens);
+provide('clinicSectors', clinicSectors);
+provide('identifierTypes', identifierTypes);
 
 onMounted(() => {
   isEditStep.value = false;
@@ -176,9 +187,9 @@ onMounted(() => {
   viewMode.value = false;
   formService.get(0);
   clinicalServiceService.get(0);
-  clinicalServiceAttrTypeService.get(0);
-  clinicalServiceAttrService.get(0);
+  // clinicalServiceAttributeService.get(0);
   therapeuticalRegimenService.get(0);
+  identifierTypes.value = identifierTypeService.getAllIdentifierTypes();
 });
 
 /*methods*/
@@ -203,7 +214,41 @@ const getTooltipClass = (clinicalService) => {
     return 'bg-green-5';
   }
 };
+const visualizeClinicalService = (clinicalServiceParam) => {
+  const attrTypes = [];
+  const auxList =
+    clinicalServiceAttributeService.getAllClinicalServiceAttrByClinicalService(
+      clinicalServiceParam.id
+    );
+  auxList.forEach((item) => {
+    attrTypes.push(item.clinicalServiceAttributeType);
+  });
+
+  clinicalServiceAttributes.value = attrTypes;
+  therapeuticRegimens.value =
+    therapeuticalRegimenService.getAllTherapeuticalRegimensByclinicalService(
+      clinicalServiceParam.id
+    );
+  clinicSectors.value = clinicalServiceParam.clinicSectors;
+  step.value = '';
+  isCreateStep.value = false;
+  isEditStep.value = true;
+  clinicalService.value = clinicalServiceParam;
+  showClinicServiceRegistrationScreen.value = true;
+  editMode.value = false;
+  viewMode.value = true;
+};
 const editClinicService = (clinicalServiceParam) => {
+  clinicalServiceAttributes.value =
+    clinicalServiceAttrTypeService.getAllClinicalServiceAttrTypes();
+  therapeuticRegimens.value =
+    therapeuticalRegimenService.getAllActiveTherapeuticalRegimens();
+  // therapeuticalRegimenService.getAllActiveTherapeuticalRegimensByclinicalService(
+  //   clinicalServiceParam.id
+  // );
+  clinicSectors.value = clinicSectorService.getActivebyClinicId(
+    currClinic.value.id
+  );
   isCreateStep.value = false;
   isEditStep.value = true;
   clinicalService.value = clinicalServiceParam;
@@ -212,75 +257,63 @@ const editClinicService = (clinicalServiceParam) => {
   editMode.value = true;
   viewMode.value = false;
 };
-// addClinicService() {
-//   this.clinicalService = new ClinicalService();
-//   this.step = 'create';
-//   this.showClinicServiceRegistrationScreen = true;
-//   this.editMode = false;
-//   this.viewMode = false;
-// },
-// visualizeClinicalService(clinicalService) {
-//   this.clinicalService = Object.assign({}, clinicalService);
-//   this.viewMode = true;
-//   this.showClinicServiceRegistrationScreen = true;
-//   this.editMode = false;
-// },
-// promptToConfirm(clinicalService) {
-//   this.$q
-//     .dialog({
-//       title: 'Confirmação',
-//       message: clinicalService.active
-//         ? 'Deseja Inactivar o Serviço Clínico?'
-//         : 'Deseja Activar o Serviço Clínico?',
-//       cancel: true,
-//       persistent: true,
-//     })
-//     .onOk(() => {
-//       let operation = '';
-//       if (clinicalService.active) {
-//         clinicalService.active = false;
-//         operation = 'inactivado';
-//       } else if (!clinicalService.active) {
-//         clinicalService.active = true;
-//         operation = 'activado';
-//       }
-//       console.log(clinicalService);
-//       if (this.mobile) {
-//         console.log('FrontEnd');
-//         if (clinicalService.syncStatus !== 'R')
-//           clinicalService.syncStatus = 'U';
-//         ClinicalService.localDbAdd(
-//           JSON.parse(JSON.stringify(clinicalService))
-//         );
-//         ClinicalService.insertOrUpdate({ data: clinicalService });
-//         this.displayAlert(
-//           'info',
-//           `Servico Clínico ${operation} com sucesso`
-//         );
-//       } else {
-//         console.log('BackEnd');
-//         clinicalService.therapeuticRegimens = [];
-//         ClinicalService.apiUpdate(clinicalService)
-//           .then((resp) => {
-//             this.displayAlert(
-//               'info',
-//               `Servico Clínico ${operation} com sucesso`
-//             );
-//           })
-//           .catch((error) => {
-//             this.displayAlert('error', error);
-//           });
-//       }
-//     });
-// },
-// displayAlert(type, msg) {
-//   this.alert.type = type;
-//   this.alert.msg = msg;
-//   this.alert.visible = true;
-// },
-// closeDialog() {
-//   if (this.alert.type === 'info') {
-//     this.$emit('close');
-//   }
-// },
+const addClinicService = () => {
+  clinicalServiceAttributes.value =
+    clinicalServiceAttrTypeService.getAllClinicalServiceAttrTypes();
+  therapeuticRegimens.value =
+    therapeuticalRegimenService.getAllActiveTherapeuticalRegimens();
+  clinicSectors.value = clinicSectorService.getActivebyClinicId(
+    currClinic.value.id
+  );
+  console.log(therapeuticRegimens.value);
+  isCreateStep.value = true;
+  isEditStep.value = false;
+  clinicalService.value = reactive(
+    ref(clinicalServiceService.newInstanceEntity())
+  );
+  step.value = 'create';
+  showClinicServiceRegistrationScreen.value = true;
+  editMode.value = false;
+  viewMode.value = false;
+};
+const promptToConfirm = (clinicalServiceParam) => {
+  const question = clinicalServiceParam.active
+    ? 'Deseja Inactivar o Serviço Clínico?'
+    : 'Deseja Activar o Serviço Clínico?';
+
+  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
+    (response) => {
+      if (response) {
+        if (clinicalServiceParam.active) {
+          clinicalServiceParam.active = false;
+        } else {
+          clinicalServiceParam.active = true;
+        }
+        //   if (this.mobile) {
+        //   console.log('FrontEnd');
+        //   if (clinicalService.syncStatus !== 'R')
+        //     clinicalService.syncStatus = 'U';
+        //   ClinicalService.localDbAdd(
+        //     JSON.parse(JSON.stringify(clinicalService))
+        //   );
+        //   ClinicalService.insertOrUpdate({ data: clinicalService });
+        //   this.displayAlert(
+        //     'info',
+        //     `Servico Clínico ${operation} com sucesso`
+        //   );
+        // } else {
+        console.log('BackEnd');
+        clinicalServiceService
+          .patch(clinicalServiceParam.id, clinicalServiceParam)
+          .then((resp) => {
+            //
+          })
+          .catch((error) => {
+            //
+          });
+        // }
+      }
+    }
+  );
+};
 </script>

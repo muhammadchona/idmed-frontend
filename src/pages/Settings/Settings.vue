@@ -142,6 +142,7 @@
 /*Imports*/
 import { ref, provide, computed, inject, onMounted } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
+import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
 // import mixinplatform from 'src/mixins/mixin-system-platform';
 
 /*components import*/
@@ -152,6 +153,7 @@ import drug from 'src/components/Settings/Drug/Drugs.vue';
 import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue';
 import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';
 import identifierType from 'src/components/Settings/IdentifierType/IdentifierTypeList.vue';
+import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 // import interoperability from 'src/components/Settings/Interoperability/His.vue';
 // import users from 'src/components/Settings/User/Users.vue';
 // import roles from 'src/components/Settings/User/Roles.vue';
@@ -219,6 +221,8 @@ const currClinic = computed(() => {
 });
 
 onMounted(() => {
+  identifierTypeService.get(0);
+  clinicalServiceAttrTypeService.get(0);
   // console.log(currClinic.value);
 });
 

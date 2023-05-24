@@ -117,4 +117,11 @@ export default {
       .where('service_id', clinicalServiceId)
       .get();
   },
+
+  getAllClinicalServiceAttributes() {
+    return clinicalserviceAttribute
+      .query()
+      .with('clinicalServiceAttributeType')
+      .get();
+  },
 };
