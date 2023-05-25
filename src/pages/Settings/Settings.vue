@@ -121,10 +121,10 @@
             <identifierType />
           </q-tab-panel>
 
-          <!-- <q-tab-panel name="interoperability">
+          <q-tab-panel name="interoperability">
             <div class="text-h4 q-mb-md"></div>
             <interoperability> </interoperability>
-          </q-tab-panel> -->
+          </q-tab-panel>
           <!-- <q-tab-panel name="users">
             <div class="text-h4 q-mb-md"></div>
             <users> </users>
@@ -143,6 +143,8 @@
 import { ref, provide, computed, inject, onMounted } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
+import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
+import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 // import mixinplatform from 'src/mixins/mixin-system-platform';
 
 /*components import*/
@@ -153,17 +155,18 @@ import drug from 'src/components/Settings/Drug/Drugs.vue';
 import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/TherapeuticRegimens.vue';
 import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';
 import identifierType from 'src/components/Settings/IdentifierType/IdentifierTypeList.vue';
-import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
-// import interoperability from 'src/components/Settings/Interoperability/His.vue';
+import interoperability from 'src/components/Settings/Interoperability/His.vue';
+import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 // import users from 'src/components/Settings/User/Users.vue';
 // import roles from 'src/components/Settings/User/Roles.vue';
 
 /*Variables*/
-// mixins = [mixinplatform];
 const activeMenu = ref('Farmácias');
+const filter = ref('');
 const selectedTab = ref('clinic');
 const drawer = ref(false);
 const viewMode = ref(false);
+const createMode = ref(false);
 const editMode = ref(false);
 const splitterModel = ref(15);
 const step = ref('');
@@ -223,7 +226,8 @@ const currClinic = computed(() => {
 onMounted(() => {
   identifierTypeService.get(0);
   clinicalServiceAttrTypeService.get(0);
-  // console.log(currClinic.value);
+  healthInformationSystemService.get(0);
+  interoperabilityTypeService.get(0);
 });
 
 /*injects*/
@@ -234,9 +238,11 @@ provide('clinic', clinic);
 provide('clinicSector', clinicSector);
 provide('viewMode', viewMode);
 provide('editMode', editMode);
+provide('createMode', createMode);
 provide('currClinic', currClinic);
 provide('isEditStep', isEditStep);
 provide('isCreateStep', isCreateStep);
+provide('filter', filter);
 
 /*Methods*/
 // const changeMenu = (label) => {

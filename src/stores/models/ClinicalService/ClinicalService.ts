@@ -36,6 +36,10 @@ export default class ClinicalService extends Model {
     };
   }
 
+  static piniaOptions = {
+    persist: true,
+  };
+
   static async apiGetAll(offset, max) {
     return await this.api().get('/clinicalService?offset=0&max=100');
   }

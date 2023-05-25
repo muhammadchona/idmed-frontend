@@ -70,7 +70,7 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
+  patch(id: string, params: string) {
     return api()
       .patch('clinicalService/' + id, params)
       .then((resp) => {

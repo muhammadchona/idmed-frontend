@@ -30,6 +30,10 @@ export default class Doctor extends Model {
     };
   }
 
+  static piniaOptions = {
+    persist: true,
+  };
+
   static async apiGetAll() {
     return await this.api().get('/doctor');
   }

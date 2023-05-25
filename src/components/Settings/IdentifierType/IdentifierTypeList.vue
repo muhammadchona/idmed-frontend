@@ -86,11 +86,10 @@
 import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
-import IdentifierType from '../../../stores/models/identifierType/IdentifierType';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 
 /*Components Import*/
-// import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
+import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
 
 /*Declarations*/
 const { alertWarningAction } = useSwal();
@@ -130,7 +129,6 @@ const filter = ref('');
 
 /*injects*/
 const step = inject('step');
-const clinic = inject('clinic');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const isEditStep = inject('isEditStep');
@@ -151,8 +149,11 @@ onMounted(() => {
 });
 
 /*Provides*/
-provide('selectedIdentifierType', identifierType);
+provide('selectedIdentifierType', identifierType.value);
 provide('stepp', step);
+provide('showAddEditIdentifierType', showAddEditIdentifierType);
+provide('identifierTypes', identifierTypes);
+provide('identifierTypeParam', identifierType.value);
 
 /*Methods*/
 const getIconActive = (clinicSector) => {
@@ -185,11 +186,12 @@ const showIdentifierType = (identifierTypeParam) => {
   identifierType.value = identifierTypeParam;
   step.value = 'display';
   viewMode.value = true;
-  editMode = false;
+  editMode.value = false;
   showAddEditIdentifierType.value = true;
 };
 
 const editIdentifierType = (identifierTypeParam) => {
+  console.log(identifierTypeParam);
   isCreateStep.value = false;
   isEditStep.value = true;
   isCreateStep.value = false;
@@ -207,45 +209,49 @@ const addIdentifierType = () => {
   isCreateStep.value = true;
   isEditStep.value = false;
   step.value = 'create';
+  identifierType.value = reactive(
+    ref(identifierTypeService.newInstanceEntity())
+  );
+  console.log(identifierType.value);
   showAddEditIdentifierType.value = true;
   editMode.value = false;
   viewMode.value = false;
 };
 
-const promptToConfirm = (identifierType) => {
-  this.$q
-    .dialog({
-      title: 'Confirmação',
-      message: identifierType.active
-        ? 'Deseja Inactivar o Sector Clinico?'
-        : 'Deseja Activar o Sector Clinico?',
-      cancel: true,
-      persistent: true,
-    })
-    .onOk(() => {
-      identifierType.active = !identifierType.active;
-      if (this.mobile) {
-        console.log('FrontEnd');
-        if (identifierType.syncStatus !== 'R') identifierType.syncStatus = 'U';
-        IdentifierType.localDbAdd(JSON.parse(JSON.stringify(identifierType)));
-        IdentifierType.insertOrUpdate({ data: identifierType });
-        this.displayAlert(
-          'info',
-          'Tipo de identificador actualizado com sucesso'
-        );
-      } else {
-        console.log('BackEnd');
-        IdentifierType.apiUpdate(identifierType)
-          .then((resp) => {
-            this.displayAlert(
-              'info',
-              'Tipo de identificador actualizado com sucesso'
-            );
-          })
-          .catch((error) => {
-            this.displayAlert('error', error);
-          });
-      }
-    });
-};
+// const promptToConfirm = (identifierType) => {
+//   this.$q
+//     .dialog({
+//       title: 'Confirmação',
+//       message: identifierType.active
+//         ? 'Deseja Inactivar o Sector Clinico?'
+//         : 'Deseja Activar o Sector Clinico?',
+//       cancel: true,
+//       persistent: true,
+//     })
+//     .onOk(() => {
+//       identifierType.active = !identifierType.active;
+//       if (this.mobile) {
+//         console.log('FrontEnd');
+//         if (identifierType.syncStatus !== 'R') identifierType.syncStatus = 'U';
+//         IdentifierType.localDbAdd(JSON.parse(JSON.stringify(identifierType)));
+//         IdentifierType.insertOrUpdate({ data: identifierType });
+//         this.displayAlert(
+//           'info',
+//           'Tipo de identificador actualizado com sucesso'
+//         );
+//       } else {
+//         console.log('BackEnd');
+//         IdentifierType.apiUpdate(identifierType)
+//           .then((resp) => {
+//             this.displayAlert(
+//               'info',
+//               'Tipo de identificador actualizado com sucesso'
+//             );
+//           })
+//           .catch((error) => {
+//             this.displayAlert('error', error);
+//           });
+//       }
+//     });
+// };
 </script>

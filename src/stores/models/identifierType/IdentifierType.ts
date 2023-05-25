@@ -15,6 +15,10 @@ export default class IdentifierType extends Model {
     };
   }
 
+  static piniaOptions = {
+    persist: true,
+  };
+
   static async apiGetAll(offset, max) {
     return await this.api().get(
       '/identifierType?offset=' + offset + '&max=' + max

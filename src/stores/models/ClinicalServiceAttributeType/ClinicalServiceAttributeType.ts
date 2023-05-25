@@ -20,6 +20,10 @@ export default class ClinicalServiceAttributeType extends Model {
     };
   }
 
+  static piniaOptions = {
+    persist: true,
+  }
+
   static async apiGetAll(offset, max) {
     return await this.api().get(
       '/clinicalServiceAttributeType?offset=' + offset + '&max=' + max

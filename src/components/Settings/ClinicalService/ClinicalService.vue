@@ -166,19 +166,6 @@ const forms = computed(() => {
   return formService.getAllForms();
 });
 
-/*Provides*/
-provide('stepp', step);
-// provide('drugs', drugs);
-provide('selectedClinicalService', clinicalService);
-provide(
-  'showClinicServiceRegistrationScreen',
-  showClinicServiceRegistrationScreen
-);
-provide('clinicalServiceAttributes', clinicalServiceAttributes);
-provide('therapeuticRegimens', therapeuticRegimens);
-provide('clinicSectors', clinicSectors);
-provide('identifierTypes', identifierTypes);
-
 onMounted(() => {
   isEditStep.value = false;
   isCreateStep.value = false;
@@ -191,6 +178,19 @@ onMounted(() => {
   therapeuticalRegimenService.get(0);
   identifierTypes.value = identifierTypeService.getAllIdentifierTypes();
 });
+
+/*Provides*/
+provide('stepp', step);
+// provide('drugs', drugs);
+provide('selectedClinicalService', clinicalService);
+provide(
+  'showClinicServiceRegistrationScreen',
+  showClinicServiceRegistrationScreen
+);
+provide('clinicalServiceAttributes', clinicalServiceAttributes);
+provide('therapeuticRegimens', therapeuticRegimens);
+provide('clinicSectors', clinicSectors);
+provide('identifierTypes', identifierTypes);
 
 /*methods*/
 const getIconActive = (clinicalService) => {
