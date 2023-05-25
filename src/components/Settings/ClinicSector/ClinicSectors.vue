@@ -172,7 +172,6 @@ onMounted(() => {
   editMode.value = false;
   viewMode.value = false;
   clinicSectorService.get(0);
-  clinicSectorTypeService.get(0);
 });
 
 /*provides*/

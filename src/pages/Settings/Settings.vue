@@ -125,10 +125,10 @@
             <div class="text-h4 q-mb-md"></div>
             <interoperability> </interoperability>
           </q-tab-panel>
-          <!-- <q-tab-panel name="users">
+          <q-tab-panel name="users">
             <div class="text-h4 q-mb-md"></div>
             <users> </users>
-          </q-tab-panel> -->
+          </q-tab-panel>
           <!-- <q-tab-panel name="roles">
             <div class="text-h4 q-mb-md"></div>
             <roles> </roles>
@@ -145,7 +145,9 @@ import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
-// import mixinplatform from 'src/mixins/mixin-system-platform';
+import userService from 'src/services/api/user/userService.ts';
+import roleService from 'src/services/api/role/roleService.ts';
+import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 
 /*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
@@ -157,7 +159,7 @@ import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalSe
 import identifierType from 'src/components/Settings/IdentifierType/IdentifierTypeList.vue';
 import interoperability from 'src/components/Settings/Interoperability/His.vue';
 import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
-// import users from 'src/components/Settings/User/Users.vue';
+import users from 'src/components/Settings/User/Users.vue';
 // import roles from 'src/components/Settings/User/Roles.vue';
 
 /*Variables*/
@@ -228,6 +230,9 @@ onMounted(() => {
   clinicalServiceAttrTypeService.get(0);
   healthInformationSystemService.get(0);
   interoperabilityTypeService.get(0);
+  roleService.get(0);
+  userService.get(0);
+  clinicSectorTypeService.get(0);
 });
 
 /*injects*/

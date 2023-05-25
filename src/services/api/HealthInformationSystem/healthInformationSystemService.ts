@@ -1,5 +1,5 @@
-import { useRepo } from 'pinia-orm';
 import HealthInformationSystem from 'src/stores/models/healthInformationSystem/HealthInformationSystem';
+import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -71,8 +71,28 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+            setTimeout(this.get, 2);
           } else {
             closeLoading();
+          }
+        })
+        .catch((error) => {
+          closeLoading;
+          if (error.request != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            const listErrors = {};
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+            alertError('Erro no porcessamento', String(listErrors));
+          } else if (error.request) {
+            alertError('Erro no registo', error.request);
+          } else {
+            alertError('Erro no registo', error.message);
           }
         });
     }

@@ -90,33 +90,29 @@
         />
       </q-page-sticky>
     </div>
-    <q-dialog persistent v-model="showClinicRegistrationScreen">
-      <addUser
-        :selectedUser="user"
-        :editMode="editMode"
-        :onlyView="viewMode"
-        @close="showClinicRegistrationScreen = false"
-      />
-    </q-dialog>
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
+    <q-dialog persistent v-model="showUserRegistrationScreen">
+      <addUserComp @close="showUserRegistrationScreen = false" />
     </q-dialog>
   </div>
 </template>
-<script>
+<script setup>
+/*imports*/
 import { useQuasar } from 'quasar';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
 import UserLogin from '../../../stores/models/userLogin/User';
 import Role from '../../../stores/models/userLogin/Role';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { ref } from 'vue';
-import mixinSystemPlatform from 'src/mixins/mixin-system-platform';
 import ClinicSectorType from '../../../stores/models/clinicSectorType/ClinicSectorType';
-import mixinEncryption from 'src/mixins/mixin-encryption';
-import mixinutils from 'src/mixins/mixin-utils';
+import userService from 'src/services/api/user/userService.ts';
+import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
+
+/*Components import*/
+import addUserComp from 'src/components/Settings/User/AddUser.vue';
+
+/*Variables*/
+const { alertWarningAction } = useSwal();
 const columns = [
   {
     name: 'fullName',
@@ -147,185 +143,177 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-export default {
-  mixins: [mixinSystemPlatform, mixinEncryption, mixinutils],
-  data() {
-    const $q = useQuasar();
+const showUserRegistrationScreen = ref(false);
+const user = reactive(ref(userService.newInstanceEntity()));
 
-    return {
-      columns,
-      $q,
-      showClinicRegistrationScreen: false,
-      editMode: false,
-      viewMode: false,
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: '',
-      }),
-      filter: ref(''),
-    };
-  },
-  computed: {
-    users() {
-      return UserLogin.query()
-        .with('clinic.province')
-        .with('clinic.district.province')
-        .with('clinic.facilityType')
-        .with('clinicSectors.clinic.province')
-        .with('clinicSectors.clinic.district.province')
-        .with('clinicSectors.clinic.facilityType')
-        .with('clinicSectors.clinicSectorType')
-        .get();
-    },
-    configs() {
-      return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first();
-    },
-  },
-  methods: {
-    async getAllClinicsByProvinceCode(provinceCode) {
-      await Clinic.api()
-        .get('/clinic/province/' + provinceCode)
-        .then((resp) => {
-          this.hideLoading();
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    getIconActive(user) {
-      if (user.accountLocked) {
-        return 'play_circle';
-      } else if (!user.accountLocked) {
-        return 'stop_circle';
-      }
-    },
-    getColorActive(user) {
-      if (user.accountLocked) {
-        return 'green';
-      } else if (!user.accountLocked) {
-        return 'red';
-      }
-    },
-    getTooltipClass(user) {
-      if (!user.accountLocked) {
-        return 'bg-green-5';
-      } else if (user.accountLocked) {
-        return 'bg-red-5';
-      }
-    },
-    editUser(user) {
-      this.user = Object.assign({}, user);
-      this.showClinicRegistrationScreen = true;
-      this.editMode = true;
-      this.viewMode = false;
-    },
-    addUser() {
-      this.user = new UserLogin();
-      this.showClinicRegistrationScreen = true;
-      this.editMode = false;
-      this.viewMode = false;
-    },
-    visualizeClinic(user) {
-      this.user = Object.assign({}, user);
-      this.viewMode = true;
-      this.showClinicRegistrationScreen = true;
-      this.editMode = false;
-    },
-    promptToConfirm(user) {
-      let msg = '';
-      this.$q
-        .dialog({
-          title: 'Confirmação',
-          message: !user.accountLocked
-            ? 'Deseja Inactivar o Utilizador?'
-            : 'Deseja Activar o Utilizador?',
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          if (!user.accountLocked) {
-            user.accountLocked = true;
-            msg = 'Utilizador inactivado com sucesso.';
-          } else if (user.accountLocked) {
-            user.accountLocked = false;
-            msg = 'Utilizador activado com sucesso.';
-          }
-          if (this.website) {
-            UserLogin.apiSave(user)
-              .then((resp) => {
-                this.displayAlert('info', msg);
-              })
-              .catch((error) => {
-                this.displayAlert('error', error);
-              });
-          } else {
-            let userLocalBase = JSON.parse(JSON.stringify(user));
-            userLocalBase = this.encrypt(userLocalBase);
-            UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
-              this.submitting = false;
-              UserLogin.insert({
-                data: userLocalBase,
-              });
-              this.displayAlert('info', msg);
-            });
-          }
-        });
-    },
-    displayAlert(type, msg) {
-      this.alert.type = type;
-      this.alert.msg = msg;
-      this.alert.visible = true;
-    },
-    closeDialog() {
-      if (this.alert.type === 'info') {
-        this.$emit('close');
-      }
-    },
-    getRolesToVuex() {
-      Role.localDbGetAll().then((roles) => {
-        Role.insert({ data: roles });
-      });
-    },
-    getSecUserToVuex() {
-      UserLogin.localDbGetAll().then((users) => {
-        UserLogin.insert({ data: users });
-      });
-    },
-    getSystemConfigsToVue() {
-      SystemConfigs.localDbGetAll().then((systemConfigs) => {
-        SystemConfigs.insert({ data: systemConfigs });
-      });
-    },
-    getClinicSectorTypeToVue() {
-      ClinicSectorType.localDbGetAll().then((clinicSectorTypes) => {
-        console.log(clinicSectorTypes);
-        ClinicSectorType.insert({ data: clinicSectorTypes });
-      });
-    },
-  },
-  mounted() {
-    this.showloading();
-    if (this.website) {
-      UserLogin.apiGetAll(0, 100);
-      Role.apiGetAll().then((item) => {
-        this.hideLoading();
-      });
-      if (this.configs.value === 'PROVINCIAL') {
-        this.getAllClinicsByProvinceCode(this.configs.description);
-      }
-    } else {
-      this.getRolesToVuex();
-      this.getSecUserToVuex();
-      this.getSystemConfigsToVue();
-      this.getClinicSectorTypeToVue();
-    }
-    // this.hideLoading()
-  },
-  components: {
-    addUser: require('components/Settings/User/AddUser.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-    // clinicsTable: require('components/Settings/Clinic/ClinicsTable.vue').default
-  },
+/*Injects*/
+const step = inject('step');
+const filter = inject('filter');
+const createMode = inject('createMode');
+const editMode = inject('editMode');
+const viewMode = inject('viewMode');
+const isEditStep = inject('isEditStep');
+const isCreateStep = inject('isCreateStep');
+const currClinic = inject('currClinic');
+
+/*Hooks*/
+const users = computed(() => {
+  return userService.getAllUsers();
+});
+
+const configs = computed(() => {
+  return sysConfigsService.getActiveDataMigration();
+});
+
+/*Provides*/
+provide('selectedUser', user);
+provide('configs', configs);
+
+/*Methods*/
+// const getAllClinicsByProvinceCode = async (provinceCode) => {
+//       await Clinic.api()
+//         .get('/clinic/province/' + provinceCode)
+//         .then((resp) => {
+//           this.hideLoading();
+//         })
+//         .catch((error) => {
+//           console.log(error);
+//         });
+//     },
+const getIconActive = (user) => {
+  if (user.accountLocked) {
+    return 'play_circle';
+  } else if (!user.accountLocked) {
+    return 'stop_circle';
+  }
 };
+const getColorActive = (user) => {
+  if (user.accountLocked) {
+    return 'green';
+  } else if (!user.accountLocked) {
+    return 'red';
+  }
+};
+const getTooltipClass = (user) => {
+  if (!user.accountLocked) {
+    return 'bg-green-5';
+  } else if (user.accountLocked) {
+    return 'bg-red-5';
+  }
+};
+const editUser = (userParam) => {
+  user.value = userParam;
+  showUserRegistrationScreen.value = true;
+  editMode.value = true;
+  viewMode.value = false;
+};
+const addUser = () => {
+  // user = new UserLogin();
+  showUserRegistrationScreen.value = true;
+  editMode.value = false;
+  viewMode.value = false;
+};
+const visualizeClinic = (userParam) => {
+  user.value = userParam;
+  viewMode.value = true;
+  editMode.value = false;
+  showUserRegistrationScreen.value = true;
+};
+// promptToConfirm(user) {
+//   let msg = '';
+//   this.$q
+//     .dialog({
+//       title: 'Confirmação',
+//       message: !user.accountLocked
+//         ? 'Deseja Inactivar o Utilizador?'
+//         : 'Deseja Activar o Utilizador?',
+//       cancel: true,
+//       persistent: true,
+//     })
+//     .onOk(() => {
+//       if (!user.accountLocked) {
+//         user.accountLocked = true;
+//         msg = 'Utilizador inactivado com sucesso.';
+//       } else if (user.accountLocked) {
+//         user.accountLocked = false;
+//         msg = 'Utilizador activado com sucesso.';
+//       }
+//       if (this.website) {
+//         UserLogin.apiSave(user)
+//           .then((resp) => {
+//             this.displayAlert('info', msg);
+//           })
+//           .catch((error) => {
+//             this.displayAlert('error', error);
+//           });
+//       } else {
+//         let userLocalBase = JSON.parse(JSON.stringify(user));
+//         userLocalBase = this.encrypt(userLocalBase);
+//         UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
+//           this.submitting = false;
+//           UserLogin.insert({
+//             data: userLocalBase,
+//           });
+//           this.displayAlert('info', msg);
+//         });
+//       }
+//     });
+// },
+// getRolesToVuex() {
+//   Role.localDbGetAll().then((roles) => {
+//     Role.insert({ data: roles });
+//   });
+// },
+// getSecUserToVuex() {
+//   UserLogin.localDbGetAll().then((users) => {
+//     UserLogin.insert({ data: users });
+//   });
+// },
+// getSystemConfigsToVue() {
+//   SystemConfigs.localDbGetAll().then((systemConfigs) => {
+//     SystemConfigs.insert({ data: systemConfigs });
+//   });
+// },
+// getClinicSectorTypeToVue() {
+//   ClinicSectorType.localDbGetAll().then((clinicSectorTypes) => {
+//     console.log(clinicSectorTypes);
+//     ClinicSectorType.insert({ data: clinicSectorTypes });
+//   });
+// },
+
+// computed: {
+//   users() {
+//     return UserLogin.query()
+//       .with('clinic.province')
+//       .with('clinic.district.province')
+//       .with('clinic.facilityType')
+//       .with('clinicSectors.clinic.province')
+//       .with('clinicSectors.clinic.district.province')
+//       .with('clinicSectors.clinic.facilityType')
+//       .with('clinicSectors.clinicSectorType')
+//       .get();
+//   },
+//   configs() {
+//     return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first();
+//   },
+// },
+
+// mounted() {
+//   this.showloading();
+//   if (this.website) {
+//     // UserLogin.apiGetAll(0, 100);
+//     // Role.apiGetAll().then((item) => {
+//     //   this.hideLoading();
+//     // });
+//     if (this.configs.value === 'PROVINCIAL') {
+//       this.getAllClinicsByProvinceCode(this.configs.description);
+//     }
+//   } else {
+//     this.getRolesToVuex();
+//     this.getSecUserToVuex();
+//     this.getSystemConfigsToVue();
+//     this.getClinicSectorTypeToVue();
+//   }
+//   // this.hideLoading()
+// }
 </script>

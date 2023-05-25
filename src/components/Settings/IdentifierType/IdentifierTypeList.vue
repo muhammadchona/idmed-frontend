@@ -149,7 +149,7 @@ onMounted(() => {
 });
 
 /*Provides*/
-provide('selectedIdentifierType', identifierType.value);
+provide('selectedIdentifierType', identifierType);
 provide('stepp', step);
 provide('showAddEditIdentifierType', showAddEditIdentifierType);
 provide('identifierTypes', identifierTypes);
