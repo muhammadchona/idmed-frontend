@@ -25,7 +25,9 @@ export default class ClinicSector extends Model {
       ),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll(offset, max) {
     return await this.api().get(
       '/clinicSector?offset=' + offset + '&max=' + max

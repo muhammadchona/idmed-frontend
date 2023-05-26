@@ -10,4 +10,7 @@ export default class ClinicalServiceSector extends Model {
       clinical_service_id: this.attr(null),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

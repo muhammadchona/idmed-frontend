@@ -20,7 +20,9 @@ export default class PostoAdministrativo extends Model {
       localidades: this.hasMany(Localidade, 'postoAdministrativo_id'),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll(offset, max) {
     return await this.api().get(
       '/postoAdministrativo?offset=' + offset + '&max=' + max

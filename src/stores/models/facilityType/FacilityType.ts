@@ -12,7 +12,9 @@ export default class FacilityType extends Model {
       description: this.attr(''),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll(offset, max) {
     return await this.api().get(
       '/facilityType?offset=' + offset + '&max=' + max

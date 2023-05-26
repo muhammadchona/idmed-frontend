@@ -83,4 +83,10 @@ export default {
   getAllFromStorage() {
     return patientServiceIdentifier.all();
   },
+  curIdentifier(id: string) {
+    return patientServiceIdentifier
+      .withAllRecursive(2)
+      .where('value', id)
+      .first();
+  },
 };

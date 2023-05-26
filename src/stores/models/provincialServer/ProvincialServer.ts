@@ -16,7 +16,9 @@ export default class ProvincialServer extends Model {
       password: this.attr(''),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiFetchById(id) {
     return await this.api().get(`/provincialServer/${id}`);
   }

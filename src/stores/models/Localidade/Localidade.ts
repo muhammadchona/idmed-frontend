@@ -24,7 +24,9 @@ export default class Localidade extends Model {
       district: this.belongsTo(District, 'district_id'),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll(offset, max) {
     return await this.api().get('/localidade?offset=' + offset + '&max=' + max);
   }

@@ -23,7 +23,9 @@ export default class NationalClinic extends Model {
       clinics: this.hasMany(Clinic, 'nationalClinic_id'),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll() {
     return await this.api().get('/nationalClinic');
   }
