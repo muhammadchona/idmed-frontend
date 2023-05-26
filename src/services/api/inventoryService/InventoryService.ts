@@ -14,18 +14,19 @@ export default {
         inventory.save(resp.data);
       });
   },
-  
+
   get(offset: number) {
     if (offset >= 0) {
       return api()
-      .get('inventory?offset=' + offset)
+        .get('inventory?offset=' + offset)
         .then((resp) => {
           inventory.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
           }
-        }).catch((error) => {
+        })
+        .catch((error) => {
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = [];
@@ -36,11 +37,11 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alert('Erro no registo', listErrors, null, null, null);
+            alert(listErrors, null, null, null);
           } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
+            alert(error.request, null, null, null);
           } else {
-            alert('Erro no registo', error.message, null, null, null);
+            alert(error.message, null, null, null);
           }
         });
     }
@@ -61,36 +62,38 @@ export default {
   },
   apiClose(id: string, params: string) {
     return api()
-    .patch('/inventory/close/' + id, params)
-    .then((resp) => {
-      inventory.save(resp.data);
-    });
+      .patch('/inventory/close/' + id, params)
+      .then((resp) => {
+        inventory.save(resp.data);
+      });
   },
 
-  apiGetAllByClinicId(clinicId: string, offset: number, max:number) {
-    return api().get(
-      '/inventory/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
-    ) .then((resp) => {
-      inventory.save(resp.data);
-      if (resp.data.length > 0) {
-        setTimeout(this.get, 2);
-      }
-    });
+  apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
+    return api()
+      .get(
+        '/inventory/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+      )
+      .then((resp) => {
+        inventory.save(resp.data);
+        if (resp.data.length > 0) {
+          setTimeout(this.get, 2);
+        }
+      });
   },
 
   apiFetchById(id: string) {
-    return api().get(
-      '/inventory/' + id ) .then((resp) => {
-      inventory.save(resp.data);
-      if (resp.data.length > 0) {
-        setTimeout(this.get, 2);
-      }
-    });
+    return api()
+      .get('/inventory/' + id)
+      .then((resp) => {
+        inventory.save(resp.data);
+        if (resp.data.length > 0) {
+          setTimeout(this.get, 2);
+        }
+      });
   },
-  
+
   // Local Storage Pinia
   newInstanceEntity() {
     return inventory.getModel().$newInstance();
-  }  
-
+  },
 };

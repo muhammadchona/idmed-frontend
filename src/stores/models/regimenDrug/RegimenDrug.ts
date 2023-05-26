@@ -23,4 +23,7 @@ export default class RegimenDrug extends Model {
       ),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

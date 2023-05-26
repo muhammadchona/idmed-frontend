@@ -16,7 +16,9 @@ export default class Form extends Model {
       drugs: this.hasMany(Drug, 'form_id'),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll(offset, max) {
     return await this.api().get('/form?offset=' + offset + '&max=' + max);
   }

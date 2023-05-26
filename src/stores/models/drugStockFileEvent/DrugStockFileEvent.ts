@@ -21,7 +21,9 @@ export default class DrugStockFileEvent extends Model {
       stockId: this.attr(''),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetDrugFileMobile(clinicId) {
     return await this.api().get(`/drugStockFile/drugfilemobile/${clinicId}`);
   }

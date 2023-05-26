@@ -13,7 +13,9 @@ export default class DrugFile extends Model {
       drugFileSummaryBatch: this.attr(''),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetDrugFileMobile(clinicId) {
     return await this.api().get(`/drugStockFile/drugfilemobile/${clinicId}`);
   }

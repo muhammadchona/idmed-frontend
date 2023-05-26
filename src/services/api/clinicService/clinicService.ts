@@ -19,7 +19,7 @@ export default {
       const clinicData = JSON.parse(resp.config.data);
       clinic.save(clinicData);
       useStorage('clinic', clinicData);
-      alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+      alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       if (error.request != null) {
         const arrayErrors = JSON.parse(error.request.response);
@@ -31,11 +31,11 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no porcessamento', String(listErrors));
+        alertError(String(listErrors));
       } else if (error.request) {
-        alertError('Erro no registo', error.request);
+        alertError(error.request);
       } else {
-        alertError('Erro no registo', error.message);
+        alertError(error.message);
       }
     }
   },
@@ -63,11 +63,11 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no porcessamento', String(listErrors));
+            alertError(String(listErrors));
           } else if (error.request) {
-            alertError('Erro no registo', error.request);
+            alertError(error.request);
           } else {
-            alertError('Erro no registo', error.message);
+            alertError(error.message);
           }
         });
     }
@@ -77,7 +77,7 @@ export default {
       const resp = await api().patch('clinic?uuid=eq.' + uid, params);
       clinic.save(JSON.parse(resp.config.data));
       useStorage('clinic', JSON.parse(resp.config.data));
-      alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+      alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       if (error.request != null) {
         const arrayErrors = JSON.parse(error.request.response);
@@ -89,11 +89,11 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no porcessamento', String(listErrors));
+        alertError(String(listErrors));
       } else if (error.request) {
-        alertError('Erro no registo', error.request);
+        alertError(error.request);
       } else {
-        alertError('Erro no registo', error.message);
+        alertError(error.message);
       }
     }
   },
@@ -101,7 +101,7 @@ export default {
     try {
       const resp = await api().delete('clinic?uuid=eq.' + uuid);
       clinic.destroy(uuid);
-      alertSucess('Sucesso!', 'O Registo foi removido com sucesso');
+      alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
       if (error.request != null) {
         const arrayErrors = JSON.parse(error.request.response);
@@ -118,9 +118,9 @@ export default {
           'Esta farmácia tem pacientes assossiados e não pode ser removida'
         );
       } else if (error.request) {
-        alertError('Erro no registo', error.request);
+        alertError(error.request);
       } else {
-        alertError('Erro no registo', error.message);
+        alertError(error.message);
       }
     }
   },
