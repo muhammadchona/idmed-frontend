@@ -15,8 +15,8 @@ export default {
     return api()
       .post('clinicSector', params)
       .then((resp) => {
-        clinicsector.save(resp.data);
-        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+        clinicSector.save(resp.data);
+        alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -29,11 +29,11 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no registo', listErrors);
+          alertError(String(listErrors));
         } else if (error.request) {
-          alertError('Erro no registo', error.request);
+          alertError(error.request);
         } else {
-          alertError('Erro no registo', error.message);
+          alertError(error.message);
         }
       });
   },
@@ -61,11 +61,11 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no porcessamento', String(listErrors));
+            alertError(String(listErrors));
           } else if (error.request) {
-            alertError('Erro no registo', error.request);
+            alertError(error.request);
           } else {
-            alertError('Erro no registo', error.message);
+            alertError(error.message);
           }
         });
     }
@@ -74,8 +74,8 @@ export default {
     return api()
       .patch('clinicSector/' + id, params)
       .then((resp) => {
-        clinicsector.save(resp.data);
-        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+        clinicSector.save(resp.data);
+        alertSucess('O Registo foi alterado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -88,11 +88,11 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError('Erro no porcessamento', String(listErrors));
+          alertError(String(listErrors));
         } else if (error.request) {
-          alertError('Erro no registo', error.request);
+          alertError(error.request);
         } else {
-          alertError('Erro no registo', error.message);
+          alertError(error.message);
         }
       });
   },

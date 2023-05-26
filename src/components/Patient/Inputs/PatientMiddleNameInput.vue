@@ -1,23 +1,19 @@
 <template>
-    <TextInput
-        label="Sobre Nome *"
-        dense
-        ref="midleName"
-        class="col"
-        :value="sobreNome"
-        :rules="[ val => !!val || 'Por favor indicar o sobre nome']"
-        />
+  <TextInput
+    label="Sobre Nome *"
+    dense
+    ref="midleName"
+    class="col"
+    :value="sobreNome"
+    :rules="[(val) => !!val || 'Por favor indicar o sobre nome']"
+  />
 </template>
 
-<script>
-export default {
-    props: ['sobreNome'],
-    components: {
-        TextInput: require('components/Shared/Input/TextField.vue').default
-    }
-}
+<script setup>
+import TextInput from 'components/Shared/Input/TextField.vue';
+import { inject } from 'vue';
+
+const sobreNome = inject('sobreNome');
 </script>
 
-<style>
-
-</style>
+<style></style>

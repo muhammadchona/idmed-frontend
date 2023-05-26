@@ -23,7 +23,8 @@ export default {
           if (resp.data.length > 0) {
             this.get(offset);
           }
-        }).catch((error) => {
+        })
+        .catch((error) => {
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = [];
@@ -34,11 +35,11 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alert('Erro no registo', listErrors, null, null, null);
+            alert(listErrors, null, null, null);
           } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
+            alert(error.request, null, null, null);
           } else {
-            alert('Erro no registo', error.message, null, null, null);
+            alert(error.message, null, null, null);
           }
         });
     }
@@ -61,10 +62,15 @@ export default {
   newInstanceEntity() {
     return stock.getModel().$newInstance();
   },
-   apiGetDrugSummary(clinicId: string, drugId: string) {
-    return api().get('/drugStockFile/sumary/?clinicId=' + clinicId + '&drugId=' + drugId + '')     .then((resp) => {
+  apiGetDrugSummary(clinicId: string, drugId: string) {
+    return api()
+      .get(
+        '/drugStockFile/sumary/?clinicId=' + clinicId + '&drugId=' + drugId + ''
+      )
+      .then((resp) => {
         stock.save(resp.data);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         if (error.request != null) {
           const arrayErrors = JSON.parse(error.request.response);
           const listErrors = [];
@@ -75,19 +81,28 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alert('Erro no registo', listErrors, null, null, null);
+          alert(listErrors, null, null, null);
         } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+          alert(error.request, null, null, null);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          alert(error.message, null, null, null);
         }
       });
   },
 
-   apiGetDrugBatchSummary(clinicId: string, stockId: string) {
-    return api().get('/drugStockFile/batchsumary/?clinicId=' + clinicId + '&drugId=' + stockId + '').then((resp) => {
+  apiGetDrugBatchSummary(clinicId: string, stockId: string) {
+    return api()
+      .get(
+        '/drugStockFile/batchsumary/?clinicId=' +
+          clinicId +
+          '&drugId=' +
+          stockId +
+          ''
+      )
+      .then((resp) => {
         stock.save(resp.data);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         if (error.request != null) {
           const arrayErrors = JSON.parse(error.request.response);
           const listErrors = [];
@@ -98,14 +113,12 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alert('Erro no registo', listErrors, null, null, null);
+          alert(listErrors, null, null, null);
         } else if (error.request) {
-          alert('Erro no registo', error.request, null, null, null);
+          alert(error.request, null, null, null);
         } else {
-          alert('Erro no registo', error.message, null, null, null);
+          alert(error.message, null, null, null);
         }
       });
-  }
-  
-
+  },
 };

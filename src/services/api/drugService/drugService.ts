@@ -12,7 +12,7 @@ export default {
   async post(params: string) {
     const resp = await api().post('drug', params);
     drug.save(resp.data);
-    alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+    alertSucess('O Registo foi efectuado com sucesso');
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -33,7 +33,7 @@ export default {
     console.log(params);
     const resp = await api().patch('drug/' + id, params);
     drug.save(JSON.parse(resp.config.data));
-    alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+    alertSucess('O Registo foi alterado com sucesso');
   },
   async delete(id: number) {
     await api().delete('drug/' + id);

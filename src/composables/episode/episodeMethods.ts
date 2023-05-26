@@ -11,7 +11,8 @@ export function useEspisode() {
   }
 
   function isCloseEpisode(episode: Episode) {
-    if (episode.episodeType === null) return false;
+    if (episode.episodeType === null || episode.episodeType === undefined)
+      return false;
     return episode.episodeType.code === 'FIM';
   }
 

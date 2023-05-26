@@ -43,18 +43,13 @@ export default {
     return await api().get(`/patient/${id}`);
   },
 
-  async apiSearch(patient: any) {
-    let offset = 0;
+  async apiSearch(patienParam: any) {
+    patient.flush();
     return await api()
-      .post('/patient/search', patient)
+      .post('/patient/search', patienParam)
       .then((resp) => {
         patient.save(resp.data);
-        offset = offset + 100;
-        if (resp.data.length > 0) {
-          this.get(offset);
-        } else {
-          closeLoading();
-        }
+        closeLoading();
       })
       .catch((error) => {
         closeLoading();
@@ -106,31 +101,24 @@ export default {
   newInstanceEntity() {
     return patient.getModel().$newInstance();
   },
+  savePatientStorage(newPatient: any) {
+    patient.save(newPatient);
+  },
   getAllFromStorage() {
     return patient.all();
   },
-
+  getPatientByID(id: string) {
+    return patient.withAllRecursive(3).whereId(id).first();
+  },
+  deleteAllFromStorage() {
+    patient.flush();
+  },
   getPatientSearchList() {
-    return (
-      patient
-        .query()
-        // .with([
-        //   'identifiers.identifierType',
-        //   'identifiers.service.identifierType',
-        //   'identifiers.clinic.province',
-        // ])
-        // .with('province')
-        // .with('attributes')
-        // .with('appointments')
-        // .with('district')
-        // .with('postoAdministrativo')
-        // .with('bairro')
-        // .with(['clinic.province', 'clinic.district.province'])
-        // .where('clinic_id', this.clinic.id)
-        .withAllRecursive(2)
-        .orderBy('firstNames')
-        .orderBy('identifiers.value', 'asc')
-        .get()
-    );
+    return patient
+      .query()
+      .withAllRecursive(2)
+      .orderBy('firstNames')
+      .orderBy('identifiers.value', 'asc')
+      .get();
   },
 };

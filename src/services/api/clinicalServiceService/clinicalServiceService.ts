@@ -9,31 +9,29 @@ const { alertSucess, alertError, alertWarning } = useSwal();
 const clinicalservice = useRepo(ClinicalService);
 
 export default {
-  post(params: string) {
-    return api()
-      .post('clinicalService', params)
-      .then((resp) => {
-        clinicalservice.save(resp.data);
-        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alertError('Erro no porcessamento', String(listErrors));
-        } else if (error.request) {
-          alertError('Erro no registo', error.request);
+async post(params: string) {
+    try {
+      const resp = await api().post('clinicalService', params);
+      clinicalService.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error) {
+      if (error.request != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        const listErrors = [];
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
         } else {
-          alertError('Erro no registo', error.message);
+          arrayErrors._embedded.errors.forEach((element) => {
+            listErrors.push(element.message);
+          });
         }
-      });
+        alertError(String(listErrors));
+      } else if (error.request) {
+        alertError(error.request);
+      } else {
+        alertError(error.message);
+      }
+    }
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -61,47 +59,43 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no porcessamento', String(listErrors));
+            alertError(String(listErrors));
           } else if (error.request) {
-            alertError('Erro no registo', error.request);
+            alertError(error.request);
           } else {
-            alertError('Erro no registo', error.message);
+            alertError(error.message);
           }
         });
     }
   },
-  patch(id: string, params: string) {
-    return api()
-      .patch('clinicalService/' + id, params)
-      .then((resp) => {
-        clinicalservice.save(resp.data);
-        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = {};
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alertError('Erro no porcessamento', String(listErrors));
-        } else if (error.request) {
-          alertError('Erro no registo', error.request);
+  async patch(id: number, params: string) {
+    try {
+      const resp = await api().patch('clinicalService/' + id, params);
+      clinicalService.save(resp.data);
+      alertSucess('O Registo foi alterado com sucesso');
+    } catch (error) {
+      if (error.request != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        const listErrors = {};
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
         } else {
-          alertError('Erro no registo', error.message);
+          arrayErrors._embedded.errors.forEach((element) => {
+            listErrors.push(element.message);
+          });
         }
-      });
+        alertError(String(listErrors));
+      } else if (error.request) {
+        alertError(error.request);
+      } else {
+        alertError(error.message);
+      }
+    }
   },
-  delete(id: number) {
-    return api()
-      .delete('clinicalService/' + id)
-      .then(() => {
-        clinicalservice.destroy(id);
-      });
+
+  async delete(id: number) {
+    await api().delete('clinicalService/' + id);
+    clinicalService.destroy(id);
   },
 
   getByIdentifierTypeCode(identifierTypeCode: string) {

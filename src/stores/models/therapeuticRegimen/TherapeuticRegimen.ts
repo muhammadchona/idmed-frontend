@@ -35,7 +35,9 @@ export default class TherapeuticRegimen extends Model {
       clinicalService: this.belongsTo(ClinicalService, 'clinical_service_id'),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll(offset, max) {
     return await this.api().get(
       '/therapeuticRegimen?offset=' + offset + '&max=' + max
