@@ -96,4 +96,9 @@ export default {
     await api().delete('form/' + id);
     form.destroy(id);
   },
+
+  /*Pinia Methods*/
+  getAllForms() {
+    return form.query().withAll().get();
+  },
 };

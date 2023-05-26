@@ -180,7 +180,6 @@ onMounted(() => {
   editMode.value = false;
   viewMode.value = false;
   doctorService.get(0);
-  console.log(doctorService.getAlldoctors());
 });
 
 /*provides*/

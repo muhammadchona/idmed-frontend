@@ -6,10 +6,10 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
-const clinicalService = useRepo(ClinicalService);
+const clinicalservice = useRepo(ClinicalService);
 
 export default {
-  async post(params: string) {
+async post(params: string) {
     try {
       const resp = await api().post('clinicalService', params);
       clinicalService.save(resp.data);
@@ -38,7 +38,7 @@ export default {
       return api()
         .get('clinicalService?offset=' + offset + '&max=100')
         .then((resp) => {
-          clinicalService.save(resp.data);
+          clinicalservice.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -92,16 +92,55 @@ export default {
       }
     }
   },
+
   async delete(id: number) {
     await api().delete('clinicalService/' + id);
     clinicalService.destroy(id);
   },
 
   getByIdentifierTypeCode(identifierTypeCode: string) {
-    clinicalService
+    clinicalservice
       .query()
       .with('identifierType')
       .where('code', identifierTypeCode)
       .first();
+  },
+
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return clinicalservice.getModel().$newInstance();
+  },
+
+  /*Pinia Methods*/
+  getAllClinicalServices() {
+    return clinicalservice.query().withAll().get();
+    // .with('attributes', (query) => {
+    //   query.with('clinicalServiceAttributeType');
+    // })
+    // .with('clinicSectors', (query) => {
+    //   query.with('clinicSectorType');
+    //   query.with('clinic');
+    // })
+    // .with('identifierType')
+    // .get();
+  },
+
+  getbyIdWithSectors(clinicalServiceId: string) {
+    return clinicalservice
+      .query()
+      .where('id', clinicalServiceId)
+      .with('clinicSectors')
+      .first();
+  },
+
+  getAllClinicalServicesPersonalized() {
+    return clinicalservice
+      .query()
+      .with('attributes', (query) => {
+        query.with('clinicalServiceAttributeType');
+      })
+      .with('clinicSectors')
+      .with('identifierType')
+      .get();
   },
 };

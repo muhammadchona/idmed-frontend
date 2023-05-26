@@ -111,13 +111,20 @@
     </q-dialog>
   </div>
 </template>
-<script>
+<script setup>
+/*imports*/
 import { useQuasar } from 'quasar';
-import { ref } from 'vue';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
 import HealthInformationSystem from '../../../stores/models/healthInformationSystem/HealthInformationSystem';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import mixinutils from 'src/mixins/mixin-utils';
+import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 
+/*components import*/
+import addHIS from 'src/components/Settings/Interoperability/AddHIS.vue';
+import selectedAttributesTable from 'src/components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue';
+
+/*Declarations*/
+const { alertWarningAction } = useSwal();
 const columns = [
   { name: '', required: true, label: '' },
   {
@@ -173,134 +180,149 @@ const columnsSelectedAttributes = [
     sortable: true,
   },
 ];
-export default {
-  mixins: [mixinplatform, mixinutils],
-  data() {
-    const $q = useQuasar();
+const healthInformationSystem = reactive(
+  ref(healthInformationSystemService.newInstanceEntity())
+);
+const showHISRegistrationScreen = ref(false);
+const submitting = ref(false);
 
-    return {
-      columns,
-      columnInteroperabilityTypes,
-      columnsSelectedAttributes,
-      $q,
-      step: '',
-      showHISRegistrationScreen: false,
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: '',
-      }),
-      filter: ref(''),
-      createMode: false,
-      editMode: false,
-    };
-  },
-  computed: {
-    getHis() {
-      return HealthInformationSystem.query()
-        .with('interoperabilityAttributes.interoperabilityType')
-        .has('abbreviation')
-        .get();
-    },
-  },
-  methods: {
-    getIconActive(his) {
-      if (his.active) {
-        return 'stop_circle';
-      } else if (!his.active) {
-        return 'play_circle';
+/*injects*/
+const step = inject('step');
+const filter = inject('filter');
+const createMode = inject('createMode');
+const editMode = inject('editMode');
+const viewMode = inject('viewMode');
+const isEditStep = inject('isEditStep');
+const isCreateStep = inject('isCreateStep');
+const currClinic = inject('currClinic');
+
+/*provides*/
+provide('showHISRegistrationScreen', showHISRegistrationScreen);
+provide('healthInformationSystem', healthInformationSystem);
+provide('selectedHis', healthInformationSystem);
+
+/*Hooks*/
+const getHis = computed(() => {
+  return healthInformationSystemService.getAllHis();
+});
+
+/*Methods*/
+const getIconActive = (his) => {
+  if (his.active) {
+    return 'stop_circle';
+  } else if (!his.active) {
+    return 'play_circle';
+  }
+};
+const getColorActive = (his) => {
+  if (his.active) {
+    return 'red';
+  } else if (!his.active) {
+    return 'green';
+  }
+};
+const getTooltipClass = (his) => {
+  if (his.active) {
+    return 'bg-red-5';
+  } else if (!his.active) {
+    return 'bg-green-5';
+  }
+};
+
+const editHealthInformationSystem = (healthInformationSystemParam) => {
+  healthInformationSystem.value = healthInformationSystemParam;
+  step.value = 'edit';
+  filter.value = '';
+  editMode.value = true;
+  createMode.value = false;
+  isCreateStep.value = false;
+  isEditStep.value = true;
+  showHISRegistrationScreen.value = true;
+};
+const addHealthInformationSystem = () => {
+  step.value = 'create';
+  filter.value = '';
+  editMode.value = false;
+  createMode.value = true;
+  isCreateStep.value = true;
+  showHISRegistrationScreen.value = true;
+};
+const promptToConfirm = (his) => {
+  const question = his.active
+    ? 'Deseja Inactivar o Sistema da Interoperabilidade?'
+    : 'Deseja Activar o Sistema da Interoperabilidade?';
+
+  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
+    (response) => {
+      if (response) {
+        if (his.active) {
+          his.active = false;
+        } else {
+          his.active = true;
+        }
+
+        // if (this.mobile) {
+        //         console.log('FrontEnd');
+        //         if (his.syncStatus !== 'R') his.syncStatus = 'U';
+        //         HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
+        //         HealthInformationSystem.insertOrUpdate({ data: his });
+        //         this.displayAlert(
+        //           'info',
+        //           'Tipo de identificador actualizado com sucesso'
+        //         );
+        //       } else {
+
+        healthInformationSystemService
+          .patch(his.id, his)
+          .then((resp) => {
+            submitting.value = false;
+            showHISRegistrationScreen.value = false;
+          })
+          .catch((error) => {
+            submitting.value = false;
+            showHISRegistrationScreen.value = false;
+          });
+        // }
       }
-    },
-    getColorActive(his) {
-      if (his.active) {
-        return 'red';
-      } else if (!his.active) {
-        return 'green';
-      }
-    },
-    getTooltipClass(his) {
-      if (his.active) {
-        return 'bg-red-5';
-      } else if (!his.active) {
-        return 'bg-green-5';
-      }
-    },
-    getHealthInformationSystem() {
-      HealthInformationSystem.api().get('/healthInformationSystem');
-    },
-    editHealthInformationSystem(healthInformationSystem) {
-      this.healthInformationSystem = Object.assign({}, healthInformationSystem);
-      this.step = 'edit';
-      this.showHISRegistrationScreen = true;
-      this.editMode = true;
-      this.createMode = false;
-    },
-    addHealthInformationSystem() {
-      this.healthInformationSystem = new HealthInformationSystem();
-      this.step = 'create';
-      this.showHISRegistrationScreen = true;
-      this.editMode = false;
-      this.createMode = true;
-    },
-    promptToConfirm(his) {
-      this.$q
-        .dialog({
-          title: 'Confirmação',
-          message: his.active
-            ? 'Deseja Inactivar o Sistema da Interoperabilidade?'
-            : 'Deseja Activar o Sistema da Interoperabilidade?',
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          if (his.active) {
-            his.active = false;
-          } else if (!his.active) {
-            his.active = true;
-          }
-          if (this.mobile) {
-            console.log('FrontEnd');
-            if (his.syncStatus !== 'R') his.syncStatus = 'U';
-            HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
-            HealthInformationSystem.insertOrUpdate({ data: his });
-            this.displayAlert(
-              'info',
-              'Tipo de identificador actualizado com sucesso'
-            );
-          } else {
-            console.log('BackEnd');
-            HealthInformationSystem.apiUpdate(his)
-              .then((resp) => {
-                this.displayAlert(
-                  'info',
-                  'Sistema da Interoperabilidade inactivado com sucesso'
-                );
-              })
-              .catch((error) => {
-                this.displayAlert('error', error);
-              });
-          }
-        });
-    },
-    displayAlert(type, msg) {
-      this.alert.type = type;
-      this.alert.msg = msg;
-      this.alert.visible = true;
-    },
-    closeDialog() {
-      if (this.alert.type === 'info') {
-        this.$emit('close');
-      }
-    },
-  },
-  mounted() {
-    this.getHealthInformationSystem();
-  },
-  components: {
-    addHIS: require('components/Settings/Interoperability/AddHIS.vue').default,
-    selectedAttributesTable:
-      require('components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue')
-        .default,
-  },
+    }
+  );
+  //   this.$q
+  //     .dialog({
+  //       title: 'Confirmação',
+  //       message: his.active
+  //         ? 'Deseja Inactivar o Sistema da Interoperabilidade?'
+  //         : 'Deseja Activar o Sistema da Interoperabilidade?',
+  //       cancel: true,
+  //       persistent: true,
+  //     })
+  //     .onOk(() => {
+  //       if (his.active) {
+  //         his.active = false;
+  //       } else if (!his.active) {
+  //         his.active = true;
+  //       }
+  //       if (this.mobile) {
+  //         console.log('FrontEnd');
+  //         if (his.syncStatus !== 'R') his.syncStatus = 'U';
+  //         HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
+  //         HealthInformationSystem.insertOrUpdate({ data: his });
+  //         this.displayAlert(
+  //           'info',
+  //           'Tipo de identificador actualizado com sucesso'
+  //         );
+  //       } else {
+  //         console.log('BackEnd');
+  //         HealthInformationSystem.apiUpdate(his)
+  //           .then((resp) => {
+  //             this.displayAlert(
+  //               'info',
+  //               'Sistema da Interoperabilidade inactivado com sucesso'
+  //             );
+  //           })
+  //           .catch((error) => {
+  //             this.displayAlert('error', error);
+  //           });
+  //       }
+  //     });
 };
 </script>

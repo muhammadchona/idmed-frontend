@@ -163,7 +163,6 @@ onMounted(() => {
 });
 
 const onlyView = computed(() => {
-  console.log(viewMode.value);
   return viewMode.value;
 });
 

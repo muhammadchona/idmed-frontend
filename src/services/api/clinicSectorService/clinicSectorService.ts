@@ -100,7 +100,7 @@ export default {
     return api()
       .delete('clinicSector/' + id)
       .then(() => {
-        clinicSector.destroy(id);
+        clinicsector.destroy(id);
       });
   },
 
@@ -116,5 +116,14 @@ export default {
 
   getClinicSectorsByClinicId(clinicId: string) {
     return clinicsector.query().where('clinic_id', clinicId).get();
+  },
+
+  getActivebyClinicId(clinicId: string) {
+    return clinicsector
+      .query()
+      .where((clinicsector) => {
+        return clinicsector.active && clinicsector.clinic_id === clinicId;
+      })
+      .get();
   },
 };

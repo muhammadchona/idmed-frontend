@@ -1,35 +1,105 @@
+import SecUser from 'src/stores/models/userLogin/User';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import SecUser from 'src/stores/models/userLogin/User';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
-const secUser = useRepo(SecUser);
+const { closeLoading, showloading } = useLoading();
+const { alertSucess, alertError, alertWarning } = useSwal();
+const secuser = useRepo(SecUser);
 
 export default {
   // Axios API call
-  async post(params: string) {
-    const resp = await api().post('secUser', params);
-    secUser.save(resp.data);
-  },
   get(offset: number) {
     if (offset >= 0) {
       return api()
         .get('secUser?offset=' + offset + '&max=100')
         .then((resp) => {
-          secUser.save(resp.data);
+          secuser.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+            setTimeout(this.get, 2);
+          } else {
+            closeLoading();
+          }
+        })
+        .catch((error) => {
+          closeLoading;
+          if (error.request != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            const listErrors = {};
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+            alertError('Erro no porcessamento', String(listErrors));
+          } else if (error.request) {
+            alertError('Erro no registo', error.request);
+          } else {
+            alertError('Erro no registo', error.message);
           }
         });
     }
   },
-  async patch(id: number, params: string) {
-    const resp = await api().patch('secUser/' + id, params);
-    secUser.save(resp.data);
+  post(params: string) {
+    return api()
+      .post('secUser', params)
+      .then((resp) => {
+        secuser.save(resp.data);
+        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+      })
+      .catch((error) => {
+        if (error.request != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          const listErrors = [];
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+          alertError('Erro no porcessamento', String(listErrors));
+        } else if (error.request) {
+          alertError('Erro no registo', error.request);
+        } else {
+          alertError('Erro no registo', error.message);
+        }
+      });
+  },
+  patch(id: string, params: string) {
+    return api()
+      .patch('secUser/' + id, params)
+      .then((resp) => {
+        secuser.save(resp.data);
+        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+      })
+      .catch((error) => {
+        if (error.request != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          const listErrors = {};
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+          alertError('Erro no porcessamento', String(listErrors));
+        } else if (error.request) {
+          alertError('Erro no registo', error.request);
+        } else {
+          alertError('Erro no registo', error.message);
+        }
+      });
   },
   async delete(id: number) {
     await api().delete('secUser/' + id);
-    secUser.destroy(id);
+    secuser.destroy(id);
   },
   async apiGetAll(offset: number, max: number) {
     return await api().get('/secUser?offset=' + offset + '&max=' + max);
@@ -39,9 +109,32 @@ export default {
   },
   // Local Storage Pinia
   newInstanceEntity() {
-    return secUser.getModel().$newInstance();
+    return secuser.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return secUser.all();
+    return secuser.all();
+  },
+
+  getAllUsers() {
+    return secuser
+      .query()
+      .with('clinics', (query) => {
+        query.with('province');
+        query.with('facilityType');
+        query.with('district', (query1) => {
+          query1.with('province');
+        });
+      })
+      .with('clinicSectors', (query) => {
+        query.with('clinic', (query1) => {
+          query1.with('province');
+          query1.with('facilityType');
+          query1.with('district', (query2) => {
+            query2.with('province');
+          });
+        });
+        query.with('clinicSectorType');
+      })
+      .get();
   },
 };

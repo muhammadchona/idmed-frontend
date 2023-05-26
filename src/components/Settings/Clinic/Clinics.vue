@@ -105,14 +105,11 @@ import { useQuasar } from 'quasar';
 import { inject, ref, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 /*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
 
-/*Variables*/
-const { alertSucess, alertError, alertWarning } = useSwal();
-const $q = useQuasar();
+/*Declarations*/
 const showClinicRegistrationScreen = ref(false);
 
 /*injects*/
