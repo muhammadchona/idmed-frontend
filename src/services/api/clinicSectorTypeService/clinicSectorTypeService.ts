@@ -96,4 +96,9 @@ export default {
     await api().delete('clinicSectorType/' + id);
     clinicSectorType.destroy(id);
   },
+
+  /*Pinia Methods*/
+  getAllClinicSectorTypes() {
+    return clinicSectorType.withAll().get();
+  },
 };

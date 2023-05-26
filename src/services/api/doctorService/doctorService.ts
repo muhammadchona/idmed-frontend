@@ -68,7 +68,7 @@ export default {
         });
     }
   },
-  async patch(id: number, params: string) {
+  async patch(id: string, params: string) {
     try {
       const resp = await api().patch('doctor/' + id, params);
       doctor.save(resp.data);
@@ -95,5 +95,27 @@ export default {
   async delete(id: number) {
     await api().delete('clinicsector/' + id);
     doctor.destroy(id);
+  },
+
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return doctor.getModel().$newInstance();
+  },
+
+  /*Pinia Methods*/
+  getAlldoctors() {
+    // return doctor.withAll().get();
+    return doctor
+      .with('clinic', (query) => {
+        query.with('province');
+      })
+      .with('clinic', (query) => {
+        query.with('district');
+      })
+      .with('clinic', (query) => {
+        query.with('facilityType');
+      })
+      .orderBy('firstnames')
+      .get();
   },
 };
