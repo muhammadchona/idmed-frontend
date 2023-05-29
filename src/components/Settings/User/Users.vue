@@ -156,6 +156,9 @@ const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 const currClinic = inject('currClinic');
 
+/*Provides*/
+provide('showUserRegistrationScreen', showUserRegistrationScreen);
+
 /*Hooks*/
 const users = computed(() => {
   return userService.getAllUsers();
@@ -203,15 +206,17 @@ const getTooltipClass = (user) => {
 };
 const editUser = (userParam) => {
   user.value = userParam;
-  showUserRegistrationScreen.value = true;
+  isCreateStep.value = false;
   editMode.value = true;
   viewMode.value = false;
+  showUserRegistrationScreen.value = true;
 };
 const addUser = () => {
   // user = new UserLogin();
-  showUserRegistrationScreen.value = true;
+  isCreateStep.value = true;
   editMode.value = false;
   viewMode.value = false;
+  showUserRegistrationScreen.value = true;
 };
 const visualizeClinic = (userParam) => {
   user.value = userParam;

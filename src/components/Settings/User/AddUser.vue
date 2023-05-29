@@ -186,7 +186,7 @@
               <nameInput
                 ref="clinic"
                 square
-                v-model="user.clinics[0].clinicName"
+                v-model="currClinic.clinicName"
                 lazy-rules
                 class="col fild-radius"
                 :disable="!isProvincial"
@@ -216,7 +216,7 @@
           <q-btn
             v-if="step > 1 && !onlyView"
             color="primary"
-            @click="$refs.stepper.previous()"
+            @click="stepper.previous()"
             label="Voltar"
             class="q-ml-sm"
           />
@@ -224,7 +224,7 @@
             @click="goToNextStep"
             v-if="!onlyView"
             color="primary"
-            :label="step !== 3 ? 'Proximo' : 'Submeter'"
+            :label="step !== 3 ? 'Proximo' : 'Gravar'"
             class="q-ml-sm"
           />
         </q-stepper-navigation>
@@ -243,8 +243,9 @@ import Clinic from '../../../stores/models/clinic/Clinic';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
-import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import userService from 'src/services/api/user/userService.ts';
+import roleService from 'src/services/api/role/roleService.ts';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 // import SecUserRole from 'src/stores/models/userLogin/SecUserRole'
 
 /*Components import*/
@@ -298,6 +299,7 @@ const selectedRoles = ref([]);
 const selectedClinics = ref([]);
 const selectedClinicSectors = ref([]);
 const isProvincial = ref(false);
+const stepper = ref();
 
 /*injects*/
 const stepp = inject('step');
@@ -308,14 +310,18 @@ const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 const selectedUser = inject('selectedUser');
 const configs = inject('configs');
+const showUserRegistrationScreen = inject('showUserRegistrationScreen');
 
 /*Hooks*/
 onMounted(() => {
+  if (isCreateStep.value) {
+    selectedUser.value = reactive(ref(userService.newInstanceEntity()));
+  }
   if (user.value !== '' && user.value !== null && user.value !== undefined) {
     if (user.value.id !== null) {
       selectedRoles.value = user.value.authorities;
       selectedClinics.value = user.value.clinics;
-      selectedClinicSectors.value = tuser.value.clinicSectors;
+      selectedClinicSectors.value = user.value.clinicSectors;
     }
   }
   extractDatabaseCodes();
@@ -323,6 +329,7 @@ onMounted(() => {
     isProvincial.value = false;
     user.value.clinics[0] = currClinic.value;
     selectedClinics.value[0] = currClinic.value;
+    console.log(user.value);
   } else {
     isProvincial.value = true;
   }
@@ -346,7 +353,9 @@ const users = computed(() => {
   return userService.getAllUsers();
 });
 const clinicSectors = computed(() => {
-  const allClinicSectors = clinicSectorService.getAllClinicSectors();
+  const allClinicSectors = clinicSectorService.getActivebyClinicId(
+    currClinic.value.id
+  );
   // const allClinicSectors = ClinicSector.query().with('clinic.province')
   //             .with('clinic.district.province')
   //             .with('clinic.facilityType')
@@ -355,94 +364,145 @@ const clinicSectors = computed(() => {
 });
 
 /*Methods*/
-// const goToNextStep = () => {
-//    if (this.step === 1) {
-// this.$refs.nome.$refs.ref.validate()
-// this.$refs.password.validate()
-//  this.$refs.username.$refs.ref.validate()
-//  this.$refs.contact.$refs.ref.validate()
-// if (!this.$refs.nome.$refs.ref.hasError &&
-//     !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError &&
-//      !this.$refs.contact.$refs.ref.hasError) {
-//      this.$refs.stepper.next()
-// }
-//    } else if (this.step === 2) {
-//     if (this.selectedRoles.length <= 0) {
-//    this.displayAlert('error', 'Por Favor seleccione pelo menos um Menú para dar Acesso')
-//     } else {
-//         this.$refs.stepper.next()
-//    }
-//    } else if (this.step === 3) {
-//     if (this.selectedClinicSectors.length <= 0) {
-//    this.displayAlert('error', 'Por Favor seleccione pelo menos uma Farmácia para dar Acesso')
-//     } else {
-//          this.submitUser()
-//    }
-//    }
-// };
+const goToNextStep = () => {
+  if (step.value === 1) {
+    // $refs.nome.$refs.ref.validate()
+    // $refs.password.validate()
+    //  $refs.username.$refs.ref.validate()
+    //  $refs.contact.$refs.ref.validate()
+    // if (!$refs.nome.$refs.ref.hasError &&
+    //     !$refs.password.hasError && !$refs.username.$refs.ref.hasError &&
+    //      !$refs.contact.$refs.ref.hasError) {
+    console.log(userRoles.value);
+    stepper.value.next();
+    // }
+  } else if (step.value === 2) {
+    if (selectedRoles.value.length <= 0) {
+      alertError(
+        'erro',
+        'Por Favor seleccione pelo menos um Menu para dar Acesso'
+      );
+    } else {
+      stepper.value.next();
+    }
+  } else if (step.value === 3) {
+    console.log(selectedClinicSectors.value);
+    if (selectedClinicSectors.value.length <= 0) {
+      alertError(
+        'error',
+        'Por Favor seleccione pelo menos uma Farmácia para dar Acesso'
+      );
+    } else {
+      submitUser();
+    }
+  }
+};
 // const validateUser = () => {
-//     this.$refs.role.validate()
-//     this.$refs.nome.$refs.ref.validate()
-//     this.$refs.password.validate()
-//      this.$refs.username.$refs.ref.validate()
-//      this.$refs.contact.$refs.ref.validate()
-//     if (!this.$refs.nome.$refs.ref.hasError &&
-//         !this.$refs.password.hasError && !this.$refs.username.$refs.ref.hasError &&
-//         !this.$refs.role.hasError && !this.$refs.contact.ref.hasError) {
-//         this.submitUser()
+//     $refs.role.validate()
+//     $refs.nome.$refs.ref.validate()
+//     $refs.password.validate()
+//      $refs.username.$refs.ref.validate()
+//      $refs.contact.$refs.ref.validate()
+//     if (!$refs.nome.$refs.ref.hasError &&
+//         !$refs.password.hasError && !$refs.username.$refs.ref.hasError &&
+//         !$refs.role.hasError && !$refs.contact.ref.hasError) {
+//         submitUser()
 //     }
 //     };
-//     const submitUser = () => {
-//        this.submitting = true
-//         console.log(this.user)
-//         this.selectedRoles = JSON.parse(JSON.stringify(this.selectedRoles))
-//         const roles = []
-//         this.selectedRoles.forEach(role => {
-//           roles.push(role.authority)
-//         })
-//         this.selectedClinics = JSON.parse(JSON.stringify(this.selectedClinics))
-//         this.selectedClinicSectors = JSON.parse(JSON.stringify(this.selectedClinicSectors))
-//        this.user.roles = roles
-//         this.user.clinics = this.selectedClinics
-//         this.user.clinicSectors = this.selectedClinicSectors
-//         this.user.accountLocked = false
-//         this.user.authorities = this.selectedRoles
-//         this.user.clinics[0] = this.user.clinicSectors[0].clinic
-//        /* this.selectedClinicSectors.forEach(item => {
-//           item.clinic = this.selectedClinics[0]
-//         }) */
-//         if (this.website) {
-//         UserLogin.apiSave(this.user).then(resp => {
-//         const userResp = resp.response.data
-//         userResp.authorities = this.selectedRoles
-//         userResp.clinics = this.selectedClinics
-//         userResp.clinicSectors = this.selectedClinicSectors
-//         UserLogin.insert({
-//           data: userResp
-//         })
-//            this.submitting = false
-//              this.displayAlert('info', this.user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
-//         }).catch(error => {
-//            this.submitting = false
-//               this.displayAlert('error', error)
-//         })
-//       } else {
-//         this.user.syncStatus = 'R'
-//         this.user.authorities = this.selectedRoles
-//           let userLocalBase = JSON.parse(JSON.stringify(this.user))
-//           console.log(this.userLocalBase)
-//           console.log(userLocalBase)
-//           userLocalBase = this.encrypt(userLocalBase)
-//           console.log(userLocalBase)
-//           UserLogin.localDbAddOrUpdate(userLocalBase).then(resp => {
-//             this.submitting = false
-//             UserLogin.insert({
-//                 data: userLocalBase
-//             })
-//              this.displayAlert('info', this.user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
-//           })
-//       }
-//         };
+const submitUser = () => {
+  submitting.value = true;
+  selectedRoles.value = JSON.parse(JSON.stringify(selectedRoles.value));
+  const roles = [];
+  selectedRoles.value.forEach((role) => {
+    roles.push(role.authority);
+  });
+  console.log(selectedClinics.value);
+  console.log(selectedClinicSectors.value);
+  selectedClinics.value = JSON.parse(JSON.stringify(selectedClinics.value));
+  selectedClinicSectors.value = JSON.parse(
+    JSON.stringify(selectedClinicSectors.value)
+  );
+  user.value.roles = roles;
+  user.value.clinics = selectedClinics.value;
+  user.value.clinicSectors = selectedClinicSectors.value;
+  user.value.accountLocked = false;
+  user.value.authorities = selectedRoles.value;
+  user.value.clinics[0] = user.value.clinicSectors[0].clinic;
+  /* selectedClinicSectors.forEach(item => {
+          item.clinic = selectedClinics[0]
+        }) */
+  // if (website) {
+  if (isCreateStep.value) {
+    userService
+      .post(user.value)
+      .then((resp) => {
+        submitting.value = false;
+        showUserRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        submitting.value = false;
+        showUserRegistrationScreen.value = false;
+      });
+  } else {
+    userService
+      .patch(user.value.id, user.value)
+      .then((resp) => {
+        submitting.value = false;
+        showUserRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        submitting.value = false;
+        showUserRegistrationScreen.value = false;
+      });
+    // HealthInformationSystem.apiUpdate(his).then(resp => {
+    //     // console.log(resp.response.data)
+    //   displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+    //   submitting = false
+    //   HealthInformationSystem.apiFetchById(resp.response.data.id)
+    // }).catch(error => {
+    //     displayAlert('error', error)
+    //     submitting = false
+    // })
+  }
+  // UserLogin.apiSave(user)
+  //   .then((resp) => {
+  //     const userResp = resp.response.data;
+  //     userResp.authorities = selectedRoles;
+  //     userResp.clinics = selectedClinics;
+  //     userResp.clinicSectors = selectedClinicSectors;
+  //     UserLogin.insert({
+  //       data: userResp,
+  //     });
+  //     submitting.value = false;
+  //     displayAlert(
+  //       'info',
+  //       user.value.id === null
+  //         ? 'Utilizador cadastrado com sucesso'
+  //         : 'Utilizador actualizado com sucesso.'
+  //     );
+  //   })
+  //   .catch((error) => {
+  //     submitting.value = false;
+  //     displayAlert('error', error);
+  //   });
+  // } else {
+  //   user.syncStatus = 'R'
+  //   user.authorities = selectedRoles
+  //     let userLocalBase = JSON.parse(JSON.stringify(user))
+  //     console.log(userLocalBase)
+  //     console.log(userLocalBase)
+  //     userLocalBase = encrypt(userLocalBase)
+  //     console.log(userLocalBase)
+  //     UserLogin.localDbAddOrUpdate(userLocalBase).then(resp => {
+  //       submitting = false
+  //       UserLogin.insert({
+  //           data: userLocalBase
+  //       })
+  //        displayAlert('info', user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
+  //     })
+  // }
+};
+
 const extractDatabaseCodes = () => {
   users.value.forEach((element) => {
     databaseCodes.value.push(element.username);
