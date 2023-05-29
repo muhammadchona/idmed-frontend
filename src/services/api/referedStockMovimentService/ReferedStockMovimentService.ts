@@ -23,7 +23,8 @@ export default {
           if (resp.data.length > 0) {
             this.get(offset);
           }
-        }).catch((error) => {
+        })
+        .catch((error) => {
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = [];
@@ -34,11 +35,11 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alert('Erro no registo', listErrors, null, null, null);
+            alert(listErrors, null, null, null);
           } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
+            alert(error.request, null, null, null);
           } else {
-            alert('Erro no registo', error.message, null, null, null);
+            alert(error.message, null, null, null);
           }
         });
     }
@@ -60,7 +61,5 @@ export default {
   // Local Storage Pinia
   newInstanceEntity() {
     return referedStockMoviment.getModel().$newInstance();
-  }
-  
-
+  },
 };

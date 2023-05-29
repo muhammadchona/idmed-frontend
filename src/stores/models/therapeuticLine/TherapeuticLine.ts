@@ -17,7 +17,9 @@ export default class TherapeuticLine extends Model {
       ),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll(offset, max) {
     return await this.api().get('/therapeuticLine?offset=0&max=100');
   }

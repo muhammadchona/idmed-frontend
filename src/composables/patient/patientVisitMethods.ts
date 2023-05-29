@@ -1,6 +1,7 @@
-import db from 'src/stores/localbase';
+export function usePatientVisit() {
+  function getClassName() {
+    return 'patientVisit';
+  }
 
-
-function getClassName() {
-  return 'patientVisit';
+  return { getClassName };
 }
