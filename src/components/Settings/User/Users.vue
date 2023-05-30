@@ -143,6 +143,7 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
+const submitting = ref(false);
 const showUserRegistrationScreen = ref(false);
 const user = reactive(ref(userService.newInstanceEntity()));
 
@@ -224,46 +225,48 @@ const visualizeClinic = (userParam) => {
   editMode.value = false;
   showUserRegistrationScreen.value = true;
 };
-// promptToConfirm(user) {
-//   let msg = '';
-//   this.$q
-//     .dialog({
-//       title: 'Confirmação',
-//       message: !user.accountLocked
-//         ? 'Deseja Inactivar o Utilizador?'
-//         : 'Deseja Activar o Utilizador?',
-//       cancel: true,
-//       persistent: true,
-//     })
-//     .onOk(() => {
-//       if (!user.accountLocked) {
-//         user.accountLocked = true;
-//         msg = 'Utilizador inactivado com sucesso.';
-//       } else if (user.accountLocked) {
-//         user.accountLocked = false;
-//         msg = 'Utilizador activado com sucesso.';
-//       }
-//       if (this.website) {
-//         UserLogin.apiSave(user)
-//           .then((resp) => {
-//             this.displayAlert('info', msg);
-//           })
-//           .catch((error) => {
-//             this.displayAlert('error', error);
-//           });
-//       } else {
-//         let userLocalBase = JSON.parse(JSON.stringify(user));
-//         userLocalBase = this.encrypt(userLocalBase);
-//         UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
-//           this.submitting = false;
-//           UserLogin.insert({
-//             data: userLocalBase,
-//           });
-//           this.displayAlert('info', msg);
-//         });
-//       }
-//     });
-// },
+const promptToConfirm = (user) => {
+  const question = user.active
+    ? 'Deseja Inactivar o Utilizador?'
+    : 'Deseja Activar o Utilizador?';
+
+  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
+    (response) => {
+      if (response) {
+        if (user.active) {
+          user.active = false;
+        } else {
+          user.active = true;
+        }
+
+        // if (this.mobile) {
+        //         console.log('FrontEnd');
+        //         et userLocalBase = JSON.parse(JSON.stringify(user));
+        // userLocalBase = this.encrypt(userLocalBase);
+        // UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
+        //   this.submitting = false;
+        //   UserLogin.insert({
+        //     data: userLocalBase,
+        //   });
+        //   this.displayAlert('info', msg);
+        // });
+        //       } else {
+
+        userService
+          .patch(user.id, user)
+          .then((resp) => {
+            submitting.value = false;
+            showUserRegistrationScreen.value = false;
+          })
+          .catch((error) => {
+            submitting.value = false;
+            showUserRegistrationScreen.value = false;
+          });
+        // }
+      }
+    }
+  );
+};
 // getRolesToVuex() {
 //   Role.localDbGetAll().then((roles) => {
 //     Role.insert({ data: roles });

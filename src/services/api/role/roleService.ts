@@ -10,9 +10,57 @@ const roleRepo = useRepo(Role);
 
 export default {
   // Axios API call
-  async post(params: string) {
-    const resp = await api().post('role', params);
-    roleRepo.save(resp.data);
+  post(params: string) {
+    return api()
+      .post('role', params)
+      .then((resp) => {
+        roleRepo.save(resp.data);
+        alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error) => {
+        if (error.request != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          const listErrors = [];
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+          alertError(String(listErrors));
+        } else if (error.request) {
+          alertError(error.request);
+        } else {
+          alertError(error.message);
+        }
+      });
+  },
+  patch(id: string, params: string) {
+    return api()
+      .patch('role/' + id, params)
+      .then((resp) => {
+        roleRepo.save(resp.data);
+        alertSucess('O Registo foi alterado com sucesso');
+      })
+      .catch((error) => {
+        if (error.request != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          const listErrors = {};
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+          alertError(String(listErrors));
+        } else if (error.request) {
+          alertError(error.request);
+        } else {
+          alertError(error.message);
+        }
+      });
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -49,10 +97,6 @@ export default {
         });
     }
   },
-  async patch(id: number, params: string) {
-    const resp = await api().patch('role/' + id, params);
-    roleRepo.save(resp.data);
-  },
   async delete(id: number) {
     await api().delete('role/' + id);
     roleRepo.destroy(id);
@@ -76,5 +120,8 @@ export default {
   },
   getActiveWithMenus() {
     return roleRepo.query().with('menus').where('active', true).get();
+  },
+  getAllWithMenus() {
+    return roleRepo.query().with('menus').get();
   },
 };

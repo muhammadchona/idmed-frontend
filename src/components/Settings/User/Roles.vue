@@ -78,35 +78,31 @@
           size="xl"
           fab
           icon="add"
-          @click="addUser"
+          @click="addRole"
           no-cap
           color="primary"
         />
       </q-page-sticky>
     </div>
-    <q-dialog persistent v-model="showClinicRegistrationScreen">
-      <addUser
-        :selectedRole="role"
-        :editMode="editMode"
-        :onlyView="viewMode"
-        @close="showClinicRegistrationScreen = false"
-      />
-    </q-dialog>
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
+    <q-dialog persistent v-model="showRoleRegistrationScreen">
+      <addRoleComp @close="showRoleRegistrationScreen = false" />
     </q-dialog>
   </div>
 </template>
-<script>
+<script setup>
+/*Imports*/
 import { useQuasar } from 'quasar';
-import Role from '../../../stores/models/userLogin/Role';
-import { ref } from 'vue';
-import mixinSystemPlatform from 'src/mixins/mixin-system-platform';
-import mixinutils from 'src/mixins/mixin-utils';
+import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import roleService from 'src/services/api/role/roleService.ts';
 
+/*Components import*/
+import addRoleComp from 'src/components/Settings/User/AddRole.vue';
+
+/*Variables*/
+const role = reactive(ref(roleService.newInstanceEntity()));
+const { alertWarningAction } = useSwal();
+const showRoleRegistrationScreen = ref(false);
 const columns = [
   {
     name: 'description',
@@ -119,139 +115,109 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-export default {
-  mixins: [mixinSystemPlatform, mixinutils],
-  data() {
-    const $q = useQuasar();
 
-    return {
-      columns,
-      $q,
-      showClinicRegistrationScreen: false,
-      editMode: false,
-      viewMode: false,
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: '',
-      }),
-      filter: ref(''),
-    };
-  },
-  computed: {
-    userRoles() {
-      return Role.query().with('menus').get();
-    },
-  },
-  methods: {
-    getIconActive(user) {
-      if (user.active) {
-        return 'stop_circle';
-      } else if (!user.active) {
-        return 'play_circle';
-      }
-    },
-    getColorActive(user) {
-      if (user.active) {
-        return 'red';
-      } else if (!user.active) {
-        return 'green';
-      }
-    },
-    getTooltipClass(user) {
-      if (user.active) {
-        return 'bg-red-5';
-      } else if (!user.active) {
-        return 'bg-green-5';
-      }
-    },
-    editUser(role) {
-      this.role = Object.assign({}, role);
-      this.showClinicRegistrationScreen = true;
-      this.editMode = true;
-      this.viewMode = false;
-    },
-    addUser() {
-      this.role = new Role();
-      this.showClinicRegistrationScreen = true;
-      this.editMode = false;
-      this.viewMode = false;
-    },
-    visualizeClinic(role) {
-      this.role = Object.assign({}, role);
-      this.viewMode = true;
-      this.showClinicRegistrationScreen = true;
-      this.editMode = false;
-    },
-    promptToConfirm(role) {
-      let msg = '';
-      this.$q
-        .dialog({
-          title: 'Confirm',
-          message: role.active
-            ? 'Deseja Inactivar o Perfil?'
-            : 'Deseja Activar o Perfil?',
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          if (role.active) {
-            role.active = false;
-            msg = 'Perfil inactivado com sucesso.';
-          } else if (!role.active) {
-            role.active = true;
-            msg = 'Perfil activado com sucesso.';
-          }
-          if (this.website) {
-            Role.apiSave(role)
-              .then((resp) => {
-                this.displayAlert('info', msg);
-              })
-              .catch((error) => {
-                this.displayAlert('error', error);
-              });
-          } else {
-            const roleLocalBase = JSON.parse(JSON.stringify(role));
-            Role.localDbAddOrUpdate(roleLocalBase).then((resp) => {
-              Role.insert({
-                data: roleLocalBase,
-              });
-              this.displayAlert('info', msg);
-            });
-          }
-        });
-    },
-    displayAlert(type, msg) {
-      this.alert.type = type;
-      this.alert.msg = msg;
-      this.alert.visible = true;
-    },
-    closeDialog() {
-      if (this.alert.type === 'info') {
-        this.$emit('close');
-      }
-    },
-    getRolesToVuex() {
-      Role.localDbGetAll().then((roles) => {
-        Role.insert({ data: roles });
-      });
-    },
-  },
-  mounted() {
-    if (this.website) {
-      Role.apiGetAll().then((item) => {
-        this.hideLoading();
-      });
-    } else {
-      this.getRolesToVuex().then((item) => {
-        this.hideLoading();
-      });
-    }
-  },
-  components: {
-    addUser: require('components/Settings/User/AddRole.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-    // clinicsTable: require('components/Settings/Clinic/ClinicsTable.vue').default
-  },
+/*injects*/
+const step = inject('step');
+const editMode = inject('editMode');
+const viewMode = inject('viewMode');
+const currClinic = inject('currClinic');
+const isEditStep = inject('isEditStep');
+const isCreateStep = inject('isCreateStep');
+const filter = inject('filter');
+
+/*Provides*/
+provide('isCreateStep', isCreateStep);
+provide('selectedRole', role);
+provide('showRoleRegistrationScreen', showRoleRegistrationScreen);
+
+/*Hooks*/
+const userRoles = computed(() => {
+  return roleService.getAllWithMenus();
+});
+
+/*Methods*/
+const getIconActive = (role) => {
+  if (role.active) {
+    return 'stop_circle';
+  } else if (!role.active) {
+    return 'play_circle';
+  }
 };
+const getColorActive = (role) => {
+  if (role.active) {
+    return 'red';
+  } else if (!role.active) {
+    return 'green';
+  }
+};
+const getTooltipClass = (role) => {
+  if (role.active) {
+    return 'bg-red-5';
+  } else if (!role.active) {
+    return 'bg-green-5';
+  }
+};
+
+const visualizeClinic = (roleParam) => {
+  role.value = roleParam;
+  viewMode.value = true;
+  editMode.value = false;
+  isCreateStep.value = false;
+  showRoleRegistrationScreen.value = true;
+};
+
+const editUser = (roleParam) => {
+  role.value = roleParam;
+  viewMode.value = false;
+  editMode.value = true;
+  isCreateStep.value = false;
+  showRoleRegistrationScreen.value = true;
+};
+
+const addRole = () => {
+  role.value = reactive(ref(roleService.newInstanceEntity()));
+  editMode.value = false;
+  viewMode.value = false;
+  isCreateStep.value = true;
+  showRoleRegistrationScreen.value = true;
+};
+
+// promptToConfirm(role) {
+//   let msg = '';
+//   this.$q
+//     .dialog({
+//       title: 'Confirm',
+//       message: role.active
+//         ? 'Deseja Inactivar o Perfil?'
+//         : 'Deseja Activar o Perfil?',
+//       cancel: true,
+//       persistent: true,
+//     })
+//     .onOk(() => {
+//       if (role.active) {
+//         role.active = false;
+//         msg = 'Perfil inactivado com sucesso.';
+//       } else if (!role.active) {
+//         role.active = true;
+//         msg = 'Perfil activado com sucesso.';
+//       }
+//       if (this.website) {
+//         Role.apiSave(role)
+//           .then((resp) => {
+//             this.displayAlert('info', msg);
+//           })
+//           .catch((error) => {
+//             this.displayAlert('error', error);
+//           });
+//       } else {
+//         const roleLocalBase = JSON.parse(JSON.stringify(role));
+//         Role.localDbAddOrUpdate(roleLocalBase).then((resp) => {
+//           Role.insert({
+//             data: roleLocalBase,
+//           });
+//           this.displayAlert('info', msg);
+//         });
+//       }
+//     });
+// },
 </script>

@@ -111,13 +111,13 @@ import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-const { alertWarningAction } = useSwal();
 
 /*components import*/
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
 // import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
 
 /*Declarations*/
+const { alertWarningAction } = useSwal();
 const columns = [
   {
     name: 'code',

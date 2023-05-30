@@ -129,10 +129,10 @@
             <div class="text-h4 q-mb-md"></div>
             <users> </users>
           </q-tab-panel>
-          <!-- <q-tab-panel name="roles">
+          <q-tab-panel name="roles">
             <div class="text-h4 q-mb-md"></div>
             <roles> </roles>
-          </q-tab-panel> -->
+          </q-tab-panel>
         </q-tab-panels>
       </template>
     </q-splitter>
@@ -160,7 +160,7 @@ import identifierType from 'src/components/Settings/IdentifierType/IdentifierTyp
 import interoperability from 'src/components/Settings/Interoperability/His.vue';
 import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 import users from 'src/components/Settings/User/Users.vue';
-// import roles from 'src/components/Settings/User/Roles.vue';
+import roles from 'src/components/Settings/User/Roles.vue';
 
 /*Variables*/
 const activeMenu = ref('Farmácias');
@@ -250,9 +250,9 @@ provide('isCreateStep', isCreateStep);
 provide('filter', filter);
 
 /*Methods*/
-// const changeMenu = (label) => {
-//   activeMenu.value = label;
-//   drawer.value = false;
-// };
+const changeMenu = (label) => {
+  activeMenu.value = label;
+  drawer.value = false;
+};
 </script>
 <style></style>
