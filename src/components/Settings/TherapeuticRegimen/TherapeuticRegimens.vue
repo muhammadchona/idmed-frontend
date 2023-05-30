@@ -102,6 +102,9 @@ import clinicalService from 'src/services/api/clinicalServiceService/clinicalSer
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import drugService from 'src/services/api/drugService/drugService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components import*/
 import AddTherapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue';
@@ -172,14 +175,18 @@ provide('selectedTherapeuticRegimen', therapeuticRegimen);
 provide('therapeuticRegimens', therapeuticRegimens);
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
   formService.get(0);
+  showloading();
   clinicalService.get(0);
+  showloading();
   therapeuticalRegimenService.get(0);
+  showloading();
 });
 
 /*methods*/

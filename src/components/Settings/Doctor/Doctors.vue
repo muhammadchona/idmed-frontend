@@ -110,6 +110,9 @@ import Doctor from '../../../stores/models/doctor/Doctor';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
@@ -174,6 +177,7 @@ const doctors = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';

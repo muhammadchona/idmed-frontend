@@ -1,8 +1,8 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import IdentifierType from 'src/stores/models/identifierType/IdentifierType';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();

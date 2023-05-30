@@ -95,6 +95,9 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import formService from 'src/services/api/formService/formService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addDrug from 'src/components/Settings/Drug/AddDrug.vue';
@@ -171,12 +174,14 @@ const drugs = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
   drugService.get(0);
+  showloading();
   formService.get(0);
 });
 

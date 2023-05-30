@@ -47,6 +47,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {

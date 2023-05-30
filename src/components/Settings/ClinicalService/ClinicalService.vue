@@ -102,6 +102,9 @@ import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttr
 import clinicalServiceAttributeService from 'src/services/api/clinicalServiceAttributeService/clinicalServiceAttributeService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components imports*/
 import addClinicalService from 'src/components/Settings/ClinicalService/AddClinicalService.vue';
@@ -167,14 +170,17 @@ const forms = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
   formService.get(0);
+  showloading();
   clinicalServiceService.get(0);
   // clinicalServiceAttributeService.get(0);
+  showloading();
   therapeuticalRegimenService.get(0);
   identifierTypes.value = identifierTypeService.getAllIdentifierTypes();
 });

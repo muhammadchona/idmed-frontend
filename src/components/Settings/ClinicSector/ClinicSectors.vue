@@ -111,6 +111,9 @@ import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*components import*/
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
@@ -166,6 +169,7 @@ const clinicSectors = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';

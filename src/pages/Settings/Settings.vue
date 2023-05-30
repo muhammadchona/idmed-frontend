@@ -148,6 +148,7 @@ import healthInformationSystemService from 'src/services/api/HealthInformationSy
 import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 /*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
@@ -163,6 +164,7 @@ import users from 'src/components/Settings/User/Users.vue';
 import roles from 'src/components/Settings/User/Roles.vue';
 
 /*Variables*/
+const { closeLoading, showloading } = useLoading();
 const activeMenu = ref('Farmácias');
 const filter = ref('');
 const selectedTab = ref('clinic');
@@ -226,12 +228,19 @@ const currClinic = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   identifierTypeService.get(0);
+  showloading();
   clinicalServiceAttrTypeService.get(0);
+  showloading();
   healthInformationSystemService.get(0);
+  showloading();
   interoperabilityTypeService.get(0);
+  showloading();
   roleService.get(0);
+  showloading();
   userService.get(0);
+  showloading();
   clinicSectorTypeService.get(0);
 });
 
