@@ -56,7 +56,7 @@
                   class="q-ml-md"
                   color="green-8"
                   icon="search"
-                  @click="visualizeClinic(props.row)"
+                  @click="visualizeUser(props.row)"
                 >
                   <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                 </q-btn>
@@ -157,9 +157,6 @@ const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 const currClinic = inject('currClinic');
 
-/*Provides*/
-provide('showUserRegistrationScreen', showUserRegistrationScreen);
-
 /*Hooks*/
 const users = computed(() => {
   return userService.getAllUsers();
@@ -172,6 +169,7 @@ const configs = computed(() => {
 /*Provides*/
 provide('selectedUser', user);
 provide('configs', configs);
+provide('showUserRegistrationScreen', showUserRegistrationScreen);
 
 /*Methods*/
 // const getAllClinicsByProvinceCode = async (provinceCode) => {
@@ -213,59 +211,59 @@ const editUser = (userParam) => {
   showUserRegistrationScreen.value = true;
 };
 const addUser = () => {
-  // user = new UserLogin();
+  user.value = reactive(ref(userService.newInstanceEntity()));
   isCreateStep.value = true;
   editMode.value = false;
   viewMode.value = false;
   showUserRegistrationScreen.value = true;
 };
-const visualizeClinic = (userParam) => {
+const visualizeUser = (userParam) => {
   user.value = userParam;
   viewMode.value = true;
   editMode.value = false;
   showUserRegistrationScreen.value = true;
+  conole.log(user.value);
 };
 const promptToConfirm = (user) => {
+  console.log(user);
   const question = user.active
     ? 'Deseja Inactivar o Utilizador?'
     : 'Deseja Activar o Utilizador?';
 
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (user.active) {
-          user.active = false;
-        } else {
-          user.active = true;
-        }
-
-        // if (this.mobile) {
-        //         console.log('FrontEnd');
-        //         et userLocalBase = JSON.parse(JSON.stringify(user));
-        // userLocalBase = this.encrypt(userLocalBase);
-        // UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
-        //   this.submitting = false;
-        //   UserLogin.insert({
-        //     data: userLocalBase,
-        //   });
-        //   this.displayAlert('info', msg);
-        // });
-        //       } else {
-
-        userService
-          .patch(user.id, user)
-          .then((resp) => {
-            submitting.value = false;
-            showUserRegistrationScreen.value = false;
-          })
-          .catch((error) => {
-            submitting.value = false;
-            showUserRegistrationScreen.value = false;
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (user.active) {
+        user.active = false;
+      } else {
+        user.active = true;
       }
+
+      // if (this.mobile) {
+      //         console.log('FrontEnd');
+      //         et userLocalBase = JSON.parse(JSON.stringify(user));
+      // userLocalBase = this.encrypt(userLocalBase);
+      // UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
+      //   this.submitting = false;
+      //   UserLogin.insert({
+      //     data: userLocalBase,
+      //   });
+      //   this.displayAlert('info', msg);
+      // });
+      //       } else {
+      console.log(user);
+      userService
+        .patch(user.id, user)
+        .then((resp) => {
+          submitting.value = false;
+          showUserRegistrationScreen.value = false;
+        })
+        .catch((error) => {
+          submitting.value = false;
+          showUserRegistrationScreen.value = false;
+        });
+      // }
     }
-  );
+  });
 };
 // getRolesToVuex() {
 //   Role.localDbGetAll().then((roles) => {

@@ -287,39 +287,37 @@ const promptToConfirm = (clinicalServiceParam) => {
     ? 'Deseja Inactivar o Serviço Clínico?'
     : 'Deseja Activar o Serviço Clínico?';
 
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (clinicalServiceParam.active) {
-          clinicalServiceParam.active = false;
-        } else {
-          clinicalServiceParam.active = true;
-        }
-        //   if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (clinicalService.syncStatus !== 'R')
-        //     clinicalService.syncStatus = 'U';
-        //   ClinicalService.localDbAdd(
-        //     JSON.parse(JSON.stringify(clinicalService))
-        //   );
-        //   ClinicalService.insertOrUpdate({ data: clinicalService });
-        //   this.displayAlert(
-        //     'info',
-        //     `Servico Clínico ${operation} com sucesso`
-        //   );
-        // } else {
-        console.log('BackEnd');
-        clinicalServiceService
-          .patch(clinicalServiceParam.id, clinicalServiceParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (clinicalServiceParam.active) {
+        clinicalServiceParam.active = false;
+      } else {
+        clinicalServiceParam.active = true;
       }
+      //   if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (clinicalService.syncStatus !== 'R')
+      //     clinicalService.syncStatus = 'U';
+      //   ClinicalService.localDbAdd(
+      //     JSON.parse(JSON.stringify(clinicalService))
+      //   );
+      //   ClinicalService.insertOrUpdate({ data: clinicalService });
+      //   this.displayAlert(
+      //     'info',
+      //     `Servico Clínico ${operation} com sucesso`
+      //   );
+      // } else {
+      console.log('BackEnd');
+      clinicalServiceService
+        .patch(clinicalServiceParam.id, clinicalServiceParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 </script>

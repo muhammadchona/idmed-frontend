@@ -237,32 +237,30 @@ const promptToConfirm = (therapeuticRegimenParam) => {
   const question = therapeuticRegimenParam.active
     ? 'Deseja Inactivar o Regime?'
     : 'Deseja Activar o Regime?';
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (therapeuticRegimenParam.active) {
-          therapeuticRegimenParam.active = false;
-        } else {
-          therapeuticRegimenParam.active = true;
-        }
-        // if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (therapeuticRegimenParam.syncStatus !== 'R') therapeuticRegimenParam.syncStatus = 'U';
-        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimenParam)));
-        //   ClinicSector.insertOrUpdate({ data: therapeuticRegimenParam });
-        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-        // } else {
-        therapeuticalRegimenService
-          .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (therapeuticRegimenParam.active) {
+        therapeuticRegimenParam.active = false;
+      } else {
+        therapeuticRegimenParam.active = true;
       }
+      // if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (therapeuticRegimenParam.syncStatus !== 'R') therapeuticRegimenParam.syncStatus = 'U';
+      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimenParam)));
+      //   ClinicSector.insertOrUpdate({ data: therapeuticRegimenParam });
+      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      // } else {
+      therapeuticalRegimenService
+        .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 </script>

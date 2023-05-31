@@ -308,16 +308,13 @@ const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
-const selectedUser = inject('selectedUser');
+const user = inject('selectedUser');
 const configs = inject('configs');
 const showUserRegistrationScreen = inject('showUserRegistrationScreen');
 
 /*Hooks*/
 onMounted(() => {
-  if (isCreateStep.value) {
-    selectedUser.value = reactive(ref(userService.newInstanceEntity()));
-  }
-  if (user.value !== '' && user.value !== null && user.value !== undefined) {
+  if (user.value !== null && user.value !== undefined) {
     if (user.value.id !== null) {
       selectedRoles.value = user.value.authorities;
       selectedClinics.value = user.value.clinics;
@@ -337,10 +334,6 @@ onMounted(() => {
 
 const onlyView = computed(() => {
   return viewMode.value;
-});
-
-const user = computed(() => {
-  return selectedUser.value;
 });
 
 const userRoles = computed(() => {
@@ -433,6 +426,7 @@ const submitUser = () => {
         }) */
   // if (website) {
   if (isCreateStep.value) {
+    console.log(user.value);
     userService
       .post(user.value)
       .then((resp) => {
@@ -514,9 +508,7 @@ const codeRules = (val) => {
   } else if (val.length < 3) {
     return 'O  nome do utilizador indicado deve ter no mínimo 3 caracteres';
   } else if (
-    (databaseCodes.value.includes(val) &&
-      selectedUser.id === user.value.id &&
-      isEditStep.value) ||
+    (databaseCodes.value.includes(val) && isEditStep.value) ||
     (databaseCodes.value.includes(val) &&
       users.value.filter((x) => x.username === val)[0].id !== user.value.id &&
       !isEditStep.value)

@@ -15,7 +15,7 @@ export default {
     return api()
       .post('clinicSector', params)
       .then((resp) => {
-        clinicSector.save(resp.data);
+        clinicsector.save(resp.data);
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
@@ -76,7 +76,7 @@ export default {
     return api()
       .patch('clinicSector/' + id, params)
       .then((resp) => {
-        clinicSector.save(resp.data);
+        clinicsector.save(resp.data);
         alertSucess('O Registo foi alterado com sucesso');
       })
       .catch((error) => {

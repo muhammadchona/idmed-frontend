@@ -7,14 +7,15 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 
-const identifiertype = useRepo(IdentifierType);
+const identifiertypeRepo = useRepo(IdentifierType);
 
 export default {
   post(params: string) {
+    console.log(params);
     return api()
       .post('identifierType', params)
       .then((resp) => {
-        identifierType.save(resp.data);
+        identifiertypeRepo.save(resp.data);
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
@@ -42,7 +43,7 @@ export default {
         .get('identifierType?offset=' + offset + '&max=100')
         .then((resp) => {
           console.log(resp.data);
-          identifiertype.save(resp.data);
+          identifiertypeRepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -72,11 +73,12 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
+  patch(id: string, params: string) {
+    console.log(params);
     return api()
       .patch('identifierType/' + id, params)
       .then((resp) => {
-        identifierType.save(resp.data);
+        identifiertypeRepo.save(resp.data);
         alertSucess('O Registo foi alterado com sucesso');
       })
       .catch((error) => {
@@ -102,16 +104,16 @@ export default {
     return api()
       .delete('identifierType/' + id)
       .then(() => {
-        identifiertype.destroy(id);
+        identifiertypeRepo.destroy(id);
       });
   },
 
   // Local Storage Pinia
   newInstanceEntity() {
-    return identifiertype.getModel().$newInstance();
+    return identifiertypeRepo.getModel().$newInstance();
   },
 
   getAllIdentifierTypes() {
-    return identifiertype.query().withAll().get();
+    return identifiertypeRepo.query().withAll().get();
   },
 };

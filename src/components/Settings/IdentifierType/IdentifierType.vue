@@ -90,6 +90,10 @@ const onlyView = computed(() => {
   return viewMode.value;
 });
 
+const isDisplayStep = computed(() => {
+  return viewMode.value;
+});
+
 const clinics = computed(() => {
   return clinicService.getAllClinics();
 });
@@ -137,7 +141,7 @@ const doSave = () => {
   if (isCreateStep.value) {
     console.log('Create Step_Online_Mode');
     identifierTypeService
-      .post(identifierType)
+      .post(identifierType.value)
       .then((resp) => {
         showAddEditIdentifierType.value = false;
       })
@@ -146,7 +150,7 @@ const doSave = () => {
       });
   } else {
     identifierTypeService
-      .patch(identifierType.value.id, identifierType)
+      .patch(identifierType.value.id, identifierType.value)
       .then((resp) => {
         showAddEditIdentifierType.value = false;
       })

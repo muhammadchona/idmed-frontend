@@ -247,34 +247,32 @@ const promptToConfirm = (doctorParam) => {
   const question = doctorParam.active
     ? 'Deseja Inactivar o Clínico?'
     : 'Deseja Activar o Clínico?';
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (doctorParam.active) {
-          doctorParam.active = false;
-        } else {
-          doctorParam.active = true;
-        }
-        // if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (doctorParam.syncStatus !== 'R') doctorParam.syncStatus = 'U';
-        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(doctorParam)));
-        //   ClinicSector.insertOrUpdate({ data: doctorParam });
-        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-        // } else {
-        console.log('BackEnd');
-        doctorService
-          .patch(doctorParam.id, doctorParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (doctorParam.active) {
+        doctorParam.active = false;
+      } else {
+        doctorParam.active = true;
       }
+      // if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (doctorParam.syncStatus !== 'R') doctorParam.syncStatus = 'U';
+      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(doctorParam)));
+      //   ClinicSector.insertOrUpdate({ data: doctorParam });
+      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      // } else {
+      console.log('BackEnd');
+      doctorService
+        .patch(doctorParam.id, doctorParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 // promptToConfirm(doctor) {
 //   let msg = '';

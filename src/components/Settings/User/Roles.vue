@@ -29,6 +29,9 @@
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td key="description" :props="props">
+              {{ props.row.name }}
+            </q-td>
+            <q-td key="description" :props="props">
               {{ props.row.description }}
             </q-td>
             <q-td key="options" :props="props">
@@ -105,6 +108,15 @@ const { alertWarningAction } = useSwal();
 const showRoleRegistrationScreen = ref(false);
 const columns = [
   {
+    name: 'name',
+    required: true,
+    label: 'Nome',
+    align: 'left',
+    field: (row) => row.name,
+    format: (val) => `${val}`,
+    sortable: true,
+  },
+  {
     name: 'description',
     required: true,
     label: 'Descricao',
@@ -115,6 +127,7 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
+const submitting = ref(false);
 
 /*injects*/
 const step = inject('step');
@@ -182,42 +195,72 @@ const addRole = () => {
   showRoleRegistrationScreen.value = true;
 };
 
-// promptToConfirm(role) {
-//   let msg = '';
-//   this.$q
-//     .dialog({
-//       title: 'Confirm',
-//       message: role.active
-//         ? 'Deseja Inactivar o Perfil?'
-//         : 'Deseja Activar o Perfil?',
-//       cancel: true,
-//       persistent: true,
-//     })
-//     .onOk(() => {
-//       if (role.active) {
-//         role.active = false;
-//         msg = 'Perfil inactivado com sucesso.';
-//       } else if (!role.active) {
-//         role.active = true;
-//         msg = 'Perfil activado com sucesso.';
-//       }
-//       if (this.website) {
-//         Role.apiSave(role)
-//           .then((resp) => {
-//             this.displayAlert('info', msg);
-//           })
-//           .catch((error) => {
-//             this.displayAlert('error', error);
-//           });
-//       } else {
-//         const roleLocalBase = JSON.parse(JSON.stringify(role));
-//         Role.localDbAddOrUpdate(roleLocalBase).then((resp) => {
-//           Role.insert({
-//             data: roleLocalBase,
-//           });
-//           this.displayAlert('info', msg);
-//         });
-//       }
-//     });
-// },
+const promptToConfirm = (role) => {
+  const question = role.active
+    ? 'Deseja Inactivar o Perfil?'
+    : 'Deseja Activar o Perfil?';
+
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (role.active) {
+        role.active = false;
+      } else {
+        role.active = true;
+      }
+
+      // if (this.mobile) {
+      //          const roleLocalBase = JSON.parse(JSON.stringify(role));
+      // Role.localDbAddOrUpdate(roleLocalBase).then((resp) => {
+      //   Role.insert({
+      //     data: roleLocalBase,
+      //   });
+      //   this.displayAlert('info', msg);
+      // });
+      //       } else {
+
+      roleService
+        .patch(role.id, role)
+        .then((resp) => {
+          submitting.value = false;
+          showHISRegistrationScreen.value = false;
+        })
+        .catch((error) => {
+          submitting.value = false;
+          showHISRegistrationScreen.value = false;
+        });
+      // }
+    }
+  });
+
+  // let msg = '';
+  // this.$q
+  //   .dialog({
+  //     title: 'Confirm',
+  //     message: role.active
+  //       ? 'Deseja Inactivar o Perfil?'
+  //       : 'Deseja Activar o Perfil?',
+  //     cancel: true,
+  //     persistent: true,
+  //   })
+  //   .onOk(() => {
+  //     if (role.active) {
+  //       role.active = false;
+  //       msg = 'Perfil inactivado com sucesso.';
+  //     } else if (!role.active) {
+  //       role.active = true;
+  //       msg = 'Perfil activado com sucesso.';
+  //     }
+  //     if (this.website) {
+  //       Role.apiSave(role)
+  //         .then((resp) => {
+  //           this.displayAlert('info', msg);
+  //         })
+  //         .catch((error) => {
+  //           this.displayAlert('error', error);
+  //         });
+  //     } else {
+
+  //     }
+  //   });
+};
 </script>

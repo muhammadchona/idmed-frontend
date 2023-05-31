@@ -226,33 +226,31 @@ const promptToConfirm = (drugParam) => {
   const question = drugParam.active
     ? 'Deseja Inactivar o medicamento?'
     : 'Deseja Activar o medicamento?';
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (drugParam.active) {
-          drugParam.active = false;
-        } else {
-          drugParam.active = true;
-        }
-        // if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (drugParam.syncStatus !== 'R') drugParam.syncStatus = 'U';
-        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(drugParam)));
-        //   ClinicSector.insertOrUpdate({ data: drugParam });
-        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-        // } else {
-        drugService
-          .patch(drugParam.id, drugParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (drugParam.active) {
+        drugParam.active = false;
+      } else {
+        drugParam.active = true;
       }
+      // if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (drugParam.syncStatus !== 'R') drugParam.syncStatus = 'U';
+      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(drugParam)));
+      //   ClinicSector.insertOrUpdate({ data: drugParam });
+      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      // } else {
+      drugService
+        .patch(drugParam.id, drugParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 
 //     promptToConfirm(drug) {

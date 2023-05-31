@@ -220,7 +220,7 @@ const editClinicSector = (clinicSectorParam) => {
 const addClinicSectorr = () => {
   isEditStep.value = false;
   isCreateStep.value = true;
-  clinicSector.value = reactive(ref(clinicSectorService.newInstanceEntity()));
+  clinicSector.value = new ClinicSector();
   clinicSector.value.clinic = currClinic.value;
   step.value = 'create';
   showClinicSectorRegistrationScreen.value = true;
@@ -239,33 +239,31 @@ const promptToConfirm = (clinicSectorParam) => {
   const question = clinicSectorParam.active
     ? 'Deseja Inactivar o Sector Clinico?'
     : 'Deseja Activar o Sector Clinico?';
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (clinicSectorParam.active) {
-          clinicSectorParam.active = false;
-        } else {
-          clinicSectorParam.active = true;
-        }
-        // if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (clinicSectorParam.syncStatus !== 'R') clinicSectorParam.syncStatus = 'U';
-        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSectorParam)));
-        //   ClinicSector.insertOrUpdate({ data: clinicSectorParam });
-        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-        // } else {
-        console.log('BackEnd');
-        clinicSectorService
-          .patch(clinicSectorParam.id, clinicSectorParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (clinicSectorParam.active) {
+        clinicSectorParam.active = false;
+      } else {
+        clinicSectorParam.active = true;
       }
+      // if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (clinicSectorParam.syncStatus !== 'R') clinicSectorParam.syncStatus = 'U';
+      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSectorParam)));
+      //   ClinicSector.insertOrUpdate({ data: clinicSectorParam });
+      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      // } else {
+      console.log('BackEnd');
+      clinicSectorService
+        .patch(clinicSectorParam.id, clinicSectorParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 </script>
