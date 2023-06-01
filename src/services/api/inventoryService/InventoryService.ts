@@ -1,7 +1,7 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import { alert } from '../../components/Shared/Directives/Plugins/Dialog/dialog';
 import Inventory from 'src/stores/models/stockinventory/Inventory';
+
 
 const inventory = useRepo(Inventory);
 
@@ -12,13 +12,13 @@ export default {
       .post('inventory', params)
       .then((resp) => {
         inventory.save(resp.data);
-      });
+      })
   },
-
+  
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('inventory?offset=' + offset)
+      .get('inventory?offset=' + offset + '&max=100')
         .then((resp) => {
           inventory.save(resp.data);
           offset = offset + 100;
@@ -26,27 +26,9 @@ export default {
             this.get(offset);
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alert(listErrors, null, null, null);
-          } else if (error.request) {
-            alert(error.request, null, null, null);
-          } else {
-            alert(error.message, null, null, null);
-          }
-        });
     }
   },
-  patch(id: number, params: string) {
+  patch(id: string, params: string) {
     return api()
       .patch('inventory/' + id, params)
       .then((resp) => {
@@ -60,40 +42,63 @@ export default {
         inventory.destroy(id);
       });
   },
-  apiClose(id: string, params: string) {
-    return api()
-      .patch('/inventory/close/' + id, params)
-      .then((resp) => {
-        inventory.save(resp.data);
-      });
-  },
-
-  apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
-    return api()
-      .get(
-        '/inventory/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
-      )
-      .then((resp) => {
-        inventory.save(resp.data);
-        if (resp.data.length > 0) {
-          setTimeout(this.get, 2);
-        }
-      });
-  },
 
   apiFetchById(id: string) {
-    return api()
-      .get('/inventory/' + id)
-      .then((resp) => {
-        inventory.save(resp.data);
-        if (resp.data.length > 0) {
-          setTimeout(this.get, 2);
-        }
-      });
+    return api().get(
+      '/inventory/' + id ) .then((resp) => {
+      inventory.save(resp.data);
+      if (resp.data.length > 0) {
+        setTimeout(this.get, 2);
+      }
+    });
   },
 
+    async apiSave(inventory: any) {
+    return await api().post('/inventory', inventory);
+  },
+
+   async apiUpdate(id: string, inventory: any) {
+    return await api().patch('/inventory/' + id, inventory);
+  },
+
+   async apiClose(id: string) {
+    return await api().patch(`/inventory/close/${id}`);
+  },
+
+   async apiRemove(id: string) {
+    return await api().delete(`/inventory/${id}`);
+  },
+
+   async apiGetAllByClinicId(clinicId: string, offset: number, max:number ) {
+    return await api().get(
+      '/inventory/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+
+   async apiGetAll(offset: number, max: number) {
+    return await api().get('/inventory?offset=' + offset + '&max=' + max);
+  },
+  
   // Local Storage Pinia
   newInstanceEntity() {
     return inventory.getModel().$newInstance();
   },
+  
+  getInventories() {
+    return inventory.withAllRecursive(2)
+    .orderBy('open', 'desc')
+    .orderBy('startDate', 'desc')
+    .get()
+  },
+
+  getOpenInventory() {
+    return inventory.query().where('open', true).first()
+  },
+  getLastInventory() {
+    return inventory.query().orderBy('endDate', 'desc').first();
+  },
+  getInvnetoryById(id: string) {
+    return  inventory.query().withAllRecursive(2).where('id', id).first()
+  }
+
 };
