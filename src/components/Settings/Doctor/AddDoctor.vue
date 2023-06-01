@@ -21,16 +21,29 @@
 
         <div class="q-mt-md">
           <div class="row">
-            <nameInput
+            <q-input
               v-model="doctor.firstnames"
-              ref="nome"
+              ref="nomeRef"
               :disable="onlyView"
+              outlined
+              label="Nome *"
+              dense
+              class="col"
+              @input="(event) => $emit('update:firstNames', event.target.value)"
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              lazy-rules
             />
-            <lastNameInput
+            <q-input
               v-model="doctor.lastname"
               class="q-ml-md"
-              ref="apelido"
+              ref="apelidoRef"
               :disable="onlyView"
+              outlined
+              label="Apelido *"
+              dense
+              @input="(event) => $emit('update:lastname', event.target.value)"
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              lazy-rules
             />
           </div>
           <div class="row q-mt-md">
@@ -40,7 +53,7 @@
               outlined
               v-model="doctor.gender"
               :options="genders"
-              ref="gender"
+              ref="genderRef"
               :rules="[(val) => val != null || ' Por favor indique o genero']"
               label="Género *"
               :disable="onlyView"
@@ -58,7 +71,7 @@
               :options="clinics"
               option-value="id"
               option-label="clinicName"
-              ref="clinic"
+              ref="clinicRef"
               :rules="[(val) => val != null || ' Por favor indique a Farmácia']"
               label="Farmácias"
             />
@@ -73,12 +86,23 @@
           <q-separator color="grey-13" size="1px" />
         </div>
         <div class="row q-mt-md">
-          <PhoneField
+          <q-input
             v-model="doctor.telephone"
             dense
             label="Principal"
             :disable="onlyView"
-          />
+            outlined
+            class="col"
+            ref="ref"
+            maxlength="12"
+            type="tel"
+            @input="(event) => $emit('update:phone', event.target.value)"
+            lazy-rules
+          >
+            <template v-slot:prepend>
+              <q-icon name="phone_android" />
+            </template>
+          </q-input>
           <emailInput
             v-model="doctor.email"
             dense
@@ -121,9 +145,13 @@ import emailInput from 'src/components/Shared/EmailInput.vue';
 const stringOptions = ['Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'];
 const submitting = ref(false);
 const genders = ref(['Masculino', 'Feminino']);
+const nomeRef = ref(null);
+const apelidoRef = ref(null);
+const clinicRef = ref(null);
+const genderRef = ref(null);
 
 /*injects*/
-const selectedDoctor = inject('selectedDoctor');
+const doctor = inject('selectedDoctor');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const currClinic = inject('currClinic');
@@ -132,10 +160,6 @@ const isCreateStep = inject('isCreateStep');
 const showDoctorRegistrationScreen = inject('showDoctorRegistrationScreen');
 
 /*Hooks*/
-const doctor = computed(() => {
-  return selectedDoctor.value;
-});
-
 const onlyView = computed(() => {
   return viewMode.value;
 });

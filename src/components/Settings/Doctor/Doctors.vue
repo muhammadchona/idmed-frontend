@@ -110,6 +110,9 @@ import Doctor from '../../../stores/models/doctor/Doctor';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
@@ -174,6 +177,7 @@ const doctors = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
@@ -243,34 +247,32 @@ const promptToConfirm = (doctorParam) => {
   const question = doctorParam.active
     ? 'Deseja Inactivar o Clínico?'
     : 'Deseja Activar o Clínico?';
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (doctorParam.active) {
-          doctorParam.active = false;
-        } else {
-          doctorParam.active = true;
-        }
-        // if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (doctorParam.syncStatus !== 'R') doctorParam.syncStatus = 'U';
-        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(doctorParam)));
-        //   ClinicSector.insertOrUpdate({ data: doctorParam });
-        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-        // } else {
-        console.log('BackEnd');
-        doctorService
-          .patch(doctorParam.id, doctorParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (doctorParam.active) {
+        doctorParam.active = false;
+      } else {
+        doctorParam.active = true;
       }
+      // if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (doctorParam.syncStatus !== 'R') doctorParam.syncStatus = 'U';
+      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(doctorParam)));
+      //   ClinicSector.insertOrUpdate({ data: doctorParam });
+      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      // } else {
+      console.log('BackEnd');
+      doctorService
+        .patch(doctorParam.id, doctorParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 // promptToConfirm(doctor) {
 //   let msg = '';

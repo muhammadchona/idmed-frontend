@@ -105,6 +105,9 @@ import { useQuasar } from 'quasar';
 import { inject, ref, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
@@ -194,6 +197,7 @@ const clinics = computed(() => {
   );
 });
 onMounted(() => {
+  showloading();
   step.value = '';
   editMode.value = false;
   viewMode.value = false;

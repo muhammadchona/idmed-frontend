@@ -87,6 +87,9 @@ import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
@@ -140,6 +143,7 @@ const identifierTypes = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
