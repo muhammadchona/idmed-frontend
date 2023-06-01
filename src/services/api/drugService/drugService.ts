@@ -30,7 +30,6 @@ export default {
     }
   },
   async patch(id: string, params: string) {
-    console.log(params);
     const resp = await api().patch('drug/' + id, params);
     drug.save(JSON.parse(resp.config.data));
     alertSucess('O Registo foi alterado com sucesso');

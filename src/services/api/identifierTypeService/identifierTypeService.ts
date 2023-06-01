@@ -11,7 +11,6 @@ const identifiertypeRepo = useRepo(IdentifierType);
 
 export default {
   post(params: string) {
-    console.log(params);
     return api()
       .post('identifierType', params)
       .then((resp) => {
@@ -42,7 +41,6 @@ export default {
       return api()
         .get('identifierType?offset=' + offset + '&max=100')
         .then((resp) => {
-          console.log(resp.data);
           identifiertypeRepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
@@ -74,7 +72,6 @@ export default {
     }
   },
   patch(id: string, params: string) {
-    console.log(params);
     return api()
       .patch('identifierType/' + id, params)
       .then((resp) => {

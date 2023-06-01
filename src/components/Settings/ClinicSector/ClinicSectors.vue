@@ -169,13 +169,11 @@ const clinicSectors = computed(() => {
 });
 
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  clinicSectorService.get(0);
 });
 
 /*provides*/

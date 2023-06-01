@@ -225,7 +225,6 @@ const visualizeUser = (userParam) => {
   conole.log(user.value);
 };
 const promptToConfirm = (user) => {
-  console.log(user);
   const question = user.active
     ? 'Deseja Inactivar o Utilizador?'
     : 'Deseja Activar o Utilizador?';
@@ -239,7 +238,6 @@ const promptToConfirm = (user) => {
       }
 
       // if (this.mobile) {
-      //         console.log('FrontEnd');
       //         et userLocalBase = JSON.parse(JSON.stringify(user));
       // userLocalBase = this.encrypt(userLocalBase);
       // UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
@@ -250,7 +248,6 @@ const promptToConfirm = (user) => {
       //   this.displayAlert('info', msg);
       // });
       //       } else {
-      console.log(user);
       userService
         .patch(user.id, user)
         .then((resp) => {
@@ -282,7 +279,6 @@ const promptToConfirm = (user) => {
 // },
 // getClinicSectorTypeToVue() {
 //   ClinicSectorType.localDbGetAll().then((clinicSectorTypes) => {
-//     console.log(clinicSectorTypes);
 //     ClinicSectorType.insert({ data: clinicSectorTypes });
 //   });
 // },

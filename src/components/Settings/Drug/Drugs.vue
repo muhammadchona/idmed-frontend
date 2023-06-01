@@ -174,15 +174,11 @@ const drugs = computed(() => {
 });
 
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  drugService.get(0);
-  showloading();
-  formService.get(0);
 });
 
 /*Provides*/
@@ -234,12 +230,11 @@ const promptToConfirm = (drugParam) => {
         drugParam.active = true;
       }
       // if (this.mobile) {
-      //   console.log('FrontEnd');
-      //   if (drugParam.syncStatus !== 'R') drugParam.syncStatus = 'U';
-      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(drugParam)));
-      //   ClinicSector.insertOrUpdate({ data: drugParam });
-      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-      // } else {
+      //             if (drug.syncStatus !== 'R') drug.syncStatus = 'U';
+      //             Drug.localDbAdd(JSON.parse(JSON.stringify(drug)));
+      //             Drug.insertOrUpdate({ data: drug });
+      //             this.displayAlert('info', msg);
+      //           } else {
       drugService
         .patch(drugParam.id, drugParam)
         .then((resp) => {
@@ -252,55 +247,4 @@ const promptToConfirm = (drugParam) => {
     }
   });
 };
-
-//     promptToConfirm(drug) {
-//       let msg = '';
-//       this.$q
-//         .dialog({
-//           title: 'Confirmação',
-//           message: drug.active
-//             ? 'Deseja Inactivar o medicamento?'
-//             : 'Deseja Activar o medicamento?',
-//           cancel: true,
-//           persistent: true,
-//         })
-//         .onOk(() => {
-//           if (drug.active) {
-//             drug.active = false;
-//             msg = 'Medicamento inactivado com sucesso.';
-//           } else if (!drug.active) {
-//             drug.active = true;
-//             msg = 'Medicamento activado com sucesso.';
-//           }
-//           if (this.mobile) {
-//             console.log('FrontEnd');
-//             if (drug.syncStatus !== 'R') drug.syncStatus = 'U';
-//             Drug.localDbAdd(JSON.parse(JSON.stringify(drug)));
-//             Drug.insertOrUpdate({ data: drug });
-//             this.displayAlert('info', msg);
-//           } else {
-//             console.log('BackEnd');
-//             Drug.apiUpdate(drug)
-//               .then((resp) => {
-//                 this.$emit('drug', resp.response.data);
-//                 this.displayAlert('info', msg);
-//               })
-//               .catch((error) => {
-//                 this.displayAlert('error', error);
-//                 console.log(drug.id);
-//                 console.log(error);
-//               });
-//           }
-//         });
-//     },
-//     displayAlert(type, msg) {
-//       this.alert.type = type;
-//       this.alert.msg = msg;
-//       this.alert.visible = true;
-//     },
-//     closeDialog() {
-//       if (this.alert.type === 'info') {
-//         this.$emit('close');
-//       }
-//     },
 </script>

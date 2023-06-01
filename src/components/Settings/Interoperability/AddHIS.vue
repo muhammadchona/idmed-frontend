@@ -16,19 +16,27 @@
         <q-stepper v-model="stepScreens" ref="stepper" animated>
           <q-step :name="1" title="Selecção de Atributos">
             <div class="row q-mt-md">
-              <nameInput
-                ref="nome"
+              <q-input
+                ref="nomeRef"
                 v-model="his.description"
                 label="Nome do Sistema de Informação *"
+                outlined
+                dense
+                class="col"
+                :rules="[(val) => !!val || 'Por favor indicar o nome']"
+                lazy-rules
               />
             </div>
             <div class="row q-mt-md">
-              <codeInput
-                ref="code"
+              <q-input
+                ref="codeRef"
                 v-model="his.abbreviation"
                 :rules="[(val) => codeRules(val)]"
                 lazy-rules
                 label="Abreviatura *"
+                outlined
+                dense
+                class="col"
               />
             </div>
             <div class="row q-mt-md">
@@ -147,6 +155,8 @@ const healthInformationAttributeTypes = ref([]);
 const interoperabilityAttribute = ref([]);
 const selectedAttributes = ref([]);
 const stepScreens = ref(1);
+const nomeRef = ref(null);
+const codeRef = ref(null);
 
 /*injects*/
 const createMode = inject('createMode');
@@ -154,6 +164,7 @@ const editMode = inject('editMode');
 const stepp = inject('step');
 const his = inject('selectedHis');
 const isCreateStep = inject('isCreateStep');
+const isEditStep = inject('isEditStep');
 const showHISRegistrationScreen = inject('showHISRegistrationScreen');
 
 /*Provide*/
@@ -186,13 +197,15 @@ onMounted(() => {
 
 /*Methods*/
 const validateHis = () => {
-  // $refs.nome.$refs.ref.validate()
-  //   $refs.code.$refs.ref.validate()
-  //     if (selectedAttributes.length <= 0) {
-  // displayAlert('error', 'Por Favor seleccione pelo menos um atributo para a Interoperabilidade')
-  //     } else if (!$refs.nome.$refs.ref.hasError && !$refs.code.$refs.ref.hasError) {
-  submitHis();
-  // }
+  nomeRef.value.validate();
+  codeRef.value.validate();
+  if (selectedAttributes.value.length <= 0) {
+    alertError(
+      'Por Favor seleccione pelo menos um atributo para a Interoperabilidade'
+    );
+  } else if (!nomeRef.value.hasError && !codeRef.value.hasError) {
+    submitHis();
+  }
 };
 const submitHis = () => {
   submitting.value = true;
@@ -240,31 +253,19 @@ const submitHis = () => {
         submitting.value = false;
         showHISRegistrationScreen.value = false;
       });
-    // HealthInformationSystem.apiUpdate(his).then(resp => {
-    //     // console.log(resp.response.data)
-    //   displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-    //   submitting = false
-    //   HealthInformationSystem.apiFetchById(resp.response.data.id)
-    // }).catch(error => {
-    //     displayAlert('error', error)
-    //     submitting = false
-    // })
   }
   // }
 };
 const goToNextStep = () => {
   let i = 0;
   if (stepScreens.value === 1) {
-    // $refs.nome.$refs.ref.validate()
-    //  $refs.code.$refs.ref.validate()
+    nomeRef.value.validate();
+    codeRef.value.validate();
     if (selectedAttributes.value.length <= 0) {
       alertError(
-        'error',
         'Por Favor seleccione pelo menos um atributo para a Interoperabilidade'
       );
-      // } else if (!$refs.nome.$refs.ref.hasError && !$refs.code.$refs.ref.hasError) {
-    } else {
-      //Substituir pela linha acima
+    } else if (!nomeRef.value.hasError && !codeRef.value.hasError) {
       if (isCreateStep.value) {
         addAttributesOnHealthInformationSystem();
       } else if (editMode.value) {

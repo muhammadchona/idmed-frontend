@@ -183,21 +183,17 @@ const submitClinicSector = () => {
   clinicSector.value.active = true;
   if (clinicSector.value.uuid === null) clinicSector.value.uuid = uuidv4();
   // if (mobile) {
-  //   console.log('Mobile');
   //   clinicSector.clinic_id = currClinic.id;
   //   clinicSector.clinic_sector_type_id =
   //     clinicSector.clinicSectorType.id;
   //   if (!isEditStep) {
-  //     console.log('Create Step');
   //     clinicSector.syncStatus = 'R';
-  //     console.log(clinicSector);
   //     ClinicSector.localDbAdd(
   //       JSON.parse(JSON.stringify(clinicSector))
   //     ).then((item) => {
   //       ClinicSector.insert({ data: clinicSector });
   //     });
   //   } else {
-  //     console.log('Edit Step');
   //     if (clinicSector.syncStatus !== 'R')
   //       clinicSector.syncStatus = 'U';
   //     const clinicSecUpdate = new ClinicSector(
@@ -215,7 +211,6 @@ const submitClinicSector = () => {
   //   );
   // } else {
   if (isCreateStep.value) {
-    console.log('----------------------');
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }
@@ -231,7 +226,6 @@ const submitClinicSector = () => {
       });
   }
   if (isEditStep.value) {
-    console.log('Edit Step_Online_Mode');
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }
