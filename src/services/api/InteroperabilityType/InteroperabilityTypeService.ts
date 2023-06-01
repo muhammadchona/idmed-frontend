@@ -52,4 +52,7 @@ export default {
   getAllFromStorage() {
     return interoperabilityType.all();
   },
+  getAll() {
+    return interoperabilityType.query().withAll().get();
+  },
 };

@@ -14,7 +14,7 @@ export default {
     try {
       const resp = await api().post('therapeuticRegimen', params);
       therapeuticRegimen.save(resp.data);
-      alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+      alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
       if (error.request != null) {
         const arrayErrors = JSON.parse(error.request.response);
@@ -26,11 +26,11 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no porcessamento', String(listErrors));
+        alertError(String(listErrors));
       } else if (error.request) {
-        alertError('Erro no registo', error.request);
+        alertError(error.request);
       } else {
-        alertError('Erro no registo', error.message);
+        alertError(error.message);
       }
     }
   },
@@ -59,20 +59,20 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no registo', String(listErrors));
+            alertError(String(listErrors));
           } else if (error.request) {
-            alertError('Erro no registo', error.request);
+            alertError(error.request);
           } else {
-            alertError('Erro no registo', error.message);
+            alertError(error.message);
           }
         });
     }
   },
-  async patch(id: number, params: string) {
+  async patch(id: string, params: string) {
     try {
       const resp = await api().patch('therapeuticRegimen/' + id, params);
       therapeuticRegimen.save(resp.data);
-      alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+      alertSucess('O Registo foi alterado com sucesso');
     } catch (error) {
       if (error.request != null) {
         const arrayErrors = JSON.parse(error.request.response);
@@ -84,16 +84,108 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no porcessamento', String(listErrors));
+        alertError(String(listErrors));
       } else if (error.request) {
-        alertError('Erro no registo', error.request);
+        alertError(error.request);
       } else {
-        alertError('Erro no registo', error.message);
+        alertError(error.message);
       }
     }
   },
   async delete(id: number) {
     await api().delete('therapeuticRegimen/' + id);
     therapeuticRegimen.destroy(id);
+  },
+
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return therapeuticRegimen.getModel().$newInstance();
+  },
+
+  getAllTherapeuticalRegimens() {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .with('clinicalService')
+      .with('prescriptionDetails')
+      .get();
+  },
+
+  getAllActiveTherapeuticalRegimens() {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where('active', true)
+      .get();
+  },
+
+  getAllActiveTherapeuticalRegimensByclinicalService(clinicalServiceId: any) {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where((therapeuticRegimen) => {
+        return (
+          (therapeuticRegimen.clinical_service_id === clinicalServiceId ||
+            therapeuticRegimen.clinicalServiceId === '') &&
+          therapeuticRegimen.active === true
+        );
+      })
+      .get();
+  },
+
+  getAllTherapeuticalRegimensByclinicalService(clinicalServiceId: any) {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where('clinical_service_id', clinicalServiceId)
+      .get();
+  },
+
+  getAllTherapeuticalByclinicalService(clinicalServiceId: any) {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+        query.with('clinicalService', (query) => {
+          query.with('identifierType');
+        });
+      })
+      .where('clinical_service_id', clinicalServiceId)
+      .get();
+  },
+  getAllActiveTherapeuticalHasNoClinicalService() {
+    return therapeuticRegimen
+      .query()
+      .with('drugs', (query) => {
+        query.with('form');
+      })
+      .where((therapeuticRegimen) => {
+        return (
+          therapeuticRegimen.active &&
+          (therapeuticRegimen.clinical_service_id === null ||
+            therapeuticRegimen.clinical_service_id === '')
+        );
+      })
+      .get();
   },
 };

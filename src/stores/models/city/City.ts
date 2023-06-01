@@ -15,4 +15,7 @@ export default class City extends Model {
       provincia: this.belongsTo(Province, 'province_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

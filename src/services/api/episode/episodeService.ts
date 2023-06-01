@@ -6,12 +6,10 @@ const episode = useRepo(Episode);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('episode', params)
-      .then((resp) => {
-        episode.save(resp.data);
-      });
+  async post(params: string) {
+    const resp = await api()
+      .post('episode', params);
+    episode.save(resp.data);
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -26,19 +24,15 @@ export default {
         });
     }
   },
-  patch(id: number, params: string) {
-    return api()
-      .patch('episode/' + id, params)
-      .then((resp) => {
-        episode.save(resp.data);
-      });
+  async patch(id: number, params: string) {
+    const resp = await api()
+      .patch('episode/' + id, params);
+    episode.save(resp.data);
   },
-  delete(id: number) {
-    return api()
-      .delete('episode/' + id)
-      .then(() => {
-        episode.destroy(id);
-      });
+  async delete(id: number) {
+    await api()
+      .delete('episode/' + id);
+    episode.destroy(id);
   },
 
   async apiSave(episode: any, isNew: boolean) {
@@ -90,5 +84,31 @@ export default {
   },
   getEntity() {
     return episode.getModel();
+  },
+  lastEpisodeByIdentifier(identifierId: string) {
+    return episode
+      .withAllRecursive(2)
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+  getlast2EpisodesByIdentifier(identifierId: string) {
+    const episodes = episode
+      .withAllRecursive(2)
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('episodeDate', 'desc')
+      .limit(2)
+      .get();
+    if (episodes.length > 0) {
+      episodes[0].isLast = true;
+    }
+    return episodes;
+  },
+  getEpisodeById(id: string) {
+    return episode
+      .withAllRecursive(2)
+      .where('id', id)
+      .orderBy('episodeDate', 'desc')
+      .first();
   },
 };

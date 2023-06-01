@@ -43,7 +43,9 @@ export default class Drug extends Model {
       ),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   getCurStockAmount() {
     if (this.stocks.length <= 0) return 0;
     let curStock = 0;

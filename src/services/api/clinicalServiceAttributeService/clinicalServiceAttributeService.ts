@@ -1,18 +1,20 @@
+import ClinicalServiceAttribute from 'src/stores/models/ClinicalServiceAttribute/ClinicalServiceAttribute';
 import { useRepo } from 'pinia-orm';
-import TherapeuticRegimensDrug from 'src/stores/models/TherapeuticRegimensDrug/TherapeuticRegimensDrug';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-const { alertSucess, alertError, alertWarning } = useSwal();
+import { useLoading } from 'src/composables/shared/loading/loading';
 
-const therapeuticRegimensDrug = useRepo(TherapeuticRegimensDrug);
+const { closeLoading, showloading } = useLoading();
+const { alertSucess, alertError, alertWarning } = useSwal();
+const clinicalserviceAttribute = useRepo(ClinicalServiceAttribute);
 
 export default {
   post(params: string) {
     return api()
-      .post('therapeuticRegimensDrug', params)
+      .post('clinicalServiceAttribute', params)
       .then((resp) => {
-        therapeuticRegimensDrug.save(resp.data);
-        alertSucess('O Registo foi efectuado com sucesso');
+        clinicalserviceAttribute.save(resp.data);
+        alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -25,27 +27,30 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError(String(listErrors));
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
-          alertError(error.request);
+          alertError('Erro no registo', error.request);
         } else {
-          alertError(error.message);
+          alertError('Erro no registo', error.message);
         }
       });
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('therapeuticRegimensDrug?offset=' + offset + '&max=100')
+        .get('clinicalServiceAttributeType?offset=' + offset + '&max=100')
         .then((resp) => {
-          therapeuticRegimensDrug.save(resp.data);
+          clinicalserviceAttribute.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
             setTimeout(this.get, 2);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {
+          closeLoading;
           if (error.request != null) {
             const arrayErrors = JSON.parse(error.request.response);
             const listErrors = {};
@@ -56,21 +61,21 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError(String(listErrors));
+            alertError('Erro no porcessamento', String(listErrors));
           } else if (error.request) {
-            alertError(error.request);
+            alertError('Erro no registo', error.request);
           } else {
-            alertError(error.message);
+            alertError('Erro no registo', error.message);
           }
         });
     }
   },
   patch(id: number, params: string) {
     return api()
-      .patch('therapeuticRegimensDrug/' + id, params)
+      .patch('clinicalServiceAttributeType/' + id, params)
       .then((resp) => {
-        therapeuticRegimensDrug.save(resp.data);
-        alertSucess('O Registo foi alterado com sucesso');
+        clinicalserviceAttribute.save(resp.data);
+        alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
       })
       .catch((error) => {
         if (error.request != null) {
@@ -83,19 +88,40 @@ export default {
               listErrors.push(element.message);
             });
           }
-          alertError(String(listErrors));
+          alertError('Erro no porcessamento', String(listErrors));
         } else if (error.request) {
-          alertError(error.request);
+          alertError('Erro no registo', error.request);
         } else {
-          alertError(error.message);
+          alertError('Erro no registo', error.message);
         }
       });
   },
   delete(id: number) {
     return api()
-      .delete('therapeuticRegimensDrug/' + id)
+      .delete('clinicalServiceAttributeType/' + id)
       .then(() => {
-        therapeuticRegimensDrug.destroy(id);
+        clinicalserviceAttribute.destroy(id);
       });
+  },
+
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return clinicalserviceAttribute.getModel().$newInstance();
+  },
+
+  /*Pinia Methods*/
+  getAllClinicalServiceAttrByClinicalService(clinicalServiceId: string) {
+    return clinicalserviceAttribute
+      .query()
+      .with('clinicalServiceAttributeType')
+      .where('service_id', clinicalServiceId)
+      .get();
+  },
+
+  getAllClinicalServiceAttributes() {
+    return clinicalserviceAttribute
+      .query()
+      .with('clinicalServiceAttributeType')
+      .get();
   },
 };

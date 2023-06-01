@@ -137,11 +137,12 @@ const { loadSettingParams } = useOnline();
 const init = () => {
   showloading();
   if (website.value) {
-    this.loadWebRegimensToVueX();
-    this.loadWebDrugsToVueX();
-    this.loadWebStockToVueX();
-    this.showloading();
-    this.loadWebParamsToVueX();
+    loadSettingParams;
+    // this.loadWebRegimensToVueX();
+    // this.loadWebDrugsToVueX();
+    // this.loadWebStockToVueX();
+    // this.showloading();
+    // this.loadWebParamsToVueX();
   } else {
     if (this.isAppSyncDone) {
       this.showloading();

@@ -17,7 +17,9 @@ export default class Country extends Model {
       provinces: this.hasMany(Province, 'country_id'),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static localDbAdd(countrie) {
     return db.newDb().collection('countries').add(countrie);
   }

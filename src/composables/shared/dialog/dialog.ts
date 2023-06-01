@@ -1,54 +1,48 @@
 import swal from 'sweetalert';
 
 export function useSwal() {
-  function alertSucess(title: string, message: string) {
+  function alertSucess(message: string) {
     return swal({
-      title: title,
+      title: 'Sucesso',
       text: message,
-      
       icon: 'success',
       // buttons: 'Aceitar',
     });
   }
 
-  function alertWarning(title: string, message: string) {
+  function alertWarning(message: string) {
     return swal({
-      title: title,
+      title: 'Aviso',
       text: message,
       icon: 'warning',
       // buttons: 'Aceitar',
     });
   }
 
-  function alertError(title: string, message: string) {
+  function alertError(message: string) {
     return swal({
-      title: title,
+      title: 'Erro',
       text: message,
       icon: 'error',
       // buttons: 'Aceitar',
     });
   }
 
-  function alertInfo(title: string, message: string) {
+  function alertInfo(message: string) {
     return swal({
-      title: title,
+      title: 'Informação',
       text: message,
       icon: 'info',
       // buttons: 'Aceitar',
     });
   }
 
-  function alertWarningAction(
-    title: string,
-    message: string,
-    botaoCancelar: string,
-    botaoAceitar: string
-  ) {
-    swal({
-      title: title,
+  function alertWarningAction(message: string) {
+    return swal({
+      title: 'Confirmação',
       text: message,
       icon: 'warning',
-      buttons: [botaoCancelar, botaoAceitar],
+      buttons: ['Não', 'Sim'],
       dangerMode: true,
     });
   }

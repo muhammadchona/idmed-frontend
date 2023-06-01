@@ -23,7 +23,7 @@ export default {
         });
     }
   },
-  async patch(id: number, params: string) {
+  async patch(id: string, params: string) {
     const resp = await api().patch('patientVisit/' + id, params);
     patientVisit.save(resp.data);
   },
@@ -57,7 +57,8 @@ export default {
   },
 
   async apiGetAllByPatientId(patientId: string) {
-    return await api().get('/patientVisit/patient/' + patientId);
+    const resp = await api().get('/patientVisit/patient/' + patientId);
+    patientVisit.save(resp.data);
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
@@ -91,5 +92,24 @@ export default {
   },
   getAllFromStorage() {
     return patientVisit.all();
+  },
+
+  getLastFourWithVitalSignByPatientId(patientId: string) {
+    return patientVisit
+      .withAllRecursive(2)
+      .where('patient_id', patientId)
+      .limit(4)
+      .has('vitalSignsScreenings')
+      .orderBy('visitDate', 'desc')
+      .get();
+  },
+  getAllWithVitalSignByPatientId(patientId: string) {
+    return patientVisit
+      .withAllRecursive(3)
+      .where('patient_id', patientId)
+      .limit(4)
+      .has('vitalSignsScreenings')
+      .orderBy('visitDate', 'desc')
+      .get();
   },
 };

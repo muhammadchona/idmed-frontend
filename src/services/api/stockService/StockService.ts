@@ -10,7 +10,6 @@ const { alertSucess, alertError } = useSwal();
 export default {
   // Axios API call
   post(params: any) {
-    console.log('PARAMS: ', params)
     return api()
       .post('stock', params)
       .then((resp) => {
@@ -66,24 +65,24 @@ export default {
 
   getStockList(id: string ) {
    return stock.query()
-                                   .with('clinic')
-                                   .with('entrance')
-                                   .with('packagedDrugStocks')
-                                   .with('adjustments')
-                                   .with('drug')
-                                   .where('id',id)
-                                   .first()
+                .with('clinic')
+                .with('entrance')
+                .with('packagedDrugStocks')
+                .with('adjustments')
+                .with('drug')
+                .where('id',id)
+                .first()
   },
 
   getStockById(id: string) {
    return stock.query()
-   //Stock.query()
-   .with('drug')
-   .with('clinic')
-   .with('entrance')
-   .with('center')
-          .where('id', id)
-          .first();
+              //Stock.query()
+              .with('drug')
+              .with('clinic')
+              .with('entrance')
+              .with('center')
+                      .where('id', id)
+                      .first();
   }
   
 

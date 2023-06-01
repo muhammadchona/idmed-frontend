@@ -20,6 +20,14 @@ export default class ClinicalServiceAttribute extends Model {
         'service_attr_type_id'
       ),
     };
+
+  }
+  static piniaOptions = {
+    persist: true,
+  };
+
+  static piniaOptions = {
+    persist: true,
   }
 
   static async apiGetAll(offset, max) {

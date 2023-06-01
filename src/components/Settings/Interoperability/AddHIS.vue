@@ -1,41 +1,38 @@
 <template>
-    <q-card style="width: 900px; max-width: 90vw;">
-        <q-card-section class="q-pa-none bg-green-2">
-                <div class="q-pa-md">
-                    <div class="row items-center">
-                        <q-icon name="online_prediction" size="sm"/>
-                        <span class="q-pl-sm text-subtitle2">Sistema para Interoperabilidade</span>
-                    </div>
-                </div>
-                <q-separator color="grey-13" size="1px"/>
-            </q-card-section>
-    <form @submit.prevent="validateHis" >
-      <q-scroll-area style="height: 600px;">
-        <q-stepper
-            v-model="stepScreens"
-            ref="stepper"
-            animated
-        >
-          <q-step
-            :name="1"
-            title="Selecção de Atributos"
-            >
+  <q-card style="width: 900px; max-width: 90vw">
+    <q-card-section class="q-pa-none bg-green-2">
+      <div class="q-pa-md">
+        <div class="row items-center">
+          <q-icon name="online_prediction" size="sm" />
+          <span class="q-pl-sm text-subtitle2"
+            >Sistema para Interoperabilidade</span
+          >
+        </div>
+      </div>
+      <q-separator color="grey-13" size="1px" />
+    </q-card-section>
+    <form @submit.prevent="validateHis">
+      <q-scroll-area style="height: 600px">
+        <q-stepper v-model="stepScreens" ref="stepper" animated>
+          <q-step :name="1" title="Selecção de Atributos">
             <div class="row q-mt-md">
-            <nameInput
+              <nameInput
                 ref="nome"
                 v-model="his.description"
-                label="Nome do Sistema de Informação *" />
+                label="Nome do Sistema de Informação *"
+              />
             </div>
             <div class="row q-mt-md">
               <codeInput
-                  ref="code"
-                  v-model="his.abbreviation"
-                  :rules="[val => codeRules (val)]"
-                  lazy-rules
-                  label="Abreviatura *" />
+                ref="code"
+                v-model="his.abbreviation"
+                :rules="[(val) => codeRules(val)]"
+                lazy-rules
+                label="Abreviatura *"
+              />
             </div>
             <div class="row q-mt-md">
-                <q-table
+              <q-table
                 class="col my-sticky-header-table"
                 title="Atributos"
                 :rows="interoperabilityAttributes"
@@ -43,260 +40,307 @@
                 row-key="code"
                 selection="multiple"
                 v-model:selected="selectedAttributes"
+              >
+                <template v-slot:no-data="{ icon, filter }">
+                  <div
+                    class="full-width row flex-center text-primary q-gutter-sm text-body2"
                   >
-                    <template v-slot:no-data="{ icon, filter }">
-                          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
-                            <span>
-                              Sem resultados para visualizar
-                            </span>
-                            <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
-                          </div>
-                        </template>
-                </q-table>
+                    <span> Sem resultados para visualizar </span>
+                    <q-icon
+                      size="2em"
+                      :name="filter ? 'filter_b_and_w' : icon"
+                    />
+                  </div>
+                </template>
+              </q-table>
             </div>
           </q-step>
-          <q-step
-              :name="2"
-              title="Adicionar valor do atributo"
-            >
-              <div class="">
-                        <selectedAttributesTable  :rows="healthInformationAttributeTypes" :columns="columnsSelectedAttributes"/>
-              </div>
+          <q-step :name="2" title="Adicionar valor do atributo">
+            <div class="">
+              <selectedAttributesTable
+                :rows="healthInformationAttributeTypes"
+                :columns="columnsSelectedAttributes"
+              />
+            </div>
           </q-step>
         </q-stepper>
         <q-scroll-observer @scroll="scrollHandler" />
       </q-scroll-area>
       <q-card-actions align="right" class="q-mb-md">
-        <q-stepper-navigation >
+        <q-stepper-navigation>
           <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-          <q-btn v-if="stepScreens > 1" color="primary" @click="$refs.stepper.previous()" label="Voltar" class="q-ml-sm" />
-          <q-btn @click="goToNextStep" color="primary" :label="stepScreens === 2 ? 'Submeter' : 'Proximo'" class="q-ml-sm" :loading="stepScreens === 2 ? submitting : false"/>
+          <q-btn
+            v-if="stepScreens > 1"
+            color="primary"
+            @click="stepper.previous()"
+            label="Voltar"
+            class="q-ml-sm"
+          />
+          <q-btn
+            @click="goToNextStep"
+            color="primary"
+            :label="stepScreens === 2 ? 'Gravar' : 'Proximo'"
+            class="q-ml-sm"
+            :loading="stepScreens === 2 ? submitting : false"
+          />
         </q-stepper-navigation>
       </q-card-actions>
-      <q-dialog v-model="alert.visible" persistent>
-        <Dialog :type="alert.type" @closeDialog="closeDialog">
-          <template v-slot:title> Informação</template>
-          <template v-slot:msg> {{alert.msg}} </template>
-        </Dialog>
-      </q-dialog>
     </form>
   </q-card>
 </template>
 
-<script>
-import { ref } from 'vue'
-import HealthInformationSystem from '../../../store/models/healthInformationSystem/HealthInformationSystem'
-import InteroperabilityAttribute from '../../../store/models/interoperabilityAttribute/InteroperabilityAttribute'
-import InteroperabilityType from '../../../store/models/interoperabilityType/InteroperabilityType'
-import mixinplatform from 'src/mixins/mixin-system-platform'
-import mixinutils from 'src/mixins/mixin-utils'
+<script setup>
+/*imports*/
+import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
+import HealthInformationSystem from '../../../stores/models/healthInformationSystem/HealthInformationSystem';
+import InteroperabilityAttribute from '../../../stores/models/interoperabilityAttribute/InteroperabilityAttribute';
+import InteroperabilityType from '../../../stores/models/interoperabilityType/InteroperabilityType';
+import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
+import interoperabilityAttributeService from 'src/services/api/InteroperabilityAttribute/InteroperabilityAttributeService.ts';
+import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
+/*Components import*/
+import nameInput from 'src/components/Shared/NameInput.vue';
+import codeInput from 'src/components/Shared/CodeInput.vue';
+import selectedAttributesTable from 'src/components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue';
+
+/*Variables*/
+const { alertError } = useSwal();
 const columnsAttributes = [
-  { name: 'name', required: true, label: 'Nome', align: 'left', field: row => row.description, format: val => `${val}`, sortable: true }
-]
+  {
+    name: 'name',
+    required: true,
+    label: 'Nome',
+    align: 'left',
+    field: (row) => row.description,
+    format: (val) => `${val}`,
+    sortable: true,
+  },
+];
 
 const columnsSelectedAttributes = [
-  { name: 'interoperabilityType', required: true, label: 'Nome', align: 'left', field: row => row.interoperabilityType.description, format: val => `${val}`, sortable: true },
-  { name: 'value', required: true, label: 'Valor', align: 'left', field: row => row.value, format: val => `${val}`, sortable: true }
-]
+  {
+    name: 'interoperabilityType',
+    required: true,
+    label: 'Nome',
+    align: 'left',
+    field: (row) => row.interoperabilityType.description,
+    format: (val) => `${val}`,
+    sortable: true,
+  },
+  {
+    name: 'value',
+    required: true,
+    label: 'Valor',
+    align: 'left',
+    field: (row) => row.value,
+    format: (val) => `${val}`,
+    sortable: true,
+  },
+];
+const stepper = ref();
+const submitting = ref(false);
+const databaseCodes = ref([]);
+const codes = ref([]);
+const healthInformationAttributeTypes = ref([]);
+const interoperabilityAttribute = ref([]);
+const selectedAttributes = ref([]);
+const stepScreens = ref(1);
 
-export default {
-    props: ['selectedHis', 'createMode', 'editMode', 'stepp'],
-    mixins: [mixinplatform, mixinutils],
-    data () {
-        return {
-          submitting: false,
-            databaseCodes: [],
-           his: new HealthInformationSystem(),
-           codes: [],
-           stepScreens: ref(1),
-           columnsAttributes,
-           columnsSelectedAttributes,
-            healthInformationAttributeTypes: [],
-           interoperabilityAttribute: [],
-           selectedAttributes: [],
-             alert: ref({
-              type: '',
-              visible: false,
-              msg: ''
-            })
-        }
-    },
-    created () {
-        if (this.selectedHis !== '') {
-          this.his = Object.assign({}, this.selectedHis)
-          if (this.selectedHis != null) {
-               this.selectedHis.interoperabilityAttributes.forEach(attribute => {
-            this.selectedAttributes.push(attribute.interoperabilityType)
-            this.healthInformationAttributeTypes.push(attribute)
-          })
-         // this.healthInformationAttributeTypes.push(this.selectedHis.interoperabilityAttributes)
+/*injects*/
+const createMode = inject('createMode');
+const editMode = inject('editMode');
+const stepp = inject('step');
+const his = inject('selectedHis');
+const isCreateStep = inject('isCreateStep');
+const showHISRegistrationScreen = inject('showHISRegistrationScreen');
+
+/*Provide*/
+provide('rows', healthInformationAttributeTypes);
+provide('columns', columnsSelectedAttributes);
+
+/*Hooks*/
+const interoperabilityAttributes = computed(() => {
+  return interoperabilityTypeService.getAll();
+});
+
+const healthInformationSystemList = computed(() => {
+  return healthInformationSystemService.getAllHis();
+});
+
+onMounted(() => {
+  if (isCreateStep.value) {
+    his.value = reactive(
+      ref(healthInformationSystemService.newInstanceEntity())
+    );
+  }
+  if (his.value != null) {
+    his.value.interoperabilityAttributes.forEach((attribute) => {
+      selectedAttributes.value.push(attribute.interoperabilityType);
+      healthInformationAttributeTypes.value.push(attribute);
+    });
+  }
+  extractDatabaseCodes();
+});
+
+/*Methods*/
+const validateHis = () => {
+  // $refs.nome.$refs.ref.validate()
+  //   $refs.code.$refs.ref.validate()
+  //     if (selectedAttributes.length <= 0) {
+  // displayAlert('error', 'Por Favor seleccione pelo menos um atributo para a Interoperabilidade')
+  //     } else if (!$refs.nome.$refs.ref.hasError && !$refs.code.$refs.ref.hasError) {
+  submitHis();
+  // }
+};
+const submitHis = () => {
+  submitting.value = true;
+  his.value.interoperabilityAttributes = [];
+  healthInformationAttributeTypes.value.forEach((attribute) => {
+    his.value.interoperabilityAttributes.push(attribute);
+  });
+
+  his.value.active = true;
+  //  if (mobile) {
+  //     if (!isEditStep) {
+  //       his.syncStatus = 'R'
+  //       console.log(his)
+  //       HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)))
+  //       HealthInformationSystem.insert({ data: his })
+  //       closeDialog()
+  //       displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+  //     } else {
+  //       if (his.syncStatus !== 'R') his.syncStatus = 'U'
+  //       const hisUpdate = new HealthInformationSystem(JSON.parse(JSON.stringify((his))))
+  //       HealthInformationSystem.localDbUpdate(hisUpdate)
+  //       closeDialog()
+  //       displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+  //     }
+  //  } else {
+  if (isCreateStep.value) {
+    healthInformationSystemService
+      .post(his.value)
+      .then((resp) => {
+        submitting.value = false;
+        showHISRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        submitting.value = false;
+        showHISRegistrationScreen.value = false;
+      });
+  } else {
+    healthInformationSystemService
+      .patch(his.value.id, his.value)
+      .then((resp) => {
+        submitting.value = false;
+        showHISRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        submitting.value = false;
+        showHISRegistrationScreen.value = false;
+      });
+    // HealthInformationSystem.apiUpdate(his).then(resp => {
+    //     // console.log(resp.response.data)
+    //   displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
+    //   submitting = false
+    //   HealthInformationSystem.apiFetchById(resp.response.data.id)
+    // }).catch(error => {
+    //     displayAlert('error', error)
+    //     submitting = false
+    // })
+  }
+  // }
+};
+const goToNextStep = () => {
+  let i = 0;
+  if (stepScreens.value === 1) {
+    // $refs.nome.$refs.ref.validate()
+    //  $refs.code.$refs.ref.validate()
+    if (selectedAttributes.value.length <= 0) {
+      alertError(
+        'error',
+        'Por Favor seleccione pelo menos um atributo para a Interoperabilidade'
+      );
+      // } else if (!$refs.nome.$refs.ref.hasError && !$refs.code.$refs.ref.hasError) {
+    } else {
+      //Substituir pela linha acima
+      if (isCreateStep.value) {
+        addAttributesOnHealthInformationSystem();
+      } else if (editMode.value) {
+        his.value.interoperabilityAttributes.forEach(
+          (healthInformationAttributeType) => {
+            i++;
+            if (
+              !selectedAttributes.value.find(
+                (x) =>
+                  x.code ===
+                  healthInformationAttributeType.interoperabilityType.code
+              )
+            ) {
+              const i = healthInformationAttributeTypes.value
+                .map((toRemove) => toRemove.id)
+                .indexOf(healthInformationAttributeType.id);
+              healthInformationAttributeTypes.value.splice(i, 1);
+            }
           }
-         // this.selectedAttributes = this.selectedHis.interoperabilityAttributes
-         this.extractDatabaseCodes()
-        }
-    },
-      mounted () {
-        this.setStep(this.stepp)
-          this.fetchInteroperabilityAttributes()
-       // this.extractDatabaseCodes()
-    },
-    computed: {
-        interoperabilityAttributes () {
-           return InteroperabilityType.all()
-      },
-      healthInformationSystemList () {
-       return HealthInformationSystem.all()
+        );
+        addAttributesOnHealthInformationSystem();
       }
-    },
-    methods: {
-    validateHis () {
-            this.$refs.nome.$refs.ref.validate()
-             this.$refs.code.$refs.ref.validate()
-                if (this.selectedAttributes.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para a Interoperabilidade')
-                } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError) {
-                this.submitHis()
-            }
-        },
-        submitHis () {
-          this.submitting = true
-            console.log(this.his)
-           // this.his.interoperabilityAttributes = this.healthInformationAttributeTypes
-          this.his.interoperabilityAttributes = []
-         //  this.his.interoperabilityAttributes.push(this.healthInformationAttributeTypes)
-          this.healthInformationAttributeTypes.forEach(attribute => {
-            this.his.interoperabilityAttributes.push(attribute)
-          })
-
-           this.his.active = true
-           if (this.mobile) {
-              if (!this.isEditStep) {
-                this.his.syncStatus = 'R'
-                console.log(this.his)
-                HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(this.his)))
-                HealthInformationSystem.insert({ data: this.his })
-                this.closeDialog()
-                this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-              } else {
-                if (this.his.syncStatus !== 'R') this.his.syncStatus = 'U'
-                const hisUpdate = new HealthInformationSystem(JSON.parse(JSON.stringify((this.his))))
-                HealthInformationSystem.localDbUpdate(hisUpdate)
-                this.closeDialog()
-                this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-              }
-           } else {
-             if (this.isCreateStep) {
-                console.log('Create Step_Online_Mode')
-                HealthInformationSystem.apiSave(this.his).then(resp => {
-                    // console.log(resp.response.data)
-                  this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-                  this.submitting = false
-                  HealthInformationSystem.apiFetchById(resp.response.data.id)
-                }).catch(error => {
-                    this.displayAlert('error', error)
-                    this.submitting = false
-                })
-              } else {
-                console.log('Edit Step_Online_Mode')
-                HealthInformationSystem.apiUpdate(this.his).then(resp => {
-                    // console.log(resp.response.data)
-                  this.displayAlert('info', !this.isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-                  this.submitting = false
-                  HealthInformationSystem.apiFetchById(resp.response.data.id)
-                }).catch(error => {
-                    this.displayAlert('error', error)
-                    this.submitting = false
-                })
-              }
-          }
-        },
-        goToNextStep () {
-          let i = 0
-          if (this.stepScreens === 1) {
-            this.$refs.nome.$refs.ref.validate()
-             this.$refs.code.$refs.ref.validate()
-                if (this.selectedAttributes.length <= 0) {
-           this.displayAlert('error', 'Por Favor seleccione pelo menos um atributo para a Interoperabilidade')
-                } else if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError) {
-                  if (this.createMode) {
-                this.addAttributesOnHealthInformationSystem()
-                  } else if (this.editMode) {
-                   // const attribute = this.selectedAttributes.filter(x => x.code === 'THERAPEUTICAL_REGIMEN')
-                     this.his.interoperabilityAttributes.forEach(healthInformationAttributeType => {
-                        i++
-                      if (!this.selectedAttributes.find(x => x.code === healthInformationAttributeType.interoperabilityType.code)) {
-                        const i = this.healthInformationAttributeTypes.map(toRemove => toRemove.id).indexOf(healthInformationAttributeType.id)
-                          this.healthInformationAttributeTypes.splice(i, 1)
-                       }
-                       })
-                       console.log(i)
-                      this.addAttributesOnHealthInformationSystem()
-                  }
-          this.$refs.stepper.next()
-            }
-          // console.log(this.healthInformationAttributeTypes)
-        } else if (this.stepScreens === 2) {
-            //  this.his.interoperabilityAttributes.push(this.healthInformationAttributeTypes)
-            var control = 0
-            this.healthInformationAttributeTypes.forEach(attribute => {
-              if (attribute.value === '') {
-                control++
-              }
-          })
-          if (control > 0) {
-            this.displayAlert('error', 'Por Favor preencha o valor dos atributos seleccionados para a Interoperabilidade')
-          } else {
-            this.submitHis()
-          }
-        }
-        },
-    extractDatabaseCodes () {
-        this.healthInformationSystemList.forEach(element => {
-            this.databaseCodes.push(element.abbreviation)
-    })
-    },
-    displayAlert (type, msg) {
-          this.alert.type = type
-          this.alert.msg = msg
-          this.alert.visible = true
-        },
-        closeDialog () {
-          if (this.alert.type === 'info') {
-            this.$emit('close')
-          }
-        },
-    fetchInteroperabilityAttributes () {
-      const offset = 0
-      const max = 100
-      InteroperabilityType.apiGetAll(offset, max)
-    },
-      codeRules (val) {
-      if (this.his.abbreviation === '') {
-        return 'o Código e obrigatório'
-      } else if ((this.databaseCodes.includes(val) && this.selectedHis.id === this.his.id && !this.isEditStep) ||
-      ((this.databaseCodes.includes(val) && this.healthInformationSystemList.filter(x => x.abbreviation === val)[0].id !== this.his.id && this.isEditStep))) {
-      return !this.databaseCodes.includes(val) || 'o Código indicado já existe'
-         }
-    },
-    addAttributesOnHealthInformationSystem () {
-        this.selectedAttributes.forEach(attribute => {
-               if (!this.healthInformationAttributeTypes.find(x => x.interoperabilityType.code === attribute.code)) {
-             this.interoperabilityAttribute = new InteroperabilityAttribute()
-            this.interoperabilityAttribute.interoperabilityType = attribute
-            this.healthInformationAttributeTypes.push(this.interoperabilityAttribute)
-               }
-          })
+      stepper.value.next();
+      console.log(healthInformationAttributeTypes.value);
     }
-    },
-    components: {
-        nameInput: require('components/Shared/NameInput.vue').default,
-        codeInput: require('components/Shared/CodeInput.vue').default,
-        selectedAttributesTable: require('components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue').default,
-        Dialog: require('components/Shared/Dialog/Dialog.vue').default
+    // console.log(healthInformationAttributeTypes)
+  } else if (stepScreens.value === 2) {
+    //  his.interoperabilityAttributes.push(healthInformationAttributeTypes)
+    var control = 0;
+    healthInformationAttributeTypes.value.forEach((attribute) => {
+      if (attribute.value === '') {
+        control++;
+      }
+    });
+    if (control > 0) {
+      // displayAlert('error', 'Por Favor preencha o valor dos atributos seleccionados para a Interoperabilidade')
+    } else {
+      submitHis();
     }
+  }
+};
+const extractDatabaseCodes = () => {
+  healthInformationSystemList.value.forEach((element) => {
+    databaseCodes.value.push(element.abbreviation);
+  });
+};
 
-}
+const codeRules = (val) => {
+  if (his.value.abbreviation === '') {
+    return 'o Código e obrigatório';
+  } else if (
+    (databaseCodes.value.includes(val) && !isEditStep.value) ||
+    (databaseCodes.value.includes(val) &&
+      healthInformationSystemList.value.filter((x) => x.abbreviation === val)[0]
+        .id !== his.value.id &&
+      isEditStep.value)
+  ) {
+    return !databaseCodes.value.includes(val) || 'o Código indicado já existe';
+  }
+};
+const addAttributesOnHealthInformationSystem = () => {
+  selectedAttributes.value.forEach((attribute) => {
+    if (
+      !healthInformationAttributeTypes.value.find(
+        (x) => x.interoperabilityType.code === attribute.code
+      )
+    ) {
+      interoperabilityAttribute.value =
+        interoperabilityAttributeService.newInstanceEntity();
+      interoperabilityAttribute.value.interoperabilityType = attribute;
+      healthInformationAttributeTypes.value.push(
+        interoperabilityAttribute.value
+      );
+    }
+  });
+};
 </script>
 <style lang="sass">
 .my-sticky-header-table

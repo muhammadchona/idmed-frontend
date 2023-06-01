@@ -5,7 +5,12 @@ export function useDateUtils() {
   function isValidDate(dateString: string) {
     return date.isValid(dateString);
   }
-
+  function formatDate(dateString: string) {
+    return date.formatDate(dateString, 'DD-MM-YYYY');
+  }
+  const optionsNonFutureDate = (date: string) => {
+    return date <= moment().format('YYYY/MM/DD');
+  };
   function getJSDateFromDDMMYYY(dateString: string) {
     const dateParts = dateString.split('-');
     return new Date(+dateParts[2], +dateParts[1] - 1, +dateParts[0]);
@@ -86,6 +91,8 @@ export function useDateUtils() {
 
   return {
     isValidDate,
+    formatDate,
+    optionsNonFutureDate,
     getJSDateFromDDMMYYY,
     getDDMMYYYFromJSDate,
     getYYYYMMDDFromJSDate,

@@ -25,11 +25,14 @@ export default class PatientVisit extends Model {
         PatientVisitDetails,
         'patient_visit_id'
       ),
-      vitalSigns: this.hasMany(VitalSignsScreening, 'patient_visit_id'),
-      tbScreening: this.hasMany(TBScreening, 'patient_visit_id'),
-      pregnancyScreening: this.hasMany(PregnancyScreening, 'patient_visit_id'),
-      adherenceScreening: this.hasMany(AdherenceScreening, 'patient_visit_id'),
-      ramScreening: this.hasMany(RAMScreening, 'patient_visit_id'),
+      vitalSignsScreenings: this.hasMany(
+        VitalSignsScreening,
+        'patient_visit_id'
+      ),
+      tbScreenings: this.hasMany(TBScreening, 'patient_visit_id'),
+      pregnancyScreenings: this.hasMany(PregnancyScreening, 'patient_visit_id'),
+      adherenceScreenings: this.hasMany(AdherenceScreening, 'patient_visit_id'),
+      ramScreenings: this.hasMany(RAMScreening, 'patient_visit_id'),
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       patient: this.belongsTo(Patient, 'patient_id'),
     };

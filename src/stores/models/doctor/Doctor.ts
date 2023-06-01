@@ -29,7 +29,9 @@ export default class Doctor extends Model {
       prescriptions: this.hasMany(Prescription, 'prescription_id'),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   static async apiGetAll() {
     return await this.api().get('/doctor');
   }

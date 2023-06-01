@@ -1,6 +1,5 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import { alert } from '../../components/Shared/Directives/Plugins/Dialog/dialog';
 import { StockReferenceAdjustment } from 'src/stores/models/stockadjustment/StockReferenceAdjustment';
 
 const stockReferenceAdjustment = useRepo(StockReferenceAdjustment);

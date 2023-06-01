@@ -1,8 +1,6 @@
 import { useRepo } from 'pinia-orm';
 import ReferedStockMoviment from 'src/stores/models/stockrefered/ReferedStockMoviment';
 import api from '../apiService/apiService';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
-const { alertSucess, alertError, alertWarning } = useSwal();
 
 const referedStockMoviment = useRepo(ReferedStockMoviment);
 

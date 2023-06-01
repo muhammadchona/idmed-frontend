@@ -14,7 +14,7 @@ export default {
     try {
       const resp = await api().post('doctor', params);
       Doctor.save(resp.data);
-      alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+      alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
       if (error.request != null) {
         const arrayErrors = JSON.parse(error.request.response);
@@ -26,11 +26,11 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no porcessamento', String(listErrors));
+        alertError(String(listErrors));
       } else if (error.request) {
-        alertError('Erro no registo', error.request);
+        alertError(error.request);
       } else {
-        alertError('Erro no registo', error.message);
+        alertError(error.message);
       }
     }
   },
@@ -59,20 +59,20 @@ export default {
                 listErrors.push(element.message);
               });
             }
-            alertError('Erro no porcessamento', String(listErrors));
+            alertError(String(listErrors));
           } else if (error.request) {
-            alertError('Erro no registo', error.request);
+            alertError(error.request);
           } else {
-            alertError('Erro no registo', error.message);
+            alertError(error.message);
           }
         });
     }
   },
-  async patch(id: number, params: string) {
+  async patch(id: string, params: string) {
     try {
       const resp = await api().patch('doctor/' + id, params);
       doctor.save(resp.data);
-      alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+      alertSucess('O Registo foi alterado com sucesso');
     } catch (error) {
       if (error.request != null) {
         const arrayErrors = JSON.parse(error.request.response);
@@ -84,16 +84,33 @@ export default {
             listErrors.push(element.message);
           });
         }
-        alertError('Erro no porcessamento', String(listErrors));
+        alertError(String(listErrors));
       } else if (error.request) {
-        alertError('Erro no registo', error.request);
+        alertError(error.request);
       } else {
-        alertError('Erro no registo', error.message);
+        alertError(error.message);
       }
     }
   },
   async delete(id: number) {
     await api().delete('clinicsector/' + id);
     doctor.destroy(id);
+  },
+
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return doctor.getModel().$newInstance();
+  },
+
+  /*Pinia Methods*/
+  getAlldoctors() {
+    return doctor
+      .with('clinic', (query) => {
+        query.with('province');
+        query.with('district');
+        query.with('facilityType');
+      })
+      .orderBy('firstnames')
+      .get();
   },
 };

@@ -12,7 +12,7 @@ export default {
   async post(params: string) {
     const resp = await api().post('drug', params);
     drug.save(resp.data);
-    alertSucess('Sucesso!', 'O Registo foi efectuado com sucesso');
+    alertSucess('O Registo foi efectuado com sucesso');
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -30,9 +30,10 @@ export default {
     }
   },
   async patch(id: string, params: string) {
-    const resp = await api().patch('drug?id=eq.' + id, params);
+    console.log(params);
+    const resp = await api().patch('drug/' + id, params);
     drug.save(JSON.parse(resp.config.data));
-    alertSucess('Sucesso!', 'O Registo foi alterado com sucesso');
+    alertSucess('O Registo foi alterado com sucesso');
   },
   async delete(id: number) {
     await api().delete('drug/' + id);
@@ -44,7 +45,13 @@ export default {
   getDrugById (id: string) {
     return drug.query().withAllRecursive(2).where('id',id).first()
   },
+  // Local Storage Pinia
+  newInstanceEntity() {
+    return drug.getModel().$newInstance();
+  },
 
-
-
+  /*Pinia Methods*/
+  getAllDrugs() {
+    return drug.withAll().orderBy('name').get();
+  },
 };
