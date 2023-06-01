@@ -8,7 +8,6 @@ import {
   StockReferenceAdjustment,
 } from './StockAdjustmentHierarchy';
 import { v4 as uuidv4 } from 'uuid';
-import db from 'src/stores/localbase';
 
 export class StockAdjustment extends Model {
   static entity = 'stockAdjustments';
@@ -43,5 +42,8 @@ export class StockAdjustment extends Model {
     };
   }
 
+  static piniaOptions = {
+    persist: true,
+  }
   
 }

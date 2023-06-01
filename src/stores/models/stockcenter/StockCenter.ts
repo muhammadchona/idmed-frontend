@@ -17,4 +17,8 @@ export default class StockCenter extends Model {
     };
   }
 
+  static piniaOptions = {
+    persist: true,
+  }
+
 }

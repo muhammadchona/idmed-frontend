@@ -15,4 +15,8 @@ export class StockDestructionAdjustment extends StockAdjustment {
       destruction: this.belongsTo(DestroyedStock, 'destruction_id'),
     };
   }
+
+  static piniaOptions = {
+    persist: true,
+  }
 }

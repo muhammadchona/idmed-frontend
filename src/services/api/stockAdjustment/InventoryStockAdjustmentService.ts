@@ -1,6 +1,5 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import { alert } from '../../components/Shared/Directives/Plugins/Dialog/dialog';
 import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
 
 const inventoryStockAdjustment = useRepo(InventoryStockAdjustment);
@@ -14,11 +13,11 @@ export default {
         inventoryStockAdjustment.save(resp.data);
       });
   },
-
+  
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('inventoryStockAdjustment?offset=' + offset)
+      .get('/inventoryStockAdjustment?offset=' + offset + '&max=100')
         .then((resp) => {
           inventoryStockAdjustment.save(resp.data);
           offset = offset + 100;
@@ -26,38 +25,47 @@ export default {
             this.get(offset);
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alert(listErrors, null, null, null);
-          } else if (error.request) {
-            alert(error.request, null, null, null);
-          } else {
-            alert(error.message, null, null, null);
-          }
-        });
     }
   },
-  patch(id: number, params: string) {
+   patch(id: number, params: string) {
     return api()
-      .patch('inventoryStockAdjustment/' + id, params)
+      .patch('/inventoryStockAdjustment/' + id, params)
       .then((resp) => {
         inventoryStockAdjustment.save(resp.data);
       });
   },
   delete(id: number) {
     return api()
-      .delete('inventoryStockAdjustment/' + id)
+      .delete('/inventoryStockAdjustment/' + id)
       .then(() => {
         inventoryStockAdjustment.destroy(id);
       });
   },
+
+    async apiGetAll(offset: number, max: number) {
+    return await  api().get(
+      '/inventoryStockAdjustment?offset=' + offset + '&max=' + max
+    )
+  },
+
+    async apiSave(adjustment: any) {
+    return await api().post('/inventoryStockAdjustment', adjustment);
+  },
+
+    async apiRemove(id: string) {
+    return await api().delete(`/inventoryStockAdjustment/${id}`);
+  },
+
+    async apiUpdate(adjustment: any) {
+    return await api().patch(
+      '/inventoryStockAdjustment/' + adjustment.id,
+      adjustment
+    );
+  },
+
+
+    async apiFetchById(id: string) {
+    return await api().get(`/inventoryStockAdjustment/${id}`);
+  }
+
 };
