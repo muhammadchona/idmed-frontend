@@ -7,7 +7,7 @@ import api from '../apiService/apiService';
 export default {
 
  
-  apiSave(params: String) {
+  apiSave(params: string) {
     return api()
       .post('stockDestructionAdjustment', params)
       .then((resp) => {
@@ -17,31 +17,14 @@ export default {
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('stockDestructionAdjustment?offset=' + offset)
+        .get('stockDestructionAdjustment?offset=' + offset + '&max=100')
         .then((resp) => {
           stockDestructionAdjustment.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
           }
-        }).catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alert('Erro no registo', listErrors, null, null, null);
-          } else if (error.request) {
-            alert('Erro no registo', error.request, null, null, null);
-          } else {
-            alert('Erro no registo', error.message, null, null, null);
-          }
-        });
+        })
     }
   },
   apiUpdate(id: number, params: string) {

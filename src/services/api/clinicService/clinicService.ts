@@ -162,12 +162,11 @@ export default {
 
   /*PINIA*/
   currClinic() {
-    return clinic
-      .query()
-      .with('province')
-      .with('facilityType')
-      .with('district')
-      .with('sectors')
+    return clinic.withAllRecursive(2)
+     // .with('province')
+     // .with('facilityType')
+     // .with('district')
+     // .with('sectors')
       .where('mainClinic', true)
       .first();
   },

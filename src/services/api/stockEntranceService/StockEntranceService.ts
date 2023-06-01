@@ -8,17 +8,19 @@ const stockEntrance = useRepo(StockEntrance);
 
 export default {
   // Axios API call
-  apiSave(params: string) {
+  post(params: string) {
     return api()
       .post('stockEntrance', params)
       .then((resp) => {
         stockEntrance.save(resp.data);
-      });
-  },
+        return resp.data
+      })
+    },
+
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('stockEntrance?offset=' + offset)
+        .get('stockEntrance?offset=' + offset + '&max=100')
         .then((resp) => {
           stockEntrance.save(resp.data);
           offset = offset + 100;
@@ -26,24 +28,6 @@ export default {
             this.get(offset);
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alertError('Erro no porcessamento', String(listErrors));
-          } else if (error.request) {
-            alertError('Erro no registo', error.request);
-          } else {
-            alertError('Erro no registo', error.message);
-          }
-        });
     }
   },
   apiUpdate(id: number, params: string) {
@@ -51,14 +35,14 @@ export default {
       .patch('stockEntrance/' + id, params)
       .then((resp) => {
         stockEntrance.save(resp.data);
-      });
+      })
   },
-  delete(id: number) {
+  delete(id: string) {
     return api()
       .delete('stockEntrance/' + id)
       .then(() => {
         stockEntrance.destroy(id);
-      });
+      })
   },
 
   apiFetchById(id: string) {
@@ -71,8 +55,28 @@ export default {
         }
       });
   },
+   async apiGetAllByClinicId (clinicId: string, offset: number, max: number) {
+    return await api().get('/stockEntrance/clinic/' + clinicId + '?offset=' + offset + '&max=' + max)
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return stockEntrance.getModel().$newInstance();
   },
+// ****** PNIA 
+  getStockEntranceById (id: string) {
+    return stockEntrance.query()
+    .with('stocks')
+    .with('clinic')
+    .where('id', id)
+    .first()
+  },
+
+  getStockEntrances() {
+      return stockEntrance.query()
+                                .with('clinic')
+                                .with('stocks')
+                                .orderBy('dateReceived', 'desc')
+                                .get()
+  }
+
 };
