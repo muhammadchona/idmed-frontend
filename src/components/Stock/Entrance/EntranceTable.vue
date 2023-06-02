@@ -71,7 +71,6 @@ import { date } from 'quasar';
 import { ref, computed } from 'vue';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import { useRouter } from 'vue-router';
-import { useLoading } from 'src/composables/shared/loading/loading';
 
 const columns = [
   {

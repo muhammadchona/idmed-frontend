@@ -101,7 +101,6 @@ const submitForm = () => {
   );
   if (stockEntrance.dateReceived > new Date()) {
     alertError(
-      'error',
       'A data de criação da guia não pode ser superior a data corrente.'
     );
   } else {
@@ -126,7 +125,6 @@ const submitForm = () => {
             console.log('ERRO: ', error);
             closeLoading();
             alertError(
-              'Erro',
               'Ocorreu um erro inesperado, contacte o administrador!'
             );
           });
@@ -136,7 +134,6 @@ const submitForm = () => {
         const targetCopy = new StockEntrance(
           JSON.parse(JSON.stringify(this.stockEntrance))
         );
-        console.log('STOCK ENTRANCE WEB: ', targetCopy);
         StockEntranceMethod.localDbAdd(targetCopy)
           .then((item) => {
             SessionStorage.set('currStockEntrance', targetCopy);
@@ -145,7 +142,8 @@ const submitForm = () => {
             $emit('close');
           })
           .catch((error) => {
-            alertError('error', error);
+           console.log(error)
+           alertError( 'Ocorreu um erro inesperado!');
           });
       }
     }
