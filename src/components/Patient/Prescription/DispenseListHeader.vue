@@ -69,15 +69,15 @@ onMounted(() => {
 
 // Method
 const determineHeaderClass = () => {
-  if (this.mainContainer) {
-    this.headerClass = 'list-header';
+  if (mainContainer) {
+    headerClass.value = 'list-header';
   } else {
-    this.headerClass = '';
+    headerClass.value = '';
   }
 };
 const expand = () => {
-  this.expanded = !this.expanded;
-  this.$emit('expandLess', this.expanded);
+  expanded.value = !expanded.value;
+  $emit('expandLess', expanded);
 };
 </script>
 

@@ -7,8 +7,7 @@ const episode = useRepo(Episode);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('episode', params);
+    const resp = await api().post('episode', params);
     episode.save(resp.data);
   },
   get(offset: number) {
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('episode/' + id, params);
+    const resp = await api().patch('episode/' + id, params);
     episode.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('episode/' + id);
+    await api().delete('episode/' + id);
     episode.destroy(id);
   },
 
@@ -108,6 +105,17 @@ export default {
     return episode
       .withAllRecursive(2)
       .where('id', id)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+  getLastStartEpisodeWithPrescription(patientIdentifierid: string) {
+    return episode
+      .withAllRecursive(2)
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'INICIO');
+      })
+      .has('patientVisitDetails')
+      .where('patientServiceIdentifier_id', patientIdentifierid)
       .orderBy('episodeDate', 'desc')
       .first();
   },

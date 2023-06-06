@@ -41,5 +41,8 @@ export default class Stock extends Model {
       packagedDrugStocks: this.hasMany(PackagedDrugStock, 'stock_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 
 }

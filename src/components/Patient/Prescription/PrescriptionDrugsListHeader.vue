@@ -10,14 +10,15 @@
     ></span>
     <template v-slot:action>
       <q-input
-        v-if="!visitDetails.createPackLater"
+        v-if="!curPatientVisit.createPackLater"
         dense
         outlined
+        :disable="validateDispense"
         bg-color="white"
         style="margin: 2px; width: 200px"
         v-model="pickupDate"
         @update:model-value="determineNextPickUpDate()"
-        ref="pickupDate"
+        ref="pickupDateRef"
         label="Data de Levantamento"
       >
         <template v-slot:append>
@@ -30,6 +31,7 @@
               <q-date
                 v-model="pickupDate"
                 mask="DD-MM-YYYY"
+                :disable="validateDispense"
                 @update:model-value="determineNextPickUpDate()"
               >
                 <div class="row items-center justify-end">
@@ -42,8 +44,9 @@
       </q-input>
 
       <q-select
-        v-if="!visitDetails.createPackLater"
+        v-if="!curPatientVisit.createPackLater"
         dense
+        :disable="validateDispense"
         style="width: 200px"
         class="q-mx-sm"
         bg-color="white"
@@ -57,14 +60,15 @@
       />
 
       <q-input
-        v-if="!visitDetails.createPackLater"
+        v-if="!curPatientVisit.createPackLater"
         outlined
         dense
+        :disable="validateDispense"
         v-model="nextPDate"
         label="Proximo Levantamento"
         bg-color="white"
         style="margin: 2px; width: 200px"
-        ref="nextPickupDate"
+        ref="nextPickupDateRef"
       >
         <template v-slot:append>
           <q-icon name="event" class="cursor-pointer">
@@ -97,193 +101,170 @@
         v-if="addVisible"
         flat
         round
+        :disable="validateDispense"
         color="white"
         icon="add"
         class="float-right q-mx-sm"
         @click="showAdd"
       />
     </template>
-
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog>
   </q-banner>
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue';
-import { date } from 'quasar';
-import Duration from '../../../store/models/Duration/Duration';
-import Dialog from 'components/Shared/Dialog/Dialog.vue';
+import { inject, onMounted, provide, ref } from 'vue';
 import moment from 'moment';
+import { date } from 'quasar';
+import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+// props
+const props = defineProps(['addVisible', 'mainContainer', 'bgColor']);
 
 // Declaration
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
+const {
+  extractHyphenDateFromDMYConvertYMD,
+  getDateFromHyphenDDMMYYYY,
+  getJSDateFromDDMMYYY,
+} = useDateUtils();
+const { alertSucess, alertError, alertInfo } = useSwal();
 const headerClass = ref('');
 const expanded = ref(false);
-const curVisitDetails = ref('')
+const curVisitDetails = ref('');
 const nextPDate = ref('');
 const pickupDate = ref('');
 const drugsDuration = ref('');
 
 //Inject
-const addVisible = inject('addVisible');
-const bgColor = inject('bgColor');
-const mainContainer = inject('mainContainer');
-const visitDetails = inject('visitDetails');
-const newPickUpDate = inject('newPickUpDate');
-const duration = inject('duration');
-const step = inject('step');
+const curPatientVisit = inject('curPatientVisit');
+const curPrescription = inject('curPrescription');
+const curPrescriptionDetail = inject('curPrescriptionDetail');
+const curPatientVisitDetail = inject('curPatientVisitDetail');
+const curPack = inject('curPack');
+const isNewPrescription = inject('isNewPrescription');
+const durations = inject('durations');
+const showAddEditDrug = inject('showAddEditDrug');
+const validateDispense = inject('validateDispense');
 
 // Hook
 
 onMounted(() => {
   init();
   determineHeaderClass();
-  curVisitDetails.value = Object.assign({}, this.visitDetails);
 });
+
 // Methods
 const determineHeaderClass = () => {
-  if (this.mainContainer) {
-    this.headerClass = 'list-header';
+  if (props.mainContainer) {
+    headerClass.value = 'list-header';
   } else {
-    this.headerClass = '';
+    headerClass.value = '';
   }
 };
 const tryToDetermineDefaultTakePeriod = () => {
-  if (this.duration !== null) {
-    this.drugsDuration = this.duration;
-    this.determineNextPickUpDate();
+  if (curPrescription.value.duration !== null) {
+    determineNextPickUpDate();
   }
 };
 const expand = () => {
-  this.expanded = !this.expanded;
-  this.$emit('expandLess', this.expanded);
+  expanded.value = !expanded.value;
+  $emit('expandLess', expanded);
 };
 const showAdd = () => {
-  // this.$refs.pickupDate.validate()
-  // this.$refs.nextPickupDate.validate()
-  if (this.visitDetails.createPackLater) {
-    this.$emit('showAdd', null, null, this.drugsDuration);
+  // $refs.pickupDate.validate()
+  // $refs.nextPickupDate.validate()
+  if (curPatientVisit.value.createPackLater) {
+    $emit('showAdd', null, null, drugsDuration);
   } else {
-    if (
-      !date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.pickupDate))
-    ) {
-      this.displayAlert('error', 'A data de levantamento é inválida');
+    if (!date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate.value))) {
+      alertError('A data de levantamento é inválida');
     } else if (
-      !date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.nextPDate))
+      !date.isValid(extractHyphenDateFromDMYConvertYMD(nextPDate.value))
     ) {
-      this.displayAlert('error', 'A data do próximo levantamento é inválida');
-    } else if (this.drugsDuration === '') {
-      this.displayAlert(
-        'error',
-        'Por favor indicar a duração da medicação a dispensar.'
-      );
+      alertError('A data do próximo levantamento é inválida');
+    } else if (drugsDuration.value === '') {
+      alertError('Por favor indicar a duração da medicação a dispensar.');
+      // } else if (
+      //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) <
+      //   curPatientVisitDetail.value.prescription.prescriptionDate
+      // ) {
+      //   alertError(
+      //     'A data de levantamento indicada é menor que a data da prescrição'
+      //   );
     } else if (
-      this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) <
-      this.curVisitDetails.prescription.prescriptionDate
-    ) {
-      this.displayAlert(
-        'error',
-        'A data de levantamento indicada é menor que a data da prescrição'
-      );
-    } else if (
-      this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) >
+      extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
       moment().format('YYYY-MM-DD')
     ) {
-      this.displayAlert(
-        'error',
+      alertError(
         'A data de levantamento indicada é maior que a data da corrente'
       );
     } else if (
-      this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) >
-      this.extractHyphenDateFromDMYConvertYMD(this.nextPDate)
+      extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
+      extractHyphenDateFromDMYConvertYMD(nextPDate.value)
     ) {
-      this.displayAlert(
-        'error',
+      alertError(
         'A data do levantamento é maior que a data do próximo levantamento'
       );
-    } else if (
-      this.newPickUpDate !== '' &&
-      this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) <
-        this.newPickUpDate
-    ) {
-      this.displayAlert(
-        'error',
-        'A data de levantamento não pode ser anterior a ' +
-          this.getDDMMYYYFromJSDate(this.newPickUpDate) +
-          ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.'
-      );
+      // } else if (
+      //   newPickUpDate !== '' &&
+      //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) < newPickUpDate.value
+      // ) {
+      //   alertError(
+      //     'A data de levantamento não pode ser anterior a ' +
+      //       getDDMMYYYFromJSDate(newPickUpDate.value) +
+      //       ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.'
+      //   );
     } else {
-      this.$emit(
-        'showAdd',
-        this.getDateFromHyphenDDMMYYYY(this.pickupDate),
-        this.getDateFromHyphenDDMMYYYY(this.nextPDate),
-        this.drugsDuration
-      );
+      showAddEditDrug.value = true;
+      console.log('Passa');
     }
   }
 };
 const determineNextPickUpDate = () => {
-  if (
-    date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.pickupDate)) &&
-    this.drugsDuration !== ''
-  ) {
-    const newDate = this.getDateFromHyphenDDMMYYYY(this.pickupDate);
-    let lostDays = parseInt((this.drugsDuration.weeks / 4) * 2);
-    if (this.drugsDuration.weeks <= 1) lostDays = 0;
-    const daysToAdd = parseInt(this.drugsDuration.weeks * 7 + lostDays);
-    this.nextPDate = this.getJSDateFromDDMMYYY(
+  if (date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate.value))) {
+    const newDate = getDateFromHyphenDDMMYYYY(pickupDate.value);
+    let lostDays = parseInt((curPrescription.value.duration.weeks / 4) * 2);
+    if (curPrescription.value.duration.weeks <= 1) lostDays = 0;
+    const daysToAdd = parseInt(
+      curPrescription.value.duration.weeks * 7 + lostDays
+    );
+    nextPDate.value = getDDMMYYYFromJSDate(
       date.addToDate(newDate, { days: daysToAdd })
     );
-    this.$emit(
-      'updateQtyPrescribed',
-      this.drugsDuration,
-      this.pickupDate,
-      this.nextPDate
+
+    curPack.value.packDate = extractHyphenDateFromDMYConvertYMD(
+      pickupDate.value
     );
+    curPack.value.pickupDate = extractHyphenDateFromDMYConvertYMD(
+      pickupDate.value
+    );
+    curPack.value.nextPickUpDate = extractHyphenDateFromDMYConvertYMD(
+      nextPDate.value
+    );
+    curPack.value.weeksSupply = drugsDuration.value.weeks;
   }
-};
-const displayAlert = (type, msg) => {
-  this.alert.type = type;
-  this.alert.msg = msg;
-  this.alert.visible = true;
-};
-const closeDialog = () => {
-  this.alert.visible = false;
 };
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'YYYY-MM-DD');
 };
 const init = () => {
-  this.pickupDate = this.getDDMMYYYFromJSDate(this.newPickUpDate);
-  this.tryToDetermineDefaultTakePeriod();
-};
-const getJSDateFromDDMMYYY = (dateString) => {
-  if (dateString !== null && dateString !== undefined) {
-    return moment(dateString).format('DD-MM-YYYY');
+  if (isNewPrescription.value) {
+    pickupDate.value = getDDMMYYYFromJSDate(
+      curPrescription.value.prescriptionDate
+    );
   } else {
-    return moment().format('DD-MM-YYYY');
+    pickupDate.value = getDDMMYYYFromJSDate(new Date());
   }
-
-  // const dateParts = dateString.split('-')
-  // return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
+  drugsDuration.value = curPrescription.value.duration;
+  tryToDetermineDefaultTakePeriod();
 };
+
 const getDDMMYYYFromJSDate = (jsDate) => {
   return moment(jsDate).format('DD-MM-YYYY');
 };
 
-// Computed
-const durations = computed(() => {
-  return Duration.all();
-});
+// Provide
+
+provide('drugsDuration', drugsDuration);
 </script>
 
 <style scoped>

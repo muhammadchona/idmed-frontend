@@ -1,5 +1,8 @@
 <template>
   <div>
+    <!-- <q-responsive :ratio="1" class="col">
+  </q-responsive> -->
+
     <InfoTitleBar v-if="!website" />
     <TitleBar v-else />
     <div class="row q-mt-md" v-if="patient !== null">
@@ -43,53 +46,16 @@
             </q-tabs>
           </div>
         </q-toolbar>
-        <!-- <div class="" v-if="!website">
-          <q-tab-panels v-model="tab" animated>
-            <q-tab-panel name="clinicService">
-              <q-scroll-area
-                :thumb-style="thumbStyle"
-                :content-style="contentStyle"
-                :content-active-style="contentActiveStyle"
-                style="height: 440px"
-                class="q-pr-md"
-              >
-                <ClinicServiceInfo class="q-mb-lg" />
-              </q-scroll-area>
-            </q-tab-panel>
-            <q-tab-panel name="prescription">
-              <q-scroll-area
-                :thumb-style="thumbStyle"
-                :content-style="contentStyle"
-                :content-active-style="contentActiveStyle"
-                style="height: 440px"
-                class="q-pr-md"
-              >
-                <PrescriptionInfo class="q-mb-lg" />
-              </q-scroll-area>
-            </q-tab-panel>
-            <q-tab-panel name="screening">
-              <q-scroll-area
-                :thumb-style="thumbStyle"
-                :content-style="contentStyle"
-                :content-active-style="contentActiveStyle"
-                style="height: 440px"
-                class="q-pr-md"
-              >
-                <PharmaceuticalAtentionInfo :selectedPatient="patient" />
-              </q-scroll-area>
-            </q-tab-panel>
-          </q-tab-panels>
-        </div> -->
         <q-scroll-area
           :thumb-style="thumbStyle"
           :content-style="contentStyle"
           :content-active-style="contentActiveStyle"
-          style="height: 700px"
+          style="height: 650px"
           class="q-pr-md"
           v-if="website"
         >
           <ClinicServiceInfo v-if="website" class="q-mb-lg" />
-          <!-- <PrescriptionInfo v-if="website && isInitialized" class="q-mb-lg" /> -->
+          <PrescriptionInfo v-if="website" class="q-mb-lg" />
           <PharmaceuticalAtentionInfo v-if="website" />
         </q-scroll-area>
       </div>
@@ -98,19 +64,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, provide, inject, ref, reactive } from 'vue';
+import { computed, onMounted, provide, ref } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import TitleBar from 'src/components/Shared/TitleBar.vue';
 import InfoTitleBar from 'components/Patient/PatientPanel/PanelTitleBar.vue';
 import PatientInfo from 'components/Patient/PatientPanel/PatientInfo.vue';
 import ClinicServiceInfo from 'components/Patient/PatientPanel/ClinicServicesInfo.vue';
-// import PrescriptionInfo from 'components/Patient/PatientPanel/PrescriptionInfo.vue';
+import PrescriptionInfo from 'components/Patient/PatientPanel/PrescriptionInfo.vue';
 import PharmaceuticalAtentionInfo from 'components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue';
-import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
-import { useOnline } from 'src/composables/shared/loadParams/online';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 //Declarations
+const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const tab = ref('clinicService');
 // const patient = reactive(ref(new Patient()));
@@ -139,68 +105,14 @@ onMounted(() => {
 });
 
 // Methods
-
 const init = async () => {
-  if (!website.value) {
-    // this.showPatientInfo = ref(true);
-    // await PatientServiceIdentifier.localDbGetAll().then((identifiers) => {
-    //   identifiers.forEach((identifier) => {
-    //     if (identifier.patient.id === this.patient.id) {
-    //       PatientServiceIdentifier.insert({ data: identifier });
-    //       const episodeList = Episode.query()
-    //         .with('startStopReason')
-    //         .with('patientServiceIdentifier')
-    //         .with('patientVisitDetails.*')
-    //         .where('patientServiceIdentifier_id', identifier.id)
-    //         .get();
-    //       episodeList.forEach((episode) => {
-    //         PatientVisitDetails.localDbGetAll().then((pvds) => {
-    //           pvds.forEach((p) => {
-    //             if (p.episode_id === episode.id) {
-    //               PatientVisitDetails.insert({ data: p });
-    //             }
-    //             Prescription.localDbGetById(p.prescription_id).then(
-    //               (prescription) => {
-    //                 Prescription.insert({ data: prescription });
-    //               }
-    //             );
-    //             Pack.localDbGetById(p.pack_id).then((pack) => {
-    //               Pack.insert({ data: pack });
-    //             });
-    //           });
-    //         });
-    //       });
-    //     }
-    //   });
-    // });
-    // await Episode.localDbGetAll().then((episodes) => {
-    //   Episode.insert({ data: episodes });
-    // });
-    // await PatientVisit.localDbGetAll().then((pvList) => {
-    //   pvList.forEach((pv) => {
-    //     if (pv.patient_id === this.patient.id) {
-    //       PatientVisit.insert({ data: pv });
-    //     }
-    //   });
-    // });
-    // this.loadParamsToVueX();
-    // Province.localDbGetAll().then((provinceList) => {
-    //   Province.insertOrUpdate({ data: provinceList });
-    // });
-    // PostoAdministrativo.localDbGetAll().then((items) => {
-    //   PostoAdministrativo.insertOrUpdate({ data: items });
-    // });
-    // Localidade.localDbGetAll().then((items) => {
-    //   Localidade.insertOrUpdate({ data: items });
-    // });
-  } else {
+  if (website.value) {
     if (patient.value === null) {
       patient.value = patientService.getPatientByID(
         localStorage.getItem('patientuuid')
       );
-    } else {
-      patientVisitService.apiGetAllByPatientId(patient.value.id);
     }
+    closeLoading();
   }
 };
 const showPatientDetails = () => {

@@ -238,7 +238,6 @@ import districtService from 'src/services/api/districtService/districtService';
 import menuService from 'src/services/api/menu/menuService';
 import provinceService from 'src/services/api/provinceService/provinceService';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
-import userService from 'src/services/api/user/userService';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -327,59 +326,6 @@ const authUser = () => {
     if (website.value) {
       loginOnline(encodedStringBtoA);
     }
-    // } else {
-    //   User.localDbGetAll().then((users) => {
-    //     if (users.length > 0) {
-    //       console.log('users:' + users);
-    //       const user = users.filter(
-    //         (user) =>
-    //           (user.username === this.username &&
-    //             bcrypt.compareSync(
-    //               this.password,
-    //               user.password.substring(8)
-    //             )) ||
-    //           (user.username === this.username &&
-    //             this.decryptPlainText(user.password) === this.password)
-    //       );
-    //       if (user.length > 0 && user[0].accountLocked === false) {
-    //         const userLoged = user[0];
-    //         localStorage.setItem('username', userLoged.username);
-    //         localStorage.setItem('user', this.username);
-    //         localStorage.setItem('encodeBase64', encodedStringBtoA);
-    //         localStorage.setItem(
-    //           'sync_pass',
-    //           this.encryptPlainText('user.sync')
-    //         );
-    //         console.log(userLoged.authorities);
-    //         var menus = userLoged.authorities.map((m) => m.menus).flat();
-    //         var menusIds = menus.map((m) => m.id).flat();
-    //         console.log(menus);
-    //         console.log(menusIds);
-    //         const menusVuex = Menu.findIn(menusIds);
-    //         console.log(menusVuex);
-    //         var menusDescription = menusVuex.map((m) => m.description).flat();
-    //         localStorage.setItem('role_menus', menusDescription);
-    //         localStorage.setItem('userLocalId', userLoged.id);
-    //         this.$router.push({ path: '/' });
-    //       } else {
-    //         Notify.create({
-    //           icon: 'announcement',
-    //           message: 'Utilizador ou a senha inválida',
-    //           type: 'negative',
-    //           progress: true,
-    //           timeout: 3000,
-    //           position: 'top',
-    //           color: 'negative',
-    //           textColor: 'white',
-    //           classes: 'glossy',
-    //         });
-    //         this.submitting = false;
-    //       }
-    //     } else {
-    //       loginOnline(encodedStringBtoA);
-    //     }
-    //   });
-    // }
   }
 };
 
@@ -391,7 +337,7 @@ const loginOnline = (encodedStringBtoA) => {
     .then(() => {
       submitting.value = false;
       const localuser = UsersService.getUserByUserName(username.value);
-      console.log('Login >>>>>>>>', localuser);
+      // console.log('Login >>>>>>>>', localuser);
 
       localStorage.setItem('id_token', localuser.access_token);
       localStorage.setItem('refresh_token', localuser.refresh_token);
@@ -399,7 +345,6 @@ const loginOnline = (encodedStringBtoA) => {
       localStorage.setItem('user', username.value);
       localStorage.setItem('encodeBase64', encodedStringBtoA);
       localStorage.setItem('role_menus', localuser.menus);
-      // localStorage.setItem('sync_pass', this.encryptPlainText('user.sync'));
       router.push({ path: '/' });
     })
     .catch((error) => {

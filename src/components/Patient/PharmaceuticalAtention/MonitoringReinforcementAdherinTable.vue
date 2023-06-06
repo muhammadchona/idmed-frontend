@@ -6,7 +6,6 @@
       :columns="columns"
       row-key="question"
       :separator="separator"
-      v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll
       hide-bottom
@@ -170,7 +169,7 @@ const monithoringQuestions = ref([
     text: '',
   },
 ]);
-
+const separator = ref('horizontal');
 //Inject
 const adherenceScreening = inject('adherenceScreening');
 const onlyView = inject('onlyView');

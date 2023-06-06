@@ -9,6 +9,7 @@ export default {
   async post(params: string) {
     const resp = await api().post('patientVisit', params);
     patientVisit.save(resp.data);
+    return resp;
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -111,5 +112,15 @@ export default {
       .has('vitalSignsScreenings')
       .orderBy('visitDate', 'desc')
       .get();
+  },
+  getLastFromEpisode(episodeId: string) {
+    return patientVisit
+      .withAllRecursive(2)
+      .whereHas('patientVisitDetails', (query) => {
+        query.has('prescription');
+        query.where('episode_id', episodeId);
+      })
+      .orderBy('visitDate', 'desc')
+      .first();
   },
 };
