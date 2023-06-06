@@ -91,7 +91,7 @@ const createFirstEpisode = (identifier) => {
 
 //Computed
 const currIdentifier = computed(() => {
-  return patientServiceIdentifierService.curIdentifier(
+  return patientServiceIdentifierService.identifierCurr(
     preferedIdentifierValue(patient.value)
   );
 });

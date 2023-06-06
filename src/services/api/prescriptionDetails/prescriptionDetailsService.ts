@@ -33,9 +33,11 @@ export default {
   },
 
   async apiGetAllByPrescriptionId(prescriptionId: string) {
-    return await api().get(
-      '/prescriptionDetail/prescription/' + prescriptionId
-    );
+    return await api()
+      .get('/prescriptionDetail/prescription/' + prescriptionId)
+      .then((resp) => {
+        prescriptionDetails.save(resp.data);
+      });
   },
 
   async apiGetAll() {
@@ -52,5 +54,12 @@ export default {
   },
   getAllFromStorage() {
     return prescriptionDetails.all();
+  },
+
+  getLastByPrescriprionId(prescriptionId: string) {
+    return prescriptionDetails
+      .withAllRecursive(1)
+      .where('prescription_id', prescriptionId)
+      .first();
   },
 };

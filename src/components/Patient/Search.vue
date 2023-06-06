@@ -8,7 +8,6 @@ import {
   ref,
   watch,
 } from 'vue';
-import { QSpinnerBall } from 'quasar';
 // import ClinicalService from 'src/store/models/ClinicalService/ClinicalService';
 // import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem';
 // import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
@@ -23,14 +22,16 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import TitleBar from 'src/components/Shared/TitleBar.vue';
 import patientService from 'src/services/api/patientService/patientService';
 // import patientRegister from 'components/Patient/Register/PatientRegister.vue';
-import nameInput from 'components/Patient/Inputs/PatientNameInput.vue';
-import TextField from 'components/Shared/Input/TextField.vue';
-import lastNameInput from 'components/Patient/Inputs/PatientLastNameInput.vue';
 import Patient from 'src/stores/models/patient/Patient';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useRouter } from 'vue-router';
-// import Dialog from 'components/Shared/Dialog/Dialog.vue';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import packService from 'src/services/api/pack/packService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -56,7 +57,6 @@ const middleNamesRef = ref();
 const newPatient = ref(false);
 const username = localStorage.getItem('user');
 const transferencePatientData = ref([]);
-// const patientList = ref([]);
 const openMrsPatient = ref(false);
 const title = ref('Procurar ou adicionar Utentes/Pacientes');
 
@@ -77,13 +77,13 @@ const columns = [
     // row.firstNames + ' ' + row.middleNames + ' ' + row.lastNames,
     sortable: false,
   },
-  {
-    name: 'name',
-    align: 'left',
-    label: 'middleNames',
-    field: 'middleNames',
-    sortable: false,
-  },
+  // {
+  //   name: 'name',
+  //   align: 'left',
+  //   label: 'middleNames',
+  //   field: 'middleNames',
+  //   sortable: false,
+  // },
   { name: 'age', align: 'center', label: 'Idade', sortable: false },
   { name: 'gender', align: 'left', label: 'Género', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
@@ -92,11 +92,8 @@ const columns = [
 //Injection
 const dataSources = inject('dataSources');
 const clinic = inject('clinic');
-const isSearch = inject('isSearch');
-const isPatientDetails = inject('isPatientDetails');
 
 // Hooks
-
 onMounted(() => {
   showloading();
   patientService.deleteAllFromStorage();
@@ -114,40 +111,7 @@ const canClear = computed(() => {
   );
 });
 
-// patientId: {
-//       get() {
-//         if (
-//           this.currPatient.identifiers[0] === null ||
-//           this.currPatient.identifiers[0] === undefined
-//         )
-//           return null;
-//         return this.currPatient.identifiers[0].value;
-//       },
-//       set(value) {
-//         this.currPatient.identifiers[0].value = value;
-//       },
-//     }
-// clinic() {
-//   if (
-//     SessionStorage.getItem('currClinic') === null ||
-//     SessionStorage.getItem('currClinic').id === null
-//   ) {
-//     const clinic = Clinic.query()
-//       .with('province.*')
-//       .with('facilityType.*')
-//       .with('district.*')
-//       .with('sectors.*')
-//       .where('mainClinic', true)
-//       .first();
-//     SessionStorage.set('currClinic', clinic);
-//     return clinic;
-//   } else {
-//     return new Clinic(SessionStorage.getItem('currClinic'));
-//   }
-// },
-
 // Methods
-
 const clearSearchParams = () => {
   currPatient.value = new Patient();
   currPatient.value.clinic = clinic.value;
@@ -298,13 +262,22 @@ const saveOpenMRSPatient = (patient) => {
 };
 
 const goToPatientPanel = (patient) => {
+  showloading();
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
+  patientService.getPatientByID(currPatient.value.id);
+  // Rest Calls
+  patientServiceIdentifierService.apiGetAllByPatientId(currPatient.value.id);
+  patientVisitService.apiGetAllByPatientId(currPatient.value.id);
+  patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
+    currPatient.value.id
+  );
+  prescriptionService.apiGetByPatientId(currPatient.value.id);
+  packService.apiGetByPatientId(currPatient.value.id);
   router.push('/patientpanel/');
 };
 
 const filterPatient = (patient) => {
-  console.log(patient.firstNames);
   return (
     hasIdentifierLike(patient, currPatient) ||
     stringContains(patient.firstNames, currPatient.firstNames) ||
@@ -372,32 +345,9 @@ const patientList = computed(() => {
 });
 
 const localSearch = () => {
-  if (website) {
+  if (website.value) {
     showloading();
-    console.log('Performing website search Params ', currPatient.value);
     patientService.apiSearch(currPatient.value);
-  } else {
-    console.log('Performing local search');
-    // const patients = Patient.query()
-    //   .with([
-    //     'identifiers.identifierType',
-    //     'identifiers.service.identifierType',
-    //     'identifiers.clinic.province',
-    //   ])
-    //   .with('province')
-    //   .with('attributes')
-    //   .with('appointments')
-    //   .with('district.*')
-    //   .with('postoAdministrativo')
-    //   .with('bairro')
-    //   .with(['clinic.province', 'clinic.district.province'])
-    //   .where('clinic_id', this.clinic.id)
-    //   .orderBy('firstNames')
-    //   .orderBy('identifiers.value', 'asc')
-    //   .get();
-    // this.patients = patients.filter((patient) => {
-    //   return this.filterPatient(patient);
-    // });
   }
 };
 
@@ -428,15 +378,7 @@ const checkOpenMRS = (his) => {
           'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão'
         );
       } else {
-        alertError(
-          'Falha inexperada, por favor contacte o adminitrador.'
-        );
-        // this.$q.notify({
-        //   color: 'negative',
-        //   position: 'center',
-        //   message: 'Falha inexperada, por favor contacte o adminitrador.',
-        //   icon: 'report_problem',
-        // });
+        alertError('Falha inexperada, por favor contacte o adminitrador.');
       }
     });
   setTimeout(() => {
@@ -454,8 +396,6 @@ watch(
 );
 
 provide('title', title);
-provide('valueInput', currPatient.middleNames);
-provide('refInput', middleNamesRef);
 </script>
 
 <template>
@@ -721,12 +661,6 @@ provide('refInput', middleNamesRef);
           :openMrsPatient="openMrsPatient"
           @close="showPatientRegister = false">
         />
-      </q-dialog>
-      < <q-dialog v-model="alert.visible">
-        <Dialog :type="alert.type" @closeDialog="closeDialog">
-          <template v-slot:title> Informação</template>
-          <template v-slot:msg> {{ alert.msg }} </template>
-        </Dialog>
       </q-dialog>
     </div-->
   </div>

@@ -1,12 +1,4 @@
-import {
-  Loading,
-  useQuasar,
-  QSpinnerGears,
-  QSpinnerFacebook,
-  QSpinnerBall,
-} from 'quasar';
-
-const $q = useQuasar();
+import { Loading, QSpinnerGears, QSpinnerFacebook, QSpinnerBall } from 'quasar';
 
 export function useLoading() {
   function QSpinnerGearsShow(

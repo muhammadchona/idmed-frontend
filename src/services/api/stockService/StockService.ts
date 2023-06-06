@@ -62,6 +62,19 @@ export default {
    async apiGetAll (offset: number, max: number) {
     return  api().get('/stock?offset=' + offset + '&max=' + max)
   },
+  getStockByDrug(drugId: string) {
+    return stock.where('drug_id', drugId).orderBy('expireDate', 'asc').get();
+  },
+
+  getValidStockByDrugAndPickUpDate(drugId: string, pickupDate: string) {
+    return stock
+      .where('drug_id', drugId)
+      .where((stock) => {
+        return stock.expireDate > pickupDate && stock.stockMoviment > 0;
+      })
+      .orderBy('expireDate', 'asc')
+      .get();
+  },
 
   getStockList(id: string ) {
    return stock.query()
@@ -84,6 +97,4 @@ export default {
                       .where('id', id)
                       .first();
   }
-  
-
 };

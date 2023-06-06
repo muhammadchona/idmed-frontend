@@ -19,6 +19,9 @@ export default class StockEntrance extends Model {
       stocks: this.hasMany(Stock, 'entrance_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 
   static piniaOptions = {
     persist: true,

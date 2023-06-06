@@ -132,7 +132,8 @@
                   disable
                   ref="imcRef"
                 />
-                <TextInput
+                <q-input
+                  outlined
                   dense
                   v-model="imcDescription"
                   class="col q-ml-md"
@@ -245,7 +246,6 @@ import TBScreening from '../../../stores/models/screening/TBScreening';
 import PregnancyScreening from '../../../stores/models/screening/PregnancyScreening';
 import AdherenceScreening from '../../../stores/models/screening/AdherenceScreening';
 import RAMScreening from '../../../stores/models/screening/RAMScreening';
-import TextInput from 'components/Shared/Input/TextField.vue';
 import tbTable from 'components/Patient/PharmaceuticalAtention/TbQuestionsTable.vue';
 import pregnancyTable from 'components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue';
 import adherenceTable from 'components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue';
@@ -257,7 +257,7 @@ import { usePatient } from 'src/composables/patient/patientMethods';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 
-const { alertSucess, alertError, alertInfo } = useSwal();
+const { alertSucess, alertError } = useSwal();
 const { age, fullName, hasIdentifiers, getOldestIdentifier, isMale } =
   usePatient();
 const { getDDMMYYYFromJSDate, getJSDateFromDDMMYYY } = useDateUtils();
@@ -299,6 +299,7 @@ const editPatientVisit = inject('showPatientVisit');
 const editMode = inject('editMode');
 const patient = inject('patient');
 const closeButtonActions = inject('closeButtonActions');
+const onlyView = inject('onlyView');
 
 // Hook
 onMounted(() => {
@@ -576,7 +577,8 @@ const saveORUpdatePatientVisit = (isNew) => {
         desableSubmitting();
         closeButtonActions();
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log('Erro', error);
         alertError('Aconteceu um erro ao gravar a Atenção Farmaceutica');
         desableSubmitting();
       });

@@ -32,7 +32,11 @@ export default {
     prescribedDrug.destroy(id);
   },
   async apiGetAllByPrescriptionId(prescriptionId: string) {
-    return await api().get('/prescribedDrug/prescription/' + prescriptionId);
+    return await api()
+      .get('/prescribedDrug/prescription/' + prescriptionId)
+      .then((resp) => {
+        prescribedDrug.save(resp.data);
+      });
   },
 
   async apiGetAll() {
@@ -44,5 +48,8 @@ export default {
   },
   getAllFromStorage() {
     return prescribedDrug.all();
+  },
+  getLastByPrescriprionId(prescriptionId: string) {
+    return prescribedDrug.where('prescription_id', prescriptionId).first();
   },
 };
