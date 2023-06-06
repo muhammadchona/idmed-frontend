@@ -79,6 +79,7 @@ const props = defineProps([
   'expanded',
   'doneVisible',
 ]);
+
 // Methods
 const determineHeaderClass = () => {
   if (props.mainContainer.value) {

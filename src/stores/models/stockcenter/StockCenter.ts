@@ -16,6 +16,9 @@ export default class StockCenter extends Model {
       clinic: this.belongsTo(Clinic, 'clinic_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 
   static piniaOptions = {
     persist: true,

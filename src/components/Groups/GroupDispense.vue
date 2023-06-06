@@ -135,7 +135,7 @@
                             {{props.row.drug.defaultTreatment}} - {{props.row.drug.defaultTimes}}X por {{props.row.drug.defaultPeriodTreatment}}
                           </q-td>
                           <q-td key="packs" :props="props">
-                            {{props.row.getQtyPrescribed(drugsDuration)}}
+                            {{props.row.getQtyPrescribed(drugsDuration.weeks)}}
                           </q-td>
                           <q-td key="options" :props="props">
                             <div class="col">

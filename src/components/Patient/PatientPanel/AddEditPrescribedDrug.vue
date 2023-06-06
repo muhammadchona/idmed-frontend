@@ -7,10 +7,7 @@
             <q-icon name="medication" size="md" color="green-10" />
             <span class="text-subtitle2 q-ml-sm"
               >Adição de Medicamentos para
-              {{
-                visitDetails.episode.patientServiceIdentifier.service
-                  .description
-              }}</span
+              {{ curIdentifier.service.description }}</span
             >
           </div>
           <q-separator color="grey-13" size="1px" class="q-mb-sm" />
@@ -25,21 +22,25 @@
             class="col q-my-md"
             dense
             outlined
-            ref="drug"
+            use-input
+            fill-input
+            input-debounce="0"
+            @filter="filterFnDrugs"
+            ref="drugRef"
             :rules="[(val) => !!val || 'Por favor indicar o medicamento.']"
             v-model="prescribedDrug.drug"
-            @blur="loadDefaultParameters"
-            :options="drugs"
+            :options="optionsDrugs"
             option-value="id"
             option-label="name"
             label="Medicamento"
+            @update:model-value="loadDefaultParameters"
           />
           <div class="row">
             <q-select
               class="col"
               dense
               outlined
-              ref="amtPerTime"
+              ref="amtPerTimeRef"
               :rules="[
                 (val) =>
                   !!val ||
@@ -49,18 +50,22 @@
               :options="amtPerTimes"
               label="Toma"
             />
-            <TextInput
+            <q-input
               v-if="prescribedDrug.drug"
+              outlined
+              type="text"
               :disable="true"
               v-model="prescribedDrug.drug.form.description"
               label="Forma Farmacêutica"
               dense
               class="col q-ml-md"
             />
-            <TextInput
+            <q-input
+              outlined
+              type="text"
               v-model="prescribedDrug.timesPerDay"
               label="Número de vezes a tomar"
-              ref="form"
+              ref="formRef"
               :rules="[
                 (val) => !!val || 'Por favor indicar o numero de vezes a tomar',
               ]"
@@ -73,7 +78,7 @@
               class="col q-ml-md"
               dense
               outlined
-              ref="times"
+              ref="timesRef"
               :rules="[
                 (val) => !!val || 'Por favor indicar a periodicidade da toma',
               ]"
@@ -85,7 +90,7 @@
         </div>
       </q-card-section>
       <q-card-actions align="right" class="q-my-md q-mr-sm">
-        <q-btn label="Cancelar" color="red" @click="$emit('close')" />
+        <q-btn label="Cancelar" color="red" @click="showAddEditDrug = false" />
         <q-btn type="submit" label="Adicionar" color="primary" />
       </q-card-actions>
     </form>
@@ -93,115 +98,109 @@
 </template>
 
 <script setup>
-import { inject, onMounted, ref } from 'vue';
-import Drug from '../../../store/models/drug/Drug';
-import IdentifierType from '../../../store/models/identifierType/IdentifierType';
-import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug';
-import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen';
-import TextInput from 'components/Shared/Input/TextField.vue';
+import drugService from 'src/services/api/drugService/drugService';
+import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
+import { computed, inject, onMounted, ref } from 'vue';
 
 //Declatarion
-const currVisitDetails = ref({});
 const prescribedDrug = ref(new PrescribedDrug());
 const showOnlyOfRegimen = ref(false);
 const amtPerTimes = ref(['1', '2', '3', '4']);
 const timesPerDay = ref(['Dia', 'Semana', 'Mês', 'Ano']);
+const optionsDrugs = ref([]);
+
+// Ref's
+const amtPerTimeRef = ref(null);
+const formRef = ref(null);
+const timesRef = ref(null);
+const drugRef = ref(null);
 
 //Injection
-const visitDetails = inject('visitDetails');
+const visitDetails = inject('curPatientVisitDetail');
 const hasTherapeuticalRegimen = inject('hasTherapeuticalRegimen');
-
+const curPrescriptionDetail = inject('curPrescriptionDetail');
+const curIdentifier = inject('curIdentifier');
+const addPrescribedDrug = inject('addPrescribedDrug');
+const curPack = inject('curPack');
+const showAddEditDrug = inject('showAddEditDrug');
 // Hook
 
 onMounted(() => {
-  this.showOnlyOfRegimen = this.hasTherapeuticalRegimen;
-  this.init();
-  this.currVisitDetails = Object.assign({}, this.visitDetails);
+  showOnlyOfRegimen.value = hasTherapeuticalRegimen.value;
 });
 
 //Methods
-const init = async () => {
-  if (this.mobile) {
-    IdentifierType.localDbGetAll().then((idTypes) => {
-      IdentifierType.update({ data: idTypes });
-    });
-    await Drug.localDbGetAll().then((drugs) => {
-      Drug.insertOrUpdate({ data: drugs });
-      /* drugs.forEach((drug) => {
-            Drug.update({ where: drug.id, data: drug })
-          }) */
-    });
-  }
-};
 
 const submitForm = () => {
-  this.$refs.drug.validate();
-  this.$refs.amtPerTime.validate();
-  this.$refs.form.$refs.ref.validate();
-  this.$refs.times.validate();
+  drugRef.value.validate();
+  amtPerTimeRef.value.validate();
+  formRef.value.validate();
+  timesRef.value.validate();
   if (
-    !this.$refs.drug.hasError &&
-    !this.$refs.amtPerTime.hasError &&
-    !this.$refs.form.$refs.ref.hasError &&
-    !this.$refs.times.hasError
+    !drugRef.value.hasError &&
+    !amtPerTimeRef.value.hasError &&
+    !formRef.value.hasError &&
+    !timesRef.value.hasError
   ) {
-    this.$emit('addPrescribedDrug', this.prescribedDrug, this.visitDetails);
+    addPrescribedDrug(prescribedDrug.value);
   }
 };
 
-const getDrugs = () => {
-  let drugs = [];
+const getDrugs = computed(() => {
   let validDrugs = [];
-  if (this.showOnlyOfRegimen) {
-    validDrugs = this.therapeuticRegimen.drugs;
+  if (showOnlyOfRegimen.value) {
+    validDrugs = curPrescriptionDetail.value.therapeuticRegimen.drugs;
   } else {
-    drugs = Drug.query()
-      .with('form')
-      .with('stocks')
-      .with('clinicalService.identifierType')
-      .where('active', true)
-      .get();
-
-    validDrugs = drugs.filter((drug) => {
-      return (
-        drug.clinicalService !== null &&
-        drug.clinicalService.code ===
-          this.visitDetails.episode.patientServiceIdentifier.service.code &&
-        drug.active === true &&
-        drug.hasStock()
-      );
-    });
+    validDrugs = drugs.value;
   }
+  validDrugs = validDrugs.filter((drug) => {
+    return (
+      drug.clinicalService !== null &&
+      drug.clinicalService.code === curIdentifier.service.code &&
+      drug.active === true
+      // && hasStock(drug)
+    );
+  });
 
   return validDrugs;
-};
+});
 
 const loadDefaultParameters = () => {
-  if (this.prescribedDrug.drug !== null) {
-    this.prescribedDrug.amtPerTime = this.prescribedDrug.drug.defaultTreatment;
-    this.prescribedDrug.timesPerDay = this.prescribedDrug.drug.defaultTimes;
-    this.prescribedDrug.form = this.prescribedDrug.drug.defaultPeriodTreatment;
+  if (prescribedDrug.value.drug !== null) {
+    prescribedDrug.value.amtPerTime =
+      prescribedDrug.value.drug.defaultTreatment;
+    prescribedDrug.value.timesPerDay = prescribedDrug.value.drug.defaultTimes;
+    prescribedDrug.value.form =
+      prescribedDrug.value.drug.defaultPeriodTreatment;
   }
 };
 // Computed
-const drugs = () => {
-  return this.getDrugs();
-};
+const drugs = computed(() => {
+  return drugService.getAllDrugs();
+});
 
-const therapeuticRegimen = () => {
-  return TherapeuticRegimen.query()
-    .with([
-      'drugs',
-      'drugs.form',
-      'drugs.stocks',
-      'drugs.clinicalService.identifierType',
-    ])
-    .where(
-      'id',
-      this.visitDetails.prescription.prescriptionDetails[0].therapeuticRegimen
-        .id
-    )
-    .first();
+// Method
+const filterFnDrugs = (val, update, abort) => {
+  const stringOptions = getDrugs.value;
+  if (val === '') {
+    update(() => {
+      optionsDrugs.value = stringOptions.map((drug) => drug);
+    });
+  } else if (stringOptions.length === 0) {
+    update(() => {
+      optionsDrugs.value = [];
+    });
+  } else {
+    update(() => {
+      optionsDrugs.value = stringOptions
+        .map((drug) => drug)
+        .filter((drug) => {
+          return (
+            drug && drug.name.toLowerCase().indexOf(val.toLowerCase()) !== -1
+          );
+        });
+    });
+  }
 };
 </script>
 

@@ -1,247 +1,246 @@
 <template>
   <div>
-    <ListHeader
-      :addVisible="false"
-      @expandLess="expandLess"
-      :bgColor="headerColor"
-      >{{
-        curIdentifier.service === null || curIdentifier.service === undefined
-          ? 'Sem Info'
-          : curIdentifier.service.code
-      }}
-    </ListHeader>
-    <div v-show="infoVisible">
-      <q-card
-        v-if="
-          lastStartEpisode !== null &&
-          lastStartEpisode.lastVisit() !== null &&
-          prescriptionDetails !== null
-        "
-        class="noRadius"
-      >
-        <q-card-section class="row q-pa-none">
-          <div class="col-5 bg-white q-pa-md">
-            <div class="row">
-              <div class="col text-grey-9 text-weight-medium">
-                Data da Prescrição:
+    <q-expansion-item
+      dense
+      header-class="bg-grey-6 text-white text-bold vertical-middle q-pl-md"
+      expand-icon-class="text-white"
+      default-opened
+    >
+      <template v-slot:header>
+        <q-item-section avatar>
+          <q-icon color="white" name="medication" />
+        </q-item-section>
+
+        <q-item-section>
+          {{
+            curIdentifier.service === null ||
+            curIdentifier.service === undefined
+              ? 'Sem Info'
+              : curIdentifier.service.code + ': ' + curIdentifier.value
+          }}
+        </q-item-section>
+      </template>
+
+      <div v-show="infoVisible">
+        <q-card class="noRadius">
+          <q-card-section class="row q-pa-none">
+            <div class="col-5 bg-white q-pa-md">
+              <div class="row">
+                <div class="col text-grey-9 text-weight-medium">
+                  Data da Prescrição:
+                </div>
+                <div v-if="prescription !== null" class="col text-grey-8">
+                  {{
+                    prescription.prescriptionDate === null ||
+                    prescription.prescriptionDate === undefined
+                      ? 'Sem Info'
+                      : formatDate(prescription.prescriptionDate)
+                  }}
+                </div>
+                <div class="col text-grey-9 text-weight-medium">
+                  Regime Terapêutico:
+                </div>
+                <div class="col text-grey-8">
+                  {{
+                    prescription.prescriptionDetails[0].therapeuticRegimen ===
+                      null ||
+                    prescription.prescriptionDetails[0].therapeuticRegimen ===
+                      undefined
+                      ? 'Sem Info'
+                      : prescription.prescriptionDetails[0].therapeuticRegimen
+                          .description
+                  }}
+                </div>
               </div>
-              <div
-                v-if="prescription.prescriptionDate !== null"
-                class="col text-grey-8"
+              <div class="row">
+                <div
+                  v-if="
+                    prescription.prescriptionDetails[0].therapeuticLine !== null
+                  "
+                  class="col text-grey-9 text-weight-medium"
+                >
+                  Linha Terapêutica:
+                </div>
+                <div
+                  v-if="
+                    prescription.prescriptionDetails[0].therapeuticLine !== null
+                  "
+                  class="col text-grey-8"
+                >
+                  {{
+                    prescription.prescriptionDetails[0].therapeuticLine ===
+                      null ||
+                    prescription.prescriptionDetails[0].therapeuticLine ===
+                      undefined
+                      ? 'Sem Info'
+                      : prescription.prescriptionDetails[0].therapeuticLine
+                          .description
+                  }}
+                </div>
+                <div class="col text-grey-10">Clínico:</div>
+                <div
+                  v-if="prescription.doctor !== null"
+                  class="col text-grey-8"
+                >
+                  {{
+                    prescription.doctor === null ||
+                    prescription.doctor === undefined
+                      ? 'Sem Info'
+                      : prescription.doctor.fullName
+                  }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col text-grey-9 text-weight-medium">
+                  Tipo Dispensa:
+                </div>
+                <div
+                  v-if="
+                    prescription.prescriptionDetails[0].dispenseType !== null
+                  "
+                  class="col text-grey-8"
+                >
+                  {{
+                    prescription.prescriptionDetails[0].dispenseType === null ||
+                    prescription.prescriptionDetails[0].dispenseType ===
+                      undefined
+                      ? 'Sem Info'
+                      : prescription.prescriptionDetails[0].dispenseType
+                          .description
+                  }}
+                </div>
+                <div class="col text-grey-9 text-weight-medium">Validade:</div>
+                <div class="col" :class="validadeColor">
+                  {{
+                    prescription.leftDuration === null ||
+                    prescription.leftDuration === undefined
+                      ? 'Sem Info'
+                      : prescription.leftDuration
+                  }}
+                  mes(es)
+                </div>
+              </div>
+              <div class="row">
+                <div class="col text-grey-9 text-weight-medium">Duração:</div>
+                <div class="col text-grey-8">
+                  {{
+                    prescription === null ||
+                    prescription === undefined ||
+                    prescription.duration === null
+                      ? 'Sem Info'
+                      : prescription.duration.description
+                  }}
+                </div>
+                <div class="col text-grey-9 text-weight-medium">
+                  Tipo Paciente:
+                </div>
+                <div class="col text-grey-8">
+                  {{
+                    prescription === null ||
+                    prescription === undefined ||
+                    prescription.patientStatus === null
+                      ? 'Sem Info'
+                      : prescription.patientStatus
+                  }}
+                </div>
+              </div>
+              <q-separator />
+              <div class="row q-my-md">
+                <q-space />
+                <q-btn
+                  v-if="!isClosed"
+                  unelevated
+                  color="red"
+                  label="Remover"
+                  @click="removePrescription()"
+                  class="float-right q-ml-sm"
+                />
+              </div>
+            </div>
+            <div class="col q-py-md">
+              <ListHeader
+                :addVisible="!isClosed && prescription.leftDuration !== 0"
+                :title="'Dispensa'"
+                bgColor="bg-primary"
+                @showAdd="$emit('addNewPack', patientVisit.value)"
+              ></ListHeader>
+              <EmptyList v-if="lastPackOnPrescription === null"
+                >Nenhum registo de Levantamentos</EmptyList
               >
-                {{
-                  prescription.prescriptionDate === null ||
-                  prescription.prescriptionDate === undefined
-                    ? 'Sem Info'
-                    : formatDate(prescription.prescriptionDate)
-                }}
-              </div>
-              <div class="col text-grey-9 text-weight-medium">
-                Regime Terapêutico:
-              </div>
-              <div class="col text-grey-8">
-                {{
-                  prescriptionDetails.therapeuticRegimen === null ||
-                  prescriptionDetails.therapeuticRegimen === undefined
-                    ? 'Sem Info'
-                    : prescriptionDetails.therapeuticRegimen.description
-                }}
-              </div>
+              <span v-else>
+                <PackInfo
+                  :editPack="editPack"
+                  :removePack="removePack"
+                  :isClosed="isClosed"
+                  :pack="lastPackOnPrescription"
+                />
+              </span>
             </div>
-            <div class="row">
-              <div
-                v-if="prescriptionDetails.therapeuticLine !== null"
-                class="col text-grey-9 text-weight-medium"
-              >
-                Linha Terapêutica:
-              </div>
-              <div
-                v-if="prescriptionDetails.therapeuticLine !== null"
-                class="col text-grey-8"
-              >
-                {{
-                  prescriptionDetails.therapeuticLine === null ||
-                  prescriptionDetails.therapeuticLine === undefined
-                    ? 'Sem Info'
-                    : prescriptionDetails.therapeuticLine.description
-                }}
-              </div>
-              <div class="col text-grey-10">Clínico:</div>
-              <div v-if="prescription.doctor !== null" class="col text-grey-8">
-                {{
-                  prescription.doctor === null ||
-                  prescription.doctor === undefined
-                    ? 'Sem Info'
-                    : prescription.doctor.fullName
-                }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col text-grey-9 text-weight-medium">
-                Tipo Dispensa:
-              </div>
-              <div
-                v-if="prescriptionDetails.dispenseType !== null"
-                class="col text-grey-8"
-              >
-                {{
-                  prescriptionDetails.dispenseType === null ||
-                  prescriptionDetails.dispenseType === undefined
-                    ? 'Sem Info'
-                    : prescriptionDetails.dispenseType.description
-                }}
-              </div>
-              <div class="col text-grey-9 text-weight-medium">Validade:</div>
-              <div class="col" :class="validadeColor">
-                {{
-                  prescriptionDetails === null ||
-                  prescriptionDetails === undefined
-                    ? 'Sem Info'
-                    : prescription.leftDuration
-                }}
-                mes(es)
-              </div>
-            </div>
-            <div class="row">
-              <div class="col text-grey-9 text-weight-medium">Duração:</div>
-              <div class="col text-grey-8">
-                {{
-                  prescription === null ||
-                  prescription === undefined ||
-                  prescription.duration === null
-                    ? 'Sem Info'
-                    : prescription.duration.description
-                }}
-              </div>
-              <div class="col text-grey-9 text-weight-medium">
-                Tipo Paciente:
-              </div>
-              <div class="col text-grey-8">
-                {{
-                  prescription === null ||
-                  prescription === undefined ||
-                  prescription.patientStatus === null
-                    ? 'Sem Info'
-                    : prescription.patientStatus
-                }}
-              </div>
-            </div>
-            <q-separator />
-            <div class="row q-my-md">
-              <q-space />
-              <q-btn
-                v-if="!isClosed"
-                unelevated
-                color="red"
-                label="Remover"
-                @click="removePrescription()"
-                class="float-right q-ml-sm"
-              />
-            </div>
-          </div>
-          <div class="col q-py-md">
-            <ListHeader
-              :addVisible="!isClosed"
-              bgColor="bg-primary"
-              @showAdd="$emit('addNewPack', lastStartEpisode.lastVisit())"
-              >Dispensa</ListHeader
-            >
-            <EmptyList v-if="lastPackOnPrescription === null"
-              >Nenhum registo de Levantamentos</EmptyList
-            >
-            <span
-              v-if="
-                lastPackOnPrescription !== null &&
-                lastPackOnPrescription.packagedDrugs.length > 0 &&
-                lastPackOnPrescription.packagedDrugs[0].drug !== null
-              "
-            >
-              <PackInfo
-                @editPack="editPack"
-                @removePack="removePack"
-                :isClosed="isClosed"
-                :pack="lastPackOnPrescription"
-              />
-            </span>
-          </div>
-        </q-card-section>
-      </q-card>
-      <EmptyList v-else
-        >Nenhuma Prescrição Adicionada para o serviço
-        {{
-          identifier.service === null || identifier.service === undefined
-            ? 'Sem Info'
-            : identifier.service.code
-        }}</EmptyList
-      >
-    </div>
-    <q-dialog persistent v-model="alert.visible">
-      <Dialog
-        :type="alert.type"
-        @commitOperation="commitOperation"
-        @closeDialog="closeDialog"
-      >
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog>
+          </q-card-section>
+        </q-card>
+        <EmptyList v-if="prescription === null || prescription === undefined"
+          >Nenhuma Prescrição Adicionada para o serviço
+          {{
+            curIdentifier.service === null ||
+            curIdentifier.service === undefined
+              ? 'Sem Info'
+              : curIdentifier.service.code
+          }}</EmptyList
+        >
+      </div>
+    </q-expansion-item>
+    <q-separator />
   </div>
 </template>
 
 <script setup>
 import { date } from 'quasar';
-import PatientServiceIdentifier from '../../../store/models/patientServiceIdentifier/PatientServiceIdentifier';
-import Episode from '../../../store/models/episode/Episode';
-import Prescription from '../../../store/models/prescription/Prescription';
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails';
-import Pack from '../../../store/models/packaging/Pack';
-// import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
-import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine';
-import Doctor from '../../../store/models/doctor/Doctor';
-import Duration from '../../../store/models/Duration/Duration';
-import DispenseType from '../../../store/models/dispenseType/DispenseType';
-import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail';
-// import Drug from '../../../store/models/drug/Drug'
-import ClinicalService from '../../../store/models/ClinicalService/ClinicalService';
-import mixinutils from 'src/mixins/mixin-utils';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import PatientVisit from 'src/store/models/patientVisit/PatientVisit';
-import AuditSyncronization from 'src/store/models/auditSyncronization/AuditSyncronization';
-import Stock from '../../../store/models/stock/Stock';
-import StockEntrance from 'src/store/models/stockentrance/StockEntrance';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { computed, inject, onMounted, provide, ref } from 'vue';
+import { useLoading } from 'src/composables/shared/loading/loading';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import PackInfo from 'components/Patient/Prescription/PackInfo.vue';
-import { inject, onMounted } from 'vue';
+import Pack from 'src/stores/models/packaging/Pack';
+import episodeService from 'src/services/api/episode/episodeService';
+import Prescription from 'src/stores/models/prescription/Prescription';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
+import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDrugService';
+import packService from 'src/services/api/pack/packService';
+import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
+import { useEspisode } from 'src/composables/episode/episodeMethods';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
+import Episode from 'src/stores/models/episode/Episode';
 
 //Declaration
+const { website } = useSystemUtils();
+const { closeLoading, showloading } = useLoading();
+const { isCloseEpisode, isDCReferenceEpisode } = useEspisode();
+const { alertSucess, alertError, alertInfo } = useSwal();
 const infoVisible = ref(true);
 const isPatientActive = ref(false);
 const selectedPack = ref(new Pack());
 const showAddEditEpisode = ref(false);
-// Inject
 
-const identifier = inject('identifier');
+//props
+const props = defineProps(['identifierId']);
+
+// Inject
 const patient = inject('patient');
 
 //Hook
 onMounted(() => {
+  showloading();
   init();
-  reloadParams();
 });
 //Methods
 const init = () => {
-  if (this.website) {
-    if (this.identifier !== null) {
-      PatientServiceIdentifier.apiFetchById(this.identifier.id);
-      if (this.identifier.service !== null) {
-        ClinicalService.apiFetchById(this.identifier.service.id);
-      }
-    }
-    if (this.prescriptionDetails !== null) {
-      PrescriptionDetail.apiFetchById(this.prescriptionDetails.id);
-    }
-  }
+  closeLoading();
 };
 const expandLess = (value) => {
   this.infoVisible = !value;
@@ -259,52 +258,7 @@ const removePack = () => {
 };
 const callRemovePackAlert = () => {
   if (this.mobile) {
-    //
-    PatientVisit.localDbGetById(this.patientVisitDetais.patient_visit_id).then(
-      (item) => {
-        if (item.syncStatus !== 'R') {
-          const auditSync = new AuditSyncronization();
-          auditSync.operationType = 'remove';
-          auditSync.className = PatientVisit.getClassName();
-          auditSync.entity = item;
-          AuditSyncronization.localDbAdd(auditSync);
-        }
-        item.patientVisitDetails.forEach((pvd) => {
-          console.log(this.patientVisitDetais);
-          if (pvd.id === this.patientVisitDetais.id) {
-            console.log(this.patientVisitDetais);
-            pvd.pack.packagedDrugs.forEach((pd) => {
-              pd.packagedDrugStocks.forEach((pds) => {
-                Stock.localDbGetById(pds.stock.id).then((stock) => {
-                  stock.stockMoviment += pds.quantitySupplied;
-                  stock.syncStatus = 'U';
-                  Stock.localDbUpdate(stock);
-                  StockEntrance.localDbGetById(stock.entrance.id).then(
-                    (entrance) => {
-                      entrance.syncStatus = 'U';
-                      StockEntrance.localDbUpdate(entrance);
-                    }
-                  );
-                });
-              });
-            });
-            Prescription.delete(pvd.prescription.id);
-            Pack.delete(pvd.pack.id);
-            console.log(this.patientVisitDetais);
-            const index = item.patientVisitDetails.findIndex(
-              (o) => o.id === pvd.id
-            );
-            item.patientVisitDetails.splice(index, 1);
-            PatientVisit.localDbUpdate(item);
-            PatientVisit.update({ data: item });
-          }
-          if (item.patientVisitDetails.length === 0) {
-            PatientVisit.localDbDelete(item);
-            PatientVisit.delete(item);
-          }
-        });
-      }
-    );
+    //MobileCode
   } else {
     PatientVisitDetails.apiDelete(this.patientVisitDetais).then((resp) => {
       PatientVisitDetails.delete(this.patientVisitDetais.id);
@@ -313,51 +267,36 @@ const callRemovePackAlert = () => {
   }
 };
 const removePrescription = () => {
-  if (this.lastPack !== null) {
-    this.displayAlert(
-      'error',
+  if (lastPackOnPrescription.value !== null) {
+    alertError(
       'Esta prescrição ja possui registo de dispensas associados, remova primeiro as dispensas.'
     );
   } else {
+    alertWarningAction('Deseja remover a Prescrição?').then((result) => {
+      console.log(result);
+      if (result) {
+        prescriptionService
+          .delete(prescription.value.id)
+          .then((resp) => {
+            closeLoading();
+            console.log(resp);
+            alertSucess('Prescrição removida com sucesso');
+          })
+          .catch((error) => {
+            closeLoading();
+            console.log(error);
+            alertError('Aconteceu um erro ao gravar a Prescrição');
+          });
+      } else {
+        closeLoading();
+        alertInfo('Operação cancelada');
+      }
+    });
     // remotion code
   }
 };
 const commitOperation = () => {
-  this.callRemovePackAlert();
-};
-const lastStartEpisodeWithPrescription = () => {
-  let episode = null;
-  const episodes = Episode.query()
-    .with('startStopReason')
-    .with('clinicSector')
-    .with('patientServiceIdentifier')
-    .with('patientVisitDetails.*')
-    .whereHas('episodeType', (query) => {
-      query.where('code', 'INICIO');
-    })
-    .where('patientServiceIdentifier_id', this.identifier.id)
-    .orderBy('creationDate', 'desc')
-    .get();
-  Object.keys(episodes).forEach(function (k) {
-    const id = episodes[k];
-    if (episode === null && id.hasVisits()) {
-      episode = id;
-    }
-  });
-  return episode;
-};
-const reloadParams = () => {
-  if (this.website) {
-    // this.loadParamsToVueX()
-    this.loadWebRegimensToVueX();
-    this.loadWebDrugsToVueX();
-    // TherapeuticRegimen.apiGetAll()
-    TherapeuticLine.apiGetAll();
-    Doctor.apiGetAll();
-    Duration.apiGetAll();
-    DispenseType.apiGetAll();
-    // Drug.apiGetAll(0, 200)
-  }
+  callRemovePackAlert();
 };
 const reloadPrescriptionDetails = async (id) => {
   await PrescriptionDetail.apiFetchById(id);
@@ -367,146 +306,104 @@ const reloadPrescription = async (id) => {
 };
 const getRemainigDuration = () => {
   if (this.prescription === null) return null;
-  if (this.prescription.patientVisitDetails.length <= 0) {
-    this.prescription.patientVisitDetails = PatientVisitDetails.query()
-      .with('pack')
-      .where('prescription_id', this.prescription.id)
-      .get();
-  }
+  // if (this.prescription.patientVisitDetails.length <= 0) {
+  //   this.prescription.patientVisitDetails = PatientVisitDetails.query()
+  //     .with('pack')
+  //     .where('prescription_id', this.prescription.id)
+  //     .get();
+  // }
   return this.prescription.remainigDuration();
-};
-const loadAllPacksOfPrescription = () => {
-  if (this.prescription === null) return null;
-  if (this.prescription.patientVisitDetails.length <= 0) {
-    this.prescription.patientVisitDetails = PatientVisitDetails.query()
-      .with('pack.packagedDrugs.drug')
-      .where('prescription_id', this.prescription.id)
-      .get();
-  }
-  return this.prescription.lastPackOnPrescription();
 };
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
+
 // Computed
-const episodes = computed(() => {
-  const episodes = Episode.query()
-    .withAll()
-    .with('episodeType')
-    .with('clinicSector')
-    .where('patientServiceIdentifier_id', this.identifier.id)
-    .orderBy('creationDate', 'desc')
-    .limit(2)
-    .get();
-  if (episodes.length > 0) {
-    episodes[0].isLast = true;
-  }
-  return episodes;
+const curIdentifier = computed(() => {
+  return patientServiceIdentifierService.identifierCurr(props.identifierId);
 });
-const lastPackOnPrescription = computed(() => {
-  if (this.loadAllPacksOfPrescription() === null) return null;
-  return Pack.query()
-    .with('packagedDrugs.*')
-    .with('patientVisitDetails')
-    .where('id', this.loadAllPacksOfPrescription().id)
-    .orderBy('pickupDate', 'desc')
-    .first();
-});
+
 const validadeColor = computed(() => {
-  if (this.prescription !== null && this.prescription.leftDuration > 0) {
+  if (prescription.value !== null && prescription.value.leftDuration > 0) {
     return 'text-primary';
   } else {
     return 'text-red';
   }
 });
-const curIdentifier = computed(() => {
-  return PatientServiceIdentifier.query()
-    .with('identifierType')
-    .with('service.*')
-    .with('episodes.*', (query) => {
-      query.orderBy('creationDate', 'desc');
-    })
-    .where('id', this.identifier.id)
-    .first();
-});
-const prescriptionDetails = computed(() => {
-  if (this.prescription === null) return null;
-  return PrescriptionDetail.query()
-    .withAll()
-    .where('prescription_id', this.prescription.id)
-    .first();
-});
-const patientVisitDetais = computed(() => {
-  if (this.prescription === null) return null;
-  return PatientVisitDetails.query()
-    .with('pack')
-    .with('prescription.*')
-    .where('id', this.prescription.patientVisitDetails[0].id)
-    .first();
-});
-const patientVisit = computed(() => {
-  if (this.prescription === null) return null;
-  return PatientVisit.query()
-    .with('patientVisitDetails.*')
-    .where('id', this.lastStartEpisode.lastVisit().id)
-    .first();
+const lastPackOnPrescription = computed(() => {
+  return packService.getLastPackFromPatientVisitAndPrescription(
+    prescription.value.id
+  );
 });
 const prescription = computed(() => {
-  if (
-    this.lastStartEpisode === null ||
-    this.lastStartEpisode.lastVisit() === null ||
-    this.lastStartEpisode.lastVisit().prescription === null
-  )
-    return null;
-  const presc = Prescription.query()
-    .with('clinic')
-    .with('doctor')
-    .with('patientVisitDetails.pack')
-    .with('prescriptionDetails.*')
-    .with('duration')
-    .with('prescribedDrugs.*')
-    .where('id', this.lastStartEpisode.lastVisit().prescription.id)
-    .first();
-  return presc;
+  if (patientVisit.value !== null) {
+    return prescriptionService.getLastPrescriptionFromPatientVisit(
+      patientVisit.value.id
+    );
+  } else {
+    return new Prescription();
+  }
 });
-const remainigDuration = computed(() => {
-  return this.getRemainigDuration();
+const patientVisit = computed(() => {
+  if (lastStartEpisode.value !== null) {
+    return patientVisitService.getLastFromEpisode(lastStartEpisode.value.id);
+  } else {
+    return new PatientVisit();
+  }
 });
+
 const lastStartEpisode = computed(() => {
-  return this.lastStartEpisodeWithPrescription();
-});
-const lastPack = computed(() => {
-  return Pack.query()
-    .with('packagedDrugs.*')
-    .with('patientVisitDetails')
-    .where('id', this.lastStartEpisode.lastVisit().pack.id)
-    .orderBy('pickupDate', 'desc')
-    .first();
+  if (curIdentifier.value !== null) {
+    return episodeService.getLastStartEpisodeWithPrescription(
+      curIdentifier.value.id
+    );
+  } else {
+    return new Episode();
+  }
 });
 const lastEpisode = computed(() => {
-  return Episode.query()
-    .withAll()
-    .where('patientServiceIdentifier_id', this.identifier.id)
-    .orderBy('episodeDate', 'desc')
-    .first();
+  if (curIdentifier.value !== null) {
+    return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
+  } else {
+    return new Episode();
+  }
 });
 const showEndDetails = computed(() => {
   return (
-    this.lastEpisode !== null &&
-    this.lastEpisode.isCloseEpisode() &&
-    !this.lastEpisode.isDCReferenceEpisode()
+    lastEpisode.value !== null &&
+    isCloseEpisode(lastEpisode.value) &&
+    !isDCReferenceEpisode(lastEpisode.value)
   );
 });
 const headerColor = computed(() => {
-  if (!this.showEndDetails) {
+  if (!showEndDetails.value) {
     return 'bg-grey-6';
   } else {
     return 'bg-red-7';
   }
 });
 const isClosed = computed(() => {
-  return this.showEndDetails || this.prescription.leftDuration <= 0;
+  return showEndDetails.value;
 });
+
+// Methods
+
+const getPatientVisitDetails = (episodeId) => {
+  patientVisitDetailsService.apiGetAllByEpisodeId(episodeId, 0, 100);
+};
+const getPrescriptionDetails = (prescriptionId) => {
+  prescriptionDetailsService.apiGetAllByPrescriptionId(prescriptionId);
+};
+const getPrescribedDrugs = (prescriptionId) => {
+  prescribedDrugService.apiGetAllByPrescriptionId(prescriptionId);
+};
+const getPackageDrugs = (packId) => {
+  packagedDrugService.apiGetAllByPackId(packId);
+};
+
+//Provide
+provide('lastPackOnPrescription', lastPackOnPrescription);
+provide('isClosed', isClosed);
 </script>
 
 <style>

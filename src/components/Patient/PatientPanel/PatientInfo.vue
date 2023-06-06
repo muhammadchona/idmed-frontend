@@ -98,14 +98,14 @@
     <div class="row">
       <q-btn unelevated color="primary" label="Unir Duplicados" class="col" />
     </div>
-    <q-dialog persistent v-model="showPatientRegister">
+    <!-- <q-dialog persistent v-model="showPatientRegister">
       <patientRegister
         :pa="patient"
         :clinic="clinic"
         :stepp="step"
         @close="showPatientRegister = false"
       />
-    </q-dialog>
+    </q-dialog> -->
     <span></span>
   </div>
 </template>
@@ -125,7 +125,6 @@ const { website, isDeskTop, isMobile } = useSystemUtils();
 const showPatientRegister = ref(false);
 
 //Injection
-const clinic = inject('clinic');
 const patient = inject('patient');
 
 // Hooks

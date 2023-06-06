@@ -45,6 +45,7 @@ export default class Patient extends Model {
       identifiers: this.hasMany(PatientServiceIdentifier, 'patient_id'),
       appointments: this.hasMany(Appointment, 'patient_id'),
       members: this.hasMany(GroupMember, 'patient_id'),
+      patientVisits: this.hasMany(PatientVisit, 'patient_id'),
       district: this.belongsTo(District, 'district_id'),
       postoAdministrativo: this.belongsTo(
         PostoAdministrativo,
@@ -53,7 +54,6 @@ export default class Patient extends Model {
       bairro: this.belongsTo(Localidade, 'bairro_id'),
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       his: this.belongsTo(HealthInformationSystem, 'his_id'),
-      patientVisits: this.hasMany(PatientVisit, 'patient_id'),
     };
   }
   static piniaOptions = {

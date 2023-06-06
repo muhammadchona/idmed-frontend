@@ -96,4 +96,9 @@ export default {
     await api().delete('therapeuticLine/' + id);
     therapeuticLine.destroy(id);
   },
+
+  //PINIA
+  getAllFromStorage() {
+    return therapeuticLine.all();
+  },
 };

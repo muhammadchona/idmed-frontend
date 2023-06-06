@@ -1,8 +1,5 @@
 import axios, { Axios } from 'axios';
 import UsersService from 'src/services/UsersService';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
 
 const instance = axios.create({
   baseURL: process.env.API_URL,

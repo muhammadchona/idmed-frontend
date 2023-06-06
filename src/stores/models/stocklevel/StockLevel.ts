@@ -17,4 +17,7 @@ export default class StockLevel extends Model {
       stock: this.belongsTo(Stock, 'stock_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

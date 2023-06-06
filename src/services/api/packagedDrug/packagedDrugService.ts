@@ -32,11 +32,19 @@ export default {
     packagedDrug.destroy(id);
   },
   async apiGetAllByPackId(packId: string) {
-    return await api().get('/packagedDrug/pack/' + packId);
+    return await api()
+      .get('/packagedDrug/pack/' + packId)
+      .then((resp) => {
+        packagedDrug.save(resp.data);
+      });
   },
 
   async apiGetAll() {
-    return await api().get('/packagedDrug?offset=' + 0 + '&max=' + 200);
+    return await api()
+      .get('/packagedDrug?offset=' + 0 + '&max=' + 200)
+      .then((resp) => {
+        packagedDrug.save(resp.data);
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {
