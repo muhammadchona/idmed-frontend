@@ -12,28 +12,36 @@
     <form @submit.prevent="validateClinicSector">
       <q-card-section class="q-px-md">
         <div class="row q-mt-md">
-          <nameInput
+          <q-input
             v-model="identifierType.description"
             label="Descrição *"
             :disable="isDisplayStep"
-            ref="nome"
+            ref="nomeRef"
+            outlined
+            dense
+            class="col"
+            :rules="[(val) => !!val || 'Por favor indicar o nome']"
+            lazy-rules
           />
         </div>
         <div class="row q-mt-md">
-          <codeInput
-            ref="code"
+          <q-input
+            ref="codeRef"
             v-model="identifierType.code"
             :disable="isDisplayStep"
             :rules="[(val) => codeRules(val)]"
             lazy-rules
             label="Código *"
+            outlined
+            dense
+            class="col"
           />
         </div>
         <div class="row q-mb-md">
-          <TextInput
+          <q-input
             v-model="identifierType.pattern"
             label="Padrão do identificador"
-            ref="pattern"
+            ref="patternRef"
             :disable="isDisplayStep"
             :rules="[
               (val) => !!val || 'Por favor indicar o padrão do identificador',
@@ -41,7 +49,24 @@
             dense
             hint="Exemplo: ###/####/#"
             class="col"
-          />
+            outlined
+            lazy-rules
+          >
+            <template
+              v-slot:append
+              v-if="
+                identifierType.pattern !== null &&
+                identifierType.pattern !== undefined &&
+                identifierType.pattern !== ''
+              "
+            >
+              <q-icon
+                name="close"
+                @click="identifierType.pattern = ''"
+                class="cursor-pointer"
+              />
+            </template>
+          </q-input>
         </div>
       </q-card-section>
       <q-card-actions align="right" class="q-mb-md">
@@ -66,13 +91,13 @@ import identifierTypeService from 'src/services/api/identifierTypeService/identi
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 
 /*Components import*/
-import nameInput from 'src/components/Shared/NameInput.vue';
-import codeInput from 'src/components/Shared/CodeInput.vue';
-import TextInput from 'src/components/Shared/Input/TextField.vue';
 
 /*Declarations*/
 const databaseCodes = ref([]);
 const submitting = ref(false);
+const nomeRef = ref(null);
+const codeRef = ref(null);
+const patternRef = ref(null);
 
 /*injects*/
 const identifierType = inject('selectedIdentifierType');
@@ -99,7 +124,6 @@ const clinics = computed(() => {
 });
 
 onMounted(() => {
-  console.log(identifierType);
   extractDatabaseCodes();
 });
 
@@ -111,23 +135,22 @@ const extractDatabaseCodes = () => {
 };
 
 const validateClinicSector = () => {
-  console.log(identifierType);
-  // this.$refs.nome.$refs.ref.validate()
-  //   this.$refs.code.$refs.ref.validate()
-  //   this.$refs.pattern.$refs.ref.validate()
-  // if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.code.$refs.ref.hasError &&
-  //   !this.$refs.pattern.$refs.ref.hasError) {
-  doSave();
-  // }
+  nomeRef.value.validate();
+  codeRef.value.validate();
+  patternRef.value.validate();
+  if (
+    !nomeRef.value.hasError &&
+    !codeRef.value.hasError &&
+    !patternRef.value.hasError
+  ) {
+    doSave();
+  }
 };
 
 const doSave = () => {
   // if (this.mobile) {
-  //   console.log('Mobile')
   //   if (!this.isEditStep) {
-  //      console.log('Create Step')
   //     this.identifierType.syncStatus = 'R'
-  //     console.log(this.identifierType)
   //     IdentifierType.localDbAdd(JSON.parse(JSON.stringify(this.identifierType)))
   //     IdentifierType.insert({ data: this.identifierType })
   //     this.displayAlert('info', !this.isEditStep ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
@@ -139,7 +162,6 @@ const doSave = () => {
   //   }
   // } else {
   if (isCreateStep.value) {
-    console.log('Create Step_Online_Mode');
     identifierTypeService
       .post(identifierType.value)
       .then((resp) => {

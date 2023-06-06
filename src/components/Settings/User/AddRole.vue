@@ -13,8 +13,8 @@
       <q-scroll-area style="height: 600px">
         <q-card-section class="q-px-md">
           <div class="row q-mt-md">
-            <nameInput
-              ref="nome"
+            <q-input
+              ref="nomeRef"
               square
               v-model="role.name"
               :rules="[(val) => codeRules(val)]"
@@ -22,11 +22,13 @@
               :disable="onlyView"
               class="col fild-radius"
               label="Nome"
+              outlined
+              dense
             />
           </div>
           <div class="row q-mt-md">
-            <nameInput
-              ref="description"
+            <q-input
+              ref="descriptionRef"
               square
               v-model="role.description"
               :rules="[
@@ -38,6 +40,8 @@
               :disable="onlyView"
               class="col fild-radius"
               label="Descrição"
+              outlined
+              dense
             />
           </div>
           <div class="q-pa-md">
@@ -84,11 +88,13 @@
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import roleService from 'src/services/api/role/roleService.ts';
 import menuService from 'src/services/api/menu/menuService.ts';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
 
 /*Variables*/
+const { alertError } = useSwal();
 const step = ref(1);
 const columns = [
   {
@@ -118,6 +124,8 @@ const submitting = ref(false);
 const userRole = ref('');
 const clinico = ref('');
 const isPwd = ref(true);
+const nomeRef = ref(null);
+const descriptionRef = ref(null);
 
 /*Injects*/
 const createMode = inject('createMode');
@@ -129,6 +137,7 @@ const isCreateStep = inject('isCreateStep');
 const showRoleRegistrationScreen = inject('showRoleRegistrationScreen');
 const role = inject('selectedRole');
 const selectedRole = inject('selectedRole');
+const isEditStep = inject('isEditStep');
 
 /*Hooks*/
 const onlyView = computed(() => {
@@ -154,16 +163,15 @@ const extractDatabaseCodes = () => {
 };
 
 const validateRole = () => {
-  // this.$refs.nome.$refs.ref.validate()
-  //   this.$refs.description.$refs.ref.validate()
-  //   if (!this.$refs.nome.$refs.ref.hasError &&
-  //       !this.$refs.description.$refs.ref.hasError) {
-  //       if (this.role.menus.length === 0) {
-  //     this.displayAlert('error', 'Seleccione pelo menos uma funcionalidade!')
-  //   } else {
-  submitUser();
-  //       }
-  // }
+  nomeRef.value.validate();
+  descriptionRef.value.validate();
+  if (!nomeRef.value.hasError && !descriptionRef.value.hasError) {
+    if (role.value.menus.length <= 0) {
+      alertError('Seleccione pelo menos uma funcionalidade!');
+    } else {
+      submitUser();
+    }
+  }
 };
 
 const submitUser = () => {
@@ -187,11 +195,11 @@ const submitUser = () => {
       .patch(role.value.id, role.value)
       .then((resp) => {
         submitting.value = false;
-        roleService.value = false;
+        showRoleRegistrationScreen.value = false;
       })
       .catch((error) => {
         submitting.value = false;
-        roleService.value = false;
+        showRoleRegistrationScreen.value = false;
       });
   }
   // } else {

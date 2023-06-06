@@ -6,7 +6,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
-const roleRepo = useRepo(Role);
+const rolerepo = useRepo(Role);
 
 export default {
   // Axios API call
@@ -14,7 +14,7 @@ export default {
     return api()
       .post('role', params)
       .then((resp) => {
-        roleRepo.save(resp.data);
+        rolerepo.save(resp.data);
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error) => {
@@ -36,11 +36,11 @@ export default {
         }
       });
   },
-  patch(id: string, params: string) {
+  patch(id: number, params: string) {
     return api()
       .patch('role/' + id, params)
       .then((resp) => {
-        roleRepo.save(resp.data);
+        rolerepo.save(resp.data);
         alertSucess('O Registo foi alterado com sucesso');
       })
       .catch((error) => {
@@ -67,7 +67,7 @@ export default {
       return api()
         .get('role?offset=' + offset + '&max=100')
         .then((resp) => {
-          roleRepo.save(resp.data);
+          rolerepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -99,7 +99,7 @@ export default {
   },
   async delete(id: number) {
     await api().delete('role/' + id);
-    roleRepo.destroy(id);
+    rolerepo.destroy(id);
   },
 
   async apiGetAll() {
@@ -113,15 +113,15 @@ export default {
   },
   // Local Storage Pinia
   newInstanceEntity() {
-    return roleRepo.getModel().$newInstance();
+    return rolerepo.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return roleRepo.all();
+    return rolerepo.all();
   },
   getActiveWithMenus() {
-    return roleRepo.query().with('menus').where('active', true).get();
+    return rolerepo.query().with('menus').where('active', true).get();
   },
   getAllWithMenus() {
-    return roleRepo.query().with('menus').get();
+    return rolerepo.query().with('menus').get();
   },
 };

@@ -177,13 +177,11 @@ const doctors = computed(() => {
 });
 
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  doctorService.get(0);
 });
 
 /*provides*/
@@ -219,9 +217,9 @@ const editDoctor = (doctorParam) => {
   doctor.value = doctorParam;
   doctor.value.clinic = currClinic.value;
   step.value = 'edit';
-  showDoctorRegistrationScreen.value = true;
   editMode.value = true;
   viewMode.value = false;
+  showDoctorRegistrationScreen.value = true;
 };
 const addDoctor = () => {
   isEditStep.value = false;
@@ -229,9 +227,9 @@ const addDoctor = () => {
   doctor.value = reactive(ref(doctorService.newInstanceEntity()));
   doctor.value.clinic = currClinic.value;
   step.value = 'create';
-  showDoctorRegistrationScreen.value = true;
   editMode.value = false;
   viewMode.value = false;
+  showDoctorRegistrationScreen.value = true;
 };
 const visualizeDoctor = (doctorParam) => {
   isCreateStep.value = false;
@@ -240,8 +238,8 @@ const visualizeDoctor = (doctorParam) => {
   isEditStep.value = false;
   doctor.value = doctorParam;
   viewMode.value = true;
-  showDoctorRegistrationScreen.value = true;
   editMode.value = false;
+  showDoctorRegistrationScreen.value = true;
 };
 const promptToConfirm = (doctorParam) => {
   const question = doctorParam.active
@@ -255,13 +253,11 @@ const promptToConfirm = (doctorParam) => {
         doctorParam.active = true;
       }
       // if (this.mobile) {
-      //   console.log('FrontEnd');
       //   if (doctorParam.syncStatus !== 'R') doctorParam.syncStatus = 'U';
       //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(doctorParam)));
       //   ClinicSector.insertOrUpdate({ data: doctorParam });
       //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
       // } else {
-      console.log('BackEnd');
       doctorService
         .patch(doctorParam.id, doctorParam)
         .then((resp) => {
@@ -274,54 +270,4 @@ const promptToConfirm = (doctorParam) => {
     }
   });
 };
-// promptToConfirm(doctor) {
-//   let msg = '';
-//   this.$q
-//     .dialog({
-//       title: 'Confirmação',
-//       message: doctor.active
-//         ? 'Deseja Inactivar o Clínico?'
-//         : 'Deseja Activar o Clínico?',
-//       cancel: true,
-//       persistent: true,
-//     })
-//     .onOk(() => {
-//       if (doctor.active) {
-//         doctor.active = false;
-//         msg = 'Clínico inactivado com sucesso.';
-//       } else if (!doctor.active) {
-//         doctor.active = true;
-//         msg = 'Clínico activado com sucesso.';
-//       }
-//       if (this.mobile) {
-//         console.log('FrontEnd');
-//         if (doctor.syncStatus !== 'R') doctor.syncStatus = 'U';
-//         Doctor.localDbAdd(JSON.parse(JSON.stringify(doctor)));
-//         Doctor.insertOrUpdate({ data: doctor });
-//         this.displayAlert('info', msg);
-//       } else {
-//         console.log('BackEnd');
-//         Doctor.apiUpdate(doctor)
-//           .then((resp) => {
-//             this.displayAlert('info', msg);
-//           })
-//           .catch((error) => {
-//             this.displayAlert('error', error);
-//           });
-//       }
-//     });
-// },
-// displayAlert(type, msg) {
-//   this.alert.type = type;
-//   this.alert.msg = msg;
-//   this.alert.visible = true;
-// },
-// closeDialog() {
-//   if (this.alert.type === 'info') {
-//     this.$emit('close');
-//   }
-// },
-// async getDoctors() {
-//   await Doctor.apiGetAll();
-// },
 </script>

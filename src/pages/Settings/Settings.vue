@@ -141,7 +141,7 @@
 <script setup>
 /*Imports*/
 import { ref, provide, computed, inject, onMounted } from 'vue';
-import clinicService from 'src/services/api/clinicService/clinicService.ts';
+import clinicServiceService from 'src/services/api/clinicService/clinicService.ts';
 import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
@@ -149,6 +149,12 @@ import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService.ts';
+import formService from 'src/services/api/formService/formService.ts';
+import clinicalService from 'src/services/api/clinicalServiceService/clinicalServiceService.ts';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
+import doctorService from 'src/services/api/doctorService/doctorService.ts';
+import drugService from 'src/services/api/drugService/drugService.ts';
 
 /*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
@@ -224,7 +230,7 @@ const tabs = [
 
 /*Hooks*/
 const currClinic = computed(() => {
-  return clinicService.currClinic();
+  return clinicServiceService.currClinic();
 });
 
 onMounted(() => {
@@ -242,6 +248,22 @@ onMounted(() => {
   userService.get(0);
   showloading();
   clinicSectorTypeService.get(0);
+  showloading();
+  formService.get(0);
+  showloading();
+  clinicalService.get(0);
+  showloading();
+  therapeuticalRegimenService.get(0);
+  showloading();
+  clinicServiceService.get(0);
+  showloading();
+  clinicSectorService.get(0);
+  showloading();
+  doctorService.get(0);
+  showloading();
+  drugService.get(0);
+  showloading();
+  formService.get(0);
 });
 
 /*injects*/

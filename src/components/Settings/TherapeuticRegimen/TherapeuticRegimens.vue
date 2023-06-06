@@ -175,18 +175,11 @@ provide('selectedTherapeuticRegimen', therapeuticRegimen);
 provide('therapeuticRegimens', therapeuticRegimens);
 
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  formService.get(0);
-  showloading();
-  clinicalService.get(0);
-  showloading();
-  therapeuticalRegimenService.get(0);
-  showloading();
 });
 
 /*methods*/
@@ -233,7 +226,6 @@ const visualizeTherapeuticRegimen = (therapeuticRegimenParam) => {
 };
 
 const promptToConfirm = (therapeuticRegimenParam) => {
-  console.log(therapeuticRegimenParam);
   const question = therapeuticRegimenParam.active
     ? 'Deseja Inactivar o Regime?'
     : 'Deseja Activar o Regime?';
@@ -245,7 +237,6 @@ const promptToConfirm = (therapeuticRegimenParam) => {
         therapeuticRegimenParam.active = true;
       }
       // if (this.mobile) {
-      //   console.log('FrontEnd');
       //   if (therapeuticRegimenParam.syncStatus !== 'R') therapeuticRegimenParam.syncStatus = 'U';
       //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimenParam)));
       //   ClinicSector.insertOrUpdate({ data: therapeuticRegimenParam });

@@ -175,6 +175,7 @@ const visualizeClinic = (roleParam) => {
   role.value = roleParam;
   viewMode.value = true;
   editMode.value = false;
+  isEditStep.value = false;
   isCreateStep.value = false;
   showRoleRegistrationScreen.value = true;
 };
@@ -183,6 +184,7 @@ const editUser = (roleParam) => {
   role.value = roleParam;
   viewMode.value = false;
   editMode.value = true;
+  isEditStep.value = true;
   isCreateStep.value = false;
   showRoleRegistrationScreen.value = true;
 };
@@ -192,6 +194,7 @@ const addRole = () => {
   editMode.value = false;
   viewMode.value = false;
   isCreateStep.value = true;
+  isEditStep.value = false;
   showRoleRegistrationScreen.value = true;
 };
 
@@ -222,45 +225,14 @@ const promptToConfirm = (role) => {
         .patch(role.id, role)
         .then((resp) => {
           submitting.value = false;
-          showHISRegistrationScreen.value = false;
+          showRoleRegistrationScreen.value = false;
         })
         .catch((error) => {
           submitting.value = false;
-          showHISRegistrationScreen.value = false;
+          showRoleRegistrationScreen.value = false;
         });
       // }
     }
   });
-
-  // let msg = '';
-  // this.$q
-  //   .dialog({
-  //     title: 'Confirm',
-  //     message: role.active
-  //       ? 'Deseja Inactivar o Perfil?'
-  //       : 'Deseja Activar o Perfil?',
-  //     cancel: true,
-  //     persistent: true,
-  //   })
-  //   .onOk(() => {
-  //     if (role.active) {
-  //       role.active = false;
-  //       msg = 'Perfil inactivado com sucesso.';
-  //     } else if (!role.active) {
-  //       role.active = true;
-  //       msg = 'Perfil activado com sucesso.';
-  //     }
-  //     if (this.website) {
-  //       Role.apiSave(role)
-  //         .then((resp) => {
-  //           this.displayAlert('info', msg);
-  //         })
-  //         .catch((error) => {
-  //           this.displayAlert('error', error);
-  //         });
-  //     } else {
-
-  //     }
-  //   });
 };
 </script>

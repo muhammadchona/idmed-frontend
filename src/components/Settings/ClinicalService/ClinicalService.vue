@@ -170,18 +170,11 @@ const forms = computed(() => {
 });
 
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  formService.get(0);
-  showloading();
-  clinicalServiceService.get(0);
-  // clinicalServiceAttributeService.get(0);
-  showloading();
-  therapeuticalRegimenService.get(0);
   identifierTypes.value = identifierTypeService.getAllIdentifierTypes();
 });
 

@@ -20,7 +20,7 @@
         </div>
 
         <div class="q-mt-md">
-          <div class="row">
+          <div class="row q-mt-md">
             <q-input
               v-model="doctor.firstnames"
               ref="nomeRef"
@@ -29,19 +29,17 @@
               label="Nome *"
               dense
               class="col"
-              @input="(event) => $emit('update:firstNames', event.target.value)"
               :rules="[(val) => !!val || 'Por favor indicar o nome']"
               lazy-rules
             />
             <q-input
               v-model="doctor.lastname"
-              class="q-ml-md"
+              class="col q-ml-md"
               ref="apelidoRef"
               :disable="onlyView"
               outlined
               label="Apelido *"
               dense
-              @input="(event) => $emit('update:lastname', event.target.value)"
               :rules="[(val) => !!val || 'Por favor indicar o nome']"
               lazy-rules
             />
@@ -93,10 +91,9 @@
             :disable="onlyView"
             outlined
             class="col"
-            ref="ref"
+            ref="phonePrinciparRef"
             maxlength="12"
             type="tel"
-            @input="(event) => $emit('update:phone', event.target.value)"
             lazy-rules
           >
             <template v-slot:prepend>
@@ -118,7 +115,7 @@
           type="submit"
           :loading="submitting"
           @click.once="submitting = true"
-          label="Submeter"
+          label="GRAVAR"
           color="primary"
           v-if="!onlyView"
         />
@@ -149,6 +146,7 @@ const nomeRef = ref(null);
 const apelidoRef = ref(null);
 const clinicRef = ref(null);
 const genderRef = ref(null);
+const phonePrinciparRef = ref(null);
 
 /*injects*/
 const doctor = inject('selectedDoctor');
@@ -174,24 +172,28 @@ const clinics = computed(() => {
 
 /*Methods*/
 const validateDoctor = () => {
-  //     this.$refs.nome.$refs.ref.validate()
-  //     this.$refs.apelido.$refs.ref.validate()
-  //   this.$refs.gender.validate()
-  //     this.$refs.clinic.validate()
-  // if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.apelido.$refs.ref.hasError && !this.$refs.gender.hasError && !this.$refs.clinic.hasError) {
-  submitDoctor();
-  // }
+  nomeRef.value.validate();
+  apelidoRef.value.validate();
+  genderRef.value.validate();
+  clinicRef.value.validate();
+  phonePrinciparRef.value.validate();
+  if (
+    !nomeRef.value.hasError &&
+    !apelidoRef.value.hasError &&
+    !genderRef.value.hasError &&
+    !clinicRef.value.hasError &&
+    !phonePrinciparRef.value.hasError
+  ) {
+    submitDoctor();
+  }
 };
 
 const submitDoctor = () => {
   submitting.value = true;
   doctor.value.active = true;
   // if (this.mobile) {
-  //   console.log('Mobile')
   //   if (!this.isEditStep) {
-  //     console.log('Create')
   //     this.doctor.syncStatus = 'R'
-  //     console.log(this.doctor)
   //     Doctor.localDbAdd(JSON.parse(JSON.stringify(this.doctor)))
   //     Doctor.insert({ data: this.doctor })
   //     this.closeDialog()
@@ -205,7 +207,6 @@ const submitDoctor = () => {
   //   }
   // } else {
   if (isCreateStep.value) {
-    console.log('Create Step_Online_Mode');
     if (doctor.value.clinic !== null) {
       doctor.value.clinic_id = doctor.value.clinic.id;
     }
@@ -220,7 +221,7 @@ const submitDoctor = () => {
         showDoctorRegistrationScreen.value = false;
       });
   }
-  if (isEditStep) {
+  if (isEditStep.value) {
     if (doctor.value.clinic !== null) {
       doctor.value.clinic_id = doctor.value.clinic.id;
     }

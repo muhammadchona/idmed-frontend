@@ -261,7 +261,6 @@ const promptToConfirm = (his) => {
       }
 
       // if (this.mobile) {
-      //         console.log('FrontEnd');
       //         if (his.syncStatus !== 'R') his.syncStatus = 'U';
       //         HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
       //         HealthInformationSystem.insertOrUpdate({ data: his });
@@ -270,7 +269,7 @@ const promptToConfirm = (his) => {
       //           'Tipo de identificador actualizado com sucesso'
       //         );
       //       } else {
-
+      console.log(his);
       healthInformationSystemService
         .patch(his.id, his)
         .then((resp) => {
@@ -284,43 +283,5 @@ const promptToConfirm = (his) => {
       // }
     }
   });
-  //   this.$q
-  //     .dialog({
-  //       title: 'Confirmação',
-  //       message: his.active
-  //         ? 'Deseja Inactivar o Sistema da Interoperabilidade?'
-  //         : 'Deseja Activar o Sistema da Interoperabilidade?',
-  //       cancel: true,
-  //       persistent: true,
-  //     })
-  //     .onOk(() => {
-  //       if (his.active) {
-  //         his.active = false;
-  //       } else if (!his.active) {
-  //         his.active = true;
-  //       }
-  //       if (this.mobile) {
-  //         console.log('FrontEnd');
-  //         if (his.syncStatus !== 'R') his.syncStatus = 'U';
-  //         HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
-  //         HealthInformationSystem.insertOrUpdate({ data: his });
-  //         this.displayAlert(
-  //           'info',
-  //           'Tipo de identificador actualizado com sucesso'
-  //         );
-  //       } else {
-  //         console.log('BackEnd');
-  //         HealthInformationSystem.apiUpdate(his)
-  //           .then((resp) => {
-  //             this.displayAlert(
-  //               'info',
-  //               'Sistema da Interoperabilidade inactivado com sucesso'
-  //             );
-  //           })
-  //           .catch((error) => {
-  //             this.displayAlert('error', error);
-  //           });
-  //       }
-  //     });
 };
 </script>

@@ -175,7 +175,7 @@ const columns = [
 
 /*Methods*/
 const visualizeClinic = (clinicParam) => {
-  clinic.value = Object.assign({}, clinicParam);
+  clinic.value = clinicParam;
   viewMode.value = true;
   editMode.value = false;
   showClinicRegistrationScreen.value = true;
@@ -197,10 +197,8 @@ const clinics = computed(() => {
   );
 });
 onMounted(() => {
-  showloading();
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  clinicService.get(0);
 });
 </script>
