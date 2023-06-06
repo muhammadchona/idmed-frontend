@@ -678,11 +678,6 @@ const columns = [
 ];
 mixins: [mixinplatform];
 
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
 
 let submitting = false;
 const dateReceived = ref('');
@@ -754,10 +749,9 @@ const doSaveGuia = () => {
 
   orderNumberRef.value.validate();
   if (dateReceived.value === '') {
-    alertError('error', 'Preencha a data de criação da guia .');
+    alertError('Preencha a data de criação da guia .');
   } else if (currStockEntrance.value.dateReceived > new Date()) {
     alertError(
-      'error',
       'A data de criação da guia não pode ser superior a data corrente.'
     );
   } else if (!orderNumberRef.value.hasError) {
@@ -767,7 +761,7 @@ const doSaveGuia = () => {
           .then((resp) => {
             currStockEntrance.value = resp.response.data;
             guiaStep.value = 'display';
-            alertSucess('Sucesso', 'Operação efectuada com sucesso.');
+            alertSucess('Operação efectuada com sucesso.');
           })
           .catch((error) => {
             const listErrors = [];
@@ -781,7 +775,7 @@ const doSaveGuia = () => {
                 });
               }
             }
-            alertError('error', listErrors);
+            alertError( listErrors);
           });
       } else if (guiaStep.value === 'edit') {
         const entrance = JSON.parse(
@@ -793,7 +787,7 @@ const doSaveGuia = () => {
         ).then((resp) => {
           SessionStorage.set('currStockEntrance', currStockEntrance.value.id);
           guiaStep.value = 'display';
-          alertSucess('Sucesso', 'Operação efectuada com sucesso.');
+          alertSucess('Operação efectuada com sucesso.');
         });
       }
     } else {
@@ -801,7 +795,7 @@ const doSaveGuia = () => {
       StockEntranceMethod.localDbUpdate(currStockEntrance).then((stockEnt) => {
         stockEntranceRepo.update(currStockEntrance);
         guiaStep.value = 'display';
-        alertSucess('Sucesso', 'Operação efectuada com sucesso.');
+        alertSucess( 'Operação efectuada com sucesso.');
       });
     }
   }
@@ -823,7 +817,6 @@ const circularReferenceReplacer = () => {
 const initGuiaEdition = () => {
   if (currStockEntrance.value.stocks.length > 0 || stockList.value.length > 0) {
     alertError(
-      'error',
       'Não pode editar os dados da guia, pois ja existem registos de lotes associados.'
     );
   } else {
@@ -833,7 +826,6 @@ const initGuiaEdition = () => {
 const removeGuia = () => {
   if (currStockEntrance.value.stocks.length > 0 || stockList.value.length > 0) {
     alertError(
-      'error',
       'Não pode remover esta guia, pois ja existem registos de lotes associados.'
     );
   } else {
@@ -884,7 +876,7 @@ const doRemoveStock = (stock) => {
     StockService.delete(stock.id).then((resp) => {
       removeFromList(stock);
       closeLoading();
-      alertSucess('info', 'Operação efectuada com sucesso.');
+      alertSucess( 'Operação efectuada com sucesso.');
     });
   } else {
     const targetStock = JSON.parse(JSON.stringify(selectedStock));
@@ -909,7 +901,6 @@ const doRemoveStock = (stock) => {
 const initNewStock = () => {
   if (step.value === 'create' || step.value === 'edit') {
     alertError(
-      'error',
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a adição de novo registo.'
     );
   } else {
@@ -943,34 +934,34 @@ const validateStock = (stock) => {
   stock.expireDate = dateUtils.getJSDateFromDDMMYYY(stock.auxExpireDate);
   if (stock.drug.name === '') {
     submitting = false;
-    alertError('error', 'Por favor indicar o medicamento!');
+    alertError( 'Por favor indicar o medicamento!');
   } else if (stock.manufacture === '') {
     submitting = false;
-    alertError('error', 'Por favor indicar o fabricante!');
+    alertError( 'Por favor indicar o fabricante!');
   } else if (stock.batchNumber === '') {
     submitting = false;
-    alertError('error', 'Por favor indicar o lote!');
+    alertError( 'Por favor indicar o lote!');
   } else if (!date.isValid(stock.expireDate)) {
     submitting = false;
-    alertError('error', 'Por favor indicar uma data de validade válida!');
+    alertError( 'Por favor indicar uma data de validade válida!');
   } else if (
     stock.expireDate.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
   ) {
     submitting = false;
     alertError(
-      'error',
+      
       'A data de validade não pode ser anterior a data corrente!'
     );
   } else if (!isPositiveInteger(stock.unitsReceived)) {
     submitting = false;
-    alertError('error', 'Por favor indicar uma quantidade válida!');
+    alertError( 'Por favor indicar uma quantidade válida!');
   } else if (!(stock.expireDate instanceof Date)) {
-    alertError('error', 'A data de validade é inválida!');
+    alertError( 'A data de validade é inválida!');
   } else if (stock.expireDate <= moment(new Date()).add(28, 'd')) {
     submitting = false;
 
     alertError(
-      'error',
+      
       'O medicamento não deve expirar em menos de 28 dias, Por favor indique uma data de validade válida!'
     );
   } else {
@@ -1076,7 +1067,7 @@ const doSave = (stock) => {
         alertSucess('info', 'Operação efectuada com sucesso.');
       })
       .catch((error) => {
-        displayAlert('error', error);
+        alertError('Ocorreu um erro inesperado')
       });
   }
 };
@@ -1098,8 +1089,7 @@ const fetchStockEntrance = () => {
           });
         }
       }
-      displayAlert('error', listErrors);
-    });
+      alertError('Ocorreu um erro inesperado')    });
 };
 
 const cancel = (stock) => {
@@ -1124,7 +1114,7 @@ const initStockEdition = (stock) => {
   selectedStock.value = Object.assign({}, stock);
   if (step.value === 'edit' || step.value === 'create') {
     alertError(
-      'error',
+      
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a edição deste registo.'
     );
   } else {
@@ -1136,7 +1126,7 @@ const initStockEdition = (stock) => {
 const promptStockDeletion = (stock) => {
   if (step.value === 'create' || step.value === 'edit') {
     alertError(
-      'error',
+      
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a remoção deste registo.'
     );
   } else {

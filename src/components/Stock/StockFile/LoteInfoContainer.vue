@@ -325,12 +325,10 @@ const saveAjustment = () => {
     new Date(adjustment.adjustedStock.entrance.dateReceived)
   ) {
     alertError(
-      'error',
       'A data do movimento não pode ser menor que a data de entrada do lote.'
     );
   } else if (new Date(curEvent.value.eventDate) > new Date()) {
     alertError(
-      'error',
       'A data do movimento não pode ser maior que a data corrente.'
     );
   } else if (curEvent.value.moviment === '') {
@@ -342,7 +340,6 @@ const saveAjustment = () => {
     adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue < 0
   ) {
     alertError(
-      'error',
       'A quantidade que pretende retitar é maior que a quantidade em stock no momento, impossível prosseguir!'
     );
   } else {
@@ -371,11 +368,11 @@ const saveAjustment = () => {
             Stock.localDbUpdate(reference.adjustments[0].adjustedStock);
             step.value = 'display';
             adjustmentType.value = '';
-            alertSucess('info', 'Operação efectuada com sucesso.');
+            alertSucess('Operação efectuada com sucesso.');
             $emit('updateDrugFileAdjustment', reference.adjustments[0]);
           })
           .catch((error) => {
-            alertError('error', error);
+            alertError('Ocorreu um erro inesperado');
           });
       } else {
         destruction.syncStatus = 'R';
@@ -386,11 +383,11 @@ const saveAjustment = () => {
             $emit('updateDrugFileAdjustment', destruction.adjustments[0]);
             step.value = 'display';
             adjustmentType.value = '';
-            alertSucess('info', 'Operação efectuada com sucesso.');
+            alertSucess('Operação efectuada com sucesso.');
           })
           .catch((error) => {
-            alertError('error', error);
-          });
+            alertError('Ocorreu um erro inesperado');
+              });
         db.newDb().collection('destruction').set(destruction);
       }
       drugEventList.value.shift();
@@ -418,7 +415,7 @@ const updateRelatedStock = (stock) => {
   StockService.patch(stock.id, stock).then((resp) => {
     step.value = 'display';
     adjustmentTypeRef.value = '';
-    alertSucess('info', 'Operação efectuada com sucesso.');
+    alertSucess('Operação efectuada com sucesso.');
   });
 };
 

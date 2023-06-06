@@ -251,7 +251,6 @@ const goBack = () => {
 
 const initInventoryClosure = () => {
   alertWarningAction(
-    'Confirmação',
     'Nota: Ao encerrar o presente inventário o stock será actualizado para os dados informados e está operação não poderá ser desfeita. Continuar?',
     'Não',
     'Sim'
@@ -302,7 +301,7 @@ const doProcessAndClose = () => {
     step = 'display';
     currInventory.value.open = false;
 
-    alertSucess('Sucesso', 'Operação efectuada com sucesso.');
+    alertSucess('Operação efectuada com sucesso.');
   });
 };
 
@@ -350,7 +349,7 @@ const doProcessAndCloseMobile = () => {
       .then((item) => {
         step = 'display';
         currInventory.value.open = false;
-        alertSucess('Sucesso', 'Operação efectuada com sucesso.');
+        alertSucess('Operação efectuada com sucesso.');
       });
   });
   // SessionStorage.set('currInventory', inventory)

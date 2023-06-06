@@ -60,15 +60,12 @@
     </template>
   </q-banner>
 </template>
-
 <script setup>
 import { inject, ref } from 'vue';
-
 // Declaration
 const headerClass = ref('');
 // Injection
 // doneVisible;
-
 //props
 const props = defineProps([
   'editVisible',
@@ -91,7 +88,6 @@ const determineHeaderClass = () => {
     headerClass.value = '';
   }
 };
-
 const expand = () => {
   props.expanded.value = !props.expanded.value;
 };
@@ -102,10 +98,18 @@ const created = () => {
   determineHeaderClass();
 };
 </script>
-
 <style>
 .list-header {
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
 }
 </style>
+
+
+
+
+
+
+
+
+

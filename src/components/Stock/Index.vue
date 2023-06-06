@@ -101,7 +101,6 @@ const add = () => {
     const inventory = InventoryService.getOpenInventory();
     if (inventory !== null) {
       alertError(
-        'error',
         'Existe registado um inventário ainda aberto, por favor termine o mesmo antes de iniciar um novo inventário.'
       );
     } else {

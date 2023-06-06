@@ -156,9 +156,12 @@ import StockOperationTypeService from 'src/services/api/stockOperationTypeServic
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
 
 const props = defineProps(['drug', 'inventory']);
 const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { showloading, closeLoading } = useLoading();
 
 const columns = [
   {
@@ -234,6 +237,7 @@ const init = () => {
 };
 
 const prepareInit = () => {
+ 
   let i = 1;
   if (drug.stocks.length > 0) {
     Object.keys(drug.stocks).forEach(
@@ -243,6 +247,7 @@ const prepareInit = () => {
       }.bind(this)
     );
   }
+  
 };
 
 const initNewAdjustment = (stock, drug, i) => {
@@ -400,7 +405,9 @@ const changeStepToEdition = () => {
 };
 
 onMounted(() => {
+  showloading()
   init();
+  closeLoading()
 });
 
 const isEditStep = computed(() => {

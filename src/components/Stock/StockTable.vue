@@ -233,4 +233,3 @@ const rows = computed(() => {
   thead tr:first-child th
     top: 0
 </style>
-Dialog

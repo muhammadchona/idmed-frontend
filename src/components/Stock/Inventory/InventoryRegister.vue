@@ -117,6 +117,7 @@ import { ref, computed, onMounted, inject } from 'vue';
 import { date } from 'quasar';
 import { InventoryStockAdjustment } from '../../../stores/models/stockadjustment/InventoryStockAdjustment';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import moment from 'moment'
 
 import StockService from 'src/services/api/stockService/StockService';
 import inventoryService from 'src/services/api/inventoryService/InventoryService';
@@ -160,7 +161,7 @@ const currInventory = ref(new Inventory());
 
 const selected = ref([]);
 const dateUtils = useDateUtils();
-const startDateRef = ref(dateUtils.getDDMMYYYFromJSDate(new Date()));
+const startDateRef = dateUtils.getDateFormatMMDDYYYY(new Date());
 
 const getSelectedString = () => {
   return selected.value.length === 0
@@ -176,25 +177,24 @@ const submitForm = () => {
     date.isValid(dateUtils.getJSDateFromDDMMYYY(currInventory.value.startDate))
   ) {
     const inventory = inventoryService.getLastInventory();
-    console.log(currInventory);
-    console.log(inventory);
+    const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate) 
+    console.log('DATA: ', moment(startDateRef))
+    console.log('INN:', moment( new Date(currInventory.value.startDate) ));
+    console.log('cdcd', moment(new Date(inventory.endDate)));
+    console.log('COMPPP:', moment(new Date(currInventory.value.startDate)).isAfter( moment( new Date(inventory.endDate))));
     if (
-      new Date(currInventory.value.startDate).setHours(0, 0, 0, 0) >
-      new Date().setHours(0, 0, 0, 0)
+      moment(startDateRef).isAfter(moment(new Date()))
     ) {
       alertError(
-        'error',
         'A data de inicio do inventário não pode ser superior a data corrente.'
       );
     } else if (
       inventory !== null &&
-      new Date(currInventory.value.startDate).setHours(0, 0, 0, 0) <
-        new Date(inventory.endDate).setHours(0, 0, 0, 0)
+      moment(startDateRef).isBefore(moment(endDateLast))
     ) {
       alertError(
-        'error',
         'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
-          dateUtils.getDDMMYYYFromJSDate(inventory.endDate) +
+          dateUtils.getDDMMYYYFromJSDate(endDateLast) +
           ']'
       );
     } else if (currInventory.value.generic) {
@@ -202,7 +202,6 @@ const submitForm = () => {
     } else {
       if (selected.value.length <= 0) {
         alertError(
-          'error',
           'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
         );
       } else {
@@ -210,7 +209,7 @@ const submitForm = () => {
       }
     }
   } else {
-    alertError('error', 'Por favor indicar uma data de início válida!');
+    alertError( 'Por favor indicar uma data de início válida!');
   }
 };
 
@@ -274,6 +273,7 @@ const initNewAdjustment = (stock, drug) => {
   newAdjustment.adjustedStock.drug = drug;
   newAdjustment.inventory_id = currInventory.value.id;
   newAdjustment.adjusted_stock_id = newAdjustment.adjustedStock.id;
+  newAdjustment.clinic = currClinic
   currInventory.value.adjustments.push(newAdjustment);
 };
 
