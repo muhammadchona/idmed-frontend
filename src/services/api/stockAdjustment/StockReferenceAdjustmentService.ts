@@ -1,6 +1,5 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import { alert } from '../../components/Shared/Directives/Plugins/Dialog/dialog';
 import { StockReferenceAdjustment } from 'src/stores/models/stockadjustment/StockReferenceAdjustment';
 
 const stockReferenceAdjustment = useRepo(StockReferenceAdjustment);
@@ -14,11 +13,11 @@ export default {
         stockReferenceAdjustment.save(resp.data);
       });
   },
-
+  
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('stockReferenceAdjustment?offset=' + offset)
+      .get('stockReferenceAdjustment?offset=' + offset + '&max=100')
         .then((resp) => {
           stockReferenceAdjustment.save(resp.data);
           offset = offset + 100;
@@ -26,24 +25,6 @@ export default {
             this.get(offset);
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alert(listErrors, null, null, null);
-          } else if (error.request) {
-            alert(error.request, null, null, null);
-          } else {
-            alert(error.message, null, null, null);
-          }
-        });
     }
   },
   patch(id: number, params: string) {
@@ -60,4 +41,5 @@ export default {
         stockReferenceAdjustment.destroy(id);
       });
   },
+ 
 };

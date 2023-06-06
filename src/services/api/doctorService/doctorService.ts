@@ -7,13 +7,13 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 
-const doctor = useRepo(Doctor);
+const doctorRepo = useRepo(Doctor);
 
 export default {
   async post(params: string) {
     try {
       const resp = await api().post('doctor', params);
-      Doctor.save(resp.data);
+      doctorRepo.save(resp.data);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -39,7 +39,7 @@ export default {
       return api()
         .get('doctor?offset=' + offset + '&max=100')
         .then((resp) => {
-          doctor.save(resp.data);
+          doctorRepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -71,7 +71,7 @@ export default {
   async patch(id: string, params: string) {
     try {
       const resp = await api().patch('doctor/' + id, params);
-      doctor.save(resp.data);
+      doctorRepo.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -94,17 +94,17 @@ export default {
   },
   async delete(id: number) {
     await api().delete('clinicsector/' + id);
-    doctor.destroy(id);
+    doctorRepo.destroy(id);
   },
 
   // Local Storage Pinia
   newInstanceEntity() {
-    return doctor.getModel().$newInstance();
+    return doctorRepo.getModel().$newInstance();
   },
 
   /*Pinia Methods*/
   getAlldoctors() {
-    return doctor
+    return doctorRepo
       .with('clinic', (query) => {
         query.with('province');
         query.with('district');

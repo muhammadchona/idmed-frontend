@@ -5,9 +5,7 @@ import StockEntrance from '../stockentrance/StockEntrance';
 import StockCenter from '../stockcenter/StockCenter';
 import Drug from '../drug/Drug';
 import Clinic from '../clinic/Clinic';
-import { date } from 'quasar';
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class Stock extends Model {
@@ -20,7 +18,7 @@ export default class Stock extends Model {
       auxExpireDate: this.attr(''),
       modified: this.boolean(false),
       shelfNumber: this.attr(''),
-      unitsReceived: this.attr(''),
+      unitsReceived: this.attr(0),
       stockMoviment: this.number(0),
       manufacture: this.attr(''),
       batchNumber: this.attr(''),
@@ -44,5 +42,9 @@ export default class Stock extends Model {
   static piniaOptions = {
     persist: true,
   };
+
+  static piniaOptions = {
+    persist: true,
+  }
 
 }

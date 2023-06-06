@@ -1,22 +1,25 @@
 import { useRepo } from 'pinia-orm';
 import Stock from 'src/stores/models/stock/Stock';
 import api from '../apiService/apiService';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const stock = useRepo(Stock);
+const { alertSucess, alertError } = useSwal();
 
 export default {
   // Axios API call
-  post(params: string) {
+  post(params: any) {
     return api()
       .post('stock', params)
       .then((resp) => {
         stock.save(resp.data);
-      });
+      })
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('stock?offset=' + offset)
+        .get('stock?offset=' + offset + '&max=100')
         .then((resp) => {
           stock.save(resp.data);
           offset = offset + 100;
@@ -24,102 +27,40 @@ export default {
             this.get(offset);
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alert(listErrors, null, null, null);
-          } else if (error.request) {
-            alert(error.request, null, null, null);
-          } else {
-            alert(error.message, null, null, null);
-          }
-        });
-    }
+      }
   },
-  patch(id: number, params: string) {
+  patch(id: string, params: any) {
     return api()
       .patch('stock/' + id, params)
       .then((resp) => {
         stock.save(resp.data);
-      });
+      })
   },
-  delete(id: number) {
+  delete(id: string) {
     return api()
       .delete('stock/' + id)
       .then(() => {
         stock.destroy(id);
-      });
+      })
   },
   // Local Storage Pinia
   newInstanceEntity() {
     return stock.getModel().$newInstance();
-  },
-  apiGetDrugSummary(clinicId: string, drugId: string) {
-    return api()
-      .get(
-        '/drugStockFile/sumary/?clinicId=' + clinicId + '&drugId=' + drugId + ''
-      )
-      .then((resp) => {
-        stock.save(resp.data);
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alert(listErrors, null, null, null);
-        } else if (error.request) {
-          alert(error.request, null, null, null);
-        } else {
-          alert(error.message, null, null, null);
-        }
-      });
+  },  
+   async apiSave (stock: any) {
+    return  api().post('/stock', stock)
   },
 
-  apiGetDrugBatchSummary(clinicId: string, stockId: string) {
-    return api()
-      .get(
-        '/drugStockFile/batchsumary/?clinicId=' +
-          clinicId +
-          '&drugId=' +
-          stockId +
-          ''
-      )
-      .then((resp) => {
-        stock.save(resp.data);
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alert(listErrors, null, null, null);
-        } else if (error.request) {
-          alert(error.request, null, null, null);
-        } else {
-          alert(error.message, null, null, null);
-        }
-      });
+   async apiRemove (id: any) {
+    return  api().delete(`/stock/${id}`)
+  },
+
+   async apiUpdate (stock: any) {
+    return api().patch('/stock/' + stock.id, stock)
+  }
+,
+   async apiGetAll (offset: number, max: number) {
+    return  api().get('/stock?offset=' + offset + '&max=' + max)
   },
   getStockByDrug(drugId: string) {
     return stock.where('drug_id', drugId).orderBy('expireDate', 'asc').get();
@@ -134,4 +75,26 @@ export default {
       .orderBy('expireDate', 'asc')
       .get();
   },
+
+  getStockList(id: string ) {
+   return stock.query()
+                .with('clinic')
+                .with('entrance')
+                .with('packagedDrugStocks')
+                .with('adjustments')
+                .with('drug')
+                .where('id',id)
+                .first()
+  },
+
+  getStockById(id: string) {
+   return stock.query()
+              //Stock.query()
+              .with('drug')
+              .with('clinic')
+              .with('entrance')
+              .with('center')
+                      .where('id', id)
+                      .first();
+  }
 };

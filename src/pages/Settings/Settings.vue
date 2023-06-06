@@ -129,10 +129,10 @@
             <div class="text-h4 q-mb-md"></div>
             <users> </users>
           </q-tab-panel>
-          <!-- <q-tab-panel name="roles">
+          <q-tab-panel name="roles">
             <div class="text-h4 q-mb-md"></div>
             <roles> </roles>
-          </q-tab-panel> -->
+          </q-tab-panel>
         </q-tab-panels>
       </template>
     </q-splitter>
@@ -148,6 +148,7 @@ import healthInformationSystemService from 'src/services/api/HealthInformationSy
 import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 /*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
@@ -160,9 +161,10 @@ import identifierType from 'src/components/Settings/IdentifierType/IdentifierTyp
 import interoperability from 'src/components/Settings/Interoperability/His.vue';
 import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 import users from 'src/components/Settings/User/Users.vue';
-// import roles from 'src/components/Settings/User/Roles.vue';
+import roles from 'src/components/Settings/User/Roles.vue';
 
 /*Variables*/
+const { closeLoading, showloading } = useLoading();
 const activeMenu = ref('Farmácias');
 const filter = ref('');
 const selectedTab = ref('clinic');
@@ -226,12 +228,19 @@ const currClinic = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   identifierTypeService.get(0);
+  showloading();
   clinicalServiceAttrTypeService.get(0);
+  showloading();
   healthInformationSystemService.get(0);
+  showloading();
   interoperabilityTypeService.get(0);
+  showloading();
   roleService.get(0);
+  showloading();
   userService.get(0);
+  showloading();
   clinicSectorTypeService.get(0);
 });
 
@@ -250,9 +259,9 @@ provide('isCreateStep', isCreateStep);
 provide('filter', filter);
 
 /*Methods*/
-// const changeMenu = (label) => {
-//   activeMenu.value = label;
-//   drawer.value = false;
-// };
+const changeMenu = (label) => {
+  activeMenu.value = label;
+  drawer.value = false;
+};
 </script>
 <style></style>

@@ -95,6 +95,9 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import formService from 'src/services/api/formService/formService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addDrug from 'src/components/Settings/Drug/AddDrug.vue';
@@ -171,12 +174,14 @@ const drugs = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
   drugService.get(0);
+  showloading();
   formService.get(0);
 });
 
@@ -221,33 +226,31 @@ const promptToConfirm = (drugParam) => {
   const question = drugParam.active
     ? 'Deseja Inactivar o medicamento?'
     : 'Deseja Activar o medicamento?';
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (drugParam.active) {
-          drugParam.active = false;
-        } else {
-          drugParam.active = true;
-        }
-        // if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (drugParam.syncStatus !== 'R') drugParam.syncStatus = 'U';
-        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(drugParam)));
-        //   ClinicSector.insertOrUpdate({ data: drugParam });
-        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-        // } else {
-        drugService
-          .patch(drugParam.id, drugParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (drugParam.active) {
+        drugParam.active = false;
+      } else {
+        drugParam.active = true;
       }
+      // if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (drugParam.syncStatus !== 'R') drugParam.syncStatus = 'U';
+      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(drugParam)));
+      //   ClinicSector.insertOrUpdate({ data: drugParam });
+      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      // } else {
+      drugService
+        .patch(drugParam.id, drugParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 
 //     promptToConfirm(drug) {

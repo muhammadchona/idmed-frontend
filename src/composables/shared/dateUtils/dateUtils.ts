@@ -84,6 +84,11 @@ export function useDateUtils() {
     }
   }
 
+  function formatDate(dateString: string) {
+    return date.formatDate(dateString, 'DD-MM-YYYY');
+  }
+
+
   return {
     isValidDate,
     formatDate,
@@ -105,5 +110,6 @@ export function useDateUtils() {
     getDateFormatDDMMYYYYFromYYYYMMDD,
     getDateFormatDDMMYYYYDash,
     idadeCalculator,
+    formatDate
   };
 }

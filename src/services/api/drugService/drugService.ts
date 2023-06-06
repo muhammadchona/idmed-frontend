@@ -39,6 +39,12 @@ export default {
     await api().delete('drug/' + id);
     drug.destroy(id);
   },
+  getActiveDrugs () {
+    return drug.query().withAllRecursive(2).where('active', true).get()
+  },
+  getDrugById (id: string) {
+    return drug.query().withAllRecursive(2).where('id',id).first()
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return drug.getModel().$newInstance();

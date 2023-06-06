@@ -72,6 +72,9 @@ export default {
       });
   },
   patch(id: string, params: string) {
+    console.log(id);
+    console.log(params);
+
     return api()
       .patch('secUser/' + id, params)
       .then((resp) => {

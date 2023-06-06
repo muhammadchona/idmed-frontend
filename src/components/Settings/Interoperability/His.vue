@@ -252,40 +252,38 @@ const promptToConfirm = (his) => {
     ? 'Deseja Inactivar o Sistema da Interoperabilidade?'
     : 'Deseja Activar o Sistema da Interoperabilidade?';
 
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (his.active) {
-          his.active = false;
-        } else {
-          his.active = true;
-        }
-
-        // if (this.mobile) {
-        //         console.log('FrontEnd');
-        //         if (his.syncStatus !== 'R') his.syncStatus = 'U';
-        //         HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
-        //         HealthInformationSystem.insertOrUpdate({ data: his });
-        //         this.displayAlert(
-        //           'info',
-        //           'Tipo de identificador actualizado com sucesso'
-        //         );
-        //       } else {
-
-        healthInformationSystemService
-          .patch(his.id, his)
-          .then((resp) => {
-            submitting.value = false;
-            showHISRegistrationScreen.value = false;
-          })
-          .catch((error) => {
-            submitting.value = false;
-            showHISRegistrationScreen.value = false;
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (his.active) {
+        his.active = false;
+      } else {
+        his.active = true;
       }
+
+      // if (this.mobile) {
+      //         console.log('FrontEnd');
+      //         if (his.syncStatus !== 'R') his.syncStatus = 'U';
+      //         HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
+      //         HealthInformationSystem.insertOrUpdate({ data: his });
+      //         this.displayAlert(
+      //           'info',
+      //           'Tipo de identificador actualizado com sucesso'
+      //         );
+      //       } else {
+
+      healthInformationSystemService
+        .patch(his.id, his)
+        .then((resp) => {
+          submitting.value = false;
+          showHISRegistrationScreen.value = false;
+        })
+        .catch((error) => {
+          submitting.value = false;
+          showHISRegistrationScreen.value = false;
+        });
+      // }
     }
-  );
+  });
   //   this.$q
   //     .dialog({
   //       title: 'Confirmação',

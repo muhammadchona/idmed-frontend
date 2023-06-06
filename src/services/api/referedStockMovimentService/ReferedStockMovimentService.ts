@@ -6,12 +6,12 @@ const referedStockMoviment = useRepo(ReferedStockMoviment);
 
 export default {
   // Axios API call
-  post(params: string) {
+  post(params: any) {
     return api()
       .post('referedStockMoviment', params)
       .then((resp) => {
         referedStockMoviment.save(resp.data);
-      });
+      })
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -24,24 +24,6 @@ export default {
             this.get(offset);
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alert(listErrors, null, null, null);
-          } else if (error.request) {
-            alert(error.request, null, null, null);
-          } else {
-            alert(error.message, null, null, null);
-          }
-        });
     }
   },
   patch(id: number, params: string) {
@@ -58,8 +40,28 @@ export default {
         referedStockMoviment.destroy(id);
       });
   },
+   async apiGetAll(offset: number, max:number) {
+    return  api().get(
+      '/referedStockMoviment?offset=' + offset + '&max=' + max
+    );
+  },
+   async apiSave(referedStockMoviment: any) {
+    return  api().post('/referedStockMoviment', referedStockMoviment);
+  },
+
+   async apiRemove(id: string) {
+    return   api().delete(`/referedStockMoviment/${id}`);
+  },
+   async apiUpdate(referedStockMoviment: any) {
+    return  api().patch(
+      '/referedStockMoviment',
+      referedStockMoviment
+    );
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return referedStockMoviment.getModel().$newInstance();
-  },
+  }
+  
+
 };
