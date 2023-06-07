@@ -113,7 +113,7 @@ export default {
 
   /*Pinia Methods*/
   getAllClinicalServices() {
-    return clinicalservice.query().withAll().get();
+    return clinicalservice.query().withAllRecursive(2).get();
     // .with('attributes', (query) => {
     //   query.with('clinicalServiceAttributeType');
     // })
@@ -143,4 +143,16 @@ export default {
       .with('identifierType')
       .get();
   },
+
+  getClinicalServicePersonalizedById(clinicalServiceId: string) {
+    return clinicalservice
+      .query()
+      .with('attributes', (query) => {
+        query.with('clinicalServiceAttributeType');
+      })
+      .with('clinicSectors')
+      .with('identifierType')
+      .whereId(clinicalServiceId)
+      .get();
+  }
 };

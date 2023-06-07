@@ -48,6 +48,6 @@ export default {
     return groupMember.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return groupMember.all();
+    return groupMember.withAll().all();
   },
 };

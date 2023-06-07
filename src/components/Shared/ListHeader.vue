@@ -104,12 +104,3 @@ const created = () => {
   border-top-right-radius: 5px;
 }
 </style>
-
-
-
-
-
-
-
-
-

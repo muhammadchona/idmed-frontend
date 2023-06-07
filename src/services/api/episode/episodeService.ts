@@ -63,14 +63,19 @@ export default {
     offset: number,
     max: number
   ) {
-    return await api().get(
-      '/episode/identifier/' +
-        identifierId +
-        '?offset=' +
-        offset +
-        '&max=' +
-        max
-    );
+    return await api()
+      .get(
+        '/episode/identifier/' +
+          identifierId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        episode.save(resp.data);
+        return resp;
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -108,6 +113,38 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
+
+  /*
+  lastEpisode() {
+    return Episode.query()
+    .with('startStopReason')
+    .with('episodeType')
+    .with('patientServiceIdentifier')
+    .with('clinicSector.*')
+    .where('patientServiceIdentifier_id', identifier.id)
+    .orderBy('episodeDate', 'desc')
+    .first()
+  }
+  */
+
+  getStartEpisodeByIdentifierId(identifierId: string) {
+    return episode
+      .query()
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier')
+      .with('patientVisitDetails', (query) => {
+        query.withAllRecursive(2);
+      })
+      .has('patientVisitDetails')
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'INICIO');
+      })
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('creationDate', 'desc')
+      .get();
+  },
+  
   getLastStartEpisodeWithPrescription(patientIdentifierid: string) {
     return episode
       .withAllRecursive(2)

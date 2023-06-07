@@ -1,15 +1,16 @@
 <template>
   <div>
     <ListHeader
-        :addVisible="!selectedGroup.isDesintegrated()"
-        :mainContainer="true"
-        @showAdd="$emit('addMember')"
-        :expandVisible="true"
-        @expandLess="expandLess"
-        bgColor="bg-primary">Membros do Grupo
-      </ListHeader>
-    <span v-if="(!dataFechComplete && loadedMembers.length > 0)">
-      <div class="q-mb-md box-border" v-if="showPrescriptionData">
+      :addVisible="!useGroup().isDesintegrated(selectedGroup)"
+      :mainContainer="true"
+      :addButtonActions="addMember"
+      :expandVisible="true"
+      @expandLess="expandLess"
+      bgColor="bg-primary"
+    >Membros do Grupo
+    </ListHeader>
+    <span>
+      <div class="q-mb-md box-border">
         <q-table
           class="col"
           dense
@@ -17,63 +18,93 @@
           :rows="loadedMembers"
           :columns="columns"
           row-key="id"
-          >
+        >
           <template v-slot:no-data="{ icon, filter }">
             <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
               <span>
                 Nenhum Paciente adicionado
               </span>
-              <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+              <q-icon
+                size="2em"
+                :name="filter ? 'filter_b_and_w' : icon"
+              />
             </div>
           </template>
           <template #body="props">
             <q-tr :props="props">
               <!--q-td key="order" :props="props">
               </q-td-->
-              <q-td key="id" :props="props">
-                {{props.row.patient.preferedIdentifier().value}}
+              <q-td
+                key="id"
+                :props="props"
+              >
+                {{usePatient().preferedIdentifier(props.row.patient).value}}
               </q-td>
-              <q-td key="name" :props="props">
-                {{props.row.patient.fullName}}
+              <q-td
+                key="name"
+                :props="props"
+              >
+                {{usePatient().fullName(props.row.patient)}}
               </q-td>
-              <q-td key="lasPrescriptionDate" :props="props">
-                {{getDDMMYYYFromJSDate(props.row.groupMemberPrescription !== null ? (props.row.groupMemberPrescription.prescription.prescriptionDate) : props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDate)}}
+              <q-td
+                key="lasPrescriptionDate"
+                :props="props"
+              >
+                {{getDDMMYYYFromJSDate(props.row.groupMemberPrescription !== null ? (props.row.groupMemberPrescription.prescription.prescriptionDate) : useEpisode().lastVisit(props.row.patient.identifiers[0].episodes[0]).prescription.prescriptionDate)}}
               </q-td>
-              <q-td key="remainingTime" :props="props">
-                {{props.row.groupMemberPrescription !== null ? (props.row.groupMemberPrescription.prescription.leftDuration) : props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.leftDuration}} mes(es)
+              <q-td
+                key="remainingTime"
+                :props="props"
+              >
+                {{props.row.groupMemberPrescription !== null ? (props.row.groupMemberPrescription.prescription.leftDuration) : useEpisode().lastVisit(props.row.patient.identifiers[0].episodes[0]).prescription.leftDuration}} mes(es)
               </q-td>
-              <q-td key="lastDispenseDate" :props="props">
-                {{
-                  props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription() !== null ?
-                  getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().pickupDate)
+              <q-td
+                key="lastDispenseDate"
+                :props="props"
+              >
+                {{ 
+                  usePrescription().lastPackOnPrescription(useEpisode().lastVisit(props.row.patient.identifiers[0].episodes[0]).prescription) !== null ?
+                  getDDMMYYYFromJSDate(usePrescription().lastPackOnPrescription(useEpisode().lastVisit(props.row.patient.identifiers[0].episodes[0]).prescription).pickupDate)
                   :
                   '-'
                   }}
               </q-td>
-              <q-td key="nextPickupDate" :props="props">
+              <q-td
+                key="nextPickupDate"
+                :props="props"
+              >
                 {{
-                  props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription() !== null ?
-                  getDDMMYYYFromJSDate(props.row.patient.identifiers[0].episodes[0].lastVisit().prescription.lastPackOnPrescription().nextPickUpDate)
+                  usePrescription().lastPackOnPrescription(useEpisode().lastVisit(props.row.patient.identifiers[0].episodes[0]).prescription) !== null ?
+                  getDDMMYYYFromJSDate(usePrescription().lastPackOnPrescription(useEpisode().lastVisit(props.row.patient.identifiers[0].episodes[0]).prescription).nextPickUpDate)
                   :
                   '-'
                   }}
               </q-td>
-              <q-td key="options" :props="props">
+              <q-td
+                key="options"
+                :props="props"
+              >
                 <div class="col">
-                <q-btn flat round
-                  color="blue-8"
-                  :disable="selectedGroup.isDesintegrated()"
-                  icon="post_add"
-                  @click="newPrescription(props.row, props.row.patient.identifiers[0])">
-                  <q-tooltip class="bg-blue-5">Nova Prescrição</q-tooltip>
-                </q-btn>
-                  <q-btn flat round
-                  color="red-8"
-                  :disable="selectedGroup.isDesintegrated()"
-                  icon="group_remove"
-                  @click="removeMember(props.row)">
-                  <q-tooltip class="bg-red-5">Remover do Grupo</q-tooltip>
-                </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="blue-8"
+                    :disable="useGroup().isDesintegrated(selectedGroup)"
+                    icon="post_add"
+                    @click="newPrescription(props.row, props.row.patient.identifiers[0])"
+                  >
+                    <q-tooltip class="bg-blue-5">Nova Prescrição</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="red-8"
+                    :disable="useGroup().isDesintegrated(selectedGroup)"
+                    icon="group_remove"
+                    @click="removeMember(props.row)"
+                  >
+                    <q-tooltip class="bg-red-5">Remover do Grupo</q-tooltip>
+                  </q-btn>
                 </div>
               </q-td>
             </q-tr>
@@ -81,29 +112,42 @@
         </q-table>
       </div>
     </span>
-    <q-dialog v-model="alert.visible" persistent>
-      <Dialog :type="alert.type" @cancelOperation="cancelOperation" @closeDialog="closeDialog" @commitOperation="doOnConfirm">
-        <template v-slot:title> {{dialogTitle}}</template>
-        <template v-slot:msg> {{alert.msg}} </template>
-      </Dialog>
-    </q-dialog>
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
-import Group from '../../../store/models/group/Group'
+<script setup>
+import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
+import Group from '../../../stores/models/group/Group'
 import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
-import Episode from '../../../store/models/episode/Episode'
-import Patient from '../../../store/models/patient/Patient'
-import Pack from '../../../store/models/packaging/Pack'
-import Prescription from '../../../store/models/prescription/Prescription'
+import Episode from '../../../stores/models/episode/Episode'
+import Patient from '../../../stores/models/patient/Patient'
+import Pack from '../../../stores/models/packaging/Pack'
+import Prescription from '../../../stores/models/prescription/Prescription'
 import moment from 'moment'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-import GroupMember from '../../../store/models/groupMember/GroupMember'
-import Clinic from '../../../store/models/clinic/Clinic'
+import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
+import GroupMember from '../../../stores/models/groupMember/GroupMember'
+import Clinic from '../../../stores/models/clinic/Clinic'
 import mixinplatform from 'src/mixins/mixin-system-platform'
-import GroupMemberPrescription from 'src/store/models/group/GroupMemberPrescription'
+import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription'
+import episodeService from 'src/services/api/episode/episodeService'
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService'
+import prescriptionService from 'src/services/api/prescription/prescriptionService'
+import packService from 'src/services/api/pack/packService'
+import groupMemberService from 'src/services/api/groupMember/groupMemberService'
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useRouter } from 'vue-router';
+import groupService from 'src/services/api/group/groupService'
+import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService'
+import patientService from 'src/services/api/patientService/patientService'
+// import packService from 'src/services/api/pack/packService';
+import {  useGroup } from 'src/composables/group/groupMethods';
+import { useGroupMember } from 'src/composables/group/groupMemberMethods';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
+import { usePrescription } from 'src/composables/prescription/prescriptionMethods'
+import {  usePatient } from 'src/composables/patient/patientMethods';
+import ListHeader from 'components/Shared/ListHeader.vue'
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -113,118 +157,73 @@ const columns = [
   { name: 'nextPickupDate', align: 'left', label: 'Data do Próximo Levantamento', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
-export default {
-  mixins: [mixinplatform],
-  data () {
-    return {
-      alert: ref({
-        type: '',
-        visible: false,
-        msg: ''
-      }),
-      columns,
-      membersInfoLoaded: false,
-      fecthedMemberData: 0,
-      members: ref([]),
-      allMembers: ref([]),
-      dialogTitle: 'Informação',
-      selectedMember: null,
-      $q: useQuasar(),
-      step: 'display',
-      showPrescriptionData: ref(true)
+
+const { alertSucess, alertError, alertInfo,alertWarningAction } = useSwal();
+const { closeLoading, showloading } = useLoading();
+const { website, isDeskTop, isMobile } = useSystemUtils();
+
+
+
+const router = useRouter();
+const searchField = ref('');
+const filter = reactive(ref(''));
+const selected = ref([]);
+const username = localStorage.getItem('user');
+const clinic = inject('clinic');
+let curGroup = reactive(ref(new Group({ members: [] })));
+
+const membersInfoLoaded = ref(true);
+const fecthedMemberData = ref(0);
+const allMembers = ref([]);
+const members = ref([]);
+const selectedMember = ref([]);
+const step =  'display';
+const showPrescriptionData = ref(true);
+
+const selectedGroup =  inject('group');
+
+watch(
+  () => membersInfoLoaded.value,
+  (oldp, newp) => {
+    if (oldp !== newp) {
+      console.log(loadedMembers.value)
+      console.log(dataFechComplete.value)
+      closeLoading();
     }
-  },
-  watch: {
-     membersInfoLoaded (oldp, newp) {
-      if (oldp !== newp) {
-        this.hideLoading()
-      }
-    }
-  },
-  methods: {
-    showloading () {
-      console.log('loaging')
-       this.$q.loading.show({
-          spinner: QSpinnerBall,
-          spinnerColor: 'gray',
-          spinnerSize: 140,
-          message: 'Processando, aguarde por favor...',
-          messageColor: 'white'
-        })
-    },
-    hideLoading () {
-      this.$q.loading.hide()
-    },
-    loadMemberInfo () {
-      this.members.forEach((member) => {
-        member.patient.identifiers.forEach((identifier) => {
-          if (identifier.service.code === member.group.service.code) {
-            Episode.apiGetAllByIdentifierId(identifier.id).then(resp => {
-            if (resp.response.data.length > 0) {
-              identifier.episodes = resp.response.data
-              identifier.episodes.forEach(episode => {
-                PatientVisitDetails.apiGetLastByEpisodeId(episode.id).then(resp => {
-                  if (resp.response.data) {
-                    episode.patientVisitDetails[0] = resp.response.data
-                    this.loadVisitDetailsInfo(episode.patientVisitDetails, 0)
-                  }
-                })
-              })
-            }
-          })
-          }
-        })
-      })
-    },
-    loadVisitDetailsInfo (visitDetails, i) {
-      if (visitDetails[i] !== undefined && visitDetails[i] !== null) {
-        Prescription.apiFetchById(visitDetails[i].prescription.id).then(resp => {
-          visitDetails[i].prescription = resp.response.data
-          if (visitDetails[i].pack !== null) {
-            Pack.apiFetchById(visitDetails[i].pack.id).then(resp => {
-              visitDetails[i].pack = resp.response.data
-                this.membersInfoLoaded = true
-            })
-          } else {
-              this.membersInfoLoaded = true
-          }
-        })
+  }
+);    
+
+
+const emit = defineEmits([
+  'addMember',
+]);
+
+
+
+const addMember = () => {
+  emit('addMember')
+}
+
+const expandLess = (value) => {
+  showPrescriptionData.value = !value
+}
+
+const removeMember = (member) => {
+     selectedMember.value = member
+      dialogTitle = 'Confirmação da remoção do membro.'
+      if (members.value.length === 1) {
+        // step = 'desintagrate'
+        alertWarningAction('Nota: Ao remover este membro o grupo será desintegrado. Continuar?')
       } else {
-        this.membersInfoLoaded = true
+        // this.step = 'memberRemotion'
+       alertWarningAction('Confirma a remoção do membro [' + member.patient.fullName + '], deste grupo?')
       }
-    },
-    addMember () {
-      this.$emit('addMember')
-    },
-    expandLess (value) {
-      this.showPrescriptionData = !value
-    },
-    removeMember (member) {
-      this.selectedMember = member
-      this.dialogTitle = 'Confirmação da remoção do membro.'
-      if (this.members.length === 1) {
-        this.step = 'desintagrate'
-        this.displayAlert('confirmation', 'Nota: Ao remover este membro o grupo será desintegrado. Continuar?')
-      } else {
-        this.step = 'memberRemotion'
-        this.displayAlert('confirmation', 'Confirma a remoção do membro [' + member.patient.fullName + '], deste grupo?')
-      }
-    },
-    doOnConfirm () {
-      this.alert.visible = false
-      if (this.isGroupDesintagrationStep) {
-        this.$emit('desintagrateGroup')
-      } else if (this.isMemberRemotionStep) {
-        this.doMemberRemotion()
-      }
-    },
-    cancelOperation () {
-      this.step = 'display'
-      this.alert.visible = false
-    },
-    doMemberRemotion () {
-      this.selectedMember.endDate = new Date()
-      const member = Object.assign({}, this.selectedMember)
+}
+
+const  doMemberRemotion = () => {
+      selectedMember.value.endDate = new Date()
+      const member = Object.assign({}, selectedMember.value)
+      /*
       member.patient = Patient.query()
                               .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
                               .with('province')
@@ -241,101 +240,83 @@ export default {
                             .with('facilityType')
                             .where('id', member.clinic_id)
                             .first()
-      GroupMember.apiUpdate(member).then(resp => {
+         */                   
+         groupMemberService.apiUpdate(member).then(resp => {
         this.getGroupMembers()
-        this.displayAlert('info', 'Operação efectuada com sucesso.')
+        alertSucess('Operação efectuada com sucesso.')
       })
-    },
-    newPrescription (patient, identifier) {
-      this.$emit('newPrescription', patient, identifier)
-    },
-    getJSDateFromDDMMYYY (dateString) {
+    }
+   
+const newPrescription = (patient, identifier) => {
+     // $emit('newPrescription', patient, identifier)
+    }
+
+const getDDMMYYYFromJSDate = (jsDate) => {
+    return moment(jsDate).format('DD-MM-YYYY')
+}
+
+const getJSDateFromDDMMYYY = (dateString) => {
       const dateParts = dateString.split('-')
       return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-    },
-    getDDMMYYYFromJSDate (jsDate) {
-      return moment(jsDate).format('DD-MM-YYYY')
-    },
-    getGroupMembers (isPrescription) {
-        const group = Group.query()
-                          .with('service')
-                          .with('members')
-                          .with('groupType')
-                          .where('id', SessionStorage.getItem('selectedGroup').id)
-                          .first()
+    }
+
+const getGroupMembers = (isPrescription) => {
+        const group = groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
         group.members.forEach((member) => {
-            member.groupMemberPrescription = GroupMemberPrescription.query()
-                                                                    .with('prescription.*')
-                                                                    .where('member_id', member.id)
-                                                                    .first()
-            member.patient = Patient.query()
-                                    .with(['identifiers.identifierType', 'identifiers.episodes', 'identifiers.service.identifierType'])
-                                    .with('province')
-                                    .with(['clinic.province', 'clinic.district.province', 'clinic.facilityType'])
-                                    .where('id', member.patient_id)
-                                    .first()
+            member.groupMemberPrescription = groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(member.id)
+
+            member.patient = patientService.getPatienWithstByID(member.patient_id)
 
             member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
-              return identifier.service.id === this.selectedGroup.service.id
+              return identifier.service.id === selectedGroup.value.service.id
             })
-            if (member.groupMemberPrescription !== null && member.groupMemberPrescription !== undefined && isPrescription) member.groupMemberPrescription.prescription.leftDuration = this.calculateRemainingTime(member.groupMemberPrescription)
-            member.patient.identifiers[0].episodes = []
-            member.patient.identifiers[0].episodes[0] = this.lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-            if (member.patient.identifiers[0].episodes.length > 0) {
-         this.fecthMemberPrescriptionData(member.patient.identifiers[0].episodes[0].lastVisit(), member)
+            if (member.groupMemberPrescription !== null && member.groupMemberPrescription !== undefined && isPrescription) member.groupMemberPrescription.prescription.leftDuration = calculateRemainingTime(member.groupMemberPrescription)
+         //   member.patient.identifiers[0].episodes = [] 
+            member.patient.identifiers[0].episodes[0] = lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
+            if (member.patient.identifiers[0].episodes.length > 0 && member.patient.identifiers[0].episodes[0] !== null) {
+             fecthMemberPrescriptionData(useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]), member)
             }
         })
-        this.allMembers = group.members
-        if (!group.isDesintegrated()) {
-          this.members = group.members.filter((member) => { return member.isActive() })
+        allMembers.value = group.members
+        if (!useGroup().isDesintegrated(group)) { 
+          members.value = group.members.filter((member) => { 
+            return useGroupMember().isActive(member) })
         } else {
-          this.members = group.members
+          members.value = group.members
         }
-    },
-    fecthMemberPrescriptionData (visitDetails, member) {
-      if (this.mobile) {
+    } 
+
+ const  fecthMemberPrescriptionData = (visitDetails, member) => {
+      if (!isMobile.value) {
         if (visitDetails.pack !== null) {
-          this.fecthedMemberData = this.fecthedMemberData + 1
+          fecthedMemberData.value = fecthedMemberData.value + 1
         }
-      } else {
-        if (visitDetails.pack !== null) Pack.apiFetchById(visitDetails.pack.id)
+     } else {
+        if (visitDetails.pack !== null) packService.apiFetchById(visitDetails.pack.id)
         if (member.groupMemberPrescription !== null) {
-       //   Prescription.apiFetchById(member.groupMemberPrescription.id).then(resp => {
-       //   this.fecthedMemberData = this.fecthedMemberData + 1
-       // })
+          Prescription.apiFetchById(member.groupMemberPrescription.id).then(resp => {
+          fecthedMemberData.value = this.fecthedMemberData + 1
+        })
         } else {
-          Prescription.apiFetchById(visitDetails.prescription.id).then(resp => {
-          this.fecthedMemberData = this.fecthedMemberData + 1
+          prescriptionService.apiFetchById(visitDetails.prescription.id).then(resp => {
+          fecthedMemberData.value = fecthedMemberData.value + 1
         })
         }
       }
-    },
-    getAllVisitsOfPrescription (prescription) {
-      const visits = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
-      let lastVisit = null
-
-      visits.forEach((visit) => {
-        if (lastVisit === null) {
-          lastVisit = visit
-        } else if (visit.pack !== null && visit.pack.pickupDate > lastVisit.pack.pickupDate) {
-          lastVisit = visit
+    }   
+   
+ const loadMembers = () => {
+        if (useGroup().isDesintegrated(selectedGroup)) {
+          members.value = allMembers.value
         }
-      })
-      return visits
-    },
-    loadMembers () {
-        if (this.selectedGroup.isDesintegrated()) {
-          this.members = this.allMembers
-        }
-        this.members.forEach((member) => {
-          if (member.patient.identifiers[0].episodes[0].lastVisit().pack !== null) {
-            member.patient.identifiers[0].episodes[0].lastVisit().pack = Pack.query()
-                                                                              .with('dispenseMode')
-                                                                              .with('packagedDrugs')
-                                                                              .where('id', member.patient.identifiers[0].episodes[0].lastVisit().pack.id)
-                                                                              .first()
-          }
-          const prescription = Prescription.query()
+        
+        members.value.forEach((member) => { 
+          if (member.patient.identifiers[0].episodes[0] !== null && useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack !== null) {
+            useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack = packService.getPackWithsByID(useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack.id)
+          }                         
+          if (member.patient.identifiers[0].episodes[0] !== null && useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).prescription !== null) {
+          /*
+            const prescription = Prescription.query()
                                           .with('prescriptionDetails')
                                           .with('duration')
                                           .with(['prescribedDrugs.drug.form', 'prescribedDrugs.drug.clinicalService.identifierType'])
@@ -345,87 +326,62 @@ export default {
                                           .first()
           prescription.patientVisitDetails = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
           member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
+          */
+         console.log(useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).prescription)
+          }
         })
-        return this.members
-    },
-    lastStartEpisodeWithPrescription (identifierId) {
-      let episode = null
-      const episodes = Episode.query()
-                              .with('startStopReason')
-                              .with('clinicSector')
-                              .with('patientServiceIdentifier')
-                              .with('patientVisitDetails.*')
-                              .has('patientVisitDetails')
-                              .whereHas('episodeType', (query) => {
-                                    query.where('code', 'INICIO')
-                                  })
-                              .where('patientServiceIdentifier_id', identifierId)
-                              .orderBy('creationDate', 'desc')
-                              .get()
+       
+       console.log(members.value)
+        return members.value
+    }
+
+    
+const  lastStartEpisodeWithPrescription = (identifierId) => {
+      let episode = null 
+      const episodes = episodeService.getStartEpisodeByIdentifierId(identifierId)
       Object.keys(episodes).forEach(function (k) {
         const id = episodes[k]
-        if (episode === null && id.hasVisits()) {
+        if (episode === null && useEpisode().hasVisits(id)) {
           episode = id
         }
       })
       return episode
-    },
-    calculateRemainingTime (memberPrescription) {
+    }
+    
+
+const  calculateRemainingTime = (memberPrescription) => {
       if (memberPrescription !== null && memberPrescription !== undefined) {
         console.log(memberPrescription.prescription.remainigDuration())
         return memberPrescription.prescription.remainigDuration()
       } else {
         return 0
       }
-    },
-    displayAlert (type, msg) {
-      this.alert.type = type
-      this.alert.msg = msg
-      this.alert.visible = true
-    },
-    closeDialog () {
-      this.alert.visible = false
     }
-  },
-  mounted () {
-    this.getGroupMembers()
-  },
-  updated () {
-    console.log('updated')
-  },
-  computed: {
-    selectedGroup: {
-      get () {
-        return Group.query()
-                    .with('service')
-                    .with(['members.patient.*', 'members.patient.identifiers.identifierType', 'members.clinic'])
-                    .where('id', SessionStorage.getItem('selectedGroup').id)
-                    .first()
+
+onMounted(() => {
+  console.log('Child Component: onMounted');
+      getGroupMembers()
+      console.log(loadedMembers.value)
+      console.log(dataFechComplete.value) 
+})
+
+
+
+const dataFechComplete = computed(() => {
+  console.log(loadedMembers.value)
+      console.log(dataFechComplete.value)
+      console.log(loadedMembers.value.length)
+return membersInfoLoaded.value
+})
+
+const loadedMembers = computed({
+  // getter
+  get() 
+     {
+        return loadMembers()
       }
-    },
-    dataFechComplete () {
-      return this.membersInfoLoaded
-    },
-    loadedMembers: {
-      get () {
-        return this.loadMembers()
-      }
-    },
-    isGroupDesintagrationStep () {
-      return this.step === 'desintagrate'
-    },
-    isMemberRemotionStep () {
-      return this.step === 'memberRemotion'
-    },
-    isDisplayStep () {
-      return this.step === 'display'
-    }
-  },
-  components: {
-    ListHeader: require('components/Shared/ListHeader.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default
-  }
-}
+})
+console.log(loadedMembers)
 </script>
 
 <style lang="scss">

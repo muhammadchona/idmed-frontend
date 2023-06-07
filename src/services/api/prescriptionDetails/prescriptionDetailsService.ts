@@ -56,6 +56,15 @@ export default {
     return prescriptionDetails.all();
   },
 
+
+  getPrescriptionDetailByPrescriptionID(prescriptionID: string) {
+    return prescriptionDetails
+      .withAll()
+      .where((prescriptionDetails) => {
+        return prescriptionDetails.prescription_id === prescriptionID;
+      })
+  },
+  
   getLastByPrescriprionId(prescriptionId: string) {
     return prescriptionDetails
       .withAllRecursive(1)

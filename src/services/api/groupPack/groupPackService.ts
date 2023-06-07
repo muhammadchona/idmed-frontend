@@ -60,4 +60,12 @@ export default {
   getAllFromStorage() {
     return groupPack.all();
   },
+
+  getGroupPackByHeaderId(groupHeaderId: string) {
+    return groupPack
+      .query()
+      .with('pack')
+      .where('header_id', groupHeaderId)
+      .get();
+  },
 };

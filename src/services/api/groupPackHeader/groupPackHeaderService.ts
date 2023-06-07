@@ -63,4 +63,9 @@ export default {
   getAllFromStorage() {
     return groupPackHeader.all();
   },
+   
+  getGroupPackHeaderByGroupId(groupId: string) {
+    return groupPackHeader.query().withAllRecursive(3).where('group_id', groupId).orderBy('packDate', 'desc').get()
+  }
+
 };

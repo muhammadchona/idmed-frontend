@@ -1,6 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Group from 'src/stores/models/group/Group';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+
+const { alertSucess, alertError, alertInfo } = useSwal();
 
 const group = useRepo(Group);
 
@@ -41,15 +44,58 @@ export default {
       });
   },
   async apiFetchById(id: string) {
-    return await api().get(`/groupInfo/${id}`);
+    return await api()
+      .get(`/groupInfo/${id}`)
+      .then((resp) => {
+        group.save(resp.data);
+        return resp;
+      });
   },
 
-  async apiSave(group: any) {
-    return await api().post('/groupInfo', group);
+  async apiSave(groupInfo: any) {
+    return await api()
+      .post('/groupInfo', groupInfo)
+      .then((resp) => {
+        group.save(resp.data);
+        return resp.data;
+      })
+      .catch((error) => {
+        const listErrors = [];
+        if (error.request.response != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+        }
+        alertError(listErrors.value);
+      });
   },
 
-  async apiUpdate(group: any) {
-    return await api().patch('/groupInfo/' + group.id, group);
+  async apiUpdate(groupInfo: any) {
+    return await api()
+      .patch('/groupInfo/' + groupInfo.id, groupInfo)
+      .then((resp) => {
+        group.save(resp.data);
+        return resp.data;
+      })
+      .catch((error) => {
+        const listErrors = [];
+        if (error.request.response != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+        }
+        alertError(listErrors.value);
+      });
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
@@ -61,11 +107,36 @@ export default {
   async apiValidateBeforeAdd(patientId: string, code: string) {
     return await api().get(`/groupInfo/validadePatient/${patientId}/${code}`);
   },
+  getAllGroups() {
+    return group.query().with('groupType').with('service').get();
+  },
+
+  getGroupById(groupId: string) {
+    return group.query().withAllRecursive(3).where('id', groupId).first();
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return group.getModel().$newInstance();
   },
   getAllFromStorage() {
     return group.all();
+  },
+
+  getGroupWithsById(groupId: string) {
+    return group
+      .query()
+      .with('members', (query) => {
+        query.withAllRecursive(1);
+      })
+      .with('service', (query) => {
+        query.with('identifierType');
+      })
+      .with('groupType')
+      .with('clinic', (query) => {
+        query.withAllRecursive(1);
+      })
+      .where('id', groupId)
+      .first();
   },
 };

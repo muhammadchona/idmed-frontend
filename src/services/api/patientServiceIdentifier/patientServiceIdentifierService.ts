@@ -104,4 +104,7 @@ export default {
       .where('id', id)
       .get();
   },
+  curIdentifierById(id: string) {
+    return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
+  },
 };
