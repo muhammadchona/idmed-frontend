@@ -16,4 +16,7 @@ export class StockReferenceAdjustment extends StockAdjustment {
     };
   }
 
+  static piniaOptions = {
+    persist: true,
+  }
 }

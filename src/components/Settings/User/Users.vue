@@ -56,7 +56,7 @@
                   class="q-ml-md"
                   color="green-8"
                   icon="search"
-                  @click="visualizeClinic(props.row)"
+                  @click="visualizeUser(props.row)"
                 >
                   <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
                 </q-btn>
@@ -143,6 +143,7 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
+const submitting = ref(false);
 const showUserRegistrationScreen = ref(false);
 const user = reactive(ref(userService.newInstanceEntity()));
 
@@ -168,6 +169,7 @@ const configs = computed(() => {
 /*Provides*/
 provide('selectedUser', user);
 provide('configs', configs);
+provide('showUserRegistrationScreen', showUserRegistrationScreen);
 
 /*Methods*/
 // const getAllClinicsByProvinceCode = async (provinceCode) => {
@@ -203,62 +205,63 @@ const getTooltipClass = (user) => {
 };
 const editUser = (userParam) => {
   user.value = userParam;
-  showUserRegistrationScreen.value = true;
+  isCreateStep.value = false;
   editMode.value = true;
   viewMode.value = false;
+  showUserRegistrationScreen.value = true;
 };
 const addUser = () => {
-  // user = new UserLogin();
-  showUserRegistrationScreen.value = true;
+  user.value = reactive(ref(userService.newInstanceEntity()));
+  isCreateStep.value = true;
   editMode.value = false;
   viewMode.value = false;
+  showUserRegistrationScreen.value = true;
 };
-const visualizeClinic = (userParam) => {
+const visualizeUser = (userParam) => {
   user.value = userParam;
   viewMode.value = true;
   editMode.value = false;
   showUserRegistrationScreen.value = true;
+  conole.log(user.value);
 };
-// promptToConfirm(user) {
-//   let msg = '';
-//   this.$q
-//     .dialog({
-//       title: 'Confirmação',
-//       message: !user.accountLocked
-//         ? 'Deseja Inactivar o Utilizador?'
-//         : 'Deseja Activar o Utilizador?',
-//       cancel: true,
-//       persistent: true,
-//     })
-//     .onOk(() => {
-//       if (!user.accountLocked) {
-//         user.accountLocked = true;
-//         msg = 'Utilizador inactivado com sucesso.';
-//       } else if (user.accountLocked) {
-//         user.accountLocked = false;
-//         msg = 'Utilizador activado com sucesso.';
-//       }
-//       if (this.website) {
-//         UserLogin.apiSave(user)
-//           .then((resp) => {
-//             this.displayAlert('info', msg);
-//           })
-//           .catch((error) => {
-//             this.displayAlert('error', error);
-//           });
-//       } else {
-//         let userLocalBase = JSON.parse(JSON.stringify(user));
-//         userLocalBase = this.encrypt(userLocalBase);
-//         UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
-//           this.submitting = false;
-//           UserLogin.insert({
-//             data: userLocalBase,
-//           });
-//           this.displayAlert('info', msg);
-//         });
-//       }
-//     });
-// },
+const promptToConfirm = (user) => {
+  const question = user.active
+    ? 'Deseja Inactivar o Utilizador?'
+    : 'Deseja Activar o Utilizador?';
+
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (user.active) {
+        user.active = false;
+      } else {
+        user.active = true;
+      }
+
+      // if (this.mobile) {
+      //         et userLocalBase = JSON.parse(JSON.stringify(user));
+      // userLocalBase = this.encrypt(userLocalBase);
+      // UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
+      //   this.submitting = false;
+      //   UserLogin.insert({
+      //     data: userLocalBase,
+      //   });
+      //   this.displayAlert('info', msg);
+      // });
+      //       } else {
+      userService
+        .patch(user.id, user)
+        .then((resp) => {
+          submitting.value = false;
+          showUserRegistrationScreen.value = false;
+        })
+        .catch((error) => {
+          submitting.value = false;
+          showUserRegistrationScreen.value = false;
+        });
+      // }
+    }
+  });
+};
 // getRolesToVuex() {
 //   Role.localDbGetAll().then((roles) => {
 //     Role.insert({ data: roles });
@@ -276,7 +279,6 @@ const visualizeClinic = (userParam) => {
 // },
 // getClinicSectorTypeToVue() {
 //   ClinicSectorType.localDbGetAll().then((clinicSectorTypes) => {
-//     console.log(clinicSectorTypes);
 //     ClinicSectorType.insert({ data: clinicSectorTypes });
 //   });
 // },

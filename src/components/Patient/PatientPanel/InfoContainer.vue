@@ -175,9 +175,6 @@ const closeClinicService = inject('closeClinicService');
 const editClinicService = inject('editClinicService');
 
 // Hook
-onMounted(() => {
-  console.log('Current NID', patient.value);
-});
 
 // Methods
 const expandLess = (value) => {

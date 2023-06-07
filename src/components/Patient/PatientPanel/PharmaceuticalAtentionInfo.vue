@@ -1,6 +1,14 @@
 <template>
   <div>
-    <ListHeader />
+    <ListHeader
+      :title="title"
+      :bg-color="bgColor"
+      :main-container="mainContainer"
+      :expanded="expandLess"
+      :add-visible="true"
+      :expand-visible="false"
+      :add-button-actions="addButtonActions"
+    />
     <div v-show="infoVisible">
       <EmptyList v-if="patientVisits.length <= 0" />
       <div v-else>
@@ -16,10 +24,6 @@
 </template>
 
 <script setup>
-// import { SessionStorage } from 'quasar';
-// import Patient from '../../../store/models/patient/Patient';
-// import PatientVisit from '../../../store/models/patientVisit/PatientVisit';
-// import PregnancyScreening from '../../../store/models/screening/PregnancyScreening';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import AddEditPharmaceuticalAtention from 'components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue';
@@ -30,11 +34,9 @@ import patientVisitService from 'src/services/api/patientVisit/patientVisitServi
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 
 //Declaration
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { website } = useSystemUtils();
 const infoVisible = ref(true);
-const showAddPharmAttention = ref(false);
 const showAddPharmaceuticalAtention = reactive(ref(false));
-const flagGo = ref(false);
 const title = ref('Atenção Farmacêutica');
 const titleEmptyList = ref('Nenhuma Atenção Farmacêutica Adicionada');
 const bgColor = ref('bg-primary');
@@ -46,21 +48,14 @@ const viewPregnancy = reactive(ref(false));
 const viewAdherence = reactive(ref(false));
 const viewRam = reactive(ref(false));
 const showPatientVisit = reactive(ref(new PatientVisit()));
+
 //Injection
 const patient = inject('patient');
 
 // Methods
-const init = () => {
-  if (website.value) {
-    console.log('Vitalis', patientVisits.value);
-  }
+const expandLess = (valueUpdated) => {
+  infoVisible.value = !valueUpdated;
 };
-const expandLess = (value) => {
-  this.infoVisible = !value;
-};
-onMounted(() => {
-  init();
-});
 // Computed
 
 const addButtonActions = () => {

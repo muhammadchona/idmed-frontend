@@ -49,4 +49,12 @@ export default {
   getAllFromStorage() {
     return dispenseMode.all();
   },
+
+  getAllFromDispenseModeType(dispenseModeType: string) {
+    return dispenseMode
+      .where((dispenseMode) => {
+        return dispenseMode.code.includes(dispenseModeType);
+      })
+      .get();
+  },
 };

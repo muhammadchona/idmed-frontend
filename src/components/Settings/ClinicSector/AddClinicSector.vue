@@ -12,16 +12,31 @@
     <form @submit.prevent="validateClinicSector">
       <q-card-section class="q-px-md">
         <div class="row q-mt-md">
-          <nameInput
+          <!-- <q-input
+            ref="nomeRef"
             v-model="clinicSector.description"
             label="Nome do Sector Clínico *"
-            ref="nome"
             :disable="onlyView"
+          /> -->
+          <q-input
+            outlined
+            label="Nome do Sector Clínico *"
+            dense
+            ref="nomeRef"
+            :disable="onlyView"
+            class="col"
+            v-model="clinicSector.description"
+            @input="(event) => $emit('update:name', event.target.value)"
+            :rules="[(val) => !!val || 'Por favor indicar o nome']"
+            lazy-rules
           />
         </div>
         <div class="row q-mt-md">
-          <codeInput
-            ref="code"
+          <q-input
+            outlined
+            dense
+            class="col"
+            ref="codeRef"
             v-model="clinicSector.code"
             :rules="[(val) => codeRules(val)]"
             lazy-rules
@@ -59,7 +74,7 @@
             disable
             transition-show="flip-up"
             transition-hide="flip-down"
-            ref="clinic"
+            ref="clinicRef"
             option-value="id"
             option-label="clinicName"
             :rules="[(val) => val != null || ' Por favor indique a clinica']"
@@ -74,7 +89,7 @@
           type="submit"
           :loading="submitting"
           @click.once="submitting = true"
-          label="Submeter"
+          label="GRAVAR"
           color="primary"
           v-if="!onlyView"
         />
@@ -101,9 +116,13 @@ import codeInput from 'src/components/Shared/CodeInput.vue';
 /*Declarations*/
 const databaseCodes = ref([]);
 const submitting = ref(false);
+const nomeRef = ref(null);
+const codeRef = ref(null);
+const clinicSectorRef = ref(null);
+const clinicRef = ref(null);
 
 /*injects*/
-const selectedClinicSector = inject('selectedClinicSector');
+const clinicSector = inject('selectedClinicSector');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const currClinic = inject('currClinic');
@@ -114,9 +133,9 @@ const showClinicSectorRegistrationScreen = inject(
 );
 
 /*Hooks*/
-const clinicSector = computed(() => {
-  return selectedClinicSector.value;
-});
+// const clinicSector = computed(() => {
+//   return selectedClinicSector.value;
+// });
 
 const onlyView = computed(() => {
   return viewMode.value;
@@ -146,39 +165,35 @@ const extractDatabaseCodes = () => {
 };
 
 const validateClinicSector = () => {
-  // this.$refs.nome.$refs.ref.validate();
-  // this.$refs.code.$refs.ref.validate();
-  // this.$refs.clinicSectorRef.validate();
-  // this.$refs.clinic.validate();
-  // if (
-  //   !this.$refs.nome.$refs.ref.hasError &&
-  //   !this.$refs.code.$refs.ref.hasError &&
-  //   !this.$refs.clinic.hasError &&
-  //   !this.$refs.clinicSectorRef.hasError
-  // ) {
-  submitClinicSector();
-  // }
+  nomeRef.value.validate();
+  codeRef.value.validate();
+  clinicSectorRef.value.validate();
+  clinicRef.value.validate();
+  if (
+    !nomeRef.value.hasError &&
+    !codeRef.value.hasError &&
+    !clinicRef.value.hasError &&
+    !clinicSectorRef.value.hasError
+  ) {
+    submitClinicSector();
+  }
 };
 
 const submitClinicSector = () => {
   clinicSector.value.active = true;
   if (clinicSector.value.uuid === null) clinicSector.value.uuid = uuidv4();
   // if (mobile) {
-  //   console.log('Mobile');
   //   clinicSector.clinic_id = currClinic.id;
   //   clinicSector.clinic_sector_type_id =
   //     clinicSector.clinicSectorType.id;
   //   if (!isEditStep) {
-  //     console.log('Create Step');
   //     clinicSector.syncStatus = 'R';
-  //     console.log(clinicSector);
   //     ClinicSector.localDbAdd(
   //       JSON.parse(JSON.stringify(clinicSector))
   //     ).then((item) => {
   //       ClinicSector.insert({ data: clinicSector });
   //     });
   //   } else {
-  //     console.log('Edit Step');
   //     if (clinicSector.syncStatus !== 'R')
   //       clinicSector.syncStatus = 'U';
   //     const clinicSecUpdate = new ClinicSector(
@@ -196,7 +211,6 @@ const submitClinicSector = () => {
   //   );
   // } else {
   if (isCreateStep.value) {
-    console.log('Create Step_Online_Mode');
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }
@@ -212,7 +226,6 @@ const submitClinicSector = () => {
       });
   }
   if (isEditStep.value) {
-    console.log('Edit Step_Online_Mode');
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }
@@ -235,9 +248,7 @@ const codeRules = (val) => {
   if (clinicSector.value.code === '') {
     return 'o Código é obrigatorio';
   } else if (
-    (databaseCodes.value.includes(val) &&
-      selectedClinicSector.value.id === clinicSector.value.id &&
-      !isEditStep.value) ||
+    (databaseCodes.value.includes(val) && !isEditStep.value) ||
     (databaseCodes.value.includes(val) &&
       clinicSectors.value.filter((x) => x.code === val)[0].id !==
         clinicSector.value.id &&

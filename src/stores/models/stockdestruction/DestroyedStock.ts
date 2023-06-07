@@ -3,6 +3,7 @@ import Clinic from '../clinic/Clinic';
 import { StockDestructionAdjustment } from '../stockadjustment/StockAdjustmentHierarchy';
 import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
+import api from 'src/services/api/apiService/apiService';
 
 export default class DestroyedStock extends Model {
   static entity = 'destroyedStocks';
@@ -22,19 +23,19 @@ export default class DestroyedStock extends Model {
   }
 
   static async apiSave(destroyedStock) {
-    return await this.api().post('/destroyedStock', destroyedStock);
+    return await api().post('/destroyedStock', destroyedStock);
   }
 
   static async apiRemove(id) {
-    return await this.api().delete(`/destroyedStock/${id}`);
+    return await api().delete(`/destroyedStock/${id}`);
   }
 
   static async apiUpdate(destroyedStock) {
-    return await this.api().patch('/destroyedStock', destroyedStock);
+    return await api().patch('/destroyedStock', destroyedStock);
   }
 
-  static async apiGetAll(offset, max) {
-    return await this.api().get(
+   async apiGetAll(offset: number, max: number) {
+    return await api().get(
       '/destroyedStock?offset=' + offset + '&max=' + max
     );
   }

@@ -6,20 +6,68 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
-const roleRepo = useRepo(Role);
+const rolerepo = useRepo(Role);
 
 export default {
   // Axios API call
-  async post(params: string) {
-    const resp = await api().post('role', params);
-    roleRepo.save(resp.data);
+  post(params: string) {
+    return api()
+      .post('role', params)
+      .then((resp) => {
+        rolerepo.save(resp.data);
+        alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error) => {
+        if (error.request != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          const listErrors = [];
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+          alertError(String(listErrors));
+        } else if (error.request) {
+          alertError(error.request);
+        } else {
+          alertError(error.message);
+        }
+      });
+  },
+  patch(id: number, params: string) {
+    return api()
+      .patch('role/' + id, params)
+      .then((resp) => {
+        rolerepo.save(resp.data);
+        alertSucess('O Registo foi alterado com sucesso');
+      })
+      .catch((error) => {
+        if (error.request != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          const listErrors = {};
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+          alertError(String(listErrors));
+        } else if (error.request) {
+          alertError(error.request);
+        } else {
+          alertError(error.message);
+        }
+      });
   },
   get(offset: number) {
     if (offset >= 0) {
       return api()
         .get('role?offset=' + offset + '&max=100')
         .then((resp) => {
-          roleRepo.save(resp.data);
+          rolerepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -49,13 +97,9 @@ export default {
         });
     }
   },
-  async patch(id: number, params: string) {
-    const resp = await api().patch('role/' + id, params);
-    roleRepo.save(resp.data);
-  },
   async delete(id: number) {
     await api().delete('role/' + id);
-    roleRepo.destroy(id);
+    rolerepo.destroy(id);
   },
 
   async apiGetAll() {
@@ -69,12 +113,15 @@ export default {
   },
   // Local Storage Pinia
   newInstanceEntity() {
-    return roleRepo.getModel().$newInstance();
+    return rolerepo.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return roleRepo.all();
+    return rolerepo.all();
   },
   getActiveWithMenus() {
-    return roleRepo.query().with('menus').where('active', true).get();
+    return rolerepo.query().with('menus').where('active', true).get();
+  },
+  getAllWithMenus() {
+    return rolerepo.query().with('menus').get();
   },
 };

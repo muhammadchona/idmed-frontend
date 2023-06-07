@@ -113,6 +113,7 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
+
   /*
   lastEpisode() {
     return Episode.query()
@@ -142,5 +143,17 @@ export default {
       .where('patientServiceIdentifier_id', identifierId)
       .orderBy('creationDate', 'desc')
       .get();
+  },
+  
+  getLastStartEpisodeWithPrescription(patientIdentifierid: string) {
+    return episode
+      .withAllRecursive(2)
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'INICIO');
+      })
+      .has('patientVisitDetails')
+      .where('patientServiceIdentifier_id', patientIdentifierid)
+      .orderBy('episodeDate', 'desc')
+      .first();
   },
 };

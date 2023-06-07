@@ -102,6 +102,9 @@ import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttr
 import clinicalServiceAttributeService from 'src/services/api/clinicalServiceAttributeService/clinicalServiceAttributeService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components imports*/
 import addClinicalService from 'src/components/Settings/ClinicalService/AddClinicalService.vue';
@@ -172,10 +175,6 @@ onMounted(() => {
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  formService.get(0);
-  clinicalServiceService.get(0);
-  // clinicalServiceAttributeService.get(0);
-  therapeuticalRegimenService.get(0);
   identifierTypes.value = identifierTypeService.getAllIdentifierTypes();
 });
 
@@ -281,39 +280,37 @@ const promptToConfirm = (clinicalServiceParam) => {
     ? 'Deseja Inactivar o Serviço Clínico?'
     : 'Deseja Activar o Serviço Clínico?';
 
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (clinicalServiceParam.active) {
-          clinicalServiceParam.active = false;
-        } else {
-          clinicalServiceParam.active = true;
-        }
-        //   if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (clinicalService.syncStatus !== 'R')
-        //     clinicalService.syncStatus = 'U';
-        //   ClinicalService.localDbAdd(
-        //     JSON.parse(JSON.stringify(clinicalService))
-        //   );
-        //   ClinicalService.insertOrUpdate({ data: clinicalService });
-        //   this.displayAlert(
-        //     'info',
-        //     `Servico Clínico ${operation} com sucesso`
-        //   );
-        // } else {
-        console.log('BackEnd');
-        clinicalServiceService
-          .patch(clinicalServiceParam.id, clinicalServiceParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (clinicalServiceParam.active) {
+        clinicalServiceParam.active = false;
+      } else {
+        clinicalServiceParam.active = true;
       }
+      //   if (this.mobile) {
+      //   console.log('FrontEnd');
+      //   if (clinicalService.syncStatus !== 'R')
+      //     clinicalService.syncStatus = 'U';
+      //   ClinicalService.localDbAdd(
+      //     JSON.parse(JSON.stringify(clinicalService))
+      //   );
+      //   ClinicalService.insertOrUpdate({ data: clinicalService });
+      //   this.displayAlert(
+      //     'info',
+      //     `Servico Clínico ${operation} com sucesso`
+      //   );
+      // } else {
+      console.log('BackEnd');
+      clinicalServiceService
+        .patch(clinicalServiceParam.id, clinicalServiceParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 </script>

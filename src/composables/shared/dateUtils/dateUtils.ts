@@ -84,6 +84,7 @@ export function useDateUtils() {
     }
   }
 
+
   return {
     isValidDate,
     formatDate,
@@ -104,6 +105,6 @@ export function useDateUtils() {
     getDateFormatYYYYMMDD,
     getDateFormatDDMMYYYYFromYYYYMMDD,
     getDateFormatDDMMYYYYDash,
-    idadeCalculator,
+    idadeCalculator
   };
 }

@@ -46,7 +46,13 @@ export default {
       '/pack/AllLastOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max
     );
   },
-
+  async apiGetByPatientId(patientid: string) {
+    return await api()
+      .get('pack/patient/' + patientid)
+      .then((resp) => {
+        pack.save(resp.data);
+      });
+  },
   async apiGetAllByPatientVisitDetailsId(
     patientVisitDetailsId: string,
     offset: number,
@@ -83,6 +89,7 @@ export default {
     return pack.all();
   },
 
+
   getPackByID(Id: string) {
     return pack.query().whereId(Id).first();
   },
@@ -93,6 +100,15 @@ export default {
       .with('dispenseMode')
       .with('packagedDrugs')
       .whereId(Id)
+  },
+  
+  getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
+    return pack
+      .withAllRecursive(1)
+      .whereHas('patientVisitDetails', (query) => {
+        query.where('prescription_id', prescriptionId);
+      })
+      .orderBy('pickupDate', 'desc')
       .first();
   },
 };

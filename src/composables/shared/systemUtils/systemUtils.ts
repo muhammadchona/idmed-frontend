@@ -1,8 +1,6 @@
 import { useMediaQuery } from '@vueuse/core';
-import { useQuasar, Platform } from 'quasar';
+import { Platform } from 'quasar';
 import { computed } from 'vue';
-
-// const $q = useQuasar();
 
 export function useSystemUtils() {
   const isWebScreen = useMediaQuery('(min-width: 1024px)');

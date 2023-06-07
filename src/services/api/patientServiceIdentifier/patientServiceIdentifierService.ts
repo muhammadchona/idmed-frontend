@@ -31,7 +31,6 @@ export default {
     await api().delete('patientServiceIdentifier/' + id);
     patientServiceIdentifier.destroy(id);
   },
-
   async apiSave(identifier: string, isNew: boolean) {
     if (isNew) {
       return await api().post('/patientServiceIdentifier', identifier);
@@ -52,25 +51,33 @@ export default {
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
-    return await api().get(
-      '/patientServiceIdentifier/clinic/' +
-        clinicId +
-        '?offset=' +
-        offset +
-        '&max=' +
-        max
-    );
+    return await api()
+      .get(
+        '/patientServiceIdentifier/clinic/' +
+          clinicId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        patientServiceIdentifier.save(resp.data);
+      });
   },
 
   async apiGetAllByPatientId(patientId: string, offset: number, max: number) {
-    return await api().get(
-      '/patientServiceIdentifier/patient/' +
-        patientId +
-        '?offset=' +
-        offset +
-        '&max=' +
-        max
-    );
+    return await api()
+      .get(
+        '/patientServiceIdentifier/patient/' +
+          patientId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        patientServiceIdentifier.save(resp.data);
+      });
   },
   async syncPatientServiceIdentifier(identifier: any) {
     if (identifier.syncStatus === 'R') await this.apiSave(identifier, true);
@@ -83,11 +90,19 @@ export default {
   getAllFromStorage() {
     return patientServiceIdentifier.all();
   },
-  curIdentifier(id: string) {
+  identifierCurr(id: string) {
+    return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
+  },
+  getAllEpisodesByIdentifierId(id: string) {
     return patientServiceIdentifier
       .withAllRecursive(2)
-      .where('value', id)
-      .first();
+      .whereHas('episodes', (query) => {
+        query.whereHas('episodeType', (query) => {
+          query.where('code', 'INICIO');
+        });
+      })
+      .where('id', id)
+      .get();
   },
   curIdentifierById(id: string) {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();

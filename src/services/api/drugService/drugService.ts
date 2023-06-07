@@ -30,7 +30,6 @@ export default {
     }
   },
   async patch(id: string, params: string) {
-    console.log(params);
     const resp = await api().patch('drug/' + id, params);
     drug.save(JSON.parse(resp.config.data));
     alertSucess('O Registo foi alterado com sucesso');
@@ -38,6 +37,12 @@ export default {
   async delete(id: number) {
     await api().delete('drug/' + id);
     drug.destroy(id);
+  },
+  getActiveDrugs () {
+    return drug.query().withAllRecursive(2).where('active', true).get()
+  },
+  getDrugById (id: string) {
+    return drug.query().withAllRecursive(2).where('id',id).first()
   },
   // Local Storage Pinia
   newInstanceEntity() {

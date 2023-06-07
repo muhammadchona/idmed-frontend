@@ -5,9 +5,9 @@
     :class="[bgColor, headerClass]"
     class="text-white q-pa-none"
   >
-    <span class="text-bold text-subtitle1 vertical-middle q-pl-md">
-      <slot> {{ title }}</slot>
-    </span>
+    <span class="text-bold text-subtitle1 vertical-middle q-pl-md"
+      ><slot> {{ title }}</slot></span
+    >
     <template v-slot:action>
       <q-btn
         dense
@@ -60,29 +60,13 @@
     </template>
   </q-banner>
 </template>
-
 <script setup>
 import { inject, ref } from 'vue';
-
 // Declaration
 const headerClass = ref('');
-// const expanded = ref(false);
-
 // Injection
 // doneVisible;
-/*
-const editVisible = inject('editClinicService');
-const closeVisible = inject('closeClinicService');
-const reopenClinicService = inject('reopenClinicService');
-const addClinicService = inject('addClinicService');
-const expandVisible = inject('expandLess');
-const createFirstEpisode = inject('createFirstEpisode');
-const addVisible = inject('addVisible');
-const mainContainer = inject('mainContainer');
-const title = inject('title');
-const bgColor = inject('bgColor');
-const addButtonActions = inject('addButtonActions');
-*/
+//props
 const props = defineProps([
   'editVisible',
   'closeVisible',
@@ -98,16 +82,14 @@ const props = defineProps([
 
 // Methods
 const determineHeaderClass = () => {
-  if (mainContainer.value) {
+  if (props.mainContainer.value) {
     headerClass.value = 'list-header';
   } else {
     headerClass.value = '';
   }
 };
-
-
 const expand = () => {
-  expanded.value = !expanded.value;
+  props.expanded.value = !props.expanded.value;
 };
 const closeSection = () => {
   this.$emit('closeSection');
@@ -116,7 +98,6 @@ const created = () => {
   determineHeaderClass();
 };
 </script>
-
 <style>
 .list-header {
   border-top-left-radius: 5px;

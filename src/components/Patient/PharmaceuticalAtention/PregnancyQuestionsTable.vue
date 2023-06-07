@@ -6,7 +6,6 @@
       :columns="columns"
       row-key="question"
       :separator="separator"
-      v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll
       hide-bottom
@@ -88,7 +87,7 @@
     </q-card>
   </div>
 </template>
-<script>
+<script setup>
 import moment from 'moment';
 import { computed, inject, onMounted, ref } from 'vue';
 
@@ -126,7 +125,7 @@ const pregnancyQuestions = ref([
 ]);
 
 const visible = ref('');
-
+const separator = ref('horizontal');
 // Inject
 const pregnancyScreening = inject('pregnancyScreening');
 const onlyView = inject('onlyView');

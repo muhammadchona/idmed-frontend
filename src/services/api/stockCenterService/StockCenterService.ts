@@ -28,24 +28,6 @@ export default {
             closeLoading();
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alertError(String(listErrors));
-          } else if (error.request) {
-            alertError(error.request);
-          } else {
-            alertError(error.message);
-          }
-        });
     }
   },
   async apiUpdate(id: number, params: string) {
@@ -68,4 +50,8 @@ export default {
   newInstanceEntity() {
     return stockCenter.getModel().$newInstance();
   },
+  
+  getStockCenter() {
+    return stockCenter.withAllRecursive(3).where('prefered', true).first()
+  }
 };

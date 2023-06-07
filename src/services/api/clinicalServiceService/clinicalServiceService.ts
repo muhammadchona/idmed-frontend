@@ -12,7 +12,7 @@ export default {
   async post(params: string) {
     try {
       const resp = await api().post('clinicalService', params);
-      clinicalService.save(resp.data);
+      clinicalservice.save(resp.data);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -71,7 +71,7 @@ export default {
   async patch(id: number, params: string) {
     try {
       const resp = await api().patch('clinicalService/' + id, params);
-      clinicalService.save(resp.data);
+      clinicalservice.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error) {
       if (error.request != null) {
@@ -95,7 +95,7 @@ export default {
 
   async delete(id: number) {
     await api().delete('clinicalService/' + id);
-    clinicalService.destroy(id);
+    clinicalservice.destroy(id);
   },
 
   getByIdentifierTypeCode(identifierTypeCode: string) {

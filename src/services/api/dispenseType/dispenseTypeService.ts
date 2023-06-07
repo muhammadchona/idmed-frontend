@@ -50,4 +50,67 @@ export default {
   getAllFromStorage() {
     return dispenseType.all();
   },
+  getAllFromDuration(weeks: number) {
+    let dispenseTypeList = [];
+
+    if (weeks < 4) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DN';
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else if (weeks === 4) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DN' || value === 'DM';
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else if (weeks === 8) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DN' || value === 'DM' || value === 'DB';
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else if (weeks === 12) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DM' || value === 'DT' || value === 'FRM';
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else if (weeks === 16) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DM' || value === 'DB' || value === 'FRM';
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else if (weeks === 20) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DM' || value === 'FRM';
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else if (weeks === 24) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return (
+            value === 'DM' ||
+            value === 'DB' ||
+            value === 'DS' ||
+            value === 'FRM'
+          );
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else {
+      dispenseTypeList = dispenseType.orderBy('id', 'asc').all();
+    }
+
+    return dispenseTypeList;
+  },
 };

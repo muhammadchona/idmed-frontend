@@ -6,7 +6,6 @@
       :columns="columns"
       row-key="question"
       :separator="separator"
-      v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll
       hide-bottom
@@ -81,7 +80,6 @@
       :columns="columns2"
       row-key="question"
       :separator="separator"
-      v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       virtual-scroll
       hide-bottom
@@ -204,7 +202,7 @@ const tbQuestion2 = ref([
     code: '09',
   },
 ]);
-
+const separator = ref('horizontal');
 // Inject
 const onlyView = inject('onlyView');
 const tBScreening = inject('tBScreening');
@@ -252,11 +250,11 @@ const handleInput = (row) => {
     case '02':
       tBScreening.value.treatmentTB =
         row.answer === 'true' ? true : row.answer === 'false' ? false : '';
-      if (row.answer === 'true') {
-        visible.value = true;
-      } else {
-        visible.value = false;
-      }
+      // if (row.answer === 'true') {
+      //   visible.value = true;
+      // } else {
+      //   visible.value = false;
+      // }
       break;
     case '03':
       if (
@@ -313,12 +311,12 @@ const addingValueToArray = () => {
         selectedTbTracing.value.treatmentTB === true ||
         selectedTbTracing.value.treatmentTB === 'true'
       ) {
-        visible.value = true;
+        //visible.value = true;
         if (tbQuestion.code === '03') {
           tbQuestion.date = selectedTbTracing.value.startTreatmentDate;
         }
       } else {
-        visible.value = false;
+     //   visible.value = false;
       }
     });
 

@@ -665,7 +665,7 @@ const savePatientVisitDetails = (groupPacks, i) => {
           GroupPackHeader.apiSave(curGroupPackHeader).then(resp => {
             console.log(resp)
             curGroupPackHeader.id = resp.response.data.id
-            Group.apiFetchById(curGroupPackHeader.group.id).then(resp => {
+            Group.apiFetchById(curGroupPackHeader.group.id).then(resp => {a
               console.log(resp)
               resp.response.data.packHeaders.forEach(packHeader => {
                       GroupPackHeader.apiFetchById(packHeader.id).then(resp => {

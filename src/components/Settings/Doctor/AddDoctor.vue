@@ -20,17 +20,28 @@
         </div>
 
         <div class="q-mt-md">
-          <div class="row">
-            <nameInput
+          <div class="row q-mt-md">
+            <q-input
               v-model="doctor.firstnames"
-              ref="nome"
+              ref="nomeRef"
               :disable="onlyView"
+              outlined
+              label="Nome *"
+              dense
+              class="col"
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              lazy-rules
             />
-            <lastNameInput
+            <q-input
               v-model="doctor.lastname"
-              class="q-ml-md"
-              ref="apelido"
+              class="col q-ml-md"
+              ref="apelidoRef"
               :disable="onlyView"
+              outlined
+              label="Apelido *"
+              dense
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              lazy-rules
             />
           </div>
           <div class="row q-mt-md">
@@ -40,7 +51,7 @@
               outlined
               v-model="doctor.gender"
               :options="genders"
-              ref="gender"
+              ref="genderRef"
               :rules="[(val) => val != null || ' Por favor indique o genero']"
               label="Género *"
               :disable="onlyView"
@@ -58,7 +69,7 @@
               :options="clinics"
               option-value="id"
               option-label="clinicName"
-              ref="clinic"
+              ref="clinicRef"
               :rules="[(val) => val != null || ' Por favor indique a Farmácia']"
               label="Farmácias"
             />
@@ -73,12 +84,22 @@
           <q-separator color="grey-13" size="1px" />
         </div>
         <div class="row q-mt-md">
-          <PhoneField
+          <q-input
             v-model="doctor.telephone"
             dense
             label="Principal"
             :disable="onlyView"
-          />
+            outlined
+            class="col"
+            ref="phonePrinciparRef"
+            maxlength="12"
+            type="tel"
+            lazy-rules
+          >
+            <template v-slot:prepend>
+              <q-icon name="phone_android" />
+            </template>
+          </q-input>
           <emailInput
             v-model="doctor.email"
             dense
@@ -94,7 +115,7 @@
           type="submit"
           :loading="submitting"
           @click.once="submitting = true"
-          label="Submeter"
+          label="GRAVAR"
           color="primary"
           v-if="!onlyView"
         />
@@ -121,9 +142,14 @@ import emailInput from 'src/components/Shared/EmailInput.vue';
 const stringOptions = ['Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'];
 const submitting = ref(false);
 const genders = ref(['Masculino', 'Feminino']);
+const nomeRef = ref(null);
+const apelidoRef = ref(null);
+const clinicRef = ref(null);
+const genderRef = ref(null);
+const phonePrinciparRef = ref(null);
 
 /*injects*/
-const selectedDoctor = inject('selectedDoctor');
+const doctor = inject('selectedDoctor');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const currClinic = inject('currClinic');
@@ -132,10 +158,6 @@ const isCreateStep = inject('isCreateStep');
 const showDoctorRegistrationScreen = inject('showDoctorRegistrationScreen');
 
 /*Hooks*/
-const doctor = computed(() => {
-  return selectedDoctor.value;
-});
-
 const onlyView = computed(() => {
   return viewMode.value;
 });
@@ -150,24 +172,28 @@ const clinics = computed(() => {
 
 /*Methods*/
 const validateDoctor = () => {
-  //     this.$refs.nome.$refs.ref.validate()
-  //     this.$refs.apelido.$refs.ref.validate()
-  //   this.$refs.gender.validate()
-  //     this.$refs.clinic.validate()
-  // if (!this.$refs.nome.$refs.ref.hasError && !this.$refs.apelido.$refs.ref.hasError && !this.$refs.gender.hasError && !this.$refs.clinic.hasError) {
-  submitDoctor();
-  // }
+  nomeRef.value.validate();
+  apelidoRef.value.validate();
+  genderRef.value.validate();
+  clinicRef.value.validate();
+  phonePrinciparRef.value.validate();
+  if (
+    !nomeRef.value.hasError &&
+    !apelidoRef.value.hasError &&
+    !genderRef.value.hasError &&
+    !clinicRef.value.hasError &&
+    !phonePrinciparRef.value.hasError
+  ) {
+    submitDoctor();
+  }
 };
 
 const submitDoctor = () => {
   submitting.value = true;
   doctor.value.active = true;
   // if (this.mobile) {
-  //   console.log('Mobile')
   //   if (!this.isEditStep) {
-  //     console.log('Create')
   //     this.doctor.syncStatus = 'R'
-  //     console.log(this.doctor)
   //     Doctor.localDbAdd(JSON.parse(JSON.stringify(this.doctor)))
   //     Doctor.insert({ data: this.doctor })
   //     this.closeDialog()
@@ -181,7 +207,6 @@ const submitDoctor = () => {
   //   }
   // } else {
   if (isCreateStep.value) {
-    console.log('Create Step_Online_Mode');
     if (doctor.value.clinic !== null) {
       doctor.value.clinic_id = doctor.value.clinic.id;
     }
@@ -196,7 +221,7 @@ const submitDoctor = () => {
         showDoctorRegistrationScreen.value = false;
       });
   }
-  if (isEditStep) {
+  if (isEditStep.value) {
     if (doctor.value.clinic !== null) {
       doctor.value.clinic_id = doctor.value.clinic.id;
     }

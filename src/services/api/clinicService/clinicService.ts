@@ -1,11 +1,10 @@
-import { Province } from 'src/stores/models/province/Province';
+import Province from 'src/stores/models/province/Province';
 import { useRepo } from 'pinia-orm';
 import Clinic from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useStorage } from '@vueuse/core';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import provinceService from '../provinceService/provinceService';
 
 const { closeLoading, showloading } = useLoading();
 const clinic = useRepo(Clinic);
@@ -114,7 +113,6 @@ export default {
           });
         }
         alertWarning(
-          'Alerta!',
           'Esta farmácia tem pacientes assossiados e não pode ser removida'
         );
       } else if (error.request) {
@@ -162,17 +160,10 @@ export default {
   },
 
   /*PINIA*/
-  currClinic() {
-    return (
-      clinic
-        .withAllRecursive(3)
-        // .with('province')
-        // .with('facilityType')
-        // .with('district')
-        // .with('sectors')
-        .where('mainClinic', true)
-        .first()
-    );
+    currClinic() {
+    return clinic.withAllRecursive(2)
+      .where('mainClinic', true)
+      .first();
   },
   getAllClinics() {
     return clinic

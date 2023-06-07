@@ -1,6 +1,7 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
+import { relativeTimeRounding } from 'moment';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
 
@@ -67,14 +68,18 @@ export default {
   },
 
   async apiGetAllByEpisodeId(episodeId: string, offset: number, max: number) {
-    return await api().get(
-      '/patientVisitDetails/episode/' +
-        episodeId +
-        '?offset=' +
-        offset +
-        '&max=' +
-        max
-    );
+    return await api()
+      .get(
+        '/patientVisitDetails/episode/' +
+          episodeId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        patientVisitDetails.save(resp.data);
+      });
   },
 
   async apiGetLastByEpisodeId(episodeId: string) {
@@ -84,6 +89,14 @@ export default {
       patientVisitDetails.save(resp.data);
       return resp;
     })
+  },
+
+  async apiGetPatientVisitDetailsByPatientId(patientId: string) {
+    return await api()
+      .get('patientVisitDetails/patientId/' + patientId)
+      .then((resp) => {
+        patientVisitDetails.save(resp.data);
+      });
   },
 
   async apiGetAllofPrecription(prescriptionId: string) {

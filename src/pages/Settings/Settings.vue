@@ -129,10 +129,10 @@
             <div class="text-h4 q-mb-md"></div>
             <users> </users>
           </q-tab-panel>
-          <!-- <q-tab-panel name="roles">
+          <q-tab-panel name="roles">
             <div class="text-h4 q-mb-md"></div>
             <roles> </roles>
-          </q-tab-panel> -->
+          </q-tab-panel>
         </q-tab-panels>
       </template>
     </q-splitter>
@@ -141,13 +141,20 @@
 <script setup>
 /*Imports*/
 import { ref, provide, computed, inject, onMounted } from 'vue';
-import clinicService from 'src/services/api/clinicService/clinicService.ts';
+import clinicServiceService from 'src/services/api/clinicService/clinicService.ts';
 import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService.ts';
+import formService from 'src/services/api/formService/formService.ts';
+import clinicalService from 'src/services/api/clinicalServiceService/clinicalServiceService.ts';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
+import doctorService from 'src/services/api/doctorService/doctorService.ts';
+import drugService from 'src/services/api/drugService/drugService.ts';
 
 /*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
@@ -160,9 +167,10 @@ import identifierType from 'src/components/Settings/IdentifierType/IdentifierTyp
 import interoperability from 'src/components/Settings/Interoperability/His.vue';
 import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 import users from 'src/components/Settings/User/Users.vue';
-// import roles from 'src/components/Settings/User/Roles.vue';
+import roles from 'src/components/Settings/User/Roles.vue';
 
 /*Variables*/
+const { closeLoading, showloading } = useLoading();
 const activeMenu = ref('Farmácias');
 const filter = ref('');
 const selectedTab = ref('clinic');
@@ -222,17 +230,40 @@ const tabs = [
 
 /*Hooks*/
 const currClinic = computed(() => {
-  return clinicService.currClinic();
+  return clinicServiceService.currClinic();
 });
 
 onMounted(() => {
+  showloading();
   identifierTypeService.get(0);
+  showloading();
   clinicalServiceAttrTypeService.get(0);
+  showloading();
   healthInformationSystemService.get(0);
+  showloading();
   interoperabilityTypeService.get(0);
+  showloading();
   roleService.get(0);
+  showloading();
   userService.get(0);
+  showloading();
   clinicSectorTypeService.get(0);
+  showloading();
+  formService.get(0);
+  showloading();
+  clinicalService.get(0);
+  showloading();
+  therapeuticalRegimenService.get(0);
+  showloading();
+  clinicServiceService.get(0);
+  showloading();
+  clinicSectorService.get(0);
+  showloading();
+  doctorService.get(0);
+  showloading();
+  drugService.get(0);
+  showloading();
+  formService.get(0);
 });
 
 /*injects*/
@@ -250,9 +281,9 @@ provide('isCreateStep', isCreateStep);
 provide('filter', filter);
 
 /*Methods*/
-// const changeMenu = (label) => {
-//   activeMenu.value = label;
-//   drawer.value = false;
-// };
+const changeMenu = (label) => {
+  activeMenu.value = label;
+  drawer.value = false;
+};
 </script>
 <style></style>

@@ -65,7 +65,13 @@ export default {
   async apiFetchLastByIdentifierId(id: string) {
     return await api().get(`/prescription/identifier/${id}`);
   },
-
+  async apiGetByPatientId(patientid: string) {
+    return await api()
+      .get('prescription/patient/' + patientid)
+      .then((resp) => {
+        prescription.save(resp.data);
+      });
+  },
   async apiFetchByPatientVisitDetailsId(
     pvdsId: string,
     offset: number,
@@ -87,6 +93,7 @@ export default {
     return prescription.all();
   },
 
+
   getPrescriptionByID(Id: string) {
     return prescription
       .query()
@@ -94,6 +101,16 @@ export default {
       .with('duration')
       .with('prescriptionDetails')
       .whereId(Id)
+  },
+  
+  getLastPrescriptionFromPatientVisit(patientVisitId: string) {
+    return prescription
+      .withAllRecursive(2)
+      .whereHas('patientVisitDetails', (query) => {
+        query.where('patient_visit_id', patientVisitId);
+      })
+      .orderBy('prescriptionDate', 'desc')
       .first();
   },
+  
 };

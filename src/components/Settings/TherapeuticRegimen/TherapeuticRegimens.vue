@@ -102,6 +102,9 @@ import clinicalService from 'src/services/api/clinicalServiceService/clinicalSer
 import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import drugService from 'src/services/api/drugService/drugService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components import*/
 import AddTherapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue';
@@ -177,9 +180,6 @@ onMounted(() => {
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
-  formService.get(0);
-  clinicalService.get(0);
-  therapeuticalRegimenService.get(0);
 });
 
 /*methods*/
@@ -226,36 +226,32 @@ const visualizeTherapeuticRegimen = (therapeuticRegimenParam) => {
 };
 
 const promptToConfirm = (therapeuticRegimenParam) => {
-  console.log(therapeuticRegimenParam);
   const question = therapeuticRegimenParam.active
     ? 'Deseja Inactivar o Regime?'
     : 'Deseja Activar o Regime?';
-  alertWarningAction('Confirmação', question, 'Cancelar', 'Sim').then(
-    (response) => {
-      if (response) {
-        if (therapeuticRegimenParam.active) {
-          therapeuticRegimenParam.active = false;
-        } else {
-          therapeuticRegimenParam.active = true;
-        }
-        // if (this.mobile) {
-        //   console.log('FrontEnd');
-        //   if (therapeuticRegimenParam.syncStatus !== 'R') therapeuticRegimenParam.syncStatus = 'U';
-        //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimenParam)));
-        //   ClinicSector.insertOrUpdate({ data: therapeuticRegimenParam });
-        //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-        // } else {
-        therapeuticalRegimenService
-          .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
-          .then((resp) => {
-            //
-          })
-          .catch((error) => {
-            //
-          });
-        // }
+  alertWarningAction(question).then((response) => {
+    if (response) {
+      if (therapeuticRegimenParam.active) {
+        therapeuticRegimenParam.active = false;
+      } else {
+        therapeuticRegimenParam.active = true;
       }
+      // if (this.mobile) {
+      //   if (therapeuticRegimenParam.syncStatus !== 'R') therapeuticRegimenParam.syncStatus = 'U';
+      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimenParam)));
+      //   ClinicSector.insertOrUpdate({ data: therapeuticRegimenParam });
+      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
+      // } else {
+      therapeuticalRegimenService
+        .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
+        .then((resp) => {
+          //
+        })
+        .catch((error) => {
+          //
+        });
+      // }
     }
-  );
+  });
 };
 </script>

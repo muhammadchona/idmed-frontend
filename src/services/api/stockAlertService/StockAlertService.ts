@@ -26,24 +26,6 @@ export default {
             this.get(offset);
           }
         })
-        .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alertError(String(listErrors));
-          } else if (error.request) {
-            alertError(error.request);
-          } else {
-            alertError(error.message);
-          }
-        });
     }
   },
   apiUpdate(id: number, params: string) {
@@ -70,6 +52,24 @@ export default {
           setTimeout(this.get, 2);
         }
       });
+  },
+  async apiGetStockAlertAll(clinicId: string) {
+    return  api().get(`/dashBoard/getStockAlertAll/${clinicId}`).then((resp) => {
+      stockAlert.save(resp.data);
+        });
+  },
+
+   apiGetStockAlert(clinicId: string, serviceCode: string) {
+    return api().get(
+      `/dashBoard/getStockAlert/${clinicId}/${serviceCode}`
+    )
+  },
+  getStockAlertsByClinic() {
+    return stockAlert.withAllRecursive(2)
+      .get();
+  },
+  saveStockAlert(stockAlert: any) {
+    stockAlert.save(stockAlert)
   },
   // Local Storage Pinia
   newInstanceEntity() {

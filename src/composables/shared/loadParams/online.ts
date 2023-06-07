@@ -24,17 +24,22 @@ import startStopReasonService from 'src/services/api/startStopReasonService/star
 import stockCenterService from 'src/services/api/stockCenterService/StockCenterService';
 import therapeuticLineService from 'src/services/api/therapeuticLineService/therapeuticLineService';
 import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService';
+import clinicalServiceAttributeTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService';
+import clinicalServiceAttributeService from 'src/services/api/clinicalServiceAttributeService/clinicalServiceAttributeService';
+import stockService from 'src/services/api/stockService/StockService';
+import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
+import StockCenterService from 'src/services/api/stockCenterService/StockCenterService';
 
 export function useOnline() {
   function loadSettingParams() {
     clinicalServiceService.get(0);
     clinicSectorService.get(0);
-    //  ClinicalServiceAttributeType.get(0);
+    clinicalServiceAttributeTypeService.get(0);
     identifierTypeService.get(0);
     episodeTypeService.get(0);
     facilityTypeService.get(0);
     startStopReasonService.get(0);
-    //  ClinicalServiceAttribute.get(0);
+    clinicalServiceAttributeService.get(0);
     durationService.get(0);
     drugService.get(0);
     therapeuticalRegimenService.get(0);
@@ -56,7 +61,9 @@ export function useOnline() {
     provinceService.get(0);
     districtService.get(0);
     clinicService.get(0);
+    stockService.get(0);
+    StockEntranceService.get(0);
+    StockCenterService.get(0);
   }
-
   return { loadSettingParams };
 }

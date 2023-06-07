@@ -124,4 +124,12 @@ export default {
       .with('clinicalServiceAttributeType')
       .get();
   },
+  checkWeatherAttExist(clinicalServiceId: string, att: string) {
+    const csa = clinicalserviceAttribute
+      .where('service_id', clinicalServiceId)
+      .whereHas('clinicalServiceAttributeType', (query) => {
+        query.where('code', att);
+      });
+    return csa !== null && csa !== undefined;
+  },
 };
