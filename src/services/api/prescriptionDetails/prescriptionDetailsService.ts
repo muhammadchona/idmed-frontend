@@ -53,4 +53,13 @@ export default {
   getAllFromStorage() {
     return prescriptionDetails.all();
   },
+
+  getPrescriptionDetailByPrescriptionID(prescriptionID: string) {
+    return prescriptionDetails
+      .withAll()
+      .where((prescriptionDetails) => {
+        return prescriptionDetails.prescription_id === prescriptionID;
+      })
+      .first();
+  },
 };

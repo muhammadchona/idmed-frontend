@@ -7,8 +7,7 @@ const episode = useRepo(Episode);
 export default {
   // Axios API call
   async post(params: string) {
-    const resp = await api()
-      .post('episode', params);
+    const resp = await api().post('episode', params);
     episode.save(resp.data);
   },
   get(offset: number) {
@@ -25,13 +24,11 @@ export default {
     }
   },
   async patch(id: number, params: string) {
-    const resp = await api()
-      .patch('episode/' + id, params);
+    const resp = await api().patch('episode/' + id, params);
     episode.save(resp.data);
   },
   async delete(id: number) {
-    await api()
-      .delete('episode/' + id);
+    await api().delete('episode/' + id);
     episode.destroy(id);
   },
 
@@ -66,14 +63,19 @@ export default {
     offset: number,
     max: number
   ) {
-    return await api().get(
-      '/episode/identifier/' +
-        identifierId +
-        '?offset=' +
-        offset +
-        '&max=' +
-        max
-    );
+    return await api()
+      .get(
+        '/episode/identifier/' +
+          identifierId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        episode.save(resp.data);
+        return resp;
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -110,5 +112,35 @@ export default {
       .where('id', id)
       .orderBy('episodeDate', 'desc')
       .first();
+  },
+  /*
+  lastEpisode() {
+    return Episode.query()
+    .with('startStopReason')
+    .with('episodeType')
+    .with('patientServiceIdentifier')
+    .with('clinicSector.*')
+    .where('patientServiceIdentifier_id', identifier.id)
+    .orderBy('episodeDate', 'desc')
+    .first()
+  }
+  */
+
+  getStartEpisodeByIdentifierId(identifierId: string) {
+    return episode
+      .query()
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier')
+      .with('patientVisitDetails', (query) => {
+        query.withAllRecursive(2);
+      })
+      .has('patientVisitDetails')
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'INICIO');
+      })
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('creationDate', 'desc')
+      .get();
   },
 };

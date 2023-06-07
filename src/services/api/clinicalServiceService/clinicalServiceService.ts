@@ -9,7 +9,7 @@ const { alertSucess, alertError, alertWarning } = useSwal();
 const clinicalservice = useRepo(ClinicalService);
 
 export default {
-async post(params: string) {
+  async post(params: string) {
     try {
       const resp = await api().post('clinicalService', params);
       clinicalService.save(resp.data);
@@ -113,7 +113,7 @@ async post(params: string) {
 
   /*Pinia Methods*/
   getAllClinicalServices() {
-    return clinicalservice.query().withAll().get();
+    return clinicalservice.query().withAllRecursive(2).get();
     // .with('attributes', (query) => {
     //   query.with('clinicalServiceAttributeType');
     // })
@@ -143,4 +143,16 @@ async post(params: string) {
       .with('identifierType')
       .get();
   },
+
+  getClinicalServicePersonalizedById(clinicalServiceId: string) {
+    return clinicalservice
+      .query()
+      .with('attributes', (query) => {
+        query.with('clinicalServiceAttributeType');
+      })
+      .with('clinicSectors')
+      .with('identifierType')
+      .whereId(clinicalServiceId)
+      .get();
+  }
 };

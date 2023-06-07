@@ -89,4 +89,7 @@ export default {
       .where('value', id)
       .first();
   },
+  curIdentifierById(id: string) {
+    return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
+  },
 };

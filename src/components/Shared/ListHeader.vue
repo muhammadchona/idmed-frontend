@@ -5,9 +5,9 @@
     :class="[bgColor, headerClass]"
     class="text-white q-pa-none"
   >
-    <span class="text-bold text-subtitle1 vertical-middle q-pl-md"
-      ><slot> {{ title }}</slot></span
-    >
+    <span class="text-bold text-subtitle1 vertical-middle q-pl-md">
+      <slot> {{ title }}</slot>
+    </span>
     <template v-slot:action>
       <q-btn
         dense
@@ -66,11 +66,11 @@ import { inject, ref } from 'vue';
 
 // Declaration
 const headerClass = ref('');
-const expanded = ref(false);
+// const expanded = ref(false);
 
 // Injection
 // doneVisible;
-
+/*
 const editVisible = inject('editClinicService');
 const closeVisible = inject('closeClinicService');
 const reopenClinicService = inject('reopenClinicService');
@@ -82,6 +82,19 @@ const mainContainer = inject('mainContainer');
 const title = inject('title');
 const bgColor = inject('bgColor');
 const addButtonActions = inject('addButtonActions');
+*/
+const props = defineProps([
+  'editVisible',
+  'closeVisible',
+  'expandVisible',
+  'addVisible',
+  'mainContainer',
+  'title',
+  'bgColor',
+  'addButtonActions',
+  'expanded',
+  'doneVisible',
+]);
 
 // Methods
 const determineHeaderClass = () => {

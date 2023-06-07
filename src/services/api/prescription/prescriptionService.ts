@@ -54,7 +54,12 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api().get(`/prescription/${id}`);
+    return await api()
+      .get(`/prescription/${id}`)
+      .then((resp) => {
+        prescription.save(resp.data);
+        return resp;
+      });
   },
 
   async apiFetchLastByIdentifierId(id: string) {
@@ -80,5 +85,15 @@ export default {
   },
   getAllFromStorage() {
     return prescription.all();
+  },
+
+  getPrescriptionByID(Id: string) {
+    return prescription
+      .query()
+      .with('doctor')
+      .with('duration')
+      .with('prescriptionDetails')
+      .whereId(Id)
+      .first();
   },
 };

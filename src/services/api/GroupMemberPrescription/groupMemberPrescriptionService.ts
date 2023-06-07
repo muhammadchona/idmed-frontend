@@ -70,4 +70,12 @@ export default {
   getAllFromStorage() {
     return groupMemberPrescription.all();
   },
+
+  getGroupMemberPrescriptionByMemberId(memberId: string) {
+    return groupMemberPrescription
+      .query()
+      .with('prescription.*')
+      .where('member_id', memberId)
+      .first();
+  }
 };
