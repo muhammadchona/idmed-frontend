@@ -8,6 +8,7 @@
           :expandVisible="false"
           :mainContainer="true"
           bgColor="bg-primary"
+          :addButtonActions ="initNewStock"
           >Notas da Guia
         </ListHeader>
         <div class="box-border row q-pt-sm">
@@ -400,6 +401,7 @@
             :mainContainer="true"
             @showAdd="initNewStock"
             bgColor="bg-primary"
+            :addButtonActions ="initNewStock"
             >Medicamentos
           </ListHeader>
           <div class="box-border q-pb-md">
@@ -905,9 +907,7 @@ const initNewStock = () => {
       entrance: currStockEntrance,
     });
     stockList.value.push(newStock);
-  }
-  closeLoading()
-};
+  }};
 
 const isPositiveInteger = (str) => {
   const num = Number(str);

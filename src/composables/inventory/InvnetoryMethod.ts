@@ -1,4 +1,5 @@
 import { useDateUtils } from '../shared/dateUtils/dateUtils';
+import moment from 'moment';
 const dateUtils = useDateUtils()
 
 export function useInventory() {
@@ -20,7 +21,10 @@ export function useInventory() {
     }
   }
 
-  
+  function getformatedUTCDate(inventory: any) {
+    return moment.utc(inventory.startDate).local().format('DD-MM-YYYY')
+  }
+
   function getFormatedStartDate(inventory: any) {
     return dateUtils.formatDate(inventory.startDate);
   }
@@ -63,7 +67,8 @@ export function useInventory() {
     getFormatedEndDate,
     getFormatedStartDate,
     getInventoryStatus,
-    circularReferenceReplacer
+    circularReferenceReplacer,
+    getformatedUTCDate
   }
   
 
