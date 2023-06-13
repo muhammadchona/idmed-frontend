@@ -83,7 +83,7 @@ export default {
   },
   provincialServiceSearch($q, currPatient, patients, transferencePatientData) {
     const openProvincialServer = axios.create({
-      baseURL: 'http://localhost:8884',
+      baseURL: 'http://localhost:8080',
     });
     const nid = currPatient.identifiers[0].value.replaceAll('/', '-');
 
