@@ -9,17 +9,17 @@
         title="Alerta de Stock"
       >
         <template v-slot:body="props">
-          <q-tr :props="props">
-            <q-td key="drug" :props="props">
+          <q-tr v-bind="props">
+            <q-td key="drug" v-bind="props">
               {{ props.row.drug }}
             </q-td>
-            <q-td key="avgConsuption" :props="props">
+            <q-td key="avgConsuption" v-bind="props">
               {{ props.row.avgConsuption }}
             </q-td>
-            <q-td key="balance" :props="props">
+            <q-td key="balance" v-bind="props">
               {{ props.row.balance }}
             </q-td>
-            <q-td key="state" :props="props">
+            <q-td key="state" v-bind="props">
               <q-chip
                 :color="getConsuptionRelatedColor(props.row.state)"
                 text-color="white"
@@ -33,9 +33,10 @@
     </div>
   </div>
 </template>
+
 <script setup>
-import Report from 'src/store/models/report/Report';
-import { onMounted } from 'vue';
+import { ref, computed, onMounted, inject } from 'vue';
+import reportService from 'src/services/api/report/reportService.ts';
 
 const columnsGender = [
   {
@@ -57,7 +58,7 @@ const columnsGender = [
   {
     name: 'balance',
     required: true,
-    label: 'Saldo actual',
+    label: 'Saldo atual',
     align: 'left',
     field: (row) => row.balance,
     format: (val) => `${val}`,
@@ -71,11 +72,18 @@ const columnsGender = [
     format: (val) => `${val}`,
   },
 ];
-//const serviceCode = inject('serviceCode')
+
 const rowData = ref([]);
+
+const currClinic = inject('currClinic');
+const serviceCode = inject('serviceCode');
+console.log(currClinic);
+console.log(serviceCode);
+const year = inject('year');
+
 const getStockAlert = () => {
-  Report.apiGetStockAlert(this.clinic.id, this.serviceCode).then((resp) => {
-    rowData.value = resp.response.data;
+  reportService.getStockAlert(currClinic.id, serviceCode.value).then((resp) => {
+    rowData.value = resp.data;
   });
 };
 
@@ -99,6 +107,7 @@ onMounted(() => {
   getStockAlert();
 });
 </script>
+
 <style lang="sass">
 .my-sticky-header-table
   /* height or max-height is important */

@@ -54,8 +54,9 @@
         <!-- </div> -->
         <div class="row q-mb-xl q-ma-md">
           <DispenseTypeByAgeTable class="col-4" />
-          <!-- <StockAlert class="col q-mx-md" :serviceCode=serviceCode :year="year" />
-        <DispenseTypeByGenderTable class="col-3 " :serviceCode=serviceCode :year="year" v-if="this.website"/> -->
+          <StockAlert class="col q-mx-md" />
+          <!-- <DispenseTypeByGenderTable class="col-3 " :serviceCode=serviceCode :year="year" v-if="this.website"/> -->
+          <DispenseTypeByGenderTable class="col-3" />
         </div>
       </div>
     </div>
@@ -63,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, onMounted, provide } from 'vue';
+import { ref, inject, watch, onMounted, provide } from 'vue';
 import reportService from 'src/services/api/report/reportService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
@@ -83,8 +84,8 @@ import LineByAge from 'src/components/Dashboard/ApexCharts/LineChartAgeTarv.vue'
 import PieGenderChart from 'src/components/Dashboard/ApexCharts/PieGenderChart.vue';
 import LineBySex from 'src/components/Dashboard/ApexCharts/LineChartSex.vue';
 import DispenseTypeByAgeTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue';
-// import StockAlert from 'src/components/Dashboard/ApexCharts/StockAlert.vue';
-// import DispenseTypeByGenderTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue';
+import StockAlert from 'src/components/Dashboard/ApexCharts/StockAlert.vue';
+import DispenseTypeByGenderTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue';
 
 //   methods: {
 const reload = () => {
@@ -117,12 +118,12 @@ const getDashboardServiceButton = () => {
           }
         });
       }
-      closeLoading();
     });
 };
 
 onMounted(() => {
   getDashboardServiceButton();
+  closeLoading();
 });
 
 provide('serviceCode', serviceCode);
@@ -152,15 +153,13 @@ provide('currClinic', currClinic.value);
 //     }
 //   },
 //
-//  watch: {
-//     year: function (newVal, oldVal) {
-//       this.reload()
-//       console.log('Prop changed: ', newVal, ' | was: ', oldVal)
-//       // this.getClinicalServicesOptions()
-//       // this.serviceCode = 'TARV'
-//       // this.setServiceCode('TARV')
-//     }
-//    }
+watch(year.value, (newVal, oldVal) => {
+  reload();
+  console.log('Prop changed:', newVal, '| was:', oldVal);
+  // getClinicalServicesOptions();
+  // serviceCode.value = 'TARV';
+  // setServiceCode('TARV');
+});
 </script>
 
 <style lang="scss">

@@ -47,4 +47,14 @@ export default {
       `/dashBoard/getDispenseByAge/${year}/${clinicId}/${serviceCode}`
     );
   },
+
+  getStockAlert(clinicId, serviceCode) {
+    return api().get(`/dashBoard/getStockAlert/${clinicId}/${serviceCode}`);
+  },
+
+  getDispensesByGender(year, clinicId, serviceCode) {
+    return api().get(
+      `/dashBoard/getDispensesByGender/${year}/${clinicId}/${serviceCode}`
+    );
+  },
 };
