@@ -5,7 +5,7 @@
         <q-input
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           class="col q-mb-md"
           v-model="prescriptionDate"
           ref="prescriptionDateRef"
@@ -13,7 +13,10 @@
           @update:model-value="validateDate(props.identifier)"
         >
           <template v-slot:append>
-            <q-icon name="event" class="cursor-pointer">
+            <q-icon
+              name="event"
+              class="cursor-pointer"
+            >
               <q-popup-proxy
                 ref="qDateProxy"
                 transition-show="scale"
@@ -21,13 +24,18 @@
               >
                 <q-date
                   v-model="prescriptionDate"
-                  :disable="showServiceDrugsManagement"
+                  :disable="showServiceDrugsManagement || !isNewPrescription"
                   :options="optionsNonFutureDate"
                   @update:model-value="validateDate(props.identifier)"
                   mask="DD-MM-YYYY"
                 >
                   <div class="row items-center justify-end">
-                    <q-btn v-close-popup label="Close" color="primary" flat />
+                    <q-btn
+                      v-close-popup
+                      label="Close"
+                      color="primary"
+                      flat
+                    />
                   </div>
                 </q-date>
               </q-popup-proxy>
@@ -38,7 +46,7 @@
           <div class="row">
             <q-checkbox
               v-model="curPrescriptionDetail.spetialPrescription"
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               label="Prescrição especial"
               class="col-4 q-mb-sm"
             />
@@ -50,7 +58,7 @@
               input-debounce="0"
               dense
               outlined
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               v-if="curPrescriptionDetail.spetialPrescription"
               v-model="curPrescriptionDetail.spetialPrescriptionMotive"
               :options="optionsspetialPrescriptionMotives"
@@ -77,7 +85,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="therapeuticRegimenRef"
           :rules="[(val) => !!val || 'Por favor indicar o regime terapêutico']"
           v-model="curPrescriptionDetail.therapeuticRegimen"
@@ -96,7 +104,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="therapeuticLineRef"
           :rules="[(val) => !!val || 'Por favor indicar a linha terapêutica']"
           v-model="curPrescriptionDetail.therapeuticLine"
@@ -114,7 +122,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           v-model="curPrescription.duration"
           :options="optionsdurations"
           ref="durationRef"
@@ -133,7 +141,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="doctorRef"
           :rules="[(val) => !!val || 'Por favor indicar o clínico']"
           v-model="curPrescription.doctor"
@@ -148,13 +156,19 @@
         <div class="row items-center q-mb-xs">
           <span class="text-subtitle2">Adição de Medicamento à Prescrição</span>
         </div>
-        <q-separator color="grey-13" size="1px" class="q-mb-sm" />
+        <q-separator
+          color="grey-13"
+          size="1px"
+          class="q-mb-sm"
+        />
       </div>
       <div>
-        <q-banner dense inline-actions class="bg-grey-6 text-white q-pa-none">
-          <span class="text-bold text-subtitle1 vertical-middle q-pl-md"
-            >Medicamentos Prescritos</span
-          >
+        <q-banner
+          dense
+          inline-actions
+          class="bg-grey-6 text-white q-pa-none"
+        >
+          <span class="text-bold text-subtitle1 vertical-middle q-pl-md">Medicamentos Prescritos</span>
           <template v-slot:action>
             <q-btn
               v-if="!showServiceDrugsManagement"
@@ -175,11 +189,20 @@
           row-key="id"
         >
           <template #body="props">
-            <q-tr no-hover :props="props">
-              <q-td key="drug" :props="props">
+            <q-tr
+              no-hover
+              :props="props"
+            >
+              <q-td
+                key="drug"
+                :props="props"
+              >
                 {{ props.row.drug.name }}
               </q-td>
-              <q-td key="dosage" :props="props">
+              <q-td
+                key="dosage"
+                :props="props"
+              >
                 {{
                   'Tomar ' +
                   props.row.amtPerTime +
@@ -192,7 +215,11 @@
                   props.row.form
                 }}
               </q-td>
-              <q-td auto-width key="packs" :props="props">
+              <q-td
+                auto-width
+                key="packs"
+                :props="props"
+              >
                 {{
                   getQtyPrescribed(props.row, curPrescription.duration.weeks) >
                   0
@@ -203,34 +230,48 @@
                     : 1
                 }}
               </q-td>
-              <q-td key="options" :props="props">
+              <q-td
+                key="options"
+                :props="props"
+              >
                 <q-btn
                   flat
                   round
                   color="red"
                   icon="delete"
-                  :disable="showServiceDrugsManagement"
+                  :disable="showServiceDrugsManagement || !isNewPrescription"
                   @click="deleteRow(props.row)"
                 />
               </q-td>
             </q-tr>
           </template>
         </q-table>
-        <q-separator color="grey-13" size="1px" class="q-mb-sm" />
+        <q-separator
+          color="grey-13"
+          size="1px"
+          class="q-mb-sm"
+        />
       </div>
       <div>
         <div class="row items-center q-mb-xs">
           <span class="text-subtitle2">Informação Adicional</span>
         </div>
-        <q-separator color="grey-13" size="1px" class="q-mb-sm" />
+        <q-separator
+          color="grey-13"
+          size="1px"
+          class="q-mb-sm"
+        />
       </div>
       <div class="row">
         <div class="col">
           <div class="row items-center">
-            <q-item-label dense caption>Altera Linha Terapêutica?</q-item-label>
+            <q-item-label
+              dense
+              caption
+            >Altera Linha Terapêutica?</q-item-label>
             <q-radio
               v-model="curPrescription.patientType"
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               checked-icon="task_alt"
               unchecked-icon="panorama_fish_eye"
               val="N/A"
@@ -238,7 +279,7 @@
             />
             <q-radio
               v-model="curPrescription.patientType"
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               checked-icon="task_alt"
               unchecked-icon="panorama_fish_eye"
               val="Alterar"
@@ -260,7 +301,7 @@
           dense
           outlined
           option-value="code"
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           :options="reasonsForUpdate"
           v-model="curPrescriptionDetail.reasonForUpdate"
           option-label="description"
@@ -275,7 +316,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="dispenseTypeRef"
           :rules="[(val) => !!val || 'Por favor indicar o tipo de dispensa']"
           v-model="curPrescriptionDetail.dispenseType"
@@ -297,7 +338,7 @@
               !!val ||
               'Por favor indicar a situação do paciente (em relação aos modelos)',
           ]"
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           v-model="curPrescription.patientStatus"
           :options="optionspatientStatus"
           @filter="filterFnpatientStatus"
@@ -312,7 +353,7 @@
           v-if="!showServiceDrugsManagement"
           unelevated
           color="primary"
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           label="Validar Prescricão"
           class="all-pointer-events"
           @click="validateForm()"
@@ -321,7 +362,11 @@
           v-if="showServiceDrugsManagement"
           unelevated
           color="red"
-          :disable="!showServiceDrugsManagement || validateDispense"
+          :disable="
+            !showServiceDrugsManagement ||
+            validateDispense ||
+            !isNewPrescription
+          "
           label="Invalidar Prescricão"
           class="all-pointer-events"
           @click="showServiceDrugsManagement = false"
@@ -329,12 +374,18 @@
       </div>
     </div>
   </div>
-  <div class="" v-if="showServiceDrugsManagement">
+  <div
+    class=""
+    v-if="(showServiceDrugsManagement && selectedMember == null || !isNewPrescription && selectedMember == null)"
+  >
     <div>
       <ServiceDrugsManagement />
     </div>
   </div>
-  <q-dialog persistent v-model="showAddEditDrug">
+  <q-dialog
+    persistent
+    v-model="showAddEditDrug"
+  >
     <AddEditPrescribedDrug />
   </q-dialog>
 </template>
@@ -369,7 +420,7 @@ import StockService from 'src/services/api/stockService/StockService';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import PackagedDrugStock from 'src/stores/models/packagedDrug/PackagedDrugStock';
 import packService from 'src/services/api/pack/packService';
-
+import { v4 as uuidv4 } from 'uuid';
 //props
 const props = defineProps(['identifier']);
 
@@ -400,7 +451,7 @@ const patientStatusRef = ref(null);
 const prescriptionDateRef = ref(null);
 
 // New Values
-const curPrescription = reactive(ref(new Prescription()));
+const curPrescription = reactive(ref(new Prescription({id: uuidv4()})));
 const curPrescriptionDetail = reactive(ref(new PrescriptionDetail()));
 const curPatientVisitDetail = reactive(ref(new PatientVisitDetails()));
 const curPack = reactive(ref(new Pack()));
@@ -493,6 +544,7 @@ const columns = [
 const isNewPrescription = inject('isNewPrescription');
 const patient = inject('patient');
 const curPatientVisit = inject('curPatientVisit');
+const selectedMember = inject('selectedMember');
 
 // Computed
 const spetialPrescriptionMotives = computed(() => {
@@ -643,13 +695,26 @@ const validateDate = (identifier) => {
 const init = () => {
   if (isNewPrescription) {
     prescriptionDate.value = moment().format('DD-MM-YYYY');
+    console.log(curPrescription.value)
     curPrescriptionDetail.value.prescription = curPrescription.value;
     curPrescriptionDetail.value.prescription_id = curPrescription.value.id;
     getLastPrescriptionData();
+  } else {
+    curPrescriptionDetail.value.prescription = curPrescription.value;
+    curPrescriptionDetail.value.prescription_id = curPrescription.value.id;
+    console.log('Prescription', curPrescription.value);
+    console.log('curPrescriptionDetail', curPrescriptionDetail.value);
+    console.log('curPatientVisitDetail', curPatientVisitDetail.value);
   }
 };
 
 const validateForm = () => {
+  let lastPack4daysAdd = date.addToDate(
+    getDateFromHyphenDDMMYYYY(prescriptionDate.value, 'YYYY-MM-DD'),
+    {
+      days: 4,
+    }
+  );
   if (hasTherapeuticalRegimen.value) {
     therapeuticRegimenRef.value.validate();
   }
@@ -697,7 +762,7 @@ const validateForm = () => {
     } else if (curPrescription.value.prescribedDrugs.length === 0) {
       alertError('A Prescrição deve ter pelo menos um medicamento prescrito');
     } else if (
-      lastPack.value.nextPickUpDate > curPrescription.value.prescriptionDate &&
+      lastPack.value.nextPickUpDate > lastPack4daysAdd &&
       !curPrescriptionDetail.value.spetialPrescription
     ) {
       alertError(
@@ -725,6 +790,7 @@ const validateForm = () => {
           prescriptionDetail.prescription = null;
           prescriptionDetail.prescription_id = null;
           delete prescriptionDetail.therapeuticRegimen['prescriptionDetails'];
+          delete prescriptionDetail.therapeuticRegimen['drugs'];
           delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
         }
       );
@@ -749,6 +815,12 @@ const validateForm = () => {
 
       addPackagedDrugs();
       showServiceDrugsManagement.value = true;
+      console.log(selectedMember.value)
+
+      if(selectedMember.value !== null) {
+        curPatientVisitDetail.value.prescription = curPrescription.value;
+       curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
+      }
     }
   }
 };

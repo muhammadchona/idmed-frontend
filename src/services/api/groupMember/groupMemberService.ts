@@ -41,7 +41,11 @@ export default {
       });
   },
   async apiUpdate(member: any) {
-    return await api().patch('/groupMember/' + member.id, member);
+    return await api()
+      .patch('/groupMember/' + member.id, member)
+      .then((resp) => {
+        groupMember.save(resp.data);
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {

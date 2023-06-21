@@ -80,10 +80,8 @@ import {  useGroup } from 'src/composables/group/groupMethods';
 const getDDMMYYYFromJSDate = (jsDate) => {
   return moment(jsDate).format('DD-MM-YYYY')
 }
-const group = computed(() => {
-   return groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
-})
-
+const group = inject('group')
+console.log(group)
 const emit = defineEmits([
   'editGroup',
   'desintagrateGroup'

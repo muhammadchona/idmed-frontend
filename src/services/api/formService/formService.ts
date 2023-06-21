@@ -101,4 +101,8 @@ export default {
   getAllForms() {
     return form.query().withAll().get();
   },
+
+  getFormById (id: string) {
+    return form.query().where('id',id).first()
+  },
 };

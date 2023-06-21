@@ -12,7 +12,7 @@ export default class GroupMember extends Model {
     return {
       id: this.string(() => uuidv4()),
       startDate: this.attr(''),
-      endDate: this.attr(null),
+      endDate: this.attr(''),
       group_id: this.attr(''),
       patient_id: this.attr(''),
       clinic_id: this.attr(''),
@@ -27,6 +27,7 @@ export default class GroupMember extends Model {
       ),
     };
   }
+
   static piniaOptions = {
     persist: true,
   };
