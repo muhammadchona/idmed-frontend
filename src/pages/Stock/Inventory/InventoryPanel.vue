@@ -172,17 +172,6 @@
         </q-scroll-area>
       </div>
     </div>
-
-    <q-dialog v-model="alert.visible" persistent>
-      <Dialog
-        :type="alert.type"
-        @closeDialog="closeDialog"
-        @commitOperation="closeInventory"
-      >
-        <template v-slot:title> {{ dialogTitle }}</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog>
   </div>
 </template>
 
@@ -195,6 +184,7 @@ import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
 import { useMediaQuery } from '@vueuse/core';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import moment from 'moment';
 
 import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
 import { useRouter } from 'vue-router';
@@ -219,11 +209,6 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 
 const currClinic = inject('currClinic');
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
 const adjustments = ref([]);
 let step = 'display';
 const processedAdjustments = [];
@@ -263,9 +248,6 @@ const initInventoryClosure = () => {
 
 const closeInventory = () => {
   showloading();
-  setTimeout(() => {
-    closeLoading();
-  }, 800);
   if (!mobile.value) {
     InventoryService.apiFetchById(currInventory.value.id).then((resp) => {
       doProcessAndClose();
@@ -280,15 +262,13 @@ const closeInventory = () => {
   }
 };
 
-const doProcessAndClose = () => {
-  var doo = new Date(currInventory.value.startDate);
-  currInventory.value.startDate = new Date(
-    doo.getTime() + Math.abs(doo.getTimezoneOffset() * 60000)
-  );
+const doProcessAndClose = () => { 
 
   const inventory = InventoryService.getInvnetoryById(currInventory.value.id);
+
   inventory.endDate = new Date();
   inventory.open = false;
+  inventory.startDate = dateUtils
   inventory.adjustments.forEach((adjustment) => {
     processAdjustment(adjustment, inventory);
   });
@@ -300,7 +280,7 @@ const doProcessAndClose = () => {
   InventoryService.patch(inventory.id, inv).then((resp) => {
     step = 'display';
     currInventory.value.open = false;
-
+    closeLoading();
     alertSucess('Operação efectuada com sucesso.');
   });
 };
@@ -401,17 +381,6 @@ const doStockEntranceGet = (clinicId, offset, max) => {
     });
 };
 
-const getDrugs = () => {
-  if (currInventory.value.generic) {
-    return drugService.getActiveDrugs();
-  } else {
-    return currInventory.value.drugs;
-  }
-};
-
-const closeDialog = () => {
-  alert.value.visible = false;
-};
 
 const retriveRelatedDrug = (adjustment, drugList) => {
   let isNewDrug = true;
@@ -436,24 +405,9 @@ const retriveRelatedDrug = (adjustment, drugList) => {
 };
 
 const startDate = computed(() => {
-  return dateUtils.getDDMMYYYFromJSDate(currInventory.value.startDate);
+ return moment.utc(currInventory.value.startDate).local().format('DD-MM-YYYY')
 });
 
-const isEditionStep = computed(() => {
-  return step === 'edit';
-});
-
-const isCreationStep = computed(() => {
-  return step === 'create';
-});
-
-const isDeletionStep = computed(() => {
-  return step === 'delete';
-});
-
-const enableFields = computed(() => {
-  return isEditionStep.value || isCreationStep;
-});
 
 const currInventory = computed(() => {
   const idInventory = localStorage.getItem('currInventory');

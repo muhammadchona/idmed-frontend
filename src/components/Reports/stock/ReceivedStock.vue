@@ -21,100 +21,81 @@
             />
         </q-item-section>
     </q-item>
-    <q-dialog persistent v-model="alert.visible">
-    <Dialog :type="alert.type" @closeDialog="closeDialog">
-      <template v-slot:title> Informação</template>
-      <template v-slot:msg> {{alert.msg}} </template>
-    </Dialog>
-  </q-dialog>
+    
   </div>
   </div>
 </template>
 
-<script>
-import Report from 'src/store/models/report/Report'
-import ReceivedStockReport from 'src/reports/stock/ReceivedStockReport.ts'
+<script setup>
+import Report from 'src/services/api/report/ReportService'
+import ReceivedStockReport from 'src/services/reports/stock/ReceivedStockReport.ts'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
-import Stock from 'src/store/models/stock/Stock'
+import Stock from 'src/stores/models/stock/Stock'
 import { v4 as uuidv4 } from 'uuid'
-import reportDatesParams from '../../../reports/ReportDatesParams'
-import StockReceivedReport from 'src/store/models/report/stock/StockReceivedReport'
-  export default {
-    name: 'ReceivedStock',
-    props: ['selectedService', 'menuSelected', 'id'],
-    setup () {
-      return {
-        totalRecords: ref(0),
-        qtyProcessed: ref(0),
-        alert: ref({
-          type: '',
-          visible: false,
-          msg: ''
-        }),
-        progress: ref(0)
+import reportDatesParams from 'src/services/reports/ReportDatesParams'
+import StockReceivedReport from 'src/stores/models/report/stock/StockReceivedReport'
+
+import ListHeader from 'components/Shared/ListHeader.vue'
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';  
+
+const { website, isDeskTop, isMobile } = useSystemUtils(); 
+const { alertSucess, alertError, alertWarningAction } = useSwal();
+
+   const name = 'ReceivedStock'
+   const props = defineProps(['selectedService', 'menuSelected', 'id'])
+    const totalRecords = ref(0)
+    const qtyProcessed=ref(0)
+
+   const progress= ref(0)
+   const filterReceivedStockSection = ref('')
+
+     const  closeSection = ()  =>{
+        filterReceivedStockSection.value.remove()
+         LocalStorage.remove(id)
       }
-    },
-    mounted () {
-    },
-    computed: {
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    },
-    methods: {
-      closeSection () {
-        this.$refs.filterReceivedStockSection.remove()
-        this.$refs.filterDrugStoreSection.remove()
-        LocalStorage.remove(this.id)
-      },
-      initReportProcessing (params) {
+
+     const  initReportProcessing = (params) => {
         if (params.localOrOnline === 'online') {
-          Report.apiInitReceivedStockProcessing(params).then(resp => {
-            console.log(resp.response.data.progress)
-            this.progress = resp.response.data.progress
-            setTimeout(this.getProcessingStatus(params), 2)
+          Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
+            console.log(resp.data.progress)
+            progress.value = resp.data.progress
+            setTimeout(getProcessingStatus(params), 2)
           })
         } else {
           reportDatesParams.determineStartEndDate(params)
           console.log(params)
-          this.getDataLocalDb(params)
+          getDataLocalDb(params)
         }
-      },
-      getProcessingStatus (params) {
+      }
+
+    const  getProcessingStatus = (params) => {
         Report.getProcessingStatus('stockReportTemp', params).then(resp => {
-          this.progress = resp.response.data.progress
-          if (this.progress < 100) {
-            setTimeout(this.getProcessingStatus(params), 2)
+          progress.value = resp.data.progress
+          if (progress.value < 100) {
+            setTimeout(getProcessingStatus(params), 2)
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
           }
         })
-      },
-      generateReport (id, fileType, params) {
+      }
+
+     const generateReport = (id, fileType, params) => {
         // UID da tab corrent
       if (fileType === 'PDF') {
            ReceivedStockReport.downloadPDF(id, fileType, params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
                })
         } else if (fileType === 'XLS') {
            ReceivedStockReport.downloadExcel(id, fileType, params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
                })
         }
-      },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
-      },
-      getDataLocalDb (params) {
+      }
+      const getDataLocalDb =  (params) =>{
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
        Stock.localDbGetAll().then(stocks => {
@@ -142,11 +123,9 @@ import StockReceivedReport from 'src/store/models/report/stock/StockReceivedRepo
          console.log(stockReceived)
         })
           })
-          this.progress = 100
+          progress.value = 100
           params.progress = 100
       }
-    }
-  }
 </script>
 
 <style lang="scss" scoped>

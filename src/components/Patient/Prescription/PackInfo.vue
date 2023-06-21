@@ -27,11 +27,12 @@
               :rows="pack.packagedDrugs"
               :columns="columns"
               row-key="id"
+              hide-bottom
             >
               <template #body="props">
                 <q-tr no-hover :props="props">
                   <q-td key="drug" :props="props">
-                    {{ props.row.drug.name }}
+                    {{ props.row.drug !== null ? props.row.drug.name : '' }}
                   </q-td>
                   <q-td key="qty" :props="props">
                     {{ props.row.quantitySupplied }} Frasco(s)
@@ -42,6 +43,33 @@
                         ? formatDate(pack.nextPickUpDate)
                         : 'Não continua'
                     }}
+                  </q-td>
+                  <q-td
+                    :rowspan="pack.packagedDrugs.lenght"
+                    auto-width
+                    key="opts"
+                    :props="props"
+                  >
+                    <div class="col">
+                      <!-- <q-btn
+                        flat
+                        @click="editButtonActions(patientVisit)"
+                        round
+                        color="orange-5"
+                        icon="edit"
+                      >
+                        <q-tooltip class="bg-amber-5">Refazer</q-tooltip>
+                      </q-btn> -->
+                      <q-btn
+                        flat
+                        @click.stop="removePack"
+                        round
+                        color="red"
+                        icon="delete"
+                      >
+                        <q-tooltip class="bg-red">Remover</q-tooltip>
+                      </q-btn>
+                    </div>
                   </q-td>
                 </q-tr>
               </template>
@@ -57,7 +85,7 @@
 <script setup>
 import { date } from 'quasar';
 
-import { inject, provide, ref } from 'vue';
+import { inject, onMounted, provide, ref } from 'vue';
 
 //Declaration
 
@@ -84,6 +112,8 @@ const columns = [
     label: 'Próximo Levantamento',
     sortable: false,
   },
+  ,
+  { name: 'opts', align: 'left', label: 'Opções', sortable: false },
 ];
 const canEdit = ref(true);
 const title = ref('Prescrição');
@@ -93,6 +123,11 @@ const bgColor = ref('bg-grey-6');
 //Inject
 const pack = inject('lastPackOnPrescription');
 const isClosed = inject('isClosed');
+const removePack = inject('removePack');
+
+// onMounted(() => {
+//   console.log('O pack', pack.value);
+// });
 
 // Methods
 const formatDate = (dateString) => {
@@ -100,9 +135,6 @@ const formatDate = (dateString) => {
 };
 const editPack = () => {
   this.$emit('editPack');
-};
-const removePack = () => {
-  this.$emit('removePack');
 };
 
 // provide('title', title);

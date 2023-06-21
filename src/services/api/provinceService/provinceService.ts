@@ -111,6 +111,21 @@ export default {
   },
 
   getAllProvinces() {
-    return province.query().with('districts').get();
+    return province.query().with('districts').orderBy('code', 'asc').get();
+  },
+
+  getAllProvincesById(provinceId: string) {
+    return province
+      .withAllRecursive(1)
+      .where('id', provinceId)
+      .orderBy('code', 'asc')
+      .first();
+  },
+  getAllProvincesByCode(code: string) {
+    return province
+      .withAllRecursive(1)
+      .where('code', code)
+      .orderBy('code', 'asc')
+      .first();
   },
 };

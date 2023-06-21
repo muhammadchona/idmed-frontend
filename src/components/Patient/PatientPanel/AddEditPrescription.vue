@@ -46,7 +46,7 @@
       <q-card-section>
         <q-list bordered>
           <q-expansion-item
-            v-for="identifier in patient.identifiers"
+            v-for="identifier in getIdentifierWithInicialEpisode"
             :key="identifier.id"
             group="somegroup"
             dense
@@ -168,6 +168,7 @@ import moment from 'moment';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import packService from 'src/services/api/pack/packService';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 
 // Declaration
 const {
@@ -175,7 +176,8 @@ const {
   getDDMMYYYFromJSDate,
   getDateFromHyphenDDMMYYYY,
   getYYYYMMDDFromJSDate,
-} = useDateUtils();
+} = 
+DateUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const mds = ref('US_');
@@ -201,33 +203,30 @@ const dispenseModes = computed(() => {
     : [];
 });
 
+const getIdentifierWithInicialEpisode = computed(() => {
+  return patientServiceIdentifierService.getAllIdentifierWithInicialEpisodeByPatient(
+    patient.value.id
+  );
+});
+
 const dispenseLabel = computed(() => {
-  if (isNewPrescription.value) {
-    return curPatientVisit.value.patientVisitDetails.length === 0
-      ? 'Dispensar'
-      : 'Dispensar [' + curPatientVisit.value.patientVisitDetails.length + ']';
-  } else {
-    return 'Gravar';
-  }
+  return curPatientVisit.value.patientVisitDetails.length === 0
+    ? 'Dispensar'
+    : 'Dispensar [' + curPatientVisit.value.patientVisitDetails.length + ']';
 });
 // Methods
 
 const init = () => {
-  if (isNewPrescription) {
-    curPatientVisit.value.visitDate = getYYYYMMDDFromJSDate(moment());
-    curPatientVisit.value.clinic = patient.value.clinic;
-    curPatientVisit.value.clinic_id = patient.value.clinic_id;
-    curPatientVisit.value.patient = patient.value;
-    curPatientVisit.value.patient_id = patient.value.id;
-    curPatientVisit.value.patientVisitDetails = [];
-  }
+  curPatientVisit.value.visitDate = getYYYYMMDDFromJSDate(moment());
+  curPatientVisit.value.clinic = patient.value.clinic;
+  curPatientVisit.value.clinic_id = patient.value.clinic_id;
+  curPatientVisit.value.patient = patient.value;
+  curPatientVisit.value.patient_id = patient.value.id;
+  curPatientVisit.value.patientVisitDetails = [];
 };
 
 const doValidationToDispense = () => {
   submitting.value = true;
-  console.log('Entra para dispena');
-  console.log('modos de dispensa', dispenseMode.value);
-console.log
   if (
     dispenseMode.value === null ||
     dispenseMode.value === undefined ||
@@ -237,63 +236,35 @@ console.log
     submitting.value = false;
   } else {
     curPatientVisit.value.patientVisitDetails.forEach((patientVisitDetail) => {
+      curPatientVisit.value.visitDate = patientVisitDetail.pack.pickupDate;
       patientVisitDetail.pack.dispenseMode_id = dispenseMode.value.id;
       patientVisitDetail.pack.dispenseMode = dispenseMode.value;
     });
-    if (isNewPrescription) {
-      console.log('Save Option Patient Visit');
-      console.log('curPatientVisit', curPatientVisit.value);
-
-       patientVisitService
-        .post(curPatientVisit.value)
-        .then((resp) => {
-          console.log('Saved Patient Visit', resp);
-          alertSucess('Dispensa efectuada com sucesso');
-          submitting.value = false;
-          closePrescriptionOption();
-        })
-        .catch((error) => {
-          submitting.value = false;
-          const listErrors = [];
-          console.log(error);
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
+    console.log('curPatientVisit', curPatientVisit.value);
+    patientVisitService
+      .post(curPatientVisit.value)
+      .then((resp) => {
+        console.log('Saved Patient Visit', resp);
+        alertSucess('Dispensa efectuada com sucesso');
+        submitting.value = false;
+        closePrescriptionOption();
+      })
+      .catch((error) => {
+        submitting.value = false;
+        const listErrors = [];
+        console.log(error);
+        if (error.request.response != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
           }
-          alertError('error', listErrors);
-        });
-    } else {
-      console.log('Update Patient Visit');
-      console.log('curPatientVisit', curPatientVisit.value);
-      //     patientVisitService
-      //       .patch(curPatientVisit.value)
-      //       .then((resp) => {
-      //         submitting.value = false;
-      //         console.log('Update Patient Visit', resp);
-      //         alertSucess('Dispensa efectuada com sucesso');
-      //       })
-      //       .catch((error) => {
-      //         submitting.value = false;
-      //         const listErrors = [];
-      //         if (error.request.response != null) {
-      //           const arrayErrors = JSON.parse(error.request.response);
-      //           if (arrayErrors.total == null) {
-      //             listErrors.push(arrayErrors.message);
-      //           } else {
-      //             arrayErrors._embedded.errors.forEach((element) => {
-      //               listErrors.push(element.message);
-      //             });
-      //           }
-      //         }
-      //         alertError('error', listErrors);
-      //       });
-    }
+        }
+        alertError('error', listErrors);
+      });
   }
 };
 

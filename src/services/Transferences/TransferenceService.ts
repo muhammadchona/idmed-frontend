@@ -1,10 +1,10 @@
+import provinceService from 'src/services/api/provinceService/provinceService';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 import axios from 'axios';
 import Clinic from 'src/stores/models/clinic/Clinic';
 import Patient from 'src/stores/models/patient/Patient';
-import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
-import Province from 'src/stores/models/province/Province';
 import District from 'src/stores/models/district/District';
 import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 import ClinicSector from 'src/stores/models/clinicSector/ClinicSector';
@@ -27,8 +27,10 @@ import { SessionStorage } from 'quasar';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
 import DispenseMode from 'src/stores/models/dispenseMode/DispenseMode';
+
+const { alertSucess, alertError, alertInfo } = useSwal();
 export default {
-  checkProvincialServer($q) {
+  checkProvincialServer() {
     // const $q = useQuasar()
     const openProvincialServer = axios.create({
       baseURL: 'http://dev.fgh.org.mz:3110',
@@ -40,66 +42,46 @@ export default {
       })
       .then((response) => {
         if (response.data[0].token === undefined) {
-          $q.notify({
-            color: 'negative',
-            position: 'center',
-            message:
-              'O Utilizador ' +
+          alertInfo(
+            'O Utilizador ' +
               this.username +
-              ' não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.',
-            icon: 'report_problem',
-          });
+              ' não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.'
+          );
         } else {
-          $q.notify({
-            color: 'positive',
-            position: 'center',
-            message:
-              'Pesquisa de Pacientes no Servidor Provincial em funcionamento!!',
-            icon: 'verified_user',
-          });
+          alertSucess(
+            'Pesquisa de Pacientes no Servidor Provincial em funcionamento!!'
+          );
         }
       })
       .catch((error) => {
         if (String(error).includes('Network Error')) {
-          $q.notify({
-            color: 'negative',
-            position: 'center',
-            message:
-              'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão!',
-            icon: 'report_problem',
-          });
+          alertError(
+            'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão!'
+          );
         } else {
-          $q.notify({
-            color: 'negative',
-            position: 'center',
-            message: 'Falha inexperada, por favor contacte o adminitrador.',
-            icon: 'report_problem',
-          });
+          alertError('Falha inexperada, por favor contacte o adminitrador.');
         }
       });
-    setTimeout(() => {
-      $q.loading.hide();
-    }, 400);
   },
-  provincialServiceSearch($q, currPatient, patients, transferencePatientData) {
+  provincialServiceSearch(
+    currPatient: any,
+    patients: any,
+    transferencePatientData: any
+  ) {
     const openProvincialServer = axios.create({
       baseURL: 'http://localhost:8884',
     });
     const nid = currPatient.identifiers[0].value.replaceAll('/', '-');
 
     if (nid.length <= 0) {
-      $q.notify({
-        color: 'negative',
-        position: 'center',
-        message:
-          'Não contem nenhum parâmetro de pesquisa. Por favor, indtroduza um Nº de Identificador',
-        icon: 'report_problem',
-      });
+      alertError(
+        'Não contem nenhum parâmetro de pesquisa. Por favor, indtroduza um Nº de Identificador'
+      );
     } else {
       openProvincialServer
-        .get('/patientTransReference/getPatientNid/' + '3245233342')
+        .get('/patientTransReference/getPatientNid/' + nid)
         .then((response) => {
-          this.patients = [];
+          patients = [];
           if (response.data !== null) {
             const localpatient = new Patient({
               identifiers: [],
@@ -109,22 +91,17 @@ export default {
             );
             transferencePatientData.push(response.data);
           } else {
-            $q.notify({
-              color: 'negative',
-              position: 'center',
-              message:
-                'Nenhum resultado encontrado para o identificador ' + nid + '',
-              icon: 'report_problem',
-            });
+            alertError(
+              'Nenhum resultado encontrado para o identificador ' + nid
+            );
           }
         });
     }
   },
-  buildLocalPatientTransfered(localpatient, idmedPatientTransfered) {
-    localpatient.firstNames = idmedPatientTransfered.firstNames + 'rrrrrt';
-    localpatient.middleNames = idmedPatientTransfered.middleNames + 'aa';
-    localpatient.lastNames =
-      idmedPatientTransfered.lastNames + 'ccddaaabbbcccddd';
+  buildLocalPatientTransfered(localpatient: any, idmedPatientTransfered: any) {
+    localpatient.firstNames = idmedPatientTransfered.firstNames;
+    localpatient.middleNames = idmedPatientTransfered.middleNames;
+    localpatient.lastNames = idmedPatientTransfered.lastNames;
     localpatient.gender = idmedPatientTransfered.gender;
     localpatient.dateOfBirth = idmedPatientTransfered.dateOfBirth;
     localpatient.cellphone = idmedPatientTransfered.cellphone;
@@ -139,8 +116,8 @@ export default {
     //  localpatient.his = (this.selectedDataSources.id.length > 4) ? this.selectedDataSources : null
     //  localpatient.identifiers.push(this.buildPatientIdentifierFromIdmed(idmedPatientTransfered))
     //  localpatient.patientVisits.push(this.buildPatientVisitFromIdmed(idmedPatientTransfered))
-    localpatient.province = Province.query()
-      .where('code', idmedPatientTransfered.provinceCode)
+    localpatient.province = provinceService
+      .getAllProvincesByCode(idmedPatientTransfered.provinceCode)
       .first();
     localpatient.district = District.query()
       .with('province')

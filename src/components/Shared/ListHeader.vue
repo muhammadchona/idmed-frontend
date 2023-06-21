@@ -37,7 +37,7 @@
         icon="edit"
         @click="$emit('initEdition')"
       />
-      <q-btn
+      <!-- <q-btn
         dense
         flat
         round
@@ -46,7 +46,7 @@
         :icon="expanded ? 'expand_less' : 'expand_more'"
         class="float-right"
         @click="expand"
-      />
+      /> -->
       <q-btn
         dense
         v-if="addVisible"
@@ -87,6 +87,8 @@ const props = defineProps({
   doneVisible: Boolean,
 });
 
+const $emits = defineEmits(['done','initEdition'])
+
 // Methods
 const determineHeaderClass = () => {
   if (props.mainContainer.value) {
@@ -95,12 +97,14 @@ const determineHeaderClass = () => {
     headerClass.value = '';
   }
 };
+
 const expand = () => {
   expanded.value = !expanded.value;
   emit('expand' , expanded.value)
 };
+
 const closeSection = () => {
-  this.$emit('closeSection');
+  $emits('closeSection');
 };
 const created = () => {
   determineHeaderClass();

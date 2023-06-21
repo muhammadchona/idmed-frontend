@@ -99,6 +99,13 @@ export default {
 
   /*Pinia Methods*/
   getAllClinicSectorTypes() {
-    return clinicSectorType.withAll().get();
+    return clinicSectorType.withAll().orderBy('code', 'asc').get();
+  },
+  getClinicSectorTypesById(clinicSectorTypeId: string) {
+    return clinicSectorType
+      .withAll()
+      .where('id', clinicSectorTypeId)
+      .orderBy('code', 'asc')
+      .first();
   },
 };

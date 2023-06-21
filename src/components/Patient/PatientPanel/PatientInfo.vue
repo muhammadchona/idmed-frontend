@@ -92,20 +92,21 @@
         color="orange-5"
         label="Editar"
         class="col"
-        @click="editPatient()"
+        @click="editPatient"
       />
     </div>
     <div class="row">
-      <q-btn unelevated color="primary" label="Unir Duplicados" class="col" />
-    </div>
-    <!-- <q-dialog persistent v-model="showPatientRegister">
-      <patientRegister
-        :pa="patient"
-        :clinic="clinic"
-        :stepp="step"
-        @close="showPatientRegister = false"
+      <q-btn
+        unelevated
+        color="primary"
+        label="Unir Duplicados"
+        disable
+        class="col"
       />
-    </q-dialog> -->
+    </div>
+    <q-dialog persistent v-model="showPatientRegister">
+      <patientRegister />
+    </q-dialog>
     <span></span>
   </div>
 </template>
@@ -114,8 +115,8 @@
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
-// import patientRegister from 'src/components/Patient/Register/PatientRegister.vue';
-import { computed, inject, onMounted, ref } from 'vue';
+import patientRegister from 'src/components/Patient/Register/PatientRegister.vue';
+import { inject, onMounted, provide, ref } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
 
 // Declaration
@@ -123,6 +124,8 @@ const { postoAdministrativoName, bairroName, fullName } = usePatient();
 const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const showPatientRegister = ref(false);
+const newPatient = ref(false);
+const openMrsPatient = ref(false);
 
 //Injection
 const patient = inject('patient');
@@ -136,12 +139,6 @@ onMounted(() => {
 // Methods
 
 const init = () => {
-  //changeToDisplayStep();
-  // if (isMobile) {
-  //   Province.localDbGetAll().then((idTypes) => {
-  //     Province.insertOrUpdate({ data: idTypes });
-  //   });
-  // }
   if (patient.value === null) {
     patient.value = patientService.getPatientByID(
       localStorage.getItem('patientuuid')
@@ -149,9 +146,20 @@ const init = () => {
   }
 };
 const editPatient = () => {
-  //changeToEditStep();
   showPatientRegister.value = true;
+  newPatient.value = false;
 };
+
+const closePatient = () => {
+  showPatientRegister.value = false;
+  newPatient.value = false;
+};
+
+provide('newPatient', newPatient);
+provide('closePatient', closePatient);
+provide('patient', patient);
+provide('openMrsPatient', openMrsPatient);
+provide('showPatientRegister', showPatientRegister);
 </script>
 
 <style lang="scss">

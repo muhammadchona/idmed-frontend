@@ -35,7 +35,7 @@
           <q-tr no-hover :props="props">
             <q-td
               :style="
-                qtySupplied(props.row) === 0 ? 'color: red' : ' color: black'
+                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
               "
               key="drug"
               :props="props"
@@ -44,7 +44,7 @@
             </q-td>
             <q-td
               :style="
-                qtySupplied(props.row) === 0 ? 'color: red' : ' color: black'
+                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
               "
               key="dosage"
               :props="props"
@@ -60,18 +60,18 @@
             </q-td>
             <q-td
               :style="
-                qtySupplied(props.row) === 0 ? 'color: red' : ' color: black'
+                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
               "
               v-if="!curPatientVisitDetail.createPackLater"
               auto-width
               key="packs"
               :props="props"
             >
-              {{ (props.row.quantitySupplied = qtySupplied(props.row)) }}
+              {{ props.row.quantitySupplied }}
             </q-td>
             <q-td
               :style="
-                qtySupplied(props.row) === 0 ? 'color: red' : ' color: black'
+                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
               "
               v-if="!curPatientVisitDetail.createPackLater"
               key="nextPickUpDate"
@@ -80,7 +80,7 @@
               <div class="row">
                 <q-toggle
                   v-model="props.row.toContinue"
-                  :disable="qtySupplied(props.row) === 0 || validateDispense"
+                  :disable="qtySupplied(props.row) === -1 || validateDispense"
                   label="Continua"
                 />
               </div>
@@ -95,7 +95,7 @@
                 @click="deleteRow(props.row)"
               />
               <q-btn
-                v-if="qtySupplied(props.row) === 0"
+                v-if="qtySupplied(props.row) === -1"
                 flat
                 round
                 :disable="validateDispense"
@@ -152,10 +152,12 @@ import moment from 'moment';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
+import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertSucess, alertError, alertInfo } = useSwal();
+const { remainigDurationInWeeks } = usePrescription();
 const columns = [
   {
     name: 'drug',
@@ -210,30 +212,6 @@ const addPatientVisitDetail = inject('addPatientVisitDetail');
 const removePatientVisitDetail = inject('removePatientVisitDetail');
 
 //Methods
-const addEditDrugs = (pickupDate, nextPDate, duration) => {
-  if (!this.visitDetails.createPackLater) {
-    this.drugsDuration = duration;
-    this.nextPUpDate = nextPDate;
-    this.pickupDate = new Date(pickupDate);
-  }
-  const prescriptionCopy = new Prescription(
-    JSON.parse(JSON.stringify(this.prescription))
-  );
-  prescriptionCopy.patientVisitDetails = PatientVisitDetails.query()
-    .with('pack')
-    .where('prescription_id', prescriptionCopy.id)
-    .get();
-  if (duration.weeks > prescriptionCopy.remainigDurationInWeeks()) {
-    this.displayAlert(
-      'error',
-      'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' +
-        Number(prescriptionCopy.remainigDurationInWeeks() / 4) +
-        ' mes(es)]'
-    );
-  } else {
-    this.showAddEditDrug = true;
-  }
-};
 const deleteRow = (row) => {
   const i = curPack.value.packagedDrugs
     .map((toRemove) => toRemove.id)
@@ -258,9 +236,15 @@ const addPackagedDrug = (prescribedDrug) => {
     const hasStock = checkStock(packagedDrug);
 
     if (hasStock) {
-      if (qtySupplied(packagedDrug)) {
+      if (
+        drugsDuration.value.weeks >
+        remainigDurationInWeeks(curPrescription.value)
+      ) {
         alertError(
-          'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.'
+          'error',
+          'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' +
+            Number(remainigDurationInWeeks(curPrescription.value) / 4) +
+            ' mes(es)]'
         );
       } else {
         showAddEditDrug.value = false;
@@ -276,11 +260,19 @@ const addPackagedDrug = (prescribedDrug) => {
       'O medicamento ja existe na lista dos medicamentos por dispensar.'
     );
   }
+  // else if (qtySupplied(packagedDrug)) {
+  //       alertError(
+  //         'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.'
+  //       );
+  //     }
 };
 
 const qtySupplied = (packagedDrug) => {
-  if (checkStock(packagedDrug)) return packagedDrug.quantitySupplied;
-  return 0;
+  if (checkStock(packagedDrug)) {
+    return packagedDrug.quantitySupplied;
+  } else {
+    return -1;
+  }
 };
 const checkStock = (packagedDrug) => {
   let qtyInStock = 0;
@@ -308,53 +300,7 @@ const checkStock = (packagedDrug) => {
   }
 };
 
-const updateQtyPrescribed = (duration, pickupDate, nextPDate) => {
-  this.drugsDuration = duration;
-  this.nextPUpDate = nextPDate;
-  this.pickupDate = pickupDate;
-  this.$emit(
-    'updatePrescribedDrugs',
-    this.prescribedDrugs,
-    pickupDate,
-    nextPDate,
-    duration
-  );
-};
-const loadParams = async () => {
-  if (this.mobile) {
-    await Drug.localDbGetAll().then((drugs) => {
-      drugs.forEach((drug) => {
-        drug.clinicalServiceId = '';
-        drug.formId = '';
-        Drug.insert({ data: drug });
-      });
-    });
-  }
-};
-// Hooks
-
 // Computed
-
-const newPickUpDate = computed(() => {
-  if (this.isNewPrescriptionStep || this.lastPack === null) {
-    return this.currPrescription.prescriptionDate;
-  } else if (this.isAlreadyEdited) {
-    return this.curVisitDetails.pack.pickupDate;
-  } else if (this.isEditPackStep) {
-    return this.lastPack.pickupDate;
-  } else {
-    return this.lastPack.nextPickUpDate;
-  }
-});
-const isEditPackStep = computed(() => {
-  return this.step === 'editPack';
-});
-const isNewPackStep = computed(() => {
-  return this.step === 'addNewPack';
-});
-const isNewPrescriptionStep = computed(() => {
-  return this.currPrescription.id === null;
-});
 provide('showAddEditDrug', showAddEditDrug);
 provide('addPrescribedDrug', addPackagedDrug);
 </script>

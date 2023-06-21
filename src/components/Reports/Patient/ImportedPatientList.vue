@@ -25,23 +25,20 @@
   </div>
 </template>
 
-<script>
-  export default {
-    props: ['selectedService'],
-    name: 'ImportedPatientList',
-    mounted () {
-      console.log(this.selectedService)
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default
-    },
-    methods: {
-      closeSection () {
-        this.$refs.filterImportedPatient.remove()
+<script setup>
+   import { ref } from 'vue';
+
+   const  props = ['selectedService']
+    const name = 'ImportedPatientList'
+    const filterImportedPatient = ref('')
+    onMounted (() => {
+      console.log(selectedService)
+    })
+
+    const  closeSection = () => {
+        filterImportedPatient.value.remove()
       }
 
-    }
-  }
 </script>
 
 <style lang="scss" scoped>

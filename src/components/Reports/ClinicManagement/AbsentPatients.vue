@@ -25,111 +25,99 @@
         </q-item-section>
     </q-item>
   </div>
-   <q-dialog persistent v-model="alert.visible">
-    <Dialog :type="alert.type" @closeDialog="closeDialog">
-      <template v-slot:title> Informação</template>
-      <template v-slot:msg> {{alert.msg}} </template>
-    </Dialog>
-  </q-dialog>
   </div>
 </template>
-<script>
+<script setup>
 import moment from 'moment'
-import Report from 'src/store/models/report/Report'
+import Report from 'src/services/api/report/ReportService'
 import { LocalStorage, SessionStorage } from 'quasar'
-import { ref } from 'vue'
-import absentPatientsTs from '../../../reports/ClinicManagement/AbsentPatients.ts'
+import { ref, onMounted, inject} from 'vue'
+import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatients.ts'
 // import { v4 as uuidv4 } from 'uuid'
-import reportDatesParams from '../../../reports/ReportDatesParams'
+import reportDatesParams from 'src/services/reports/ReportDatesParams'
 // import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
 // import Pack from 'src/store/models/packaging/Pack'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-import Patient from '../../../store/models/patient/Patient'
-import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import AbsentPatientReport from 'src/store/models/report/pharmacyManagement/AbsentPatientReport'
-import mixinplatform from 'src/mixins/mixin-system-platform'
-  export default {
-    name: 'AbsentPatients',
-    props: ['selectedService', 'menuSelected', 'id', 'params'],
-    mixins: [mixinplatform],
-    setup () {
-      return {
-        totalRecords: ref(0),
-        qtyProcessed: ref(0),
-        report: 'FALTOSOS_AO_LEVANTAMENTO',
-        progress: ref(0),
-        name: 'AbsentPatients',
-         alert: ref({
-          type: '',
-          visible: false,
-          msg: ''
-        })
-      }
-    },
-    mounted () {
-         if (this.params) {
-          (this.getProcessingStatus(this.params))
+import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
+import Patient from '../../../stores/models/patient/Patient'
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier'
+import AbsentPatientReport from 'src/stores/models/report/pharmacyManagement/AbsentPatientReport'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+import ListHeader from 'components/Shared/ListHeader.vue'
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+import { useSwal } from 'src/composables/shared/dialog/dialog';  
+
+const { website } = useSystemUtils(); 
+const {  alertError } = useSwal();
+const  name =  'AbsentPatients'
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const totalRecords = ref(0)
+const qtyProcessed = ref(0)
+const report = 'FALTOSOS_AO_LEVANTAMENTO'
+const progress = ref(0)
+const filterDrugStoreSection = ref('')
+
+onMounted( () => {
+         if (props.params) {
+          getProcessingStatus(props.params)
         }
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    },
-    methods: {
-      closeSection () {
-         Report.api().delete(`/absentPatientsReport/delete/${this.id}`)
-        this.$refs.filterDrugStoreSection.remove()
-        LocalStorage.remove(this.id)
-        SessionStorage.remove(this.id)
-      },
-      initReportProcessing (params) {
+    })
+
+const closeSection=  () => {
+        filterDrugStoreSection.value.remove()
+        LocalStorage.remove(id)
+      }
+
+const initReportProcessing = (params) => {
         if (params.localOrOnline === 'online') {
-          Report.api().post('/absentPatientsReport/initReportProcess', params).then((response) => {
-         setTimeout(this.getProcessingStatus(params), 2)
+          Report.apiInitReportProcess('absentPatientsReport',params).then((response) => {
+         setTimeout(getProcessingStatus(params), 2)
       })
         } else {
-          this.getDataLocalDb(params)
+          getDataLocalDb(params)
         }
-      },
-      getProcessingStatus (params) {
-        if (this.website) {
+      }
+
+ const getProcessingStatus = (params) => {
+        if (website) {
         Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
-          this.progress = resp.response.data.progress
-          if (this.progress < 100) {
-            setTimeout(this.getProcessingStatus(params), 2)
+          progress.value = resp.data.progress
+          if (progress.value < 100) {
+            setTimeout(getProcessingStatus(params), 2)
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
           }
         })
       }
-      },
-      generateReport (id, fileType) {
-            Report.api().get(`/absentPatientsReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
-              if (!resp.response.data[0]) {
-              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+      }
+
+  const generateReport = (id, fileType) => {
+            Report.apiGenerateAbsentPatientsReport(id,fileType).then(resp => {
+              if (!resp.data[0]) {
+              alertError('Nao existem Dados para o periodo selecionado')
             } else {
-              const patientAux = resp.response.data[0]
+              const patientAux = resp.data[0]
               if (fileType === 'PDF') {
                 absentPatientsTs.downloadPDF(
                   patientAux.clinic,
                   moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
                   moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  resp.response.data
+                  resp.data
                 )
               } else {
                 absentPatientsTs.downloadExcel(
                   patientAux.clinic,
                   moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
                   moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  resp.response.data
+                  resp.data
                 )
               }
             }
             })
-      },
-      getDataLocalDb (params) {
+      }
+
+     const  getDataLocalDb = (params) => {
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
         PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
@@ -160,19 +148,10 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
         })
           })
         })
-          this.progress = 100
+          progress.value = 100
           params.progress = 100
-      },
-        displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
       }
-    }
-  }
+
 </script>
 
 <style lang="scss" scoped>

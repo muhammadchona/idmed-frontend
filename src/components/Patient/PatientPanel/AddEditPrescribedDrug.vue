@@ -169,7 +169,9 @@ const submitForm = () => {
 const getDrugs = computed(() => {
   let validDrugs = [];
   if (showOnlyOfRegimen.value) {
-    validDrugs = curPrescriptionDetail.value.therapeuticRegimen.drugs;
+    validDrugs = drugService.getActiveDrugsByRegimen(
+      curPrescriptionDetail.value.therapeuticRegimen.id
+    );
   } else {
     validDrugs = drugs.value;
   }
