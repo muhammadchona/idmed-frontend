@@ -8,6 +8,7 @@
           :expandVisible="false"
           :mainContainer="true"
           bgColor="bg-primary"
+          :addButtonActions ="initNewStock"
           >Notas da Guia
         </ListHeader>
         <div class="box-border row q-pt-sm">
@@ -400,6 +401,7 @@
             :mainContainer="true"
             @showAdd="initNewStock"
             bgColor="bg-primary"
+            :addButtonActions ="initNewStock"
             >Medicamentos
           </ListHeader>
           <div class="box-border q-pb-md">
@@ -601,17 +603,6 @@
         </div>
       </div>
     </div>
-    <q-dialog v-model="alert.visible" persistent>
-      <Dialog
-        :type="alert.type"
-        @closeDialog="closeDialog"
-        @commitOperation="doRemoveOrCreateAfterValidate"
-        @cancelOperation="cancelOperation"
-      >
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog>
   </div>
 </template>
 
@@ -899,6 +890,7 @@ const doRemoveStock = (stock) => {
 };
 
 const initNewStock = () => {
+  showloading();
   if (step.value === 'create' || step.value === 'edit') {
     alertError(
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a adição de novo registo.'
@@ -915,8 +907,7 @@ const initNewStock = () => {
       entrance: currStockEntrance,
     });
     stockList.value.push(newStock);
-  }
-};
+  }};
 
 const isPositiveInteger = (str) => {
   const num = Number(str);
@@ -985,6 +976,7 @@ const validateStock = (stock) => {
 };
 
 const doSave = (stock) => {
+  showloading()
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic_id = clinicService.currClinic().id;
   stock.drug_id = stock.drug.id;
@@ -1070,6 +1062,7 @@ const doSave = (stock) => {
         alertError('Ocorreu um erro inesperado')
       });
   }
+  closeLoading()
 };
 
 const fetchStockEntrance = () => {

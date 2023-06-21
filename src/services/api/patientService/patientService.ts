@@ -41,7 +41,12 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api().get(`/patient/${id}`);
+    return api()
+      .get(`/patient/${id}`)
+      .then((resp) => {
+        patient.save(resp.data);
+        return resp;
+      });
   },
 
   async apiSearch(patienParam: any) {
@@ -58,7 +63,16 @@ export default {
   },
 
   async apisearchByParam(searchParam: string, clinicId: string) {
-    return await api().get(`/patient/searchByParam/${searchParam}/${clinicId}`);
+    return await api()
+      .get(`/patient/searchByParam/${searchParam}/${clinicId}`)
+      .then((resp) => {
+        patient.save(resp.data);
+        closeLoading();
+        return resp;
+      })
+      .catch((error) => {
+        closeLoading();
+      });
   },
 
   async apiSearchPatientOnOpenMRS(
@@ -121,5 +135,41 @@ export default {
       .orderBy('firstNames')
       .orderBy('identifiers.value', 'asc')
       .get();
+  },
+  getPatientByClinicId(clinicId: string) {
+    return patient
+      .query()
+      .has('identifiers')
+      .has('patientVisits')
+      .withAll()
+      .where((patients) => {
+        return patients.clinic_id === clinicId;
+      })
+      .get();
+  },
+  getPatienWithstByID(id: string) {
+    // return patient.withAllRecursive(3).whereId(id).first();
+    return patient
+      .query()
+      .has('identifiers')
+      .with('identifiers', (query) => {
+        query
+          .with('identifierType')
+          .with('service', (query) => {
+            query.withAllRecursive(1);
+          })
+          .with('clinic', (query) => {
+            query.withAllRecursive(1);
+          })
+          .with('episodes', (query) => {
+            query.withAllRecursive(1);
+          });
+      })
+      .with('province')
+      .with('clinic', (query) => {
+        query.withAllRecursive(1);
+      })
+      .where('id', id)
+      .first();
   },
 };

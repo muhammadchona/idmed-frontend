@@ -73,7 +73,12 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api().get(`/pack/${id}`);
+    return await api()
+      .get(`/pack/${id}`)
+      .then((resp) => {
+        pack.save(resp.data);
+        return resp;
+      });
   },
 
   // Local Storage Pinia
@@ -83,9 +88,23 @@ export default {
   getAllFromStorage() {
     return pack.all();
   },
+
   removeFromStorage(id: string) {
     return pack.destroy(id);
   },
+
+  getPackByID(Id: string) {
+    return pack.query().whereId(Id).first();
+  },
+
+  getPackWithsByID(Id: string) {
+    return pack
+      .query()
+      .with('dispenseMode')
+      .with('packagedDrugs')
+      .whereId(Id)
+  },
+
   getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
     return pack
       .withAllRecursive(1)

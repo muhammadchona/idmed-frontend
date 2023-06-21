@@ -237,6 +237,7 @@ const init = () => {
 };
 
 const prepareInit = () => {
+  showloading()
  
   let i = 1;
   if (drug.stocks.length > 0) {
@@ -246,8 +247,9 @@ const prepareInit = () => {
         i = i + 1;
       }.bind(this)
     );
-  }
-  
+  } else if(drug.stocks.length === i) {
+  closeLoading()
+}
 };
 
 const initNewAdjustment = (stock, drug, i) => {
@@ -256,8 +258,6 @@ const initNewAdjustment = (stock, drug, i) => {
     stock.id,
     inventory.id
   );
-
-  console.log(newAdjustment);
   if (newAdjustment === null) {
     newAdjustment = new InventoryStockAdjustment({
       inventory: inventory,

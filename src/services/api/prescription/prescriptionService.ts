@@ -54,7 +54,12 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api().get(`/prescription/${id}`);
+    return await api()
+      .get(`/prescription/${id}`)
+      .then((resp) => {
+        prescription.save(resp.data);
+        return resp;
+      });
   },
 
   async apiFetchLastByIdentifierId(id: string) {
@@ -87,13 +92,24 @@ export default {
   getAllFromStorage() {
     return prescription.all();
   },
-  getLastPrescriptionFromPatientVisitDetails(prescriptionId: string) {
+
+  getPrescriptionByID(Id: string) {
+    return prescription
+      .query()
+      .with('doctor')
+      .with('duration')
+      .with('prescriptionDetails')
+      .whereId(Id)
+  },
+  
+  getLastPrescriptionFromPatientVisit(patientVisitId: string) {
     return prescription
       .withAllRecursive(2)
       .where('id', prescriptionId)
       .orderBy('prescriptionDate', 'desc')
       .first();
   },
+
   removeFromStorage(prescriptionId: string) {
     return prescription.destroy(prescriptionId);
   },

@@ -85,7 +85,10 @@ export default {
   async apiGetLastByEpisodeId(episodeId: string) {
     return await api().get(
       '/patientVisitDetails/getLastByEpisodeId/' + episodeId
-    );
+    ).then((resp) => {
+      patientVisitDetails.save(resp.data);
+      return resp;
+    })
   },
 
   async apiGetPatientVisitDetailsByPatientId(patientId: string) {
@@ -99,7 +102,10 @@ export default {
   async apiGetAllofPrecription(prescriptionId: string) {
     return await api().get(
       '/patientVisitDetails/getAllofPrecription/' + prescriptionId
-    );
+    ).then((resp) => {
+      patientVisitDetails.save(resp.data);
+      return resp;
+    });
   },
 
   // Local Storage Pinia
@@ -109,6 +115,7 @@ export default {
   getAllFromStorage() {
     return patientVisitDetails.all();
   },
+  
   getLastPatientVisitDetailFromPatientVisit(patientVisitId: string) {
     return patientVisitDetails
       .withAllRecursive(2)
@@ -135,4 +142,12 @@ export default {
   getAllPatientVisitByPackId(packId: string) {
     return patientVisitDetails.where('pack_id', packId).get();
   },
+
+  getPatientVisitDetailsByPackId(packId: string) {
+    return patientVisitDetails.query().where('pack_id', packId).first()
+  },
+
+  getPatientVisitDetailsByPrescriptionId(prescriptionId: string) {
+    return patientVisitDetails.query().withAll().where('prescription_id', prescriptionId).first()
+  }
 };

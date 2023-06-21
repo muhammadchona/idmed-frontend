@@ -1,6 +1,6 @@
 import Episode from 'src/stores/models/episode/Episode';
 
-export function useEspisode() {
+export function useEpisode() {
   function closed(episode: Episode) {
     return episode.code === 'FIM';
   }
@@ -61,7 +61,8 @@ export function useEspisode() {
   }
 
   function lastVisit(episode: Episode) {
-    let lastVisit = '';
+    let lastVisit = null;
+    console.log(episode);
     episode.patientVisitDetails.forEach((visit: any) => {
       if (lastVisit === null) {
         lastVisit = visit;

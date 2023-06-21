@@ -47,7 +47,7 @@
             {{ inventoryMethod.getInventoryType(props.row) }}
           </q-td>
           <q-td key="startDate" :props="props">
-            {{ inventoryMethod.getFormatedStartDate(props.row) }}
+            {{ inventoryMethod.getformatedUTCDate(props.row) }}
           </q-td>
           <q-td key="endDate" :props="props">
             {{ inventoryMethod.getFormatedEndDate(props.row) }}
@@ -90,10 +90,13 @@ import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
 import { useMediaQuery } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
 
 const inventoryMethod = useInventory();
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const mobile = computed(() => (isWebScreen.value ? false : true));
+const { showloading, closeLoading } = useLoading();
 
 const columns = [
   {
@@ -123,6 +126,7 @@ const router = useRouter();
 const filter = ref('');
 
 const openFile = (inventory) => {
+  showloading()
   if (mobile.value) {
     // Inserir no VueX inventory e InvstockAdj
     Inventory.deleteAll();

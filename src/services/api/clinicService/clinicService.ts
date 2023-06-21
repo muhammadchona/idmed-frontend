@@ -160,10 +160,11 @@ export default {
   },
 
   /*PINIA*/
-  currClinic() {
-    return clinic.withAllRecursive(2).where('mainClinic', true).first();
+    currClinic() {
+    return clinic.withAllRecursive(2)
+      .where('mainClinic', true)
+      .first();
   },
-
   getAllClinics() {
     return clinic
       .query()
