@@ -123,10 +123,13 @@ export default {
     return patient.all();
   },
   getPatientByID(id: string) {
-    return patient.withAllRecursive(3).whereId(id).first();
+    return patient.withAllRecursive(2).whereId(id).first();
   },
   deleteAllFromStorage() {
     patient.flush();
+  },
+  deletePatientStorage(patientParam: any) {
+    patient.destroy(patientParam.id);
   },
   getPatientSearchList() {
     return patient

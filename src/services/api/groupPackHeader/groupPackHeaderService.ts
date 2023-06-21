@@ -42,11 +42,27 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api().get(`/groupPackHeader/${id}`);
+    return await api()
+      .get(`/groupPackHeader/${id}`)
+      .then((resp) => {
+        groupPackHeader.save(resp.data);
+        return resp;
+      });
   },
 
-  async apiSave(groupPackHeader: any) {
-    return await api().post('/groupPackHeader', groupPackHeader);
+  async apiSave(groupPackHeaderParam: any) {
+    return await api()
+      .post('/groupPackHeader', groupPackHeaderParam)
+      .then((resp) => {
+        groupPackHeaderParam.group.members.forEach((member) => {
+          member.group = null;
+          member.groupMemberPrescription.prescription = null;
+        });
+        console.log(groupPackHeaderParam);
+        console.log(resp.data);
+        // groupPackHeader.save(groupPackHeaderParam);
+        return resp;
+      });
   },
 
   async apiUpdate(groupPackHeader: any) {
@@ -63,9 +79,13 @@ export default {
   getAllFromStorage() {
     return groupPackHeader.all();
   },
-   
-  getGroupPackHeaderByGroupId(groupId: string) {
-    return groupPackHeader.query().withAllRecursive(3).where('group_id', groupId).orderBy('packDate', 'desc').get()
-  }
 
+  getGroupPackHeaderByGroupId(groupId: string) {
+    return groupPackHeader
+      .query()
+      .withAllRecursive(3)
+      .where('group_id', groupId)
+      .orderBy('packDate', 'desc')
+      .get();
+  },
 };
