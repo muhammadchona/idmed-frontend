@@ -11,6 +11,7 @@ export default {
   async post(params: string) {
     const resp = await api().post('patient', params);
     patient.save(resp.data);
+    return resp;
   },
   get(offset: number) {
     if (offset >= 0) {

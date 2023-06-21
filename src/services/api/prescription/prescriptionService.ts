@@ -93,7 +93,6 @@ export default {
     return prescription.all();
   },
 
-
   getPrescriptionByID(Id: string) {
     return prescription
       .query()
@@ -106,11 +105,12 @@ export default {
   getLastPrescriptionFromPatientVisit(patientVisitId: string) {
     return prescription
       .withAllRecursive(2)
-      .whereHas('patientVisitDetails', (query) => {
-        query.where('patient_visit_id', patientVisitId);
-      })
+      .where('id', prescriptionId)
       .orderBy('prescriptionDate', 'desc')
       .first();
   },
-  
+
+  removeFromStorage(prescriptionId: string) {
+    return prescription.destroy(prescriptionId);
+  },
 };

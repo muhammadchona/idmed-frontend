@@ -49,4 +49,16 @@ export default {
   getAllFromStorage() {
     return startStopReason.all();
   },
+  getAllStartReasons() {
+    return startStopReason
+      .where('isStartReason', true)
+      .orderBy('reason', 'asc')
+      .get();
+  },
+  getAllStopReasons() {
+    return startStopReason
+      .where('isStartReason', false)
+      .orderBy('reason', 'asc')
+      .get();
+  },
 };

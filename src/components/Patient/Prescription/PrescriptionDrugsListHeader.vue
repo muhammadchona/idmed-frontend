@@ -17,7 +17,9 @@
         bg-color="white"
         style="margin: 2px; width: 200px"
         v-model="pickupDate"
-        @update:model-value="determineNextPickUpDate()"
+        @update:model-value="
+          determineNextPickUpDate(pickupDate, drugsDuration.weeks)
+        "
         ref="pickupDateRef"
         label="Data de Levantamento"
       >
@@ -32,7 +34,9 @@
                 v-model="pickupDate"
                 mask="DD-MM-YYYY"
                 :disable="validateDispense"
-                @update:model-value="determineNextPickUpDate()"
+                @update:model-value="
+                  determineNextPickUpDate(pickupDate, drugsDuration.weeks)
+                "
               >
                 <div class="row items-center justify-end">
                   <q-btn v-close-popup label="Close" color="primary" flat />
@@ -50,7 +54,9 @@
         style="width: 200px"
         class="q-mx-sm"
         bg-color="white"
-        @blur="determineNextPickUpDate()"
+        @update:model-value="
+          (value) => determineNextPickUpDate(pickupDate, value.weeks)
+        "
         outlined
         v-model="drugsDuration"
         :options="durations"
@@ -112,7 +118,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted, provide, ref } from 'vue';
+import { inject, onMounted, provide, reactive, ref } from 'vue';
 import moment from 'moment';
 import { date } from 'quasar';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
@@ -132,7 +138,7 @@ const expanded = ref(false);
 const curVisitDetails = ref('');
 const nextPDate = ref('');
 const pickupDate = ref('');
-const drugsDuration = ref('');
+const drugsDuration = ref();
 
 //Inject
 const curPatientVisit = inject('curPatientVisit');
@@ -162,7 +168,10 @@ const determineHeaderClass = () => {
 };
 const tryToDetermineDefaultTakePeriod = () => {
   if (curPrescription.value.duration !== null) {
-    determineNextPickUpDate();
+    determineNextPickUpDate(
+      pickupDate.value,
+      curPrescription.value.duration.weeks
+    );
   }
 };
 const expand = () => {
@@ -170,77 +179,66 @@ const expand = () => {
   $emit('expandLess', expanded);
 };
 const showAdd = () => {
-  // $refs.pickupDate.validate()
-  // $refs.nextPickupDate.validate()
-  if (curPatientVisit.value.createPackLater) {
-    $emit('showAdd', null, null, drugsDuration);
+  if (!date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate.value))) {
+    alertError('A data de levantamento é inválida');
+  } else if (
+    !date.isValid(extractHyphenDateFromDMYConvertYMD(nextPDate.value))
+  ) {
+    alertError('A data do próximo levantamento é inválida');
+  } else if (drugsDuration.value === '') {
+    alertError('Por favor indicar a duração da medicação a dispensar.');
+    // } else if (
+    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) <
+    //   curPatientVisitDetail.value.prescription.prescriptionDate
+    // ) {
+    //   alertError(
+    //     'A data de levantamento indicada é menor que a data da prescrição'
+    //   );
+  } else if (
+    extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
+    moment().format('YYYY-MM-DD')
+  ) {
+    alertError(
+      'A data de levantamento indicada é maior que a data da corrente'
+    );
+  } else if (
+    extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
+    extractHyphenDateFromDMYConvertYMD(nextPDate.value)
+  ) {
+    alertError(
+      'A data do levantamento é maior que a data do próximo levantamento'
+    );
+    // } else if (
+    //   newPickUpDate !== '' &&
+    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) < newPickUpDate.value
+    // ) {
+    //   alertError(
+    //     'A data de levantamento não pode ser anterior a ' +
+    //       getDDMMYYYFromJSDate(newPickUpDate.value) +
+    //       ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.'
+    //   );
   } else {
-    if (!date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate.value))) {
-      alertError('A data de levantamento é inválida');
-    } else if (
-      !date.isValid(extractHyphenDateFromDMYConvertYMD(nextPDate.value))
-    ) {
-      alertError('A data do próximo levantamento é inválida');
-    } else if (drugsDuration.value === '') {
-      alertError('Por favor indicar a duração da medicação a dispensar.');
-      // } else if (
-      //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) <
-      //   curPatientVisitDetail.value.prescription.prescriptionDate
-      // ) {
-      //   alertError(
-      //     'A data de levantamento indicada é menor que a data da prescrição'
-      //   );
-    } else if (
-      extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
-      moment().format('YYYY-MM-DD')
-    ) {
-      alertError(
-        'A data de levantamento indicada é maior que a data da corrente'
-      );
-    } else if (
-      extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
-      extractHyphenDateFromDMYConvertYMD(nextPDate.value)
-    ) {
-      alertError(
-        'A data do levantamento é maior que a data do próximo levantamento'
-      );
-      // } else if (
-      //   newPickUpDate !== '' &&
-      //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) < newPickUpDate.value
-      // ) {
-      //   alertError(
-      //     'A data de levantamento não pode ser anterior a ' +
-      //       getDDMMYYYFromJSDate(newPickUpDate.value) +
-      //       ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.'
-      //   );
-    } else {
-      showAddEditDrug.value = true;
-      console.log('Passa');
-    }
+    showAddEditDrug.value = true;
   }
 };
-const determineNextPickUpDate = () => {
-  if (date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate.value))) {
-    const newDate = getDateFromHyphenDDMMYYYY(pickupDate.value);
-    let lostDays = parseInt((curPrescription.value.duration.weeks / 4) * 2);
-    if (curPrescription.value.duration.weeks <= 1) lostDays = 0;
-    const daysToAdd = parseInt(
-      curPrescription.value.duration.weeks * 7 + lostDays
-    );
+const determineNextPickUpDate = (pickupDate, weeks) => {
+  if (date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate))) {
+    const newDate = getDateFromHyphenDDMMYYYY(pickupDate);
+    let lostDays = parseInt((weeks / 4) * 2);
+    if (weeks <= 1) {
+      lostDays = 0;
+    }
+    const daysToAdd = parseInt(weeks * 7 + lostDays);
     nextPDate.value = getDDMMYYYFromJSDate(
       date.addToDate(newDate, { days: daysToAdd })
     );
 
-    curPack.value.packDate = extractHyphenDateFromDMYConvertYMD(
-      pickupDate.value
-    );
-    curPack.value.pickupDate = extractHyphenDateFromDMYConvertYMD(
-      pickupDate.value
-    );
+    curPack.value.packDate = extractHyphenDateFromDMYConvertYMD(pickupDate);
+    curPack.value.pickupDate = extractHyphenDateFromDMYConvertYMD(pickupDate);
     curPack.value.nextPickUpDate = extractHyphenDateFromDMYConvertYMD(
       nextPDate.value
     );
-    curPack.value.weeksSupply = drugsDuration.value.weeks;
+    curPack.value.weeksSupply = weeks;
   }
 };
 const formatDate = (dateString) => {
@@ -252,7 +250,7 @@ const init = () => {
       curPrescription.value.prescriptionDate
     );
   } else {
-    pickupDate.value = getDDMMYYYFromJSDate(new Date());
+    pickupDate.value = getDDMMYYYFromJSDate(curPack.value.pickupDate);
   }
   drugsDuration.value = curPrescription.value.duration;
   tryToDetermineDefaultTakePeriod();

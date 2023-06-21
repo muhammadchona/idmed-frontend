@@ -1,27 +1,263 @@
+<template>
+  <div class="q-mt-lg">
+    <TitleBar />
+    <div class="q-mx-xl">
+      <div class="row">
+        <q-space />
+        <q-select
+          class="col-2 q-mt-md"
+          dense
+          outlined
+          option-label="abbreviation"
+          v-model="selectedDataSources"
+          :options="dataSources"
+          @update:model-value="loadHISDataSource()"
+          label="Fonte de dados"
+        />
+      </div>
+      <div class="row items-center q-my-md">
+        <q-icon name="person_outline" size="sm" />
+        <span class="q-pl-sm text-subtitle2">Informação inicial</span>
+      </div>
+      <div class="row">
+        <q-input
+          outlined
+          label="Nr. Identificador"
+          dense
+          ref="identifierRef"
+          class="col"
+          v-model="patientId"
+          @update:model-value="(value) => (filter = value)"
+          :rules="[(val) => !!val || 'Por favor indicar o identificador']"
+          lazy-rules
+        >
+          <template
+            v-slot:append
+            v-if="
+              patientId !== null && patientId !== undefined && patientId !== ''
+            "
+          >
+            <q-icon
+              name="close"
+              @click="patientId = ''"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-input>
+        <q-input
+          outlined
+          ref="firstNamesRef"
+          v-model="currPatient.firstNames"
+          type="text"
+          lazy-rules
+          label="Nome *"
+          dense
+          class="col q-ml-md"
+          @update:model-value="(value) => (filter = value)"
+          :rules="[(val) => !!val || 'Por favor indicar o nome']"
+          :readonly="selectedDataSources.id.length > 4"
+        >
+          <template
+            v-slot:append
+            v-if="
+              currPatient.firstNames !== null &&
+              currPatient.firstNames !== undefined &&
+              currPatient.firstNames !== ''
+            "
+          >
+            <q-icon
+              name="close"
+              @click="currPatient.firstNames = ''"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-input>
+        <q-input
+          outlined
+          v-model="currPatient.middleNames"
+          ref="middleNamesRef"
+          type="text"
+          lazy-rules
+          label="Outros Nomes"
+          dense
+          class="col q-ml-md"
+          @update:model-value="(value) => (filter = value)"
+          :rules="[(val) => !!val || 'Por favor indicar o nome']"
+          :readonly="selectedDataSources.id.length > 4"
+        >
+          <template
+            v-slot:append
+            v-if="
+              currPatient.middleNames !== null &&
+              currPatient.middleNames !== undefined &&
+              currPatient.middleNames !== ''
+            "
+          >
+            <q-icon
+              name="close"
+              @click="currPatient.middleNames = ''"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-input>
+
+        <q-input
+          outlined
+          ref="lastNamesRef"
+          v-model="currPatient.lastNames"
+          type="text"
+          lazy-rules
+          label="Apelido"
+          dense
+          class="col q-ml-md"
+          @update:model-value="(value) => (filter = value)"
+          :rules="[(val) => !!val || 'Por favor indicar o nome']"
+          :readonly="selectedDataSources.id.length > 4"
+        >
+          <template
+            v-slot:append
+            v-if="
+              currPatient.lastNames !== null &&
+              currPatient.lastNames !== undefined &&
+              currPatient.lastNames !== ''
+            "
+          >
+            <q-icon
+              name="close"
+              @click="currPatient.lastNames = ''"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-input>
+        <q-btn
+          v-if="canClear"
+          @click="search()"
+          class="q-ml-md q-mb-xs"
+          square
+          color="primary"
+          icon="search"
+        >
+          <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
+        </q-btn>
+        <q-btn
+          v-if="canClear"
+          @click="clearSearchParams"
+          class="q-ml-md q-mb-xs"
+          square
+          color="amber"
+          icon="clear"
+        >
+          <q-tooltip class="bg-amber-5">Limpar</q-tooltip>
+        </q-btn>
+      </div>
+
+      <div class="q-mt-lg q-mb-md">
+        <div class="row items-center q-mb-md">
+          <q-icon name="search" size="sm" />
+          <span class="q-pl-sm text-subtitle2">Resultado da Pesquisa</span>
+        </div>
+        <q-separator color="grey-13" size="1px" />
+      </div>
+      <div>
+        <q-table
+          class="col"
+          dense
+          :rows="patientList"
+          :columns="columns"
+          row-key="id"
+          :filter="filter"
+        >
+          <template v-slot:no-data="{ icon, filter }">
+            <div
+              class="full-width row flex-center text-primary q-gutter-sm text-body2"
+            >
+              <span> Sem resultados para visualizar </span>
+              <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+            </div>
+          </template>
+          <template #body="props">
+            <q-tr :props="props">
+              <q-td key="order" :props="props"> </q-td>
+              <q-td key="identifier" :props="props">
+                {{ preferedIdentifierValue(props.row) }}
+              </q-td>
+              <q-td key="name" :props="props">
+                {{ fullName(props.row) }}
+              </q-td>
+              <q-td key="age" :props="props">
+                {{
+                  idadeCalculator(getDDMMYYYFromJSDate(props.row.dateOfBirth))
+                }}
+              </q-td>
+              <q-td key="gender" :props="props">
+                {{ props.row.gender }}
+              </q-td>
+              <q-td key="options" :props="props">
+                <div class="col">
+                  <q-btn
+                    flat
+                    round
+                    v-if="!(selectedDataSources.id.length > 4)"
+                    color="amber-8"
+                    icon="edit"
+                    @click="editPatient(props.row)"
+                  >
+                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
+                  </q-btn>
+
+                  <q-btn
+                    flat
+                    round
+                    v-if="!(selectedDataSources.id.length > 4)"
+                    class="q-ml-md"
+                    color="green-8"
+                    icon="person_search"
+                    @click="goToPatientPanel(props.row)"
+                  >
+                    <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
+                  </q-btn>
+
+                  <q-btn
+                    flat
+                    round
+                    v-if="selectedDataSources.id.length > 4"
+                    class="q-ml-md"
+                    color="green-8"
+                    icon="file_download"
+                    @click="saveOpenMRSPatient(props.row)"
+                  >
+                    <q-tooltip class="bg-green-5">Carregar</q-tooltip>
+                  </q-btn>
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+        <div class="q-mt-md"></div>
+      </div>
+    </div>
+    <q-page-sticky position="bottom-right" :offset="[18, 18]">
+      <q-btn
+        class="q-mb-xl q-mr-xl"
+        fab
+        color="primary"
+        icon="add"
+        @click="createPatient(currPatient)"
+      />
+    </q-page-sticky>
+    <q-dialog persistent v-model="showPatientRegister">
+      <patientRegister />
+    </q-dialog>
+  </div>
+</template>
 <script setup>
-import {
-  computed,
-  inject,
-  onMounted,
-  provide,
-  reactive,
-  ref,
-  watch,
-} from 'vue';
-// import ClinicalService from 'src/store/models/ClinicalService/ClinicalService';
-// import HealthInformationSystem from 'src/store/models/healthInformationSystem/HealthInformationSystem';
-// import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
-// import TransferenceService from 'src/services/Transferences/TransferenceService';
+import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
-// import patientService from 'src/services/api/patientService/patientService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-// import districtService from 'src/services/api/districtService/districtService';
-// import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
-// import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import TitleBar from 'src/components/Shared/TitleBar.vue';
 import patientService from 'src/services/api/patientService/patientService';
-// import patientRegister from 'components/Patient/Register/PatientRegister.vue';
+import patientRegister from 'components/Patient/Register/PatientRegister.vue';
 import Patient from 'src/stores/models/patient/Patient';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { usePatient } from 'src/composables/patient/patientMethods';
@@ -29,9 +265,9 @@ import { useRouter } from 'vue-router';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
-import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import packService from 'src/services/api/pack/packService';
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -42,11 +278,10 @@ const { preferedIdentifierValue, fullName } = usePatient();
 //Declaration
 
 const router = useRouter();
-const searchField = ref('');
 const filter = reactive(ref(''));
-const selected = ref([]);
 const showPatientRegister = ref(false);
-const currPatient = inject('currPatient');
+const currPatient = ref(new Patient());
+const patientServiceIdentifier = ref(new PatientServiceIdentifier());
 const selectedDataSources = ref({
   id: 0,
   abbreviation: 'iDMED',
@@ -61,7 +296,6 @@ const openMrsPatient = ref(false);
 const title = ref('Procurar ou adicionar Utentes/Pacientes');
 
 const columns = [
-  // { name: 'order', required: true, label: 'Ordem', align: 'left', sortable: true },
   {
     name: 'identifier',
     align: 'left',
@@ -74,16 +308,8 @@ const columns = [
     align: 'left',
     label: 'Nome',
     field: (row) => fullName(row),
-    // row.firstNames + ' ' + row.middleNames + ' ' + row.lastNames,
     sortable: false,
   },
-  // {
-  //   name: 'name',
-  //   align: 'left',
-  //   label: 'middleNames',
-  //   field: 'middleNames',
-  //   sortable: false,
-  // },
   { name: 'age', align: 'center', label: 'Idade', sortable: false },
   { name: 'gender', align: 'left', label: 'Género', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
@@ -96,7 +322,10 @@ const clinic = inject('clinic');
 // Hooks
 onMounted(() => {
   showloading();
+  currPatient.value = new Patient();
   patientService.deleteAllFromStorage();
+  patientServiceIdentifier.value.value = patientId.value;
+  currPatient.value.identifiers.push(patientServiceIdentifier.value);
   currPatient.value.clinic = clinic.value;
 });
 
@@ -261,6 +490,12 @@ const saveOpenMRSPatient = (patient) => {
   openMrsPatient.value = true;
 };
 
+const closePatient = () => {
+  showPatientRegister.value = false;
+  newPatient.value = false;
+  openMrsPatient.value = false;
+};
+
 const goToPatientPanel = (patient) => {
   showloading();
   currPatient.value = patient;
@@ -280,9 +515,9 @@ const goToPatientPanel = (patient) => {
 const filterPatient = (patient) => {
   return (
     hasIdentifierLike(patient, currPatient) ||
-    stringContains(patient.firstNames, currPatient.firstNames) ||
-    stringContains(patient.middleNames, currPatient.middleNames) ||
-    stringContains(patient.lastNames, currPatient.lastNames)
+    stringContains(patient.firstNames, currPatient.value.firstNames) ||
+    stringContains(patient.middleNames, currPatient.value.middleNames) ||
+    stringContains(patient.lastNames, currPatient.value.lastNames)
   );
 };
 const hasIdentifierLike = (patientToCheck, inputPatient) => {
@@ -312,14 +547,9 @@ const loadHISDataSource = () => {
   // patients.value = [];
   patientService.deleteAllFromStorage();
   showloading();
-  // this.$q.loading.show({
-  //   message: 'Carregando ...',
-  //   spinnerColor: 'grey-4',
-  //   spinner: QSpinnerBall,
-  // });
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
-      // TransferenceService.checkProvincialServer(this.$q);
+      // TransferenceService.checkProvincialServer();
     } else {
       checkOpenMRS(selectedDataSources.value);
     }
@@ -328,12 +558,6 @@ const loadHISDataSource = () => {
       'Pesquisa iDMED',
       'Pesquisa de Pacientes no iDMED em funcionamento'
     );
-    // this.$q.notify({
-    //   color: 'positive',
-    //   position: 'center',
-    //   message: 'Pesquisa de Pacientes no iDMED em funcionamento!!',
-    //   icon: 'verified_user',
-    // });
     setTimeout(() => {
       closeLoading();
     }, 400);
@@ -386,282 +610,11 @@ const checkOpenMRS = (his) => {
   }, 400);
 };
 
-watch(
-  () => patientList,
-  (oldp, newp) => {
-    if (oldp !== newp) {
-      closeLoading();
-    }
-  }
-);
-
 provide('title', title);
+provide('newPatient', newPatient);
+provide('patient', currPatient);
+provide('openMrsPatient', openMrsPatient);
+provide('transferencePatientData', transferencePatientData);
+provide('closePatient', closePatient);
+provide('showPatientRegister', showPatientRegister);
 </script>
-
-<template>
-  <div class="q-mt-lg">
-    <TitleBar />
-    <div class="q-mx-xl">
-      <div class="row">
-        <q-space />
-        <q-select
-          class="col-2 q-mt-md"
-          dense
-          outlined
-          option-label="abbreviation"
-          v-model="selectedDataSources"
-          :options="dataSources"
-          @update:model-value="loadHISDataSource()"
-          label="Fonte de dados"
-        />
-      </div>
-      <div class="row items-center q-my-md">
-        <q-icon name="person_outline" size="sm" />
-        <span class="q-pl-sm text-subtitle2">Informação inicial</span>
-      </div>
-      <div class="row">
-        <q-input
-          outlined
-          label="Nr. Identificador"
-          dense
-          ref="identifier"
-          class="col"
-          v-model="currPatient.identifiers[0]"
-          :value="patientId"
-          @update:model-value="(value) => (filter = value)"
-          :rules="[(val) => !!val || 'Por favor indicar o identificador']"
-          lazy-rules
-        >
-          <template
-            v-slot:append
-            v-if="
-              patientId !== null && patientId !== undefined && patientId !== ''
-            "
-          >
-            <q-icon
-              name="close"
-              @click="patientId = ''"
-              class="cursor-pointer"
-            />
-          </template>
-        </q-input>
-        <q-input
-          outlined
-          ref="firstNamesRef"
-          :value="currPatient.firstNames"
-          type="text"
-          lazy-rules
-          label="Nome *"
-          dense
-          class="col q-ml-md"
-          @update:model-value="(value) => (filter = value)"
-          :rules="[(val) => !!val || 'Por favor indicar o nome']"
-          :readonly="selectedDataSources.id.length > 4"
-          v-model="currPatient.firstNames"
-        >
-          <template
-            v-slot:append
-            v-if="
-              currPatient.firstNames !== null &&
-              currPatient.firstNames !== undefined &&
-              currPatient.firstNames !== ''
-            "
-          >
-            <q-icon
-              name="close"
-              @click="currPatient.firstNames = ''"
-              class="cursor-pointer"
-            />
-          </template>
-        </q-input>
-        <q-input
-          outlined
-          v-model="currPatient.middleNames"
-          ref="middleNamesRef"
-          :value="currPatient.middleNames"
-          type="text"
-          lazy-rules
-          label="Outros Nomes"
-          dense
-          class="col q-ml-md"
-          @update:model-value="(value) => (filter = value)"
-          :rules="[(val) => !!val || 'Por favor indicar o nome']"
-          :readonly="selectedDataSources.id.length > 4"
-        >
-          <template
-            v-slot:append
-            v-if="
-              currPatient.middleNames !== null &&
-              currPatient.middleNames !== undefined &&
-              currPatient.middleNames !== ''
-            "
-          >
-            <q-icon
-              name="close"
-              @click="currPatient.middleNames = ''"
-              class="cursor-pointer"
-            />
-          </template>
-        </q-input>
-
-        <q-input
-          outlined
-          ref="lastNamesRef"
-          v-model="currPatient.lastNames"
-          :value="currPatient.lastNames"
-          type="text"
-          lazy-rules
-          label="Apelido"
-          dense
-          class="col q-ml-md"
-          @update:model-value="(value) => (filter = value)"
-          :rules="[(val) => !!val || 'Por favor indicar o nome']"
-          :readonly="selectedDataSources.id.length > 4"
-        >
-          <template
-            v-slot:append
-            v-if="
-              currPatient.lastNames !== null &&
-              currPatient.lastNames !== undefined &&
-              currPatient.lastNames !== ''
-            "
-          >
-            <q-icon
-              name="close"
-              @click="currPatient.lastNames = ''"
-              class="cursor-pointer"
-            />
-          </template>
-        </q-input>
-        <q-btn
-          v-if="canClear"
-          @click="search()"
-          class="q-ml-md q-mb-xs"
-          square
-          color="primary"
-          icon="search"
-        >
-          <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
-        </q-btn>
-        <q-btn
-          v-if="canClear"
-          @click="clearSearchParams"
-          class="q-ml-md q-mb-xs"
-          square
-          color="amber"
-          icon="clear"
-        >
-          <q-tooltip class="bg-amber-5">Limpar</q-tooltip>
-        </q-btn>
-      </div>
-
-      <div class="q-mt-lg q-mb-md">
-        <div class="row items-center q-mb-md">
-          <q-icon name="search" size="sm" />
-          <span class="q-pl-sm text-subtitle2">Resultado da Pesquisa</span>
-        </div>
-        <q-separator color="grey-13" size="1px" />
-      </div>
-      <div>
-        <q-table
-          class="col"
-          dense
-          :rows="patientList"
-          :columns="columns"
-          row-key="id"
-          :filter="filter"
-        >
-          <template v-slot:no-data="{ icon, filter }">
-            <div
-              class="full-width row flex-center text-primary q-gutter-sm text-body2"
-            >
-              <span> Sem resultados para visualizar </span>
-              <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
-            </div>
-          </template>
-          <template #body="props">
-            <q-tr :props="props">
-              <q-td key="order" :props="props"> </q-td>
-              <q-td key="identifier" :props="props">
-                {{ preferedIdentifierValue(props.row) }}
-              </q-td>
-              <q-td key="name" :props="props">
-                {{ fullName(props.row) }}
-              </q-td>
-              <q-td key="age" :props="props">
-                {{
-                  idadeCalculator(getDDMMYYYFromJSDate(props.row.dateOfBirth))
-                }}
-              </q-td>
-              <q-td key="gender" :props="props">
-                {{ props.row.gender }}
-              </q-td>
-              <q-td key="options" :props="props">
-                <div class="col">
-                  <q-btn
-                    flat
-                    round
-                    v-if="!(selectedDataSources.id.length > 4)"
-                    color="amber-8"
-                    icon="edit"
-                    @click="editPatient(props.row)"
-                  >
-                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
-                  </q-btn>
-
-                  <q-btn
-                    flat
-                    round
-                    v-if="!(selectedDataSources.id.length > 4)"
-                    class="q-ml-md"
-                    color="green-8"
-                    icon="person_search"
-                    @click="goToPatientPanel(props.row)"
-                  >
-                    <q-tooltip class="bg-green-5">Visualizar</q-tooltip>
-                  </q-btn>
-
-                  <q-btn
-                    flat
-                    round
-                    v-if="selectedDataSources.id.length > 4"
-                    class="q-ml-md"
-                    color="green-8"
-                    icon="file_download"
-                    @click="saveOpenMRSPatient(props.row)"
-                  >
-                    <q-tooltip class="bg-green-5">Carregar</q-tooltip>
-                  </q-btn>
-                </div>
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-        <div class="q-mt-md"></div>
-      </div>
-    </div>
-
-    <!--
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <q-btn
-          class="q-mb-xl q-mr-xl"
-          fab
-          color="primary"
-          icon="add"
-          @click="createPatient()"
-        />
-      </q-page-sticky>
-      <q-dialog persistent v-model="showPatientRegister">
-        <patientRegister
-          :newPatient="newPatient"
-          :selectedPatient="currPatient"
-          :clinic="currClinic"
-          :stepp="step"
-          :transferencePatientData="transferencePatientData"
-          :openMrsPatient="openMrsPatient"
-          @close="showPatientRegister = false">
-        />
-      </q-dialog>
-    </div-->
-  </div>
-</template>

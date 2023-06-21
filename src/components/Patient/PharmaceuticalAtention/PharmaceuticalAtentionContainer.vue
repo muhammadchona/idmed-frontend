@@ -61,11 +61,20 @@
                   </q-td>
                   <q-td key="tbScreenings" :props="props">
                     <q-btn
+                      v-if="patientVisit.tbScreenings.length > 0"
                       class="q-pa-none"
                       flat
                       color="primary"
                       label="Ver Detalhes"
                       @click="showTB(patientVisit)"
+                    />
+                    <q-btn
+                      v-else
+                      disable="true"
+                      class="q-pa-none"
+                      flat
+                      color="grey-6"
+                      label="Sem Rastreio"
                     />
                   </q-td>
                   <q-td
@@ -75,29 +84,56 @@
                     :props="props"
                   >
                     <q-btn
+                      v-if="patientVisit.pregnancyScreenings.length > 0"
                       class="q-pa-none"
                       flat
                       color="primary"
                       label="Ver Detalhes"
                       @click="showPregnancy(patientVisit)"
                     />
+                    <q-btn
+                      v-else
+                      disable="true"
+                      class="q-pa-none"
+                      flat
+                      color="grey-6"
+                      label="Sem Rastreio"
+                    />
                   </q-td>
                   <q-td auto-width key="adherenceScreenings" :props="props">
                     <q-btn
+                      v-if="patientVisit.adherenceScreenings.length > 0"
                       class="q-pa-none"
                       flat
                       color="primary"
                       label="Ver Detalhes"
                       @click="showAdherence(patientVisit)"
                     />
+                    <q-btn
+                      v-else
+                      disable="true"
+                      class="q-pa-none"
+                      flat
+                      color="grey-6"
+                      label="Sem Rastreio"
+                    />
                   </q-td>
                   <q-td auto-width key="ramScreenings" :props="props">
                     <q-btn
+                      v-if="patientVisit.ramScreenings.length > 0"
                       class="q-pa-none"
                       flat
                       color="primary"
                       label="Ver Detalhes"
                       @click="showAdverse(patientVisit)"
+                    />
+                    <q-btn
+                      v-else
+                      disable="true"
+                      class="q-pa-none"
+                      flat
+                      color="grey-6"
+                      label="Sem Rastreio"
                     />
                   </q-td>
                   <q-td auto-width key="opts" :props="props">

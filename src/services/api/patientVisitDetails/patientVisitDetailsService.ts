@@ -115,6 +115,33 @@ export default {
   getAllFromStorage() {
     return patientVisitDetails.all();
   },
+  
+  getLastPatientVisitDetailFromPatientVisit(patientVisitId: string) {
+    return patientVisitDetails
+      .withAllRecursive(2)
+      .has('prescription')
+      .where('patient_visit_id', patientVisitId)
+      .first();
+  },
+
+  getLastPatientVisitDetailsFromEpisode(episodeId: string) {
+    return patientVisitDetails
+      .withAllRecursive(1)
+      .has('pack')
+      .where('episode_id', episodeId)
+      .whereHas('pack', (query) => {
+        query.orderBy('pickupDate', 'desc');
+        query.first();
+      })
+      .first();
+  },
+
+  getAllPatientVisitByPrescriptioId(prescriptionId: string) {
+    return patientVisitDetails.where('prescription_id', prescriptionId).get();
+  },
+  getAllPatientVisitByPackId(packId: string) {
+    return patientVisitDetails.where('pack_id', packId).get();
+  },
 
   getPatientVisitDetailsByPackId(packId: string) {
     return patientVisitDetails.query().where('pack_id', packId).first()
@@ -123,5 +150,4 @@ export default {
   getPatientVisitDetailsByPrescriptionId(prescriptionId: string) {
     return patientVisitDetails.query().withAll().where('prescription_id', prescriptionId).first()
   }
-
 };

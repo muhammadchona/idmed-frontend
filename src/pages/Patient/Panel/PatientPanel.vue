@@ -28,8 +28,8 @@
       </q-drawer>
       <div
         v-else
-        class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel"
-        style="max-width: 500px"
+        class="col-3 q-pa-md q-pl-lg q-ml-sm panel"
+        style="max-width: 390px"
       >
         <PatientInfo />
       </div>
@@ -50,7 +50,7 @@
           :thumb-style="thumbStyle"
           :content-style="contentStyle"
           :content-active-style="contentActiveStyle"
-          style="height: 650px"
+          style="height: 690px"
           class="q-pr-md"
           v-if="website"
         >
@@ -79,7 +79,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const tab = ref('clinicService');
-// const patient = reactive(ref(new Patient()));
+
 const showPatientInfo = ref(false);
 const title = ref('Detalhe do Utente/Paciente');
 const contentStyle = ref({

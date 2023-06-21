@@ -4,22 +4,22 @@
       :addButtonActions="newPrescriptionOption"
       :mainContainer="true"
       bgColor="bg-primary"
-      :addVisible="true"
+      :add-visible="patientHasEpisodes"
       :expandVisible="false"
       :title="title"
     />
     <div>
-      <EmptyList v-if="patientHasNoPrescription" />
-      <div>
+      <EmptyList v-if="!patientHasEpisodes" />
+      <div v-else>
         <PrescriptionInfoContainer
           v-for="identifier in patient.identifiers"
           :key="identifier.id"
           :identifierId="identifier.id"
         />
       </div>
-        <q-dialog persistent v-model="showAddPrescription">
-          <AddEditPrescription />
-        </q-dialog>
+      <q-dialog persistent v-model="showAddPrescription">
+        <AddEditPrescription />
+      </q-dialog>
     </div>
   </div>
 </template>
@@ -39,7 +39,7 @@ const { hasEpisodes, hasOneAndClosedIdentifier } = usePatient();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 const showAddPrescription = reactive(ref(false));
-const isNewPrescription = ref(false);
+const isNewPrescription = reactive(ref(false));
 const selectedVisitDetails = ref('');
 const step = ref('');
 const title = ref('Prescrição');
@@ -73,7 +73,7 @@ const patientHasClosedIdentifier = computed(() => {
 
 // Methods
 const init = async () => {
-  console.log('On PrescriptionInfo initialization');
+  console.log('On PrescriptionInfo initialization', showAddPrescription.value);
   closeLoading();
 };
 
@@ -108,6 +108,8 @@ provide('bgColor', bgColor);
 provide('addVisible', showAddButton);
 provide('titleEmptyList', titleEmptyList);
 provide('isNewPrescription', isNewPrescription);
+provide('showAddPrescription', showAddPrescription);
+provide('editPrescriptionOption', editPrescriptionOption);
 provide('closePrescriptionOption', closePrescriptionOption);
 </script>
 

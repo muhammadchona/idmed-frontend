@@ -30,7 +30,7 @@ export default class Pack extends Model {
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'pack_id'),
       dispenseMode: this.belongsTo(DispenseMode, 'dispenseMode_id'),
-      packagedDrugs: this.hasMany(PackagedDrug, 'pack_id'),
+      packagedDrugs: this.hasMany(PackagedDrug, 'pack_id').onDelete('cascade'),
       groupPack: this.belongsTo(GroupPack, 'pack_id'),
     };
   }

@@ -196,4 +196,40 @@ export default {
     });
     return orderedList;
   },
+  getAllPrivateFromDistrict(districtId: string) {
+    return clinic
+      .withAllRecursive(2)
+      .where('mainClinic', false)
+      .where('active', true)
+      .where('district_id', districtId)
+      .whereHas('facilityType', (query) => {
+        query.where((facilityType) => {
+          return facilityType.code !== 'US';
+        });
+      })
+      .orderBy('code', 'asc')
+      .get();
+  },
+  getAllUSFromDistrict(districtId: string) {
+    return clinic
+      .withAllRecursive(2)
+      .where('mainClinic', false)
+      .where('active', true)
+      .where('district_id', districtId)
+      .whereHas('facilityType', (query) => {
+        query.where((facilityType) => {
+          return facilityType.code === 'US';
+        });
+      })
+      .orderBy('code', 'asc')
+      .get();
+  },
+  getAllActiveUSWithoutMain() {
+    return clinic
+      .withAllRecursive(1)
+      .where('mainClinic', false)
+      .where('active', true)
+      .orderBy('code', 'asc')
+      .get();
+  },
 };

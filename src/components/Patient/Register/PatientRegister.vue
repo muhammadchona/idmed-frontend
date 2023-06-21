@@ -4,12 +4,12 @@
       <q-card-section class="q-pa-none bg-green-2">
         <div class="row items-center text-center text-subtitle1 q-pa-md">
           <div class="col text-bold text-grey-10 q-ml-sm">
-            {{ isEditStep ? 'Actualizar' : 'Registar' }} Paciente
+            {{ !newPatient ? 'Actualizar' : 'Registar' }} Paciente
           </div>
         </div>
-        <q-separator />
       </q-card-section>
-      <q-card-section class="q-px-md">
+      <q-separator />
+      <q-card-section>
         <div class="q-mt-lg">
           <div class="row items-center q-mb-md">
             <q-icon name="person_outline" size="sm" />
@@ -19,16 +19,31 @@
         </div>
         <div class="q-mt-md">
           <div class="row">
-            <nameInput ref="firstNames" v-model="patientReg.firstNames" />
-            <middleNameInput
-              ref="middleNames"
-              v-model="patientReg.middleNames"
-              class="q-ml-md"
+            <q-input
+              label="Nome *"
+              dense
+              outlined
+              class="col"
+              ref="firstNamesRef"
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              v-model="patientReg.firstNames"
             />
-            <lastNameInput
-              ref="lastNames"
+            <q-input
+              v-model="patientReg.middleNames"
+              ref="middleNamesRef"
+              dense
+              outlined
+              class="col q-ml-md"
+              label="Sobre Nome "
+            />
+            <q-input
+              ref="lastNamesRef"
               v-model="patientReg.lastNames"
-              class="q-ml-md"
+              class="col q-ml-md"
+              label="Apelido *"
+              dense
+              outlined
+              :rules="[(val) => !!val || 'Por favor indicar o apelido']"
             />
           </div>
           <div class="row">
@@ -37,8 +52,8 @@
               outlined
               class="col"
               v-model="dateOfBirth"
-              ref="birthDate"
-              @update:model-value="idadeCalculator(dateOfBirth)"
+              ref="birthDateRef"
+              @update:model-value="ageCalculator()"
               label="Data de Nascimento *"
             >
               <template v-slot:append>
@@ -52,7 +67,7 @@
                       v-model="dateOfBirth"
                       :options="optionsNonFutureDate"
                       mask="DD-MM-YYYY"
-                      @update:model-value="idadeCalculator(dateOfBirth)"
+                      @update:model-value="ageCalculator()"
                     >
                       <div class="row items-center justify-end">
                         <q-btn
@@ -67,12 +82,22 @@
                 </q-icon>
               </template>
             </q-input>
-            <numberInput v-model="age" label="Idade" class="q-ml-md" readonly />
+            <q-input
+              v-model="ageCalculated"
+              label="Idade"
+              ref="idadeRef"
+              @update:model-value="dateOfBirthCalculator()"
+              class="col q-ml-md"
+              dense
+              outlined
+              mask="##"
+              :rules="[(val) => !!val || 'Por favor indicar a idade']"
+            />
             <q-select
               class="col q-ml-md"
               dense
               outlined
-              ref="gender"
+              ref="genderRef"
               :rules="[(val) => !!val || 'Por favor indicar o sexo']"
               v-model="patientReg.gender"
               :options="genders"
@@ -92,17 +117,10 @@
             class="col"
             dense
             outlined
-            @input-value="
-              (val) => {
-                onChangeProvincia(val);
-              }
-            "
+            @update:model-value="onChangeProvincia()"
             v-model="patientReg.province"
-            use-input
-            ref="province"
+            ref="provinceRef"
             :rules="[(val) => !!val || 'Por favor indicar a Província']"
-            hide-selected
-            fill-input
             input-debounce="0"
             :options="provinces"
             option-value="id"
@@ -113,15 +131,11 @@
             class="col q-ml-md"
             dense
             outlined
-            @input-value="
-              (val) => {
-                onChangeDistrito(val);
-              }
-            "
+            @update:model-value="onChangeDistrito()"
             v-model="patientReg.district"
             option-value="id"
             option-label="description"
-            ref="district"
+            ref="districtRef"
             :rules="[(val) => !!val || 'Por favor indicar o Distrito']"
             :options="filterRedDistricts"
             label="Distrito/Cidade *"
@@ -194,20 +208,19 @@
                 </q-item-section>
               </q-item>
             </template>
-            <!-- <template v-slot:append>
-                        <q-btn round dense flat icon="add" @click.stop.prevent="createBairro" />
-                      </template> -->
           </q-select>
-          <TextInput
+          <q-input
             v-model="patientReg.address"
             label="Morada"
             dense
+            outlined
             class="col q-ml-md"
           />
-          <TextInput
+          <q-input
             v-model="patientReg.addressReference"
             label="Ponto de Referência"
             dense
+            outlined
             class="col col q-ml-md"
           />
         </div>
@@ -219,17 +232,41 @@
           <q-separator color="grey-13" size="1px" />
         </div>
         <div class="row q-mt-md">
-          <PhoneField v-model="patientReg.cellphone" dense label="Principal" />
-          <PhoneField
-            v-model="patientReg.alternativeCellphone"
+          <q-input
+            outlined
+            class="col"
+            ref="ref"
+            dense
+            label="Principal"
+            v-model="patientReg.cellphone"
+            maxlength="9"
+            type="tel"
+            lazy-rules
+          >
+            <template v-slot:prepend>
+              <q-icon name="phone_android" />
+            </template>
+          </q-input>
+          <q-input
+            outlined
+            class="col q-ml-md"
+            ref="ref"
             dense
             label="Alternativo"
-            class="q-ml-md"
-          />
+            v-model="patientReg.alternativeCellphone"
+            maxlength="9"
+            type="tel"
+            lazy-rules
+          >
+            <template v-slot:prepend>
+              <q-icon name="phone_android" />
+            </template>
+          </q-input>
         </div>
       </q-card-section>
+      <q-card-section class="q-px-md"> </q-card-section>
       <q-card-actions align="right" class="q-mb-md q-mr-sm">
-        <q-btn label="Cancelar" color="red" @click="$emit('close')" />
+        <q-btn label="Cancelar" color="red" @click="closePatient" />
         <q-btn
           type="submit"
           :loading="submitLoading"
@@ -238,66 +275,67 @@
         />
       </q-card-actions>
     </form>
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog>
   </q-card>
 </template>
 
 <script setup>
-import Province from '../../../store/models/province/Province';
-import { inject, onMounted, ref } from 'vue';
-import Patient from '../../../store/models/patient/Patient';
-import { SessionStorage } from 'quasar';
-import Clinic from '../../../store/models/clinic/Clinic';
-import District from '../../../store/models/district/District';
+import { computed, inject, onMounted, ref } from 'vue';
 import moment from 'moment';
-import PostoAdministrativo from '../../../store/models/PostoAdministrativo/PostoAdministrativo';
-import Localidade from '../../../store/models/Localidade/Localidade';
+import districtService from 'src/services/api/districtService/districtService';
+import provinceService from 'src/services/api/provinceService/provinceService';
+import clinicService from 'src/services/api/clinicService/clinicService';
+import postoAdministrativoService from 'src/services/api/postoAdministrativo/postoAdministrativoService';
+import localidadeServive from 'src/services/api/bairro/bairroService';
+import { usePatient } from 'src/composables/patient/patientMethods';
+import Patient from 'src/stores/models/patient/Patient';
+import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import patientService from 'src/services/api/patientService/patientService';
 import TransferenceService from 'src/services/Transferences/TransferenceService';
-import PatientVisit from '../../../store/models/patientVisit/PatientVisit';
-import Episode from 'src/store/models/episode/Episode';
-import Pack from 'src/store/models/packaging/Pack';
-import Prescription from 'src/store/models/prescription/Prescription';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import mixinutils from 'src/mixins/mixin-utils';
-import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier';
-// import ClinicalService from 'src/store/models/ClinicalService/ClinicalService'
-import TextInput from 'components/Shared/Input/TextField.vue';
-import PhoneField from 'components/Shared/Input/PhoneField.vue';
-import nameInput from 'components/Patient/Inputs/PatientNameInput.vue';
-import middleNameInput from 'components/Patient/Inputs/PatientMiddleNameInput.vue';
-import numberInput from 'components/Shared/Input/NumberField.vue';
-import Dialog from 'components/Shared/Dialog/Dialog.vue';
-import lastNameInput from 'components/Patient/Inputs/PatientLastNameInput.vue';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import episodeService from 'src/services/api/episode/episodeService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import packService from 'src/services/api/pack/packService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useRouter } from 'vue-router';
 
 // Declaration
+const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
+const { hasIdentifiers, getOldestIdentifier } = usePatient();
+const { alertSucess, alertError, alertInfo } = useSwal();
+const { website, isDeskTop, isMobile } = useSystemUtils();
+const router = useRouter();
 const dateOfBirth = ref('');
-const selectedProvince = ref({});
+const ageCalculated = ref('');
 const genders = ref(['Masculino', 'Feminino']);
 const submitLoading = ref(false);
 const patientReg = ref(new Patient());
 const filterRedDistricts = ref([]);
 const filterRedPostos = ref([]);
 const filterRedBairros = ref([]);
-const showDateIdentifier = ref(false);
-const dateOfAdmission = ref('');
+
+//Ref's
+const firstNamesRef = ref(null);
+const middleNamesRef = ref(null);
+const lastNamesRef = ref(null);
+const birthDateRef = ref(null);
+const genderRef = ref(null);
+const provinceRef = ref(null);
+const districtRef = ref(null);
+const idadeRef = ref(null);
 
 // Inject
-const clinic = inject('clinic');
-const selectedPatient = inject('selectedPatient');
+const patient = inject('patient');
 const newPatient = inject('newPatient');
-const transferencePatientData = inject('transferencePatientData');
-const stepp = inject('stepp');
+// const transferencePatientData = inject('transferencePatientData');
+const closePatient = inject('closePatient');
+const showPatientRegister = inject('showPatientRegister');
 const openMrsPatient = inject('openMrsPatient');
 
 // Hook
 
 onMounted(() => {
-  initParams();
   initPatient();
 });
 
@@ -305,20 +343,20 @@ onMounted(() => {
 const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
 };
-const onChangeProvincia = (provincia) => {
-  if (this.selectedPatient.province !== null) {
-    if (this.selectedPatient.province.description !== provincia) {
-      this.patientReg.district = null;
-      this.patientReg.bairro = null;
-      this.patientReg.postoAdministrativo = null;
+const onChangeProvincia = () => {
+  if (patientReg.value.province !== null) {
+    if (patientReg.value.province.description !== patientReg.value.province) {
+      patientReg.value.district = null;
+      patientReg.value.bairro = null;
+      patientReg.value.postoAdministrativo = null;
     }
   }
 };
-const onChangeDistrito = (distrito) => {
-  if (this.selectedPatient.district !== null) {
-    if (this.selectedPatient.district.description !== distrito) {
-      this.patientReg.bairro = null;
-      this.patientReg.postoAdministrativo = null;
+const onChangeDistrito = () => {
+  if (patientReg.value.district !== null) {
+    if (patientReg.value.district.description !== patientReg.value.district) {
+      patientReg.value.bairro = null;
+      patientReg.value.postoAdministrativo = null;
     }
   }
 };
@@ -327,10 +365,10 @@ const createBairro = (val, done) => {
     const bairro = new Localidade({
       code: val.toUpperCase(),
       description: val,
-      postoAdministrativo: this.patientReg.postoAdministrativo,
+      postoAdministrativo: patientReg.value.postoAdministrativo,
     });
-    if (!this.objectExistsOnArray(val, this.bairros)) {
-      this.filterRedBairros.push(bairro);
+    if (!objectExistsOnArray(val, bairros)) {
+      filterRedBairros.value.push(bairro);
     }
     done(bairro, 'toggle');
   }
@@ -343,31 +381,44 @@ const objectExistsOnArray = (description, array) => {
   return exists;
 };
 const filterPostos = (val, update, abort) => {
+  const stringOptions = postos;
   if (val === '') {
     update(() => {
-      this.filterRedPostos = this.postos;
+      filterRedPostos.value = stringOptions.value.map((posto) => posto);
     });
-    return;
-  }
-  const update = () => {
-    this.filterRedPostos = this.postos.filter((f) => {
-      return this.stringContains(f.description, val);
-    });
-  };
-};
-const filterDistricts = (val, update, abort) => {
-  const stringOptions = this.districts;
-  if (val === '') {
+  } else if (stringOptions.value.length === 0) {
     update(() => {
-      this.filterRedDistricts = stringOptions.map((district) => district);
-    });
-  } else if (stringOptions.length === 0) {
-    update(() => {
-      this.filterRedDistricts = [];
+      filterRedPostos.value = [];
     });
   } else {
     update(() => {
-      this.filterRedDistricts = stringOptions
+      filterRedPostos.value = stringOptions.value
+        .map((posto) => posto)
+        .filter((posto) => {
+          return (
+            posto &&
+            posto.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+          );
+        });
+    });
+  }
+};
+
+const filterDistricts = (val, update, abort) => {
+  const stringOptions = districts;
+  if (val === '') {
+    update(() => {
+      filterRedDistricts.value = stringOptions.value.map(
+        (district) => district
+      );
+    });
+  } else if (stringOptions.value.length === 0) {
+    update(() => {
+      filterRedDistricts.value = [];
+    });
+  } else {
+    update(() => {
+      filterRedDistricts.value = stringOptions.value
         .map((district) => district)
         .filter((district) => {
           return (
@@ -379,314 +430,267 @@ const filterDistricts = (val, update, abort) => {
   }
 };
 const filterBairros = (val, update, abort) => {
-  if (this.bairros === null || this.bairros.length <= 0) return;
+  const stringOptions = bairros;
   if (val === '') {
     update(() => {
-      this.filterRedBairros = this.bairros;
+      filterRedBairros.value = stringOptions.value.map((bairro) => bairro);
     });
-    return;
+  } else if (stringOptions.value.length === 0) {
+    update(() => {
+      filterRedBairros.value = [];
+    });
+  } else {
+    update(() => {
+      filterRedBairros.value = stringOptions.value
+        .map((bairro) => bairro)
+        .filter((bairro) => {
+          return (
+            bairro &&
+            bairro.description.toLowerCase().indexOf(val.toLowerCase()) !== -1
+          );
+        });
+    });
   }
-
-  update(() => {
-    this.filterRedBairros = this.bairros.filter((f) => {
-      return this.stringContains(f.description, val);
-    });
-  });
 };
 const submitForm = () => {
-  this.submitLoading = true;
-  this.$refs.firstNames.$refs.nome.$refs.ref.validate();
-  // this.$refs.middleNames.$refs.midleName.$refs.ref.validate()
-  this.$refs.lastNames.$refs.lastName.$refs.ref.validate();
-  this.$refs.gender.validate();
-  this.$refs.province.validate();
-  this.$refs.district.validate();
+  submitLoading.value = true;
+  firstNamesRef.value.validate();
+  lastNamesRef.value.validate();
+  genderRef.value.validate();
+  provinceRef.value.validate();
+  districtRef.value.validate();
+  idadeRef.value.validate();
 
   if (
-    !this.$refs.firstNames.$refs.nome.$refs.ref.hasError &&
-    // !this.$refs.middleNames.$refs.midleName.$refs.ref.hasError &&
-    !this.$refs.lastNames.$refs.lastName.$refs.ref.hasError &&
-    !this.$refs.province.hasError &&
-    !this.$refs.gender.hasError &&
-    !this.$refs.district.hasError
+    !firstNamesRef.value.hasError &&
+    !lastNamesRef.value.hasError &&
+    !provinceRef.value.hasError &&
+    !genderRef.value.hasError &&
+    !districtRef.value.hasError &&
+    !idadeRef.value.hasError
   ) {
-    const dateObject = this.getYYYYMMDDFromJSDate(
-      this.getDateFromHyphenDDMMYYYY(this.dateOfBirth)
-    ); // this.getDDMMYYYFromJSDate(this.dateOfBirth)
+    const dateObject = getYYYYMMDDFromJSDate(
+      getDateFromHyphenDDMMYYYY(dateOfBirth.value)
+    );
+    patientReg.value.dateOfBirth = dateObject;
     if (
-      this.isEditStep &&
-      this.patientReg.hasIdentifiers() &&
-      this.getYYYYMMDDFromJSDate(
-        this.patientReg.getOldestIdentifier().startDate
-      ) < dateObject
+      !newPatient.value &&
+      hasIdentifiers(patientReg.value) &&
+      getYYYYMMDDFromJSDate(getOldestIdentifier(patientReg.value).startDate) <
+        dateObject
     ) {
-      this.displayAlert(
-        'error',
+      alertError(
         'A data de nascimento indicada é maior que a data da admissão ao serviço se saúde [ ' +
-          this.patientReg.getOldestIdentifier().service.code +
+          getOldestIdentifier(patientReg.value).service.code +
           ' ]'
       );
-      this.submitLoading = false;
+      submitLoading.value = false;
     } else {
-      this.savePatient();
+      savePatient();
     }
   } else {
-    this.submitLoading = false;
+    submitLoading.value = false;
   }
 };
 const savePatient = async () => {
-  if (!this.newPatient) {
-    this.patientReg.identifiers = [];
+  if (newPatient.value) {
+    patientReg.value.identifiers = [];
   }
   if (
-    this.patientReg.identifiers.length > 0 &&
-    this.patientReg.identifiers[0].clinic === null
+    patientReg.value.identifiers.length > 0 &&
+    patientReg.value.identifiers[0].clinic === null
   ) {
-    this.patientReg.identifiers = [];
+    patientReg.value.identifiers = [];
   }
-  this.patientReg.dateOfBirth = this.getYYYYMMDDFromJSDate(
-    this.getDateFromHyphenDDMMYYYY(this.dateOfBirth)
+  patientReg.value.dateOfBirth = getYYYYMMDDFromJSDate(
+    getDateFromHyphenDDMMYYYY(dateOfBirth.value)
   );
   if (
-    this.patientReg.bairro !== null &&
-    this.patientReg.bairro.district === null
+    patientReg.value.bairro !== null &&
+    patientReg.value.bairro.district === null
   ) {
-    this.patientReg.bairro.district = this.patientReg.district;
+    patientReg.value.bairro.district = patientReg.value.district;
   }
-  if (this.openMrsPatient) {
-    const uuid = this.patientReg.hisUuid;
-    //     this.showDateIdentifier = true
-    Patient.api()
+  if (openMrsPatient.value) {
+    const uuid = patientReg.value.hisUuid;
+    patientService
       .get(
         '/patient/openmrsProgramSearch/' +
-          this.patientReg.his.id +
+          patientReg.value.his.id +
           '/' +
           uuid +
           '/' +
           localStorage.getItem('encodeBase64')
       )
       .then((response) => {
-        this.patients = [];
-        this.hideLoading();
+        hideLoading();
         if (response.response.data.results.length > 0) {
           response.response.data.results.forEach((identifierOpenMrs) => {
             if (identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO') {
-              this.editPatientIdentifierFromOpenMRS(
-                this.patientReg,
+              editPatientIdentifierFromOpenMRS(
+                patientReg.value,
                 identifierOpenMrs
               );
             }
           });
-          this.doSave();
+          doSave();
         } else {
-          this.hideLoading();
-          this.$q.notify({
-            color: 'negative',
-            position: 'center',
-            message:
-              'Não foi Encontrada a Data de Admissão para o serviço clinico , Será usada a data actual para efectuar a importação.',
-            icon: 'report_problem',
-          });
-          this.doSave();
+          hideLoading();
+          alertInfo(
+            'Não foi Encontrada a Data de Admissão para o serviço clinico , Será usada a data actual para efectuar a importação.'
+          );
+          doSave();
         }
       });
   } else {
-    this.doSave();
+    doSave();
   }
-};
-const saveDate = async () => {
-  this.patientReg.identifiers[0].startDate = this.getYYYYMMDDFromJSDate(
-    this.getDateFromHyphenDDMMYYYY(this.dateOfAdmission)
-  );
-  console.log(this.patientReg.identifiers[0].startDate);
-  this.doSave();
 };
 const doSave = async () => {
-  const clinicAux = Clinic.query()
-    .with('province')
-    .with('district.province')
-    .with('facilityType')
-    .where('id', this.patientReg.clinic.id)
-    .first();
-  this.patientReg.clinic = clinicAux;
-  if (this.mobile) {
-    this.patientReg.syncStatus = this.isEditStep ? 'U' : 'R';
-    this.patientReg.province_id = this.patientReg.province.id;
-    this.patientReg.district_id = this.patientReg.district.id;
-    this.patientReg.postoAdministrativo_id =
-      this.patientReg.postoAdministrativo !== null
-        ? this.patientReg.postoAdministrativo.id
-        : '';
-    this.patientReg.bairro_id =
-      this.patientReg.bairro !== null ? this.patientReg.bairro.id : null;
-    this.patientReg.clinic_id = this.patientReg.clinic.id;
-    const targetCopy = new Patient(JSON.parse(JSON.stringify(this.patientReg)));
-    console.log(targetCopy);
-    if (!this.isEditStep) {
-      await Patient.localDbAdd(targetCopy).then((patient) => {
-        console.log(patient);
-      });
-      await Patient.insert({ data: targetCopy });
-    } else {
-      await Patient.localDbUpdate(targetCopy).then((patient) => {
-        console.log(patient);
-      });
-      await Patient.update({ data: targetCopy });
-    }
-
-    SessionStorage.set('selectedPatient', targetCopy);
-    this.displayAlert('info', 'Dados do paciente gravados com sucesso.');
-    this.submitLoading = false;
-  } else {
-    // Localidade.insertOrUpdate({ data: this.patientReg.bairro })
-
-    await Patient.apiSave(this.patientReg, this.newPatient)
-      .then((resp) => {
-        this.patientReg.id = resp.response.data.id;
-        this.patientReg.$id = resp.response.data.id;
-        SessionStorage.set('selectedPatient', new Patient(this.patientReg));
-        if (!this.newPatient) {
-          SessionStorage.set('selectedPatient', new Patient(this.patientReg));
-          Patient.update({
-            where: this.patientReg.id,
-            data: this.patientReg,
-          });
-        }
-        if (
-          this.transferencePatientData !== undefined &&
-          this.transferencePatientData.length > 0
-        ) {
-          this.doPatientTranference(resp);
-        } else {
-          this.displayAlert('info', 'Dados do paciente gravados com sucesso.');
-          this.submitLoading = false;
-        }
-      })
-      .catch((error) => {
-        this.listErrors = [];
-        this.submitLoading = false;
-        if (error.request !== undefined && error.request.status !== 0) {
-          const arrayErrors = JSON.parse(error.request.response);
-          if (arrayErrors.total == null) {
-            this.listErrors.push(arrayErrors.message);
+  patientReg.value.clinic = currClinic.value;
+  if (website.value) {
+    if (newPatient.value) {
+      patientService
+        .post(patientReg.value)
+        .then((resp) => {
+          if (
+            transferencePatientData !== undefined &&
+            transferencePatientData.length > 0
+          ) {
+            doPatientTranference(resp);
           } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              this.listErrors.push(element.message);
-            });
+            alertSucess('Dados do paciente gravados com sucesso.');
+            submitLoading.value = false;
+            showPatientRegister.value = false;
+            closePatient();
+            goToPatientPanel(resp.data);
           }
-        }
-        this.displayAlert('error', this.listErrors);
-      });
+        })
+        .catch((error) => {
+          let listErrors = [];
+          submitLoading.value = false;
+          if (error.request !== undefined && error.request.status !== 0) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+          }
+          console.error(error);
+          alertError('Ocorreu um problema ao executar a operação');
+        });
+    } else {
+      patientService
+        .patch(patientReg.value.id, patientReg.value)
+        .then((resp) => {
+          // if (
+          //   transferencePatientData !== undefined &&
+          //   transferencePatientData.length > 0
+          // ) {
+          //   doPatientTranference(resp);
+          // } else {
+          alertSucess('Dados do paciente Actualizados com sucesso.');
+          closePatient();
+          showPatientRegister.value = false;
+          submitLoading.value = false;
+
+          // }
+        })
+        .catch((error) => {
+          let listErrors = [];
+          submitLoading.value = false;
+          if (error.request !== undefined && error.request.status !== 0) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+          }
+          console.error(error, listErrors);
+          alertError('Ocorreu um problema ao executar a operação');
+        });
+    }
   }
 };
+
+const goToPatientPanel = (patient) => {
+  localStorage.setItem('patientuuid', patient.id);
+  router.push('/patientpanel/');
+};
+
 const doPatientTranference = (resp) => {
   const psi = TransferenceService.buildPatientIdentifierFromIdmed(
-    this.transferencePatientData[0]
+    transferencePatientData[0]
   );
-  psi.patient = this.patientReg;
-  psi.patient.id = resp.response.data.id;
-  psi.patient.$id = resp.response.data.id;
-  PatientServiceIdentifier.apiSave(psi).then((respPatientSI) => {
+  psi.patient = patientReg.value;
+
+  patientServiceIdentifierService.post(psi).then((respPatientSI) => {
     const episode = TransferenceService.buildEpisodeFromIdmed(
-      this.transferencePatientData[0]
+      transferencePatientData[0]
     );
     episode.patientServiceIdentifier = psi;
-    episode.patientServiceIdentifier.id = respPatientSI.response.data.id;
-    episode.patientServiceIdentifier.$id = respPatientSI.response.data.id;
-    Episode.apiSave(episode).then((respEpi) => {
+    episodeService.post(episode).then((respEpi) => {
       const patientVisit =
         TransferenceService.getPatientVisitWithDetailsPRescriptionAndPack(
-          this.transferencePatientData[0]
+          transferencePatientData[0]
         );
-      Prescription.apiSave(
-        patientVisit.patientVisitDetails[0].prescription
-      ).then((respPres) => {
-        patientVisit.patientVisitDetails[0].prescription.id =
-          respPres.response.data.id;
-        patientVisit.patientVisitDetails[0].prescription.$id =
-          respPres.response.data.id;
-        Pack.apiSave(patientVisit.patientVisitDetails[0].pack).then(
-          (respPack) => {
-            patientVisit.patientVisitDetails[0].pack.id =
-              respPack.response.data.id;
-            patientVisit.patientVisitDetails[0].pack.$id =
-              respPack.response.data.id;
-            patientVisit.patientVisitDetails[0].episode = respEpi.response.data;
-            patientVisit.patientVisitDetails[0].episode.id =
-              respEpi.response.data.id;
-            patientVisit.patientVisitDetails[0].episode.$id =
-              respEpi.response.data.id;
-            patientVisit.patient = this.patientReg;
-            patientVisit.patient.id = resp.response.data.id;
-            patientVisit.patient.$id = resp.response.data.id;
+      prescriptionService
+        .post(patientVisit.patientVisitDetails[0].prescription)
+        .then((respPres) => {
+          patientVisit.patientVisitDetails[0].prescription.id =
+            respPres.response.data.id;
+          patientVisit.patientVisitDetails[0].prescription.$id =
+            respPres.response.data.id;
+          packService
+            .post(patientVisit.patientVisitDetails[0].pack)
+            .then((respPack) => {
+              patientVisit.patientVisitDetails[0].pack.id =
+                respPack.response.data.id;
+              patientVisit.patientVisitDetails[0].pack.$id =
+                respPack.response.data.id;
+              patientVisit.patientVisitDetails[0].episode =
+                respEpi.response.data;
+              patientVisit.patientVisitDetails[0].episode.id =
+                respEpi.response.data.id;
+              patientVisit.patientVisitDetails[0].episode.$id =
+                respEpi.response.data.id;
+              patientVisit.patient = patientReg;
+              patientVisit.patient.id = resp.response.data.id;
+              patientVisit.patient.$id = resp.response.data.id;
 
-            PatientVisit.apiSave(patientVisit).then((resp) => {
-              this.displayAlert(
-                'info',
-                'Dados do paciente gravados com sucesso.'
-              );
-              this.submitLoading = false;
+              patientVisitService.post(patientVisit).then((resp) => {
+                alertSucess('Dados do paciente gravados com sucesso.');
+                submitLoading.value = false;
+              });
             });
-          }
-        );
-      });
+        });
     });
   });
 };
-const closeDialog = () => {
-  this.alert.visible = false;
-  if (this.alert.type === 'info' && this.newPatient) {
-    this.$emit('update:newPatient', false);
-    this.$emit('close');
-    this.$router.push('/patientpanel');
-  } else if (this.alert.type === 'info' && this.isEditStep) {
-    this.$emit('update:newPatient', false);
-    this.$emit('close');
-  }
-};
+
 const initPatient = () => {
-  if (!this.newPatient) {
-    if (this.isEditStep) {
-      this.patientReg = Patient.query()
-        .with(['province', 'district.province'])
-        .with('identifiers.*')
-        .with('postoAdministrativo')
-        .with('bairro')
-        .with([
-          'clinic.province',
-          'clinic.district.province',
-          'clinic.facilityType',
-        ])
-        .where('id', this.selectedPatient.id)
-        .first();
-      this.patientReg.district = District.query()
-        .with('province')
-        .where('id', this.patientReg.district_id)
-        .first();
-      this.dateOfBirth = moment(this.selectedPatient.dateOfBirth).format(
-        'DD-MM-YYYY'
-      );
-    }
+  if (!newPatient.value) {
+    patientReg.value = patient.value;
+    dateOfBirth.value = moment(patientReg.value.dateOfBirth).format(
+      'DD-MM-YYYY'
+    );
+    ageCalculated.value = moment().diff(
+      moment(getDateFromHyphenDDMMYYYY(dateOfBirth.value), 'YYYY-MM-DD'),
+      'years'
+    );
   } else {
-    if (this.selectedPatient === null) {
-      this.patientReg.clinic = this.currClinic;
-      this.patientReg.province = this.currClinic.province;
-    } else {
-      this.patientReg = this.selectedPatient;
-      if (this.patientReg.dateOfBirth !== '')
-        this.dateOfBirth = moment(this.patientReg.dateOfBirth).format(
-          'DD-MM-YYYY'
-        );
-      this.patientReg.clinic = this.currClinic;
-      this.patientReg.province = this.currClinic.province;
-    }
+    patientReg.value = new Patient();
+    patientReg.value.clinic = currClinic.value;
+    patientReg.value.province = currClinic.value.province;
   }
 };
-const formatDate = (dateString) => {
-  if (!dateString || !moment(dateString).isValid()) return '';
-  const dateMoment = moment(dateString).format('DD-MM-YYYY');
-  return dateMoment;
-};
+
 const editPatientIdentifierFromOpenMRS = (patientReg, identifierOpenMrs) => {
   patientReg.identifiers.forEach((identifier) => {
     if (
@@ -698,76 +702,80 @@ const editPatientIdentifierFromOpenMRS = (patientReg, identifierOpenMrs) => {
     }
   });
 };
-const initParams = () => {
-  this.setStep(this.stepp);
-  if (this.website) {
-    const offset = 0;
-    const max = 100;
-    Province.apiGetAll(offset, max);
-    PostoAdministrativo.apiGetAll(offset, max);
-    District.apiGetAll(offset, max);
-    Clinic.apiFetchById(SessionStorage.getItem('currClinic').id);
+
+const dateOfBirthCalculator = () => {
+  if (
+    ageCalculated.value !== null &&
+    ageCalculated.value !== undefined &&
+    ageCalculated.value !== ''
+  ) {
+    dateOfBirth.value = moment(
+      '01-01-' + (moment().year() - ageCalculated.value)
+    ).format('DD-MM-YYYY');
   } else {
-    Province.localDbGetAll().then((provinceList) => {
-      Province.insertOrUpdate({ data: provinceList });
-    });
-    PostoAdministrativo.localDbGetAll().then((items) => {
-      PostoAdministrativo.insertOrUpdate({ data: items });
-    });
-    Localidade.localDbGetAll().then((items) => {
-      Localidade.insertOrUpdate({ data: items });
-    });
+    dateOfBirth.value = '';
   }
 };
-// Computed
-constprovinces = computed(() => {
-  return Province.query().with('districts.*').has('code').get();
-});
-constdistricts = computed(() => {
+
+const ageCalculator = () => {
   if (
-    this.patientReg.province !== null &&
-    this.patientReg.province !== undefined
+    dateOfBirth.value !== null &&
+    dateOfBirth.value !== undefined &&
+    dateOfBirth.value !== ''
   ) {
-    return District.query()
-      .with('province')
-      .where('province_id', this.patientReg.province.id)
-      .get();
+    ageCalculated.value = moment().diff(
+      moment(getDateFromHyphenDDMMYYYY(dateOfBirth.value), 'YYYY-MM-DD'),
+      'years'
+    );
+  } else {
+    ageCalculated.value = '';
+  }
+};
+
+// Computed
+const currClinic = computed(() => {
+  return clinicService.currClinic();
+});
+const provinces = computed(() => {
+  return provinceService.getAllProvinces();
+});
+const districts = computed(() => {
+  if (
+    patientReg.value.province !== null &&
+    patientReg.value.province !== undefined
+  ) {
+    return districtService.getAllDistrictByProvinceId(
+      patientReg.value.province.id
+    );
   } else {
     return null;
   }
 });
 const postos = computed(() => {
   if (
-    this.patientReg.district !== null &&
-    this.patientReg.district !== undefined
+    patientReg.value.district !== null &&
+    patientReg.value.district !== undefined
   ) {
-    return PostoAdministrativo.query()
-      .with('district.province')
-      .where('district_id', this.patientReg.district.id)
-      .has('code')
-      .get();
+    return postoAdministrativoService.getAllDistrictById(
+      patientReg.value.district.id
+    );
   } else {
     return null;
   }
 });
 const bairros = computed(() => {
   if (
-    this.patientReg.postoAdministrativo !== null &&
-    this.patientReg.postoAdministrativo !== undefined
+    patientReg.value.postoAdministrativo !== null &&
+    patientReg.value.postoAdministrativo !== undefined
   ) {
-    return Localidade.query()
-      .with('postoAdministrativo.district')
-      .where('postoAdministrativo_id', this.patientReg.postoAdministrativo.id)
-      .has('code')
-      .get();
-  } else {
-    return null;
-  }
-});
-const age = computed(() => {
-  const idade = this.idadeCalculator(this.dateOfBirth);
-  if (!isNaN(idade)) {
-    return idade;
+    return localidadeServive.getAllPostoAdministrativoById(
+      patientReg.value.postoAdministrativo.id
+    );
+  } else if (
+    patientReg.value.district !== null &&
+    patientReg.value.district !== undefined
+  ) {
+    return localidadeServive.getAllDistrictById(patientReg.value.district.id);
   } else {
     return null;
   }
