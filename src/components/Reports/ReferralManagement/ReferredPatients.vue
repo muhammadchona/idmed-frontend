@@ -25,118 +25,81 @@
         </q-item-section>
     </q-item>
   </div>
-    <q-dialog persistent v-model="alert.visible">
-    <Dialog :type="alert.type" @closeDialog="closeDialog">
-      <template v-slot:title> Informação</template>
-      <template v-slot:msg> {{alert.msg}} </template>
-    </Dialog>
-  </q-dialog>
   </div>
 </template>
 
-<script>
+<script setup>
 
-import Report from 'src/store/models/report/Report'
+import Report from 'src/services/api/report/ReportService'
 import { LocalStorage } from 'quasar'
-import { ref } from 'vue'
-import referredPatients from '../../../reports/ReferralManagement/ReferredPatients.ts'
-  export default {
-    name: 'ReferredPatients',
-    props: ['selectedService', 'menuSelected', 'id', 'params'],
-    setup () {
-      return {
-        totalRecords: ref(0),
-        qtyProcessed: ref(0),
-        report: 'REFERIDO_PARA',
-        progressValue: ref(0),
-        progress: ref(0),
-         name: 'ReferredPatients',
-           alert: ref({
-          type: '',
-          visible: false,
-          msg: ''
-        })
-      }
-    },
-    mounted () {
-       if (this.params) {
-          (this.getProcessingStatus(this.params))
+import { ref, onMounted} from 'vue'
+import referredPatients from 'src/services/reports/ReferralManagement/ReferredPatients.ts'
+
+
+import ListHeader from 'components/Shared/ListHeader.vue'
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';  
+
+const { website, isDeskTop, isMobile } = useSystemUtils(); 
+const { alertSucess, alertError, alertWarningAction } = useSwal();
+
+
+    const name = 'ReferredPatients'
+    const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+       
+    const totalRecords = ref(0)
+    const qtyProcessed= ref(0)
+    const report = 'REFERIDO_PARA'
+    const  progressValue= ref(0)
+    const  progress = ref(0)
+    const filterDrugStoreSection = ref('')
+      
+    onMounted (() => {
+       if (props.params) {
+          (getProcessingStatus(props.params))
         }
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    },
-    methods: {
-      closeSection () {
-        Report.api().delete(`/referredPatientsReport/delete/${this.id}`)
-        this.$refs.filterDrugStoreSection.remove()
-        LocalStorage.remove(this.id)
-      },
-      initReportProcessing (params) {
+    })
+    
+      const closeSection = () => {
+        LocalStorage.remove(props.id)
+        filterDrugStoreSection.value.remove()
+      }
+
+      const initReportProcessing =(params) => {
         console.log(params)
-      Report.api().post('/referredPatientsReport/initReportProcess', params).then((response) => {
+      Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
         // reset your component inputs like textInput to nul    // or your custom route redirect with vue-router
         // or your custom route redirect with vue-router
-          setTimeout(this.getProcessingStatus(params), 2)
+          setTimeout(getProcessingStatus(params), 2)
       })
-      },
-      getProcessingStatus (params) {
+      }
+
+      const getProcessingStatus = (params)=> {
         Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
-          console.log(resp.response.data.progress)
-          this.progress = resp.response.data.progress
-          console.log(this.progress)
-          if (this.progress < 100) {
-            setTimeout(this.getProcessingStatus(params), 2)
+          progress.value = resp.data.progress
+          console.log(progress)
+          if (progress.value < 100) {
+            setTimeout(getProcessingStatus(params), 2)
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
           }
         })
-      },
-      generateReport (id, fileType, params) {
-        // UID da tab corrente
-        console.log('UUID da tab seleccionada:', id)
-       // console.log(Pack.api().get('/referredPatientsReport/printReport/'+ id).toString)
-       /*
-            Report.api().get(`/referredPatientsReport/printReport/${id}/${this.report}/${fileType}`,
-            { responseType: 'blob' }).then(resp => {
-              console.log(resp)
-              console.log(resp.response.data)
-                if (resp.response.status === 204) {
-             this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
-              } else {
-                const file = new Blob([resp.response.data], { type: 'application/' + fileType })
-        const fileURL = URL.createObjectURL(file)
-          const link = document.createElement('a')
-          link.href = fileURL
-          link.setAttribute('download', 'PacientesReferidosParaOutrasFarmacias.' + fileType)
-          document.body.appendChild(link)
-          link.click()
-              }
-            })
-            */
+      }
+
+      const generateReport= (id, fileType, params) => {
             if (fileType === 'PDF') {
                referredPatients.downloadPDF(params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
                })
             } else {
                referredPatients.downloadExcel(params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
                })
             }
-      },
-       displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
       }
-    }
-  }
+
 </script>
 
 <style lang="scss" scoped>

@@ -13,7 +13,7 @@
       <q-tab name="graph" label="Análise Gráfica" :class='tab === "graph" ? "tab-menu" : ""' />
     </q-tabs>
     <q-separator style="margin-top: -1px"/>
-   <MenuMobile  v-if="mobile"  @changeTab="changeTab"></MenuMobile>
+   <MenuMobile  v-if="!website"  @changeTab="changeTab"></MenuMobile>
     <q-tab-panels v-model="tab" animated>
       <q-tab-panel name="list">
 
@@ -53,8 +53,9 @@
               <template v-for="comp in components"
               :key="comp.id"
               >
+              
                 <component
-                    :is="comp.name"
+                    :is="componentsList[comp.name]"
                     :selectedService="comp.clinicalService"
                     :id="comp.id"
                     :params="comp.params"
@@ -78,100 +79,120 @@
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
+<script setup>
+import { onMounted, ref, computed,provide } from 'vue'
 // import { uuid } from 'uuid'
 import { uid, LocalStorage } from 'quasar'
-import ClinicalService from '../../store/models/ClinicalService/ClinicalService'
-import mixinSystemPlatform from '../../mixins/mixin-system-platform'
-export default {
-  mixins: [mixinSystemPlatform],
-  setup () {
-    return {
-      tab: ref('list'),
-      model: ref(null),
-      activeTab: ref(''),
-      selectedService: null,
-      contentStyle: {
-        backgroundColor: '#ffffff',
-        color: '#555'
-      },
+import ClinicalService from '../../stores/models/ClinicalService/ClinicalService'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+// components
 
-      contentActiveStyle: {
-        backgroundColor: '#eee',
-        color: 'black'
-      },
+import TitleBar from 'components/Shared/TitleBar.vue'
+import   MenuMobile from 'components/Reports/Menus/ListReportMenuMobile.vue'
+import   ListReportMenu from 'components/Reports/Menus/ListReportMenu.vue' 
 
-      thumbStyle: {
-        right: '2px',
-        borderRadius: '5px',
-        backgroundColor: '#0ba58b',
-        width: '5px',
-        opacity: 0.75
-      }
-    }
-  },
-  data () {
-    return {
-      components: [],
-      headerClass: 'list-header',
-      bgColor: 'bg-primary'
-    }
-  },
-  components: {
-     TitleBar: require('components/Shared/TitleBar.vue').default,
-     ActivesInDrugStore: require('components/Reports/Patient/ActivesInDrugStore.vue').default,
-     GuestList: require('components/Reports/Patient/GuestList.vue').default,
-     ImportedPatientList: require('components/Reports/Patient/ImportedPatientList.vue').default,
-     TransferedFrom: require('components/Reports/Patient/TransferedFrom.vue').default,
-     TransferedTo: require('components/Reports/Patient/TransferedTo.vue').default,
-     ListReportMenu: require('components/Reports/Menus/ListReportMenu.vue').default,
-     Mmia: require('components/Reports/ClinicManagement/Mmia.vue').default,
-     ReferredPatients: require('components/Reports/ReferralManagement/ReferredPatients.vue').default,
-     ReferredBackPatients: require('components/Reports/ReferralManagement/ReferredBackPatients.vue').default,
-     ReferredPatientDispenseHistory: require('components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue').default,
-     AbsentReferredPatients: require('components/Reports/ReferralManagement/AbsentReferredPatients.vue').default,
-     ReceivedStock: require('components/Reports/stock/ReceivedStock.vue').default,
-     UsedStock: require('components/Reports/stock/UsedStock.vue').default,
-     ArvDailyRegister: require('components/Reports/monitoring/ArvDailyRegister.vue').default,
-     AbsentPatients: require('components/Reports/ClinicManagement/AbsentPatients.vue').default,
-     PatientHistory: require('components/Reports/ClinicManagement/PatientHistory.vue').default,
-     MenuMobile: require('components/Reports/Menus/ListReportMenuMobile.vue').default
-    },
-      mounted () {
+ import   ActivesInDrugStore from 'components/Reports/Patient/ActivesInDrugStore.vue' 
+ import   GuestList from 'components/Reports/Patient/GuestList.vue' 
+ import   ImportedPatientList from 'components/Reports/Patient/ImportedPatientList.vue' 
+ import   TransferedFrom from 'components/Reports/Patient/TransferedFrom.vue' 
+ import   TransferedTo from 'components/Reports/Patient/TransferedTo.vue' 
+ import   Mmia from 'components/Reports/ClinicManagement/Mmia.vue' 
+ import   ReferredPatients from 'components/Reports/ReferralManagement/ReferredPatients.vue' 
+ import   ReferredBackPatients from 'components/Reports/ReferralManagement/ReferredBackPatients.vue' 
+ import   ReferredPatientDispenseHistory from 'components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue' 
+ import   AbsentReferredPatients from 'components/Reports/ReferralManagement/AbsentReferredPatients.vue' 
+ import   ReceivedStock from 'components/Reports/stock/ReceivedStock.vue' 
+ import   UsedStock from 'components/Reports/stock/UsedStock.vue' 
+ import   ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue' 
+ import   AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue' 
+ import   PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.vue' 
+import clinicService from 'src/services/api/clinicService/clinicService';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+
+ const componentsList = {
+  ActivesInDrugStore,
+  GuestList,
+  ImportedPatientList,
+  TransferedFrom,
+  TransferedTo,
+  Mmia,
+  ReferredBackPatients,
+  ReferredPatients,
+  ReferredPatientDispenseHistory,
+  AbsentPatients,
+  AbsentReferredPatients,
+  ReceivedStock,
+  UsedStock,
+  ArvDailyRegister,
+  PatientHistory
+}
+
+
+
+ const { website, isDeskTop, isMobile } = useSystemUtils();
+ const tab = ref('list')
+  const model= ref(null)
+  const activeTab = ref('')
+  const selectedService =  ref(null)
+  const contentStyle =  {
+    backgroundColor: '#ffffff',
+    color: '#555'
+  }
+
+  const contentActiveStyle = {
+    backgroundColor: '#eee',
+    color: 'black'
+  }
+
+  const thumbStyle =  {
+    right: '2px',
+    borderRadius: '5px',
+    backgroundColor: '#0ba58b',
+    width: '5px',
+    opacity: 0.75
+  }
+
+ const  components =  ref([])
+  const headerClass = 'list-header'
+  const bgColor= 'bg-primary'
+
+ 
+     onMounted( () => {
      const array = LocalStorage.getAllKeys()
      for (let index = 0; index < array.length; index++) {
      // check if is uuid
         if (array[index].substring(0, 6) === 'report') {
       console.log(LocalStorage.getItem(index))
        const item = LocalStorage.getItem(array[index])
-        this.selectedService = ClinicalService.query()
+        selectedService.value = clinicalServiceService.getClinicalServicePersonalizedById(item.clinicalService)
+        /* ClinicalService.query()
                                         .where('id', item.clinicalService)
-                                        .first()
-      this.changeTab(item.tabName, this.selectedService, item)
+                                        .first()*/
+      changeTab(item.tabName, selectedService, item)
         }
  }
- console.log(this.mobile)
-        console.log(this.website)
-  },
-    methods: {
-     changeTab (tabName, selectedService, params) {
+  })
+  
+    const  changeTab =  (tabName, selectedService, params) => {
         const uidValue = 'report' + uid()
         console.log(uidValue)
         const comp = { id: params === undefined ? uidValue : params.id, name: tabName, clinicalService: selectedService, params: params }
-        this.components.push(comp)
+        components.value.push(comp)
         }
-    },
-    computed: {
-    clinicalServices: {
-      get () {
+
+   const clinicalServices =  computed( () => {
         return ClinicalService.query()
                               .orderBy('code', 'desc')
                               .get()
-      }
-    }
-  }
-}
+    
+    })
+
+    const clinic = computed(() => {
+  return clinicService.currClinic()
+});
+
+provide('currClinic', clinic)
+    
 </script>
 
 <style lang="scss">

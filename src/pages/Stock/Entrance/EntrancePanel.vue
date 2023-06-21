@@ -627,11 +627,11 @@ import { useMediaQuery } from '@vueuse/core';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
 import { reactive } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 // import { v4 as uuidv4 } from 'uuid'
 
 // components
-import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
@@ -868,7 +868,11 @@ const doRemoveStock = (stock) => {
       removeFromList(stock);
       closeLoading();
       alertSucess( 'Operação efectuada com sucesso.');
-    });
+    })  .catch((error) => {
+            alertError(
+              'Ocorreu um erro inesperado, contacte o administrador!'
+            );
+          });
   } else {
     const targetStock = JSON.parse(JSON.stringify(selectedStock));
     removeFromList(targetStock);
@@ -907,6 +911,7 @@ const initNewStock = () => {
       entrance: currStockEntrance,
     });
     stockList.value.push(newStock);
+    closeLoading()
   }};
 
 const isPositiveInteger = (str) => {
@@ -958,13 +963,12 @@ const validateStock = (stock) => {
   } else {
     if (stock.expireDate <= moment(new Date()).add(91, 'd')) {
       alertWarningAction(
-        'Confirmação',
         ' O stock especificado irá expirar em menos de 3 meses. Deseja continuar',
         'Não',
         'Sim'
       ).then((result) => {
         if (result) {
-          doRemoveOrCreateAfterValidate(stock);
+          doSave(stock);
         }
       });
 
@@ -977,6 +981,7 @@ const validateStock = (stock) => {
 
 const doSave = (stock) => {
   showloading()
+  stock.id = uuidv4()
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic_id = clinicService.currClinic().id;
   stock.drug_id = stock.drug.id;
@@ -994,7 +999,10 @@ const doSave = (stock) => {
         submitting = false;
         stock.enabled = false;
         step.value = 'display';
-        alertSucess('info', 'Operação efectuada com sucesso.');
+        alertSucess('Operação efectuada com sucesso.');
+      }).catch((error) => {
+        alertError('Ocorreu um erro inesperado')
+        console.log('ERRO: ',error)
       });
     } else if (isEditionStep.value) {
       StockService.patch(stock.id, stock).then((resp) => {
@@ -1002,7 +1010,10 @@ const doSave = (stock) => {
         submitting = false;
         stock.enabled = false;
         step.value = 'display';
-        alertSucess('info', 'Operação efectuada com sucesso.');
+        alertSucess('Operação efectuada com sucesso.');
+      }).catch((error) => {
+        alertError('Ocorreu um erro inesperado')
+        console.log('ERRO: ',error)
       });
     }
   } else {
@@ -1056,7 +1067,7 @@ const doSave = (stock) => {
         }
         submitting = false;
         step.value = 'display';
-        alertSucess('info', 'Operação efectuada com sucesso.');
+        alertSucess('Operação efectuada com sucesso.');
       })
       .catch((error) => {
         alertError('Ocorreu um erro inesperado')
@@ -1071,17 +1082,6 @@ const fetchStockEntrance = () => {
       currStockEntrance.value = resp.response.data;
     })
     .catch((error) => {
-      const listErrors = [];
-      if (error.request.response != null) {
-        const arrayErrors = JSON.parse(error.request.response);
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message);
-        } else {
-          arrayErrors._embedded.errors.forEach((element) => {
-            listErrors.push(element.message);
-          });
-        }
-      }
       alertError('Ocorreu um erro inesperado')    });
 };
 
@@ -1119,12 +1119,10 @@ const initStockEdition = (stock) => {
 const promptStockDeletion = (stock) => {
   if (step.value === 'create' || step.value === 'edit') {
     alertError(
-      
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a remoção deste registo.'
     );
   } else {
     alertWarningAction(
-      'Confirmação',
       'Confirma a remoção do lote [' + stock.batchNumber + ']?',
       'Não',
       'Sim'
@@ -1134,16 +1132,6 @@ const promptStockDeletion = (stock) => {
       }
     });
   }
-};
-
-const displayAlert = (type, msg) => {
-  alert.value.type = type;
-  alert.value.msg = msg;
-  alert.value.visible = true;
-};
-
-const closeDialog = () => {
-  alert.value.visible = false;
 };
 
 const getCurrStockEntrance = () => {

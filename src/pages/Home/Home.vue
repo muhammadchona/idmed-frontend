@@ -121,7 +121,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, provide } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 // import clinicService from 'src/services/api/clinicService/clinicService';
 
@@ -183,6 +183,8 @@ onMounted(() => {
     closeLoading();
   }, 3000);
 });
+
+
 </script>
 
 <style></style>

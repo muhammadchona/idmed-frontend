@@ -21,111 +21,98 @@
             />
         </q-item-section>
     </q-item>
-    <q-dialog persistent v-model="alert.visible">
-    <Dialog :type="alert.type" @closeDialog="closeDialog">
-      <template v-slot:title> Informação</template>
-      <template v-slot:msg> {{alert.msg}} </template>
-    </Dialog>
-  </q-dialog>
+    
   </div>
   </div>
 </template>
 
-<script>
+<script setup>
 
-import Report from 'src/store/models/report/Report'
-import ArvDailyRegisterReport from 'src/reports/monitoring/ArvDailyRegisterReport.ts'
-import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
-import DispenseType from '../../../store/models/dispenseType/DispenseType'
-import Prescription from 'src/store/models/prescription/Prescription'
-import TherapeuticLine from '../../../store/models/therapeuticLine/TherapeuticLine'
-import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
-import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import Patient from '../../../store/models/patient/Patient'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-import ArvDailyRegisterTempReport from 'src/store/models/report/monitoring/ArvDailyRegisterTempReport'
-import reportDatesParams from '../../../reports/ReportDatesParams'
+import Report from 'src/services/api/report/ReportService'
+import ArvDailyRegisterReport from 'src/services/reports/monitoring/ArvDailyRegisterReport.ts'
+import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/TherapeuticRegimen'
+import DispenseType from '../../../stores/models/dispenseType/DispenseType'
+import Prescription from 'src/stores/models/prescription/Prescription'
+import TherapeuticLine from '../../../stores/models/therapeuticLine/TherapeuticLine'
+import ClinicalService from '../../../stores/models/ClinicalService/ClinicalService'
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier'
+import Patient from '../../../stores/models/patient/Patient'
+import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
+import ArvDailyRegisterTempReport from 'src/stores/models/report/monitoring/ArvDailyRegisterTempReport'
+import reportDatesParams from 'src/services/reports/ReportDatesParams'
 import { v4 as uuidv4 } from 'uuid'
  import { LocalStorage } from 'quasar'
-import { ref } from 'vue'
-import mixinutils from 'src/mixins/mixin-utils'
-import Pack from 'src/store/models/packaging/Pack'
-import Drug from 'src/store/models/drug/Drug'
-import StartStopReason from 'src/store/models/startStopReason/StartStopReason'
-import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
-  export default {
-    name: 'ArvDailyRegister',
-    props: ['selectedService', 'menuSelected', 'id'],
-    mixins: [mixinutils, mixinSystemPlatform],
-    setup () {
-      return {
-        totalRecords: ref(0),
-        qtyProcessed: ref(0),
-        alert: ref({
-          type: '',
-          visible: false,
-          msg: ''
-        }),
-        progress: ref(0)
+import { ref, onMounted } from 'vue'
+import Pack from 'src/stores/models/packaging/Pack'
+import Drug from 'src/stores/models/drug/Drug'
+import StartStopReason from 'src/stores/models/startStopReason/StartStopReason'
+
+//compontes
+import ListHeader from 'components/Shared/ListHeader.vue'
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';  
+
+const { website, isDeskTop, isMobile } = useSystemUtils(); 
+const { alertSucess, alertError, alertWarningAction } = useSwal();
+const filterArvDailyRegisterSection = ref('')
+    
+
+    const name = 'ArvDailyRegister'
+    const props = defineProps(['selectedService', 'menuSelected', 'id'])
+    const totalRecords= ref(0)
+    const qtyProcessed = ref(0)
+     const progress = ref(0)
+
+    onMounted(() => {
+     // getStartStopReasonsToVuex()
+    })
+
+     const closeSection = () =>{
+        filterArvDailyRegisterSection.value.remove()
       }
-    },
-    mounted () {
-      this.getStartStopReasonsToVuex()
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default
-    },
-    methods: {
-      closeSection () {
-        this.$refs.filterArvDailyRegisterSection.remove()
-      },
-      initReportProcessing (params) {
+   const  initReportProcessing = (params) => {
         if (params.localOrOnline === 'online') {
-          Report.apiInitArvDailyRegisterProcessing(params).then(resp => {
-            this.progress = resp.response.data.progress
-            setTimeout(this.getProcessingStatus(params), 2)
+          Report.apiInitReportProcess('arvDailyRegisterReportTemp', params).then(resp => {
+            progress.value = resp.data.progress
+            setTimeout(getProcessingStatus(params), 2)
           })
         } else {
-          this.getDataLocalDb(params)
+          getDataLocalDb(params)
         }
-     //  this.getDataLocalDb(params)
-      },
-      getProcessingStatus (params) {
+     //  getDataLocalDb(params)
+      }
+
+     const getProcessingStatus = (params) => {
         Report.getProcessingStatus('arvDailyRegisterReportTemp', params).then(resp => {
-          this.progress = resp.response.data.progress
-          if (this.progress < 100) {
-            setTimeout(this.getProcessingStatus(params), 2)
+          progress.value = resp.data.progress
+          if (progress.value < 100) {
+            setTimeout(getProcessingStatus(params), 2)
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
           }
         })
        /*
-        this.getDataLocalDb(params)
+        getDataLocalDb(params)
         */
-      },
-      generateReport (id, fileType, params) {
+      }
+
+     const generateReport = (id, fileType, params) => {
         // UID da tab corrent
           if (fileType === 'PDF') {
            ArvDailyRegisterReport.downloadPDF(id, fileType, params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
                })
         } else if (fileType === 'XLS') {
            ArvDailyRegisterReport.downloadExcel(id, fileType, params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
                })
         }
-      },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
-      },
-      getDataLocalDb (params) {
+      }
+
+      const getDataLocalDb  = (params) => {
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
        PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
@@ -153,8 +140,8 @@ import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
           arvDailyRegisterReport.nid = identifier.value
           arvDailyRegisterReport.patientName = patient.firstNames + ' ' + patient.middleNames + ' ' + patient.lastNames
           arvDailyRegisterReport.patientType = prescription.patientType
-          arvDailyRegisterReport.startReason = this.getStartStopReasonTypeById(reportData.episode.startStopReason.id).reason
-          const age = this.idadeCalculator(patient.dateOfBirth)
+          arvDailyRegisterReport.startReason = getStartStopReasonTypeById(reportData.episode.startStopReason.id).reason
+          const age = idadeCalculator(patient.dateOfBirth)
            console.log(age)
           arvDailyRegisterReport.ageGroup_0_4 = (age >= 0 && age < 4 ? 'Sim' : 'Nao')
           arvDailyRegisterReport.ageGroup_5_9 = (age >= 5 && age <= 9 ? 'Sim' : 'Nao')
@@ -166,8 +153,8 @@ import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
          arvDailyRegisterReport.dispensationType = dispenseType.description
          arvDailyRegisterReport.therapeuticLine = therapeuticLine.description
          arvDailyRegisterReport.clinic = clinic.clinicName
-         arvDailyRegisterReport.prep = (this.getClinicalServiceById(reportParams.clinicalService).code === 'PREP' ? 'Sim' : '')
-         arvDailyRegisterReport.ppe = (this.getClinicalServiceById(reportParams.clinicalService).code === 'PPE' ? 'Sim' : '')
+         arvDailyRegisterReport.prep = (getClinicalServiceById(reportParams.clinicalService).code === 'PREP' ? 'Sim' : '')
+         arvDailyRegisterReport.ppe = (getClinicalServiceById(reportParams.clinicalService).code === 'PPE' ? 'Sim' : '')
          const drugQuantityTemps = []
          // getSubReportDrugs
          Pack.localDbGetById(reportData.packId).then(pack => {
@@ -196,24 +183,25 @@ import mixinSystemPlatform from 'src/mixins/mixin-system-platform'
             }
       })
           })
-          this.progress = 100
+          progress.value = 100
           params.progress = 100
           }
           )
-      },
-      getClinicalServiceById (id) {
+      }
+
+     const  getClinicalServiceById = (id) =>  {
         return ClinicalService.query().where('id', id).first()
-      },
-      getStartStopReasonTypeById (id) {
+      }
+
+      const getStartStopReasonTypeById = (id) => {
         return StartStopReason.query().where('id', id).first()
-      },
-      getStartStopReasonsToVuex () {
+      }
+
+      const getStartStopReasonsToVuex = () => {
        StartStopReason.localDbGetAll().then(startStopReasons => {
         StartStopReason.insert({ data: startStopReasons })
        })
       }
-    }
-  }
 </script>
 
 <style lang="scss" scoped>

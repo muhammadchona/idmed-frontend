@@ -60,14 +60,17 @@
 
 </template>
 
-<script>
-import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
-export default {
-  data () {
-    return {
-      currTab: '',
-      selectedService: null,
-      menu: [
+<script setup>
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+import { computed, ref } from 'vue';
+
+const emit = defineEmits([
+  'changeTab',
+]);
+   
+const currTab = ref('')
+  const selectedService = ref(null)
+  const menu = [
               {
                 description: 'Pacientes',
                 id: 1,
@@ -118,24 +121,16 @@ export default {
                 }
 
             ]
-  }
-  },
-  methods: {
-    changeTab (tabName) {
-      this.currTab = tabName
-      this.$emit('changeTab', tabName, this.selectedService)
+
+   const  changeTab =  (tabName) => {
+      currTab.value = tabName
+      emit('changeTab', tabName, selectedService.value)
     }
-  },
-  computed: {
-    clinicalServices: {
-      get () {
-        return ClinicalService.query()
-                              .orderBy('code', 'desc')
-                              .get()
-      }
-    }
-  }
-}
+
+  const clinicalServices =  computed(() => {
+       return clinicalServiceService.getAllClinicalServices()
+})
+
 </script>
 
 <style>

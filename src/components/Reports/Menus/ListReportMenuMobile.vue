@@ -57,7 +57,7 @@
           </q-banner>
 </template>
 <script>
-import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import ClinicalService from '../../../stores/models/ClinicalService/ClinicalService'
 export default {
   data () {
     return {

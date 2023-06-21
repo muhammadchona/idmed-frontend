@@ -14,126 +14,114 @@
               :id="id"
               :typeService="selectedService"
               :progress="progress"
-              :clinicalService="selectedService"
               :applicablePeriods="periodType"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
     </q-item>
-    <q-dialog persistent v-model="alert.visible">
-    <Dialog :type="alert.type" @closeDialog="closeDialog">
-      <template v-slot:title> Informação</template>
-      <template v-slot:msg> {{alert.msg}} </template>
-    </Dialog>
-  </q-dialog>
+
   </div>
   </div>
 </template>
 
-<script>
+<script setup>
  import moment from 'moment'
-import Report from 'src/store/models/report/Report'
+ import Report from 'src/services/api/report/ReportService'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
- import patientHistoryTS from '../../../reports/ClinicManagement/PatientHistory.ts'
+ import patientHistoryTS from 'src/services/reports/ClinicManagement/PatientHistory.ts'
 // import db from 'src/store/localbase'
- import reportDatesParams from '../../../reports/ReportDatesParams'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
+ import reportDatesParams from 'src/services/reports/ReportDatesParams'
+import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
 // import ReportDatesParams from '../../../reports/ReportDatesParams'
- import PatientHistoryReport from 'src/store/models/report/pharmacyManagement/PatientHistoryReport'
-import PatientServiceIdentifier from 'src/store/models/patientServiceIdentifier/PatientServiceIdentifier'
-import Patient from '../../../store/models/patient/Patient'
+ import PatientHistoryReport from 'src/stores/models/report/pharmacyManagement/PatientHistoryReport'
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier'
+import Patient from '../../../stores/models/patient/Patient'
 // import PrescriptionDetail from '../../../store/models/prescriptionDetails/PrescriptionDetail'
-import TherapeuticRegimen from '../../../store/models/therapeuticRegimen/TherapeuticRegimen'
-import DispenseType from '../../../store/models/dispenseType/DispenseType'
-import Prescription from 'src/store/models/prescription/Prescription'
- import DispenseMode from 'src/store/models/dispenseMode/DispenseMode'
-import ClinicalService from '../../../store/models/ClinicalService/ClinicalService'
+import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/TherapeuticRegimen'
+import DispenseType from '../../../stores/models/dispenseType/DispenseType'
+import Prescription from 'src/stores/models/prescription/Prescription'
+ import DispenseMode from 'src/stores/models/dispenseMode/DispenseMode'
+import ClinicalService from '../../../stores/models/ClinicalService/ClinicalService'
 import { v4 as uuidv4 } from 'uuid'
-import mixinplatform from 'src/mixins/mixin-system-platform'
-  export default {
-    name: 'PatientHistory',
-    props: ['selectedService', 'menuSelected', 'id'],
-    mixins: [mixinplatform],
-    setup () {
-     return {
-        totalRecords: ref(0),
-        qtyProcessed: ref(0),
-        alert: ref({
-          type: '',
-          visible: false,
-          msg: ''
-        }),
-        progress: ref(0)
-      }
-    },
-    mounted () {
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    },
-    methods: {
-      closeSection () {
-        this.$refs.filterDPatientHistorySection.remove()
-        if (this.mobile) {
+
+//components
+import ListHeader  from 'components/Shared/ListHeader.vue'
+import FiltersInput  from 'components/Reports/shared/FiltersInput.vue'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';  
+
+const { website, isDeskTop, isMobile } = useSystemUtils(); 
+const { alertSucess, alertError, alertWarningAction } = useSwal();
+
+const name =  'PatientHistory'
+const props = defineProps(['selectedService', 'menuSelected', 'id'])
+const totalRecords =  ref(0)
+const qtyProcessed = ref(0)
+ const progress = ref(0)
+ const filterDPatientHistorySection = ref('')
+    
+const closeSection = () => {
+        filterDPatientHistorySection.value.remove()
+        if (!website) {
           PatientHistoryReport.localDbGetByReportId().then(reports => {
       //   const reportData = []
          reports.forEach(report => {
-                 if (report.reportId === this.id) {
+                 if (report.reportId === id) {
                   // reportData.push(report)
                   PatientHistoryReport.localDbDeleteById(report.reportId)
                  }
             })
         })
         }
-      },
-      initReportProcessing (params) {
+      }
+   const  initReportProcessing = (params) => {
         if (params.localOrOnline === 'online') {
-            Report.apiInitPatientsHistryProcessing(params).then(resp => {
-            this.progress = resp.response.data.progress
-            setTimeout(this.getProcessingStatus(params), 2)
+            Report.apiInitReportProcess('historicoLevantamentoReport',params).then(resp => {
+            progress.value = resp.data.progress
+            setTimeout(getProcessingStatus(params), 2)
           })
           } else {
             reportDatesParams.determineStartEndDate(params)
           console.log(params)
-          this.getDataLocalDb(params)
+          getDataLocalDb(params)
           }
-        },
-      getProcessingStatus (params) {
+        }
+
+      const getProcessingStatus =  (params) => {
         Report.getProcessingStatus('historicoLevantamentoReport', params).then(resp => {
-          this.progress = resp.response.data.progress
-          if (this.progress < 100) {
-            setTimeout(this.getProcessingStatus(params), 2)
+          progress.value = resp.data.progress
+          if (progress.value < 100) {
+            setTimeout(getProcessingStatus(params), 2)
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
           }
         })
-      },
-      generateReport (id, fileType) {
+      }
+
+     const generateReport =  (id, fileType) => {
          //  UID da tab corrente
-        if (this.website) {
-          Report.api().get(`/historicoLevantamentoReport/printReport/${id}/${fileType}`, { responseType: 'json' }).then(resp => {
-           if (!resp.response.data[0]) {
-              this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+        if (website) {
+          Report.printReport('historicoLevantamentoReport',id, fileType).then(resp => {
+           if (!resp.data[0]) {
+              alertError('Nao existem Dados para o periodo selecionado')
             } else {
-              const firstReg = resp.response.data[0]
+              const firstReg = resp.data[0]
               if (fileType === 'PDF') {
                 patientHistoryTS.downloadPDF(
                   firstReg.province,
                   moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
                   moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-                  resp.response.data
+                  resp.data
                 )
               } else {
                 patientHistoryTS.downloadExcel(
                   firstReg.province,
                   moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
                   moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-                  resp.response.data
+                  resp.data
                 )
               }
             }
@@ -154,8 +142,9 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
                 reportData)
         })
         }
-      },
-    getDataLocalDb (params) {
+      }
+
+    const getDataLocalDb = (params) => {
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
        PatientVisitDetails.localDbGetAll().then(patientVisitDetails => {
@@ -193,7 +182,7 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
          patientHistory.nexPickUpDate = pack.nextPickUpDate
          patientHistory.therapeuticalRegimen = therapeuticRegimen.description
          patientHistory.dispenseType = dispenseType.description
-         patientHistory.age = this.idadeCalculator(patient.dateOfBirth)
+         patientHistory.age = idadeCalculator(patient.dateOfBirth)
          patientHistory.dispenseMode = dispenseMode.description
          patientHistory.clinicalService = clinicalService.description
          patientHistory.clinic = clinic.clinicName
@@ -212,18 +201,11 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
           })
           }
           )
-          this.progress = 100
+          progress.value = 100
           params.progress = 100
-      },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
-      },
-      idadeCalculator (birthDate) {
+      }
+
+      const idadeCalculator = (birthDate) => {
             if (moment(birthDate, 'YYYY/MM/DDDD').isValid()) {
                const utentBirthDate = moment(birthDate, 'YYYY/MM/DDDD')
                const todayDate = moment(new Date())
@@ -232,8 +214,6 @@ import mixinplatform from 'src/mixins/mixin-system-platform'
               return idade
             }
         }
-    }
-    }
 
 </script>
 

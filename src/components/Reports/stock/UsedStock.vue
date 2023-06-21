@@ -21,107 +21,89 @@
             />
         </q-item-section>
     </q-item>
-    <q-dialog persistent v-model="alert.visible">
-    <Dialog :type="alert.type" @closeDialog="closeDialog">
-      <template v-slot:title> Informação</template>
-      <template v-slot:msg> {{alert.msg}} </template>
-    </Dialog>
-  </q-dialog>
   </div>
   </div>
 </template>
 
-<script>
+<script setup>
 
-import Report from 'src/store/models/report/Report'
+import Report from 'src/services/api/report/ReportService'
 import { LocalStorage } from 'quasar'
-import { ref } from 'vue'
-import UsedStockReport from 'src/reports/stock/UsedStockReport.ts'
-import Stock from 'src/store/models/stock/Stock'
+import {ref } from 'vue'
+import UsedStockReport from 'src/services/reports/stock/UsedStockReport.ts'
+import Stock from 'src/stores/models/stock/Stock'
 // import { v4 as uuidv4 } from 'uuid'
-import reportDatesParams from '../../../reports/ReportDatesParams'
+import reportDatesParams from 'src/services/reports/ReportDatesParams'
 // import Drug from 'src/store/models/drug/Drug'
 // import StockReceivedReport from 'src/store/models/report/stock/StockReceivedReport'
-import { InventoryStockAdjustment } from 'src/store/models/stockadjustment/InventoryStockAdjustment'
-import Drug from 'src/store/models/drug/Drug'
-import StockUsedReport from 'src/store/models/report/stock/StockUsedReport'
-import Pack from '../../../store/models/packaging/Pack'
-import DestroyedStock from '../../../store/models/stockdestruction/DestroyedStock'
-import ReferedStockMoviment from 'src/store/models/stockrefered/ReferedStockMoviment'
-import StockOperationType from '../../../store/models/stockoperation/StockOperationType'
-  export default {
-    name: 'UsedStock',
-    props: ['selectedService', 'menuSelected', 'id'],
-    setup () {
-     return {
-        totalRecords: ref(0),
-        qtyProcessed: ref(0),
-        alert: ref({
-          type: '',
-          visible: false,
-          msg: ''
-        }),
-        progress: ref(0)
+import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment'
+import Drug from 'src/stores/models/drug/Drug'
+import StockUsedReport from 'src/stores/models/report/stock/StockUsedReport'
+import Pack from '../../../stores/models/packaging/Pack'
+import DestroyedStock from '../../../stores/models/stockdestruction/DestroyedStock'
+import ReferedStockMoviment from 'src/stores/models/stockrefered/ReferedStockMoviment'
+import StockOperationType from '../../../stores/models/stockoperation/StockOperationType'
+
+import ListHeader from 'components/Shared/ListHeader.vue'
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';  
+
+    const { website, isDeskTop, isMobile } = useSystemUtils(); 
+    const { alertSucess, alertError, alertWarningAction } = useSwal();
+
+    const filterUsedStockSection = ref('')
+
+    const name = 'UsedStock'
+    const props=  defineProps(['selectedService', 'menuSelected', 'id'])
+    const totalRecords = ref(0)
+    const qtyProcessed = ref(0)
+
+    const progress = ref(0)
+
+    const  closeSection = () => {
+        filterUsedStockSection.value.remove()
       }
-    },
-    mounted () {
-      this.getStockOperationToVue()
-    },
-    computed: {
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    },
-    methods: {
-      closeSection () {
-        this.$refs.filterUsedStockSection.remove()
-      },
-       initReportProcessing (params) {
+
+      const initReportProcessing = (params) => {
         if (params.localOrOnline === 'online') {
-          Report.apiInitUsedStockProcessing(params).then(resp => {
-            this.progress = resp.response.data.progress
-            setTimeout(this.getProcessingStatus(params), 2)
+          Report.apiInitReportProcess('usedStockReportTemp', params).then(resp => {
+            progress.value = resp.data.progress
+            setTimeout(getProcessingStatus(params), 2)
           })
         } else {
-          this.getDataLocalDb(params)
+          getDataLocalDb(params)
         }
-      },
-      getProcessingStatus (params) {
+      }
+
+      const getProcessingStatus = (params) => {
         Report.getProcessingStatus('usedStockReportTemp', params).then(resp => {
-          console.log(resp.response.data.progress)
-          this.progress = resp.response.data.progress
-          console.log(this.progress)
-          if (this.progress < 100) {
-            setTimeout(this.getProcessingStatus(params), 2)
+          console.log(resp.data.progress)
+          progress.value = resp.data.progress
+          console.log(progress)
+          if (progress.value < 100) {
+            setTimeout(getProcessingStatus(params), 2)
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
           }
         })
-      },
-      generateReport (id, fileType, params) {
+      }
+
+      const generateReport=  (id, fileType, params) => {
        if (fileType === 'PDF') {
            UsedStockReport.downloadPDF(id, fileType, params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
                })
         } else if (fileType === 'XLS') {
            UsedStockReport.downloadExcel(id, fileType, params).then(resp => {
-                  if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
                })
         }
         // UID da tab corrent
-      },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
-      },
-      getDataLocalDb (params) {
+      }
+
+      const getDataLocalDb =  (params) => {
         const reportParams = reportDatesParams.determineStartEndDate(params)
         console.log(reportParams)
         let resultDrugsStocks = []
@@ -135,7 +117,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
           console.log(stocks)
        const result = stocks.filter(stock => (stock.entrance.dateReceived >= reportParams.startDate && stock.entrance.dateReceived <= reportParams.endDate) && stock.drug.clinicalService.id === reportParams.clinicalService)
           console.log(result)
-           resultDrugsStocks = this.groupedMap(result, 'drugId')
+           resultDrugsStocks = groupedMap(result, 'drugId')
           console.log(resultDrugsStocks)
           arrayDrugStock = Array.from(resultDrugsStocks.keys())
           console.log(arrayDrugStock)
@@ -145,7 +127,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
             const inventoryStocks = inventoryStockAdjustments.filter(inventoryStock =>
               (inventoryStock.inventory.startDate >= reportParams.startDate && inventoryStock.inventory.endDate <= reportParams.endDate) && arrayDrugStock.includes(inventoryStock.adjustedStock.drug.id)
             )
-            resultDrugStocksInventory = this.groupedMapChild(inventoryStocks, 'adjustedStock.drug.id')
+            resultDrugStocksInventory = groupedMapChild(inventoryStocks, 'adjustedStock.drug.id')
             console.log(resultDrugStocksInventory)
            // return resultDrugStocksInventory
         })
@@ -159,7 +141,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
                 packagedDrug.push(pack.packagedDrugs)
               })
               console.log(packagedDrug)
-              resultDrugPackaged = this.groupedMapChildPack(packagedDrug, 'adjustedStock.drug.id')
+              resultDrugPackaged = groupedMapChildPack(packagedDrug, 'adjustedStock.drug.id')
               console.log(resultDrugPackaged)
             //  return resultDrugPackaged
           })
@@ -175,7 +157,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
               adjustedDestroyedStocks.push(destroyedAdjust)
             })
           })
-          resultDrugStocksDestruction = this.groupedMapChildAdjustments(adjustedDestroyedStocks, 'adjustedStock')
+          resultDrugStocksDestruction = groupedMapChildAdjustments(adjustedDestroyedStocks, 'adjustedStock')
           console.log(resultDrugStocksDestruction)
          //  return resultDrugStocksInventory
           })
@@ -191,7 +173,7 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
                 adjustedReferedStocks.push(referredAdjust)
             })
           })
-           resultDrugStocksReferred = this.groupedMapChildAdjustments(adjustedReferedStocks, 'adjustedStock')
+           resultDrugStocksReferred = groupedMapChildAdjustments(adjustedReferedStocks, 'adjustedStock')
           console.log(resultDrugStocksReferred)
           // return resultDrugStocksReferred
           }).then(() => {
@@ -222,9 +204,9 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
                 referredStocksIds.forEach(drugStockReferredId => {
                   if (drugStockReferredId === stock.id) {
                     resultDrugStocksReferred.get(drugStockReferredId).forEach(referredAdjustment => {
-                      if (this.getStockOperationTypeById(referredAdjustment.operation.id).code === 'AJUSTE_POSETIVO') {
+                      if (getStockOperationTypeById(referredAdjustment.operation.id).code === 'AJUSTE_POSETIVO') {
                         usedStock.adjustment += referredAdjustment.adjustedValue
-                      } else if (this.getStockOperationTypeById(referredAdjustment.operation.id).code === 'AJUSTE_NEGATIVO') {
+                      } else if (getStockOperationTypeById(referredAdjustment.operation.id).code === 'AJUSTE_NEGATIVO') {
                         usedStock.adjustment -= referredAdjustment.adjustedValue
                       }
                     })
@@ -249,44 +231,43 @@ import StockOperationType from '../../../store/models/stockoperation/StockOperat
                })
           })
       )
-          this.progress = 100
+          progress.value = 100
           params.progress = 100
-      },
-      groupedMap (items, key) {
+      }
+
+      const groupedMap =  (items, key) => {
     return items.reduce(
         (entryMap, e) => entryMap.set(e[key], [...(entryMap.get(e[key]) || []), e], console.log(e[key])),
         new Map()
       )
-    },
-    groupedMapChild (items, key) {
+    }
+
+    const groupedMapChild  = (items, key) => {
     return items.reduce(
         (entryMap, e) => entryMap.set(e.adjustedStock.drug.id, [...(entryMap.get(e.adjustedStock.drug.id) || []), e], console.log(e.adjustedStock.drug.id)),
         new Map()
       )
-    },
-    groupedMapChildPack (items, key) {
+    }
+
+    const groupedMapChildPack  = (items, key) => {
     return items.reduce(
         (entryMap, e) => entryMap.set(e.drug.id, [...(entryMap.get(e.drug.id) || []), e], console.log(e.drug.id)),
         new Map()
       )
-    },
-    groupedMapChildAdjustments (items, key) {
+    }
+
+    const groupedMapChildAdjustments = (items, key) => {
     return items.reduce(
         (entryMap, e) => entryMap.set(e.adjustedStock.id, [...(entryMap.get(e.adjustedStock.id) || []), e], console.log(e.adjustedStock.id)),
         new Map()
       )
-    },
-    getStockOperationTypeById (id) {
+    }
+
+    const getStockOperationTypeById =  (id) => {
       console.log(StockOperationType.query().where('id', id).first())
         return StockOperationType.query().where('id', id).first()
-      },
-      getStockOperationToVue () {
-       StockOperationType.localDbGetAll().then(stockOperationTypes => {
-        StockOperationType.insert({ data: stockOperationTypes })
-       })
       }
-    }
-  }
+    
 </script>
 
 <style lang="scss" scoped>

@@ -25,23 +25,21 @@
   </div>
 </template>
 
-<script>
-  export default {
-    props: ['selectedService'],
-    name: 'GuestList',
-    mounted () {
-      console.log(this.selectedService)
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default
-    },
-    methods: {
-      closeSection () {
-        this.$refs.filterGuestListSection.remove()
-      }
-  }
+<script setup>
+   import { ref } from 'vue';
+import ListHeader from  'components/Shared/ListHeader.vue'
+    const props =  defineProps(['selectedService'])
+    const name =  'GuestList'
+    const filterGuestListSection = ref('')
+    onMounted( () => {
+      console.log(selectedService)
+    })
 
-  }
+    const  closeSection =  () => {
+        filterGuestListSection.value.remove()
+      }
+  
+
 </script>
 
 <style lang="scss" scoped>

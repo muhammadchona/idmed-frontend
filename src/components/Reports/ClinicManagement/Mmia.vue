@@ -14,7 +14,7 @@
               :id="id"
               :typeService="selectedService"
               :progress="progress"
-              :clinicalService="selectedService"
+               :clinicalService="selectedService"
               :applicablePeriods="periodType"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
@@ -22,92 +22,80 @@
         </q-item-section>
     </q-item>
   </div>
-  <q-dialog persistent v-model="alert.visible">
-    <Dialog :type="alert.type" @closeDialog="closeDialog">
-      <template v-slot:title> Informação</template>
-      <template v-slot:msg> {{alert.msg}} </template>
-    </Dialog>
-  </q-dialog>
   </div>
 </template>
 
-<script>
+<script setup>
 
-import Report from 'src/store/models/report/Report'
+import Report from 'src/services/api/report/ReportService'
 import { ref } from 'vue'
 import { LocalStorage } from 'quasar'
-import mmiaReport from '../../../reports/ClinicManagement/Mmia.ts'
-  export default {
-    name: 'DrugStore',
-    props: ['selectedService', 'menuSelected', 'id'],
-    setup () {
-      return {
-        totalRecords: ref(0),
-        qtyProcessed: ref(0),
-        periodType: { id: 2, description: 'Mensal', code: 'MONTH' },
-        alert: ref({
+import mmiaReport from 'src/services/reports/ClinicManagement/Mmia.ts'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+import ListHeader from 'components/Shared/ListHeader.vue'
+  import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+  import { useSwal } from 'src/composables/shared/dialog/dialog';  
+
+const { website } = useSystemUtils(); 
+const {  alertError } = useSwal();
+
+  const name = 'DrugStore'
+  const  props = defineProps([ 'selectedService','menuSelected', 'id'])
+  const totalRecords= ref(0)
+  const  qtyProcessed = ref(0)
+  const filterMmiaSection = ref('')
+
+  const periodType = { id: 2, description: 'Mensal', code: 'MONTH' }
+       const  alert = ref({
           type: '',
           visible: false,
           msg: ''
-        }),
-        progress: ref(0)
+        })
+
+        const progress = ref(0)
+   
+   const   closeSection =() => {
+        LocalStorage.remove(props.id)
+        filterMmiaSection.value.remove()
       }
-    },
-    mounted () {
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default,
-      FiltersInput: require('components/Reports/shared/FiltersInput.vue').default,
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    },
-    methods: {
-      closeSection () {
-        LocalStorage.remove(this.id)
-        this.$refs.filterMmiaSection.remove()
-      },
-      initReportProcessing (params) {
+
+     const initReportProcessing = (params) => {
         console.log(params)
         if (params.periodType === 'MONTH') {
           Report.apiInitMmiaProcessing(params).then(resp => {
-            this.progress = resp.response.data.progress
-            setTimeout(this.getProcessingStatus(params), 2)
+            progress.value = resp.data.progress
+            setTimeout(getProcessingStatus(params), 2)
           })
         } else {
-          this.displayAlert('error', 'O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
+          alert('O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
         }
-      },
-      getProcessingStatus (params) {
+      }
+
+      const getProcessingStatus =(params)=> {
         Report.getProcessingStatus('mmiaReport', params).then(resp => {
-          this.progress = resp.response.data.progress
-          if (this.progress < 100) {
-            setTimeout(this.getProcessingStatus(params), 2)
+          progress.value = resp.data.progress
+          if (progress.value < 100) {
+            setTimeout(getProcessingStatus(params), 2)
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
           }
         })
-      },
-      generateReport (id, fileType) {
+      }
+
+      const generateReport = (id, fileType) => {
         if (fileType === 'PDF') {
           mmiaReport.downloadPDF(id).then(resp => {
-            if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            if (resp === 204) alert( 'Nao existem Dados para o periodo selecionado')
           })
         } else {
           mmiaReport.downloadExcel(id).then(resp => {
-            if (resp === 204) this.displayAlert('error', 'Nao existem Dados para o periodo selecionado')
+            if (resp === 204) alert( 'Nao existem Dados para o periodo selecionado')
           })
         }
-      },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
       }
-    }
-  }
+
 </script>
 
 <style lang="scss" scoped>

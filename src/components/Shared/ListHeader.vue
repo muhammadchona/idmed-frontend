@@ -80,6 +80,8 @@ const props = defineProps([
   'doneVisible',
 ]);
 
+const $emits = defineEmits(['done','initEdition'])
+
 // Methods
 const determineHeaderClass = () => {
   if (props.mainContainer.value) {
@@ -92,7 +94,7 @@ const determineHeaderClass = () => {
 //   props.expanded.value = !props.expanded.value;
 // };
 const closeSection = () => {
-  this.$emit('closeSection');
+  $emits('closeSection');
 };
 const created = () => {
   determineHeaderClass();

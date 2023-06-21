@@ -25,24 +25,23 @@
   </div>
 </template>
 
-<script>
-  export default {
-    props: ['selectedService'],
-    name: 'TransferedFrom',
-    mounted () {
-      console.log(this.selectedService)
-    },
-    components: {
-      ListHeader: require('components/Shared/ListHeader.vue').default
-    },
-    methods: {
-      closeSection () {
-        this.$refs.filterTransferedTo.remove()
-      }
+<script setup>
+import { ref } from 'vue'
+import ListHeader from  'components/Shared/ListHeader.vue'
+    const props =  defineProps(['selectedService'])
+    const filterTransferedTo = ref('')
+    const name =  'TransferedTo'
+    onMounted( () => {
+      console.log(selectedService)
+    })
 
-    }
-  }
+    const  closeSection =  () => {
+        filterTransferedTo.value.remove()
+      }
+   
 </script>
+
+
 
 <style lang="scss" scoped>
   .param-container {
