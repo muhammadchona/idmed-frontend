@@ -87,13 +87,14 @@ export default {
   getAllFromStorage() {
     return prescription.all();
   },
-  getLastPrescriptionFromPatientVisit(patientVisitId: string) {
+  getLastPrescriptionFromPatientVisitDetails(prescriptionId: string) {
     return prescription
       .withAllRecursive(2)
-      .whereHas('patientVisitDetails', (query) => {
-        query.where('patient_visit_id', patientVisitId);
-      })
+      .where('id', prescriptionId)
       .orderBy('prescriptionDate', 'desc')
       .first();
+  },
+  removeFromStorage(prescriptionId: string) {
+    return prescription.destroy(prescriptionId);
   },
 };

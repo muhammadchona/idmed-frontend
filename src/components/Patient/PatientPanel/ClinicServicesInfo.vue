@@ -1,37 +1,35 @@
 <template>
   <div>
-    <ListHeader />
+    <ListHeader
+      :addVisible="true"
+      :mainContainer="true"
+      bgColor="bg-primary"
+      :addButtonActions="addClinicService"
+    >
+      Serviços de Saúde da Farmácia
+    </ListHeader>
     <EmptyList v-if="patient.identifiers.length <= 0" />
     <div v-show="serviceInfoVisible">
       <span>
-        <InfoContainer />
+        <InfoContainer
+          v-for="identifier in patient.identifiers"
+          :key="identifier.id"
+          :identifierId="identifier.id"
+        />
       </span>
     </div>
-    <!-- <q-dialog persistent v-model="showAddEditClinicalService">
-      <AddClinicService
-        :identifierToEdit="selectedIdentifier"
-        :selectedPatient="selectedPatient"
-        :stepp="step"
-        @createFirstEpisode="createFirstEpisode"
-        @close="showAddEditClinicalService = false"
-      />
+    <q-dialog persistent v-model="showAddEditClinicalService">
+      <AddClinicService />
     </q-dialog>
-    <q-dialog persistent v-model="showAddEditEpisode">
-      <AddEditEpisode
-        :episodeToEdit="selectedEpisode"
-        :curIdentifier="selectedIdentifier"
-        @close="showAddEditEpisode = false"
-      />
-    </q-dialog> -->
   </div>
 </template>
 
 <script setup>
+import AddClinicService from 'components/Patient/PatientPanel/AddClinicService.vue';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
-import { provide, inject, ref, computed } from 'vue';
+import { provide, inject, reactive, ref, computed } from 'vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
-// import AddClinicService from 'components/Patient/PatientPanel/AddClinicService.vue';
 // import AddEditEpisode from 'components/Patient/PatientPanel/AddEditEpisode.vue';
 import InfoContainer from 'components/Patient/PatientPanel/InfoContainer.vue';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
@@ -41,7 +39,6 @@ import { usePatientServiceIdentifier } from 'src/composables/patient/patientServ
 // Declaration
 const { preferedIdentifierValue } = usePatient();
 const { canBeEdited } = usePatientServiceIdentifier();
-const showAddEditClinicalService = ref(false);
 const emptyList = ref(false);
 const selectedIdentifier = ref(new PatientServiceIdentifier());
 const showAddEditEpisode = ref(false);
@@ -51,43 +48,15 @@ const mainContainer = ref(true);
 const bgColor = ref('bg-primary');
 const title = ref('Serviços de Saúde da Farmácia');
 const titleEmptyList = ref('Nenhum Serviço de Saúde Adicionado');
+const showAddEditClinicalService = reactive(ref(false));
+
+const isEditStep = reactive(ref(false));
+const isCreateStep = reactive(ref(false));
+const isCloseStep = reactive(ref(false));
+const isReOpenStep = reactive(ref(false));
 
 // Injection
 const patient = inject('patient');
-
-// Methods
-const editClinicService = (curIdentifierParams) => {
-  if (!canBeEdited(curIdentifierParams.service)) {
-    alertInfo(
-      'error',
-      'Não pode fazer alterações sobre este serviço de saúde pois o mesmo ja possui registos de visitas do paciente/utente associados.'
-    );
-  } else {
-    selectedIdentifier.value = curIdentifierParams;
-    showAddEditClinicalService.value = true;
-  }
-};
-
-const closeClinicService = (curIdentifierParams) => {
-  selectedIdentifier.value = curIdentifierParams;
-  showAddEditClinicalService.value = true;
-};
-const reopenClinicService = (curIdentifierParams) => {
-  selectedIdentifier.value = curIdentifierParams;
-  showAddEditClinicalService.value = true;
-};
-const addClinicService = () => {
-  selectedIdentifier.value = null;
-  showAddEditClinicalService.value = true;
-};
-const expandLess = (value) => {
-  serviceInfoVisible.value = !value;
-};
-const createFirstEpisode = (identifier) => {
-  selectedIdentifier.value = identifier;
-  showAddEditClinicalService.value = false;
-  showAddEditEpisode.value = true;
-};
 
 //Computed
 const currIdentifier = computed(() => {
@@ -96,29 +65,35 @@ const currIdentifier = computed(() => {
   );
 });
 
-provide('editClinicService', editClinicService);
-provide('closeClinicService', closeClinicService);
-provide('reopenClinicService', reopenClinicService);
-provide('addClinicService', addClinicService);
-provide('expandLess', expandLess);
-provide('createFirstEpisode', createFirstEpisode);
+//Method
+const addClinicService = () => {
+  selectedIdentifier.value = null;
+  isCreateStep.value = true;
+  isEditStep.value = false;
+  isCloseStep.value = false;
+  isReOpenStep.value = false;
+  showAddEditClinicalService.value = true;
+};
+const close = () => {
+  isCreateStep.value = false;
+  isEditStep.value = false;
+  isCloseStep.value = false;
+  isReOpenStep.value = false;
+  showAddEditClinicalService.value = false;
+};
+
+provide('showAddEditClinicalService', showAddEditClinicalService);
+provide('isEditStep', isEditStep);
+provide('isCreateStep', isCreateStep);
+provide('isCloseStep', isCloseStep);
+provide('isReOpenStep', isReOpenStep);
 provide('addVisible', addVisible);
 provide('mainContainer', mainContainer);
 provide('bgColor', bgColor);
 provide('titleEmptyList', titleEmptyList);
 provide('title', title);
 provide('curIdentifier', currIdentifier);
-// clinicServiceInfoVisible() {
-//   return LocalStorage.getItem('clinicServiceInfoVisible');
-// },
-// canEdit() {
-//   return this.canEditIdentifier();
-// },
-// identifiers: {
-//   get() {
-//     return this.patient.identifiers;
-//   },
-// },
+provide('close', close);
 </script>
 
 <style></style>

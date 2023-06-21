@@ -38,11 +38,21 @@ export default {
     await api().delete('drug/' + id);
     drug.destroy(id);
   },
-  getActiveDrugs () {
-    return drug.query().withAllRecursive(2).where('active', true).get()
+  getActiveDrugs() {
+    return drug.query().withAllRecursive(1).where('active', true).get();
   },
-  getDrugById (id: string) {
-    return drug.query().withAllRecursive(2).where('id',id).first()
+  getActiveDrugsByRegimen(regimenId: string) {
+    return drug
+      .query()
+      .withAllRecursive(1)
+      .where('active', true)
+      .whereHas('therapeuticRegimenList', (query) => {
+        query.where('id', regimenId);
+      })
+      .get();
+  },
+  getDrugById(id: string) {
+    return drug.query().withAllRecursive(1).where('id', id).first();
   },
   // Local Storage Pinia
   newInstanceEntity() {

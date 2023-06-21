@@ -12,7 +12,10 @@ export function usePrescription() {
   }
 
   function remainigDuration(prescription: any) {
-    const prescriptionDuration = Number(prescription.duration.weeks);
+    const prescriptionDuration =
+      prescription.duration !== null && prescription.duration !== undefined
+        ? Number(prescription.duration.weeks)
+        : 0;
     let packagedWeeks = 0;
     prescription.patientVisitDetails.forEach((pvd: any) => {
       if (pvd.pack !== null) {

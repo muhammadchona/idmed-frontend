@@ -31,9 +31,9 @@ export default class Prescription extends Model {
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       doctor: this.belongsTo(Doctor, 'doctor_id'),
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'prescription_id'),
-      prescriptionDetails: this.hasMany(PrescriptionDetail, 'prescription_id'),
+      prescriptionDetails: this.hasMany(PrescriptionDetail, 'prescription_id').onDelete('cascade'),
       duration: this.belongsTo(Duration, 'duration_id'),
-      prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id'),
+      prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id').onDelete('cascade'),
       groupMemberPrescription: this.hasMany(
         GroupMemberPrescription,
         'prescription_id'

@@ -116,6 +116,10 @@ export default {
     return clinicsector.withAll().get();
   },
 
+  getClinicSectorsById(clinicSectorId: string) {
+    return clinicsector.withAll().where('id', clinicSectorId).first();
+  },
+
   getClinicSectorsByClinicId(clinicId: string) {
     return clinicsector.query().where('clinic_id', clinicId).get();
   },
@@ -126,6 +130,19 @@ export default {
       .where((clinicsector) => {
         return clinicsector.active && clinicsector.clinic_id === clinicId;
       })
+      .get();
+  },
+  getActiveUSClinicSectorByClinic(clinicId: string) {
+    return clinicsector
+      .withAllRecursive(1)
+      .where('active', true)
+      .where((sector) => {
+        return sector.clinic_id === clinicId;
+      })
+      .whereHas('clinicSectorType', (query) => {
+        query.where('code', 'PARAGEM_UNICA').orWhere('code', 'NORMAL');
+      })
+      .orderBy('code', 'asc')
       .get();
   },
 };

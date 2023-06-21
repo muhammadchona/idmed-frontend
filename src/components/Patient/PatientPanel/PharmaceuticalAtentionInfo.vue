@@ -5,7 +5,7 @@
       :bg-color="bgColor"
       :main-container="mainContainer"
       :expanded="expandLess"
-      :add-visible="true"
+      :add-visible="showAddButton"
       :expand-visible="false"
       :add-button-actions="addButtonActions"
     />
@@ -32,9 +32,11 @@ import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
+import { usePatient } from 'src/composables/patient/patientMethods';
 
 //Declaration
 const { website } = useSystemUtils();
+const { hasEpisodes, hasOneAndClosedIdentifier } = usePatient();
 const infoVisible = ref(true);
 const showAddPharmaceuticalAtention = reactive(ref(false));
 const title = ref('Atenção Farmacêutica');
@@ -133,7 +135,7 @@ const patientVisits = computed(() => {
   );
 });
 const showAddButton = computed(() => {
-  return patient.value.identifiers.length > 0;
+  return hasEpisodes(patient.value);
 });
 provide('title', title);
 provide('bgColor', bgColor);

@@ -1,3 +1,6 @@
+import { useEspisode } from '../episode/episodeMethods';
+
+const { hasVisits } = useEspisode();
 export function usePatientServiceIdentifier() {
   function isPrefered(patientServiceIdentifier: any) {
     return patientServiceIdentifier.prefered;
@@ -29,7 +32,7 @@ export function usePatientServiceIdentifier() {
     return lastVisit;
   }
 
-  function lastEpisode(patientServiceIdentifier: any) {
+  function lastEpisodeIdentifier(patientServiceIdentifier: any) {
     let lastVisit = '';
     patientServiceIdentifier.episodes.forEach((visit: any) => {
       if (lastVisit === null || lastVisit === '') {
@@ -88,13 +91,13 @@ export function usePatientServiceIdentifier() {
   }
 
   function canBeEdited(patientServiceIdentifier: any) {
-    if (!patientServiceIdentifier.hasEpisodes()) return true;
+    if (!hasEpisodes(patientServiceIdentifier)) return true;
     let canEdit = true;
     Object.keys(patientServiceIdentifier.episodes).forEach(
       function (k: any) {
         const eps = patientServiceIdentifier.episodes[k];
         if (canEdit) {
-          if (eps.hasVisits()) {
+          if (hasVisits(eps)) {
             canEdit = false;
           }
         }
@@ -111,7 +114,7 @@ export function usePatientServiceIdentifier() {
     isPrefered,
     lastStartEpisodeWithPrescription,
     lastVisitPrescription,
-    lastEpisode,
+    lastEpisodeIdentifier,
     checkClinicalServiceAttr,
     hasTherapeuticalRegimen,
     hasTherapeuticalLine,

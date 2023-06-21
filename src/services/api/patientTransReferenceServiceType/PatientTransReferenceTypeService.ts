@@ -47,4 +47,7 @@ export default {
   getAllFromStorage() {
     return patientTransReferenceType.all();
   },
+  getOperationType(operationType: string) {
+    return patientTransReferenceType.where('code', operationType).first();
+  },
 };

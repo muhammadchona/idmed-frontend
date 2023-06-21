@@ -5,7 +5,7 @@
         <q-input
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           class="col q-mb-md"
           v-model="prescriptionDate"
           ref="prescriptionDateRef"
@@ -21,7 +21,7 @@
               >
                 <q-date
                   v-model="prescriptionDate"
-                  :disable="showServiceDrugsManagement"
+                  :disable="showServiceDrugsManagement || !isNewPrescription"
                   :options="optionsNonFutureDate"
                   @update:model-value="validateDate(props.identifier)"
                   mask="DD-MM-YYYY"
@@ -38,7 +38,7 @@
           <div class="row">
             <q-checkbox
               v-model="curPrescriptionDetail.spetialPrescription"
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               label="Prescrição especial"
               class="col-4 q-mb-sm"
             />
@@ -50,7 +50,7 @@
               input-debounce="0"
               dense
               outlined
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               v-if="curPrescriptionDetail.spetialPrescription"
               v-model="curPrescriptionDetail.spetialPrescriptionMotive"
               :options="optionsspetialPrescriptionMotives"
@@ -77,7 +77,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="therapeuticRegimenRef"
           :rules="[(val) => !!val || 'Por favor indicar o regime terapêutico']"
           v-model="curPrescriptionDetail.therapeuticRegimen"
@@ -96,7 +96,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="therapeuticLineRef"
           :rules="[(val) => !!val || 'Por favor indicar a linha terapêutica']"
           v-model="curPrescriptionDetail.therapeuticLine"
@@ -114,7 +114,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           v-model="curPrescription.duration"
           :options="optionsdurations"
           ref="durationRef"
@@ -133,7 +133,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="doctorRef"
           :rules="[(val) => !!val || 'Por favor indicar o clínico']"
           v-model="curPrescription.doctor"
@@ -209,7 +209,7 @@
                   round
                   color="red"
                   icon="delete"
-                  :disable="showServiceDrugsManagement"
+                  :disable="showServiceDrugsManagement || !isNewPrescription"
                   @click="deleteRow(props.row)"
                 />
               </q-td>
@@ -230,7 +230,7 @@
             <q-item-label dense caption>Altera Linha Terapêutica?</q-item-label>
             <q-radio
               v-model="curPrescription.patientType"
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               checked-icon="task_alt"
               unchecked-icon="panorama_fish_eye"
               val="N/A"
@@ -238,7 +238,7 @@
             />
             <q-radio
               v-model="curPrescription.patientType"
-              :disable="showServiceDrugsManagement"
+              :disable="showServiceDrugsManagement || !isNewPrescription"
               checked-icon="task_alt"
               unchecked-icon="panorama_fish_eye"
               val="Alterar"
@@ -260,7 +260,7 @@
           dense
           outlined
           option-value="code"
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           :options="reasonsForUpdate"
           v-model="curPrescriptionDetail.reasonForUpdate"
           option-label="description"
@@ -275,7 +275,7 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           ref="dispenseTypeRef"
           :rules="[(val) => !!val || 'Por favor indicar o tipo de dispensa']"
           v-model="curPrescriptionDetail.dispenseType"
@@ -297,7 +297,7 @@
               !!val ||
               'Por favor indicar a situação do paciente (em relação aos modelos)',
           ]"
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           v-model="curPrescription.patientStatus"
           :options="optionspatientStatus"
           @filter="filterFnpatientStatus"
@@ -312,7 +312,7 @@
           v-if="!showServiceDrugsManagement"
           unelevated
           color="primary"
-          :disable="showServiceDrugsManagement"
+          :disable="showServiceDrugsManagement || !isNewPrescription"
           label="Validar Prescricão"
           class="all-pointer-events"
           @click="validateForm()"
@@ -321,7 +321,11 @@
           v-if="showServiceDrugsManagement"
           unelevated
           color="red"
-          :disable="!showServiceDrugsManagement || validateDispense"
+          :disable="
+            !showServiceDrugsManagement ||
+            validateDispense ||
+            !isNewPrescription
+          "
           label="Invalidar Prescricão"
           class="all-pointer-events"
           @click="showServiceDrugsManagement = false"
@@ -369,6 +373,8 @@ import StockService from 'src/services/api/stockService/StockService';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import PackagedDrugStock from 'src/stores/models/packagedDrug/PackagedDrugStock';
 import packService from 'src/services/api/pack/packService';
+import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 
 //props
 const props = defineProps(['identifier']);
@@ -385,6 +391,7 @@ const { preferedIdentifierValue, fullName } = usePatient();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { getQtyPrescribed } = usePrescribedDrug();
+const { remainigDuration } = usePrescription();
 const expanded = ref(false);
 const submitting = ref(false);
 const prescriptionDate = ref();
@@ -547,22 +554,46 @@ const durations = computed(() => {
   return durationService.getAllFromStorage();
 });
 const lastStartEpisode = computed(() => {
-  return episodeService.getLastStartEpisodeWithPrescription(
-    props.identifier.id
-  );
+  return episodeService.getLastStartEpisodeByIdentifier(props.identifier.id);
 });
 const lastPatientVisit = computed(() => {
-  return patientVisitService.getLastFromEpisode(lastStartEpisode.value.id);
+  if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
+    return patientVisitService.getLastFromEpisode(lastStartEpisode.value.id);
+  } else {
+    return null;
+  }
 });
+
+const lastPatientVisitDetails = computed(() => {
+  if (lastPatientVisit.value !== null && lastPatientVisit.value !== undefined) {
+    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
+      lastPatientVisit.value.id
+    );
+  } else {
+    return null;
+  }
+});
+
 const lastPrescription = computed(() => {
-  return prescriptionService.getLastPrescriptionFromPatientVisit(
-    lastPatientVisit.value.id
-  );
+  if (
+    lastPatientVisitDetails.value !== null &&
+    lastPatientVisitDetails.value !== undefined
+  ) {
+    return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
+      lastPatientVisitDetails.value.prescription.id
+    );
+  } else {
+    return null;
+  }
 });
 const lastPack = computed(() => {
-  return packService.getLastPackFromPatientVisitAndPrescription(
-    lastPrescription.value.id
-  );
+  if (lastPrescription.value !== null && lastPrescription.value !== undefined) {
+    return packService.getLastPackFromPatientVisitAndPrescription(
+      lastPrescription.value.id
+    );
+  } else {
+    return null;
+  }
 });
 
 // Methods
@@ -605,51 +636,102 @@ const getLastPrescriptionData = () => {
 };
 const validateDate = (identifier) => {
   console.log('Last Pack', lastVisitPrescription(identifier));
-  if (lastVisitPrescription(identifier) !== null) {
+  if (
+    lastVisitPrescription(identifier) !== null &&
+    lastVisitPrescription(identifier) !== undefined
+  ) {
     const lastPack = lastVisitPrescription(identifier).pack;
-    const nextPickUpDate = moment
-      .utc(lastPack.nextPickUpDate)
-      .local()
-      .format('DD-MM-YYYY');
-    const validatePrescriptionDate = moment
-      .utc(
-        date.addToDate(
-          getDateFromHyphenDDMMYYYY(prescriptionDate.value, 'YYYY-MM-DD'),
-          {
-            days: 4,
-          }
+    if (lastPack !== null && lastPack !== undefined) {
+      const nextPickUpDate = moment
+        .utc(lastPack.nextPickUpDate)
+        .local()
+        .format('DD-MM-YYYY');
+      const validatePrescriptionDate = moment
+        .utc(
+          date.addToDate(
+            getDateFromHyphenDDMMYYYY(prescriptionDate.value, 'YYYY-MM-DD'),
+            {
+              days: 4,
+            }
+          )
         )
-      )
-      .local()
-      .format('DD-MM-YYYY');
-    var momentNextPickUpDate = moment(nextPickUpDate, 'DD-MM-YYYY');
-    var momentPrescriptionDate = moment(validatePrescriptionDate, 'DD-MM-YYYY');
+        .local()
+        .format('DD-MM-YYYY');
+      var momentNextPickUpDate = moment(nextPickUpDate, 'DD-MM-YYYY');
+      var momentPrescriptionDate = moment(
+        validatePrescriptionDate,
+        'DD-MM-YYYY'
+      );
 
-    if (momentNextPickUpDate.isAfter(momentPrescriptionDate)) {
-      alertWarningAction(
-        'O paciente ainda possui medicamentos ' +
-          identifier.service.code +
-          ' em casa  deseja  continuar com a criação da nova prescrição?'
-      ).then((result) => {
-        if (!result) {
-          prescriptionDate.value = '';
-          console.log('Saiu da prescricao');
-        }
-      });
+      if (momentNextPickUpDate.isAfter(momentPrescriptionDate)) {
+        alertWarningAction(
+          'O paciente ainda possui medicamentos ' +
+            identifier.service.code +
+            ' em casa  deseja  continuar com a criação da nova prescrição?'
+        ).then((result) => {
+          if (!result) {
+            prescriptionDate.value = '';
+          }
+        });
+      }
     }
   }
 };
 
 const init = () => {
-  if (isNewPrescription) {
+  if (isNewPrescription.value) {
     prescriptionDate.value = moment().format('DD-MM-YYYY');
     curPrescriptionDetail.value.prescription = curPrescription.value;
     curPrescriptionDetail.value.prescription_id = curPrescription.value.id;
+    curPrescription.value.leftDuration = remainigDuration(
+      curPrescription.value
+    );
     getLastPrescriptionData();
+  } else {
+    prescriptionDate.value = getDDMMYYYFromJSDate(
+      lastPrescription.value.prescriptionDate
+    );
+    curPrescription.value = lastPrescription.value;
+    // curPrescription.value.patientVisitDetails = [];
+    curPrescription.value.syncStatus = 'N';
+    curPrescription.value.prescriptionDetails.forEach((prescriptionDetail) => {
+      prescriptionDetail.prescription = null;
+      prescriptionDetail.prescription_id = curPrescription.value.id;
+      delete prescriptionDetail.therapeuticRegimen['prescriptionDetails'];
+      delete prescriptionDetail.therapeuticRegimen['drugs'];
+      delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
+    });
+    curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
+    curPack.value.packDate = lastPack.value.nextPickUpDate;
+    curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+    curPack.value.packagedDrugs = lastPack.value.packagedDrugs;
+    curPack.value.weeksSupply = lastPack.value.weeksSupply;
+    curPack.value.syncStatus = 'N';
+    curPack.value.clinic = patient.value.clinic;
+    curPack.value.clinic_id = patient.value.clinic_id;
+    curPatientVisitDetail.value.patient_visit_id = curPatientVisit.value.id;
+    curPatientVisitDetail.value.clinic_id = patient.value.clinic_id;
+    curPatientVisitDetail.value.clinic = patient.value.clinic;
+    curPatientVisitDetail.value.pack_id = curPack.value.id;
+    curPatientVisitDetail.value.pack = curPack.value;
+    curPatientVisitDetail.value.prescription = curPrescription.value;
+    curPatientVisitDetail.value.prescription_id = curPrescription.value.id;
+    curPatientVisitDetail.value.episode = lastStartEpisode.value;
+    curPatientVisitDetail.value.episode_id = lastStartEpisode.value.id;
+
+    showServiceDrugsManagement.value = true;
   }
 };
 
 const validateForm = () => {
+  console.log('Curr Presc', curPrescription.value);
+  console.log('Last Pres', remainigDuration(lastPrescription.value));
+  let lastPack4daysAdd = date.addToDate(
+    getDateFromHyphenDDMMYYYY(prescriptionDate.value, 'YYYY-MM-DD'),
+    {
+      days: 4,
+    }
+  );
   if (hasTherapeuticalRegimen.value) {
     therapeuticRegimenRef.value.validate();
   }
@@ -674,6 +756,13 @@ const validateForm = () => {
     ) {
       alertError('A data da prescrição é inválida.');
     } else if (
+      lastStartEpisode.value === null ||
+      lastStartEpisode.value === undefined
+    ) {
+      alertError(
+        'Nenhuma prescrição não deve ser criada sem um Histórico clínico.'
+      );
+    } else if (
       getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(prescriptionDate.value)) <
       getYYYYMMDDFromJSDate(lastStartEpisode.value.episodeDate)
     ) {
@@ -696,61 +785,64 @@ const validateForm = () => {
       );
     } else if (curPrescription.value.prescribedDrugs.length === 0) {
       alertError('A Prescrição deve ter pelo menos um medicamento prescrito');
-    } else if (
-      lastPack.value.nextPickUpDate > curPrescription.value.prescriptionDate &&
-      !curPrescriptionDetail.value.spetialPrescription
-    ) {
-      alertError(
-        'Paciente tem medicamento em casa, Caso queira dispensar seleccione a prescrição como especial'
-      );
-    } else {
-      if (isNewPrescription) {
-        curPrescription.value.leftDuration =
-          curPrescription.value.duration.weeks / 4;
+    } else if (lastPack.value !== null && lastPack.value !== undefined) {
+      if (
+        lastPack.value.nextPickUpDate > lastPack4daysAdd &&
+        !curPrescriptionDetail.value.spetialPrescription
+      ) {
+        alertError(
+          'Paciente tem medicamento em casa, Caso queira dispensar seleccione a prescrição como especial'
+        );
+      } else {
+        allGoodvalidatedForm();
       }
-      curPrescription.value.prescriptionDetails = [];
-      curPrescription.value.prescriptionDate = getDateFromHyphenDDMMYYYY(
-        prescriptionDate.value
-      );
-      curPrescription.value.prescribedDrugs.forEach((prescribedDrug) => {
-        prescribedDrug.prescription = null;
-        prescribedDrug.prescription_id = null;
-      });
-      curPrescription.value.prescriptionDetails.push(
-        curPrescriptionDetail.value
-      );
-
-      curPrescription.value.prescriptionDetails.forEach(
-        (prescriptionDetail) => {
-          prescriptionDetail.prescription = null;
-          prescriptionDetail.prescription_id = null;
-          delete prescriptionDetail.therapeuticRegimen['prescriptionDetails'];
-          delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
-        }
-      );
-      curPrescription.value.clinic = patient.value.clinic;
-      curPrescription.value.clinic_id = patient.value.clinic_id;
-
-      curPack.value.clinic = patient.value.clinic;
-      curPack.value.clinic_id = patient.value.clinic_id;
-      curPack.value.syncStatus = 'N';
-      curPack.value.packagedDrugs = [];
-
-      curPatientVisitDetail.value.patient_visit_id = curPatientVisit.value.id;
-      // curPatientVisitDetail.value.patientVisit = curPatientVisit.value;
-      curPatientVisitDetail.value.clinic_id = patient.value.clinic_id;
-      curPatientVisitDetail.value.clinic = patient.value.clinic;
-      curPatientVisitDetail.value.pack_id = curPack.value.id;
-      curPatientVisitDetail.value.pack = curPack.value;
-      curPatientVisitDetail.value.prescription = curPrescription.value;
-      curPatientVisitDetail.value.prescription_id = curPrescription.value.id;
-      curPatientVisitDetail.value.episode = lastStartEpisode.value;
-      curPatientVisitDetail.value.episode_id = lastStartEpisode.value.id;
-
-      addPackagedDrugs();
-      showServiceDrugsManagement.value = true;
+    } else {
+      allGoodvalidatedForm();
     }
   }
+};
+
+const allGoodvalidatedForm = () => {
+  curPrescription.value.leftDuration = remainigDuration(curPrescription.value);
+
+  curPrescription.value.prescriptionDetails = [];
+  curPrescription.value.prescriptionDate = getDateFromHyphenDDMMYYYY(
+    prescriptionDate.value
+  );
+  curPrescription.value.prescribedDrugs.forEach((prescribedDrug) => {
+    prescribedDrug.prescription = null;
+    prescribedDrug.prescription_id = null;
+  });
+  curPrescription.value.prescriptionDetails.push(curPrescriptionDetail.value);
+
+  curPrescription.value.prescriptionDetails.forEach((prescriptionDetail) => {
+    prescriptionDetail.prescription = null;
+    prescriptionDetail.prescription_id = null;
+    delete prescriptionDetail.therapeuticRegimen['prescriptionDetails'];
+    delete prescriptionDetail.therapeuticRegimen['drugs'];
+    delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
+  });
+  curPrescription.value.clinic = patient.value.clinic;
+  curPrescription.value.clinic_id = patient.value.clinic_id;
+
+  curPack.value.clinic = patient.value.clinic;
+  curPack.value.clinic_id = patient.value.clinic_id;
+  curPack.value.syncStatus = 'N';
+  curPack.value.packagedDrugs = [];
+
+  curPatientVisitDetail.value.patient_visit_id = curPatientVisit.value.id;
+  // curPatientVisitDetail.value.patientVisit = curPatientVisit.value;
+  curPatientVisitDetail.value.clinic_id = patient.value.clinic_id;
+  curPatientVisitDetail.value.clinic = patient.value.clinic;
+  curPatientVisitDetail.value.pack_id = curPack.value.id;
+  curPatientVisitDetail.value.pack = curPack.value;
+  curPatientVisitDetail.value.prescription = curPrescription.value;
+  curPatientVisitDetail.value.prescription_id = curPrescription.value.id;
+  curPatientVisitDetail.value.episode = lastStartEpisode.value;
+  curPatientVisitDetail.value.episode_id = lastStartEpisode.value.id;
+
+  addPackagedDrugs();
+  showServiceDrugsManagement.value = true;
 };
 
 const addPackagedDrugs = () => {
@@ -800,6 +892,12 @@ const generatePacks = (packagedDrug) => {
 
 const addPatientVisitDetail = () => {
   let indexToRemove = [];
+  let pickupDate4daysAdd = date.addToDate(
+    curPatientVisitDetail.value.pack.pickupDate,
+    {
+      days: 4,
+    }
+  );
   curPatientVisitDetail.value.pack.packagedDrugs.forEach((packageDrug) => {
     if (
       !checkStock(packageDrug, curPatientVisitDetail.value.pack.weeksSupply)
@@ -809,47 +907,84 @@ const addPatientVisitDetail = () => {
       );
       indexToRemove.push(i);
     } else {
-      generatePacks(packageDrug);
+      console.log(packageDrug.quantitySupplied);
+      if (Number(packageDrug.quantitySupplied) <= 0) {
+        indexToRemove.push(packageDrug);
+      } else {
+        generatePacks(packageDrug);
+      }
     }
   });
 
-  if (curPatientVisitDetail.value.pack.packagedDrugs.length === 0) {
-    alertError('Deve ter pelo menos um medicamento para efectuar a dispensa');
-  } else if (indexToRemove.length > 0) {
+  if (indexToRemove.length > 0) {
     alertError(
-      ' Exitem medicamentos sem stock na lista de dispensa. Por favor, remova'
+      ' Exitem medicamentos sem stock ou sem quantidade por dispensar na lista. Por favor, remova'
     );
+  } else if (
+    Number(curPatientVisitDetail.value.pack.weeksSupply / 4) >
+    remainigDuration(curPatientVisitDetail.value.prescription)
+  ) {
+    alertError(
+      'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' +
+        remainigDuration(curPatientVisitDetail.value.prescription) +
+        ' mes(es)]'
+    );
+  } else if (curPatientVisitDetail.value.pack.packagedDrugs.length === 0) {
+    alertError('Deve ter pelo menos um medicamento para efectuar a dispensa');
   } else if (Number(curPatientVisitDetail.value.pack.weeksSupply) <= 0) {
     alertError(
       'Por favor indicar o período para o qual pretende efectuar a dispensa de medicamento' +
         props.identifier.service.code
     );
   } else if (
-    Number(curPatientVisitDetail.value.pack.weeksSupply / 4) >
-    Number(curPrescription.value.leftDuration)
-  ) {
-    alertError(
-      'O Período para o qual pretende efectuar a dispensa é maior que o período ' +
-        curPrescription.value.leftDuration +
-        ' mes(es) remanescente na prescrição ' +
-        props.identifier.service.code
-    );
-  } else if (
-    new Date(curPatientVisitDetail.value.pack.pickupDate) >
+    getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.pickupDate) >
     getYYYYMMDDFromJSDate(moment())
   ) {
     alertError('A data de levantamento indicada é maior que a data corrente');
+  } else if (lastPack.value !== null && lastPack.value !== undefined) {
+    if (
+      getYYYYMMDDFromJSDate(lastPack.value.nextPickUpDate) >
+      getYYYYMMDDFromJSDate(pickupDate4daysAdd)
+    ) {
+      alertWarningAction(
+        'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, ' +
+          'O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?'
+      ).then((result) => {
+        if (result) {
+          const pickUpDiferrence = moment(lastPack.value.nextPickUpDate).diff(
+            moment(curPatientVisitDetail.value.pack.pickupDate),
+            'days'
+          );
+          if (pickUpDiferrence > 0) {
+            curPatientVisitDetail.value.pack.nextPickUpDate = moment(
+              curPatientVisitDetail.value.pack.nextPickUpDate,
+              'YYYY-MM-DD'
+            )
+              .add('d', pickUpDiferrence)
+              .toDate();
+          }
+          allGoodValidatatedDispense();
+        } else {
+          allGoodValidatatedDispense();
+        }
+      });
+    } else {
+      allGoodValidatatedDispense();
+    }
   } else {
-    validateDispense.value = true;
-    curPrescription.value.leftDuration = Number(
-      (Number(curPrescription.value.duration.weeks) -
-        Number(curPack.value.weeksSupply)) /
-        4
-    );
-    curPatientVisit.value.visitDate = curPrescription.value.prescriptionDate;
-    curPatientVisitDetail.value.prescription = curPrescription.value;
-    curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
+    allGoodValidatatedDispense();
   }
+};
+const allGoodValidatatedDispense = () => {
+  validateDispense.value = true;
+  curPrescription.value.leftDuration = Number(
+    (Number(curPrescription.value.duration.weeks) -
+      Number(curPack.value.weeksSupply)) /
+      4
+  );
+  curPatientVisit.value.visitDate = curPrescription.value.prescriptionDate;
+  curPatientVisitDetail.value.prescription = curPrescription.value;
+  curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
 };
 
 const removePatientVisitDetail = () => {
@@ -858,15 +993,6 @@ const removePatientVisitDetail = () => {
     .map((toRemove) => toRemove.id)
     .indexOf(curPatientVisitDetail.value.id);
   curPatientVisit.value.patientVisitDetails.splice(i, 1);
-};
-
-const initPackageStock = (stock, drug, quantitySupplied) => {
-  const packagedDrugStock = new PackagedDrugStock();
-  packagedDrugStock.drug = drug;
-  packagedDrugStock.stock = stock;
-  packagedDrugStock.quantitySupplied = quantitySupplied;
-  packagedDrugStock.creationDate = this.getYYYYMMDDFromJSDate(moment());
-  return packagedDrugStock;
 };
 
 const setRelationIdentifiers = () => {

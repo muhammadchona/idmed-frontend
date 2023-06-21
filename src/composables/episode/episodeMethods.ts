@@ -44,11 +44,11 @@ export function useEspisode() {
   }
 
   function isReferenceOrTransferenceEpisode(episode: Episode) {
-    return (
-      episode.isDCReferenceEpisode() ||
-      episode.isTranferenceEpisode() ||
-      episode.isReferenceEpisode()
-    );
+    return episode !== null
+      ? isDCReferenceEpisode(episode) ||
+          isTranferenceEpisode(episode) ||
+          isReferenceEpisode(episode)
+      : false;
   }
 
   function isTranferenceEpisode(episode: Episode) {

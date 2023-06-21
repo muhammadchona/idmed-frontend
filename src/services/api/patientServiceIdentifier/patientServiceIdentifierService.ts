@@ -26,24 +26,22 @@ export default {
   async patch(id: number, params: string) {
     const resp = await api().patch('patientServiceIdentifier/' + id, params);
     patientServiceIdentifier.save(resp.data);
+    return resp;
   },
   async delete(id: number) {
     await api().delete('patientServiceIdentifier/' + id);
     patientServiceIdentifier.destroy(id);
   },
-  async apiSave(identifier: string, isNew: boolean) {
+  async apiSave(identifier: any, isNew: boolean) {
     if (isNew) {
-      return await api().post('/patientServiceIdentifier', identifier);
+      return await this.post(identifier);
     } else {
-      return this.apiUpdate(identifier);
+      return await this.patch(identifier.id, identifier);
     }
   },
 
   async apiUpdate(identifier: any) {
-    return await api().patch(
-      '/patientServiceIdentifier/' + identifier.id,
-      identifier
-    );
+    return await this.patch(identifier.id, identifier);
   },
 
   async apiFetchById(id: string) {
@@ -102,6 +100,17 @@ export default {
         });
       })
       .where('id', id)
+      .get();
+  },
+  getAllIdentifierWithInicialEpisodeByPatient(patientId: string) {
+    return patientServiceIdentifier
+      .withAllRecursive(2)
+      .whereHas('episodes', (query) => {
+        query.whereHas('episodeType', (query) => {
+          query.where('code', 'INICIO');
+        });
+      })
+      .where('patient_id', patientId)
       .get();
   },
 };

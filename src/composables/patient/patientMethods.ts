@@ -60,6 +60,22 @@ export function usePatient() {
     return hasEpisode;
   }
 
+  function hasPatientVisitDetails(patient: any) {
+    if (patient.identifiers.length > 0) {
+      patient.identifiers.forEach((identifier: any) => {
+        if (identifier.episodes.length > 0) {
+          identifier.episodes.some((episode: any) => {
+            return episode.patientVisitDetails.length > 0;
+          });
+          return;
+        } else {
+          return false;
+        }
+      });
+    } else {
+      return false;
+    }
+  }
   function preferedIdentifier(patient: any) {
     if (patient.identifiers.length <= 0) return null;
     let preferedIdentifiers = null;
@@ -121,6 +137,7 @@ export function usePatient() {
     hasPreferedId,
     preferedIdentifierValue,
     hasOneAndClosedIdentifier,
+    hasPatientVisitDetails,
     age,
     getClassName,
   };

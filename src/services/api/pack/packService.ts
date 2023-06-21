@@ -83,11 +83,23 @@ export default {
   getAllFromStorage() {
     return pack.all();
   },
+  removeFromStorage(id: string) {
+    return pack.destroy(id);
+  },
   getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
     return pack
       .withAllRecursive(1)
       .whereHas('patientVisitDetails', (query) => {
         query.where('prescription_id', prescriptionId);
+      })
+      .orderBy('pickupDate', 'desc')
+      .first();
+  },
+  getLastPackFromEpisode(episodeId: string) {
+    return pack
+      .withAllRecursive(1)
+      .whereHas('patientVisitDetails', (query) => {
+        query.where('episode_id', episodeId);
       })
       .orderBy('pickupDate', 'desc')
       .first();

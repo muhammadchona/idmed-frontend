@@ -51,4 +51,7 @@ export default {
   getAllFromStorage() {
     return episodeType.all();
   },
+  getEpisodeTypeByCode(code: string) {
+    return episodeType.where('code', code).first();
+  },
 };

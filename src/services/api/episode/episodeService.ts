@@ -25,6 +25,8 @@ export default {
   },
   async patch(id: number, params: string) {
     const resp = await api().patch('episode/' + id, params);
+    console.log('o que manda', params);
+    console.log('update', resp.data);
     episode.save(resp.data);
   },
   async delete(id: number) {
@@ -32,20 +34,20 @@ export default {
     episode.destroy(id);
   },
 
-  async apiSave(episode: any, isNew: boolean) {
+  async apiSave(episodeParams: any, isNew: boolean) {
     if (isNew) {
-      return await api().post('/episode', episode);
+      return await this.post(episodeParams);
     } else {
-      return await api().patch('/episode/' + episode.id, episode);
+      return await this.patch(episodeParams.id, episodeParams);
     }
   },
 
-  async apiUpdate(episode: any) {
-    return await api().patch('/episode/' + episode.id, episode);
+  async apiUpdate(episodeParams: any) {
+    return await api().patch('/episode/' + episodeParams.id, episodeParams);
   },
 
-  async apiRemove(episode: any) {
-    return await api().delete(`/episode/${episode.id}`);
+  async apiRemove(episodeParams: any) {
+    return await api().delete(`/episode/${episodeParams.id}`);
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
@@ -89,12 +91,12 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
-  getlast2EpisodesByIdentifier(identifierId: string) {
+  getlast3EpisodesByIdentifier(identifierId: string) {
     const episodes = episode
       .withAllRecursive(2)
       .where('patientServiceIdentifier_id', identifierId)
       .orderBy('episodeDate', 'desc')
-      .limit(2)
+      .limit(3)
       .get();
     if (episodes.length > 0) {
       episodes[0].isLast = true;
@@ -116,6 +118,26 @@ export default {
       })
       .has('patientVisitDetails')
       .where('patientServiceIdentifier_id', patientIdentifierid)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+  getLastStopEpisodeByIdentifier(identifierId: string) {
+    return episode
+      .with('startStopReason')
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'FIM');
+      })
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+  getLastStartEpisodeByIdentifier(identifierId: string) {
+    return episode
+      .withAllRecursive(1)
+      .where('patientServiceIdentifier_id', identifierId)
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'INICIO');
+      })
       .orderBy('episodeDate', 'desc')
       .first();
   },

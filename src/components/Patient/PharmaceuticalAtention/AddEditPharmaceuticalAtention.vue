@@ -306,13 +306,26 @@ onMounted(() => {
   if (editMode.value) {
     patientVisit.value = editPatientVisit.value;
     visitDate.value = getDDMMYYYFromJSDate(editPatientVisit.value.visitDate);
-    vitalSignsScreening.value = editPatientVisit.value.vitalSignsScreenings[0];
-    tBScreening.value = editPatientVisit.value.tbScreenings[0];
+    editPatientVisit.value.vitalSignsScreenings.length > 0
+      ? (vitalSignsScreening.value =
+          editPatientVisit.value.vitalSignsScreenings[0])
+      : (vitalSignsScreening.value = new VitalSignsScreening());
+    editPatientVisit.value.tbScreenings.length > 0
+      ? (tBScreening.value = editPatientVisit.value.tbScreenings[0])
+      : (tBScreening.value = new TBScreening());
     pregnancyScreening.value = !isMale(patient.value)
-      ? editPatientVisit.value.pregnancyScreenings[0]
+      ? editPatientVisit.value.pregnancyScreenings.length > 0
+        ? editPatientVisit.value.pregnancyScreenings[0]
+        : new PregnancyScreening()
       : [];
-    adherenceScreening.value = editPatientVisit.value.adherenceScreenings[0];
-    rAMScreening.value = editPatientVisit.value.ramScreenings[0];
+    adherenceScreening.value =
+      editPatientVisit.value.adherenceScreenings.length > 0
+        ? editPatientVisit.value.adherenceScreenings[0]
+        : new AdherenceScreening();
+    rAMScreening.value =
+      editPatientVisit.value.ramScreenings.length > 0
+        ? editPatientVisit.value.ramScreenings[0]
+        : new RAMScreening();
     vitalSignsScreening.value.visit = null;
     tBScreening.value.visit = null;
     pregnancyScreening.value.visit = null;
