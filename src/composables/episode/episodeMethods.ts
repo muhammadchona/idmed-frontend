@@ -61,10 +61,9 @@ export function useEpisode() {
   }
 
   function lastVisit(episode: Episode) {
-    let lastVisit = null;
-    console.log(episode);
+    let lastVisit = '';
     episode.patientVisitDetails.forEach((visit: any) => {
-      if (lastVisit === null) {
+      if (lastVisit === null || lastVisit === '') {
         lastVisit = visit;
       } else if (
         visit.patientVisit.visitDate > lastVisit.patientVisit.visitDate

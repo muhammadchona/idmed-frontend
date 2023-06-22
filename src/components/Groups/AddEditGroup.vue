@@ -34,22 +34,46 @@
                 option-label="code"
                 label="Serviço de Saúde *"
               />
-              <TextField
-                label="Numero do grupo *"
+              <q-input
+                outlined
+                ref="curGroupCode"
                 v-model="curGroup.code"
+                :value="curGroup.code"
                 :disable="isMemberEditionStep"
-                class="col q-ml-md"
+                type="text"
+                lazy-rules
+                label="Numero do grupo *"
                 dense
-                :rules="[]"
-              />
-              <TextField
-                label="Nome *"
+                class="col q-ml-md"
+              >
+                <template
+                  v-slot:append
+                  v-if="
+                  curGroup.code !== null && curGroup.code !== undefined && curGroup.code !== ''
+       "
+                >
+                </template>
+              </q-input>
+              <q-input
+                outlined
+                ref="curGroupName"
                 v-model="curGroup.name"
+                :value="curGroup.name"
                 :disable="isMemberEditionStep"
+                type="text"
+                lazy-rules
+                label="Nome *"
                 dense
-                :rules="[]"
                 class="col q-ml-md"
-              />
+              >
+                <template
+                  v-slot:append
+                  v-if="
+           curGroup.name !== null && curGroup.name !== undefined && curGroup.name !== ''
+       "
+                >
+                </template>
+              </q-input>
             </div>
             <div class="row q-mt-md">
               <q-select
@@ -280,7 +304,6 @@
             </div>
           </div>
         </q-card-section>
-        <q-scroll-observer @scroll="scrollHandler" />
       </q-scroll-area>
       <q-card-actions
         align="right"
@@ -295,6 +318,7 @@
           type="submit"
           label="Submeter"
           color="primary"
+          :loading="submitting"
         />
       </q-card-actions>
     </form>
@@ -329,6 +353,7 @@ import episodeService from 'src/services/api/episode/episodeService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import groupService from 'src/services/api/group/groupService';
 import {  usePatient } from 'src/composables/patient/patientMethods';
+import { v4 as uuidv4 } from 'uuid';
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -350,10 +375,10 @@ const selected = ref([]);
 const username = localStorage.getItem('user');
 const searchResults = reactive(ref([]));
 const clinic = inject('clinic');
-let curGroup = reactive(ref(new Group({ members: [] })));
+const curGroup = reactive(ref(new Group({  id: uuidv4(), members: [] })));
 const searchParam = reactive(ref(''));
 const step = inject('step');
-
+console.log(clinic.value)
 const clinicServices = computed(() => clinicalServiceService.getAllClinicalServices())
 
 const groupTypes = computed(() => groupTypeService.getAllFromStorage())
@@ -366,6 +391,7 @@ console.log('11111' + curGroup.value.id)
 // const isEditStep = false
  const isMemberEditionStep = computed(() => step === 'addMember')
 console.log('11111' + step.value)
+const submitting = ref(false);
 
 console.log('11111' + isCreateStep.value)
 console.log('11111' + isEditStep.value)
@@ -403,16 +429,16 @@ const getGroupForEdit = () => {
 
 const search = () => {
         showloading();
-      if (!isMobile) { // Depois mudar para mobile
+      if (isMobile.value) { // Depois mudar para mobile
         const patients = patientService.getPatientByClinicId(clinic.value.id)
         searchResults.value = patients.filter((patient) => {
           return stringContains(patient.firstNames, searchParam) || stringContains(patient.middleNames, searchParam) || stringContains(patient.lastNames, searchParam)
         })
       } else {
         if (searchParam.value.length > 0) {
-         // patientService.delete((patient) => {
-         // return notMember(patient)
-       // })
+          patientService.deletePatientStorage((patient) => {
+          return notMember(patient)
+        })
         patientService.apisearchByParam(searchParam.value, clinic.value.id).then(resp => {
             //  if (resp.data.length >= 0) {
                 const patients = patientService.getPatientByClinicId(clinic.value.id)
@@ -456,7 +482,7 @@ const  stringContains = (stringToCheck, stringText) => {
     }
  
 const  loadMembersData = () => {
-      curGroup.members.forEach((member) => {
+      curGroup.value.members.forEach((member) => {
         member.patient.identifiers.forEach((identifier) => {
           identifier.episodes.forEach((episode) => {
             patientVisitDetailsService.apiGetAllByEpisodeId(episode.id, 0, 500)
@@ -466,14 +492,14 @@ const  loadMembersData = () => {
     }
 
 const removePatient = (member) => {
-  const members = curGroup.members.filter((mb) => {
+  const members = curGroup.value.members.filter((mb) => {
                         return mb.patient.id !== member.patient.id
                       })
-      curGroup.members = members
+      curGroup.value.members = members
 }
 
 const notMember = (patient) => {
-      const exists = curGroup.members.some((mb) => {
+      const exists = curGroup.value.members.some((mb) => {
                         return mb.patient.id === patient.id
                       })
       return !exists
@@ -481,10 +507,12 @@ const notMember = (patient) => {
 
 const initNewMember = (patient) => {
       const member = new GroupMember({
+        id: uuidv4(),
         startDate: getJSDateFromDDMMYYY(startDate.value),
         patient: patient,
         clinic: clinic
       })
+      console.log(member)
       return member
     }
 const  getJSDateFromDDMMYYY = (dateString) => {
@@ -502,7 +530,7 @@ const addPatient = (patient) => {
           'O paciente selecionado ja se encontra associado a este grupo [' + curGroup.service.code + '].'
            )
        } else {
-         if (!isMobile) { // Depois mudar o !
+         if (isMobile.value) {
           // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)
           let lastEpisode = {}
           patient.identifiers.forEach((identifier) => {
@@ -550,6 +578,7 @@ const submitForm = () => {
 }
 
 const doSave = async () => {
+  submitting.value = true;
        showloading()
       setTimeout(() => {
         closeLoading()
@@ -557,21 +586,30 @@ const doSave = async () => {
       if (isCreateStep.value) {
         curGroup.value.service.attributes = []
         curGroup.value.startDate = getJSDateFromDDMMYYY(startDate.value)
-        curGroup.value.clinic = clinic.value
+       // curGroup.value.clinic = clinic.value
+        // curGroup.value.clinic = {}
+       // curGroup.value.clinic.id = clinic.value.id
       }
 
    //   curGroup = new Group(JSON.parse(JSON.stringify(curGroup.value,circularReferenceReplacer())))
-      curGroup = new Group(JSON.parse(JSON.stringify(curGroup.value)))
-        curGroup.members.forEach((member) => {
-          member.startDate = curGroup.startDate
+   console.log(curGroup.value)
+      curGroup.value = new Group(JSON.parse(JSON.stringify(curGroup.value)))
+      curGroup.value.clinic = {}
+        curGroup.value.clinic.id = clinic.value.id
+        curGroup.value.members.forEach((member) => {
+        //  member.startDate = curGroup.startDate
           member.group_id = curGroup.id
-          member.patient_id = member.patient.id
-          member.clinic_id = curGroup.clinic.id
-          member.clinic =  curGroup.clinic
+        //  const memberPatientId =  member.patient.id
+      //    member.patient =  {}
+        //  member.patient.id = memberPatientId
+        //  member.clinic_id = curGroup.clinic.id
+        member.patient.clinic = clinic.value
+          member.clinic =  {}
+          member.clinic.id = clinic.value.id
           member.syncStatus = 'R'
           member.group = null
         })
-      if (!isMobile) {
+      if (isMobile.value) {
         if (isCreateStep.value) {
           curGroup.syncStatus = 'R'
           curGroup.clinic_id = clinic.id
@@ -598,20 +636,36 @@ const doSave = async () => {
       } else {
         if (isCreateStep.value) {
           console.log(curGroup)
-          groupService.apiSave(curGroup).then(resp => {
-         // groupService.apiFetchById(resp.data.id).then(resp => {
+          groupService.apiSave(curGroup.value).then(resp => {
+            submitting.value = false;
+  // groupService.apiFetchById(resp.data.id).then(resp => {
             loadMembersData()
           //  curGroup = groupService.getGroupById(resp.data.id)
             alertSucess(
               'Operação efectuada com sucesso.'
               )
          // emit('close')
-          curGroup.clinic_id = curGroup.clinic.id
-          curGroup.clinical_service_id = curGroup.service.id
-          curGroup.groupType_id = curGroup.groupType.id
-         SessionStorage.set('selectedGroup', curGroup.id)
+         // curGroup.value.clinic_id = curGroup.clinic.id
+         // curGroup.clinical_service_id = curGroup.service.id
+         // curGroup.groupType_id = curGroup.groupType.id
+         SessionStorage.set('selectedGroupId', curGroup.value.id)
         router.push('/group/panel')
-         })
+         }).catch((error) => {
+          submitting.value = false;
+          const listErrors = [];
+          console.log(error);
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+          }
+          alertError('error', listErrors);
+        });
   }
         //  })
          else {
@@ -632,7 +686,16 @@ const doSave = async () => {
     }
 } 
 
+const init = () => {
+  curGroup.value = new Group( { 
+    id: uuidv4()
+  })
+  console.log(curGroup.value.id)
+}
+
 onMounted(() => {
+     //  init()
+     console.log(curGroup.value.id)
       getGroupForEdit()
 })
 
