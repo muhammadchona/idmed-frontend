@@ -67,10 +67,6 @@ const headerClass = ref('');
 const expanded = ref(true);
 
 
-
-const emit = defineEmits([
-  'expand'
-]);
 // Injection
 // doneVisible;
 //props
@@ -87,7 +83,7 @@ const props = defineProps({
   doneVisible: Boolean,
 });
 
-const $emits = defineEmits(['done','initEdition'])
+const $emits = defineEmits(['done','initEdition' , 'expand'])
 
 // Methods
 const determineHeaderClass = () => {
@@ -100,7 +96,7 @@ const determineHeaderClass = () => {
 
 const expand = () => {
   expanded.value = !expanded.value;
-  emit('expand' , expanded.value)
+  $emits('expand' , expanded.value)
 };
 
 const closeSection = () => {
