@@ -5,9 +5,9 @@
     :class="[bgColor, headerClass]"
     class="text-white q-pa-none"
   >
-    <span class="text-bold text-subtitle1 vertical-middle q-pl-md"
-      ><slot> {{ title }}</slot></span
-    >
+    <span class="text-bold text-subtitle1 vertical-middle q-pl-md">
+      <slot> {{ title }}</slot>
+    </span>
     <template v-slot:action>
       <q-btn
         dense
@@ -64,21 +64,28 @@
 import { inject, ref } from 'vue';
 // Declaration
 const headerClass = ref('');
+const expanded = ref(true);
+
+
+
+const emit = defineEmits([
+  'expand'
+]);
 // Injection
 // doneVisible;
 //props
-const props = defineProps([
-  'editVisible',
-  'closeVisible',
-  'expandVisible',
-  'addVisible',
-  'mainContainer',
-  'title',
-  'bgColor',
-  'addButtonActions',
-  'expanded',
-  'doneVisible',
-]);
+const props = defineProps({
+  editVisible: Boolean,
+  closeVisible: Boolean,
+  expandVisible: Boolean,
+  addVisible: Boolean,
+  mainContainer: Boolean,
+  title: String,
+  bgColor: String,
+  addButtonActions: Function,
+//  expanded: Boolean,
+  doneVisible: Boolean,
+});
 
 const $emits = defineEmits(['done','initEdition'])
 
@@ -90,9 +97,12 @@ const determineHeaderClass = () => {
     headerClass.value = '';
   }
 };
-// const expand = () => {
-//   props.expanded.value = !props.expanded.value;
-// };
+
+const expand = () => {
+  expanded.value = !expanded.value;
+  emit('expand' , expanded.value)
+};
+
 const closeSection = () => {
   $emits('closeSection');
 };

@@ -3,6 +3,9 @@ import api from '../apiService/apiService';
 import Prescription from 'src/stores/models/prescription/Prescription';
 
 const prescription = useRepo(Prescription);
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+
+const { alertSucess, alertError, alertInfo } = useSwal();
 
 export default {
   // Axios API call
@@ -32,8 +35,27 @@ export default {
     prescription.destroy(id);
   },
 
-  async apiSave(prescription: any) {
-    return await api().post('/prescription', prescription);
+  async apiSave(prescriptionObject: any) {
+    return await api()
+      .post('/prescription', prescriptionObject)
+      .then((resp) => {
+        prescription.save(resp.data);
+        return resp.data;
+      })
+      .catch((error) => {
+        const listErrors = [];
+        if (error.request.response != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+        }
+        alertError(listErrors.value);
+      });
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
@@ -58,6 +80,7 @@ export default {
       .get(`/prescription/${id}`)
       .then((resp) => {
         prescription.save(resp.data);
+        console.log(resp.data);
         return resp;
       });
   },
@@ -100,8 +123,9 @@ export default {
       .with('duration')
       .with('prescriptionDetails')
       .whereId(Id)
+      .first();
   },
-  
+
   getLastPrescriptionFromPatientVisit(patientVisitId: string) {
     return prescription
       .withAllRecursive(2)

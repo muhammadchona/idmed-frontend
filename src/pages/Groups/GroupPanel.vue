@@ -1,17 +1,17 @@
 <template>
-  <div>
+  <div ref="groupMembersRefa">
     <PanelTitleBar
-      v-if="mobile"
+      v-if="isMobile"
       :name="group.name"
       :groupType="group.groupType.description"
       @showGroupDetails="showGroupDetails"
     >
       Detalhe do Grupo
     </PanelTitleBar>
-    <TitleBar v-else>Detalhe do Grupo</TitleBar>
+    <TitleBar v-else />
     <div
       class="q-pa-md"
-      v-if="mobile"
+      v-if="isMobile"
     >
       <div class="q-pa-md q-gutter-sm">
         <q-drawer
@@ -37,7 +37,6 @@
           <groupMembers
             v-if="dataFetchDone"
             @addMember="addMember"
-            @newPrescription="newPrescription"
             @desintagrateGroup="desintagrateGroup"
           />
 
@@ -66,12 +65,10 @@
                 v-if="dataFetchDone"
                 @addMember="addMember"
                 @getGroupMembers="getGroupMembers"
-                @newPrescription="newPrescription"
                 @desintagrateGroup="desintagrateGroup"
               />
               <groupPacks
-                :packHeaders="group.packHeaders"
-                @newPacking="newPacking"
+                v-if="dataFetchDone"
                 @getGroupMembers="getGroupMembers"
               />
             </span>
@@ -89,30 +86,7 @@
         @close="showRegisterRegister = false "
       />
     </q-dialog>
-    <q-dialog
-      persistent
-      v-model="showNewPackingForm"
-    >
-      <groupPack
-        :group="group"
-        @getGroupMembers="getGroupMembers"
-        :defaultPickUpDate="defaultPickUpDate"
-        @close="showNewPackingForm = false"
-      />
-    </q-dialog>
-    <q-dialog
-      persistent
-      v-model="showAddPrescription"
-    >
-      <addEditPrescription
-        :selectedVisitDetails="patientVisitDetails"
-        :service="group.service"
-        :member="selectedMember"
-        @getGroupMembers="getGroupMembers"
-        step="create"
-        @close="showAddPrescription = false"
-      />
-    </q-dialog>
+
   </div>
 </template>
 
@@ -120,20 +94,7 @@
 import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
 import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
 import Group from '../../stores/models/group/Group'
-import Patient from '../../stores/models/patient/Patient'
-import Episode from '../../stores/models/episode/Episode'
-import DispenseMode from '../../stores/models/dispenseMode/DispenseMode'
-import PatientVisitDetails from '../../stores/models/patientVisitDetails/PatientVisitDetails'
-import PatientVisit from '../../stores/models/patientVisit/PatientVisit'
-import Clinic from '../../stores/models/clinic/Clinic'
-import ClinicalService from '../../stores/models/ClinicalService/ClinicalService'
-import PrescriptionDetail from '../../stores/models/prescriptionDetails/PrescriptionDetail'
-import IdentifierType from '../../stores/models/identifierType/IdentifierType'
-import PatientServiceIdentifier from '../../stores/models/patientServiceIdentifier/PatientServiceIdentifier'
-import Prescription from '../../stores/models/prescription/Prescription'
-import Pack from '../../stores/models/packaging/Pack'
 import GroupMemberPrescription from '../../stores/models/group/GroupMemberPrescription'
-// import mixinplatform from 'src/mixins/mixin-system-platform'
 import GroupPackHeader from '../../stores/models/group/GroupPackHeader';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 import patientService from 'src/services/api/patientService/patientService';
@@ -151,7 +112,6 @@ import groupInfo from 'components/Groups/Panel/GroupInfo.vue';
  import groupRegister from 'components/Groups/AddEditGroup.vue';
 import groupMembers from 'components/Groups/Panel/GroupMembers.vue';
  import groupPacks from 'components/Groups/Panel/GroupDispenses.vue';
-// import addEditPrescription from 'components/Groups/Panel/AddEditPrescription.vue';
 // import Dialog from 'components/Groups/Panel/Dialog.vue';
 import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService';
 import PanelTitleBar from 'components/Groups/Panel/PanelTitleBar.vue';
@@ -161,14 +121,19 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRouter } from 'vue-router';
 import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import { useGroupMember } from 'src/composables/group/groupMemberMethods';
-
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+import clinicService from 'src/services/api/clinicService/clinicService';
+import {  useGroup } from 'src/composables/group/groupMethods';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
+import { usePrescription } from 'src/composables/prescription/prescriptionMethods'
+import {  usePatient } from 'src/composables/patient/patientMethods';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 
 const defaultPickUpDate = ref([]);
-const selectedMember = ref([]);
+const selectedMember = ref(null);
 const membersInfoLoaded = ref(false);
 const patientVisitDetails = ref([]);
 const showAddPrescription = ref(false);
@@ -176,7 +141,14 @@ const showNewPackingForm = ref(false);
 const groupAddEditStep = ref(false);
 const showRegisterRegister = ref(false);
 const showGroupInfo = ref(false);
+const patient = ref(null);
+const allMembers = ref([]);
+const fecthedMemberData = ref(0);
+const members = reactive(ref([]));
+// const isNewPrescription = ref(false);
 
+
+const title = ref('Procurar ou adicionar Grupo');
 const contentStyle = {
         backgroundColor: 'rgba(0,0,0,0.02)',
         color: '#555'
@@ -245,7 +217,7 @@ const loadMemberInfo =  () => {
         group.value.members.forEach((member) => {
           groupMemberPrescriptionService.apiFetchByMemberId(member.id).then(respd => {
             if (respd.status === 200) {
-              prescriptionService.apiFetchById(respd.response.data.prescription.id)
+              prescriptionService.apiFetchById(respd.data.prescription.id)
             }
           })
           patientService.apiFetchById(member.patient_id).then(res0 => {
@@ -279,34 +251,13 @@ const loadMemberInfo =  () => {
         })
       }
 }
+const groupMemberRef = ref(null);
 
 onMounted(() => {
+  // console.log(groupMemberRef.value);
   loadMemberInfo()
   console.log('Parent Component: onMounted');
 });
-
-  const   newPrescription = (member, identifier) => {
-      selectedMember.value = member
-      const patient = member.patient
-   //   patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDetails[0] = prescriptionDetailsService.getPrescriptionDetailByPrescriptionID(patient.identifiers[0].episodes[0].lastVisit().prescription.id)
-      const pvd = new PatientVisitDetails({
-                          patientVisit: new PatientVisit({
-                                          visitDate: new Date(),
-                                          patient: patientService.getPatientByID(patient.id),
-                                          clinic: clinic
-                                        }),
-                          clinic: clinic,
-                          createPackLater: true,
-                        //  prescription: patient.identifiers[0].episodes[0].lastVisit().prescription,
-                          prescription: new Prescription(),
-                          episode: episodeService.getEpisodeById(identifier.episodes[0].id)      
-                        })
-      patientVisitDetails.value = pvd
-      group.value.service = clinicalServiceService.getClinicalServicePersonalizedById(group.value.service.id)
-      SessionStorage.set('selectedPatient', patient)
-      SessionStorage.set('selectedMember', member)
-      showAddPrescription.value = true
-    }
 
 const addMember = () => {
    groupAddEditStep.value = 'addMember'
@@ -319,31 +270,42 @@ const editGroup = () => {
 }
 
 const newPacking = (lasHeader) => {
-  if (lasHeader !== null && lasHeader !== undefined) defaultPickUpDate.value = lasHeader.nextPickUpDate
-    showNewPackingForm.value = true
+ // if (lasHeader !== null && lasHeader !== undefined) defaultPickUpDate.value = lasHeader.nextPickUpDate
+ // console.log(dataFetchDone.value)  
+ // showNewPackingForm.value = true
 }
-
+/*
 const getGroupMembers = (isPrescription) => {
  // this.$refs.groupMembers.getGroupMembers(isPrescription)
 }
+*/
 
 
+
+const getGroupMembersss = (isPrescription) => {
+  console.log('teste')
+ // console.log($refs.groupMembersRef.value)
+// groupMemberRef.value.getGroupMembers(false)
+}
 
 
 const dataFetchDone = computed(() => { 
-  console.log(membersInfoLoaded.value)
-  console.log(dataFetchDone.value)
   return membersInfoLoaded.value })
 
 
+
 const group = computed(() => {
-   return groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
+   return groupService.getGroupWithsById(SessionStorage.getItem('selectedGroupId'))
 })
+
+//const getGroupMembers = ref(null);
+
+//provide('getGroupMembers', getGroupMembers);
 
 
 const  desintagrateGroup = () => {
-  console.log(group)
-      group.value.members = group.members.filter((member) => { return useGroupMember().isActive(member) })
+  console.log(group.value)
+      group.value.members = group.value.members.filter((member) => { return useGroupMember().isActive(member) })
           group.value.members.forEach((member) => {
             if (member.syncStatus !== 'R') member.syncStatus = 'U'
             member.endDate = new Date()
@@ -352,11 +314,10 @@ const  desintagrateGroup = () => {
             member.clinic = clinic.value
         })
      //  group.service.identifierType = IdentifierType.find(group.service.identifier_type_id)
-       group.endDate = new Date()
-       const group = Object.assign({}, group)
-       group.packHeaders = []
+       group.value.endDate = new Date()
+       group.value.packHeaders = []
        if (isMobile.value) {
-        if (group.syncStatus !== 'R') group.syncStatus = 'U'
+        if (group.value.syncStatus !== 'R') group.value.syncStatus = 'U'
         const groupUpdate = new Group(JSON.parse(JSON.stringify((group))))
         Group.localDbUpdate(groupUpdate).then(group => {
           group.members.forEach((member) => {
@@ -368,26 +329,118 @@ const  desintagrateGroup = () => {
         Group.update({ where: groupUpdate.id, data: groupUpdate })
         displayAlert('info', 'Operação efectuada com sucesso.')
        } else {
-         groupService.apiUpdate(group).then(resp => {
-          groupService.apiFetchById(group.id)
-          displayAlert('info', 'Operação efectuada com sucesso.')
+         groupService.apiUpdate(group.value).then(resp => {
+          groupService.apiFetchById(group.value.id)
+          alertSucess('Operação efectuada com sucesso.')
         })
        }
     }
    
+
+    const getGroupMemberss = ref(null)
+    
 watch(
   () => membersInfoLoaded.value,
   (oldp, newp) => {
     if (oldp !== newp) {
+   //   console.log(groupMembers.getGroupMembers())
       fecthMembersData()
-      console.log(dataFetchDone.value)
       closeLoading();
     }
   }
 );    
 
+
+const getGroupMembers = (isPrescription) => {
+        const group = groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
+        group.members.forEach((member) => {
+            member.groupMemberPrescription = groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(member.id)
+
+            member.patient = patientService.getPatienWithstByID(member.patient_id)
+
+            member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
+              return identifier.service.id === group.service.id
+            })
+            if (member.groupMemberPrescription !== null && member.groupMemberPrescription !== undefined && isPrescription) member.groupMemberPrescription.prescription.leftDuration = calculateRemainingTime(member.groupMemberPrescription)
+         //   member.patient.identifiers[0].episodes = [] 
+            member.patient.identifiers[0].episodes[0] = lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
+            if (member.patient.identifiers[0].episodes.length > 0 && member.patient.identifiers[0].episodes[0] !== null) {
+             fecthMemberPrescriptionData(useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]), member)
+            }
+        })
+        allMembers.value = group.members
+        if (!useGroup().isDesintegrated(group)) { 
+          members.value = group.members.filter((member) => { 
+            return useGroupMember().isActive(member) })
+            console.log(members.value)
+          //  group.members = members.value
+        } else {
+          members.value = group.members
+        }
+        console.log(group.members)
+    } 
+
+    const  lastStartEpisodeWithPrescription = (identifierId) => {
+      let episode = null 
+      const episodes = episodeService.getStartEpisodeByIdentifierId(identifierId)
+      Object.keys(episodes).forEach(function (k) {
+        const id = episodes[k]
+        if (episode === null && useEpisode().hasVisits(id)) {
+          episode = id
+        }
+      })
+      return episode
+    }
+    
+
+const  calculateRemainingTime = (memberPrescription) => {
+      if (memberPrescription !== null && memberPrescription !== undefined) {
+     //   console.log(memberPrescription.prescription.remainigDuration())
+        return usePrescription().remainigDuration(memberPrescription.prescription)
+      } else {
+        return 0
+      }
+    }
+
+
+ const  fecthMemberPrescriptionData = (visitDetails, member) => {
+      if (!isMobile.value) {
+        if (visitDetails.pack !== null) {
+          fecthedMemberData.value = fecthedMemberData.value + 1
+        }
+     } else {
+        if (visitDetails.pack !== null) packService.apiFetchById(visitDetails.pack.id)
+        if (member.groupMemberPrescription !== null) {
+          Prescription.apiFetchById(member.groupMemberPrescription.id).then(resp => {
+          fecthedMemberData.value = this.fecthedMemberData + 1
+        })
+        } else {
+          prescriptionService.apiFetchById(visitDetails.prescription.id).then(resp => {
+          fecthedMemberData.value = fecthedMemberData.value + 1
+        })
+        }
+      }
+    }   
+const clinic = computed(() => {
+  return clinicService.currClinic();
+})
+
+provide('title', title);
 provide('step', groupAddEditStep);
 provide('group', group);
+provide('patient', patient);
+provide('clinic', clinic);
+// provide('isNewPrescription', true);
+provide('selectedMember', selectedMember);
+provide('showAddPrescription', showAddPrescription);
+provide('showNewPackingForm', showNewPackingForm)
+provide('desintagrateGroup', desintagrateGroup)
+provide('dataFetchDone', dataFetchDone)
+ provide('getGroupMembers', getGroupMembers)
+ provide('allMembers', allMembers)
+ provide('members', members)
+ 
+
 </script>
 
 <style lang="scss">

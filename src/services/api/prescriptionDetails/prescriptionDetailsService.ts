@@ -56,15 +56,24 @@ export default {
     return prescriptionDetails.all();
   },
 
-
   getPrescriptionDetailByPrescriptionID(prescriptionID: string) {
+    return prescriptionDetails.withAll().where((prescriptionDetails) => {
+      return prescriptionDetails.prescription_id === prescriptionID;
+    });
+  },
+
+  getPrescriptionDetailByID(Id: string) {
     return prescriptionDetails
       .withAll()
-      .where((prescriptionDetails) => {
-        return prescriptionDetails.prescription_id === prescriptionID;
+      .with('therapeuticRegimen', (query) => {
+        query.withAllRecursive(2);
       })
+      .where((prescriptionDetails) => {
+        return prescriptionDetails.id === Id;
+      })
+      .first();
   },
-  
+
   getLastByPrescriprionId(prescriptionId: string) {
     return prescriptionDetails
       .withAllRecursive(1)

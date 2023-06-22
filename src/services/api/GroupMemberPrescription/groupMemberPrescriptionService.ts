@@ -1,7 +1,9 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
+const { alertSucess, alertError, alertInfo } = useSwal();
 const groupMemberPrescription = useRepo(GroupMemberPrescription);
 
 export default {
@@ -46,14 +48,45 @@ export default {
   },
 
   async apiFetchByMemberId(id: string) {
-    return await api().get(`/groupMemberPrescription/member/${id}`);
+    return await api()
+      .get(`/groupMemberPrescription/member/${id}`)
+      .then((resp) => {
+        if (resp.data !== '') {
+          groupMemberPrescription.save(resp.data);
+        }
+        return resp;
+      });
   },
 
-  async apiSave(groupMemberPrescription: any) {
-    return await api().post(
+  async apiSave(groupMemberPrescriptionObject: any) {
+    /*
+    return await api()
+      .post('/groupMemberPrescription', groupMemberPrescriptionObject)
+      .then((resp) => {
+        groupMemberPrescription.save(resp.data);
+        return resp.data;
+      })
+      .catch((error) => {
+        const listErrors = [];
+        if (error.request.response != null) {
+          const arrayErrors = JSON.parse(error.request.response);
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
+          }
+        }
+        alertError(listErrors.value);
+      });
+      */
+    const resp = await api().post(
       '/groupMemberPrescription',
-      groupMemberPrescription
+      groupMemberPrescriptionObject
     );
+    groupMemberPrescription.save(resp.data);
+    return resp;
   },
 
   async apiUpdate(groupMemberPrescription: any) {
@@ -74,8 +107,10 @@ export default {
   getGroupMemberPrescriptionByMemberId(memberId: string) {
     return groupMemberPrescription
       .query()
-      .with('prescription.*')
+      .with('prescription', (query) => {
+        query.withAllRecursive(2);
+      })
       .where('member_id', memberId)
       .first();
-  }
+  },
 };

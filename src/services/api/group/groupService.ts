@@ -53,7 +53,8 @@ export default {
   },
 
   async apiSave(groupInfo: any) {
-    return await api()
+    /*
+    await api()
       .post('/groupInfo', groupInfo)
       .then((resp) => {
         group.save(resp.data);
@@ -71,8 +72,12 @@ export default {
             });
           }
         }
-        alertError(listErrors.value);
+        return listErrors;
       });
+      */
+    const resp = await api().post('/groupInfo', groupInfo);
+    group.save(resp.data);
+    return resp;
   },
 
   async apiUpdate(groupInfo: any) {
@@ -99,9 +104,17 @@ export default {
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
-    return await api().get(
-      '/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
-    );
+    return await api()
+      .get(
+        '/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+      )
+      .then((resp) => {
+        group.save(resp.data);
+        offset = offset + 100;
+        if (resp.data.length > 0) {
+          this.apiGetAllByClinicId(clinicId, offset, max);
+        }
+      });
   },
 
   async apiValidateBeforeAdd(patientId: string, code: string) {
@@ -112,7 +125,7 @@ export default {
   },
 
   getGroupById(groupId: string) {
-    return group.query().withAllRecursive(3).where('id', groupId).first();
+    return group.withAllRecursive(3).where('id', groupId).first();
   },
 
   // Local Storage Pinia
@@ -125,7 +138,6 @@ export default {
 
   getGroupWithsById(groupId: string) {
     return group
-      .query()
       .with('members', (query) => {
         query.withAllRecursive(1);
       })
@@ -134,6 +146,9 @@ export default {
       })
       .with('groupType')
       .with('clinic', (query) => {
+        query.withAllRecursive(1);
+      })
+      .with('packHeaders', (query) => {
         query.withAllRecursive(1);
       })
       .where('id', groupId)

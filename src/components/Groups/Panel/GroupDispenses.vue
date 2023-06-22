@@ -5,8 +5,7 @@
       :mainContainer="true"
       :expandVisible="true"
       @expandLess="expandLess"
-      @showAdd="$emit('newPacking', headers[0])"
-      :addButtonActions="addMember"
+      :addButtonActions="newPacking"
       bgColor="bg-primary"
     >Dispensas Efectuadas
     </ListHeader>
@@ -44,13 +43,13 @@
               key="lastDispenseDate"
               :props="props"
             >
-              {{this.getDDMMYYYFromJSDate(props.row.packDate)}}
+              {{getDDMMYYYFromJSDate(props.row.packDate)}}
             </q-td>
             <q-td
               key="nextPickupDate"
               :props="props"
             >
-              {{this.getDDMMYYYFromJSDate(props.row.nextPickUpDate)}}
+              {{getDDMMYYYFromJSDate(props.row.nextPickUpDate)}}
             </q-td>
             <q-td
               key="duration"
@@ -62,7 +61,7 @@
               key="pickUpDays"
               :props="props"
             >
-              Passam {{this.getDateDiff(new Date(), props.row.packDate)}} dias após o último levantamento
+              Passam {{getDateDiff(new Date(), props.row.packDate)}} dias após o último levantamento
             </q-td>
             <q-td
               key="options"
@@ -86,6 +85,17 @@
       </q-table>
     </div>
   </div>
+  <q-dialog
+    persistent
+    v-model="showNewPackingForm"
+  >
+    <groupPack
+      v-if="dataFetchDone"
+      @getGroupMembers="getGroupMembers"
+      :defaultPickUpDate="defaultPickUpDate"
+      @close="showNewPackingForm = false"
+    />
+  </q-dialog>
 </template>
 
 <script setup>
@@ -115,7 +125,9 @@ import { useGroupMember } from 'src/composables/group/groupMemberMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods'
 import {  usePatient } from 'src/composables/patient/patientMethods';
-import ListHeader from 'src/components/Shared/ListHeader.vue'
+import groupPack from 'src/components/Groups/GroupDispense.vue';
+import ListHeader from 'src/components/Shared/ListHeader.vue';
+import { useLoading } from 'src/composables/shared/loading/loading';
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'lastDispenseDate', align: 'left', label: 'Data da Última Dispensa', sortable: false },
@@ -129,6 +141,10 @@ const columns = [
 const { alertSucess, alertError, alertInfo } = useSwal();
 const showDispensesData = ref(true);
 const grupPacks = ref([]);
+const showNewPackingForm = inject('showNewPackingForm');
+const dataFetchDone = inject('dataFetchDone');
+const { closeLoading, showloading } = useLoading();
+const getGroupMembers = inject('getGroupMembers')
 
 const removePackHeader = (groupPackHeader) => {
   groupPackHeaderService.apiDelete(groupPackHeader).then(resp => {
@@ -151,6 +167,20 @@ const removePackHeader = (groupPackHeader) => {
      })
 }
 
+
+const emit = defineEmits([
+ // 'getGroupMembers'
+]);
+
+
+
+
+const newPacking = () => {
+  // emit('newPacking', headers.value[0])
+  showloading();
+  if (headers.value[0] !== null && headers.value[0] !== undefined) defaultPickUpDate.value = headers.value[0].nextPickUpDate
+  showNewPackingForm.value = true
+}
 
 const getDateDiff = (date1, date2) => {
   return date.getDateDiff(date1, date2, 'days')

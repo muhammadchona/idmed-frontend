@@ -1,6 +1,6 @@
 <template>
   <div class="q-mt-lg">
-    <TitleBar>Procurar ou adicionar Grupo</TitleBar>
+    <TitleBar />
     <div class="q-mx-xl">
       <div class="row items-center q-my-md">
         <q-icon
@@ -10,23 +10,57 @@
         <span class="q-pl-sm text-subtitle2">Informação inicial</span>
       </div>
       <div class="row">
-        <TextField
-          @update:model-value="search"
-          label="Numero do grupo"
+        <q-input
+          outlined
+          ref="curGroupCode"
+          @update:model-value="search()"
           v-model="curGroup.code"
+          :value="curGroup.code"
+          type="text"
+          lazy-rules
+          label="Numero do grupo"
           style="witdth: 350px"
           dense
-          :rules="[]"
-        />
-        <TextField
-          @update:model-value="search"
-          label="Nome"
+        >
+          <template
+            v-slot:append
+            v-if="
+            curGroup.code !== null && curGroup.code !== undefined && curGroup.code !== ''
+          "
+          >
+            <q-icon
+              name="close"
+              @click="curGroup.code = ''"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-input>
+        <q-input
+          outlined
+          ref="curGroupName"
+          @update:model-value="search()"
           v-model="curGroup.name"
-          dense
-          :rules="[]"
+          :value="curGroup.name"
+          type="text"
+          lazy-rules
+          label="Nome do grupo"
           style="witdth: 450px"
           class="q-ml-md"
-        />
+          dense
+        >
+          <template
+            v-slot:append
+            v-if="
+            curGroup.name !== null && curGroup.name !== undefined && curGroup.name !== ''
+        "
+          >
+            <q-icon
+              name="close"
+              @click="curGroup.name = ''"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-input>
       </div>
       <div class="q-mt-lg q-mb-md">
         <div class="row items-center q-mb-md">
@@ -191,7 +225,7 @@ const { website, isDeskTop, isMobile } = useSystemUtils();
 
 
 //Declaration
-
+const title = ref('Procurar ou adicionar Grupo');
 const router = useRouter();
 const searchField = ref('');
 const filter = reactive(ref(''));
@@ -213,12 +247,19 @@ onMounted(() => {
   if (isMobile.value) {
   
   } else {
+    showloading();
     groupTypeService.apiGetAll();
     clinicalServiceService.get();
     getAllGroupsOfClinic();
+    searchResults.value = groupService.getAllGroups();
+    closeLoading();
    // curGroup = new Group()
   }
 });
+
+const getAllGroups = () => {
+  searchResults.value = groupService.getAllGroups();
+}
 
 const getAllGroupsOfClinic = () => {
   const offset = 0;
@@ -250,6 +291,8 @@ const stringContains = (stringToCheck, stringText) => {
 
 provide('clinic', clinic);
 provide('step', step);
+provide('title', title);
+// provide('refInput', curGroup.value.groupName);
 </script>
 
 <style></style>
