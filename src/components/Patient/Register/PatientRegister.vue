@@ -299,11 +299,13 @@ import patientVisitService from 'src/services/api/patientVisit/patientVisitServi
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRouter } from 'vue-router';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 // Declaration
 const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
 const { hasIdentifiers, getOldestIdentifier } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
+const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const router = useRouter();
 const dateOfBirth = ref('');
@@ -493,7 +495,7 @@ const submitForm = () => {
   }
 };
 const savePatient = async () => {
-  if (newPatient.value) {
+  if (newPatient.value && !openMrsPatient.value) {
     patientReg.value.identifiers = [];
   }
   if (
@@ -512,20 +514,18 @@ const savePatient = async () => {
     patientReg.value.bairro.district = patientReg.value.district;
   }
   if (openMrsPatient.value) {
+    patientReg.value.identifiers = patient.value.identifiers;
     const uuid = patientReg.value.hisUuid;
     patientService
-      .get(
-        '/patient/openmrsProgramSearch/' +
-          patientReg.value.his.id +
-          '/' +
-          uuid +
-          '/' +
-          localStorage.getItem('encodeBase64')
+      .apiopenmrsProgramSearch(
+        patientReg.value.his.id,
+        uuid,
+        localStorage.getItem('encodeBase64')
       )
       .then((response) => {
-        hideLoading();
-        if (response.response.data.results.length > 0) {
-          response.response.data.results.forEach((identifierOpenMrs) => {
+        closeLoading();
+        if (response.data.results.length > 0) {
+          response.data.results.forEach((identifierOpenMrs) => {
             if (identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO') {
               editPatientIdentifierFromOpenMRS(
                 patientReg.value,
@@ -535,7 +535,7 @@ const savePatient = async () => {
           });
           doSave();
         } else {
-          hideLoading();
+          closeLoading();
           alertInfo(
             'Não foi Encontrada a Data de Admissão para o serviço clinico , Será usada a data actual para efectuar a importação.'
           );
@@ -553,18 +553,18 @@ const doSave = async () => {
       patientService
         .post(patientReg.value)
         .then((resp) => {
-          if (
-            transferencePatientData !== undefined &&
-            transferencePatientData.length > 0
-          ) {
-            doPatientTranference(resp);
-          } else {
-            alertSucess('Dados do paciente gravados com sucesso.');
-            submitLoading.value = false;
-            showPatientRegister.value = false;
-            closePatient();
-            goToPatientPanel(resp.data);
-          }
+          // if (
+          //   transferencePatientData !== undefined &&
+          //   transferencePatientData.length > 0
+          // ) {
+          //   doPatientTranference(resp);
+          // } else {
+          alertSucess('Dados do paciente gravados com sucesso.');
+          submitLoading.value = false;
+          showPatientRegister.value = false;
+          closePatient();
+          goToPatientPanel(resp.data);
+          // }
         })
         .catch((error) => {
           let listErrors = [];
@@ -677,6 +677,8 @@ const doPatientTranference = (resp) => {
 const initPatient = () => {
   if (!newPatient.value) {
     patientReg.value = patient.value;
+    patientReg.value.clinic = currClinic.value;
+    patientReg.value.province = currClinic.value.province;
     dateOfBirth.value = moment(patientReg.value.dateOfBirth).format(
       'DD-MM-YYYY'
     );
@@ -685,7 +687,22 @@ const initPatient = () => {
       'years'
     );
   } else {
-    patientReg.value = new Patient();
+    if (
+      openMrsPatient.value !== undefined &&
+      openMrsPatient.value !== null &&
+      openMrsPatient.value
+    ) {
+      patientReg.value = patient.value;
+      dateOfBirth.value = moment(patientReg.value.dateOfBirth).format(
+        'DD-MM-YYYY'
+      );
+      ageCalculated.value = moment().diff(
+        moment(getDateFromHyphenDDMMYYYY(dateOfBirth.value), 'YYYY-MM-DD'),
+        'years'
+      );
+    } else {
+      patientReg.value = new Patient();
+    }
     patientReg.value.clinic = currClinic.value;
     patientReg.value.province = currClinic.value.province;
   }
@@ -697,7 +714,6 @@ const editPatientIdentifierFromOpenMRS = (patientReg, identifierOpenMrs) => {
       identifier.service.code === 'TARV' &&
       identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO'
     ) {
-      console.log(identifierOpenMrs);
       identifier.startDate = identifierOpenMrs.dateEnrolled;
     }
   });

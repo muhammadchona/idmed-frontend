@@ -51,15 +51,16 @@ export default {
 
   async apiSearch(patienParam: any) {
     patient.flush();
-    return await api()
-      .post('/patient/search', patienParam)
-      .then((resp) => {
-        patient.save(resp.data);
-        closeLoading();
-      })
-      .catch((error) => {
-        closeLoading();
-      });
+    try {
+      const resp = await api().post('/patient/search', patienParam);
+      patient.save(resp.data);
+      closeLoading();
+      return resp;
+    } catch (error) {
+      console.log(error);
+      closeLoading();
+      return null;
+    }
   },
 
   async apisearchByParam(searchParam: string, clinicId: string) {
@@ -73,6 +74,16 @@ export default {
       .catch((error) => {
         closeLoading();
       });
+  },
+
+  async apiopenmrsProgramSearch(
+    hisId: string,
+    nid: string,
+    encodeBase64: string
+  ) {
+    return await api().get(
+      '/patient/openmrsProgramSearch/' + hisId + '/' + nid + '/' + encodeBase64
+    );
   },
 
   async apiSearchPatientOnOpenMRS(

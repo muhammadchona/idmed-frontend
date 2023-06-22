@@ -99,10 +99,18 @@ export default {
       .with('doctor')
       .with('duration')
       .with('prescriptionDetails')
-      .whereId(Id)
+      .whereId(Id);
   },
-  
+
   getLastPrescriptionFromPatientVisit(patientVisitId: string) {
+    return prescription
+      .withAllRecursive(2)
+      .where('id', patientVisitId)
+      .orderBy('prescriptionDate', 'desc')
+      .first();
+  },
+
+  getLastPrescriptionFromPatientVisitDetails(prescriptionId: string) {
     return prescription
       .withAllRecursive(2)
       .where('id', prescriptionId)
