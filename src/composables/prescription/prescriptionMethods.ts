@@ -29,7 +29,7 @@ export function usePrescription() {
     const prescriptionDuration = Number(prescription.duration.weeks);
     let packagedWeeks = 0;
     prescription.patientVisitDetails.forEach((pvd: any) => {
-      if (pvd.pack !== null) {
+      if (pvd.pack !== null && pvd.pack !== undefined) {
         packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply);
       }
     });

@@ -72,7 +72,7 @@
             />
           </template>
         </q-input>
-        <q-input
+        <!-- <q-input
           outlined
           v-model="currPatient.middleNames"
           ref="middleNamesRef"
@@ -99,7 +99,7 @@
               class="cursor-pointer"
             />
           </template>
-        </q-input>
+        </q-input> -->
 
         <q-input
           outlined
@@ -268,6 +268,8 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import packService from 'src/services/api/pack/packService';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+import districtService from 'src/services/api/districtService/districtService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -332,10 +334,8 @@ onMounted(() => {
 //Computed
 const canClear = computed(() => {
   return (
-    (currPatient.value.identifiers[0] &&
-      currPatient.value.identifiers[0].value !== '') ||
+    patientId.value !== '' ||
     currPatient.value.firstNames !== '' ||
-    currPatient.value.middleNames !== '' ||
     currPatient.value.lastNames !== ''
   );
 });
@@ -351,15 +351,9 @@ const clearSearchParams = () => {
 const search = () => {
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
-      // TransferenceService.provincialServiceSearch(
-      //   this.$q,
-      //   this.currPatient,
-      //   this.patients,
-      //   this.transferencePatientData
-      // );
-      console.log(transferencePatientData);
+      console.log(transferencePatientData.value);
     } else {
-      openMRSSerach(selectedDataSources);
+      openMRSSerach(selectedDataSources.value);
     }
   } else {
     localSearch();
@@ -368,7 +362,7 @@ const search = () => {
 
 const openMRSSerach = (his) => {
   showloading();
-  const nid = currPatient.value.identifiers[0].value.replaceAll('/', '-');
+  const nid = patientId.value.replaceAll('/', '-');
 
   if (nid.length <= 0) {
     alertError(
@@ -377,45 +371,52 @@ const openMRSSerach = (his) => {
     closeLoading();
   } else {
     currPatient.value.clinic = clinic;
-    patientService.apiSearch(currPatient.value).then((resp) => {
-      if (resp.response.data.length >= 1) {
-        alertInfo(
-          'Paciente existente',
-          'Ja Existe um Paciente com o NID:[ ' +
-            nid +
-            ' ] no IDMED. Use A pesquisa do Idmed'
-        );
-        closeLoading();
-      } else {
-        patientService
-          .apiSearchPatientOnOpenMRS(
-            his.id,
-            nid,
-            localStorage.getItem('encodeBase64')
-          )
-          .then((response) => {
-            // patients.value = [];
-            patientService.deleteAllFromStorage();
-            closeLoading();
-            if (response.response.data.results.length > 0) {
-              response.response.data.results.forEach((pacienteOpenMRS) => {
-                const localpatient = ref(new Patient());
-                patientService.savePatientStorage(
-                  buildLocalPatientFromOpenMRS(localpatient, pacienteOpenMRS)
+    patientServiceIdentifier.value.value = patientId.value;
+    currPatient.value.identifiers.push(patientServiceIdentifier.value);
+    patientService
+      .apiSearch(currPatient.value)
+      .then((resp) => {
+        if (resp === undefined || resp === null || resp.length === 0) {
+          resp.data = [];
+        }
+        if (resp.data.length >= 1) {
+          alertInfo(
+            'Paciente existente',
+            'Ja Existe um Paciente com o NID:[ ' +
+              nid +
+              ' ] no IDMED. Use A pesquisa do Idmed'
+          );
+          closeLoading();
+        } else {
+          patientService
+            .apiSearchPatientOnOpenMRS(
+              his.id,
+              nid,
+              localStorage.getItem('encodeBase64')
+            )
+            .then((response) => {
+              patientService.deleteAllFromStorage();
+              if (response.data.results.length > 0) {
+                response.data.results.forEach((pacienteOpenMRS) => {
+                  const localpatient = ref(new Patient());
+                  patientService.savePatientStorage(
+                    buildLocalPatientFromOpenMRS(localpatient, pacienteOpenMRS)
+                  );
+                });
+                closeLoading();
+              } else {
+                closeLoading();
+                alertInfo(
+                  'Resultado da Pesquisa',
+                  'Nenhum resultado encontrado para o identificador ' + nid + ''
                 );
-                // patients.value.push(
-                // );
-              });
-            } else {
-              closeLoading();
-              alertInfo(
-                'Resultado da Pesquisa',
-                'Nenhum resultado encontrado para o identificador ' + nid + ''
-              );
-            }
-          });
-      }
-    });
+              }
+            });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 };
 
@@ -457,7 +458,7 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
   // localpatient.postoAdministrativo_id = pacienteOpenMRS.person.names[0]
   // localpatient.bairro_id = pacienteOpenMRS.person.names[0]
   // localpatient.clinic_id = pacienteOpenMRS.person.names[0]
-  return localpatient;
+  return localpatient.value;
 };
 const buildPatientIdentifierFromOpenMRS = (identifier) => {
   const psi = ref(new PatientServiceIdentifier());
@@ -569,6 +570,7 @@ const patientList = computed(() => {
 });
 
 const localSearch = () => {
+  currPatient.value.identifiers[0].value = patientId.value;
   if (website.value) {
     showloading();
     patientService.apiSearch(currPatient.value);
@@ -579,7 +581,6 @@ const checkOpenMRS = (his) => {
   patientService
     .apiCheckOpenmRSisOn(his.id, localStorage.getItem('encodeBase64'))
     .then((response) => {
-      console.log(response.data.authenticated);
       if (
         response.data.authenticated === false ||
         response.data.authenticated === undefined ||

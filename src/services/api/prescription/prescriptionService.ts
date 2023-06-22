@@ -129,6 +129,14 @@ export default {
   getLastPrescriptionFromPatientVisit(patientVisitId: string) {
     return prescription
       .withAllRecursive(2)
+      .where('id', patientVisitId)
+      .orderBy('prescriptionDate', 'desc')
+      .first();
+  },
+
+  getLastPrescriptionFromPatientVisitDetails(prescriptionId: string) {
+    return prescription
+      .withAllRecursive(2)
       .where('id', prescriptionId)
       .orderBy('prescriptionDate', 'desc')
       .first();

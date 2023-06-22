@@ -99,7 +99,7 @@ export default {
   },
 
   getByIdentifierTypeCode(identifierTypeCode: string) {
-    clinicalservice
+    return clinicalservice
       .query()
       .with('identifierType')
       .where('code', identifierTypeCode)
@@ -113,7 +113,11 @@ export default {
 
   /*Pinia Methods*/
   getAllClinicalServices() {
-    return clinicalservice.query().withAllRecursive(2).orderBy('code', 'desc').get()
+    return clinicalservice
+      .query()
+      .withAllRecursive(2)
+      .orderBy('code', 'desc')
+      .get();
     // .with('attributes', (query) => {
     //   query.with('clinicalServiceAttributeType');
     // })
@@ -154,6 +158,5 @@ export default {
       .with('identifierType')
       .whereId(clinicalServiceId)
       .get();
-  }
-
+  },
 };

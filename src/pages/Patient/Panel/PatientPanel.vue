@@ -116,7 +116,6 @@ const init = async () => {
   }
 };
 const showPatientDetails = () => {
-  console.log('showPatientDetails');
   showPatientInfo.value = !showPatientInfo.value;
 };
 

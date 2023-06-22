@@ -678,6 +678,8 @@ const submitForm = () => {
           if (referralClinicRef.value.hasError) {
             alertError('Por favor indicar o destino do paciente.');
             submitting.value = false;
+          } else {
+            doSave();
           }
         } else {
           doSave();
@@ -725,7 +727,6 @@ const doSave = async () => {
       closureEpisode.value.patientServiceIdentifier = curIdentifier.value;
     }
   }
-
   episodeService
     .apiSave(episode.value, isNewEpisode.value)
     .then((resp) => {

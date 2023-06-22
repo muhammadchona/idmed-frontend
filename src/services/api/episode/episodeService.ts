@@ -25,8 +25,6 @@ export default {
   },
   async patch(id: number, params: string) {
     const resp = await api().patch('episode/' + id, params);
-    console.log('o que manda', params);
-    console.log('update', resp.data);
     episode.save(resp.data);
   },
   async delete(id: number) {
@@ -146,7 +144,7 @@ export default {
       .orderBy('creationDate', 'desc')
       .get();
   },
-  
+
   getLastStartEpisodeWithPrescription(patientIdentifierid: string) {
     return episode
       .withAllRecursive(2)
