@@ -149,7 +149,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import episodeService from 'src/services/api/episode/episodeService';
-import { useEspisode } from 'src/composables/episode/episodeMethods';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
 import Episode from 'src/stores/models/episode/Episode';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
@@ -159,7 +159,7 @@ import EpisodeInfo from './Episode.vue';
 const props = defineProps(['identifierId']);
 
 // Declaration
-const { hasVisits, isCloseEpisode, isDCReferenceEpisode } = useEspisode();
+const { hasVisits, isCloseEpisode, isDCReferenceEpisode } = useEpisode();
 const { canBeEdited } = usePatientServiceIdentifier();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { preferedIdentifierValue, fullName } = usePatient();

@@ -405,7 +405,7 @@ import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier
 import Episode from 'src/stores/models/episode/Episode';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import startStopReasonService from 'src/services/api/startStopReasonService/startStopReasonService';
-import { useEspisode } from 'src/composables/episode/episodeMethods';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
 import episodeService from 'src/services/api/episode/episodeService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -424,7 +424,7 @@ import prescriptionService from 'src/services/api/prescription/prescriptionServi
 
 // Declaration
 const { hasPreferedId } = usePatient();
-const { hasVisits } = useEspisode();
+const { hasVisits } = useEpisode();
 const {
   isValidDate,
   getDDMMYYYFromJSDate,
@@ -433,7 +433,7 @@ const {
   getYYYYMMDDFromJSDate,
 } = useDateUtils();
 const { stringContains } = useStringUtils();
-const { isReferenceOrTransferenceEpisode, lastVisit } = useEspisode();
+const { isReferenceOrTransferenceEpisode, lastVisit } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const { fullName, age } = usePatient();
