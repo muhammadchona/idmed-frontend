@@ -141,7 +141,7 @@
 
 <script setup>
 import { date } from 'quasar';
-import { useEspisode } from 'src/composables/episode/episodeMethods';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import episodeService from 'src/services/api/episode/episodeService';
 import AddEditEpisode from 'components/Patient/PatientPanel/AddEditEpisode.vue';
@@ -156,7 +156,7 @@ const {
   hasVisits,
   isCloseEpisode,
   isStartEpisode,
-} = useEspisode();
+} = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 //Props
 const props = defineProps(['episodeId']);

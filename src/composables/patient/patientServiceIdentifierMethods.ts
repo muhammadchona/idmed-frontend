@@ -1,6 +1,6 @@
-import { useEspisode } from '../episode/episodeMethods';
+import { useEpisode } from '../episode/episodeMethods';
 
-const { hasVisits } = useEspisode();
+const { hasVisits } = useEpisode();
 export function usePatientServiceIdentifier() {
   function isPrefered(patientServiceIdentifier: any) {
     return patientServiceIdentifier.prefered;

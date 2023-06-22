@@ -212,7 +212,7 @@ import prescriptionDetailsService from 'src/services/api/prescriptionDetails/pre
 import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDrugService';
 import packService from 'src/services/api/pack/packService';
 import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
-import { useEspisode } from 'src/composables/episode/episodeMethods';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import Episode from 'src/stores/models/episode/Episode';
@@ -221,7 +221,7 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 //Declaration
 const { website } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
-const { isCloseEpisode, isDCReferenceEpisode } = useEspisode();
+const { isCloseEpisode, isDCReferenceEpisode } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { remainigDuration } = usePrescription();
 const infoVisible = ref(true);

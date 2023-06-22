@@ -321,7 +321,7 @@ import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import startStopReasonService from 'src/services/api/startStopReasonService/startStopReasonService';
-import { useEspisode } from 'src/composables/episode/episodeMethods';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
 import episodeService from 'src/services/api/episode/episodeService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
@@ -350,7 +350,7 @@ const {
   isStartEpisode,
   hasVisits,
   lastVisit,
-} = useEspisode();
+} = useEpisode();
 const { lastEpisodeIdentifier } = usePatientServiceIdentifier();
 const { remainigDurationInWeeks } = usePrescription();
 

@@ -579,15 +579,16 @@ const checkOpenMRS = (his) => {
   patientService
     .apiCheckOpenmRSisOn(his.id, localStorage.getItem('encodeBase64'))
     .then((response) => {
+      console.log(response.data.authenticated);
       if (
-        response.response.data.authenticated === false ||
-        response.response.data.authenticated === undefined ||
-        response.response.data.authenticated === null
+        response.data.authenticated === false ||
+        response.data.authenticated === undefined ||
+        response.data.authenticated === null
       ) {
         alertError(
-          'O Utilizador ' +
-            this.username +
-            ' não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.'
+          'O Utilizador [' +
+            username +
+            '] não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.'
         );
       } else {
         alertSucess(
@@ -602,6 +603,7 @@ const checkOpenMRS = (his) => {
           'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão'
         );
       } else {
+        console.log(error);
         alertError('Falha inexperada, por favor contacte o adminitrador.');
       }
     });
