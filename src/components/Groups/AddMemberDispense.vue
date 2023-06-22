@@ -192,7 +192,6 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import {  usePatient } from 'src/composables/patient/patientMethods';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods'
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService'
 import episodeService from 'src/services/api/episode/episodeService'
