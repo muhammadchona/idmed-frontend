@@ -25,6 +25,7 @@
             <div class="row">
               <q-select
                 class="col"
+                ref="curGroupServiceRef"
                 dense
                 :disable="isMemberEditionStep"
                 outlined
@@ -33,10 +34,11 @@
                 option-value="id"
                 option-label="code"
                 label="Serviço de Saúde *"
+                :rules="[(val) => !!val || 'Por favor indicar o Serviço de Saúde']"
               />
               <q-input
                 outlined
-                ref="curGroupCode"
+                ref="curGroupCodeRef"
                 v-model="curGroup.code"
                 :value="curGroup.code"
                 :disable="isMemberEditionStep"
@@ -45,6 +47,7 @@
                 label="Numero do grupo *"
                 dense
                 class="col q-ml-md"
+                :rules="[(val) => !!val || 'Por favor indicar o Numero de Grupo']"
               >
                 <template
                   v-slot:append
@@ -56,7 +59,7 @@
               </q-input>
               <q-input
                 outlined
-                ref="curGroupName"
+                ref="curGroupNameRef"
                 v-model="curGroup.name"
                 :value="curGroup.name"
                 :disable="isMemberEditionStep"
@@ -65,6 +68,7 @@
                 label="Nome *"
                 dense
                 class="col q-ml-md"
+                :rules="[(val) => !!val || 'Por favor indicar o Nome do Grupo']"
               >
                 <template
                   v-slot:append
@@ -77,6 +81,7 @@
             </div>
             <div class="row q-mt-md">
               <q-select
+                ref="curGroupGroupTypeRef"
                 class="col"
                 dense
                 outlined
@@ -86,6 +91,7 @@
                 option-value="id"
                 option-label="description"
                 label="Tipo *"
+                :rules="[(val) => !!val || 'Por favor indicar o Tipo do Grupo']"
               />
               <q-input
                 dense
@@ -93,8 +99,9 @@
                 class="col q-ml-md"
                 v-model="startDate"
                 :disable="isMemberEditionStep"
-                ref="creationDate"
+                ref="creationDateRef"
                 label="Data de Criação *"
+                :rules="[(val) => !!val || 'Por favor indicar a Data de Criação']"
               >
                 <template v-slot:append>
                   <q-icon
@@ -328,11 +335,7 @@
 <script setup>
 import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
 import Group from '../../stores/models/group/Group'
-import Patient from '../../stores/models/patient/Patient'
 import moment from 'moment'
-import ClinicalService from '../../stores/models/ClinicalService/ClinicalService'
-import GroupType from '../../stores/models/groupType/GroupType'
-import Clinic from '../../stores/models/clinic/Clinic'
 import { QSpinnerBall, SessionStorage, useQuasar } from 'quasar'
 import GroupMember from '../../stores/models/groupMember/GroupMember'
 import PatientVisitDetails from '../../stores/models/patientVisitDetails/PatientVisitDetails'
@@ -344,7 +347,6 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRouter } from 'vue-router';
-import TextField from 'components/Shared/Input/TextField.vue';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import groupTypeService from 'src/services/api/groupType/groupTypeService';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
@@ -354,6 +356,7 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 import groupService from 'src/services/api/group/groupService';
 import {  usePatient } from 'src/composables/patient/patientMethods';
 import { v4 as uuidv4 } from 'uuid';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -393,9 +396,13 @@ console.log('11111' + curGroup.value.id)
 console.log('11111' + step.value)
 const submitting = ref(false);
 
-console.log('11111' + isCreateStep.value)
-console.log('11111' + isEditStep.value)
-console.log('11111' + isMemberEditionStep.value)
+//Ref's
+const curGroupServiceRef = ref(null);
+const curGroupCodeRef = ref(null);
+const curGroupNameRef = ref(null);
+const curGroupGroupTypeRef = ref(null);
+const creationDateRef = ref(null);
+
 const isMemberOfGroupOnService = (patient, serviceCode) => {
   let res = false
       const members = groupMemberService.getAllFromStorage();
@@ -579,7 +586,24 @@ const submitForm = () => {
 
 const doSave = async () => {
   submitting.value = true;
-       showloading()
+  curGroupServiceRef.value.validate();
+  curGroupCodeRef.value.validate();
+  curGroupGroupTypeRef.value.validate();
+  curGroupNameRef.value.validate();
+  creationDateRef.value.validate();
+      if (
+    !curGroupServiceRef.value.hasError &&
+    !curGroupCodeRef.value.hasError &&
+    !curGroupGroupTypeRef.value.hasError &&
+    !curGroupNameRef.value.hasError &&
+    !creationDateRef.value.hasError
+  ) {
+    if (curGroup.value.members.length === 0) {
+      submitting.value = false;
+    return  alertError('Por favor adicione membros ao grupo antes de gravar.')  
+    
+    }
+    showloading()
       setTimeout(() => {
         closeLoading()
       }, 700)
@@ -590,8 +614,6 @@ const doSave = async () => {
         // curGroup.value.clinic = {}
        // curGroup.value.clinic.id = clinic.value.id
       }
-
-   //   curGroup = new Group(JSON.parse(JSON.stringify(curGroup.value,circularReferenceReplacer())))
    console.log(curGroup.value)
       curGroup.value = new Group(JSON.parse(JSON.stringify(curGroup.value)))
       curGroup.value.clinic = {}
@@ -683,6 +705,9 @@ const doSave = async () => {
           })
         })
         }
+      }
+    } else {
+      submitting.value = false
     }
 } 
 

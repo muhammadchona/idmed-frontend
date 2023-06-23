@@ -31,6 +31,7 @@ export default class User extends Model {
       authorities: this.attr(null),
       menus: this.attr(null),
       clinics: this.belongsToMany(Clinic, UserClinics, 'user_id', 'clinic_id'),
+      userClinicSectors: this.attr(''),
       clinicSectors: this.belongsToMany(
         ClinicSector,
         UserClinicSectors,
