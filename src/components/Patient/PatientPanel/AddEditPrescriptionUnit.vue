@@ -774,8 +774,6 @@ const init = () => {
 };
 
 const validateForm = () => {
-  console.log('Curr Presc', curPrescription.value);
-  console.log('Last Pres', remainigDuration(lastPrescription.value));
   let lastPack4daysAdd = date.addToDate(
     getDateFromHyphenDDMMYYYY(prescriptionDate.value, 'YYYY-MM-DD'),
     {
