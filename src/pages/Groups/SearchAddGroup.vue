@@ -221,7 +221,7 @@ const columns = [
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { website, isDeskTop, isMobile, isOnline } = useSystemUtils();
 
 
 //Declaration
@@ -244,6 +244,7 @@ const clinic = computed(() => {
 const step = ref('create');
 
 onMounted(() => {
+  console.log(isOnline.value)
   if (isMobile.value) {
   
   } else {
