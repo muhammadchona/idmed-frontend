@@ -172,11 +172,6 @@ const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 
 
-
-const router = useRouter();
-const searchField = ref('');
-const filter = reactive(ref(''));
-const selected = ref([]);
 const username = localStorage.getItem('user');
 const clinic = inject('clinic');
 let curGroup = reactive(ref(new Group({ members: [] })));
@@ -194,7 +189,6 @@ const dialogTitle = ref('');
 
 const selectedGroup =  inject('group');
 const desintagrateGroup =  inject('desintagrateGroup');
-const getGroupMemberss =  inject('getGroupMemberss');
  const getGroupMembers = inject('getGroupMembers')
 console.log(selectedGroup)
 watch(
@@ -268,59 +262,7 @@ const getDDMMYYYFromJSDate = (jsDate) => {
     return moment(jsDate).format('DD-MM-YYYY')
 }
 
-const getJSDateFromDDMMYYY = (dateString) => {
-      const dateParts = dateString.split('-')
-      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-    }
-/*
-const getGroupMembers = (isPrescription) => {
-        const group = groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
-        group.members.forEach((member) => {
-            member.groupMemberPrescription = groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(member.id)
 
-            member.patient = patientService.getPatienWithstByID(member.patient_id)
-
-            member.patient.identifiers = member.patient.identifiers.filter((identifier) => {
-              return identifier.service.id === selectedGroup.value.service.id
-            })
-            if (member.groupMemberPrescription !== null && member.groupMemberPrescription !== undefined && isPrescription) member.groupMemberPrescription.prescription.leftDuration = calculateRemainingTime(member.groupMemberPrescription)
-         //   member.patient.identifiers[0].episodes = [] 
-            member.patient.identifiers[0].episodes[0] = lastStartEpisodeWithPrescription(member.patient.identifiers[0].id)
-            if (member.patient.identifiers[0].episodes.length > 0 && member.patient.identifiers[0].episodes[0] !== null) {
-             fecthMemberPrescriptionData(useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]), member)
-            }
-        })
-        allMembers.value = group.members
-        if (!useGroup().isDesintegrated(group)) { 
-          members.value = group.members.filter((member) => { 
-            return useGroupMember().isActive(member) })
-            console.log(members.value)
-          //  group.members = members.value
-        } else {
-          members.value = group.members
-        }
-        console.log(group.members)
-    } 
-    */
-
- const  fecthMemberPrescriptionData = (visitDetails, member) => {
-      if (!isMobile.value) {
-        if (visitDetails.pack !== null) {
-          fecthedMemberData.value = fecthedMemberData.value + 1
-        }
-     } else {
-        if (visitDetails.pack !== null) packService.apiFetchById(visitDetails.pack.id)
-        if (member.groupMemberPrescription !== null) {
-          Prescription.apiFetchById(member.groupMemberPrescription.id).then(resp => {
-          fecthedMemberData.value = this.fecthedMemberData + 1
-        })
-        } else {
-          prescriptionService.apiFetchById(visitDetails.prescription.id).then(resp => {
-          fecthedMemberData.value = fecthedMemberData.value + 1
-        })
-        }
-      }
-    }   
    
  const loadMembers = () => {
         if (useGroup().isDesintegrated(selectedGroup)) {
@@ -355,38 +297,13 @@ const getGroupMembers = (isPrescription) => {
         return members.value
     }
 
-    
-const  lastStartEpisodeWithPrescription = (identifierId) => {
-      let episode = null 
-      const episodes = episodeService.getStartEpisodeByIdentifierId(identifierId)
-      Object.keys(episodes).forEach(function (k) {
-        const id = episodes[k]
-        if (episode === null && useEpisode().hasVisits(id)) {
-          episode = id
-        }
-      })
-      return episode
-    }
-    
 
-const  calculateRemainingTime = (memberPrescription) => {
-      if (memberPrescription !== null && memberPrescription !== undefined) {
-     //   console.log(memberPrescription.prescription.remainigDuration())
-        return usePrescription().remainigDuration(memberPrescription.prescription)
-      } else {
-        return 0
-      }
-    }
 
 
     
 onMounted(() => {
-  console.log('Child Component: onMounted');
       getGroupMembers()
-     // getGroupMemberss = getGroupMembers()
-     // console.log(loadedMembers.value)
-     // console.log(getGroupMemberss.value)
-   //   console.log(dataFechComplete.value) 
+
 })
 
 

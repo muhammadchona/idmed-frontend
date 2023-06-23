@@ -172,9 +172,7 @@
   </q-dialog>
 </template>
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
-import { date, QSpinnerBall, SessionStorage } from 'quasar'
-import GroupPackHeader from '../../stores/models/group/GroupPackHeader'
+import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import GroupPack from '../../stores/models/group/GroupPack'
 import Pack from '../../stores/models/packaging/Pack'
 import PackagedDrug from '../../stores/models/packagedDrug/PackagedDrug'
@@ -187,8 +185,6 @@ import PrescriptionDetail from '../../stores/models/prescriptionDetails/Prescrip
 import GroupMemberPrescription from '../../stores/models/group/GroupMemberPrescription'
 // import mixinplatform from 'src/mixins/mixin-system-platform'
 // import mixinutils from 'src/mixins/mixin-utils'
-import Drug from '../../stores/models/drug/Drug'
-import moment from 'moment'
 import {  useGroup } from 'src/composables/group/groupMethods';
 import { useGroupMember } from 'src/composables/group/groupMemberMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
@@ -196,26 +192,13 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import {  usePatient } from 'src/composables/patient/patientMethods';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods'
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { useRouter } from 'vue-router';
-import groupService from 'src/services/api/group/groupService'
-import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService'
-import patientService from 'src/services/api/patientService/patientService'
-import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService'
 import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService'
-import packService from 'src/services/api/pack/packService'
-import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService'
-import durationService from 'src/services/api/duration/durationService'
-import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService'
 import episodeService from 'src/services/api/episode/episodeService'
-import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
 // import packService from 'src/services/api/pack/packService';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue'
-import StockService from 'src/services/api/stockService/StockService';
-import prescriptionService from 'src/services/api/prescription/prescriptionService';
-import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import drugService from 'src/services/api/drugService/drugService';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
@@ -270,15 +253,6 @@ const columns1 = [
 
 const props = defineProps(['member']);
 
-const {
-  idadeCalculator,
-  getDDMMYYYFromJSDate,
-  getDateFromHyphenDDMMYYYY,
-  getYYYYMMDDFromJSDate,
-  getJSDateFromDDMMYYY,
-  getDateFormatYYYYMMDDFromDDMMYYYY,
-  extractHyphenDateFromDMYConvertYMD
-} = useDateUtils();
 const { alertSucess, alertError, alertInfo,alertWarningAction } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
@@ -290,19 +264,16 @@ const showAddEditDrug = ref(false);
 const hasTherapeuticalRegimen = ref(false);
 const patientVisitDetailsToAdd = ref([]);
 const showDispensesData = ref(false);
-const step =  'display';
 const selectedGroup =  inject('group');
 console.log(selectedGroup)
 const loadedData = ref(false)
 const defaultPickUpDate = ref(null)
 const membersDispenses = inject('membersDispenses');
-// const date = ref(moment(date).format('YYYY/MM/DD'))
 const curIdentifier = ref('')
 const curPrescriptionDetail = ref ('')
 const curVisitDetails = ref('')
 const drugsDuration = inject('drugsDuration');
 const infoVisible = ref(true);
-const loadGroup = inject('loadGroup')
 const curGroupPackHeader = inject('curGroupPackHeader')
 
 
@@ -322,7 +293,6 @@ const initDispenses = () => {
 const patientVisitDetails = new PatientVisitDetails({
                                            id: uuidv4()
                                           })
- // const groupPacks = []
 const groupPack = new GroupPack({ id: uuidv4()
                                           })
      const pack = new Pack({id: uuidv4() })
@@ -354,8 +324,6 @@ const groupPack = new GroupPack({ id: uuidv4()
     membersDispenses.value.set(props.member, pack)
     groupPack.pack = pack
     curGroupPackHeader.value.groupPacks.push(groupPack)
-    console.log( curGroupPackHeader.value.groupPacks)
-    console.log(membersDispenses)
     showDispensesData.value= true
     closeLoading();
 }
@@ -376,7 +344,6 @@ const openAddPrescribedDrugForm = () => {
     }
 
 const getForm = (id) => {
-  console.log(formService.getFormById(id))
   return formService.getFormById(id)
  }
 
@@ -410,175 +377,10 @@ const  removePrescribedDrug = (prescribedDrug) => {
     }
 
 
- 
-const savePatientVisitDetails = (groupPacks, i) => {
-      if (isMobile.value) {
-        if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
-          const patientVisit = JSON.parse(JSON.stringify(groupPacks[i].pack.patientVisitDetails[0].patientVisit))
-
-          console.log(patientVisit)
-          patientVisit.patientVisitDetails.push(JSON.parse(JSON.stringify(groupPacks[i].pack.patientVisitDetails[0])))
-          patientVisit.patientVisitDetails[0].patientVisit = null
-          groupPacks[i].pack.patientVisitDetails = []
-
-          groupPacks[i].pack.dispenseMode_id = groupPacks[i].pack.dispenseMode.id
-          groupPacks[i].pack.clinic_id = groupPacks[i].pack.clinic.id
-
-          groupPacks[i].pack.packagedDrugs.forEach((pDrug) => {
-            pDrug.pack_id = groupPacks[i].pack.id
-            pDrug.drug_id = pDrug.drug.id
-            pDrug.packagedDrugStocks.forEach((pDrugStock) => {
-              pDrugStock.pack_id = groupPacks[i].pack.id
-              pDrugStock.drug_id = pDrugStock.drug.id
-              pDrugStock.packagedDrug_id = pDrug.id
-            })
-          })
-          // patientVisit.patientVisitDetails[0].prescription.calculateLeftDuration(JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
-
-          Pack.localDbAdd(JSON.parse(JSON.stringify(groupPacks[i].pack)))
-          Pack.insert({ data: JSON.parse(JSON.stringify(groupPacks[i].pack)) })
-          patientVisit.patientVisitDetails[0].pack = JSON.parse(JSON.stringify(groupPacks[i].pack))
-          patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
-          patientVisit.clinic_id = patientVisit.clinic.id
-          patientVisit.patient_id = patientVisit.patient.id
-          patientVisit.patientVisitDetails[0].episode_id = patientVisit.patientVisitDetails[0].episode.id
-          patientVisit.patientVisitDetails[0].clinic_id = patientVisit.patientVisitDetails[0].clinic.id
-          patientVisit.patientVisitDetails[0].patient_visit_id = patientVisit.id
-          patientVisit.patientVisitDetails[0].prescription_id = patientVisit.patientVisitDetails[0].prescription.id
-          patientVisit.patientVisitDetails[0].pack_id = patientVisit.patientVisitDetails[0].pack.id
-
-          PatientVisit.localDbAdd(patientVisit)
-          PatientVisit.insert({ data: patientVisit })
-
-          i = i + 1
-          setTimeout(savePatientVisitDetails(groupPacks, i), 4)
-        } else {
-          curGroupPackHeader.value = JSON.parse(JSON.stringify(curGroupPackHeader.value))
-          curGroupPackHeader.groupPacks.forEach((groupPack) => {
-            groupPack.pack.patientVisitDetails = []
-            groupPack.pack_id = groupPack.pack.id
-            groupPack.header_id = curGroupPackHeader.id
-            groupPack.syncStatus = 'R'
-          })
-          curGroupPackHeader.duration_id = curGroupPackHeader.duration.id
-          curGroupPackHeader.group_id = group.id
-          curGroupPackHeader.group = null
-          console.log(curGroupPackHeader)
-          GroupPackHeader.localDbAdd(JSON.parse(JSON.stringify(curGroupPackHeader)))
-          GroupPackHeader.insert({ data: curGroupPackHeader })
-          submitting = false
-          displayAlert('info', 'Operação efectuada com sucesso.')
-        }
-      } else {
-        if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
-          const patientVisit = Object.assign({}, groupPacks[i].pack.patientVisitDetails[0].patientVisit)
-          console.log(patientVisit)
-          patientVisit.patientVisitDetails.push(groupPacks[i].pack.patientVisitDetails[0])
-          patientVisit.patientVisitDetails[0].patientVisit = null
-          groupPacks[i].pack.patientVisitDetails = []
-          
-          groupPacks[i].pack.packagedDrugs.forEach(pck => {
-            patientVisit.patientVisitDetails[i].prescription.prescribedDrugs.forEach(prescDrug => {
-              if (prescDrug.drug.id === pck.drug.id) {
-                 pck.drug_id = pck.drug.id;
-                 pck.quantitySupplied = prescDrug.qtyPrescribed
-            pck.amtPerTime = prescDrug.amtPerTime;
-            pck.timesPerDay = prescDrug.timesPerDay;
-            pck.form =  pck.drug.form;
-          pck.drug = drugService.getDrugById(pck.drug.id)
-          pck.drug.packaged_drugs = []
-          pck.packagedDrugStocks.forEach(pck1 => {
-          pck1.drug = drugService.getDrugById(pck1.drug.id)
-                  })
-              }
-            })
-            pck.drug.stocks = []
-            pck.form.drugs = [] 
-            pck.drug.form.drugs = []
-            pck.drug.therapeuticRegimenList = []
-            pck.drug.clinicalService.drugs = []
-                })
-                patientVisit.patientVisitDetails[0].pack = groupPacks[i].pack
-                patientVisit.patientVisitDetails[0].prescription.prescribedDrugs.forEach(pd => {
-            pd.drug.therapeuticRegimenList = []
-            pd.drug.packaged_drugs = []
-            pd.drug.stocks = []
-          })
-        //  Pack.apiSave(groupPacks[i].pack).then(resp => {
-        //    groupPacks[i].pack.id = resp.response.data.id
-        //    groupPacks[i].pack.$id = resp.response.data.id
-         //   patientVisit.patientVisitDetails[0].pack.packagedDrugs = []
-
-            console.log(patientVisit)
-            console.log(patientVisit.patientVisitDetails)
-            const patientId = patientVisit.patient.id
-             patientVisit.patient = {}
-             patientVisit.patient.id = patientId
-            patientVisit.patientVisitDetails.forEach(pvd => {
-             const epsidodeId = pvd.episode.id
-             const prescriptionId = pvd.prescription.id
-             pvd.episode = {}
-             pvd.episode.id = epsidodeId
-             pvd.prescription = {}
-             pvd.prescription.id = prescriptionId
-            })
-            console.log(patientVisit)
-            console.log(patientVisit.patientVisitDetails)
-          //  usePrescription().calculateLeftDuration(patientVisit.patientVisitDetails[0].prescription,JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
-            patientVisitService.apiSave(patientVisit).then(resp => {
-              // groupPacks[i].pack.patientVisitDetails = []
-              const pv = JSON.parse(JSON.stringify(patientVisit))
-            //  PatientVisit.insert({ data: pv })
-          pv.patientVisitDetails.forEach((pvd) => {
-            patientVisit.patientVisitDetails = []
-            pvd.patientVisit = JSON.parse(JSON.stringify(patientVisit))
-            patientVisitDetailsToAdd.value.push(pvd)
-          })
-              i = i + 1
-              setTimeout(savePatientVisitDetails(groupPacks, i), 4)
-            })
-         // })
-        } else {
-          curGroupPackHeader.groupPacks.forEach((groupPack) => {
-            groupPack.pack.patientVisitDetails = []
-            groupPack.pack_id = groupPack.pack.id
-          })
-          groupPackHeaderService.apiSave(curGroupPackHeader).then(resp => {
-            console.log(resp)
-            curGroupPackHeader.id = resp.data.id
-           // Group.apiFetchById(curGroupPackHeader.group.id).then(resp => {a
-            //  console.log(resp)
-             // resp.response.data.packHeaders.forEach(packHeader => {
-               //       GroupPackHeader.apiFetchById(packHeader.id).then(resp => {
-                //        console.log(resp)
-                //      })
-                //    })
-            //})
-            patientVisitDetailsToAdd.value.forEach(pvd => {
-              pvd.episode_id = pvd.episode.id
-              pvd.clinic_id = pvd.clinic.id
-              pvd.patient_visit_id = pvd.patientVisit.id
-              pvd.prescription_id = pvd.prescription.id
-              pvd.pack_id = pvd.pack.id
-              console.log(pvd)
-              PatientVisitDetails.insert({ data: pvd })
-            })
-            alertSucess('Operação efectuada com sucesso.')
-           // $emit('getGroupMembers', false)
-          })
-        }
-      }
-    }
 
 
 onMounted(() => {
-  console.log('Dispense Component: onMounted');
- // loadGroup()
- // loadDetails()
    initDispenses()
-   console.log(useEpisode().lastVisit(props.member.patient.identifiers[0].episodes[0]).prescription.prescribedDrugs)
-  console.log(selectedGroup.value.members)
-  console.log(props.member)
 });
 
 

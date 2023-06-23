@@ -217,7 +217,6 @@ import addMemberDispense from 'src/components/Groups/AddMemberDispense.vue'
 import { v4 as uuidv4 } from 'uuid';
 
 const {
-  idadeCalculator,
   getDDMMYYYFromJSDate,
   getDateFromHyphenDDMMYYYY,
   getYYYYMMDDFromJSDate,
@@ -353,7 +352,7 @@ const  doFormValidation = () => {
     }
    
     const executeGetGroupMembers = () => {
-      getGroupMembers(false);
+      getGroupMembers(true);
 };
 
 
@@ -380,9 +379,6 @@ const  checkMembersPrescriptionsDate = (pickupDate) => {
       }
     }
 
- const memerHasGroupPrescription = (member) => {
-  return member.groupMemberPrescription !== null
- }
 
  const expandLess = (value) => {
      showDispensesData.value = !value
@@ -708,11 +704,6 @@ const savePatientVisitDetails = (groupPacks, i) => {
       }
     }
  
-const fechtPatientVisitDetails = (pack) => {
-      patientVisitDetailsService.apiFetchById(pack.patientVisitDetails.id).then(resp => {
-        pack.patientVisitDetails = PatientVisitDetails.find(pack.patientVisitDetails.id)
-      })
-    }
 
 const initGroupPackHeader = () => {
   // curGroupPackHeader = new GroupPackHeader()

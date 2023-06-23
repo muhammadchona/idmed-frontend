@@ -282,12 +282,6 @@ const getGroupMembers = (isPrescription) => {
 
 
 
-const getGroupMembersss = (isPrescription) => {
-  console.log('teste')
- // console.log($refs.groupMembersRef.value)
-// groupMemberRef.value.getGroupMembers(false)
-}
-
 
 const dataFetchDone = computed(() => { 
   return membersInfoLoaded.value })
@@ -298,9 +292,6 @@ const group = computed(() => {
    return groupService.getGroupWithsById(SessionStorage.getItem('selectedGroupId'))
 })
 
-//const getGroupMembers = ref(null);
-
-//provide('getGroupMembers', getGroupMembers);
 
 
 const  desintagrateGroup = () => {

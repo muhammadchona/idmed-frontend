@@ -5,10 +5,10 @@ import autoTable from 'jspdf-autotable'
  import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
  import Report from 'src/services/api/report/ReportService'
 import ArvDailyRegisterTempReport from 'src/stores/models/report/monitoring/ArvDailyRegisterTempReport'
-import SystemPlatform from '../SystemPlatform'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils'
+import clinicService from 'src/services/api/clinicService/clinicService' 
 
-import clinicService from 'src/services/api/clinicService/clinicService'
-
+const SystemPlatform = useSystemUtils()
 const img = new Image()
 img.src = 'src/assets/MoHLogo.png'
 
