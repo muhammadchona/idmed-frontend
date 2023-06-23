@@ -13,10 +13,7 @@
           @update:model-value="validateDate(props.identifier)"
         >
           <template v-slot:append>
-            <q-icon
-              name="event"
-              class="cursor-pointer"
-            >
+            <q-icon name="event" class="cursor-pointer">
               <q-popup-proxy
                 ref="qDateProxy"
                 transition-show="scale"
@@ -30,12 +27,7 @@
                   mask="DD-MM-YYYY"
                 >
                   <div class="row items-center justify-end">
-                    <q-btn
-                      v-close-popup
-                      label="Close"
-                      color="primary"
-                      flat
-                    />
+                    <q-btn v-close-popup label="Close" color="primary" flat />
                   </div>
                 </q-date>
               </q-popup-proxy>
@@ -156,19 +148,13 @@
         <div class="row items-center q-mb-xs">
           <span class="text-subtitle2">Adição de Medicamento à Prescrição</span>
         </div>
-        <q-separator
-          color="grey-13"
-          size="1px"
-          class="q-mb-sm"
-        />
+        <q-separator color="grey-13" size="1px" class="q-mb-sm" />
       </div>
       <div>
-        <q-banner
-          dense
-          inline-actions
-          class="bg-grey-6 text-white q-pa-none"
-        >
-          <span class="text-bold text-subtitle1 vertical-middle q-pl-md">Medicamentos Prescritos</span>
+        <q-banner dense inline-actions class="bg-grey-6 text-white q-pa-none">
+          <span class="text-bold text-subtitle1 vertical-middle q-pl-md"
+            >Medicamentos Prescritos</span
+          >
           <template v-slot:action>
             <q-btn
               v-if="!showServiceDrugsManagement"
@@ -189,20 +175,11 @@
           row-key="id"
         >
           <template #body="props">
-            <q-tr
-              no-hover
-              :props="props"
-            >
-              <q-td
-                key="drug"
-                :props="props"
-              >
+            <q-tr no-hover :props="props">
+              <q-td key="drug" :props="props">
                 {{ props.row.drug.name }}
               </q-td>
-              <q-td
-                key="dosage"
-                :props="props"
-              >
+              <q-td key="dosage" :props="props">
                 {{
                   'Tomar ' +
                   props.row.amtPerTime +
@@ -215,11 +192,7 @@
                   props.row.form
                 }}
               </q-td>
-              <q-td
-                auto-width
-                key="packs"
-                :props="props"
-              >
+              <q-td auto-width key="packs" :props="props">
                 {{
                   getQtyPrescribed(props.row, curPrescription.duration.weeks) >
                   0
@@ -230,10 +203,7 @@
                     : 1
                 }}
               </q-td>
-              <q-td
-                key="options"
-                :props="props"
-              >
+              <q-td key="options" :props="props">
                 <q-btn
                   flat
                   round
@@ -246,29 +216,18 @@
             </q-tr>
           </template>
         </q-table>
-        <q-separator
-          color="grey-13"
-          size="1px"
-          class="q-mb-sm"
-        />
+        <q-separator color="grey-13" size="1px" class="q-mb-sm" />
       </div>
       <div>
         <div class="row items-center q-mb-xs">
           <span class="text-subtitle2">Informação Adicional</span>
         </div>
-        <q-separator
-          color="grey-13"
-          size="1px"
-          class="q-mb-sm"
-        />
+        <q-separator color="grey-13" size="1px" class="q-mb-sm" />
       </div>
       <div class="row">
         <div class="col">
           <div class="row items-center">
-            <q-item-label
-              dense
-              caption
-            >Altera Linha Terapêutica?</q-item-label>
+            <q-item-label dense caption>Altera Linha Terapêutica?</q-item-label>
             <q-radio
               v-model="curPrescription.patientType"
               :disable="showServiceDrugsManagement || !isNewPrescription"
@@ -374,18 +333,12 @@
       </div>
     </div>
   </div>
-  <div
-    class=""
-    v-if="showServiceDrugsManagement"
-  >
+  <div class="" v-if="showServiceDrugsManagement">
     <div>
       <ServiceDrugsManagement />
     </div>
   </div>
-  <q-dialog
-    persistent
-    v-model="showAddEditDrug"
-  >
+  <q-dialog persistent v-model="showAddEditDrug">
     <AddEditPrescribedDrug />
   </q-dialog>
 </template>
@@ -425,7 +378,6 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 
 import { v4 as uuidv4 } from 'uuid';
 
-
 //props
 const props = defineProps(['identifier']);
 
@@ -457,8 +409,10 @@ const patientStatusRef = ref(null);
 const prescriptionDateRef = ref(null);
 
 // New Values
-const curPrescription = reactive(ref(new Prescription({id: uuidv4()})));
-const curPrescriptionDetail = reactive(ref(new PrescriptionDetail({id: uuidv4()})));
+const curPrescription = reactive(ref(new Prescription({ id: uuidv4() })));
+const curPrescriptionDetail = reactive(
+  ref(new PrescriptionDetail({ id: uuidv4() }))
+);
 const curPatientVisitDetail = reactive(ref(new PatientVisitDetails()));
 const curPack = reactive(ref(new Pack()));
 const validateDispense = reactive(ref(false));

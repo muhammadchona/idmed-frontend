@@ -66,9 +66,6 @@ import { inject, ref } from 'vue';
 const headerClass = ref('');
 const expanded = ref(true);
 
-
-// Injection
-// doneVisible;
 //props
 const props = defineProps({
   editVisible: Boolean,

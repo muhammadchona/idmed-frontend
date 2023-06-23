@@ -4,19 +4,13 @@
       <q-card-section class="q-pa-none">
         <div class="q-pt-md q-mb-sm bg-green-2">
           <div class="row items-center q-mb-sm q-pa-sm">
-            <q-icon
-              name="medication"
-              size="md"
-              color="green-10"
-            />
-            <span class="text-subtitle2 q-ml-sm">Adição de Medicamentos para
-              {{ curIdentifier.service.description }}</span>
+            <q-icon name="medication" size="md" color="green-10" />
+            <span class="text-subtitle2 q-ml-sm"
+              >Adição de Medicamentos para
+              {{ curIdentifier.service.description }}</span
+            >
           </div>
-          <q-separator
-            color="grey-13"
-            size="1px"
-            class="q-mb-sm"
-          />
+          <q-separator color="grey-13" size="1px" class="q-mb-sm" />
         </div>
         <div class="q-px-md">
           <q-toggle
@@ -95,20 +89,9 @@
           </div>
         </div>
       </q-card-section>
-      <q-card-actions
-        align="right"
-        class="q-my-md q-mr-sm"
-      >
-        <q-btn
-          label="Cancelar"
-          color="red"
-          @click="showAddEditDrug = false"
-        />
-        <q-btn
-          type="submit"
-          label="Adicionar"
-          color="primary"
-        />
+      <q-card-actions align="right" class="q-my-md q-mr-sm">
+        <q-btn label="Cancelar" color="red" @click="showAddEditDrug = false" />
+        <q-btn type="submit" label="Adicionar" color="primary" />
       </q-card-actions>
     </form>
   </q-card>
@@ -121,7 +104,7 @@ import { computed, inject, onMounted, ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
 //Declatarion
-const prescribedDrug = ref(new PrescribedDrug({id: uuidv4()}));
+const prescribedDrug = ref(new PrescribedDrug({ id: uuidv4() }));
 const showOnlyOfRegimen = ref(false);
 const amtPerTimes = ref(['1', '2', '3', '4']);
 const timesPerDay = ref(['Dia', 'Semana', 'Mês', 'Ano']);
@@ -144,7 +127,7 @@ const showAddEditDrug = inject('showAddEditDrug');
 // Hook
 
 onMounted(() => {
-  console.log(curIdentifier.value)
+  console.log(curIdentifier.value);
   // showOnlyOfRegimen.value = hasTherapeuticalRegimen.value;
   showOnlyOfRegimen.value = true;
 });
@@ -172,10 +155,10 @@ const getDrugs = computed(() => {
     validDrugs = drugService.getActiveDrugsByRegimen(
       curPrescriptionDetail.value.therapeuticRegimen.id
     );
+    console.log('Valid Drugs', validDrugs);
   } else {
     validDrugs = drugs.value;
   }
-  console.log(curIdentifier)
   validDrugs = validDrugs.filter((drug) => {
     return (
       drug.clinicalService !== null &&

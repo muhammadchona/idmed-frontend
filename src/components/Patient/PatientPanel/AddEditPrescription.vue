@@ -1,9 +1,6 @@
 <template>
   <q-card style="width: 1350px; max-width: 110vw">
-    <q-card-section
-      style="max-height: 50vh"
-      class="q-pa-none bg-green-2"
-    >
+    <q-card-section style="max-height: 50vh" class="q-pa-none bg-green-2">
       <div class="row items-center text-subtitle1 q-pa-md">
         <q-icon
           :name="patient.gender == 'Feminino' ? 'female' : 'male'"
@@ -28,10 +25,7 @@
           {{ idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth)) }}
           Ano(s) de Idade
         </div>
-        <div
-          class="text-grey-10 q-ml-sm"
-          v-else
-        >
+        <div class="text-grey-10 q-ml-sm" v-else>
           <span class="text-bold text-h6">|</span>
           {{ idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth)) }}
           Anos de Idade
@@ -39,10 +33,7 @@
       </div>
       <q-separator />
     </q-card-section>
-    <q-scroll-area
-      style="height: 800px"
-      class="q-pr-md"
-    >
+    <q-scroll-area style="height: 800px" class="q-pr-md">
       <q-card-section>
         <q-list bordered>
           <q-expansion-item
@@ -69,7 +60,8 @@
           >
             <q-card>
               <q-card-section>
-                <ListHeader bgColor="bg-grey-6">Informação da Prescrição
+                <ListHeader bgColor="bg-grey-6"
+                  >Informação da Prescrição
                 </ListHeader>
                 <add-edit-prescription-unit :identifier="identifier" />
               </q-card-section>
@@ -131,7 +123,9 @@
       </q-card-section>
       <q-card-actions>
         <div class="row q-mt-xl q-pt-md">
-          <span class="text-right absolute-bottom q-mb-lg q-mr-md q-mt-xl no-pointer-events">
+          <span
+            class="text-right absolute-bottom q-mb-lg q-mr-md q-mt-xl no-pointer-events"
+          >
             <q-btn
               label="Cancelar"
               color="red"
@@ -176,8 +170,7 @@ const {
   getDDMMYYYFromJSDate,
   getDateFromHyphenDDMMYYYY,
   getYYYYMMDDFromJSDate,
-} = 
-useDateUtils();
+} = useDateUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const mds = ref('US_');
@@ -226,6 +219,8 @@ const init = () => {
 };
 
 const doValidationToDispense = () => {
+  curPatientVisit.value.patient = {};
+  curPatientVisit.value.patient.id = patient.value.id;
   submitting.value = true;
   if (
     dispenseMode.value === null ||
@@ -240,7 +235,6 @@ const doValidationToDispense = () => {
       patientVisitDetail.pack.dispenseMode_id = dispenseMode.value.id;
       patientVisitDetail.pack.dispenseMode = dispenseMode.value;
     });
-    console.log('curPatientVisit', curPatientVisit.value);
     patientVisitService
       .post(curPatientVisit.value)
       .then((resp) => {

@@ -44,7 +44,7 @@ export default {
   getActiveDrugsByRegimen(regimenId: string) {
     return drug
       .query()
-      .withAllRecursive(1)
+      .withAllRecursive(2)
       .where('active', true)
       .whereHas('therapeuticRegimenList', (query) => {
         query.where('id', regimenId);
@@ -61,6 +61,6 @@ export default {
 
   /*Pinia Methods*/
   getAllDrugs() {
-    return drug.withAll().orderBy('name').get();
+    return drug.withAllRecursive(1).orderBy('name').get();
   },
 };

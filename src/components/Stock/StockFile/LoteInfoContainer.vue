@@ -328,9 +328,7 @@ const saveAjustment = () => {
       'A data do movimento não pode ser menor que a data de entrada do lote.'
     );
   } else if (new Date(curEvent.value.eventDate) > new Date()) {
-    alertError(
-      'A data do movimento não pode ser maior que a data corrente.'
-    );
+    alertError('A data do movimento não pode ser maior que a data corrente.');
   } else if (curEvent.value.moviment === '') {
     alertError('error', 'Por favor indicar a Origem/Destino.');
   } else if (Number(adjustment.adjustedValue) <= 0) {
@@ -387,7 +385,7 @@ const saveAjustment = () => {
           })
           .catch((error) => {
             alertError('Ocorreu um erro inesperado');
-              });
+          });
         db.newDb().collection('destruction').set(destruction);
       }
       drugEventList.value.shift();
@@ -470,7 +468,7 @@ const generateDrugBatchEventSummary = () => {
   drugFileService
     .apiGetDrugBatchSummary(clinicService.currClinic().id, stock.value.id)
     .then((resp) => {
-      console.log(resp.data);
+      //  console.log(resp.data);
       const t = resp.data;
       /* t.sort((a, b) => {
           const d1 = new Date(a.eventDate)
@@ -543,5 +541,4 @@ provide('mainContainer', mainContainer);
 provide('saveAjustment', saveAjustment);
 </script>
 
-<style>
-</style>
+<style></style>
