@@ -177,7 +177,7 @@ const {
   getDateFromHyphenDDMMYYYY,
   getYYYYMMDDFromJSDate,
 } = 
-DateUtils();
+useDateUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const mds = ref('US_');
