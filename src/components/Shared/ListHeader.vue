@@ -66,28 +66,25 @@ import { inject, ref } from 'vue';
 const headerClass = ref('');
 const expanded = ref(true);
 
-
-
 // const emit = defineEmits([
 //   'expand'
 // ]);
 // Injection
 // doneVisible;
 //props
-const props = defineProps({
-  editVisible: Boolean,
-  closeVisible: Boolean,
-  expandVisible: Boolean,
-  addVisible: Boolean,
-  mainContainer: Boolean,
-  title: String,
-  bgColor: String,
-  addButtonActions: Function,
-//  expanded: Boolean,
-  doneVisible: Boolean,
-});
+const props = defineProps([
+  'editVisible',
+  'closeVisible',
+  'expandVisible',
+  'addVisible',
+  'mainContainer',
+  'title',
+  'bgColor',
+  'addButtonActions',
+  'doneVisible',
+]);
 
-const $emits = defineEmits(['done','initEdition'])
+const $emits = defineEmits(['done', 'initEdition']);
 
 // Methods
 const determineHeaderClass = () => {
@@ -100,7 +97,7 @@ const determineHeaderClass = () => {
 
 const expand = () => {
   expanded.value = !expanded.value;
-  emit('expand' , expanded.value)
+  emit('expand', expanded.value);
 };
 
 const closeSection = () => {

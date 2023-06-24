@@ -70,7 +70,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
+import { computed, inject, onMounted, provide, ref, watch } from 'vue';
 import { SessionStorage } from 'quasar'
 import groupService from 'src/services/api/group/groupService';
 import moment from 'moment'

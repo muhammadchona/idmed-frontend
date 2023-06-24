@@ -127,7 +127,7 @@
 <script setup>
 /*Imports*/
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import Doctor from '../../../stores/models/doctor/Doctor';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';

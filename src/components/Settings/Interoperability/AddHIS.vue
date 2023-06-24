@@ -99,7 +99,7 @@
 
 <script setup>
 /*imports*/
-import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
+import { ref, inject, onMounted, computed, provide } from 'vue';
 import HealthInformationSystem from '../../../stores/models/healthInformationSystem/HealthInformationSystem';
 import InteroperabilityAttribute from '../../../stores/models/interoperabilityAttribute/InteroperabilityAttribute';
 import InteroperabilityType from '../../../stores/models/interoperabilityType/InteroperabilityType';
@@ -182,9 +182,7 @@ const healthInformationSystemList = computed(() => {
 
 onMounted(() => {
   if (isCreateStep.value) {
-    his.value = reactive(
-      ref(healthInformationSystemService.newInstanceEntity())
-    );
+    his.value = ref(healthInformationSystemService.newInstanceEntity());
   }
   if (his.value != null) {
     his.value.interoperabilityAttributes.forEach((attribute) => {

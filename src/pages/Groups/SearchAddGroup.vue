@@ -3,10 +3,7 @@
     <TitleBar />
     <div class="q-mx-xl">
       <div class="row items-center q-my-md">
-        <q-icon
-          name="person_outline"
-          size="sm"
-        />
+        <q-icon name="person_outline" size="sm" />
         <span class="q-pl-sm text-subtitle2">Informação inicial</span>
       </div>
       <div class="row">
@@ -25,8 +22,10 @@
           <template
             v-slot:append
             v-if="
-            curGroup.code !== null && curGroup.code !== undefined && curGroup.code !== ''
-          "
+              curGroup.code !== null &&
+              curGroup.code !== undefined &&
+              curGroup.code !== ''
+            "
           >
             <q-icon
               name="close"
@@ -51,8 +50,10 @@
           <template
             v-slot:append
             v-if="
-            curGroup.name !== null && curGroup.name !== undefined && curGroup.name !== ''
-        "
+              curGroup.name !== null &&
+              curGroup.name !== undefined &&
+              curGroup.name !== ''
+            "
           >
             <q-icon
               name="close"
@@ -64,16 +65,10 @@
       </div>
       <div class="q-mt-lg q-mb-md">
         <div class="row items-center q-mb-md">
-          <q-icon
-            name="search"
-            size="sm"
-          />
+          <q-icon name="search" size="sm" />
           <span class="q-pl-sm text-subtitle2">Resultado da Pesquisa</span>
         </div>
-        <q-separator
-          color="grey-13"
-          size="1px"
-        />
+        <q-separator color="grey-13" size="1px" />
       </div>
       <div>
         <q-scroll-area style="height: 460px">
@@ -85,46 +80,30 @@
             row-key="id"
           >
             <template v-slot:no-data="{ icon, filter }">
-              <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+              <div
+                class="full-width row flex-center text-primary q-gutter-sm text-body2"
+              >
                 <span> Sem resultados para visualizar </span>
-                <q-icon
-                  size="2em"
-                  :name="filter ? 'filter_b_and_w' : icon"
-                />
+                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
             <template #body="props">
               <q-tr :props="props">
                 <!--q-td key="order" :props="props">
                   </q-td-->
-                <q-td
-                  key="code"
-                  :props="props"
-                >
+                <q-td key="code" :props="props">
                   {{ props.row.code }}
                 </q-td>
-                <q-td
-                  key="name"
-                  :props="props"
-                >
+                <q-td key="name" :props="props">
                   {{ props.row.name }}
                 </q-td>
-                <q-td
-                  key="groupType"
-                  :props="props"
-                >
+                <q-td key="groupType" :props="props">
                   {{ props.row.groupType.description }}
                 </q-td>
-                <q-td
-                  key="service"
-                  :props="props"
-                >
+                <q-td key="service" :props="props">
                   {{ props.row.service.code }}
                 </q-td>
-                <q-td
-                  key="options"
-                  :props="props"
-                >
+                <q-td key="options" :props="props">
                   <div class="col">
                     <q-btn
                       flat
@@ -142,10 +121,7 @@
           </q-table>
         </q-scroll-area>
       </div>
-      <q-page-sticky
-        position="bottom-right"
-        :offset="[18, 18]"
-      >
+      <q-page-sticky position="bottom-right" :offset="[18, 18]">
         <q-btn
           class="q-mb-xl q-mr-xl"
           fab
@@ -155,10 +131,7 @@
         />
       </q-page-sticky>
     </div>
-    <q-dialog
-      persistent
-      v-model="showGroupRegister"
-    >
+    <q-dialog persistent v-model="showGroupRegister">
       <groupRegister
         :step="step"
         :stepp="step"
@@ -169,38 +142,16 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
+import { computed, onMounted, provide, ref } from 'vue';
 import { SessionStorage } from 'quasar';
 import Group from '../../stores/models/group/Group';
-import Clinic from '../../stores/models/clinic/Clinic';
-import Patient from '../../stores/models/patient/Patient';
-import GroupType from '../../stores/models/groupType/GroupType';
-import ClinicalService from '../../stores/models/ClinicalService/ClinicalService';
-import Episode from '../../stores/models/episode/Episode';
-import PatientVisitDetails from '../../stores/models/patientVisitDetails/PatientVisitDetails';
-import Prescription from '../../stores/models/prescription/Prescription';
-import Pack from '../../stores/models/packaging/Pack';
-import mixinplatform from 'src/mixins/mixin-system-platform';
-import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
-import GroupMember from 'src/stores/models/groupMember/GroupMember';
-import Drug from 'src/stores/models/drug/Drug';
-import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
-import Doctor from 'src/stores/models/doctor/Doctor';
-// import Duration from 'src/stores/models/Duration/Duration';
-import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
-import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
-import { usePatient } from 'src/composables/patient/patientMethods';
 import { useRouter } from 'vue-router';
 import groupTypeService from 'src/services/api/groupType/groupTypeService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import groupService from 'src/services/api/group/groupService';
-import TitleBar from 'components/Shared/TitleBar.vue';
-import TextField from 'components/Shared/Input/TextField.vue';
-import groupRegister from 'components/Groups/AddEditGroup.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 const columns = [
   { name: 'code', align: 'left', label: 'Número do grupo', sortable: false },
@@ -217,25 +168,21 @@ const columns = [
 
 //import Patient from 'src/stores/models/patient/Patient';
 
-
-
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
-
 
 //Declaration
 const title = ref('Procurar ou adicionar Grupo');
 const router = useRouter();
 const searchField = ref('');
-const filter = reactive(ref(''));
+const filter = ref('');
 const selected = ref([]);
 const username = localStorage.getItem('user');
 const searchResults = ref([]);
 // const clinic = inject('clinic');
-const curGroup = reactive(ref(new Group()));
+const curGroup = ref(new Group());
 const showGroupRegister = ref(false);
-
 
 const clinic = computed(() => {
   return clinicService.currClinic();
@@ -245,7 +192,6 @@ const step = ref('create');
 
 onMounted(() => {
   if (isMobile.value) {
-  
   } else {
     showloading();
     groupTypeService.apiGetAll();
@@ -253,41 +199,41 @@ onMounted(() => {
     getAllGroupsOfClinic();
     searchResults.value = groupService.getAllGroups();
     closeLoading();
-   // curGroup = new Group()
+    // curGroup = new Group()
   }
 });
 
 const getAllGroups = () => {
   searchResults.value = groupService.getAllGroups();
-}
+};
 
 const getAllGroupsOfClinic = () => {
   const offset = 0;
-      const max = 100;
-      groupService.apiGetAllByClinicId(clinic.value.id, offset, max);
-    //  this.doGroupsGet(clinic.id, offset, max);
-}
+  const max = 100;
+  groupService.apiGetAllByClinicId(clinic.value.id, offset, max);
+  //  this.doGroupsGet(clinic.id, offset, max);
+};
 
 const search = () => {
   const groups = groupService.getAllGroups();
-      searchResults.value = groups.filter((group) => {
-        return (
-          stringContains(group.code, curGroup.value.code) ||
-          stringContains(group.name, curGroup.value.name)
-        );
-      });
-}
+  searchResults.value = groups.filter((group) => {
+    return (
+      stringContains(group.code, curGroup.value.code) ||
+      stringContains(group.name, curGroup.value.name)
+    );
+  });
+};
 
 const openGroup = (group) => {
-    SessionStorage.set('selectedGroupId', group.id);
-      // pull all selected group info
-      router.push('/group/panel');
-}
+  SessionStorage.set('selectedGroupId', group.id);
+  // pull all selected group info
+  router.push('/group/panel');
+};
 
 const stringContains = (stringToCheck, stringText) => {
-  if (stringText === '') return false
-   return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
-}
+  if (stringText === '') return false;
+  return stringToCheck.toLowerCase().includes(stringText.toLowerCase());
+};
 
 provide('clinic', clinic);
 provide('step', step);

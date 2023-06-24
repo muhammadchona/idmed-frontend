@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientServiceIdentifier extends Model {
   static entity = 'identifiers';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

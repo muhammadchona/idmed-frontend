@@ -209,7 +209,7 @@
 
 <script setup>
 /*imports*/
-import { ref, inject, onMounted, computed, reactive } from 'vue';
+import { ref, inject, onMounted, computed } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/TherapeuticRegimen';
 import ClinicalService from '../../../stores/models/ClinicalService/ClinicalService';
@@ -297,9 +297,7 @@ const selectedTherapeuticRegimens = ref([]);
 const selectedAttributes = ref([]);
 const stepper = ref();
 const nome = ref();
-const clinicalService = reactive(
-  ref(clinicalServiceService.newInstanceEntity())
-);
+const clinicalService = ref(clinicalServiceService.newInstanceEntity());
 
 /*injects*/
 const selectedClinicalService = inject('selectedClinicalService');

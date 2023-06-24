@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class NationalClinic extends Model {
   static entity = 'nationalClinics';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -26,15 +26,4 @@ export default class NationalClinic extends Model {
   static piniaOptions = {
     persist: true,
   };
-  static async apiGetAll() {
-    return await this.api().get('/nationalClinic');
-  }
-
-  static async apiFetchById(id) {
-    return await this.api().get(`/nationalClinic/${id}`);
-  }
-
-  static async apiSave(nationalClinic) {
-    return await this.api().post('/nationalClinic', nationalClinic);
-  }
 }

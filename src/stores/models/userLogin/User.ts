@@ -5,13 +5,7 @@ import UserClinics from './UserClinic';
 import UserClinicSectors from './UserClinicSector';
 export default class User extends Model {
   static entity = 'users';
-
-  static state() {
-    return {
-      fetching: false,
-    };
-  }
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),

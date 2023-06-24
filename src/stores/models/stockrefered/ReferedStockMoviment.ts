@@ -1,12 +1,11 @@
 import { Model } from 'pinia-orm';
 import Clinic from '../clinic/Clinic';
 import { StockReferenceAdjustment } from '../stockadjustment/StockAdjustmentHierarchy';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class StockReferedStockMoviment extends Model {
   static entity = 'referedStockMoviments';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -25,9 +24,5 @@ export default class StockReferedStockMoviment extends Model {
 
   static piniaOptions = {
     persist: true,
-  }
-  static async syncReferedStock(referedStock: any) {
-    if (referedStock.syncStatus === 'R') await this.apiSave(referedStock);
-    if (referedStock.syncStatus === 'U') await this.apiUpdate(referedStock);
   }
 }

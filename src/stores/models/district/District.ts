@@ -2,12 +2,11 @@ import { Model } from 'pinia-orm';
 import Province from 'src/stores/models/province/Province';
 import Localidade from '../Localidade/Localidade';
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class District extends Model {
   static entity = 'districts';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

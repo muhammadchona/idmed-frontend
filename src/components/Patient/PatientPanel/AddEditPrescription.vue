@@ -150,38 +150,31 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref } from 'vue';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService';
 import addEditPrescriptionUnit from './AddEditPrescriptionUnit.vue';
 import ListHeader from 'src/components/Shared/ListHeader.vue';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
-import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
 import moment from 'moment';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
-import packService from 'src/services/api/pack/packService';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 
 // Declaration
-const {
-  idadeCalculator,
-  getDDMMYYYFromJSDate,
-  getDateFromHyphenDDMMYYYY,
-  getYYYYMMDDFromJSDate,
-} = useDateUtils();
-const { preferedIdentifierValue, fullName } = usePatient();
-const { alertSucess, alertError, alertInfo } = useSwal();
+const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
+  useDateUtils();
+const { fullName } = usePatient();
+const { alertSucess, alertError } = useSwal();
 const mds = ref('US_');
 const dispenseMode = ref();
 const selected_model = ref([]);
 const submitting = ref(false);
-const curPatientVisit = reactive(ref(new PatientVisit()));
+const curPatientVisit = ref(new PatientVisit());
 
 //Inject
 const patient = inject('patient');
-const isNewPrescription = inject('isNewPrescription');
 const closePrescriptionOption = inject('closePrescriptionOption');
 
 //Hook
@@ -237,8 +230,7 @@ const doValidationToDispense = () => {
     });
     patientVisitService
       .post(curPatientVisit.value)
-      .then((resp) => {
-        console.log('Saved Patient Visit', resp);
+      .then(() => {
         alertSucess('Dispensa efectuada com sucesso');
         submitting.value = false;
         closePrescriptionOption();

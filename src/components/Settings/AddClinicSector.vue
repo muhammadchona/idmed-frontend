@@ -114,10 +114,10 @@ export default {
           this.clinicSector.clinic = Object.assign({}, this.clinic)
         }
     },
-    components: {
-        nameInput: require('components/Shared/NameInput.vue').default,
-        codeInput: require('components/Shared/CodeInput.vue').default
-    },
+    // components: {
+    //     nameInput: require('components/Shared/NameInput.vue').default,
+    //     codeInput: require('components/Shared/CodeInput.vue').default
+    // },
     mounted () {
         const offset = 0
         this.clinicOptions = this.getAllClinics(offset)

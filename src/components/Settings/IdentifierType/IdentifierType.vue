@@ -86,7 +86,7 @@
 <script setup>
 /*Imports*/
 // import IdentifierType from '../../../stores/models/identifierType/IdentifierType';
-import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
+import { ref, inject, onMounted, computed, provide } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 

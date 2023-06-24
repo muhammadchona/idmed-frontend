@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientVisit extends Model {
   static entity = 'patientVisits';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

@@ -33,7 +33,7 @@ export default {
   checkProvincialServer() {
     // const $q = useQuasar()
     const openProvincialServer = axios.create({
-      baseURL: 'http://dev.fgh.org.mz:3110',
+      baseURL: 'http://dev.fgh.org.mz:3910',
     });
     openProvincialServer
       .post('/rpc/login', {
@@ -43,9 +43,7 @@ export default {
       .then((response) => {
         if (response.data[0].token === undefined) {
           alertInfo(
-            'O Utilizador ' +
-              this.username +
-              ' não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.'
+            'O Utilizador  não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.'
           );
         } else {
           alertSucess(

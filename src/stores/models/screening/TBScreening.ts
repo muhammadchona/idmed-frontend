@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class TBScreening extends Model {
   static entity = 'TBScreenings';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

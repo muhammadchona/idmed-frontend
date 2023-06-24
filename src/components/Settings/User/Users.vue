@@ -99,7 +99,7 @@
 /*imports*/
 import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
+import { ref, inject, onMounted, computed, provide } from 'vue';
 import UserLogin from '../../../stores/models/userLogin/User';
 import Role from '../../../stores/models/userLogin/Role';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
@@ -145,7 +145,7 @@ const columns = [
 ];
 const submitting = ref(false);
 const showUserRegistrationScreen = ref(false);
-const user = reactive(ref(userService.newInstanceEntity()));
+const user = ref(userService.newInstanceEntity());
 
 /*Injects*/
 const step = inject('step');
@@ -211,7 +211,7 @@ const editUser = (userParam) => {
   showUserRegistrationScreen.value = true;
 };
 const addUser = () => {
-  user.value = reactive(ref(userService.newInstanceEntity()));
+  user.value = ref(userService.newInstanceEntity());
   isCreateStep.value = true;
   editMode.value = false;
   viewMode.value = false;
@@ -237,17 +237,6 @@ const promptToConfirm = (user) => {
         user.active = true;
       }
 
-      // if (this.mobile) {
-      //         et userLocalBase = JSON.parse(JSON.stringify(user));
-      // userLocalBase = this.encrypt(userLocalBase);
-      // UserLogin.localDbAddOrUpdate(userLocalBase).then((resp) => {
-      //   this.submitting = false;
-      //   UserLogin.insert({
-      //     data: userLocalBase,
-      //   });
-      //   this.displayAlert('info', msg);
-      // });
-      //       } else {
       userService
         .patch(user.id, user)
         .then((resp) => {

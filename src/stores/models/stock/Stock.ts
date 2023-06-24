@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class Stock extends Model {
   static entity = 'stocks';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -42,9 +42,4 @@ export default class Stock extends Model {
   static piniaOptions = {
     persist: true,
   };
-
-  static piniaOptions = {
-    persist: true,
-  }
-
 }

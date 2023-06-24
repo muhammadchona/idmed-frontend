@@ -1,13 +1,11 @@
 import { Model } from 'pinia-orm';
-import { date } from 'quasar';
 import Clinic from '../clinic/Clinic';
 import { InventoryStockAdjustment } from '../stockadjustment/StockAdjustmentHierarchy';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class Inventory extends Model {
   static entity = 'inventorys';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -28,7 +26,7 @@ export default class Inventory extends Model {
   static piniaOptions = {
     persist: true,
   }
- 
+
 
   static getClassName() {
     return 'Inventory';

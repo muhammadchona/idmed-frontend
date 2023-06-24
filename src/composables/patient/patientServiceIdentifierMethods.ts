@@ -24,7 +24,14 @@ export function usePatientServiceIdentifier() {
       episode.patientVisitDetails.forEach((pvd: any) => {
         if (lastVisit === null || lastVisit === '') {
           lastVisit = pvd;
-        } else if (pvd.pack.pickupDate > lastVisit.pack.pickupDate) {
+          if (lastVisit.pack !== null && pvd.pack !== null) {
+            if (pvd.pack.pickupDate > lastVisit.pack.pickupDate) {
+              lastVisit = pvd;
+            } else {
+              lastVisit = pvd;
+            }
+          }
+        } else {
           lastVisit = pvd;
         }
       });

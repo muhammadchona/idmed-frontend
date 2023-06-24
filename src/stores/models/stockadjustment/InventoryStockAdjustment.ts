@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class InventoryStockAdjustment extends StockAdjustment {
   static entity = 'inventoryStockAdjustments';
   static baseEntity = 'stockAdjustments';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       ...super.fields(),
@@ -16,7 +16,7 @@ export class InventoryStockAdjustment extends StockAdjustment {
       inventory: this.belongsTo(Inventory, 'inventory_id'),
     };
   }
- 
+
   static piniaOptions = {
     persist: true,
   }

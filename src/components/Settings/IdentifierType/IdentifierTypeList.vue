@@ -85,7 +85,7 @@
 /*Imports*/
 import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
@@ -127,7 +127,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 const showAddEditIdentifierType = ref(false);
-const identifierType = reactive(ref(identifierTypeService.newInstanceEntity()));
+const identifierType = ref(identifierTypeService.newInstanceEntity());
 const filter = ref('');
 
 /*injects*/
@@ -210,9 +210,8 @@ const addIdentifierType = () => {
   isCreateStep.value = true;
   isEditStep.value = false;
   step.value = 'create';
-  identifierType.value = reactive(
-    ref(identifierTypeService.newInstanceEntity())
-  );
+  identifierType.value = ref(identifierTypeService.newInstanceEntity());
+
   showAddEditIdentifierType.value = true;
   editMode.value = false;
   viewMode.value = false;

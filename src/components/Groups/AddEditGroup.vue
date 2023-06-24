@@ -1,25 +1,16 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw;">
-    <form
-      @submit.prevent="submitForm"
-      class="q-ma-none"
-    >
+  <q-card style="width: 900px; max-width: 90vw">
+    <form @submit.prevent="submitForm" class="q-ma-none">
       <q-card-section class="q-pa-none bg-green-2">
         <div class="q-pa-md">
           <div class="row items-center">
-            <q-icon
-              name="groups"
-              size="sm"
-            />
+            <q-icon name="groups" size="sm" />
             <span class="q-pl-sm text-subtitle2">Dados do Grupo</span>
           </div>
         </div>
-        <q-separator
-          color="grey-13"
-          size="1px"
-        />
+        <q-separator color="grey-13" size="1px" />
       </q-card-section>
-      <q-scroll-area style="height: 630px;">
+      <q-scroll-area style="height: 630px">
         <q-card-section class="q-px-md">
           <div class="q-mt-md">
             <div class="row">
@@ -49,8 +40,10 @@
                 <template
                   v-slot:append
                   v-if="
-                  curGroup.code !== null && curGroup.code !== undefined && curGroup.code !== ''
-       "
+                    curGroup.code !== null &&
+                    curGroup.code !== undefined &&
+                    curGroup.code !== ''
+                  "
                 >
                 </template>
               </q-input>
@@ -69,8 +62,10 @@
                 <template
                   v-slot:append
                   v-if="
-           curGroup.name !== null && curGroup.name !== undefined && curGroup.name !== ''
-       "
+                    curGroup.name !== null &&
+                    curGroup.name !== undefined &&
+                    curGroup.name !== ''
+                  "
                 >
                 </template>
               </q-input>
@@ -97,19 +92,13 @@
                 label="Data de Criação *"
               >
                 <template v-slot:append>
-                  <q-icon
-                    name="event"
-                    class="cursor-pointer"
-                  >
+                  <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy
                       ref="qDateProxy"
                       transition-show="scale"
                       transition-hide="scale"
                     >
-                      <q-date
-                        v-model="startDate"
-                        mask="DD-MM-YYYY"
-                      >
+                      <q-date v-model="startDate" mask="DD-MM-YYYY">
                         <div class="row items-center justify-end">
                           <q-btn
                             v-close-popup
@@ -128,16 +117,10 @@
           </div>
           <div class="q-mt-lg">
             <div class="row items-center q-mb-md">
-              <q-icon
-                name="person"
-                size="sm"
-              />
+              <q-icon name="person" size="sm" />
               <span class="q-pl-sm text-subtitle2">Membros</span>
             </div>
-            <q-separator
-              color="grey-13"
-              size="1px"
-            />
+            <q-separator color="grey-13" size="1px" />
           </div>
           <div class="row">
             <q-input
@@ -150,10 +133,7 @@
               class="q-mt-md"
               dense
             >
-              <template
-                v-slot:append
-                class="q-mr-none"
-              >
+              <template v-slot:append class="q-mr-none">
                 <!--   <q-btn  @click="search()" class="q-mt-md q-mb-md q-mr-none"  square color="primary" icon="search" >
                         <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
                       </q-btn> -->
@@ -172,13 +152,10 @@
             </q-btn>
             <!-- <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
           </div>
-          <q-separator
-            color="grey-13"
-            size="1px"
-          />
+          <q-separator color="grey-13" size="1px" />
           <div class="row q-mt-none">
             <div class="col-6 q-pr-sm">
-              <div class="col text-center q-mb-lg text-subtitle1 ">
+              <div class="col text-center q-mb-lg text-subtitle1">
                 Por Adicionar
               </div>
               <q-table
@@ -190,10 +167,10 @@
                 row-key="id"
               >
                 <template v-slot:no-data="{ icon, filter }">
-                  <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
-                    <span>
-                      Sem resultados para visualizar
-                    </span>
+                  <div
+                    class="full-width row flex-center text-primary q-gutter-sm text-body2"
+                  >
+                    <span> Sem resultados para visualizar </span>
                     <q-icon
                       size="2em"
                       :name="filter ? 'filter_b_and_w' : icon"
@@ -204,22 +181,13 @@
                   <q-tr :props="props">
                     <!--q-td key="order" :props="props">
                         </q-td-->
-                    <q-td
-                      key="id"
-                      :props="props"
-                    >
-                      {{usePatient().preferedIdentifier(props.row).value}}
+                    <q-td key="id" :props="props">
+                      {{ usePatient().preferedIdentifier(props.row).value }}
                     </q-td>
-                    <q-td
-                      key="name"
-                      :props="props"
-                    >
-                      {{usePatient().fullName(props.row)}}
+                    <q-td key="name" :props="props">
+                      {{ usePatient().fullName(props.row) }}
                     </q-td>
-                    <q-td
-                      key="options"
-                      :props="props"
-                    >
+                    <q-td key="options" :props="props">
                       <div class="col">
                         <q-btn
                           flat
@@ -230,18 +198,13 @@
                         >
                           <q-tooltip class="bg-primary">Adicionar</q-tooltip>
                         </q-btn>
-
                       </div>
                     </q-td>
                   </q-tr>
                 </template>
               </q-table>
             </div>
-            <q-separator
-              color="grey-13 q-ma-none"
-              vertical
-              inset
-            />
+            <q-separator color="grey-13 q-ma-none" vertical inset />
             <div class="col q-pl-sm">
               <div class="col text-center q-mb-lg text-subtitle1">
                 Existentes
@@ -255,10 +218,10 @@
                 row-key="id"
               >
                 <template v-slot:no-data="{ icon, filter }">
-                  <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
-                    <span>
-                      Nenhum Paciente adicionado
-                    </span>
+                  <div
+                    class="full-width row flex-center text-primary q-gutter-sm text-body2"
+                  >
+                    <span> Nenhum Paciente adicionado </span>
                     <q-icon
                       size="2em"
                       :name="filter ? 'filter_b_and_w' : icon"
@@ -269,22 +232,15 @@
                   <q-tr :props="props">
                     <!--q-td key="order" :props="props">
                         </q-td-->
-                    <q-td
-                      key="id"
-                      :props="props"
-                    >
-                      {{usePatient().preferedIdentifier(props.row.patient).value}}
+                    <q-td key="id" :props="props">
+                      {{
+                        usePatient().preferedIdentifier(props.row.patient).value
+                      }}
                     </q-td>
-                    <q-td
-                      key="name"
-                      :props="props"
-                    >
-                      {{usePatient().fullName(props.row.patient)}}
+                    <q-td key="name" :props="props">
+                      {{ usePatient().fullName(props.row.patient) }}
                     </q-td>
-                    <q-td
-                      key="options"
-                      :props="props"
-                    >
+                    <q-td key="options" :props="props">
                       <div class="col">
                         <q-btn
                           flat
@@ -295,7 +251,6 @@
                         >
                           <q-tooltip class="bg-red-5">Remover</q-tooltip>
                         </q-btn>
-
                       </div>
                     </q-td>
                   </q-tr>
@@ -305,15 +260,8 @@
           </div>
         </q-card-section>
       </q-scroll-area>
-      <q-card-actions
-        align="right"
-        class="q-my-md q-mr-sm"
-      >
-        <q-btn
-          label="Cancelar"
-          color="red"
-          @click="$emit('close')"
-        />
+      <q-card-actions align="right" class="q-my-md q-mr-sm">
+        <q-btn label="Cancelar" color="red" @click="$emit('close')" />
         <q-btn
           type="submit"
           label="Submeter"
@@ -326,25 +274,16 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
-import Group from '../../stores/models/group/Group'
-import Patient from '../../stores/models/patient/Patient'
-import moment from 'moment'
-import ClinicalService from '../../stores/models/ClinicalService/ClinicalService'
-import GroupType from '../../stores/models/groupType/GroupType'
-import Clinic from '../../stores/models/clinic/Clinic'
-import { QSpinnerBall, SessionStorage, useQuasar } from 'quasar'
-import GroupMember from '../../stores/models/groupMember/GroupMember'
-import PatientVisitDetails from '../../stores/models/patientVisitDetails/PatientVisitDetails'
-import PatientServiceIdentifier from '../../stores/models/patientServiceIdentifier/PatientServiceIdentifier'
-import mixinplatform from 'src/mixins/mixin-system-platform'
-import Episode from 'src/stores/models/episode/Episode'
-// import mixinutils from 'src/mixins/mixin-utils'
+import { computed, inject, onMounted, ref, watch } from 'vue';
+import Group from '../../stores/models/group/Group';
+import moment from 'moment';
+import { SessionStorage } from 'quasar';
+import GroupMember from '../../stores/models/groupMember/GroupMember';
+import Episode from 'src/stores/models/episode/Episode';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRouter } from 'vue-router';
-import TextField from 'components/Shared/Input/TextField.vue';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import groupTypeService from 'src/services/api/groupType/groupTypeService';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
@@ -352,305 +291,325 @@ import patientService from 'src/services/api/patientService/patientService';
 import episodeService from 'src/services/api/episode/episodeService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import groupService from 'src/services/api/group/groupService';
-import {  usePatient } from 'src/composables/patient/patientMethods';
 import { v4 as uuidv4 } from 'uuid';
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
-  { name: 'options', align: 'left', label: 'Opções', sortable: false }
-]
+  { name: 'options', align: 'left', label: 'Opções', sortable: false },
+];
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 
-const emit = defineEmits([
-  'close',
-]);
+const emit = defineEmits(['close']);
 
 const router = useRouter();
 const startDate = ref('');
-const filter = reactive(ref(''));
+const filter = ref('');
 const selected = ref([]);
 const username = localStorage.getItem('user');
-const searchResults = reactive(ref([]));
+const searchResults = ref([]);
 const clinic = inject('clinic');
-const curGroup = reactive(ref(new Group({  id: uuidv4(), members: [] })));
-const searchParam = reactive(ref(''));
+const curGroup = ref(new Group({ id: uuidv4(), members: [] }));
+const searchParam = ref('');
 const step = inject('step');
-console.log(clinic.value)
-const clinicServices = computed(() => clinicalServiceService.getAllClinicalServices())
+console.log(clinic.value);
+const clinicServices = computed(() =>
+  clinicalServiceService.getAllClinicalServices()
+);
 
-const groupTypes = computed(() => groupTypeService.getAllFromStorage())
-console.log('11111' + curGroup.value.id)
+const groupTypes = computed(() => groupTypeService.getAllFromStorage());
+console.log('11111' + curGroup.value.id);
 
- const isCreateStep = computed(() => step.value === 'create')
+const isCreateStep = computed(() => step.value === 'create');
 // const isCreateStep = true
 
- const isEditStep = computed(() => step.value === 'edit')
+const isEditStep = computed(() => step.value === 'edit');
 // const isEditStep = false
- const isMemberEditionStep = computed(() => step === 'addMember')
-console.log('11111' + step.value)
+const isMemberEditionStep = computed(() => step === 'addMember');
+console.log('11111' + step.value);
 const submitting = ref(false);
 
-console.log('11111' + isCreateStep.value)
-console.log('11111' + isEditStep.value)
-console.log('11111' + isMemberEditionStep.value)
+console.log('11111' + isCreateStep.value);
+console.log('11111' + isEditStep.value);
+console.log('11111' + isMemberEditionStep.value);
 const isMemberOfGroupOnService = (patient, serviceCode) => {
-  let res = false
-      const members = groupMemberService.getAllFromStorage();
-      if (members !== null) {
-        members.forEach((member) => {
-           member.patient = patientService.getPatientByID(member.patient_id)
-          if (patient.id === member.patient.id && serviceCode === member.group.service.code && member.endDate === null) {
-            res = true
-          }
-        })
+  let res = false;
+  const members = groupMemberService.getAllFromStorage();
+  if (members !== null) {
+    members.forEach((member) => {
+      member.patient = patientService.getPatientByID(member.patient_id);
+      if (
+        patient.id === member.patient.id &&
+        serviceCode === member.group.service.code &&
+        member.endDate === null
+      ) {
+        res = true;
       }
-      return res
-}
+    });
+  }
+  return res;
+};
 
 const lastEpisode = (identifier) => {
-  episodeService.lastEpisodeByIdentifier(identifier.id)
-}
+  episodeService.lastEpisodeByIdentifier(identifier.id);
+};
 
 const getGroupForEdit = () => {
   if (!isCreateStep.value) {
-        curGroup.value = groupService.getGroupWithsById(SessionStorage.getItem('selectedGroupId'))
-        curGroup.value.members = curGroup.value.members.filter((member) => {
-          return member.endDate === null || member.endDate === ''
-        })
-        curGroup.value.members.forEach((member) => {
-          member.patient =  patientService.getPatienWithstByID(member.patient.id)
-        })
-        startDate.value = formatDate(curGroup.value.startDate)
-      }
-}
+    curGroup.value = groupService.getGroupWithsById(
+      SessionStorage.getItem('selectedGroupId')
+    );
+    curGroup.value.members = curGroup.value.members.filter((member) => {
+      return member.endDate === null || member.endDate === '';
+    });
+    curGroup.value.members.forEach((member) => {
+      member.patient = patientService.getPatienWithstByID(member.patient.id);
+    });
+    startDate.value = formatDate(curGroup.value.startDate);
+  }
+};
 
 const search = () => {
-        showloading();
-      if (isMobile.value) { // Depois mudar para mobile
-        const patients = patientService.getPatientByClinicId(clinic.value.id)
-        searchResults.value = patients.filter((patient) => {
-          return stringContains(patient.firstNames, searchParam) || stringContains(patient.middleNames, searchParam) || stringContains(patient.lastNames, searchParam)
-        })
-      } else {
-        if (searchParam.value.length > 0) {
-          patientService.deletePatientStorage((patient) => {
-          return notMember(patient)
-        })
-        patientService.apisearchByParam(searchParam.value, clinic.value.id).then(resp => {
-            //  if (resp.data.length >= 0) {
-                const patients = patientService.getPatientByClinicId(clinic.value.id)
-             searchResults.value = patients.filter((patient) => {
-          return stringContains(patient.firstNames, searchParam.value) || stringContains(patient.middleNames, searchParam.value) || stringContains(patient.lastNames, searchParam.value)
-        })
+  showloading();
+  if (isMobile.value) {
+    // Depois mudar para mobile
+    const patients = patientService.getPatientByClinicId(clinic.value.id);
+    searchResults.value = patients.filter((patient) => {
+      return (
+        stringContains(patient.firstNames, searchParam) ||
+        stringContains(patient.middleNames, searchParam) ||
+        stringContains(patient.lastNames, searchParam)
+      );
+    });
+  } else {
+    if (searchParam.value.length > 0) {
+      patientService.deletePatientStorage((patient) => {
+        return notMember(patient);
+      });
+      patientService
+        .apisearchByParam(searchParam.value, clinic.value.id)
+        .then((resp) => {
+          //  if (resp.data.length >= 0) {
+          const patients = patientService.getPatientByClinicId(clinic.value.id);
+          searchResults.value = patients.filter((patient) => {
+            return (
+              stringContains(patient.firstNames, searchParam.value) ||
+              stringContains(patient.middleNames, searchParam.value) ||
+              stringContains(patient.lastNames, searchParam.value)
+            );
+          });
           //    }
-          })
-        } else {
-          closeLoading()
-        }
-        }
-}
+        });
+    } else {
+      closeLoading();
+    }
+  }
+};
 const isAssociatedToSelectedService = (patient) => {
-      if (patient.identifiers.length <= 0) return false
+  if (patient.identifiers.length <= 0) return false;
 
-      const match = patient.identifiers.some((identifier) => {
-        return identifier.service.id === curGroup.service.id
-      })
-      return match
-}
+  const match = patient.identifiers.some((identifier) => {
+    return identifier.service.id === curGroup.value.service.id;
+  });
+  return match;
+};
 
 const hasIdentifierLike = (patientToCheck, identifierString) => {
-      if (patientToCheck.identifiers.length <= 0) return false
+  if (patientToCheck.identifiers.length <= 0) return false;
 
-      const match = patientToCheck.identifiers.some((identifier) => {
-        return stringContains(identifier.value, identifierString)
-      })
-      return match
-}
+  const match = patientToCheck.identifiers.some((identifier) => {
+    return stringContains(identifier.value, identifierString);
+  });
+  return match;
+};
 
-const  stringContains = (stringToCheck, stringText) => {
-      if (stringText === '' || stringToCheck === null) return false
-      return stringToCheck.toLowerCase().includes(stringText.toLowerCase())
-    }
+const stringContains = (stringToCheck, stringText) => {
+  if (stringText === '' || stringToCheck === null) return false;
+  return stringToCheck.toLowerCase().includes(stringText.toLowerCase());
+};
 
- const formatDate = (dateString) => {
-      if (!dateString || !moment(dateString).isValid()) return ''
-      const dateMoment = moment(dateString).format('DD-MM-YYYY')
-      return dateMoment
-    }
- 
-const  loadMembersData = () => {
-      curGroup.value.members.forEach((member) => {
-        member.patient.identifiers.forEach((identifier) => {
-          identifier.episodes.forEach((episode) => {
-            patientVisitDetailsService.apiGetAllByEpisodeId(episode.id, 0, 500)
-          })
-        })
-      })
-    }
+const formatDate = (dateString) => {
+  if (!dateString || !moment(dateString).isValid()) return '';
+  const dateMoment = moment(dateString).format('DD-MM-YYYY');
+  return dateMoment;
+};
+
+const loadMembersData = () => {
+  curGroup.value.members.forEach((member) => {
+    member.patient.identifiers.forEach((identifier) => {
+      identifier.episodes.forEach((episode) => {
+        patientVisitDetailsService.apiGetAllByEpisodeId(episode.id, 0, 500);
+      });
+    });
+  });
+};
 
 const removePatient = (member) => {
   const members = curGroup.value.members.filter((mb) => {
-                        return mb.patient.id !== member.patient.id
-                      })
-      curGroup.value.members = members
-}
+    return mb.patient.id !== member.patient.id;
+  });
+  curGroup.value.members = members;
+};
 
 const notMember = (patient) => {
-      const exists = curGroup.value.members.some((mb) => {
-                        return mb.patient.id === patient.id
-                      })
-      return !exists
-    }
+  const exists = curGroup.value.members.some((mb) => {
+    return mb.patient.id === patient.id;
+  });
+  return !exists;
+};
 
 const initNewMember = (patient) => {
-      const member = new GroupMember({
-        id: uuidv4(),
-        startDate: getJSDateFromDDMMYYY(startDate.value),
-        patient: patient,
-        clinic: clinic
-      })
-      console.log(member)
-      return member
-    }
-const  getJSDateFromDDMMYYY = (dateString) => {
-      const dateParts = dateString.split('-')
-      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-    }
+  const member = new GroupMember({
+    id: uuidv4(),
+    startDate: getJSDateFromDDMMYYY(startDate.value),
+    patient: patient,
+    clinic: clinic,
+  });
+  console.log(member);
+  return member;
+};
+const getJSDateFromDDMMYYY = (dateString) => {
+  const dateParts = dateString.split('-');
+  return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]);
+};
 const addPatient = (patient) => {
-       showloading()
-      const patientExists = curGroup.value.members.some((member) => {
-            return member.patient.id === patient.id
-          })
-       if (patientExists) {
-        closeLoading()
-        alertError(
-          'O paciente selecionado ja se encontra associado a este grupo [' + curGroup.service.code + '].'
-           )
-       } else {
-         if (isMobile.value) {
-          // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)
-          let lastEpisode = {}
-          patient.identifiers.forEach((identifier) => {
-            const episodes = Episode.query().where('patientServiceIdentifier_id', identifier.id)
-                                  .get()
-            identifier.episodes = episodes
-            if (identifier.service.code === curGroup.service.code) {
-              lastEpisode = lastEpisode(identifier)
-            }
-          })
+  showloading();
+  const patientExists = curGroup.value.members.some((member) => {
+    return member.patient.id === patient.id;
+  });
+  if (patientExists) {
+    closeLoading();
+    alertError(
+      'O paciente selecionado ja se encontra associado a este grupo [' +
+        curGroup.value.service.code +
+        '].'
+    );
+  } else {
+    if (isMobile.value) {
+      // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)
+      let lastEpisode = {};
+      patient.identifiers.forEach((identifier) => {
+        const episodes = Episode.query()
+          .where('patientServiceIdentifier_id', identifier.id)
+          .get();
+        identifier.episodes = episodes;
+        if (identifier.service.code === curGroup.value.service.code) {
+          lastEpisode = lastEpisode(identifier);
+        }
+      });
 
-          if (!patient.hasEpisodes()) {
-            alertError(
-              'O paciente selecionado não possui episódios.'
-              )
-          } else if (!lastEpisode.startStopReason.isStartReason) {
-            alertError(
-              'O Último episódio do paciente não é de inicio'
-              )
-          } else if (isMemberOfGroupOnService(patient, curGroup.service.code)) {
-            alertError(
-              'O paciente selecionado ja se encontra associado a um grupo activo do serviço '
-              )
-          } else {
-            curGroup.members.push(initNewMember(patient))
-          }
-          closeLoading()
-         } else {
-          groupService.apiValidateBeforeAdd(patient.id, curGroup.value.service.code).then(resp => {
-            if (resp.data === 'Accepted') {
-              curGroup.value.members.push(initNewMember(patient))
-            } else {
-               alertError(
-                resp.data
-              )
-            }
-            closeLoading()
-          })
-         }
+      if (!patient.hasEpisodes()) {
+        alertError('O paciente selecionado não possui episódios.');
+      } else if (!lastEpisode.startStopReason.isStartReason) {
+        alertError('O Último episódio do paciente não é de inicio');
+      } else if (
+        isMemberOfGroupOnService(patient, curGroup.value.service.code)
+      ) {
+        alertError(
+          'O paciente selecionado ja se encontra associado a um grupo activo do serviço '
+        );
+      } else {
+        curGroup.value.members.push(initNewMember(patient));
       }
+      closeLoading();
+    } else {
+      groupService
+        .apiValidateBeforeAdd(patient.id, curGroup.value.service.code)
+        .then((resp) => {
+          if (resp.data === 'Accepted') {
+            curGroup.value.members.push(initNewMember(patient));
+          } else {
+            alertError(resp.data);
+          }
+          closeLoading();
+        });
     }
+  }
+};
 
 const submitForm = () => {
-    doSave()
-}
+  doSave();
+};
 
 const doSave = async () => {
   submitting.value = true;
-       showloading()
-      setTimeout(() => {
-        closeLoading()
-      }, 700)
-      if (isCreateStep.value) {
-        curGroup.value.service.attributes = []
-        curGroup.value.startDate = getJSDateFromDDMMYYY(startDate.value)
-       // curGroup.value.clinic = clinic.value
-        // curGroup.value.clinic = {}
-       // curGroup.value.clinic.id = clinic.value.id
-      }
+  showloading();
+  setTimeout(() => {
+    closeLoading();
+  }, 700);
+  if (isCreateStep.value) {
+    curGroup.value.service.attributes = [];
+    curGroup.value.startDate = getJSDateFromDDMMYYY(startDate.value);
+    // curGroup.value.clinic = clinic.value
+    // curGroup.value.clinic = {}
+    // curGroup.value.clinic.id = clinic.value.id
+  }
 
-   //   curGroup = new Group(JSON.parse(JSON.stringify(curGroup.value,circularReferenceReplacer())))
-   console.log(curGroup.value)
-      curGroup.value = new Group(JSON.parse(JSON.stringify(curGroup.value)))
-      curGroup.value.clinic = {}
-        curGroup.value.clinic.id = clinic.value.id
-        curGroup.value.members.forEach((member) => {
-        //  member.startDate = curGroup.startDate
-          member.group_id = curGroup.id
-        //  const memberPatientId =  member.patient.id
-      //    member.patient =  {}
-        //  member.patient.id = memberPatientId
-        //  member.clinic_id = curGroup.clinic.id
-        member.patient.clinic = clinic.value
-          member.clinic =  {}
-          member.clinic.id = clinic.value.id
-          member.syncStatus = 'R'
-          member.group = null
-        })
-      if (isMobile.value) {
-        if (isCreateStep.value) {
-          curGroup.syncStatus = 'R'
-          curGroup.clinic_id = clinic.id
-          curGroup.clinical_service_id = curGroup.service.id
-          curGroup.groupType_id = curGroup.groupType.id
-          await Group.localDbAdd(JSON.parse(JSON.stringify(curGroup)))
-          await Group.insert({ data: curGroup })
-        } else {
-          if (curGroup.syncStatus !== 'R') curGroup.syncStatus = 'U'
-          curGroup.clinic_id = clinic.id
-          curGroup.clinical_service_id = curGroup.service.id
-          curGroup.groupType_id = JSON.parse(JSON.stringify(curGroup.groupType.id))
-          curGroup.members.forEach((member) => {
-            member.startDate = curGroup.startDate
-            if (member.syncStatus !== 'R') member.syncStatus = 'U'
-            member.patient.identifiers = []
-            const groupUpdate = new Group(JSON.parse(JSON.stringify((curGroup))))
-            Group.localDbUpdate(groupUpdate).then(groupRes => {
-              Group.update({ data: groupUpdate })
-            })
-          })
-        }
-        displayAlert('info', 'Operação efectuada com sucesso.')
-      } else {
-        if (isCreateStep.value) {
-          console.log(curGroup)
-          groupService.apiSave(curGroup.value).then(resp => {
-            submitting.value = false;
-  // groupService.apiFetchById(resp.data.id).then(resp => {
-            loadMembersData()
+  //   curGroup = new Group(JSON.parse(JSON.stringify(curGroup.value,circularReferenceReplacer())))
+  console.log(curGroup.value);
+  curGroup.value = new Group(JSON.parse(JSON.stringify(curGroup.value)));
+  curGroup.value.clinic = {};
+  curGroup.value.clinic.id = clinic.value.id;
+  curGroup.value.members.forEach((member) => {
+    //  member.startDate = curGroup.startDate
+    member.group_id = curGroup.value.id;
+    //  const memberPatientId =  member.patient.id
+    //    member.patient =  {}
+    //  member.patient.id = memberPatientId
+    //  member.clinic_id = curGroup.clinic.id
+    member.patient.clinic = clinic.value;
+    member.clinic = {};
+    member.clinic.id = clinic.value.id;
+    member.syncStatus = 'R';
+    member.group = null;
+  });
+  if (isMobile.value) {
+    if (isCreateStep.value) {
+      curGroup.value.syncStatus = 'R';
+      curGroup.value.clinic_id = clinic.id;
+      curGroup.value.clinical_service_id = curGroup.value.service.id;
+      curGroup.value.groupType_id = curGroup.value.groupType.id;
+      await Group.localDbAdd(JSON.parse(JSON.stringify(curGroup)));
+      await Group.insert({ data: curGroup });
+    } else {
+      if (curGroup.value.syncStatus !== 'R') curGroup.value.syncStatus = 'U';
+      curGroup.value.clinic_id = clinic.id;
+      curGroup.value.clinical_service_id = curGroup.value.service.id;
+      curGroup.value.groupType_id = JSON.parse(
+        JSON.stringify(curGroup.value.groupType.id)
+      );
+      curGroup.value.members.forEach((member) => {
+        member.startDate = curGroup.value.startDate;
+        if (member.syncStatus !== 'R') member.syncStatus = 'U';
+        member.patient.identifiers = [];
+        const groupUpdate = new Group(JSON.parse(JSON.stringify(curGroup)));
+        Group.localDbUpdate(groupUpdate).then((groupRes) => {
+          Group.update({ data: groupUpdate });
+        });
+      });
+    }
+    displayAlert('info', 'Operação efectuada com sucesso.');
+  } else {
+    if (isCreateStep.value) {
+      console.log(curGroup);
+      groupService
+        .apiSave(curGroup.value)
+        .then((resp) => {
+          submitting.value = false;
+          // groupService.apiFetchById(resp.data.id).then(resp => {
+          loadMembersData();
           //  curGroup = groupService.getGroupById(resp.data.id)
-            alertSucess(
-              'Operação efectuada com sucesso.'
-              )
-         // emit('close')
-         // curGroup.value.clinic_id = curGroup.clinic.id
-         // curGroup.clinical_service_id = curGroup.service.id
-         // curGroup.groupType_id = curGroup.groupType.id
-         SessionStorage.set('selectedGroupId', curGroup.value.id)
-        router.push('/group/panel')
-         }).catch((error) => {
+          alertSucess('Operação efectuada com sucesso.');
+          // emit('close')
+          // curGroup.value.clinic_id = curGroup.clinic.id
+          // curGroup.clinical_service_id = curGroup.service.id
+          // curGroup.groupType_id = curGroup.groupType.id
+          SessionStorage.set('selectedGroupId', curGroup.value.id);
+          router.push('/group/panel');
+        })
+        .catch((error) => {
           submitting.value = false;
           const listErrors = [];
           console.log(error);
@@ -666,38 +625,38 @@ const doSave = async () => {
           }
           alertError('error', listErrors);
         });
-  }
-        //  })
-         else {
-          console.log('Edit Step')
-          console.log(curGroup)
-          groupService.apiUpdate(curGroup).then(resp => {
-            groupService.apiFetchById(resp.id).then(resp => {
-            loadMembersData()
-            curGroup = groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
-            alertSucess(
-              'Operação efectuada com sucesso.'
-              )
-              emit('close')
-            console.log('emitsGetGroupMembers')
-          })
-        })
-        }
     }
-} 
+    //  })
+    else {
+      console.log('Edit Step');
+      console.log(curGroup);
+      groupService.apiUpdate(curGroup).then((resp) => {
+        groupService.apiFetchById(resp.id).then((resp) => {
+          loadMembersData();
+          curGroup.value = groupService.getGroupById(
+            SessionStorage.getItem('selectedGroupId')
+          );
+          alertSucess('Operação efectuada com sucesso.');
+          emit('close');
+          console.log('emitsGetGroupMembers');
+        });
+      });
+    }
+  }
+};
 
 const init = () => {
-  curGroup.value = new Group( { 
-    id: uuidv4()
-  })
-  console.log(curGroup.value.id)
-}
+  curGroup.value = new Group({
+    id: uuidv4(),
+  });
+  console.log(curGroup.value.id);
+};
 
 onMounted(() => {
-     //  init()
-     console.log(curGroup.value.id)
-      getGroupForEdit()
-})
+  //  init()
+  console.log(curGroup.value.id);
+  getGroupForEdit();
+});
 
 const circularReferenceReplacer = () => {
   const seen = new WeakSet();
@@ -712,7 +671,6 @@ const circularReferenceReplacer = () => {
   };
 };
 
-
 watch(
   () => searchResults,
   (oldp, newp) => {
@@ -723,6 +681,4 @@ watch(
 );
 </script>
 
-<style>
-
-</style>
+<style></style>

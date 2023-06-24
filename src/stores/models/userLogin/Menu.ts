@@ -1,13 +1,7 @@
 import { Model } from 'pinia-orm';
 export default class Menu extends Model {
   static entity = 'menus';
-
-  static state() {
-    return {
-      fetching: false,
-    };
-  }
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),

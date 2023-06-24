@@ -344,7 +344,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, reactive, provide, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref } from 'vue';
 import { date } from 'quasar';
 import moment from 'moment';
 import ServiceDrugsManagement from 'components/Patient/PatientPanel/ServiceDrugsManagement.vue';
@@ -409,20 +409,18 @@ const patientStatusRef = ref(null);
 const prescriptionDateRef = ref(null);
 
 // New Values
-const curPrescription = reactive(ref(new Prescription({ id: uuidv4() })));
-const curPrescriptionDetail = reactive(
-  ref(new PrescriptionDetail({ id: uuidv4() }))
-);
-const curPatientVisitDetail = reactive(ref(new PatientVisitDetails()));
-const curPack = reactive(ref(new Pack()));
-const validateDispense = reactive(ref(false));
+const curPrescription = ref(new Prescription({ id: uuidv4() }));
+const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
+const curPatientVisitDetail = ref(new PatientVisitDetails());
+const curPack = ref(new Pack());
+const validateDispense = ref(false);
 
 const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia']);
 const patientStatusOption = ref(['Inicio', 'Manutenção']);
 const patientTypes = ref(['Sim', 'Não']);
 const showServiceDrugsManagement = ref(false);
 const showDispenseMode = ref(false);
-const showAddEditDrug = reactive(ref(false));
+const showAddEditDrug = ref(false);
 const prescribedDrugs = ref([]);
 const optionsspetialPrescriptionMotives = ref([]);
 const optionstherapeuticRegimens = ref([]);
@@ -639,7 +637,6 @@ const getLastPrescriptionData = () => {
   }
 };
 const validateDate = (identifier) => {
-  console.log('Last Pack', lastVisitPrescription(identifier));
   if (
     lastVisitPrescription(identifier) !== null &&
     lastVisitPrescription(identifier) !== undefined

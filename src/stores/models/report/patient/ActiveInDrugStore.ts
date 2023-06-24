@@ -1,6 +1,3 @@
-// import { Model } from 'pinia-orm'
-import db from 'src/stores/localbase';
-
 export default class ActiveInDrugStore {
   static entity = 'activeInDrugStores';
   static fields() {

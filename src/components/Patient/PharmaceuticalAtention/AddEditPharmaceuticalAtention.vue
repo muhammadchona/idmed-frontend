@@ -240,7 +240,7 @@
 <script setup>
 // import { SessionStorage } from 'quasar';
 import PatientVisit from '../../../stores/models/patientVisit/PatientVisit';
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref } from 'vue';
 import VitalSignsScreening from '../../../stores/models/screening/VitalSignsScreening';
 import TBScreening from '../../../stores/models/screening/TBScreening';
 import PregnancyScreening from '../../../stores/models/screening/PregnancyScreening';
@@ -262,11 +262,11 @@ const { age, fullName, hasIdentifiers, getOldestIdentifier, isMale } =
   usePatient();
 const { getDDMMYYYFromJSDate, getJSDateFromDDMMYYY } = useDateUtils();
 const patientVisit = ref(new PatientVisit());
-const vitalSignsScreening = reactive(ref(new VitalSignsScreening()));
-const tBScreening = reactive(ref(new TBScreening()));
-const pregnancyScreening = reactive(ref(new PregnancyScreening()));
-const adherenceScreening = reactive(ref(new AdherenceScreening()));
-const rAMScreening = reactive(ref(new RAMScreening()));
+const vitalSignsScreening = ref(new VitalSignsScreening());
+const tBScreening = ref(new TBScreening());
+const pregnancyScreening = ref(new PregnancyScreening());
+const adherenceScreening = ref(new AdherenceScreening());
+const rAMScreening = ref(new RAMScreening());
 const screeningStep = ref(ref(1));
 const visitDate = ref('');
 const stepper = ref();

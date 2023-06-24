@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class GroupMember extends Model {
   static entity = 'members';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

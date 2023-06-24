@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class Group extends Model {
   static entity = 'groups';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

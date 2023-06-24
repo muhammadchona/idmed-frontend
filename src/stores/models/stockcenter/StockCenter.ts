@@ -3,7 +3,7 @@ import Clinic from '../clinic/Clinic';
 
 export default class StockCenter extends Model {
   static entity = 'stockCenters';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),
@@ -19,9 +19,4 @@ export default class StockCenter extends Model {
   static piniaOptions = {
     persist: true,
   };
-
-  static piniaOptions = {
-    persist: true,
-  }
-
 }

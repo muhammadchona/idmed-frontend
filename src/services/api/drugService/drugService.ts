@@ -52,7 +52,14 @@ export default {
       .get();
   },
   getDrugById(id: string) {
-    return drug.query().withAllRecursive(1).where('id', id).first();
+    return drug
+      .query()
+      .withAllRecursive(1)
+      .whereHas('stocks', (query) => {
+        query.orderBy('expireDate', 'asc');
+      })
+      .where('id', id)
+      .first();
   },
   // Local Storage Pinia
   newInstanceEntity() {

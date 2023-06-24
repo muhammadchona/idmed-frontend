@@ -1,5 +1,4 @@
-// import { Model } from 'pinia-orm'
-import db from 'src/stores/localbase';
+
 
 export default class StockReceivedReport {
   static entity = 'stockReceivedReports';
@@ -26,34 +25,4 @@ export default class StockReceivedReport {
     };
   }
 
-  static localDbAdd(stockReceivedReports) {
-    return db
-      .newDb()
-      .collection('stockReceivedReports')
-      .add(stockReceivedReports);
-  }
-
-  static localDbGetAll() {
-    //
-    return db.newDb().collection('stockReceivedReports').get();
-  }
-
-  static localDbUpdateAll(stockReceivedReports) {
-    return db
-      .newDb()
-      .collection('stockReceivedReports')
-      .set(stockReceivedReports);
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('stockReceivedReports').delete();
-  }
-
-  static localDbDeleteById(id) {
-    return db
-      .newDb()
-      .collection('stockReceivedReports')
-      .doc({ id: id })
-      .delete();
-  }
 }

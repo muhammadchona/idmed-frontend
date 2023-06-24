@@ -73,7 +73,7 @@ import StockEntranceMethod from 'src/methods/stockEntrance/StockEntranceMethod';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useMediaQuery } from '@vueuse/core';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { computed, reactive, provide, ref, inject } from 'vue';
+import { computed, provide, ref, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
@@ -84,7 +84,7 @@ const dateUtils = useDateUtils();
 Declarations
 */
 const { showloading, closeLoading } = useLoading();
-let stockEntrance = reactive(new StockEntrance({ dateReceived: new Date() }));
+let stockEntrance = new StockEntrance({ dateReceived: new Date() });
 const dateReceived = ref(dateUtils.getDDMMYYYFromJSDate(new Date()));
 const orderNumberRef = ref(null);
 const router = useRouter();
@@ -124,9 +124,7 @@ const submitForm = () => {
           .catch((error) => {
             console.log('ERRO: ', error);
             closeLoading();
-            alertError(
-              'Ocorreu um erro inesperado, contacte o administrador!'
-            );
+            alertError('Ocorreu um erro inesperado, contacte o administrador!');
           });
       } else {
         stockEntrance.clinic = currClinic;
@@ -142,8 +140,8 @@ const submitForm = () => {
             $emit('close');
           })
           .catch((error) => {
-           console.log(error)
-           alertError( 'Ocorreu um erro inesperado!');
+            console.log(error);
+            alertError('Ocorreu um erro inesperado!');
           });
       }
     }
@@ -151,4 +149,3 @@ const submitForm = () => {
 };
 provide('stockEntrance', stockEntrance);
 </script>
-

@@ -25,6 +25,7 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 
 import Index from 'src/components/Stock/Index.vue';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
+import Drug from 'src/stores/models/drug/Drug';
 
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const mobile = computed(() => (isWebScreen.value ? false : true));
@@ -125,5 +126,4 @@ setTimeout(() => {
 }, 600);
 </script>
 
-<style>
-</style>
+<style></style>

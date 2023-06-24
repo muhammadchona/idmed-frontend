@@ -1,12 +1,11 @@
 import { Model } from 'pinia-orm';
 import Clinic from '../clinic/Clinic';
 import Prescription from '../prescription/Prescription';
-import db from 'src/stores/localbase';
 // import { v4 as uuidv4 } from 'uuid'
 
 export default class Doctor extends Model {
   static entity = 'doctors';
-
+  static primaryKey = 'id';
   get fullName() {
     return `${this.firstnames} ${this.lastname}`;
   }

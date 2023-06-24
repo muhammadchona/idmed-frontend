@@ -27,7 +27,7 @@
 <script setup>
 import AddClinicService from 'components/Patient/PatientPanel/AddClinicService.vue';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
-import { provide, inject, reactive, ref, computed } from 'vue';
+import { provide, inject, ref, computed } from 'vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 // import AddEditEpisode from 'components/Patient/PatientPanel/AddEditEpisode.vue';
@@ -48,12 +48,12 @@ const mainContainer = ref(true);
 const bgColor = ref('bg-primary');
 const title = ref('Serviços de Saúde da Farmácia');
 const titleEmptyList = ref('Nenhum Serviço de Saúde Adicionado');
-const showAddEditClinicalService = reactive(ref(false));
+const showAddEditClinicalService = ref(false);
 
-const isEditStep = reactive(ref(false));
-const isCreateStep = reactive(ref(false));
-const isCloseStep = reactive(ref(false));
-const isReOpenStep = reactive(ref(false));
+const isEditStep = ref(false);
+const isCreateStep = ref(false);
+const isCloseStep = ref(false);
+const isReOpenStep = ref(false);
 
 // Injection
 const patient = inject('patient');

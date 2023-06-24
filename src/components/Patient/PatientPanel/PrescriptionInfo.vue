@@ -29,7 +29,7 @@ import AddEditPrescription from 'components/Patient/PatientPanel/AddEditPrescrip
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import PrescriptionInfoContainer from 'components/Patient/Prescription/PrescriptionInfoContainer.vue';
-import { computed, provide, inject, onMounted, ref, reactive } from 'vue';
+import { computed, provide, inject, onMounted, ref } from 'vue';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -38,8 +38,8 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 const { hasEpisodes, hasOneAndClosedIdentifier } = usePatient();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
-const showAddPrescription = reactive(ref(false));
-const isNewPrescription = reactive(ref(false));
+const showAddPrescription = ref(false);
+const isNewPrescription = ref(false);
 const selectedVisitDetails = ref('');
 const step = ref('');
 const title = ref('Prescrição');
@@ -73,7 +73,6 @@ const patientHasClosedIdentifier = computed(() => {
 
 // Methods
 const init = async () => {
-  console.log('On PrescriptionInfo initialization', showAddPrescription.value);
   closeLoading();
 };
 

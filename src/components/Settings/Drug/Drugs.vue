@@ -92,7 +92,7 @@ import { useQuasar } from 'quasar';
 import Drug from '../../../stores/models/drug/Drug';
 import Form from '../../../stores/models/form/Form';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed, } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import formService from 'src/services/api/formService/formService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -153,7 +153,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 const showDrugRegistrationScreen = ref(false);
-const drug = reactive(ref(drugService.newInstanceEntity()));
+const drug = ref(drugService.newInstanceEntity());
 const filter = ref('');
 
 /*injects*/

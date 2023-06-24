@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class RAMScreening extends Model {
   static entity = 'RAMScreenings';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

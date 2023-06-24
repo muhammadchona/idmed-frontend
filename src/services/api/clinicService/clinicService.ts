@@ -17,7 +17,6 @@ export default {
       const resp = await api().post('clinic', params);
       const clinicData = JSON.parse(resp.config.data);
       clinic.save(clinicData);
-      useStorage('clinic', clinicData);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       if (error.request != null) {
@@ -75,7 +74,6 @@ export default {
     try {
       const resp = await api().patch('clinic?uuid=eq.' + uid, params);
       clinic.save(JSON.parse(resp.config.data));
-      useStorage('clinic', JSON.parse(resp.config.data));
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       if (error.request != null) {

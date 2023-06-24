@@ -238,7 +238,7 @@ const init = () => {
 
 const prepareInit = () => {
   showloading()
- 
+
   let i = 1;
   if (drug.stocks.length > 0) {
     Object.keys(drug.stocks).forEach(
@@ -331,7 +331,7 @@ const doSave = (i) => {
                 adjustments.value[i].id = resp.data.id;
                 i = i + 1;
                 setTimeout(doSave(i), 2);
-                alertSucess('info', 'Operação efectuada com sucesso.');
+                alertSucess('Operação efectuada com sucesso.');
               }
             );
           } else {
@@ -341,7 +341,7 @@ const doSave = (i) => {
               (resp) => {
                 i = i + 1;
                 setTimeout(doSave(i), 2);
-                alertSucess('info', 'Operação efectuada com sucesso.');
+                alertSucess('Operação efectuada com sucesso.');
               }
             );
           }
