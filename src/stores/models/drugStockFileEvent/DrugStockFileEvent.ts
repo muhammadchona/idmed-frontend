@@ -1,9 +1,8 @@
 import { Model } from 'pinia-orm';
-import db from 'src/stores/localbase';
 
 export default class DrugStockFileEvent extends Model {
   static entity = 'drugStockFileEvents';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),
@@ -24,11 +23,4 @@ export default class DrugStockFileEvent extends Model {
   static piniaOptions = {
     persist: true,
   };
-  static async apiGetDrugFileMobile(clinicId) {
-    return await this.api().get(`/drugStockFile/drugfilemobile/${clinicId}`);
-  }
-
-  static localDbAdd(drugStockFileEvent) {
-    return db.newDb().collection('drugStockFileEvents').add(drugStockFileEvent);
-  }
 }

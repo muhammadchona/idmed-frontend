@@ -1,5 +1,4 @@
 // import { Model } from 'pinia-orm'
-import db from 'src/stores/localbase';
 // import DrugQuantityTemp from './DrugQuantityTemp'
 
 export default class ArvDailyRegisterTempReport {
@@ -40,34 +39,4 @@ export default class ArvDailyRegisterTempReport {
     };
   }
 
-  static localDbAdd(arvDailyRegister) {
-    return db
-      .newDb()
-      .collection('arvDailyRegisterTempReports')
-      .add(arvDailyRegister);
-  }
-
-  static localDbGetAll() {
-    //
-    return db.newDb().collection('arvDailyRegisterTempReports').get();
-  }
-
-  static localDbUpdateAll(arvDailyRegister) {
-    return db
-      .newDb()
-      .collection('arvDailyRegisterTempReports')
-      .set(arvDailyRegister);
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('arvDailyRegisterTempReports').delete();
-  }
-
-  static localDbDeleteById(id) {
-    return db
-      .newDb()
-      .collection('arvDailyRegisterTempReports')
-      .doc({ id: id })
-      .delete();
-  }
 }

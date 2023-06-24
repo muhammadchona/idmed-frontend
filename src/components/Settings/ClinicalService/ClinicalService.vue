@@ -91,7 +91,7 @@
 <script setup>
 /*Imports*/
 import { useQuasar } from 'quasar';
-import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
+import { ref, inject, onMounted, computed, provide } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import ClinicalService from '../../../stores/models/ClinicalService/ClinicalService';
 import formService from 'src/services/api/formService/formService.ts';
@@ -141,9 +141,7 @@ const columns = [
   },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-const clinicalService = reactive(
-  ref(clinicalServiceService.newInstanceEntity())
-);
+const clinicalService = ref(clinicalServiceService.newInstanceEntity());
 const clinicalServiceAttributes = ref([]);
 const showClinicServiceRegistrationScreen = ref(false);
 const filter = ref('');
@@ -267,9 +265,7 @@ const addClinicService = () => {
   console.log(therapeuticRegimens.value);
   isCreateStep.value = true;
   isEditStep.value = false;
-  clinicalService.value = reactive(
-    ref(clinicalServiceService.newInstanceEntity())
-  );
+  clinicalService.value = ref(clinicalServiceService.newInstanceEntity());
   step.value = 'create';
   showClinicServiceRegistrationScreen.value = true;
   editMode.value = false;

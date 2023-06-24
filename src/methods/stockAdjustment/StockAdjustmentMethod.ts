@@ -1,11 +1,8 @@
 
-  import { useRepo } from 'pinia-orm';
-import StockAlert from 'src/stores/models/stockAlert/StockAlert';
-import db from 'src/stores/localbase';
 
 export default {
   // Axios API call
- 
+
   // Local Storage Pinia
 
   isPosetiveAdjustment() {

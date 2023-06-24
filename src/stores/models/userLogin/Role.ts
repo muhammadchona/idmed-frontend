@@ -1,19 +1,12 @@
 import { Model } from 'pinia-orm';
 import Menu from 'src/stores/models/userLogin/Menu';
 import RoleMenu from './RoleMenu';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 import User from './User';
 import UserRole from './UserRole';
 export default class Role extends Model {
   static entity = 'roles';
-
-  static state() {
-    return {
-      fetching: false,
-    };
-  }
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),

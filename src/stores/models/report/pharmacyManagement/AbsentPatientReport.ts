@@ -1,5 +1,4 @@
-// import { Model } from 'pinia-orm'
-import db from 'src/stores/localbase';
+
 
 export default class AbsentPatientReport {
   static entity = 'absentPatientReports';

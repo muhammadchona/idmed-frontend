@@ -99,7 +99,9 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref, watch } from 'vue';
+import moment from 'moment'
+
 import { date, SessionStorage } from 'quasar'
 import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
 import Pack from 'src/stores/models/packaging/Pack'
@@ -148,7 +150,7 @@ const getGroupMembers = inject('getGroupMembers')
 const removePackHeader = (groupPackHeader) => {
   groupPackHeaderService.apiDelete(groupPackHeader).then(resp => {
       const packsToDelete = groupPackService.getGroupPackByHeaderId(groupPackHeader.id)
-      console.log(packsToDelete) 
+      console.log(packsToDelete)
       packsToDelete.forEach(packToDelete => {
        const pvd = patientVisitDetailsService.getPatientVisitDetailsByPackId(packToDelete.pack_id)
        const pack = packService.getPackByID(packToDelete.pack_id)
@@ -205,7 +207,7 @@ const headers = computed(() => {
 });
 
 const selectedGroup = computed(() => groupService.getGroupById(SessionStorage.getItem('selectedGroupId')));
-  
+
 </script>
 
 <style>

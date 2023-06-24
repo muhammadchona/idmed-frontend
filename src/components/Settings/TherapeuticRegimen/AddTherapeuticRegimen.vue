@@ -85,7 +85,7 @@
 <script setup>
 /*Imports*/
 import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/TherapeuticRegimen';
-import { ref, inject, onMounted, computed, reactive } from 'vue';
+import { ref, inject, onMounted, computed } from 'vue';
 import Drug from '../../../stores/models/drug/Drug';
 import drugService from 'src/services/api/drugService/drugService.ts';
 // import TherapeuticRegimensDrug from '../../../stores/models/therapeuticRegimen/TherapeuticRegimensDrug'

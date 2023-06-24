@@ -1,13 +1,11 @@
 
-import { get } from 'http';
-import db from 'src/stores/localbase';
 import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
 import { useRepo } from 'pinia-orm';
 
 const inventoryStockAdjustment = useRepo(InventoryStockAdjustment);
 
 export function useInventoryStockAdjustment() {
-  
+
   function isPosetiveAdjustment(stockAdjustment: any) {
     return stockAdjustment.operation.code === 'AJUSTE_POSETIVO';
   }
@@ -15,7 +13,7 @@ export function useInventoryStockAdjustment() {
   function isNegativeAdjustment(stockAdjustment: any) {
     return stockAdjustment.operation.code === 'AJUSTE_NEGATIVO';
   }
- 
+
   function getInventoryStockAdjustmentById (idStock: string, inventoryId: string) {
    return  inventoryStockAdjustment.query().with('adjustedStock')
                                     .with('inventory')

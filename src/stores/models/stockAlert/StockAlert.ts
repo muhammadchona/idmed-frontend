@@ -1,9 +1,8 @@
 import { Model } from 'pinia-orm';
-import db from 'src/stores/localbase';
 
 export default class StockAlert extends Model {
   static entity = 'stockAlerts';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),
@@ -12,15 +11,5 @@ export default class StockAlert extends Model {
       avgConsuption: this.attr(''),
       state: this.attr(''),
     };
-  }
-
-  static async apiGetAlertStockMobile(clinicId, serviceCode) {
-    return this.api().get(
-      `/dashBoard/getStockAlert/${clinicId}/${serviceCode}`
-    );
-  }
-
-  static localDbAdd(stockAlert) {
-    return db.newDb().collection('stockAlert').add(stockAlert);
   }
 }

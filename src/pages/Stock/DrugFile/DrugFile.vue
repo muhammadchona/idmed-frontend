@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TitleBar>Ficha do Medicamento</TitleBar>
+    <TitleBar />
     <q-scroll-area
       :thumb-style="thumbStyle"
       :content-style="contentStyle"
@@ -107,7 +107,7 @@
             bgColor="bg-primary"
             >Informação por Lote
           </list-header>
-          <div v-if="mobile.value">
+          <div v-if="mobile">
             <span v-for="batchS in drugEventListBatch" :key="batchS.id">
               <lote-info-container
                 :batchS="batchS"
@@ -115,7 +115,7 @@
               />
             </span>
           </div>
-          <div v-else-if="!mobile.value">
+          <div v-else-if="!mobile">
             <span v-for="lote in drug.stocks" :key="lote.id">
               <lote-info-container :stockInfo="lote" />
             </span>
@@ -127,7 +127,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, provide } from 'vue';
 import DrugFile from '../../../stores/models/drugFile/DrugFile';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
@@ -182,7 +182,7 @@ const router = useRouter();
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const mobile = computed(() => (isWebScreen.value ? false : true));
 const { closeLoading, showloading } = useLoading();
-
+const title = ref('Ficha do Medicamento');
 const drugEventList = ref([]);
 const drugEventListBatch = ref([]);
 
@@ -308,6 +308,8 @@ const drug = computed(() => {
 const drugFile = () => {
   return DrugFile.query().where('drugId', drug.value.id).first();
 };
+
+provide('title', title);
 </script>
 
 <style lang="scss">

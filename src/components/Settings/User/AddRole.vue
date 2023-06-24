@@ -85,7 +85,7 @@
 
 <script setup>
 /*Imports*/
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import roleService from 'src/services/api/role/roleService.ts';
 import menuService from 'src/services/api/menu/menuService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -202,20 +202,6 @@ const submitUser = () => {
         showRoleRegistrationScreen.value = false;
       });
   }
-  // } else {
-  //  // role.id = uuidv4()
-  //   role.syncStatus = 'R'
-  //   const roleLocalBase = JSON.parse(JSON.stringify(role))
-  //   console.log(role)
-  //   console.log(roleLocalBase)
-  //   Role.localDbAddOrUpdate(roleLocalBase).then(resp => {
-  //     submitting = false
-  //     Role.insert({
-  //         data: roleLocalBase
-  //     })
-  //      displayAlert('info', role.id === null ? 'Perfil cadastrado com sucesso' : 'Perfil actualizado com sucesso.')
-  //   })
-  // }
 };
 
 const codeRules = (val) => {

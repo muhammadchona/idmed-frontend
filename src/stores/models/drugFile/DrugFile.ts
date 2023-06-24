@@ -1,9 +1,8 @@
 import { Model } from 'pinia-orm';
-import db from 'src/stores/localbase';
 
 export default class DrugFile extends Model {
   static entity = 'drugFiles';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),
@@ -13,5 +12,7 @@ export default class DrugFile extends Model {
       drugFileSummaryBatch: this.attr(''),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
 }

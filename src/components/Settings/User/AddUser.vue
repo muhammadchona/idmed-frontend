@@ -238,7 +238,7 @@
 import UserLogin from 'src/stores/models/userLogin/User';
 import Role from 'src/stores/models/userLogin/Role';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
+import { ref, inject, onMounted, computed, provide } from 'vue';
 import Clinic from '../../../stores/models/clinic/Clinic';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
@@ -448,53 +448,9 @@ const submitUser = () => {
         submitting.value = false;
         showUserRegistrationScreen.value = false;
       });
-    // HealthInformationSystem.apiUpdate(his).then(resp => {
-    //     // console.log(resp.response.data)
-    //   displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-    //   submitting = false
-    //   HealthInformationSystem.apiFetchById(resp.response.data.id)
-    // }).catch(error => {
-    //     displayAlert('error', error)
-    //     submitting = false
-    // })
+
   }
-  // UserLogin.apiSave(user)
-  //   .then((resp) => {
-  //     const userResp = resp.response.data;
-  //     userResp.authorities = selectedRoles;
-  //     userResp.clinics = selectedClinics;
-  //     userResp.clinicSectors = selectedClinicSectors;
-  //     UserLogin.insert({
-  //       data: userResp,
-  //     });
-  //     submitting.value = false;
-  //     displayAlert(
-  //       'info',
-  //       user.value.id === null
-  //         ? 'Utilizador cadastrado com sucesso'
-  //         : 'Utilizador actualizado com sucesso.'
-  //     );
-  //   })
-  //   .catch((error) => {
-  //     submitting.value = false;
-  //     displayAlert('error', error);
-  //   });
-  // } else {
-  //   user.syncStatus = 'R'
-  //   user.authorities = selectedRoles
-  //     let userLocalBase = JSON.parse(JSON.stringify(user))
-  //     console.log(userLocalBase)
-  //     console.log(userLocalBase)
-  //     userLocalBase = encrypt(userLocalBase)
-  //     console.log(userLocalBase)
-  //     UserLogin.localDbAddOrUpdate(userLocalBase).then(resp => {
-  //       submitting = false
-  //       UserLogin.insert({
-  //           data: userLocalBase
-  //       })
-  //        displayAlert('info', user.id === null ? 'Utilizador cadastrado com sucesso' : 'Utilizador actualizado com sucesso.')
-  //     })
-  // }
+
 };
 
 const extractDatabaseCodes = () => {

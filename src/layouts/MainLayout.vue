@@ -157,7 +157,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Notify } from 'quasar';
 import isOnline from 'is-online';
 import { useMediaQuery } from '@vueuse/core';
@@ -169,7 +169,7 @@ const onMainClick = ref('');
 const onItemClick = ref('');
 const username = ref(localStorage.getItem('user'));
 const tab = ref('home');
-const mobile = reactive(ref(false));
+const mobile = ref(false);
 
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const isWeb = computed(() => (isWebScreen.value ? true : false));

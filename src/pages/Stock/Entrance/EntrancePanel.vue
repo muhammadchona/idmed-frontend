@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TitleBar>Detalhe da Guia</TitleBar>
+    <TitleBar />
     <div class="row" v-if="mobile.value">
       <div class="col q-mx-md q-mt-md">
         <ListHeader
@@ -8,7 +8,7 @@
           :expandVisible="false"
           :mainContainer="true"
           bgColor="bg-primary"
-          :addButtonActions ="initNewStock"
+          :addButtonActions="initNewStock"
           >Notas da Guia
         </ListHeader>
         <div class="box-border row q-pt-sm">
@@ -401,7 +401,7 @@
             :mainContainer="true"
             @showAdd="initNewStock"
             bgColor="bg-primary"
-            :addButtonActions ="initNewStock"
+            :addButtonActions="initNewStock"
             >Medicamentos
           </ListHeader>
           <div class="box-border q-pb-md">
@@ -613,11 +613,10 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import Drug from '../../../stores/models/drug/Drug';
 import Stock from '../../../stores/models/stock/Stock';
 import StockEntrance from '../../../stores/models/stockentrance/StockEntrance';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, provide, ref } from 'vue';
 import StockCenter from '../../../stores/models/stockcenter/StockCenter';
 import { date, SessionStorage } from 'quasar';
 import moment from 'moment';
-import mixinplatform from 'src/mixins/mixin-system-platform';
 import AuditSyncronization from 'src/stores/models/auditSyncronization/AuditSyncronization';
 import StockService from 'src/services/api/stockService/StockService';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
@@ -626,7 +625,6 @@ import StockEntranceMethod from 'src/methods/stockEntrance/StockEntranceMethod';
 import { useMediaQuery } from '@vueuse/core';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
-import { reactive } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
 // import { v4 as uuidv4 } from 'uuid'
@@ -645,7 +643,7 @@ const mobile = computed(() => (isWebScreen.value ? false : true));
 const dateUtils = useDateUtils();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
-
+const title = ref('Detalhe da Guia');
 const columns = [
   {
     name: 'order',
@@ -667,8 +665,6 @@ const columns = [
   { name: 'unitsReceived', align: 'left', label: 'Quantidade', sortable: true },
   { name: 'options', align: 'center', label: 'Opções', sortable: false },
 ];
-mixins: [mixinplatform];
-
 
 let submitting = false;
 const dateReceived = ref('');
@@ -676,7 +672,7 @@ const orderNumber = ref('');
 
 const step = ref('display');
 const guiaStep = ref('display');
-const selectedStock = reactive(ref([]));
+const selectedStock = ref([]);
 let drugs = [];
 const stockList = ref([]);
 let stock = '';
@@ -766,7 +762,7 @@ const doSaveGuia = () => {
                 });
               }
             }
-            alertError( listErrors);
+            alertError(listErrors);
           });
       } else if (guiaStep.value === 'edit') {
         const entrance = JSON.parse(
@@ -786,7 +782,7 @@ const doSaveGuia = () => {
       StockEntranceMethod.localDbUpdate(currStockEntrance).then((stockEnt) => {
         stockEntranceRepo.update(currStockEntrance);
         guiaStep.value = 'display';
-        alertSucess( 'Operação efectuada com sucesso.');
+        alertSucess('Operação efectuada com sucesso.');
       });
     }
   }
@@ -839,7 +835,7 @@ const doRemoveGuia = () => {
   if (!mobile.value) {
     StockEntranceService.delete(currStockEntrance.value.id).then((resp) => {
       goBack();
-      alertSucess('info', 'Operação efectuada com sucesso.');
+      alertSucess('Operação efectuada com sucesso.');
     });
   } else {
     const targetEntrance = JSON.parse(JSON.stringify(currStockEntrance));
@@ -864,15 +860,15 @@ const doRemoveStock = (stock) => {
   step.value = 'delete';
   if (!mobile.value) {
     showloading();
-    StockService.delete(stock.id).then((resp) => {
-      removeFromList(stock);
-      closeLoading();
-      alertSucess( 'Operação efectuada com sucesso.');
-    })  .catch((error) => {
-            alertError(
-              'Ocorreu um erro inesperado, contacte o administrador!'
-            );
-          });
+    StockService.delete(stock.id)
+      .then((resp) => {
+        removeFromList(stock);
+        closeLoading();
+        alertSucess('Operação efectuada com sucesso.');
+      })
+      .catch((error) => {
+        alertError('Ocorreu um erro inesperado, contacte o administrador!');
+      });
   } else {
     const targetStock = JSON.parse(JSON.stringify(selectedStock));
     removeFromList(targetStock);
@@ -899,6 +895,7 @@ const initNewStock = () => {
     alertError(
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a adição de novo registo.'
     );
+    closeLoading();
   } else {
     step.value = 'create';
     const center = StockCenterService.getStockCenter();
@@ -911,8 +908,9 @@ const initNewStock = () => {
       entrance: currStockEntrance,
     });
     stockList.value.push(newStock);
-    closeLoading()
-  }};
+    closeLoading();
+  }
+};
 
 const isPositiveInteger = (str) => {
   const num = Number(str);
@@ -930,34 +928,30 @@ const validateStock = (stock) => {
   stock.expireDate = dateUtils.getJSDateFromDDMMYYY(stock.auxExpireDate);
   if (stock.drug.name === '') {
     submitting = false;
-    alertError( 'Por favor indicar o medicamento!');
+    alertError('Por favor indicar o medicamento!');
   } else if (stock.manufacture === '') {
     submitting = false;
-    alertError( 'Por favor indicar o fabricante!');
+    alertError('Por favor indicar o fabricante!');
   } else if (stock.batchNumber === '') {
     submitting = false;
-    alertError( 'Por favor indicar o lote!');
+    alertError('Por favor indicar o lote!');
   } else if (!date.isValid(stock.expireDate)) {
     submitting = false;
-    alertError( 'Por favor indicar uma data de validade válida!');
+    alertError('Por favor indicar uma data de validade válida!');
   } else if (
     stock.expireDate.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
   ) {
     submitting = false;
-    alertError(
-      
-      'A data de validade não pode ser anterior a data corrente!'
-    );
+    alertError('A data de validade não pode ser anterior a data corrente!');
   } else if (!isPositiveInteger(stock.unitsReceived)) {
     submitting = false;
-    alertError( 'Por favor indicar uma quantidade válida!');
+    alertError('Por favor indicar uma quantidade válida!');
   } else if (!(stock.expireDate instanceof Date)) {
-    alertError( 'A data de validade é inválida!');
+    alertError('A data de validade é inválida!');
   } else if (stock.expireDate <= moment(new Date()).add(28, 'd')) {
     submitting = false;
 
     alertError(
-      
       'O medicamento não deve expirar em menos de 28 dias, Por favor indique uma data de validade válida!'
     );
   } else {
@@ -980,8 +974,8 @@ const validateStock = (stock) => {
 };
 
 const doSave = (stock) => {
-  showloading()
-  stock.id = uuidv4()
+  showloading();
+  stock.id = uuidv4();
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic_id = clinicService.currClinic().id;
   stock.drug_id = stock.drug.id;
@@ -994,27 +988,31 @@ const doSave = (stock) => {
   // stock.entrance = entrance
   if (!mobile.value) {
     if (isCreationStep.value) {
-      StockService.post(stock).then((resp) => {
-        // stock.id = resp.response.data.id
-        submitting = false;
-        stock.enabled = false;
-        step.value = 'display';
-        alertSucess('Operação efectuada com sucesso.');
-      }).catch((error) => {
-        alertError('Ocorreu um erro inesperado')
-        console.log('ERRO: ',error)
-      });
+      StockService.post(stock)
+        .then((resp) => {
+          // stock.id = resp.response.data.id
+          submitting = false;
+          stock.enabled = false;
+          step.value = 'display';
+          alertSucess('Operação efectuada com sucesso.');
+        })
+        .catch((error) => {
+          alertError('Ocorreu um erro inesperado');
+          console.log('ERRO: ', error);
+        });
     } else if (isEditionStep.value) {
-      StockService.patch(stock.id, stock).then((resp) => {
-        //stock.id = resp.response.data.id
-        submitting = false;
-        stock.enabled = false;
-        step.value = 'display';
-        alertSucess('Operação efectuada com sucesso.');
-      }).catch((error) => {
-        alertError('Ocorreu um erro inesperado')
-        console.log('ERRO: ',error)
-      });
+      StockService.patch(stock.id, stock)
+        .then((resp) => {
+          //stock.id = resp.response.data.id
+          submitting = false;
+          stock.enabled = false;
+          step.value = 'display';
+          alertSucess('Operação efectuada com sucesso.');
+        })
+        .catch((error) => {
+          alertError('Ocorreu um erro inesperado');
+          console.log('ERRO: ', error);
+        });
     }
   } else {
     //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
@@ -1070,10 +1068,10 @@ const doSave = (stock) => {
         alertSucess('Operação efectuada com sucesso.');
       })
       .catch((error) => {
-        alertError('Ocorreu um erro inesperado')
+        alertError('Ocorreu um erro inesperado');
       });
   }
-  closeLoading()
+  closeLoading();
 };
 
 const fetchStockEntrance = () => {
@@ -1082,7 +1080,8 @@ const fetchStockEntrance = () => {
       currStockEntrance.value = resp.response.data;
     })
     .catch((error) => {
-      alertError('Ocorreu um erro inesperado')    });
+      alertError('Ocorreu um erro inesperado');
+    });
 };
 
 const cancel = (stock) => {
@@ -1107,7 +1106,6 @@ const initStockEdition = (stock) => {
   selectedStock.value = Object.assign({}, stock);
   if (step.value === 'edit' || step.value === 'create') {
     alertError(
-      
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a edição deste registo.'
     );
   } else {
@@ -1186,6 +1184,7 @@ const isGuiaDisplayStep = computed(() => {
 const currClinic = computed(() => {
   return clinicService.currClinic();
 });
+provide('title', title);
 </script>
 
 <style lang="scss">

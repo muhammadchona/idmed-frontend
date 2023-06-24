@@ -115,7 +115,7 @@
 /*imports*/
 import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, onMounted, computed, reactive, provide } from 'vue';
+import { ref, inject, onMounted, computed, provide } from 'vue';
 import HealthInformationSystem from '../../../stores/models/healthInformationSystem/HealthInformationSystem';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 
@@ -180,8 +180,8 @@ const columnsSelectedAttributes = [
     sortable: true,
   },
 ];
-const healthInformationSystem = reactive(
-  ref(healthInformationSystemService.newInstanceEntity())
+const healthInformationSystem = ref(
+  healthInformationSystemService.newInstanceEntity()
 );
 const showHISRegistrationScreen = ref(false);
 const submitting = ref(false);

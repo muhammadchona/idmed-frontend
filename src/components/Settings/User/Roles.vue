@@ -95,7 +95,7 @@
 <script setup>
 /*Imports*/
 import { useQuasar } from 'quasar';
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import roleService from 'src/services/api/role/roleService.ts';
 
@@ -103,7 +103,7 @@ import roleService from 'src/services/api/role/roleService.ts';
 import addRoleComp from 'src/components/Settings/User/AddRole.vue';
 
 /*Variables*/
-const role = reactive(ref(roleService.newInstanceEntity()));
+const role = ref(roleService.newInstanceEntity());
 const { alertWarningAction } = useSwal();
 const showRoleRegistrationScreen = ref(false);
 const columns = [
@@ -190,7 +190,7 @@ const editUser = (roleParam) => {
 };
 
 const addRole = () => {
-  role.value = reactive(ref(roleService.newInstanceEntity()));
+  role.value = ref(roleService.newInstanceEntity());
   editMode.value = false;
   viewMode.value = false;
   isCreateStep.value = true;
@@ -210,16 +210,6 @@ const promptToConfirm = (role) => {
       } else {
         role.active = true;
       }
-
-      // if (this.mobile) {
-      //          const roleLocalBase = JSON.parse(JSON.stringify(role));
-      // Role.localDbAddOrUpdate(roleLocalBase).then((resp) => {
-      //   Role.insert({
-      //     data: roleLocalBase,
-      //   });
-      //   this.displayAlert('info', msg);
-      // });
-      //       } else {
 
       roleService
         .patch(role.id, role)

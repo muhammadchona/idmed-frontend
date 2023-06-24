@@ -31,7 +31,6 @@
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
  import patientHistoryTS from 'src/services/reports/ClinicManagement/PatientHistory.ts'
-// import db from 'src/store/localbase'
  import reportDatesParams from 'src/services/reports/ReportDatesParams'
 import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
 // import ReportDatesParams from '../../../reports/ReportDatesParams'
@@ -50,9 +49,9 @@ import { v4 as uuidv4 } from 'uuid'
 import ListHeader  from 'components/Shared/ListHeader.vue'
 import FiltersInput  from 'components/Reports/shared/FiltersInput.vue'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { useSwal } from 'src/composables/shared/dialog/dialog';  
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-const { website, isDeskTop, isMobile } = useSystemUtils(); 
+const { website, isDeskTop, isMobile } = useSystemUtils();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 
 const name =  'PatientHistory'
@@ -61,7 +60,7 @@ const totalRecords =  ref(0)
 const qtyProcessed = ref(0)
  const progress = ref(0)
  const filterDPatientHistorySection = ref('')
-    
+
 const closeSection = () => {
         filterDPatientHistorySection.value.remove()
         if (!website) {

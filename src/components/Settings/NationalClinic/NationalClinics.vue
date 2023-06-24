@@ -177,9 +177,9 @@ export default {
   mounted () {
     this.getNationalClinics()
   },
-  components: {
-     addNationalClinic: require('components/Settings/NationalClinic/AddNationalClinic.vue').default
-  //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
-  }
+  // components: {
+  //    addNationalClinic: require('components/Settings/NationalClinic/AddNationalClinic.vue').default
+  // //   nationalClinicsTable: require('components/Settings/NationalClinic/NationalClinicsTable.vue').default
+  // }
 }
 </script>

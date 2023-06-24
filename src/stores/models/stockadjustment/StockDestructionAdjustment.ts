@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class StockDestructionAdjustment extends StockAdjustment {
   static entity = 'stockDestructionAdjustments';
   static baseEntity = 'stockAdjustments';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       ...super.fields(),

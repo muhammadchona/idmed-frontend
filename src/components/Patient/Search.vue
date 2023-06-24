@@ -72,35 +72,6 @@
             />
           </template>
         </q-input>
-        <!-- <q-input
-          outlined
-          v-model="currPatient.middleNames"
-          ref="middleNamesRef"
-          type="text"
-          lazy-rules
-          label="Outros Nomes"
-          dense
-          class="col q-ml-md"
-          @update:model-value="(value) => (filter = value)"
-          :rules="[(val) => !!val || 'Por favor indicar o nome']"
-          :readonly="selectedDataSources.id.length > 4"
-        >
-          <template
-            v-slot:append
-            v-if="
-              currPatient.middleNames !== null &&
-              currPatient.middleNames !== undefined &&
-              currPatient.middleNames !== ''
-            "
-          >
-            <q-icon
-              name="close"
-              @click="currPatient.middleNames = ''"
-              class="cursor-pointer"
-            />
-          </template>
-        </q-input> -->
-
         <q-input
           outlined
           ref="lastNamesRef"
@@ -251,7 +222,7 @@
   </div>
 </template>
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref } from 'vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -280,7 +251,7 @@ const { preferedIdentifierValue, fullName } = usePatient();
 //Declaration
 
 const router = useRouter();
-const filter = reactive(ref(''));
+const filter = ref('');
 const showPatientRegister = ref(false);
 const currPatient = ref(new Patient());
 const patientServiceIdentifier = ref(new PatientServiceIdentifier());
@@ -541,7 +512,9 @@ const stringContains = (stringToCheck, stringText) => {
     return false;
   if (stringText === '' || stringText === null || stringText === undefined)
     return false;
-  return stringToCheck.toLowerCase().includes(stringText.toLowerCase());
+  return String(stringToCheck)
+    .toLowerCase()
+    .includes(String(stringText).toLowerCase());
 };
 
 const loadHISDataSource = () => {

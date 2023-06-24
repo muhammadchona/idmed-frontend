@@ -112,9 +112,9 @@ const getDashboardServiceButton = () => {
             item.icon = 'health_and_safety';
           } else {
             item.icon = 'health_and_safety';
-            const randomColor = require('randomcolor'); // import the script
-            const color = randomColor(); // a hex code for an attractive color
-            item.style = 'background-color:' + color + ';' + 'color: ##ffffff';
+            // const randomColor = require('randomcolor'); // import the script
+            const color = Math.floor(Math.random() * 16777215).toString(16); //randomcolor(); // a hex code for an attractive color
+            item.style = 'background-color: #' + color + ';' + 'color: ##ffffff';
           }
         });
       }

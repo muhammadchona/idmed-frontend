@@ -1,12 +1,11 @@
 import { Model } from 'pinia-orm';
 import District from '../district/District';
 import Localidade from '../Localidade/Localidade';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PostoAdministrativo extends Model {
   static entity = 'postoAdministrativos';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -23,5 +22,5 @@ export default class PostoAdministrativo extends Model {
   static piniaOptions = {
     persist: true,
   };
- 
+
 }

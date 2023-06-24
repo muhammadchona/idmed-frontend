@@ -99,7 +99,7 @@ import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/Therap
 import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService.ts';
 import formService from 'src/services/api/formService/formService.ts';
 import clinicalService from 'src/services/api/clinicalServiceService/clinicalServiceService.ts';
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -143,9 +143,7 @@ const columns = [
 ];
 const filter = ref('');
 const showTherapeuticRegimenRegistrationScreen = ref(false);
-const therapeuticRegimen = reactive(
-  ref(therapeuticalRegimenService.newInstanceEntity())
-);
+const therapeuticRegimen = ref(therapeuticalRegimenService.newInstanceEntity());
 
 /*injects*/
 const step = inject('step');

@@ -105,7 +105,7 @@
 <script setup>
 /*imports*/
 import { useQuasar } from 'quasar';
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed, } from 'vue';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
@@ -153,7 +153,7 @@ const columns = [
 ];
 const showClinicSectorRegistrationScreen = ref(false);
 const filter = ref('');
-const clinicSector = reactive(ref(clinicSectorService.newInstanceEntity()));
+const clinicSector = ref(clinicSectorService.newInstanceEntity());
 
 /*injects*/
 const step = inject('step');

@@ -16,9 +16,9 @@ export default {
   },
   methods: {
   },
-  components: {
-    StockTable: require('components/Stock/StockTable.vue').default
-  }
+  // components: {
+  //   StockTable: require('components/Stock/StockTable.vue').default
+  // }
 
 }
 </script>

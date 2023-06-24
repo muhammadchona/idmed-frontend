@@ -108,7 +108,7 @@
 import { useQuasar } from 'quasar';
 import Doctor from '../../../stores/models/doctor/Doctor';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, provide, onMounted, computed, reactive } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
@@ -121,7 +121,7 @@ import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
 const { alertWarningAction } = useSwal();
 
 const showDoctorRegistrationScreen = ref(false);
-const doctor = reactive(ref(doctorService.newInstanceEntity()));
+const doctor = ref(doctorService.newInstanceEntity());
 const filter = ref('');
 const columns = [
   {
@@ -224,7 +224,7 @@ const editDoctor = (doctorParam) => {
 const addDoctor = () => {
   isEditStep.value = false;
   isCreateStep.value = true;
-  doctor.value = reactive(ref(doctorService.newInstanceEntity()));
+  doctor.value = ref(doctorService.newInstanceEntity());
   doctor.value.clinic = currClinic.value;
   step.value = 'create';
   editMode.value = false;

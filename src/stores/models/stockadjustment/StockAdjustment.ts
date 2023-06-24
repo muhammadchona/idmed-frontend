@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class StockAdjustment extends Model {
   static entity = 'stockAdjustments';
-
+  static primaryKey = 'id';
   static types() {
     return {
       INVENTORYSTOCKADJUSTMENT: InventoryStockAdjustment,
@@ -45,5 +45,5 @@ export class StockAdjustment extends Model {
   static piniaOptions = {
     persist: true,
   }
-  
+
 }

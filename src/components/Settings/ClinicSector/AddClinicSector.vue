@@ -101,7 +101,7 @@
 <script setup>
 /*imports*/
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { ref, inject, onMounted, computed, reactive } from 'vue';
+import { ref, inject, onMounted, computed, } from 'vue';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
 import ClinicSectorType from '../../../stores/models/clinicSectorType/ClinicSectorType';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';

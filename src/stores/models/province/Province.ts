@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class Province extends Model {
   static entity = 'provinces';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

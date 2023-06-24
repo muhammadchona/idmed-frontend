@@ -2,7 +2,7 @@ import { Model } from 'pinia-orm';
 
 export default class SystemConfigs extends Model {
   static entity = 'systemConfigs';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),

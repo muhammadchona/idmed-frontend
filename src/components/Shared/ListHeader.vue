@@ -67,20 +67,19 @@ const headerClass = ref('');
 const expanded = ref(true);
 
 //props
-const props = defineProps({
-  editVisible: Boolean,
-  closeVisible: Boolean,
-  expandVisible: Boolean,
-  addVisible: Boolean,
-  mainContainer: Boolean,
-  title: String,
-  bgColor: String,
-  addButtonActions: Function,
-//  expanded: Boolean,
-  doneVisible: Boolean,
-});
+const props = defineProps([
+  'editVisible',
+  'closeVisible',
+  'expandVisible',
+  'addVisible',
+  'mainContainer',
+  'title',
+  'bgColor',
+  'addButtonActions',
+  'doneVisible',
+]);
 
-const $emits = defineEmits(['done','initEdition' , 'expand'])
+const $emits = defineEmits(['done', 'initEdition']);
 
 // Methods
 const determineHeaderClass = () => {

@@ -207,7 +207,7 @@ import Stock from '../../../stores/models/stock/Stock';
 import { StockDestructionAdjustment } from '../../../stores/models/stockadjustment/StockDestructionAdjustment';
 import StockOperationType from '../../../stores/models/stockoperation/StockOperationType';
 import DestroyedStock from '../../../stores/models/stockdestruction/DestroyedStock';
-import { onMounted, ref, computed, provide, reactive } from 'vue';
+import { onMounted, ref, computed, provide } from 'vue';
 import { StockReferenceAdjustment } from '../../../stores/models/stockadjustment/StockReferenceAdjustment';
 import ReferedStockMoviment from '../../../stores/models/stockrefered/ReferedStockMoviment';
 import db from 'src/stores/localbase';
@@ -272,9 +272,9 @@ const adjustmentTypeRef = ref('');
 const step = ref('display');
 const serviceInfoVisible = ref(true);
 const curEvent = ref({});
-const bgColor = reactive(ref({}));
-const addVisible = reactive(ref({}));
-const mainContainer = reactive(ref({}));
+const bgColor = ref({});
+const addVisible = ref({});
+const mainContainer = ref({});
 
 const expandLess = (value) => {
   serviceInfoVisible.value = !value;
@@ -358,36 +358,6 @@ const saveAjustment = () => {
     adjustment.balance = adjustment.adjustedStock.stockMoviment;
     curEvent.value.balance = adjustment.balance;
     if (mobile.value) {
-      if (isPosetiveAdjustment.value || isNegativeAdjustment.value) {
-        reference.syncStatus = 'R';
-        ReferedStockMoviment.localDbAdd(reference)
-          .then((resp) => {
-            reference.adjustments[0].adjustedStock.syncStatus = 'U';
-            Stock.localDbUpdate(reference.adjustments[0].adjustedStock);
-            step.value = 'display';
-            adjustmentType.value = '';
-            alertSucess('Operação efectuada com sucesso.');
-            $emit('updateDrugFileAdjustment', reference.adjustments[0]);
-          })
-          .catch((error) => {
-            alertError('Ocorreu um erro inesperado');
-          });
-      } else {
-        destruction.syncStatus = 'R';
-        DestroyedStock.localDbAdd(destruction)
-          .then((resp) => {
-            destruction.adjustments[0].syncStatus = 'U';
-            Stock.localDbUpdate(destruction.adjustments[0].adjustedStock);
-            $emit('updateDrugFileAdjustment', destruction.adjustments[0]);
-            step.value = 'display';
-            adjustmentType.value = '';
-            alertSucess('Operação efectuada com sucesso.');
-          })
-          .catch((error) => {
-            alertError('Ocorreu um erro inesperado');
-          });
-        db.newDb().collection('destruction').set(destruction);
-      }
       drugEventList.value.shift();
     } else {
       doSave(reference, destruction);

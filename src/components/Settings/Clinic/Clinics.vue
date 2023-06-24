@@ -66,7 +66,7 @@
                   round
                   color="amber-8"
                   icon="edit"
-                  v-if="props.row.active === true && this.showAddButton"
+                  v-if="props.row.active === true"
                   @click="editClinic(props.row)"
                 >
                   <q-tooltip class="bg-amber-5">Editar</q-tooltip>

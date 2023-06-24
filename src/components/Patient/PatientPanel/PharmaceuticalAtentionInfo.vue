@@ -7,7 +7,7 @@
       :expanded="expandLess"
       :add-visible="showAddButton"
       :expand-visible="false"
-      :add-button-actions="addButtonActions"
+      :addButtonActions="addButtonActions"
     />
     <div v-show="infoVisible">
       <EmptyList v-if="patientVisits.length <= 0" />
@@ -28,7 +28,7 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import AddEditPharmaceuticalAtention from 'components/Patient/PharmaceuticalAtention/AddEditPharmaceuticalAtention.vue';
 import PharmaceuticalAtentionContainer from 'components/Patient/PharmaceuticalAtention/PharmaceuticalAtentionContainer.vue';
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref } from 'vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
@@ -38,18 +38,18 @@ import { usePatient } from 'src/composables/patient/patientMethods';
 const { website } = useSystemUtils();
 const { hasEpisodes, hasOneAndClosedIdentifier } = usePatient();
 const infoVisible = ref(true);
-const showAddPharmaceuticalAtention = reactive(ref(false));
+const showAddPharmaceuticalAtention = ref(false);
 const title = ref('Atenção Farmacêutica');
 const titleEmptyList = ref('Nenhuma Atenção Farmacêutica Adicionada');
 const bgColor = ref('bg-primary');
 const mainContainer = ref(true);
-const editMode = reactive(ref(false));
+const editMode = ref(false);
 const onlyView = ref(false);
-const viewTb = reactive(ref(false));
-const viewPregnancy = reactive(ref(false));
-const viewAdherence = reactive(ref(false));
-const viewRam = reactive(ref(false));
-const showPatientVisit = reactive(ref(new PatientVisit()));
+const viewTb = ref(false);
+const viewPregnancy = ref(false);
+const viewAdherence = ref(false);
+const viewRam = ref(false);
+const showPatientVisit = ref(new PatientVisit());
 
 //Injection
 const patient = inject('patient');

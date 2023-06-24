@@ -1,4 +1,3 @@
-import db from 'src/stores/localbase';
 import moment from 'moment';
 import Drug from 'src/stores/models/drug/Drug';
 import Stock from 'src/stores/models/stock/Stock';
@@ -73,29 +72,5 @@ export default {
       quantityDispensed = quantityDispensed + item.quantitySupplied;
     });
     return quantityDispensed;
-  },
-
-  localDbAdd(drug) {
-    return db.newDb().collection('drugs').add(drug);
-  },
-
-  localDbAddOrUpdate(targetCopy) {
-    return db
-      .newDb()
-      .collection('drugs')
-      .doc({ id: targetCopy.id })
-      .set(targetCopy);
-  },
-
-  async localDbGetAll() {
-    return await db.newDb().collection('drugs').get();
-  },
-
-  localDbGetById(drug) {
-    return db.newDb().collection('drugs').doc({ id: drug.id }).get();
-  },
-
-  localDbDeleteById(drug) {
-    return db.newDb().collection('drugs').doc({ id: drug.id }).delete();
   },
 };

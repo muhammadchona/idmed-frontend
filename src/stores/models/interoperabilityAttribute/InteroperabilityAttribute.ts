@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class InteroperabilityAttribute extends Model {
   static entity = 'interoperabilityAttributes';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),

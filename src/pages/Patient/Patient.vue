@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, provide, reactive, ref } from 'vue';
+import { computed, onMounted, provide, ref } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import search from 'components/Patient/Search.vue';
 import Patient from 'src/stores/models/patient/Patient';
@@ -13,7 +13,7 @@ import healthInformationSystemService from 'src/services/api/HealthInformationSy
 import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { showloading, closeLoading } = useLoading();
-const currPatient = reactive(ref(new Patient()));
+const currPatient = ref(new Patient());
 
 onMounted(() => {
   showloading();

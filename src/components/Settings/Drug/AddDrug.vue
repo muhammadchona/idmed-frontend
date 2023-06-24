@@ -101,7 +101,7 @@
 <script setup>
 /*imports*/
 import Drug from '../../../stores/models/drug/Drug';
-import { ref, inject, onMounted, computed, reactive } from 'vue';
+import { ref, inject, onMounted, computed } from 'vue';
 import Form from '../../../stores/models/form/Form';
 
 /*Components import*/

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TitleBar>Detalhes do Inventário</TitleBar>
+    <TitleBar />
     <div class="row" v-if="!mobile.value">
       <div
         class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg"
@@ -177,7 +177,7 @@
 
 <script setup>
 import Drug from 'src/stores/models/drug/Drug';
-import { ref, computed, onMounted, inject } from 'vue';
+import { ref, computed, onMounted, inject, provide } from 'vue';
 import Inventory from 'src/stores/models/stockinventory/Inventory';
 import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
 import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
@@ -190,7 +190,6 @@ import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
 import { useRouter } from 'vue-router';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 
-import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import TextInput from 'components/Shared/Input/TextField.vue';
@@ -210,6 +209,7 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
 
 const currClinic = inject('currClinic');
 const adjustments = ref([]);
+const title = ref('Detalhes do Inventário');
 let step = 'display';
 const processedAdjustments = [];
 const contentStyle = {
@@ -262,13 +262,12 @@ const closeInventory = () => {
   }
 };
 
-const doProcessAndClose = () => { 
-
+const doProcessAndClose = () => {
   const inventory = InventoryService.getInvnetoryById(currInventory.value.id);
 
   inventory.endDate = new Date();
   inventory.open = false;
-  inventory.startDate = dateUtils
+  inventory.startDate = dateUtils;
   inventory.adjustments.forEach((adjustment) => {
     processAdjustment(adjustment, inventory);
   });
@@ -381,7 +380,6 @@ const doStockEntranceGet = (clinicId, offset, max) => {
     });
 };
 
-
 const retriveRelatedDrug = (adjustment, drugList) => {
   let isNewDrug = true;
   console.log(adjustment);
@@ -405,9 +403,8 @@ const retriveRelatedDrug = (adjustment, drugList) => {
 };
 
 const startDate = computed(() => {
- return moment.utc(currInventory.value.startDate).local().format('DD-MM-YYYY')
+  return moment.utc(currInventory.value.startDate).local().format('DD-MM-YYYY');
 });
-
 
 const currInventory = computed(() => {
   const idInventory = localStorage.getItem('currInventory');
@@ -420,14 +417,14 @@ const drugs = computed(() => {
     return drugService.getActiveDrugs();
   } else {
     const drugList = [];
-    console.log(currInventory);
+    // console.log(currInventory);
     Object.keys(currInventory.value.adjustments).forEach(
       function (i) {
         currInventory.value.adjustments[i].adjustedStock =
           StockService.getStockById(
             currInventory.value.adjustments[i].adjusted_stock_id
           );
-        console.log(currInventory.value.adjustments[i]);
+        // console.log(currInventory.value.adjustments[i]);
         retriveRelatedDrug(currInventory.value.adjustments[i], drugList);
       }.bind(this)
     );
@@ -446,6 +443,7 @@ onMounted(() => {
     });
   }
 });
+provide('title', title);
 </script>
 
 <style lang="scss">
