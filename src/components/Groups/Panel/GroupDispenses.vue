@@ -101,12 +101,8 @@
 <script setup>
 import { computed, inject, onMounted, provide, ref, watch } from 'vue';
 import moment from 'moment'
+
 import { date, SessionStorage } from 'quasar'
-import GroupPackHeader from '../../../stores/models/group/GroupPackHeader'
-import Group from '../../../stores/models/group/Group'
-// import mixinutils from 'src/mixins/mixin-utils'
-// import Pack from '../../../store/models/packaging/Pack'
-import GroupPack from 'src/stores/models/group/GroupPack'
 import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
 import Pack from 'src/stores/models/packaging/Pack'
 import PatientVisit from '../../../stores/models/patientVisit/PatientVisit'
@@ -121,13 +117,10 @@ import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescrip
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import {  useGroup } from 'src/composables/group/groupMethods';
-import { useGroupMember } from 'src/composables/group/groupMemberMethods';
-import { useEpisode } from 'src/composables/episode/episodeMethods';
-import { usePrescription } from 'src/composables/prescription/prescriptionMethods'
-import {  usePatient } from 'src/composables/patient/patientMethods';
 import groupPack from 'src/components/Groups/GroupDispense.vue';
 import ListHeader from 'src/components/Shared/ListHeader.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'lastDispenseDate', align: 'left', label: 'Data da Última Dispensa', sortable: false },
@@ -137,6 +130,14 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false }
 ]
 
+const {
+  getDDMMYYYFromJSDate,
+  getDateFromHyphenDDMMYYYY,
+  getYYYYMMDDFromJSDate,
+  getJSDateFromDDMMYYY,
+  getDateFormatYYYYMMDDFromDDMMYYYY,
+  extractHyphenDateFromDMYConvertYMD
+} = useDateUtils();
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const showDispensesData = ref(true);
@@ -186,20 +187,7 @@ const getDateDiff = (date1, date2) => {
   return date.getDateDiff(date1, date2, 'days')
 }
 
-const getDDMMYYYFromJSDate = (jsDate) => {
-    return moment(jsDate).format('DD-MM-YYYY')
-}
 
-const formatDate = (dateString) =>  {
-      if (!dateString || !moment(dateString).isValid()) return ''
-      const dateMoment = moment(dateString).format('DD-MM-YYYY')
-      return dateMoment
- }
-
-const getJSDateFromDDMMYYY = (dateString) => {
-      const dateParts = dateString.split('-')
-      return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-    }
 
 const expandLess = (value) => {
   showDispensesData.value = !value

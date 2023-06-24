@@ -302,6 +302,9 @@ const getGroupMembersss = (isPrescription) => {
   // groupMemberRef.value.getGroupMembers(false)
 };
 
+const dataFetchDone = computed(() => { 
+  return membersInfoLoaded.value })
+
 const dataFetchDone = computed(() => {
   return membersInfoLoaded.value;
 });
@@ -312,9 +315,6 @@ const group = computed(() => {
   );
 });
 
-//const getGroupMembers = ref(null);
-
-//provide('getGroupMembers', getGroupMembers);
 
 const desintagrateGroup = () => {
   console.log(group.value);

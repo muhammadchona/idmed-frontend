@@ -66,11 +66,6 @@ import { inject, ref } from 'vue';
 const headerClass = ref('');
 const expanded = ref(true);
 
-// const emit = defineEmits([
-//   'expand'
-// ]);
-// Injection
-// doneVisible;
 //props
 const props = defineProps([
   'editVisible',
@@ -97,7 +92,7 @@ const determineHeaderClass = () => {
 
 const expand = () => {
   expanded.value = !expanded.value;
-  emit('expand', expanded.value);
+  $emits('expand' , expanded.value)
 };
 
 const closeSection = () => {
