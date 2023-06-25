@@ -86,11 +86,10 @@ import {
   ref,
   watch,
 } from 'vue';
-import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar';
+import { SessionStorage } from 'quasar';
 import Group from '../../stores/models/group/Group';
 import GroupMemberPrescription from '../../stores/models/group/GroupMemberPrescription';
 import GroupPackHeader from '../../stores/models/group/GroupPackHeader';
-import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 import patientService from 'src/services/api/patientService/patientService';
 import episodeService from 'src/services/api/episode/episodeService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
@@ -100,35 +99,29 @@ import packService from 'src/services/api/pack/packService';
 import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
-import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import groupInfo from 'components/Groups/Panel/GroupInfo.vue';
  import groupRegister from 'components/Groups/AddEditGroup.vue';
  import groupMembers from 'components/Groups/Panel/GroupMembers.vue';
 import groupPacks from 'components/Groups/Panel/GroupDispenses.vue';
-// import Dialog from 'components/Groups/Panel/Dialog.vue';
 import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService';
 import PanelTitleBar from 'components/Groups/Panel/PanelTitleBar.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { useRouter } from 'vue-router';
-import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import { useGroupMember } from 'src/composables/group/groupMemberMethods';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useGroup } from 'src/composables/group/groupMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
-import { usePatient } from 'src/composables/patient/patientMethods';
 
-const { alertSucess, alertError, alertInfo } = useSwal();
+const { alertSucess } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 
 // const defaultPickUpDate = ref([]);
 const selectedMember = ref(null);
 const membersInfoLoaded = ref(false);
-const patientVisitDetails = ref([]);
 const showAddPrescription = ref(false);
 const showNewPackingForm = ref(false);
 const groupAddEditStep = ref(false);
@@ -262,8 +255,6 @@ const loadMemberInfo = () => {
     closeLoading();
   }
 };
-const groupMemberRef = ref(null);
-
 onMounted(() => {
   // console.log(groupMemberRef.value);
   loadMemberInfo();

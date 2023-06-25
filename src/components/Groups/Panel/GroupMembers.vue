@@ -127,20 +127,16 @@
 <script setup>
 import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
 import Group from '../../../stores/models/group/Group'
-import { SessionStorage, useQuasar, QSpinnerBall } from 'quasar'
+import { SessionStorage } from 'quasar'
 import Prescription from '../../../stores/models/prescription/Prescription'
 import moment from 'moment'
 import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
 import episodeService from 'src/services/api/episode/episodeService'
-import prescriptionService from 'src/services/api/prescription/prescriptionService'
 import packService from 'src/services/api/pack/packService'
 import groupMemberService from 'src/services/api/groupMember/groupMemberService'
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { useRouter } from 'vue-router';
-import groupService from 'src/services/api/group/groupService'
-import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService'
 import patientService from 'src/services/api/patientService/patientService'
 // import packService from 'src/services/api/pack/packService';
 import {  useGroup } from 'src/composables/group/groupMethods';
@@ -176,7 +172,6 @@ const patient = ref(null);
 const showAddPrescription = ref(false);
 const patientVisitDetails = ref();
 const membersInfoLoaded = ref(true);
-const fecthedMemberData = ref(0);
 const allMembers = inject('allMembers');
 const members = inject('members');
 const selectedMember = ref([]);
