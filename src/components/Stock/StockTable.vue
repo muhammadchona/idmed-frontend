@@ -92,7 +92,7 @@
 </template>
 
 <script setup >
-import { ref, computed, inject, provide,  onMounted } from 'vue';
+import { ref, computed, inject, provide, reactive, onMounted } from 'vue';
 
 // import mixinplatform from 'src/mixins/mixin-system-platform'
 import StockAlert from '../../stores/models/stockAlert/StockAlert';
@@ -162,7 +162,7 @@ const filter = ref('');
 const headerClass = ref('');
 const title = ref('');
 let rowData = [];
-const drug = ref(null);
+const drug = reactive(ref(null));
 provide('drug', drug);
 const clinic = inject('currClinic');
 

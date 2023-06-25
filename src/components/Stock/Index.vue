@@ -11,7 +11,7 @@
       <div class="q-mt-md">
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="stock">
-            <StockTable :isCharts="false" />
+            <StockTable  />
           </q-tab-panel>
           <q-tab-panel name="entrance">
             <EntranceTable />
@@ -35,19 +35,17 @@
         @click="addEntrada"
       />
     </q-page-sticky>
-    <!-- <q-dialog persistent v-model="createEntrance">
+      <q-dialog persistent v-model="createEntrance">
       <EntranceRegister
-        :createEntrance="createEntrance"
         @close="createEntrance = false"
       />
-    </q-dialog>
-    <q-dialog persistent v-model="createInventory">
+    </q-dialog> 
+     <q-dialog persistent v-model="createInventory">
       <InventoryRegister
-        :createInventory="createInventory"
         @close="createInventory = false"
       />
-    </q-dialog> -->
-    <!-- <q-dialog v-model="alert.visible" persistent>
+    </q-dialog>  
+    <q-dialog v-model="alert.visible" persistent>
       <Dialog
         :type="alert.type"
         @closeDialog="closeDialog"
@@ -56,7 +54,7 @@
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{ alert.msg }} </template>
       </Dialog>
-    </q-dialog> -->
+    </q-dialog> 
   </div>
 </template>
 
@@ -69,13 +67,13 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
 // Components
-// import Dialog from 'components/Shared/Dialog/Dialog.vue';
+ import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import StockTable from 'components/Stock/StockTable.vue';
-import EntranceRegister from 'components/Stock/Entrance/EntranceRegister.vue';
+ import EntranceRegister from 'components/Stock/Entrance/EntranceRegister.vue';
 import EntranceTable from 'components/Stock/Entrance/EntranceTable.vue';
 import InventoryTable from 'components/Stock/Inventory/InventoryTable.vue';
-// import InventoryRegister from 'components/Stock/Inventory/InventoryRegister.vue';
+import InventoryRegister from 'components/Stock/Inventory/InventoryRegister.vue';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import drugService from 'src/services/api/drugService/drugService';
@@ -95,6 +93,7 @@ const title = ref('Gestão de Stock');
 
 const addEntrada = () => {
   if (tab.value === 'entrance') {
+    console.log('entradass')
     createEntrance.value = true;
   } else {
     const inventory = InventoryService.getOpenInventory();

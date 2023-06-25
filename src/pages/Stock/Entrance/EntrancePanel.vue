@@ -612,16 +612,13 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 import Drug from '../../../stores/models/drug/Drug';
 import Stock from '../../../stores/models/stock/Stock';
-import StockEntrance from '../../../stores/models/stockentrance/StockEntrance';
 import { computed, onMounted, provide, ref } from 'vue';
 import StockCenter from '../../../stores/models/stockcenter/StockCenter';
 import { date, SessionStorage } from 'quasar';
 import moment from 'moment';
-import AuditSyncronization from 'src/stores/models/auditSyncronization/AuditSyncronization';
 import StockService from 'src/services/api/stockService/StockService';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import { useStock } from 'src/composables/stock/StockMethod';
-import StockEntranceMethod from 'src/methods/stockEntrance/StockEntranceMethod';
 import { useMediaQuery } from '@vueuse/core';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
@@ -712,15 +709,7 @@ const init = () => {
     currStockEntrance.value.dateReceived
   );
   orderNumber.value = currStockEntrance.value.orderNumber;
-  if (mobile.value) {
-    DrugMethod.localDbGetAll().then((drugs) => {
-      drugs.forEach((drug) => {
-        Drug.save({ where: drug.id, data: drug });
-      });
-    });
-    loadStockList();
-  }
-};
+ };
 
 const cancelOperation = () => {
   guiaStep.value = 'display';
@@ -779,11 +768,11 @@ const doSaveGuia = () => {
       }
     } else {
       currStockEntrance.value.syncStatus = 'U';
-      StockEntranceMethod.localDbUpdate(currStockEntrance).then((stockEnt) => {
+      /*StockEntranceMethod.localDbUpdate(currStockEntrance).then((stockEnt) => {
         stockEntranceRepo.update(currStockEntrance);
         guiaStep.value = 'display';
         alertSucess('Operação efectuada com sucesso.');
-      });
+      }); */
     }
   }
 };
@@ -819,7 +808,6 @@ const removeGuia = () => {
     guiaStep.value = 'delete';
 
     alertWarningAction(
-      'Confirmação',
       'Deseja remover a presente guia de entrada de stock?',
       'Não',
       'Sim'
@@ -839,7 +827,7 @@ const doRemoveGuia = () => {
     });
   } else {
     const targetEntrance = JSON.parse(JSON.stringify(currStockEntrance));
-    StockEntranceMethod.localDbGetById(targetEntrance.id).then((item) => {
+  /*  StockEntranceMethod.localDbGetById(targetEntrance.id).then((item) => {
       if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
         const auditSync = new AuditSyncronization();
         auditSync.operationType = 'remove';
@@ -852,7 +840,7 @@ const doRemoveGuia = () => {
         stockEntranceRepo.destroy(item.id);
       });
       $router.go(-1);
-    });
+    });*/
   }
 };
 
@@ -872,7 +860,7 @@ const doRemoveStock = (stock) => {
   } else {
     const targetStock = JSON.parse(JSON.stringify(selectedStock));
     removeFromList(targetStock);
-    Stock.localDbGetById(targetStock.id).then((item) => {
+   /* Stock.localDbGetById(targetStock.id).then((item) => {
       if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
         const auditSync = new AuditSyncronization();
         auditSync.operationType = 'remove';
@@ -885,7 +873,7 @@ const doRemoveStock = (stock) => {
         StockRepo.destroy(item.id);
       });
       step.value = 'display';
-    });
+    }); */
   }
 };
 
@@ -1027,7 +1015,7 @@ const doSave = (stock) => {
     stock.center.clinic = clinicService.currClinic();
     // const uuid = uuidv4
     const targetCopy = JSON.parse(JSON.stringify(stock));
-    Stock.localDbAddOrUpdate(targetCopy, step)
+    /*Stock.localDbAddOrUpdate(targetCopy, step)
       .then((stock1) => {
         Stock.insert({
           data: stock1.data.data,
@@ -1069,7 +1057,7 @@ const doSave = (stock) => {
       })
       .catch((error) => {
         alertError('Ocorreu um erro inesperado');
-      });
+      });*/
   }
   closeLoading();
 };

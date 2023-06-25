@@ -56,24 +56,16 @@
         <q-btn type="submit" label="Avançar" color="primary" />
       </q-card-actions>
     </form>
-    <!--q-dialog v-model="alert.visible" persistent>
-          <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="doRemove">
-            <template v-slot:title> Informação</template>
-            <template v-slot:msg> {{alert.msg}} </template>
-          </Dialog>
-        </q-dialog-->
   </q-card>
 </template>
 
 <script setup>
-import { SessionStorage } from 'quasar';
 import StockEntrance from '../../../stores/models/stockentrance/StockEntrance';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
-import StockEntranceMethod from 'src/methods/stockEntrance/StockEntranceMethod';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useMediaQuery } from '@vueuse/core';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { computed, provide, ref, inject } from 'vue';
+import { computed, reactive, provide, ref, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
@@ -84,11 +76,11 @@ const dateUtils = useDateUtils();
 Declarations
 */
 const { showloading, closeLoading } = useLoading();
-let stockEntrance = new StockEntrance({ dateReceived: new Date() });
+let stockEntrance = reactive(new StockEntrance({ dateReceived: new Date() }));
 const dateReceived = ref(dateUtils.getDDMMYYYFromJSDate(new Date()));
 const orderNumberRef = ref(null);
 const router = useRouter();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
 const currClinic = inject('currClinic');
 /*
@@ -124,7 +116,9 @@ const submitForm = () => {
           .catch((error) => {
             console.log('ERRO: ', error);
             closeLoading();
-            alertError('Ocorreu um erro inesperado, contacte o administrador!');
+            alertError(
+              'Ocorreu um erro inesperado, contacte o administrador!'
+            );
           });
       } else {
         stockEntrance.clinic = currClinic;
@@ -132,7 +126,7 @@ const submitForm = () => {
         const targetCopy = new StockEntrance(
           JSON.parse(JSON.stringify(this.stockEntrance))
         );
-        StockEntranceMethod.localDbAdd(targetCopy)
+       /* StockEntranceMethod.localDbAdd(targetCopy)
           .then((item) => {
             SessionStorage.set('currStockEntrance', targetCopy);
             closeLoading();
@@ -140,9 +134,9 @@ const submitForm = () => {
             $emit('close');
           })
           .catch((error) => {
-            console.log(error);
-            alertError('Ocorreu um erro inesperado!');
-          });
+           console.log(error)
+           alertError( 'Ocorreu um erro inesperado!');
+          }); */
       }
     }
   }
