@@ -333,7 +333,8 @@
       </div>
     </div>
   </div>
-  <div class="" v-if="showServiceDrugsManagement">
+  <div class=""  v-if="(showServiceDrugsManagement && selectedMember == null) ||
+      (!isNewPrescription && selectedMember == null)">
     <div>
       <ServiceDrugsManagement />
     </div>
@@ -502,6 +503,7 @@ const columns = [
 const isNewPrescription = inject('isNewPrescription');
 const patient = inject('patient');
 const curPatientVisit = inject('curPatientVisit');
+const selectedMember = inject('selectedMember');
 
 // Computed
 const spetialPrescriptionMotives = computed(() => {
@@ -842,6 +844,10 @@ const allGoodvalidatedForm = () => {
 
   addPackagedDrugs();
   showServiceDrugsManagement.value = true;
+  if(selectedMember.value !== null) {
+   curPatientVisitDetail.value.prescription = curPrescription.value;
+   curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
+      }
 };
 
 const addPackagedDrugs = () => {
@@ -1399,6 +1405,8 @@ const filterFnpatientStatus = (val, update, abort) => {
 
 // Hook
 onMounted(() => {
+  console.log(showServiceDrugsManagement.value)
+  console.log(isNewPrescription.value)
   init();
 });
 

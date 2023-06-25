@@ -102,17 +102,12 @@
 import { computed, inject, onMounted, provide, ref } from 'vue';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { usePatient } from 'src/composables/patient/patientMethods';
-import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService';
 import addEditPrescriptionUnit from 'src/components/Patient/PatientPanel/AddEditPrescriptionUnit.vue';
 import ListHeader from 'src/components/Shared/ListHeader.vue';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
-import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
 import moment from 'moment';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
-import packService from 'src/services/api/pack/packService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
 import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription';
 import { v4 as uuidv4 } from 'uuid';
@@ -141,17 +136,12 @@ const selectedMember = inject('selectedMember');
 
 //Hook
 onMounted(() => {
+  console.log(isNewPrescription.value)
   init();
 });
 
 const dispenseLabel = computed(() => {
-  if (isNewPrescription.value) {
-    return curPatientVisit.value.patientVisitDetails.length === 0
-      ? 'Dispensar'
-      : 'Dispensar [' + curPatientVisit.value.patientVisitDetails.length + ']';
-  } else {
     return 'Gravar';
-  }
 });
 // Methods
 
@@ -187,6 +177,8 @@ const doValidationToDispense = () => {
   memberPrescription.member.group.service.drugs = [];
   memberPrescription.member.group.service.attributes = [];
   memberPrescription.member.patient.identifiers = [];
+  memberPrescription.member.group.members = [];
+  memberPrescription.member.patient.district = memberPrescription.member.clinic.district;
   memberPrescription.prescription.prescribedDrugs.forEach((pd) => {
     pd.drug.therapeuticRegimenList = [];
     pd.drug.packaged_drugs = [];
@@ -235,29 +227,12 @@ const doValidationToDispense = () => {
     GroupMemberPrescription.localDbAdd(memberPrescription);
     this.displayAlert('info', 'Prescrição gravada com sucesso.');
   } else {
-    //  prescriptionService.apiSave(memberPrescription.prescription).then(resp => {
-    // memberPrescription.prescription.id = resp.response.data.id
-    // memberPrescription.prescription.$id = resp.response.data.id
-    //      memberPrescription.prescription.prescribedDrugs = []
-    // memberPrescription.prescription.prescriptionDetails[0].id = resp.response.data.prescriptionDetails[0].id
-    //    console.log(memberPrescription.prescription.leftDuration)
-    //    memberPrescription.prescription.leftDuration = duration
+
     console.log(memberPrescription.prescription.leftDuration);
     console.log(memberPrescription);
     groupMemberPrescriptionService
       .apiSave(memberPrescription)
       .then((resp1) => {
-        //   groupMemberPrescriptionService.apiFetchByMemberId(groupMember.id).then(respd => {
-        //   if (respd.response.status === 200) {
-        //     Prescription.apiFetchById(respd.response.data.prescription.id).then(resp2 => {
-        //       resp.response.data.leftDuration = duration
-        //      console.log(resp.response.data.leftDuration)
-        //   })
-        // }
-        // })
-        //     console.log(getGroupMembers)
-        //   console.log(getGroupMembers())
-        // getGroupMembers();
         executeGetGroupMembers();
         alertSucess('Prescricao gravada com sucesso');
         submitting.value = false;

@@ -156,9 +156,22 @@ export default {
         .query()
         .has('identifiers')
         //  .has('patientVisits')
-        .withAll()
+        .with('identifiers', (query) => {
+          query
+            .with('identifierType')
+            .with('service', (query) => {
+              query.withAllRecursive(1);
+            })
+            .with('clinic', (query) => {
+              query.withAll();
+            })
+        })
+        .with('province')
+        .with('district')
+        .with('clinic', (query) => {
+          query.withAll();
+        })
         .where((patients) => {
-          console.log(patients);
           return (
             patients.clinic_id === clinicId || patients.clinicId === clinicId
           );
@@ -181,10 +194,13 @@ export default {
             query.withAllRecursive(1);
           })
           .with('episodes', (query) => {
-            query.withAllRecursive(1);
+            query.with('episodeType')
+            .with('clinicSector')
+            .with('startStopReason');
           });
       })
       .with('province')
+      .with('district')
       .with('clinic', (query) => {
         query.withAllRecursive(1);
       })

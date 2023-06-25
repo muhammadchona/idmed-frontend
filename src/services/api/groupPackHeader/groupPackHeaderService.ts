@@ -1,6 +1,8 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import GroupPackHeader from 'src/stores/models/group/GroupPackHeader';
+import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
+import patientVisitService from '../patientVisit/patientVisitService';
 
 const groupPackHeader = useRepo(GroupPackHeader);
 
@@ -54,12 +56,14 @@ export default {
     return await api()
       .post('/groupPackHeader', groupPackHeaderParam)
       .then((resp) => {
-        groupPackHeaderParam.group.members.forEach((member) => {
-          member.group = null;
-          member.groupMemberPrescription.prescription = null;
-        });
-        console.log(groupPackHeaderParam);
-        console.log(resp.data);
+        groupPackHeaderParam.groupPacks.forEach(groupPack => {
+          /*
+          groupPack.patientVisit.patientVisitDetails.forEach(pvd => {
+            patientVisitDetailsService.saveInStorage(pvd)
+          });
+          */
+         patientVisitService.saveInStorage(groupPack.patientVisit)
+        })
         // groupPackHeader.save(groupPackHeaderParam);
         return resp;
       });

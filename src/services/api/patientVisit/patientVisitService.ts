@@ -94,6 +94,9 @@ export default {
   getAllFromStorage() {
     return patientVisit.all();
   },
+  saveInStorage(patientVisitParam :any) {
+    return patientVisit.save(patientVisitParam);
+  },
 
   getLastFourWithVitalSignByPatientId(patientId: string) {
     return patientVisit
