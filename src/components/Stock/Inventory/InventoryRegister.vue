@@ -169,62 +169,52 @@ const getSelectedString = () => {
 };
 
 const submitForm = () => {
-  showloading();
-  const inventory = inventoryService.getLastInventory();
-  const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate);
+        showloading()
+        const inventory = inventoryService.getLastInventory();
+        const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate) 
 
-  if (
-    dateUtils
-      .getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
-      .setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)
-  ) {
-    alertError(
-      'A data de inicio do inventário não pode ser superior a data corrente.'
-    );
-    closeLoading();
-  } else if (
-    inventory !== null &&
-    dateUtils
-      .getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
-      .setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0)
-  ) {
-    console.log(new Date(currInventory.value.startDate));
-    console.log(new Date(inventory.endDate));
-    alertError(
-      'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
-        dateUtils.getDDMMYYYFromJSDate(endDateLast) +
-        ']'
-    );
-    closeLoading();
-  } else if (currInventory.value.generic) {
-    initInventory();
-  } else {
-    if (selected.value.length <= 0) {
-      alertError(
-        'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
+        if (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)) {
+          alertError('A data de inicio do inventário não pode ser superior a data corrente.'
       );
-      closeLoading();
-    } else {
-      initInventory();
-    }
-  }
+        } else
+        if (inventory !== null && (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0))) {
+          console.log(new Date(currInventory.value.startDate))
+          console.log(new Date(inventory.endDate))
+          alertError(
+        'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
+          dateUtils.getDDMMYYYFromJSDate(endDateLast) +
+          ']'
+      );
+        } else
+        if (currInventory.value.generic) {
+          initInventory()
+        } else {
+          if (selected.value.length <= 0) {
+            alertError(
+          'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
+        );
+          } else {
+            initInventory()
+          }
+        }
+       
 };
 
 const initInventory = () => {
   if (currInventory.value.generic !== 'true') {
     doBeforeSave();
   }
-  currInventory.value.id = uuidv4();
+  currInventory.value.id = uuidv4()
   currInventory.value.clinic = currClinic;
   currInventory.value.clinic_id = currClinic.id;
-  currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(
-    dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
-  );
+  currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
+    currInventory.value.startDate
+  ));
   if (!mobile.value) {
     inventoryService.post(currInventory.value).then((resp) => {
       localStorage.setItem('currInventory', currInventory.value.id);
       // console.log(resp.response);
-      closeLoading();
+      closeLoading()
       router.push('/stock/inventory');
     });
   } else {
@@ -272,7 +262,7 @@ const initNewAdjustment = (stock, drug) => {
   newAdjustment.adjustedStock.drug = drug;
   newAdjustment.inventory_id = currInventory.value.id;
   newAdjustment.adjusted_stock_id = newAdjustment.adjustedStock.id;
-  newAdjustment.clinic = currClinic;
+  newAdjustment.clinic = currClinic
   newAdjustment.id = uuidv4();
 
   currInventory.value.adjustments.push(newAdjustment);
@@ -287,4 +277,5 @@ onMounted(() => {
 });
 </script>
 
-<style></style>
+<style>
+</style>
