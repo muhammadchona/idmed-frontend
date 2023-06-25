@@ -151,15 +151,20 @@ export default {
       .get();
   },
   getPatientByClinicId(clinicId: string) {
-    return patient
-      .query()
-      .has('identifiers')
-      .has('patientVisits')
-      .withAll()
-      .where((patients) => {
-        return patients.clinic_id === clinicId;
-      })
-      .get();
+    return (
+      patient
+        .query()
+        .has('identifiers')
+        //  .has('patientVisits')
+        .withAll()
+        .where((patients) => {
+          console.log(patients);
+          return (
+            patients.clinic_id === clinicId || patients.clinicId === clinicId
+          );
+        })
+        .get()
+    );
   },
   getPatienWithstByID(id: string) {
     // return patient.withAllRecursive(3).whereId(id).first();
