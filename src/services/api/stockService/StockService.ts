@@ -63,7 +63,9 @@ export default {
     return  api().get('/stock?offset=' + offset + '&max=' + max)
   },
   getStockByDrug(drugId: string) {
-    return stock.where('drug_id', drugId).orderBy('expireDate', 'desc').get();
+    return stock.where('drug_id', drugId).
+    orderBy('expireDate', 'desc').
+    orderBy('stockMoviment', 'desc').get();
   },
 
   getValidStockByDrugAndPickUpDate(drugId: string, pickupDate: string) {
