@@ -212,6 +212,8 @@ const init = () => {
 };
 
 const doValidationToDispense = () => {
+  curPatientVisit.value.clinic = {};
+  curPatientVisit.value.clinic.id = patient.value.clinic_id;
   curPatientVisit.value.patient = {};
   curPatientVisit.value.patient.id = patient.value.id;
   submitting.value = true;
@@ -225,8 +227,27 @@ const doValidationToDispense = () => {
   } else {
     curPatientVisit.value.patientVisitDetails.forEach((patientVisitDetail) => {
       curPatientVisit.value.visitDate = patientVisitDetail.pack.pickupDate;
-      patientVisitDetail.pack.dispenseMode_id = dispenseMode.value.id;
-      patientVisitDetail.pack.dispenseMode = dispenseMode.value;
+      patientVisitDetail.clinic = {};
+      patientVisitDetail.clinic.id = patient.value.clinic_id;
+      patientVisitDetail.episode = {};
+      patientVisitDetail.episode.id = patientVisitDetail.episode_id;
+      patientVisitDetail.pack.clinic = {};
+      patientVisitDetail.pack.clinic.id = patient.value.clinic_id;
+      patientVisitDetail.pack.dispenseMode = {};
+      patientVisitDetail.pack.dispenseMode.id = dispenseMode.value.id;
+      patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug) => {
+        packagedDrug.drug = {};
+        packagedDrug.drug.id = packagedDrug.drug_id;
+      });
+      patientVisitDetail.prescription.clinic = {};
+      patientVisitDetail.prescription.clinic.id = patient.value.clinic_id;
+      patientVisitDetail.prescription.prescribedDrugs.forEach(
+        (prescribedDrug) => {
+          let drugID = prescribedDrug.drug.id;
+          prescribedDrug.drug = {};
+          prescribedDrug.drug.id = drugID;
+        }
+      );
     });
     patientVisitService
       .post(curPatientVisit.value)

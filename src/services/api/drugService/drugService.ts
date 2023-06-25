@@ -61,6 +61,11 @@ export default {
       .where('id', id)
       .first();
   },
+    getCleanDrugById(id: string) {
+    return drug
+      .where('id', id)
+      .first();
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return drug.getModel().$newInstance();
