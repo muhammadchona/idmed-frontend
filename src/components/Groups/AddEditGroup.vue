@@ -300,7 +300,6 @@ import episodeService from 'src/services/api/episode/episodeService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import groupService from 'src/services/api/group/groupService';
 import { v4 as uuidv4 } from 'uuid';
-import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },

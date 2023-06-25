@@ -70,16 +70,16 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, ref, watch } from 'vue';
-import { SessionStorage } from 'quasar'
-import groupService from 'src/services/api/group/groupService';
-import moment from 'moment'
+import {  inject } from 'vue';
 import {  useGroup } from 'src/composables/group/groupMethods';
-//falta botao EDITgROUp
+import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 
-const getDDMMYYYFromJSDate = (jsDate) => {
-  return moment(jsDate).format('DD-MM-YYYY')
-}
+
+
+const {
+  getDDMMYYYFromJSDate
+} = useDateUtils();
+
 const group = inject('group')
 console.log(group)
 const emit = defineEmits([

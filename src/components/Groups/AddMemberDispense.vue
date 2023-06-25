@@ -172,23 +172,13 @@
   </q-dialog>
 </template>
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { inject, onMounted, provide, reactive, ref } from 'vue';
 import GroupPack from '../../stores/models/group/GroupPack'
 import Pack from '../../stores/models/packaging/Pack'
 import PackagedDrug from '../../stores/models/packagedDrug/PackagedDrug'
-import PackagedDrugStock from '../../stores/models/packagedDrug/PackagedDrugStock'
 import PatientVisitDetails from '../../stores/models/patientVisitDetails/PatientVisitDetails'
 import PatientVisit from '../../stores/models/patientVisit/PatientVisit'
-import Prescription from '../../stores/models/prescription/Prescription'
-import ClinicalService from '../../stores/models/ClinicalService/ClinicalService'
-import PrescriptionDetail from '../../stores/models/prescriptionDetails/PrescriptionDetail'
-import GroupMemberPrescription from '../../stores/models/group/GroupMemberPrescription'
-// import mixinplatform from 'src/mixins/mixin-system-platform'
-// import mixinutils from 'src/mixins/mixin-utils'
-import {  useGroup } from 'src/composables/group/groupMethods';
-import { useGroupMember } from 'src/composables/group/groupMemberMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
-import { usePrescription } from 'src/composables/prescription/prescriptionMethods'
 import {  usePatient } from 'src/composables/patient/patientMethods';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods'
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -200,7 +190,6 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue'
 import drugService from 'src/services/api/drugService/drugService';
-import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import formService from 'src/services/api/formService/formService';
 import { v4 as uuidv4 } from 'uuid';
@@ -253,7 +242,7 @@ const columns1 = [
 
 const props = defineProps(['member']);
 
-const { alertSucess, alertError, alertInfo,alertWarningAction } = useSwal();
+const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 
@@ -262,12 +251,9 @@ const clinic = inject('clinic');
 let selectedVisitDetails = reactive(ref(new PatientVisitDetails()));
 const showAddEditDrug = ref(false);
 const hasTherapeuticalRegimen = ref(false);
-const patientVisitDetailsToAdd = ref([]);
 const showDispensesData = ref(false);
 const selectedGroup =  inject('group');
 console.log(selectedGroup)
-const loadedData = ref(false)
-const defaultPickUpDate = ref(null)
 const membersDispenses = inject('membersDispenses');
 const curIdentifier = ref('')
 const curPrescriptionDetail = ref ('')
@@ -283,7 +269,7 @@ const expand = (valueUpdated) => {
 
 
 const initDispenses = () => {
- 
+
   let prescription
         if (props.member.groupMemberPrescription != null) {
           prescription = props.member.groupMemberPrescription.prescription
@@ -328,7 +314,7 @@ const groupPack = new GroupPack({ id: uuidv4()
     closeLoading();
 }
 
-const openAddPrescribedDrugForm = () => {  
+const openAddPrescribedDrugForm = () => {
 
     console.log(props.member)
     const pack = membersDispenses.value.get(props.member)
@@ -347,7 +333,7 @@ const getForm = (id) => {
   return formService.getFormById(id)
  }
 
-   
+
 const  removePrescribedDrug = (prescribedDrug) => {
   console.log(selectedGroup)
     const pack = membersDispenses.value.get(props.member)
@@ -365,7 +351,7 @@ const  removePrescribedDrug = (prescribedDrug) => {
     //  prescribedDrug.prescription_id = visitDetails.prescription.id
         const pack = membersDispenses.value.get(props.member)
         const psdrugExists = pack.packagedDrugs.some((pd) => {
-          return pd.drug.id === prescribedDrug.drug.id 
+          return pd.drug.id === prescribedDrug.drug.id
         })
         if (psdrugExists) {
           alertError('O medicamento seleccionado não pode ser adicionado, pois já existe na lista a dispensar para o membro [' + usePatient().fullName(member.patient) + ']')

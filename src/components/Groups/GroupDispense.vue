@@ -172,8 +172,8 @@
   </q-card>
 </template>
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
-import { date, QSpinnerBall, SessionStorage } from 'quasar'
+import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { date } from 'quasar'
 import DispenseMode from '../../stores/models/dispenseMode/DispenseMode'
 import Duration from '../../stores/models/duration/Duration'
 import GroupPackHeader from '../../stores/models/group/GroupPackHeader'
@@ -184,33 +184,21 @@ import PatientVisitDetails from '../../stores/models/patientVisitDetails/Patient
 import PatientVisit from '../../stores/models/patientVisit/PatientVisit'
 import Drug from '../../stores/models/drug/Drug'
 import moment from 'moment'
-import {  useGroup } from 'src/composables/group/groupMethods';
 import { useGroupMember } from 'src/composables/group/groupMemberMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods'
 import {  usePatient } from 'src/composables/patient/patientMethods';
-import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods'
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { useRouter } from 'vue-router';
-import groupService from 'src/services/api/group/groupService'
 import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService'
 import patientService from 'src/services/api/patientService/patientService'
-import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService'
-import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService'
-import packService from 'src/services/api/pack/packService'
-import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService'
 import durationService from 'src/services/api/duration/durationService'
 import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService'
 import episodeService from 'src/services/api/episode/episodeService'
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 // import packService from 'src/services/api/pack/packService';
-import ListHeader from 'components/Shared/ListHeader.vue';
-import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue'
 import StockService from 'src/services/api/stockService/StockService';
-import prescriptionService from 'src/services/api/prescription/prescriptionService';
-import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import drugService from 'src/services/api/drugService/drugService';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import addMemberDispense from 'src/components/Groups/AddMemberDispense.vue'
@@ -224,7 +212,7 @@ const {
   getDateFormatYYYYMMDDFromDDMMYYYY,
   extractHyphenDateFromDMYConvertYMD
 } = useDateUtils();
-const { alertSucess, alertError, alertInfo,alertWarningAction } = useSwal();
+const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 

@@ -98,21 +98,17 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, ref, watch } from 'vue';
-import moment from 'moment'
-
+import { computed, inject, provide, ref } from 'vue';
 import { date, SessionStorage } from 'quasar'
 import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails'
 import Pack from 'src/stores/models/packaging/Pack'
 import PatientVisit from '../../../stores/models/patientVisit/PatientVisit'
 import Prescription from '../../../stores/models/prescription/Prescription'
-import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import groupService from 'src/services/api/group/groupService';
 import groupPackService from 'src/services/api/groupPack/groupPackService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import packService from 'src/services/api/pack/packService';
-import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import {  useGroup } from 'src/composables/group/groupMethods';
@@ -181,6 +177,7 @@ const newPacking = () => {
   showloading();
   if (headers.value[0] !== null && headers.value[0] !== undefined) defaultPickUpDate.value = headers.value[0].nextPickUpDate
   showNewPackingForm.value = true
+  closeLoading();
 }
 
 const getDateDiff = (date1, date2) => {
