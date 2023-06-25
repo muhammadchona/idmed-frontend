@@ -246,7 +246,7 @@ const step =  'display';
 const selectedGroup =  inject('group');
 console.log(selectedGroup)
 const loadedData = ref(false)
-const defaultPickUpDate = ref(null)
+const defaultPickUpDate =  inject('defaultPickUpDate');
 const membersDispenses = ref(new Map())
 // const date = ref(moment(date).format('YYYY/MM/DD'))
 const curIdentifier = ref('')
@@ -258,7 +258,7 @@ const getGroupMembers = inject('getGroupMembers');
 const showNewPackingForm = inject('showNewPackingForm');
 
 const loadDetails = () => {
-  if (defaultPickUpDate.value !== null) {
+  if (defaultPickUpDate !== undefined  && defaultPickUpDate.value !== null) {
        pickupDate.value = getDDMMYYYFromJSDate(defaultPickUpDate)
       }
       if (isMobile.value) {
@@ -350,7 +350,7 @@ const  doFormValidation = () => {
       }
       }
     }
-   
+
     const executeGetGroupMembers = () => {
       getGroupMembers(true);
 };
@@ -454,7 +454,7 @@ const validatePack = (pack) => {
         const packagedDrugStocks = []
         const stocksToMoviment = []
         const packagedDrug = pack.packagedDrugs[k]
-        let quantitySupplied = pack.quantitySupplied
+        let quantitySupplied = packagedDrug.quantitySupplied
        // const packDrug = new PackagedDrug()
         const stocks = StockService.getValidStockByDrugAndPickUpDate(
           packagedDrug.drug.id,
@@ -470,7 +470,7 @@ const validatePack = (pack) => {
             if ((validStock[i].stockMoviment >= quantitySupplied)) {
               validStock[i].stockMoviment = Number(validStock[i].stockMoviment - quantitySupplied)
               stocksToMoviment.push(validStock[i])
-              qtyPrescribed = 0
+              quantitySupplied = 0
               // const pkstock = initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
               const packagedDrugStock = new PackagedDrugStock()
               packagedDrugStock.drug = drugService.getDrugById(packagedDrug.drug.id)
@@ -516,9 +516,9 @@ const  generatepacks = ()  => {
         const drugerror = validatePack(groupPack.pack)
         if (drugerror !== undefined) error += drugerror
         console.log(error)
-        
+
       })
-    
+
       if (error !== undefined && error !== null && error.length > 0) {
         errorMsg += error + ']'
         console.log(errorMsg)
@@ -533,7 +533,7 @@ const  generatepacks = ()  => {
 const emit = defineEmits([
 // 'getGroupMembers'
 ]);
- 
+
 
 const savePatientVisitDetails = (groupPacks, i) => {
       if (isMobile.value) {
@@ -601,9 +601,9 @@ const savePatientVisitDetails = (groupPacks, i) => {
           patientVisit.patientVisitDetails[0].patientVisit = null
           groupPacks[i].pack.patientVisitDetails = []
           groupPacks[i].pack.packagedDrugs.forEach(pck => {
-          
+
             pck.drug.stocks = []
-         //   pck.form.drugs = [] 
+         //   pck.form.drugs = []
             pck.drug.form.drugs = []
             pck.drug.therapeuticRegimenList = []
             pck.drug.clinicalService.drugs = []
@@ -614,7 +614,7 @@ const savePatientVisitDetails = (groupPacks, i) => {
             pd.drug.packaged_drugs = []
             pd.drug.stocks = []
           })
-        
+
 
             console.log(patientVisit)
             console.log(patientVisit.patientVisitDetails)
@@ -703,7 +703,7 @@ const savePatientVisitDetails = (groupPacks, i) => {
         }
       }
     }
- 
+
 
 const initGroupPackHeader = () => {
   // curGroupPackHeader = new GroupPackHeader()
@@ -738,7 +738,7 @@ const initGroupPackHeader = () => {
 
 
     const  lastStartEpisodeWithPrescription = (identifierId) => {
-      let episode = null 
+      let episode = null
       const episodes = episodeService.getStartEpisodeByIdentifierId(identifierId)
       Object.keys(episodes).forEach(function (k) {
         const id = episodes[k]
@@ -771,12 +771,12 @@ const initGroupPackHeader = () => {
 
 const durations = computed(() => {
   return durationService.getAllFromStorage()
-}) 
-   
-   
+})
+
+
 const dispenseModes = computed(() => {
   return dispenseModeService.getAllFromStorage()
-}) 
+})
 
 onMounted(() => {
   console.log('Dispense Component: onMounted');

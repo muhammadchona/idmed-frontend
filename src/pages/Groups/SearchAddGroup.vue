@@ -133,8 +133,6 @@
     </div>
     <q-dialog persistent v-model="showGroupRegister">
       <groupRegister
-        :step="step"
-        :stepp="step"
         @close="showGroupRegister = false"
       />
     </q-dialog>
@@ -142,17 +140,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted, provide, ref } from 'vue';
+import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
 import { SessionStorage } from 'quasar';
 import Group from '../../stores/models/group/Group';
 import { useRouter } from 'vue-router';
 import groupTypeService from 'src/services/api/groupType/groupTypeService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import groupService from 'src/services/api/group/groupService';
+import TitleBar from 'components/Shared/TitleBar.vue';
+import groupRegister from 'components/Groups/AddEditGroup.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
+
 const columns = [
   { name: 'code', align: 'left', label: 'Número do grupo', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },

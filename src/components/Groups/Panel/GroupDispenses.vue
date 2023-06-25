@@ -92,7 +92,6 @@
     <groupPack
       v-if="dataFetchDone"
       @getGroupMembers="getGroupMembers"
-      :defaultPickUpDate="defaultPickUpDate"
       @close="showNewPackingForm = false"
     />
   </q-dialog>
@@ -146,6 +145,7 @@ const showNewPackingForm = inject('showNewPackingForm');
 const dataFetchDone = inject('dataFetchDone');
 const { closeLoading, showloading } = useLoading();
 const getGroupMembers = inject('getGroupMembers')
+const defaultPickUpDate = ref(null)
 
 const removePackHeader = (groupPackHeader) => {
   groupPackHeaderService.apiDelete(groupPackHeader).then(resp => {
@@ -208,6 +208,7 @@ const headers = computed(() => {
 
 const selectedGroup = computed(() => groupService.getGroupById(SessionStorage.getItem('selectedGroupId')));
 
+provide(defaultPickUpDate,'defaultPickUpDate')
 </script>
 
 <style>

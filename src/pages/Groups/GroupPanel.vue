@@ -1,9 +1,7 @@
 <template>
-  <div ref="groupMembersRefa">
+  <div >
     <PanelTitleBar
       v-if="isMobile"
-      :name="group.name"
-      :groupType="group.groupType.description"
       @showGroupDetails="showGroupDetails"
     >
       Detalhe do Grupo
@@ -60,12 +58,10 @@
               <groupMembers
                 v-if="dataFetchDone"
                 @addMember="addMember"
-                @getGroupMembers="getGroupMembers"
                 @desintagrateGroup="desintagrateGroup"
               />
               <groupPacks
                 v-if="dataFetchDone"
-                @getGroupMembers="getGroupMembers"
               />
             </span>
           </q-scroll-area>
@@ -74,7 +70,6 @@
     </span>
     <q-dialog persistent v-model="showRegisterRegister">
       <groupRegister
-        :step="groupAddEditStep"
         @getGroupMembers="getGroupMembers"
         @close="showRegisterRegister = false"
       />
@@ -108,8 +103,8 @@ import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHe
 import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import groupInfo from 'components/Groups/Panel/GroupInfo.vue';
-import groupRegister from 'components/Groups/AddEditGroup.vue';
-import groupMembers from 'components/Groups/Panel/GroupMembers.vue';
+ import groupRegister from 'components/Groups/AddEditGroup.vue';
+ import groupMembers from 'components/Groups/Panel/GroupMembers.vue';
 import groupPacks from 'components/Groups/Panel/GroupDispenses.vue';
 // import Dialog from 'components/Groups/Panel/Dialog.vue';
 import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService';
@@ -120,7 +115,6 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRouter } from 'vue-router';
 import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import { useGroupMember } from 'src/composables/group/groupMemberMethods';
-import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useGroup } from 'src/composables/group/groupMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
@@ -131,7 +125,7 @@ const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 
-const defaultPickUpDate = ref([]);
+// const defaultPickUpDate = ref([]);
 const selectedMember = ref(null);
 const membersInfoLoaded = ref(false);
 const patientVisitDetails = ref([]);
@@ -243,6 +237,7 @@ const loadMemberInfo = () => {
                       .apiGetLastByEpisodeId(episode.id)
                       .then((resp) => {
                         if (resp.data) {
+                          episode.patientVisitDetails = []
                           episode.patientVisitDetails[0] = resp.data;
                           patientVisitDetailsService.apiGetAllofPrecription(
                             episode.patientVisitDetails[0].prescription.id
@@ -285,29 +280,11 @@ const editGroup = () => {
   showRegisterRegister.value = true;
 };
 
-const newPacking = (lasHeader) => {
-  // if (lasHeader !== null && lasHeader !== undefined) defaultPickUpDate.value = lasHeader.nextPickUpDate
-  // console.log(dataFetchDone.value)
-  // showNewPackingForm.value = true
-};
-/*
-const getGroupMembers = (isPrescription) => {
- // this.$refs.groupMembers.getGroupMembers(isPrescription)
-}
-*/
 
-const getGroupMembersss = (isPrescription) => {
-  console.log('teste');
-  // console.log($refs.groupMembersRef.value)
-  // groupMemberRef.value.getGroupMembers(false)
-};
-
-const dataFetchDone = computed(() => { 
-  return membersInfoLoaded.value })
 
 const dataFetchDone = computed(() => {
-  return membersInfoLoaded.value;
-});
+  return membersInfoLoaded.value })
+
 
 const group = computed(() => {
   return groupService.getGroupWithsById(
@@ -339,8 +316,8 @@ const desintagrateGroup = () => {
         const memberUpdate = new GroupMember(
           JSON.parse(JSON.stringify(member))
         );
-        GroupMember.localDbUpdate(memberUpdate);
-        GroupMember.update({ where: memberUpdate.id, data: memberUpdate });
+      //  GroupMember.localDbUpdate(memberUpdate);
+     //   GroupMember.update({ where: memberUpdate.id, data: memberUpdate });
       });
     });
     Group.update({ where: groupUpdate.id, data: groupUpdate });
@@ -469,7 +446,6 @@ provide('step', groupAddEditStep);
 provide('group', group);
 provide('patient', patient);
 provide('clinic', clinic);
-// provide('isNewPrescription', true);
 provide('selectedMember', selectedMember);
 provide('showAddPrescription', showAddPrescription);
 provide('showNewPackingForm', showNewPackingForm);
