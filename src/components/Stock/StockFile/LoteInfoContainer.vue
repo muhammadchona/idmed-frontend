@@ -1,7 +1,7 @@
 <template>
   <div class="box-border q-pb-md">
     <ListHeader
-      :addVisible="isDisplayStep"
+      :addVisible="addVisible"
       :doneVisible="doneVisible"
       :mainContainer="false"
       expandLess="expandLess"
@@ -273,7 +273,6 @@ const step = ref('display');
 const serviceInfoVisible = ref(true);
 const curEvent = ref({});
 const bgColor = ref({});
-const addVisible = ref({});
 const mainContainer = ref({});
 
 const expandLess = (value) => {
@@ -473,6 +472,11 @@ const doneVisible = computed(() => {
 const isDisplayStep = computed(() => {
   return step.value === 'display';
 });
+
+
+const addVisible = computed(() => {
+  return stockExpiteStatus.value !== 'Expired' 
+})
 
 const isPosetiveAdjustment = computed(() => {
   return adjustmentTypeRef.value === 'POSETIVE';
