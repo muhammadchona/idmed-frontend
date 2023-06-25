@@ -803,8 +803,8 @@ const doSave = async () => {
           lastEpisode.value.clinicSector.id;
       }
     }
-    closureEpisode.value.clinicSector.clinic = currClinic.value;
-    closureEpisode.value.clinicSector.clinic_id = currClinic.value.id;
+    closureEpisode.value.clinicSector.clinic = {};
+    closureEpisode.value.clinicSector.clinic.id = currClinic.value.id;
     closureEpisode.value.clinicSector.clinicSectorType =
       clinicSectorTypeService.getClinicSectorTypesById(
         closureEpisode.value.clinicSector.clinic_sector_type_id
@@ -814,7 +814,8 @@ const doSave = async () => {
     identifier.value.episodes.push(closureEpisode.value);
   }
   if (isCreateStep.value) {
-    identifier.value.clinic = currClinic;
+    identifier.value.clinic = {};
+    identifier.value.clinic.id = currClinic.value.id;
     identifier.value.startDate = getYYYYMMDDFromJSDate(
       getDateFromHyphenDDMMYYYY(identifierstartDate.value)
     );
@@ -826,6 +827,12 @@ const doSave = async () => {
     );
   }
   if (website.value) {
+    let clinical_service_id = identifier.value.service.id;
+    identifier.value.patient = {};
+    identifier.value.patient.id = patient.value.id;
+    identifier.value.service = {};
+    identifier.value.service.id = clinical_service_id;
+
     await patientServiceIdentifierService
       .apiSave(identifier.value, isCreateStep.value)
       .then((resp) => {

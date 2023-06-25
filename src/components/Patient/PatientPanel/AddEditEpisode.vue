@@ -697,7 +697,8 @@ const doSave = async () => {
     episode.value.episodeType =
       episodeTypeService.getEpisodeTypeByCode('INICIO');
     episode.value.notes = 'Novo histórico clínico';
-    episode.value.clinic = currClinic.value;
+    episode.value.clinic = {};
+    episode.value.clinic.id = currClinic.value.id;
     episode.value.patientServiceIdentifier = curIdentifier.value;
     episode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
       startDate.value
@@ -705,7 +706,8 @@ const doSave = async () => {
     episode.value.creationDate = moment().format('YYYY-MM-DD');
   } else {
     episode.value.clinicSector_id = episode.value.clinicSector.id;
-    episode.value.clinic = currClinic.value;
+    episode.value.clinic = {};
+    episode.value.clinic.id = currClinic.value.id;
     episode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
       startDate.value
     );
@@ -719,7 +721,8 @@ const doSave = async () => {
       closureEpisode.value.isLast = true;
       closureEpisode.value.episodeType =
         episodeTypeService.getEpisodeTypeByCode('FIM');
-      closureEpisode.value.clinic = currClinic.value;
+      closureEpisode.value.clinic = {};
+      closureEpisode.value.clinic.id = currClinic.value.id;
       closureEpisode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
         stopDate.value
       );

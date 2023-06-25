@@ -177,19 +177,27 @@
           <template #body="props">
             <q-tr no-hover :props="props">
               <q-td key="drug" :props="props">
-                {{ props.row.drug.name }}
+                {{
+                  getDrugById(props.row.drug.id) !== null &&
+                  getDrugById(props.row.drug.id) !== undefined
+                    ? getDrugById(props.row.drug.id).name
+                    : ''
+                }}
               </q-td>
               <q-td key="dosage" :props="props">
                 {{
                   'Tomar ' +
-                  props.row.amtPerTime +
-                  ' ' +
-                  props.row.drug.form.description +
-                  ' ' +
-                  props.row.timesPerDay +
-                  ' vez(es)' +
-                  ' por ' +
-                  props.row.form
+                    props.row.amtPerTime +
+                    ' ' +
+                    getDrugById(props.row.drug.id).form !==
+                    null && getDrugById(props.row.drug.id).form !== undefined
+                    ? getDrugById(props.row.drug.id).form.description
+                    : '' +
+                      ' ' +
+                      props.row.timesPerDay +
+                      ' vez(es)' +
+                      ' por ' +
+                      props.row.form
                 }}
               </q-td>
               <q-td auto-width key="packs" :props="props">
@@ -377,6 +385,7 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 
 import { v4 as uuidv4 } from 'uuid';
+import drugService from 'src/services/api/drugService/drugService';
 
 //props
 const props = defineProps(['identifier']);
@@ -830,9 +839,8 @@ const allGoodvalidatedForm = () => {
   curPack.value.packagedDrugs = [];
 
   curPatientVisitDetail.value.patient_visit_id = curPatientVisit.value.id;
-  // curPatientVisitDetail.value.patientVisit = curPatientVisit.value;
-  curPatientVisitDetail.value.clinic_id = patient.value.clinic_id;
   curPatientVisitDetail.value.clinic = patient.value.clinic;
+  curPatientVisitDetail.value.clinic_id = patient.value.clinic_id;
   curPatientVisitDetail.value.pack_id = curPack.value.id;
   curPatientVisitDetail.value.pack = curPack.value;
   curPatientVisitDetail.value.prescription = curPrescription.value;
@@ -879,10 +887,10 @@ const generatePacks = (packagedDrug) => {
 
       i = i + 1;
     }
-    packagedDrugStock.drug = packagedDrug.drug;
-    packagedDrugStock.drug_id = packagedDrug.drug.id;
-    packagedDrugStock.stock = stocks[i];
-    packagedDrugStock.stock_id = stocks[i].id;
+    packagedDrugStock.drug = {};
+    packagedDrugStock.drug.id = packagedDrug.drug.id;
+    packagedDrugStock.stock = {};
+    packagedDrugStock.stock.id = stocks[i].id;
     packagedDrugStock.creationDate = moment().format('YYYY-MM-DD');
     packagedDrugStocks.push(packagedDrugStock);
   }
@@ -983,6 +991,8 @@ const allGoodValidatatedDispense = () => {
   );
   curPatientVisit.value.visitDate = curPrescription.value.prescriptionDate;
   curPatientVisitDetail.value.prescription = curPrescription.value;
+  curPatientVisitDetail.value.episode = lastStartEpisode.value;
+  curPatientVisitDetail.value.episode_id = lastStartEpisode.value.id;
   curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
 };
 
@@ -1156,7 +1166,9 @@ const addMedication = (prescribedDrug) => {
     new PrescribedDrug(prescribedDrug)
   );
 };
-
+const getDrugById = (drugID) => {
+  return drugService.getCleanDrugById(drugID);
+};
 const checkStock = (prescribedDrug) => {
   let qtyInStock = 0;
   const qtyPrescribed = getQtyPrescribed(

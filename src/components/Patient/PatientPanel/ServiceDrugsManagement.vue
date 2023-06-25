@@ -6,7 +6,7 @@
       bgColor="bg-grey-6"
     >
       Medicamentos para
-      {{ curPatientVisitDetail.episode.patientServiceIdentifier.service.code }}
+      {{ curIdentifier.service.code }}
     </PrescriptionDrugsListHeader>
     <div class="col prescription-box q-pa-md q-mb-md">
       <q-table
@@ -40,7 +40,12 @@
               key="drug"
               :props="props"
             >
-              {{ props.row.drug.name }}
+              {{
+                getDrugById(props.row.drug.id) !== null &&
+                getDrugById(props.row.drug.id) !== undefined
+                  ? getDrugById(props.row.drug.id).name
+                  : ''
+              }}
             </q-td>
             <q-td
               :style="
@@ -50,12 +55,15 @@
               :props="props"
             >
               {{
-                ' Toma ' +
-                props.row.drug.defaultTimes +
-                ' - ' +
-                props.row.drug.defaultTreatment +
-                ' vez(es) por ' +
-                props.row.drug.defaultPeriodTreatment
+                getDrugById(props.row.drug.id) !== null &&
+                getDrugById(props.row.drug.id) !== undefined
+                  ? ' Toma ' +
+                    getDrugById(props.row.drug.id).defaultTimes +
+                    ' - ' +
+                    getDrugById(props.row.drug.id).defaultTreatment +
+                    ' vez(es) por ' +
+                    getDrugById(props.row.drug.id).defaultPeriodTreatment
+                  : ''
               }}
             </q-td>
             <q-td
@@ -153,6 +161,7 @@ import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+import drugService from 'src/services/api/drugService/drugService';
 
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
@@ -210,7 +219,7 @@ const isNewPrescription = inject('isNewPrescription');
 const validateDispense = inject('validateDispense');
 const addPatientVisitDetail = inject('addPatientVisitDetail');
 const removePatientVisitDetail = inject('removePatientVisitDetail');
-
+const curIdentifier = inject('curIdentifier');
 //Methods
 const deleteRow = (row) => {
   const i = curPack.value.packagedDrugs
@@ -260,11 +269,9 @@ const addPackagedDrug = (prescribedDrug) => {
       'O medicamento ja existe na lista dos medicamentos por dispensar.'
     );
   }
-  // else if (qtySupplied(packagedDrug)) {
-  //       alertError(
-  //         'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.'
-  //       );
-  //     }
+};
+const getDrugById = (drugID) => {
+  return drugService.getCleanDrugById(drugID);
 };
 
 const qtySupplied = (packagedDrug) => {
@@ -276,7 +283,7 @@ const qtySupplied = (packagedDrug) => {
 };
 const checkStock = (packagedDrug) => {
   let qtyInStock = 0;
-
+  packagedDrug.drug = getDrugById(packagedDrug.drug.id);
   const qtytoDispense = getQtyPrescribed(
     packagedDrug,
     curPack.value.weeksSupply
