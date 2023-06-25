@@ -20,7 +20,7 @@
       />
       <q-btn
         dense
-        v-if="addVisible"
+        v-if="showAddButton"
         flat
         round
         color="green-8"
@@ -57,7 +57,7 @@
           </q-list>
         </q-menu>
       </q-btn>
-      <q-btn
+      <!-- <q-btn
         dense
         v-if="!addVisible"
         flat
@@ -66,7 +66,7 @@
         icon="close"
         class="float-right"
         @click="$emit('cancel')"
-      />
+      /> -->
     </template>
   </q-banner>
 </template>
@@ -81,6 +81,7 @@ const doneVisible = inject('doneVisible');
 const createAdjustment = inject('addNewAdjustment');
 const expandLess = inject('expandLess');
 const saveAjustment = inject('saveAjustment');
+const showAddButton = inject('showAddButton')
 
 const headerClass = ref('');
 const expanded = ref(false);

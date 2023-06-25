@@ -116,7 +116,7 @@
             </span>
           </div>
           <div v-else-if="!mobile">
-            <span v-for="lote in drug.stocks" :key="lote.id">
+            <span v-for="lote in stocks(drug)" :key="lote.id">
               <lote-info-container :stockInfo="lote" />
             </span>
           </div>
@@ -141,6 +141,7 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import drugFileService from 'src/services/api/drugFile/drugFileService';
+import StockService from 'src/services/api/stockService/StockService';
 
 const columns = [
   {
@@ -304,6 +305,11 @@ const drug = computed(() => {
   const dru = drugService.getDrugById(selectedDrug);
   return dru;
 });
+
+
+const stocks = (drug) => {
+  return StockService.getStockByDrug(drug.id) 
+}
 
 const drugFile = () => {
   return DrugFile.query().where('drugId', drug.value.id).first();
