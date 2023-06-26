@@ -4,46 +4,61 @@ import api from '../apiService/apiService';
 import { useStorage } from '@vueuse/core';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { nSQL } from 'nano-sql';
 
-const { closeLoading, showloading } = useLoading();
-const { alertSucess, alertError, alertWarning } = useSwal();
+const clinicSector = useRepo(ClinicSector);
 
-const clinicsector = useRepo(ClinicSector);
+const { closeLoading } = useLoading();
+const { alertSucess, alertError } = useSwal();
+const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  post(params: string) {
-    return api()
-      .post('clinicSector', params)
-      .then((resp) => {
-        clinicsector.save(resp.data);
-        alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alertError(String(listErrors));
-        } else if (error.request) {
-          alertError(error.request);
-        } else {
-          alertError(error.message);
-        }
-      });
+  async post(params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.postWeb(params);
+    }
   },
   get(offset: number) {
+    if (isMobile && !isOnline) {
+      this.getMobile();
+    } else {
+      this.getWeb(offset);
+    }
+  },
+  async patch(uuid: string, params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.patchWeb(uuid, params);
+    }
+  },
+  async delete(uuid: string) {
+    if (isMobile && !isOnline) {
+      this.deleteMobile(uuid);
+    } else {
+      this.deleteWeb(uuid);
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('clinicSector', params);
+      clinicSector.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('clinicSector?offset=' + offset + '&max=100')
         .then((resp) => {
-          clinicsector.save(resp.data);
-          useStorage('clinicsector', resp.data);
+          clinicSector.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -52,88 +67,100 @@ export default {
           }
         })
         .catch((error) => {
-          closeLoading();
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element: any) => {
-                listErrors.push(element.message);
-              });
-            }
-            alertError(String(listErrors));
-          } else if (error.request) {
-            alertError(error.request);
-          } else {
-            alertError(error.message);
-          }
+          alertError('Aconteceu um erro inexperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  patch(id: string, params: string) {
-    return api()
-      .patch('clinicSector/' + id, params)
-      .then((resp) => {
-        clinicsector.save(resp.data);
-        alertSucess('O Registo foi alterado com sucesso');
+  async patchWeb(uuid: string, params: string) {
+    try {
+      const resp = await api().patch('clinicSector/' + uuid, params);
+      clinicSector.save(resp.data);
+      alertSucess('O Registo foi alterado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  async deleteWeb(uuid: string) {
+    try {
+      const resp = await api().delete('clinicSector/' + uuid);
+      clinicSector.destroy(uuid);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  // Mobile
+  putMobile(params: string) {
+    return nSQL(clinicSector.use?.entity)
+      .query('upsert', params)
+      .exec()
+      .then(() => {
+        clinicSector.save(JSON.parse(params));
+        alertSucess('O Registo foi efectuado com sucesso');
       })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = {};
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alertError(String(listErrors));
-        } else if (error.request) {
-          alertError(error.request);
-        } else {
-          alertError(error.message);
-        }
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
       });
   },
-  delete(id: number) {
-    return api()
-      .delete('clinicSector/' + id)
+  getMobile() {
+    return nSQL(clinicSector.use?.entity)
+      .query('select')
+      .exec()
+      .then((rows: any) => {
+        clinicSector.save(rows);
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  deleteMobile(paramsId: string) {
+    return nSQL(clinicSector.use?.entity)
+      .query('delete')
+      .where(['id', '=', paramsId])
+      .exec()
       .then(() => {
-        clinicsector.destroy(id);
+        clinicSector.destroy(paramsId);
+        alertSucess('O Registo foi removido com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
       });
   },
 
   // Local Storage Pinia
   newInstanceEntity() {
-    return clinicsector.getModel().$newInstance();
+    return clinicSector.getModel().$newInstance();
   },
 
   /*Pinia Methods*/
   getAllClinicSectors() {
-    return clinicsector.withAll().get();
+    return clinicSector.withAll().get();
   },
 
   getClinicSectorsById(clinicSectorId: string) {
-    return clinicsector.withAll().where('id', clinicSectorId).first();
+    return clinicSector.withAll().where('id', clinicSectorId).first();
   },
 
   getClinicSectorsByClinicId(clinicId: string) {
-    return clinicsector.query().where('clinic_id', clinicId).get();
+    return clinicSector.query().where('clinic_id', clinicId).get();
   },
 
   getActivebyClinicId(clinicId: string) {
-    return clinicsector
+    return clinicSector
       .query()
-      .where((clinicsector) => {
-        return clinicsector.active && clinicsector.clinic_id === clinicId;
+      .where((clinicSector) => {
+        return clinicSector.active && clinicSector.clinic_id === clinicId;
       })
       .get();
   },
   getActiveUSClinicSectorByClinic(clinicId: string) {
-    return clinicsector
+    return clinicSector
       .withAllRecursive(1)
       .where('active', true)
       .where((sector) => {

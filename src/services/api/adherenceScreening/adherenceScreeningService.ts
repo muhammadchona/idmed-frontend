@@ -1,16 +1,56 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
+import { nSQL } from 'nano-sql';
 import AdherenceScreening from 'src/stores/models/screening/AdherenceScreening';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const adherenceScreening = useRepo(AdherenceScreening);
 
+const { alertSucess, alertError } = useSwal();
+const { isMobile, isOnline } = useSystemUtils();
+
 export default {
-  // Axios API call
   async post(params: string) {
-    const resp = await api().post('adherenceScreening', params);
-    adherenceScreening.save(resp.data);
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.postWeb(params);
+    }
   },
   get(offset: number) {
+    if (isMobile && !isOnline) {
+      this.getMobile();
+    } else {
+      this.getWeb(offset);
+    }
+  },
+  async patch(uid: string, params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.patchWeb(uid, params);
+    }
+  },
+  async delete(uuid: string) {
+    if (isMobile && !isOnline) {
+      this.deleteMobile(uuid);
+    } else {
+      this.deleteWeb(uuid);
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('adherenceScreening', params);
+      adherenceScreening.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('adherenceScreening?offset=' + offset + '&max=100')
@@ -20,21 +60,72 @@ export default {
           if (resp.data.length > 0) {
             this.get(offset);
           }
+        })
+        .catch((error) => {
+          alertError('Aconteceu um erro inexperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  async patch(id: number, params: string) {
-    const resp = await api().patch('adherenceScreening/' + id, params);
-    adherenceScreening.save(resp.data);
+  async patchWeb(uuid: string, params: string) {
+    try {
+      const resp = await api().patch('adherenceScreening/' + uuid, params);
+      adherenceScreening.save(resp.data);
+      alertSucess('O Registo foi alterado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
   },
-  async delete(id: number) {
-    await api().delete('adherenceScreening/' + id);
-    adherenceScreening.destroy(id);
+  async deleteWeb(uuid: string) {
+    try {
+      const resp = await api().delete('adherenceScreening/' + uuid);
+      adherenceScreening.destroy(uuid);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
   },
-  async apiGetAll(offset: number, max: number) {
-    return await api().get(
-      '/adherenceScreening?offset=' + offset + '&max=' + max
-    );
+  // Mobile
+  putMobile(params: string) {
+    return nSQL(adherenceScreening.use?.entity)
+      .query('upsert', params)
+      .exec()
+      .then(() => {
+        adherenceScreening.save(JSON.parse(params));
+        alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  getMobile() {
+    return nSQL(adherenceScreening.use?.entity)
+      .query('select')
+      .exec()
+      .then((rows: any) => {
+        adherenceScreening.save(rows);
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  deleteMobile(paramsId: string) {
+    return nSQL(adherenceScreening.use?.entity)
+      .query('delete')
+      .where(['id', '=', paramsId])
+      .exec()
+      .then(() => {
+        adherenceScreening.destroy(paramsId);
+        alertSucess('O Registo foi removido com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {

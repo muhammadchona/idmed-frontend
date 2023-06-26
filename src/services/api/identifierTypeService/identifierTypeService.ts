@@ -3,114 +3,140 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import IdentifierType from 'src/stores/models/identifierType/IdentifierType';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { nSQL } from 'nano-sql';
 
-const { closeLoading, showloading } = useLoading();
-const { alertSucess, alertError, alertWarning } = useSwal();
+const identifierType = useRepo(IdentifierType);
 
-const identifiertypeRepo = useRepo(IdentifierType);
+const { closeLoading } = useLoading();
+const { alertSucess, alertError } = useSwal();
+const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  post(params: string) {
-    return api()
-      .post('identifierType', params)
-      .then((resp) => {
-        identifiertypeRepo.save(resp.data);
-        alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = [];
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alertError(String(listErrors));
-        } else if (error.request) {
-          alertError(error.request);
-        } else {
-          alertError(error.message);
-        }
-      });
+  async post(params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.postWeb(params);
+    }
   },
   get(offset: number) {
+    if (isMobile && !isOnline) {
+      this.getMobile();
+    } else {
+      this.getWeb(offset);
+    }
+  },
+  async patch(uuid: string, params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.patchWeb(uuid, params);
+    }
+  },
+  async delete(uuid: string) {
+    if (isMobile && !isOnline) {
+      this.deleteMobile(uuid);
+    } else {
+      this.deleteWeb(uuid);
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('identifierType', params);
+      identifierType.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('identifierType?offset=' + offset + '&max=100')
         .then((resp) => {
-          identifiertypeRepo.save(resp.data);
+          identifierType.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
-            setTimeout(this.get, 2);
           } else {
             closeLoading();
           }
         })
         .catch((error) => {
-          closeLoading();
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = {};
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alertError(String(listErrors));
-          } else if (error.request) {
-            alertError(error.request);
-          } else {
-            alertError(error.message);
-          }
+          alertError('Aconteceu um erro inexperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  patch(id: string, params: string) {
-    return api()
-      .patch('identifierType/' + id, params)
-      .then((resp) => {
-        identifiertypeRepo.save(resp.data);
-        alertSucess('O Registo foi alterado com sucesso');
-      })
-      .catch((error) => {
-        if (error.request != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          const listErrors = {};
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-          alertError(String(listErrors));
-        } else if (error.request) {
-          alertError(error.request);
-        } else {
-          alertError(error.message);
-        }
-      });
+  async patchWeb(uuid: string, params: string) {
+    try {
+      const resp = await api().patch('identifierType/' + uuid, params);
+      identifierType.save(resp.data);
+      alertSucess('O Registo foi alterado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
   },
-  delete(id: number) {
-    return api()
-      .delete('identifierType/' + id)
+  async deleteWeb(uuid: string) {
+    try {
+      const resp = await api().delete('identifierType/' + uuid);
+      identifierType.destroy(uuid);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  // Mobile
+  putMobile(params: string) {
+    return nSQL(identifierType.use?.entity)
+      .query('upsert', params)
+      .exec()
       .then(() => {
-        identifiertypeRepo.destroy(id);
+        identifierType.save(JSON.parse(params));
+        alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
       });
   },
-
+  getMobile() {
+    return nSQL(identifierType.use?.entity)
+      .query('select')
+      .exec()
+      .then((rows: any) => {
+        identifierType.save(rows);
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  deleteMobile(paramsId: string) {
+    return nSQL(identifierType.use?.entity)
+      .query('delete')
+      .where(['id', '=', paramsId])
+      .exec()
+      .then(() => {
+        identifierType.destroy(paramsId);
+        alertSucess('O Registo foi removido com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
-    return identifiertypeRepo.getModel().$newInstance();
+    return identifierType.getModel().$newInstance();
   },
 
   getAllIdentifierTypes() {
-    return identifiertypeRepo.query().withAll().get();
+    return identifierType.query().withAll().get();
   },
 };

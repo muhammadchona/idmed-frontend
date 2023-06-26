@@ -2,17 +2,57 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import SpetialPrescriptionMotive from 'src/stores/models/prescription/SpetialPrescriptionMotive';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { nSQL } from 'nano-sql';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const { closeLoading, showloading } = useLoading();
 const spetialPrescriptionMotive = useRepo(SpetialPrescriptionMotive);
 
+const { closeLoading } = useLoading();
+const { alertSucess, alertError } = useSwal();
+const { isMobile, isOnline } = useSystemUtils();
+
 export default {
-  // Axios API call
   async post(params: string) {
-    const resp = await api().post('spetialPrescriptionMotive', params);
-    spetialPrescriptionMotive.save(resp.data);
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.postWeb(params);
+    }
   },
   get(offset: number) {
+    if (isMobile && !isOnline) {
+      this.getMobile();
+    } else {
+      this.getWeb(offset);
+    }
+  },
+  async patch(uuid: string, params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.patchWeb(uuid, params);
+    }
+  },
+  async delete(uuid: string) {
+    if (isMobile && !isOnline) {
+      this.deleteMobile(uuid);
+    } else {
+      this.deleteWeb(uuid);
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('spetialPrescriptionMotive', params);
+      spetialPrescriptionMotive.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('spetialPrescriptionMotive?offset=' + offset + '&max=100')
@@ -24,21 +64,78 @@ export default {
           } else {
             closeLoading();
           }
+        })
+        .catch((error) => {
+          alertError('Aconteceu um erro inexperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  async patch(id: number, params: string) {
-    const resp = await api().patch('spetialPrescriptionMotive/' + id, params);
-    spetialPrescriptionMotive.save(resp.data);
+  async patchWeb(uuid: string, params: string) {
+    try {
+      const resp = await api().patch(
+        'spetialPrescriptionMotive/' + uuid,
+        params
+      );
+      spetialPrescriptionMotive.save(resp.data);
+      alertSucess('O Registo foi alterado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
   },
-  async delete(id: number) {
-    await api().delete('spetialPrescriptionMotive/' + id);
-    spetialPrescriptionMotive.destroy(id);
+  async deleteWeb(uuid: string) {
+    try {
+      const resp = await api().delete('spetialPrescriptionMotive/' + uuid);
+      spetialPrescriptionMotive.destroy(uuid);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  // Mobile
+  putMobile(params: string) {
+    return nSQL(spetialPrescriptionMotive.use?.entity)
+      .query('upsert', params)
+      .exec()
+      .then(() => {
+        spetialPrescriptionMotive.save(JSON.parse(params));
+        alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  getMobile() {
+    return nSQL(spetialPrescriptionMotive.use?.entity)
+      .query('select')
+      .exec()
+      .then((rows: any) => {
+        spetialPrescriptionMotive.save(rows);
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  deleteMobile(paramsId: string) {
+    return nSQL(spetialPrescriptionMotive.use?.entity)
+      .query('delete')
+      .where(['id', '=', paramsId])
+      .exec()
+      .then(() => {
+        spetialPrescriptionMotive.destroy(paramsId);
+        alertSucess('O Registo foi removido com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
   },
   async apiGetAll(offset: number, max: number) {
-    return await api().get(
-      '/spetialPrescriptionMotive?offset=' + offset + '&max=' + max
-    );
+    return this.get(offset);
   },
 
   async apiFetchById(id: string) {
