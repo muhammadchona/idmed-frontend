@@ -3,6 +3,7 @@ import Stock from 'src/stores/models/stock/Stock';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import moment from 'moment';
 
 const stock = useRepo(Stock);
 const { alertSucess, alertError } = useSwal();
@@ -67,6 +68,17 @@ export default {
     orderBy('expireDate', 'desc').
     orderBy('stockMoviment', 'desc').get();
   },
+
+  getValidStockByDrug(drug: any) {
+    return stock
+      .where('drug_id', drug.id)
+      .where((stock) => {
+        return  moment(stock.expireDate , 'YYYY-MM-DD').isAfter( moment().format('YYYY-MM-DD')) ;
+      })
+      .orderBy('expireDate', 'desc')
+      .get();
+  },
+
 
   getValidStockByDrugAndPickUpDate(drugId: string, pickupDate: string) {
     return stock

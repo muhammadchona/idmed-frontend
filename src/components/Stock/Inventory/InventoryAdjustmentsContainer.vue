@@ -157,6 +157,7 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import StockService from 'src/services/api/stockService/StockService';
 
 
 const props = defineProps(['drug', 'inventory']);
@@ -240,17 +241,24 @@ const prepareInit = () => {
   showloading()
 
   let i = 1;
-  if (drug.stocks.length > 0) {
-    Object.keys(drug.stocks).forEach(
+  const stockList = getValidStocks(drug)
+
+  if (stockList.length > 0) {
+    Object.keys(stockList).forEach(
       function (k) {
-        initNewAdjustment(drug.stocks[k], drug, i);
+        initNewAdjustment(stockList[k], drug, i);
         i = i + 1;
       }.bind(this)
     );
-  } else if(drug.stocks.length === i) {
+  } else if(stockList.length === i) {
   closeLoading()
 }
 };
+
+
+const getValidStocks = (drug) =>{
+  return StockService.getValidStockByDrug(drug)
+}
 
 const initNewAdjustment = (stock, drug, i) => {
   let newAdjustment = null;
