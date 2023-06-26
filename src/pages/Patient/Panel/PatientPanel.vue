@@ -106,24 +106,18 @@ onMounted(() => {
 
 // Methods
 const init = async () => {
-  if (website.value) {
-    if (patient.value === null) {
-      patient.value = patientService.getPatientByID(
-        localStorage.getItem('patientuuid')
-      );
-    }
-    closeLoading();
+  if (patient.value === null) {
+    patient.value = patientService.getPatientByID(
+      localStorage.getItem('patientuuid')
+    );
   }
+  closeLoading();
 };
 const showPatientDetails = () => {
   showPatientInfo.value = !showPatientInfo.value;
 };
 
 // Computed
-const contentHeight = computed(() => {
-  if (!website) return 'height: 400px;';
-  return 'height: 700px;';
-});
 
 const patient = computed(() => {
   return patientService.getPatientByID(localStorage.getItem('patientuuid'));

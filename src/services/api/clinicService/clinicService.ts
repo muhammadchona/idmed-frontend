@@ -2,42 +2,57 @@ import Province from 'src/stores/models/province/Province';
 import { useRepo } from 'pinia-orm';
 import Clinic from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
+import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useStorage } from '@vueuse/core';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const { closeLoading, showloading } = useLoading();
 const clinic = useRepo(Clinic);
-
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
+const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    try {
-      const resp = await api().post('clinic', params);
-      const clinicData = JSON.parse(resp.config.data);
-      clinic.save(clinicData);
-      alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      if (error.request != null) {
-        const arrayErrors = JSON.parse(error.request.response);
-        const listErrors = [];
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message);
-        } else {
-          arrayErrors._embedded.errors.forEach((element: any) => {
-            listErrors.push(element.message);
-          });
-        }
-        alertError(String(listErrors));
-      } else if (error.request) {
-        alertError(error.request);
-      } else {
-        alertError(error.message);
-      }
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.postWeb(params);
     }
   },
   get(offset: number) {
+    if (isMobile && !isOnline) {
+      this.getMobile();
+    } else {
+      this.getWeb(offset);
+    }
+  },
+  async patch(uuid: string, params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.patchWeb(uuid, params);
+    }
+  },
+  async delete(uuid: string) {
+    if (isMobile && !isOnline) {
+      this.deleteMobile(uuid);
+    } else {
+      this.deleteWeb(uuid);
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('clinic', params);
+      clinic.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('clinic?offset=' + offset + '&max=100')
@@ -51,75 +66,72 @@ export default {
           }
         })
         .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = [];
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element: any) => {
-                listErrors.push(element.message);
-              });
-            }
-            alertError(String(listErrors));
-          } else if (error.request) {
-            alertError(error.request);
-          } else {
-            alertError(error.message);
-          }
+          alertError('Aconteceu um erro inexperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  async patch(uid: string, params: string) {
+  async patchWeb(uuid: string, params: string) {
     try {
-      const resp = await api().patch('clinic?uuid=eq.' + uid, params);
-      clinic.save(JSON.parse(resp.config.data));
+      const resp = await api().patch('clinic/' + uuid, params);
+      clinic.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      if (error.request != null) {
-        const arrayErrors = JSON.parse(error.request.response);
-        const listErrors = [];
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message);
-        } else {
-          arrayErrors._embedded.errors.forEach((element: any) => {
-            listErrors.push(element.message);
-          });
-        }
-        alertError(String(listErrors));
-      } else if (error.request) {
-        alertError(error.request);
-      } else {
-        alertError(error.message);
-      }
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
     }
   },
-  async delete(uuid: string) {
+  async deleteWeb(uuid: string) {
     try {
-      const resp = await api().delete('clinic?uuid=eq.' + uuid);
+      const resp = await api().delete('clinic/' + uuid);
       clinic.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      if (error.request != null) {
-        const arrayErrors = JSON.parse(error.request.response);
-        const listErrors = [];
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message);
-        } else {
-          arrayErrors._embedded.errors.forEach((element: any) => {
-            listErrors.push(element.message);
-          });
-        }
-        alertWarning(
-          'Esta farmácia tem pacientes assossiados e não pode ser removida'
-        );
-      } else if (error.request) {
-        alertError(error.request);
-      } else {
-        alertError(error.message);
-      }
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
     }
   },
+  // Mobile
+  putMobile(params: string) {
+    return nSQL(clinic.use?.entity)
+      .query('upsert', params)
+      .exec()
+      .then(() => {
+        clinic.save(JSON.parse(params));
+        alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  getMobile() {
+    return nSQL(clinic.use?.entity)
+      .query('select')
+      .exec()
+      .then((rows: any) => {
+        clinic.save(rows);
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  deleteMobile(paramsId: string) {
+    return nSQL(clinic.use?.entity)
+      .query('delete')
+      .where(['id', '=', paramsId])
+      .exec()
+      .then(() => {
+        clinic.destroy(paramsId);
+        alertSucess('O Registo foi removido com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  // Methods
   apiFetchById(id: string) {
     return api().get(`/clinic/${id}`);
   },
@@ -133,11 +145,11 @@ export default {
     return await api().get('/clinic/uuid/' + uuid);
   },
   async apiSave(clinic: any) {
-    return await api().post('/clinic', clinic);
+    return this.post(clinic);
   },
   async apiUpdate(clinic: any) {
     // return await api().post('/clinic', clinic)
-    return await api().patch('/clinic/' + clinic.id, clinic);
+    return this.patch(clinic.id, clinic);
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -158,10 +170,8 @@ export default {
   },
 
   /*PINIA*/
-    currClinic() {
-    return clinic.withAllRecursive(2)
-      .where('mainClinic', true)
-      .first();
+  currClinic() {
+    return clinic.withAllRecursive(2).where('mainClinic', true).first();
   },
   getAllClinics() {
     return clinic

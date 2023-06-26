@@ -1,17 +1,58 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
-import { relativeTimeRounding } from 'moment';
+import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { nSQL } from 'nano-sql';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
 
+const { closeLoading } = useLoading();
+const { alertSucess, alertError } = useSwal();
+const { isMobile, isOnline } = useSystemUtils();
+
 export default {
-  // Axios API call
   async post(params: string) {
-    const resp = await api().post('patientVisitDetails', params);
-    patientVisitDetails.save(resp.data);
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.postWeb(params);
+    }
   },
   get(offset: number) {
+    if (isMobile && !isOnline) {
+      this.getMobile();
+    } else {
+      this.getWeb(offset);
+    }
+  },
+  async patch(uuid: string, params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.patchWeb(uuid, params);
+    }
+  },
+  async delete(uuid: string) {
+    if (isMobile && !isOnline) {
+      this.deleteMobile(uuid);
+    } else {
+      this.deleteWeb(uuid);
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('patientVisitDetails', params);
+      patientVisitDetails.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('patientVisitDetails?offset=' + offset + '&max=100')
@@ -20,19 +61,73 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
+        })
+        .catch((error) => {
+          alertError('Aconteceu um erro inexperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  async patch(id: number, params: string) {
-    const resp = await api().patch('patientVisitDetails/' + id, params);
-    patientVisitDetails.save(resp.data);
+  async patchWeb(uuid: string, params: string) {
+    try {
+      const resp = await api().patch('patientVisitDetails/' + uuid, params);
+      patientVisitDetails.save(resp.data);
+      alertSucess('O Registo foi alterado com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
   },
-  async delete(id: number) {
-    await api().delete('patientVisitDetails/' + id);
-    patientVisitDetails.destroy(id);
+  async deleteWeb(uuid: string) {
+    try {
+      const resp = await api().delete('patientVisitDetails/' + uuid);
+      patientVisitDetails.destroy(uuid);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
   },
-
+  // Mobile
+  async putMobile(params: string) {
+    try {
+      await nSQL(patientVisitDetails.use?.entity)
+        .query('upsert', params)
+        .exec();
+      patientVisitDetails.save(JSON.parse(params));
+      alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  async getMobile() {
+    try {
+      const rows = await nSQL(patientVisitDetails.use?.entity)
+        .query('select')
+        .exec();
+      patientVisitDetails.save(rows);
+    } catch (error) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
+  async deleteMobile(paramsId: string) {
+    try {
+      await nSQL(patientVisitDetails.use?.entity)
+        .query('delete')
+        .where(['id', '=', paramsId])
+        .exec();
+      patientVisitDetails.destroy(paramsId);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
+  },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisitDetails/${id}`);
   },
@@ -83,29 +178,33 @@ export default {
   },
 
   async apiGetLastByEpisodeId(episodeId: string) {
-    return await api().get(
-      '/patientVisitDetails/getLastByEpisodeId/' + episodeId
-    ).then((resp) => {
-      patientVisitDetails.save(resp.data);
-      return resp;
-    })
-  },
-
-  async apiGetPatientVisitDetailsByPatientId(patientId: string) {
     return await api()
-      .get('patientVisitDetails/patientId/' + patientId)
+      .get('/patientVisitDetails/getLastByEpisodeId/' + episodeId)
       .then((resp) => {
         patientVisitDetails.save(resp.data);
+        return resp;
       });
   },
 
+  async apiGetPatientVisitDetailsByPatientId(patientId: string) {
+    if (isMobile && !isOnline) {
+      this.get(0);
+    } else {
+      return await api()
+        .get('patientVisitDetails/patientId/' + patientId)
+        .then((resp) => {
+          patientVisitDetails.save(resp.data);
+        });
+    }
+  },
+
   async apiGetAllofPrecription(prescriptionId: string) {
-    return await api().get(
-      '/patientVisitDetails/getAllofPrecription/' + prescriptionId
-    ).then((resp) => {
-      patientVisitDetails.save(resp.data);
-      return resp;
-    });
+    return await api()
+      .get('/patientVisitDetails/getAllofPrecription/' + prescriptionId)
+      .then((resp) => {
+        patientVisitDetails.save(resp.data);
+        return resp;
+      });
   },
 
   // Local Storage Pinia
@@ -115,7 +214,7 @@ export default {
   getAllFromStorage() {
     return patientVisitDetails.all();
   },
-  
+
   getLastPatientVisitDetailFromPatientVisit(patientVisitId: string) {
     return patientVisitDetails
       .withAllRecursive(2)
@@ -144,10 +243,14 @@ export default {
   },
 
   getPatientVisitDetailsByPackId(packId: string) {
-    return patientVisitDetails.query().where('pack_id', packId).first()
+    return patientVisitDetails.query().where('pack_id', packId).first();
   },
 
   getPatientVisitDetailsByPrescriptionId(prescriptionId: string) {
-    return patientVisitDetails.query().withAll().where('prescription_id', prescriptionId).first()
-  }
+    return patientVisitDetails
+      .query()
+      .withAll()
+      .where('prescription_id', prescriptionId)
+      .first();
+  },
 };
