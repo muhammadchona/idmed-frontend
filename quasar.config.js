@@ -124,7 +124,19 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
-      config: {},
+      config: {
+        cordova: {
+          // add the dynamic top padding on iOS mobile devices
+          // iosStatusBarPadding: true / false,
+
+          // Quasar handles app exit on mobile phone back button.
+          backButtonExit: true / false / '*' / ['/login', '/home', '/my-page'],
+
+          // On the other hand, the following completely
+          // disables Quasar's back button management.
+          backButton: true / false,
+        },
+      },
 
       iconSet: 'material-icons', // Quasar icon set
       lang: 'pt-BR', // Quasar language pack

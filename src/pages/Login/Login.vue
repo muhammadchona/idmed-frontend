@@ -1,6 +1,7 @@
 <template>
   <q-layout v-cloak>
     <q-page-container>
+      <!-- <q-responsive :ratio="16/9" class="col"> -->
       <q-page class="flex flex-center">
         <div
           id="particles-js"
@@ -19,13 +20,17 @@
           enter-active-class="animated fadeIn"
           leave-active-class="animated fadeOut"
         >
-          <q-card v-bind:style="
+          <q-card
+            v-bind:style="
               $q.screen.lt.sm
                 ? { width: '80%' }
                 : { width: '50%', height: '65%', 'border-radius': '50%' }
-            ">
+            "
+          >
             <q-card-section>
-              <div class="col-auto text-grey text-caption q-pt-sm row no-wrap items-center justify-center">
+              <div
+                class="col-auto text-grey text-caption q-pt-sm row no-wrap items-center justify-center"
+              >
                 <q-avatar :size="website ? '240px' : '100px'">
                   <q-img src="~assets/LogoiDMED.png" />
                 </q-avatar>
@@ -66,10 +71,7 @@
                       label="Utilizador"
                     >
                       <template v-slot:append>
-                        <q-icon
-                          name="person"
-                          color="primary"
-                        />
+                        <q-icon name="person" color="primary" />
                       </template>
                     </q-input>
                   </div>
@@ -114,10 +116,7 @@
                 @submit.prevent="doSave"
                 v-if="configs === null"
               >
-                <div
-                  class="text-center justify-center"
-                  style="max-width: 50%"
-                >
+                <div class="text-center justify-center" style="max-width: 50%">
                   <div class="q-pa-sm">
                     <div class="q-gutter-sm q-pa-none">
                       <q-radio
@@ -151,10 +150,7 @@
                       label="Província *"
                     />
                   </div>
-                  <div
-                    class="row q-mb-sm"
-                    v-if="instalation_type === 'LOCAL'"
-                  >
+                  <div class="row q-mb-sm" v-if="instalation_type === 'LOCAL'">
                     <q-select
                       class="col"
                       dense
@@ -172,10 +168,7 @@
                       label="Distrito"
                     />
                   </div>
-                  <div
-                    class="row q-mb-sm"
-                    v-if="instalation_type === 'LOCAL'"
-                  >
+                  <div class="row q-mb-sm" v-if="instalation_type === 'LOCAL'">
                     <q-select
                       dense
                       outlined
@@ -233,6 +226,7 @@
           </q-card>
         </transition>
       </q-page>
+      <!-- </q-responsive> -->
     </q-page-container>
   </q-layout>
 </template>
@@ -345,9 +339,8 @@ const loginOnline = (encodedStringBtoA) => {
     .then((response) => {
       submitting.value = false;
       const localuser = UsersService.getUserByUserName(username.value);
-       console.log('Login >>>>>>>>', response);
-       console.log('Login >>>>>>>>', localuser);
-
+      console.log('Login >>>>>>>>', response);
+      console.log('Login >>>>>>>>', localuser);
 
       localStorage.setItem('id_token', localuser.access_token);
       localStorage.setItem('refresh_token', localuser.refresh_token);
@@ -355,7 +348,7 @@ const loginOnline = (encodedStringBtoA) => {
       localStorage.setItem('user', username.value);
       localStorage.setItem('encodeBase64', encodedStringBtoA);
       localStorage.setItem('role_menus', localuser.menus);
-      localStorage.setItem('user_clinic_sectors',localuser.userClinicSectors)
+      localStorage.setItem('user_clinic_sectors', localuser.userClinicSectors);
       router.push({ path: '/' });
     })
     .catch((error) => {

@@ -143,6 +143,7 @@ const openFile = (inventory) => {
 
   localStorage.setItem('currInventory', inventory.id);
   router.push('/stock/inventory');
+  closeLoading()
 };
 
 onMounted(() => {

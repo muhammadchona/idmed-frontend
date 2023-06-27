@@ -2,39 +2,55 @@ import { useRepo } from 'pinia-orm';
 import ClinicSectorType from 'src/stores/models/clinicSectorType/ClinicSectorType';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useLoading } from 'src/composables/shared/loading/loading';
-
-const { closeLoading, showloading } = useLoading();
-const { alertSucess, alertError, alertWarning } = useSwal();
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { nSQL } from 'nano-sql';
 
 const clinicSectorType = useRepo(ClinicSectorType);
 
+const { alertSucess, alertError } = useSwal();
+const { isMobile, isOnline } = useSystemUtils();
+
 export default {
   async post(params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.postWeb(params);
+    }
+  },
+  get(offset: number) {
+    if (isMobile && !isOnline) {
+      this.getMobile();
+    } else {
+      this.getWeb(offset);
+    }
+  },
+  async patch(uuid: string, params: string) {
+    if (isMobile && !isOnline) {
+      this.putMobile(params);
+    } else {
+      this.patchWeb(uuid, params);
+    }
+  },
+  async delete(uuid: string) {
+    if (isMobile && !isOnline) {
+      this.deleteMobile(uuid);
+    } else {
+      this.deleteWeb(uuid);
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
     try {
       const resp = await api().post('clinicSectorType', params);
       clinicSectorType.save(resp.data);
       alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error) {
-      if (error.request != null) {
-        const arrayErrors = JSON.parse(error.request.response);
-        const listErrors = [];
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message);
-        } else {
-          arrayErrors._embedded.errors.forEach((element) => {
-            listErrors.push(element.message);
-          });
-        }
-        alertError(String(listErrors));
-      } else if (error.request) {
-        alertError(error.request);
-      } else {
-        alertError(error.message);
-      }
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
     }
   },
-  get(offset: number) {
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('clinicSectorType?offset=' + offset + '&max=100')
@@ -43,60 +59,74 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
-            setTimeout(this.get, 2);
-          } else {
-            closeLoading();
           }
         })
         .catch((error) => {
-          if (error.request != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            const listErrors = {};
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-            alertError(String(listErrors));
-          } else if (error.request) {
-            alertError(error.request);
-          } else {
-            alertError(error.message);
-          }
+          alertError('Aconteceu um erro inexperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  async patch(id: number, params: string) {
+  async patchWeb(uuid: string, params: string) {
     try {
-      const resp = await api().patch('clinicSectorType/' + id, params);
+      const resp = await api().patch('clinicSectorType/' + uuid, params);
       clinicSectorType.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
-    } catch (error) {
-      if (error.request != null) {
-        const arrayErrors = JSON.parse(error.request.response);
-        const listErrors = {};
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message);
-        } else {
-          arrayErrors._embedded.errors.forEach((element) => {
-            listErrors.push(element.message);
-          });
-          alertError(String(listErrors));
-        }
-      } else if (error.request) {
-        alertError(error.request);
-      } else {
-        alertError(error.message);
-      }
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
     }
   },
-  async delete(id: number) {
-    await api().delete('clinicSectorType/' + id);
-    clinicSectorType.destroy(id);
+  async deleteWeb(uuid: string) {
+    try {
+      const resp = await api().delete('clinicSectorType/' + uuid);
+      clinicSectorType.destroy(uuid);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error: any) {
+      alertError('Aconteceu um erro inexperado nesta operação.');
+      console.log(error);
+    }
   },
-
+  // Mobile
+  putMobile(params: string) {
+    return nSQL(clinicSectorType.use?.entity)
+      .query('upsert', params)
+      .exec()
+      .then(() => {
+        clinicSectorType.save(JSON.parse(params));
+        alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  getMobile() {
+    return nSQL(clinicSectorType.use?.entity)
+      .query('select')
+      .exec()
+      .then((rows: any) => {
+        clinicSectorType.save(rows);
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
+  deleteMobile(paramsId: string) {
+    return nSQL(clinicSectorType.use?.entity)
+      .query('delete')
+      .where(['id', '=', paramsId])
+      .exec()
+      .then(() => {
+        clinicSectorType.destroy(paramsId);
+        alertSucess('O Registo foi removido com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inexperado nesta operação.');
+        console.log(error);
+      });
+  },
   /*Pinia Methods*/
   getAllClinicSectorTypes() {
     return clinicSectorType.withAll().orderBy('code', 'asc').get();
