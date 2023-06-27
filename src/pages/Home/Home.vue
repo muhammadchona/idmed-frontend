@@ -136,7 +136,7 @@ const { loadSettingParams } = useOnline();
 
 const init = () => {
   showloading();
-  if (website.value) {
+  if (isMobile.value) {
     loadSettingParams;
     // this.loadWebRegimensToVueX();
     // this.loadWebDrugsToVueX();
@@ -162,7 +162,7 @@ const menusVisible = (name) => {
 };
 
 onMounted(() => {
-  if (website.value) {
+  if (isMobile.value) {
     showloading();
     loadSettingParams();
   }
@@ -183,8 +183,6 @@ onMounted(() => {
     closeLoading();
   }, 3000);
 });
-
-
 </script>
 
 <style></style>
