@@ -25,7 +25,9 @@
                 option-value="id"
                 option-label="code"
                 label="Serviço de Saúde *"
-                :rules="[(val) => !!val || 'Por favor indicar o Serviço de Saúde']"
+                :rules="[
+                  (val) => !!val || 'Por favor indicar o Serviço de Saúde',
+                ]"
               />
               <q-input
                 outlined
@@ -38,7 +40,9 @@
                 label="Numero do grupo *"
                 dense
                 class="col q-ml-md"
-                :rules="[(val) => !!val || 'Por favor indicar o Numero de Grupo']"
+                :rules="[
+                  (val) => !!val || 'Por favor indicar o Numero de Grupo',
+                ]"
               >
                 <template
                   v-slot:append
@@ -96,7 +100,9 @@
                 :disable="isMemberEditionStep"
                 ref="creationDateRef"
                 label="Data de Criação *"
-                :rules="[(val) => !!val || 'Por favor indicar a Data de Criação']"
+                :rules="[
+                  (val) => !!val || 'Por favor indicar a Data de Criação',
+                ]"
               >
                 <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer">
@@ -240,12 +246,10 @@
                     <!--q-td key="order" :props="props">
                         </q-td-->
                     <q-td key="id" :props="props">
-                      {{
-                        preferedIdentifier(props.row.patient).value
-                      }}
+                      {{ preferedIdentifier(props.row.patient).value }}
                     </q-td>
                     <q-td key="name" :props="props">
-                      {{  fullName(props.row.patient) }}
+                      {{ fullName(props.row.patient) }}
                     </q-td>
                     <q-td key="options" :props="props">
                       <div class="col">
@@ -287,7 +291,7 @@ import moment from 'moment';
 import { SessionStorage } from 'quasar';
 import GroupMember from '../../stores/models/groupMember/GroupMember';
 import Episode from 'src/stores/models/episode/Episode';
-import {  usePatient } from 'src/composables/patient/patientMethods';
+import { usePatient } from 'src/composables/patient/patientMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -351,7 +355,6 @@ const curGroupNameRef = ref(null);
 const curGroupGroupTypeRef = ref(null);
 const creationDateRef = ref(null);
 
-
 const isMemberOfGroupOnService = (patient, serviceCode) => {
   let res = false;
   const members = groupMemberService.getAllFromStorage();
@@ -391,7 +394,7 @@ const getGroupForEdit = () => {
 
 const search = () => {
   showloading();
-  if (isMobile.value) {
+  if (website.value) {
     // Depois mudar para mobile
     const patients = patientService.getPatientByClinicId(clinic.value.id);
     searchResults.value = patients.filter((patient) => {
@@ -505,8 +508,8 @@ const addPatient = (patient) => {
         '].'
     );
   } else {
-    if (isMobile.value) {
-      // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)
+    if (website.value) {
+      // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)  //mudar Para mobile
       let lastEpisode = {};
       patient.identifiers.forEach((identifier) => {
         const episodes = Episode.query()
@@ -558,7 +561,7 @@ const doSave = async () => {
   curGroupGroupTypeRef.value.validate();
   curGroupNameRef.value.validate();
   creationDateRef.value.validate();
-      if (
+  if (
     !curGroupServiceRef.value.hasError &&
     !curGroupCodeRef.value.hasError &&
     !curGroupGroupTypeRef.value.hasError &&
@@ -567,115 +570,116 @@ const doSave = async () => {
   ) {
     if (curGroup.value.members.length === 0) {
       submitting.value = false;
-    return  alertError('Por favor adicione membros ao grupo antes de gravar.')
-
+      return alertError('Por favor adicione membros ao grupo antes de gravar.');
     }
-    showloading()
-      setTimeout(() => {
-        closeLoading()
-      }, 700)
+    showloading();
+    setTimeout(() => {
+      closeLoading();
+    }, 700);
+    if (isCreateStep.value) {
+      curGroup.value.service.attributes = [];
+      curGroup.value.startDate = getJSDateFromDDMMYYY(startDate.value);
+      // curGroup.value.clinic = clinic.value
+      // curGroup.value.clinic = {}
+      // curGroup.value.clinic.id = clinic.value.id
+    }
+    console.log(curGroup.value);
+    curGroup.value = new Group(JSON.parse(JSON.stringify(curGroup.value)));
+    curGroup.value.clinic = {};
+    curGroup.value.clinic.id = clinic.value.id;
+    curGroup.value.members.forEach((member) => {
+      //  member.startDate = curGroup.startDate
+      member.group_id = curGroup.value.id;
+      //   const memberPatientId =  member.patient.id
+      //   member.patient =  {}
+      //   member.patient.id = memberPatientId
+      //  member.clinic_id = curGroup.clinic.id
+      member.patient.clinic = clinic.value;
+      member.clinic = {};
+      member.clinic.id = clinic.value.id;
+      member.syncStatus = 'R';
+      member.group = null;
+    });
+    if (isMobile.value) {
       if (isCreateStep.value) {
-        curGroup.value.service.attributes = []
-        curGroup.value.startDate = getJSDateFromDDMMYYY(startDate.value)
-       // curGroup.value.clinic = clinic.value
-        // curGroup.value.clinic = {}
-       // curGroup.value.clinic.id = clinic.value.id
-      }
-   console.log(curGroup.value)
-      curGroup.value = new Group(JSON.parse(JSON.stringify(curGroup.value)))
-      curGroup.value.clinic = {}
-        curGroup.value.clinic.id = clinic.value.id
-        curGroup.value.members.forEach((member) => {
-        //  member.startDate = curGroup.startDate
-          member.group_id = curGroup.value.id
-       //   const memberPatientId =  member.patient.id
-       //   member.patient =  {}
-       //   member.patient.id = memberPatientId
-        //  member.clinic_id = curGroup.clinic.id
-        member.patient.clinic = clinic.value
-          member.clinic =  {}
-          member.clinic.id = clinic.value.id
-          member.syncStatus = 'R'
-          member.group = null
-        })
-      if (isMobile.value) {
-        if (isCreateStep.value) {
-          curGroup.value.syncStatus = 'R'
-          curGroup.value.clinic_id = clinic.id
-          curGroup.value.clinical_service_id = curGroup.value.service.id
-          curGroup.value.groupType_id = curGroup.value.groupType.id
-          await Group.localDbAdd(JSON.parse(JSON.stringify(curGroup)))
-          await Group.insert({ data: curGroup })
-        } else {
-          if (curGroup.value.syncStatus !== 'R') curGroup.value.syncStatus = 'U'
-          curGroup.value.clinic_id = clinic.id
-          curGroup.value.clinical_service_id = curGroup.value.service.id
-          curGroup.value.groupType_id = JSON.parse(JSON.stringify(curGroup.value.groupType.id))
-          curGroup.value.members.forEach((member) => {
-            member.startDate = curGroup.value.startDate
-            if (member.syncStatus !== 'R') member.syncStatus = 'U'
-            member.patient.identifiers = []
-            const groupUpdate = new Group(JSON.parse(JSON.stringify((curGroup))))
-            Group.localDbUpdate(groupUpdate).then(groupRes => {
-              Group.update({ data: groupUpdate })
-            })
-          })
-        }
-        displayAlert('info', 'Operação efectuada com sucesso.')
+        curGroup.value.syncStatus = 'R';
+        curGroup.value.clinic_id = clinic.id;
+        curGroup.value.clinical_service_id = curGroup.value.service.id;
+        curGroup.value.groupType_id = curGroup.value.groupType.id;
+        //  await Group.localDbAdd(JSON.parse(JSON.stringify(curGroup)));
+        //  await Group.insert({ data: curGroup });
+        groupService.apiSave(curGroup.value);
       } else {
-        if (isCreateStep.value) {
-          console.log(curGroup)
-          groupService.apiSave(curGroup.value).then(resp => {
-            submitting.value = false;
-  // groupService.apiFetchById(resp.data.id).then(resp => {
-            loadMembersData()
-          //  curGroup = groupService.getGroupById(resp.data.id)
-            alertSucess(
-              'Operação efectuada com sucesso.'
-              )
-         // emit('close')
-         // curGroup.value.clinic_id = curGroup.clinic.id
-         // curGroup.clinical_service_id = curGroup.service.id
-         // curGroup.groupType_id = curGroup.groupType.id
-         SessionStorage.set('selectedGroupId', curGroup.value.id)
-        router.push('/group/panel')
-         }).catch((error) => {
-          submitting.value = false;
-          const listErrors = [];
-          console.log(error);
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-          }
-          alertError('error', listErrors);
+        if (curGroup.value.syncStatus !== 'R') curGroup.value.syncStatus = 'U';
+        curGroup.value.clinic_id = clinic.id;
+        curGroup.value.clinical_service_id = curGroup.value.service.id;
+        curGroup.value.groupType_id = JSON.parse(
+          JSON.stringify(curGroup.value.groupType.id)
+        );
+        curGroup.value.members.forEach((member) => {
+          member.startDate = curGroup.value.startDate;
+          if (member.syncStatus !== 'R') member.syncStatus = 'U';
+          member.patient.identifiers = [];
+          const groupUpdate = new Group(JSON.parse(JSON.stringify(curGroup)));
+          Group.localDbUpdate(groupUpdate).then((groupRes) => {
+            Group.update({ data: groupUpdate });
+          });
         });
-  }
-        //  })
-         else {
-          console.log('Edit Step')
-          console.log(curGroup)
-          groupService.apiUpdate(curGroup.value).then(resp => {
-           // groupService.apiFetchById(resp.id).then(resp => {
-            loadMembersData()
-           // curGroup.value = groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
-            alertSucess(
-              'Operação efectuada com sucesso.'
-              )
-              emit('close')
-         // })
-        })
-        }
       }
+      alertSucess('Operação efectuada com sucesso.');
     } else {
-      submitting.value = false
+      if (isCreateStep.value) {
+        console.log(curGroup);
+        groupService
+          .apiSave(curGroup.value)
+          .then((resp) => {
+            submitting.value = false;
+            // groupService.apiFetchById(resp.data.id).then(resp => {
+            loadMembersData();
+            //  curGroup = groupService.getGroupById(resp.data.id)
+            alertSucess('Operação efectuada com sucesso.');
+            // emit('close')
+            // curGroup.value.clinic_id = curGroup.clinic.id
+            // curGroup.clinical_service_id = curGroup.service.id
+            // curGroup.groupType_id = curGroup.groupType.id
+            SessionStorage.set('selectedGroupId', curGroup.value.id);
+            router.push('/group/panel');
+          })
+          .catch((error) => {
+            submitting.value = false;
+            const listErrors = [];
+            console.log(error);
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response);
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message);
+              } else {
+                arrayErrors._embedded.errors.forEach((element) => {
+                  listErrors.push(element.message);
+                });
+              }
+            }
+            alertError('error', listErrors);
+          });
+      }
+      //  })
+      else {
+        console.log('Edit Step');
+        console.log(curGroup);
+        groupService.apiUpdate(curGroup.value).then((resp) => {
+          // groupService.apiFetchById(resp.id).then(resp => {
+          loadMembersData();
+          // curGroup.value = groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
+          alertSucess('Operação efectuada com sucesso.');
+          emit('close');
+          // })
+        });
+      }
     }
-}
+  } else {
+    submitting.value = false;
+  }
+};
 
 const init = () => {
   curGroup.value = new Group({
@@ -689,7 +693,6 @@ onMounted(() => {
   console.log(curGroup.value.id);
   getGroupForEdit();
 });
-
 
 watch(
   () => searchResults,

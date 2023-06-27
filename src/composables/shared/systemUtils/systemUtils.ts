@@ -5,7 +5,7 @@ import { LocalStorage } from 'quasar';
 //import mixinplatform from '../mixins/mixin-system-platform'
 
 export function useSystemUtils() {
-  const isWebScreen = useMediaQuery('(min-width: 1024px)');
+  const isWebScreen = useMediaQuery('(min-width: 1524px)');
   const website = computed(() => (isWebScreen.value ? true : false));
 
   const isDeskTop = computed(() => (Platform.is.desktop ? true : false));
@@ -18,5 +18,7 @@ export function useSystemUtils() {
         LocalStorage.getItem('user_clinic_sectors').includes('NORMAL')
   );
 
+  console.log('isMobile' + isMobile.value);
+  console.log('isWebsite' + website.value);
   return { website, isDeskTop, isMobile, isElectron, isOnline };
 }
