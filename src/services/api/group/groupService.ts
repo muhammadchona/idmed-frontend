@@ -2,7 +2,10 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Group from 'src/stores/models/group/Group';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { nSQL } from 'nano-sql';
 
+const { website, isDeskTop, isMobile } = useSystemUtils();
 const { alertSucess, alertError, alertInfo } = useSwal();
 
 const group = useRepo(Group);
@@ -18,15 +21,25 @@ export default {
   },
   get(offset: number) {
     if (offset >= 0) {
-      return api()
-        .get('group?offset=' + offset + '&max=100')
-        .then((resp) => {
-          group.save(resp.data);
-          offset = offset + 100;
-          if (resp.data.length > 0) {
-            this.get(offset);
-          }
-        });
+      if (isMobile.value) {
+        return api()
+          .get('group?offset=' + offset + '&max=100')
+          .then((resp) => {
+            group.save(resp.data);
+            offset = offset + 100;
+            if (resp.data.length > 0) {
+              this.get(offset);
+            }
+          });
+      } else {
+        return nSQL('groups')
+          .query('select')
+          .exec()
+          .then((result) => {
+            console.log('groups' + result);
+            group.save(result);
+          });
+      }
     }
   },
   patch(id: number, params: string) {
@@ -53,30 +66,15 @@ export default {
   },
 
   async apiSave(groupInfo: any) {
-    /*
-    await api()
-      .post('/groupInfo', groupInfo)
-      .then((resp) => {
-        group.save(resp.data);
-        return resp.data;
-      })
-      .catch((error) => {
-        const listErrors = [];
-        if (error.request.response != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-        }
-        return listErrors;
-      });
-      */
-    const resp = await api().post('/groupInfo', groupInfo);
-    group.save(resp.data);
+    let resp = null;
+    if (isMobile.value) {
+      resp = await nSQL('groups').query('upsert', groupInfo).exec();
+      console.log('criacaoGrupo' + groupInfo);
+      group.save(resp);
+    } else {
+      resp = await api().post('/groupInfo', groupInfo);
+      group.save(resp.data);
+    }
     return resp;
   },
 
@@ -104,17 +102,29 @@ export default {
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
-    return await api()
-      .get(
-        '/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
-      )
-      .then((resp) => {
-        group.save(resp.data);
-        offset = offset + 100;
-        if (resp.data.length > 0) {
-          this.apiGetAllByClinicId(clinicId, offset, max);
-        }
-      });
+    console.log('teste');
+    group.flush();
+    if (isMobile.value) {
+      return nSQL('groups')
+        .query('select')
+        .exec()
+        .then((result) => {
+          console.log('groupsss' + result);
+          group.save(result);
+        });
+    } else {
+      return await api()
+        .get(
+          '/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+        )
+        .then((resp) => {
+          group.save(resp.data);
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.apiGetAllByClinicId(clinicId, offset, max);
+          }
+        });
+    }
   },
 
   async apiValidateBeforeAdd(patientId: string, code: string) {
