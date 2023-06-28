@@ -14,7 +14,7 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
@@ -28,14 +28,14 @@ export default {
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -48,7 +48,7 @@ export default {
       clinicalService.save(resp.data);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -66,7 +66,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -77,7 +77,7 @@ export default {
       clinicalService.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -87,7 +87,7 @@ export default {
       clinicalService.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -101,7 +101,7 @@ export default {
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
@@ -122,12 +122,12 @@ export default {
         }
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(clinicalService.use?.entity)
+    return nSQL(ClinicalService.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()
@@ -136,7 +136,7 @@ export default {
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },

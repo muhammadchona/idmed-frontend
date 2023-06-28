@@ -13,28 +13,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -47,7 +47,7 @@ export default {
       dispenseMode.save(resp.data);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -65,7 +65,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -76,7 +76,7 @@ export default {
       dispenseMode.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -86,13 +86,13 @@ export default {
       dispenseMode.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(dispenseMode.use?.entity)
+    return nSQL(DispenseMode.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
@@ -100,24 +100,24 @@ export default {
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(dispenseMode.use?.entity)
+    return nSQL(DispenseMode.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
         dispenseMode.save(rows);
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(dispenseMode.use?.entity)
+    return nSQL(DispenseMode.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()
@@ -126,7 +126,7 @@ export default {
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
