@@ -97,16 +97,11 @@
 </template>
 <script setup>
 /*imports*/
-import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, onMounted, computed, provide } from 'vue';
-import UserLogin from '../../../stores/models/userLogin/User';
-import Role from '../../../stores/models/userLogin/Role';
-import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
-import Clinic from '../../../stores/models/clinic/Clinic';
-import ClinicSectorType from '../../../stores/models/clinicSectorType/ClinicSectorType';
+import { ref, inject, computed, provide } from 'vue';
 import userService from 'src/services/api/user/userService.ts';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
+import SecUser from 'src/stores/models/userLogin/User';
 
 /*Components import*/
 import addUserComp from 'src/components/Settings/User/AddUser.vue';
@@ -211,7 +206,7 @@ const editUser = (userParam) => {
   showUserRegistrationScreen.value = true;
 };
 const addUser = () => {
-  user.value = ref(userService.newInstanceEntity());
+  user.value = new SecUser();
   isCreateStep.value = true;
   editMode.value = false;
   viewMode.value = false;
@@ -222,21 +217,21 @@ const visualizeUser = (userParam) => {
   viewMode.value = true;
   editMode.value = false;
   showUserRegistrationScreen.value = true;
-  conole.log(user.value);
 };
 const promptToConfirm = (user) => {
-  const question = user.active
-    ? 'Deseja Inactivar o Utilizador?'
-    : 'Deseja Activar o Utilizador?';
+  const question = user.accountLocked
+    ? 'Deseja Activar o Utilizador?'
+    : 'Deseja Inactivar o Utilizador?';
 
   alertWarningAction(question).then((response) => {
     if (response) {
-      if (user.active) {
-        user.active = false;
+      console.log(user);
+      if (user.accountLocked) {
+        user.accountLocked = false;
       } else {
-        user.active = true;
+        user.accountLocked = true;
       }
-
+      console.log(user);
       userService
         .patch(user.id, user)
         .then((resp) => {

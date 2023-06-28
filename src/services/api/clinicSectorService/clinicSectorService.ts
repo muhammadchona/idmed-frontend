@@ -6,6 +6,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import { v4 as uuidv4 } from 'uuid';
 
 const clinicSector = useRepo(ClinicSector);
 
@@ -44,6 +45,7 @@ export default {
   },
   // WEB
   async postWeb(params: string) {
+    params.id = uuidv4();
     try {
       const resp = await api().post('clinicSector', params);
       clinicSector.save(resp.data);

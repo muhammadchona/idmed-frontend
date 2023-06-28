@@ -61,7 +61,7 @@
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
-                <q-btn
+                <!-- <q-btn
                   flat
                   round
                   color="amber-8"
@@ -70,7 +70,7 @@
                   @click="editClinic(props.row)"
                 >
                   <q-tooltip class="bg-amber-5">Editar</q-tooltip>
-                </q-btn>
+                </q-btn> -->
 
                 <q-btn
                   flat
@@ -101,13 +101,9 @@
 </template>
 <script setup>
 /*Imports*/
-import { useQuasar } from 'quasar';
 import { inject, ref, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
-
-const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
