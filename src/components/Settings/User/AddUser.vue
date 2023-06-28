@@ -19,9 +19,7 @@
                   ref="nome"
                   square
                   v-model="user.fullName"
-                  :rules="[
-                    (val) => val.length >= 3 || 'O nome indicado é inválido',
-                  ]"
+                  :rules="[(val) => codeRulesNomeCompleto(val)]"
                   lazy-rules
                   :disable="onlyView"
                   class="col fild-radius"
@@ -325,10 +323,9 @@ onMounted(() => {
   if (configs.value.value === 'LOCAL') {
     isProvincial.value = false;
     user.value.clinics[0] = currClinic.value;
-    selectedClinics.value[0] = currClinic.value;
-    console.log(user.value);
   } else {
     isProvincial.value = true;
+    selectedClinics.value[0] = currClinic.value;
   }
 });
 
@@ -366,7 +363,6 @@ const goToNextStep = () => {
     // if (!$refs.nome.$refs.ref.hasError &&
     //     !$refs.password.hasError && !$refs.username.$refs.ref.hasError &&
     //      !$refs.contact.$refs.ref.hasError) {
-    console.log(userRoles.value);
     stepper.value.next();
     // }
   } else if (step.value === 2) {
@@ -409,8 +405,6 @@ const submitUser = () => {
   selectedRoles.value.forEach((role) => {
     roles.push(role.authority);
   });
-  console.log(selectedClinics.value);
-  console.log(selectedClinicSectors.value);
   selectedClinics.value = JSON.parse(JSON.stringify(selectedClinics.value));
   selectedClinicSectors.value = JSON.parse(
     JSON.stringify(selectedClinicSectors.value)
@@ -420,7 +414,7 @@ const submitUser = () => {
   user.value.clinicSectors = selectedClinicSectors.value;
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
-  user.value.clinics[0] = user.value.clinicSectors[0].clinic;
+  // user.value.clinics[0] = user.value.clinicSectors[0].clinic;
   /* selectedClinicSectors.forEach(item => {
           item.clinic = selectedClinics[0]
         }) */
@@ -438,6 +432,7 @@ const submitUser = () => {
         showUserRegistrationScreen.value = false;
       });
   } else {
+    console.log(user.value);
     userService
       .patch(user.value.id, user.value)
       .then((resp) => {
@@ -448,15 +443,20 @@ const submitUser = () => {
         submitting.value = false;
         showUserRegistrationScreen.value = false;
       });
-
   }
-
 };
 
 const extractDatabaseCodes = () => {
   users.value.forEach((element) => {
     databaseCodes.value.push(element.username);
   });
+};
+const codeRulesNomeCompleto = (val) => {
+  if (val === '') {
+    return 'o nome é obrigatorio';
+  } else if (val.length < 3) {
+    return 'O  nome  deve ter no mínimo 3 caracteres';
+  }
 };
 const codeRules = (val) => {
   if (val === '') {
