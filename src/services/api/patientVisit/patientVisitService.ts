@@ -48,7 +48,7 @@ export default {
       patientVisit.save(resp.data);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -66,7 +66,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -77,7 +77,7 @@ export default {
       patientVisit.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -87,13 +87,13 @@ export default {
       patientVisit.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(patientVisit.use?.entity)
+    return nSQL(PatientVisit.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
@@ -101,24 +101,32 @@ export default {
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(patientVisit.use?.entity)
+    return nSQL(PatientVisit.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
-        patientVisit.save(rows);
+        if (rows.length === 0) {
+          api()
+            .get('patientVisit?offset=0&max=700')
+            .then((resp) => {
+              this.putMobile(resp.data);
+            });
+        } else {
+          patientVisit.save(rows);
+        }
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(patientVisit.use?.entity)
+    return nSQL(PatientVisit.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()
@@ -127,7 +135,7 @@ export default {
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },

@@ -1,9 +1,6 @@
 <template>
-  <div >
-    <PanelTitleBar
-      v-if="isMobile"
-      @showGroupDetails="showGroupDetails"
-    >
+  <div>
+    <PanelTitleBar v-if="isMobile" @showGroupDetails="showGroupDetails">
       Detalhe do Grupo
     </PanelTitleBar>
     <TitleBar v-else />
@@ -34,6 +31,7 @@
             @addMember="addMember"
             @desintagrateGroup="desintagrateGroup"
           />
+          <groupPacks v-if="dataFetchDone" />
         </q-scroll-area>
       </div>
     </div>
@@ -60,9 +58,7 @@
                 @addMember="addMember"
                 @desintagrateGroup="desintagrateGroup"
               />
-              <groupPacks
-                v-if="dataFetchDone"
-              />
+              <groupPacks v-if="dataFetchDone" />
             </span>
           </q-scroll-area>
         </div>
@@ -78,14 +74,7 @@
 </template>
 
 <script setup>
-import {
-  computed,
-  inject,
-  onMounted,
-  provide,
-  ref,
-  watch,
-} from 'vue';
+import { computed, inject, onMounted, provide, ref, watch } from 'vue';
 import { SessionStorage } from 'quasar';
 import Group from '../../stores/models/group/Group';
 import GroupMemberPrescription from '../../stores/models/group/GroupMemberPrescription';
@@ -101,8 +90,8 @@ import patientServiceIdentifierService from 'src/services/api/patientServiceIden
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import groupInfo from 'components/Groups/Panel/GroupInfo.vue';
- import groupRegister from 'components/Groups/AddEditGroup.vue';
- import groupMembers from 'components/Groups/Panel/GroupMembers.vue';
+import groupRegister from 'components/Groups/AddEditGroup.vue';
+import groupMembers from 'components/Groups/Panel/GroupMembers.vue';
 import groupPacks from 'components/Groups/Panel/GroupDispenses.vue';
 import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService';
 import PanelTitleBar from 'components/Groups/Panel/PanelTitleBar.vue';
@@ -182,15 +171,11 @@ const showGroupDetails = () => {
 const loadMemberInfo = () => {
   showloading();
   if (isMobile.value) {
+    console.log('membros: ' + group.value.members);
     group.value.members.forEach((member) => {
-      GroupMemberPrescription.localDbGetAll().then((memberPrescriptions) => {
-        memberPrescriptions.forEach((mPre) => {
-          if (mPre.member.id === member.id && !mPre.used) {
-            GroupMemberPrescription.insert({ data: mPre });
-          }
-        });
-      });
+      groupMemberPrescriptionService.apiFetchByMemberId(member.id);
     });
+    /*
     GroupPackHeader.localDbGetAll().then((items) => {
       items.forEach((item) => {
         if (item.group_id === group.value.id) {
@@ -198,6 +183,7 @@ const loadMemberInfo = () => {
         }
       });
     });
+    */
     membersInfoLoaded.value = true;
     closeLoading();
   } else {
@@ -230,7 +216,7 @@ const loadMemberInfo = () => {
                       .apiGetLastByEpisodeId(episode.id)
                       .then((resp) => {
                         if (resp.data) {
-                          episode.patientVisitDetails = []
+                          episode.patientVisitDetails = [];
                           episode.patientVisitDetails[0] = resp.data;
                           patientVisitDetailsService.apiGetAllofPrecription(
                             episode.patientVisitDetails[0].prescription.id
@@ -271,18 +257,15 @@ const editGroup = () => {
   showRegisterRegister.value = true;
 };
 
-
-
 const dataFetchDone = computed(() => {
-  return membersInfoLoaded.value })
-
+  return membersInfoLoaded.value;
+});
 
 const group = computed(() => {
   return groupService.getGroupWithsById(
     SessionStorage.getItem('selectedGroupId')
   );
 });
-
 
 const desintagrateGroup = () => {
   console.log(group.value);
@@ -307,8 +290,8 @@ const desintagrateGroup = () => {
         const memberUpdate = new GroupMember(
           JSON.parse(JSON.stringify(member))
         );
-      //  GroupMember.localDbUpdate(memberUpdate);
-     //   GroupMember.update({ where: memberUpdate.id, data: memberUpdate });
+        //  GroupMember.localDbUpdate(memberUpdate);
+        //   GroupMember.update({ where: memberUpdate.id, data: memberUpdate });
       });
     });
     Group.update({ where: groupUpdate.id, data: groupUpdate });
@@ -338,7 +321,9 @@ const getGroupMembers = (isPrescription) => {
   const group = groupService.getGroupById(
     SessionStorage.getItem('selectedGroupId')
   );
+  console.log('getGroupMembers' + group);
   group.members.forEach((member) => {
+    console.log('getGroupMembers1' + group);
     member.groupMemberPrescription =
       groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(
         member.id
@@ -372,6 +357,7 @@ const getGroupMembers = (isPrescription) => {
     }
   });
   allMembers.value = group.members;
+  console.log('getGroupMembers2' + allMembers.value);
   if (!useGroup().isDesintegrated(group)) {
     members.value = group.members.filter((member) => {
       return useGroupMember().isActive(member);
@@ -381,7 +367,7 @@ const getGroupMembers = (isPrescription) => {
   } else {
     members.value = group.members;
   }
-  console.log(group.members);
+  console.log('this.isthis' + group.members);
 };
 
 const lastStartEpisodeWithPrescription = (identifierId) => {
@@ -406,7 +392,8 @@ const calculateRemainingTime = (memberPrescription) => {
 };
 
 const fecthMemberPrescriptionData = (visitDetails, member) => {
-  if (!isMobile.value) {
+  if (isMobile.value) {
+    //mudar para Online
     if (visitDetails.pack !== null) {
       fecthedMemberData.value = fecthedMemberData.value + 1;
     }
@@ -414,11 +401,11 @@ const fecthMemberPrescriptionData = (visitDetails, member) => {
     if (visitDetails.pack !== null)
       packService.apiFetchById(visitDetails.pack.id);
     if (member.groupMemberPrescription !== null) {
-      Prescription.apiFetchById(member.groupMemberPrescription.id).then(
-        (resp) => {
+      prescriptionService
+        .apiFetchById(member.groupMemberPrescription.id)
+        .then((resp) => {
           fecthedMemberData.value = this.fecthedMemberData + 1;
-        }
-      );
+        });
     } else {
       prescriptionService
         .apiFetchById(visitDetails.prescription.id)

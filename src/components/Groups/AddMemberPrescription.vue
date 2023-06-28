@@ -136,12 +136,12 @@ const selectedMember = inject('selectedMember');
 
 //Hook
 onMounted(() => {
-  console.log(isNewPrescription.value)
+  console.log(isNewPrescription.value);
   init();
 });
 
 const dispenseLabel = computed(() => {
-    return 'Gravar';
+  return 'Gravar';
 });
 // Methods
 
@@ -178,7 +178,8 @@ const doValidationToDispense = () => {
   memberPrescription.member.group.service.attributes = [];
   memberPrescription.member.patient.identifiers = [];
   memberPrescription.member.group.members = [];
-  memberPrescription.member.patient.district = memberPrescription.member.clinic.district;
+  memberPrescription.member.patient.district =
+    memberPrescription.member.clinic.district;
   memberPrescription.prescription.prescribedDrugs.forEach((pd) => {
     pd.drug.therapeuticRegimenList = [];
     pd.drug.packaged_drugs = [];
@@ -222,41 +223,35 @@ const doValidationToDispense = () => {
     // memberPrescription.member_id = SessionStorage.getItem('selectedMember').id
     // memberPrescription.prescription_id = this.curPatientVisitDetails[0].prescription.id
     memberPrescription.syncStatus = 'R';
-    Prescription.localDbAdd(memberPrescription.prescription);
-    memberPrescription.prescription.prescribedDrugs = [];
-    GroupMemberPrescription.localDbAdd(memberPrescription);
-    this.displayAlert('info', 'Prescrição gravada com sucesso.');
-  } else {
-
-    console.log(memberPrescription.prescription.leftDuration);
-    console.log(memberPrescription);
-    groupMemberPrescriptionService
-      .apiSave(memberPrescription)
-      .then((resp1) => {
-        executeGetGroupMembers();
-        alertSucess('Prescricao gravada com sucesso');
-        submitting.value = false;
-        showAddPrescription.value = false;
-        // this.$emit('getGroupMembers', true)
-      })
-      .catch((error) => {
-        submitting.value = false;
-        const listErrors = [];
-        console.log(error);
-        if (error.request.response != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-        }
-        alertError('error', listErrors);
-      });
-    //   })
   }
+  console.log(memberPrescription.prescription.leftDuration);
+  console.log(memberPrescription);
+  groupMemberPrescriptionService
+    .apiSave(memberPrescription)
+    .then((resp1) => {
+      executeGetGroupMembers();
+      alertSucess('Prescricao gravada com sucesso');
+      submitting.value = false;
+      showAddPrescription.value = false;
+      // this.$emit('getGroupMembers', true)
+    })
+    .catch((error) => {
+      submitting.value = false;
+      const listErrors = [];
+      console.log(error);
+      if (error.request.response != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
+        } else {
+          arrayErrors._embedded.errors.forEach((element) => {
+            listErrors.push(element.message);
+          });
+        }
+      }
+      alertError('error', listErrors);
+    });
+  //   }
 };
 
 provide('curPatientVisit', curPatientVisit);

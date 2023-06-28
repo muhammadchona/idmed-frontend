@@ -27,7 +27,6 @@ declare module 'pinia' {
 export default store((/* { ssrContext } */) => {
   const pinia = createPinia();
   const list = nanosSqlDatabase.getEntities();
-  console.log(list);
   NonSqlDatabaseUtils.initDatabase(list);
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)

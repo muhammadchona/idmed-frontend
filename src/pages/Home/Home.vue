@@ -134,9 +134,13 @@ const { website, isDeskTop, isMobile } = useSystemUtils();
 
 const { loadSettingParams } = useOnline();
 
+const clinic = computed(() => {
+  return clinicService.currClinic();
+});
+
 const init = () => {
   showloading();
-  if (website.value) {
+  if (isMobile.value) {
     loadSettingParams;
     // this.loadWebRegimensToVueX();
     // this.loadWebDrugsToVueX();
@@ -162,10 +166,11 @@ const menusVisible = (name) => {
 };
 
 onMounted(() => {
-  if (website.value) {
-    showloading();
-    loadSettingParams();
-  }
+  // if (isMobile.value) {
+  showloading();
+  console.log(clinic.value);
+  loadSettingParams(clinic);
+  //  }
   // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
   // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
   // init();
@@ -181,10 +186,10 @@ onMounted(() => {
     //   }
     // }
     closeLoading();
+    if (isMobile.value) {
+    }
   }, 3000);
 });
-
-
 </script>
 
 <style></style>

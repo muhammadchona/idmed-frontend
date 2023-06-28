@@ -41,7 +41,6 @@ export default {
         (key === 'therapeutic_regimen_id' &&
           entity === 'therapeuticRegimensDrug')
       ) {
-        console.log(key);
         obj = { key: key, type: 'uuid', props: ['pk'] };
       } else {
         obj = { key: key, type: dataType };
