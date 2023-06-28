@@ -97,14 +97,8 @@
 </template>
 <script setup>
 /*imports*/
-import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, onMounted, computed, provide } from 'vue';
-import UserLogin from '../../../stores/models/userLogin/User';
-import Role from '../../../stores/models/userLogin/Role';
-import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
-import Clinic from '../../../stores/models/clinic/Clinic';
-import ClinicSectorType from '../../../stores/models/clinicSectorType/ClinicSectorType';
+import { ref, inject, computed, provide } from 'vue';
 import userService from 'src/services/api/user/userService.ts';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import SecUser from 'src/stores/models/userLogin/User';

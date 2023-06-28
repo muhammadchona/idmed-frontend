@@ -140,7 +140,7 @@
 </template>
 <script setup>
 /*Imports*/
-import { ref, provide, computed, inject, onMounted } from 'vue';
+import { ref, provide, computed, onMounted } from 'vue';
 import clinicServiceService from 'src/services/api/clinicService/clinicService.ts';
 import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
@@ -170,7 +170,7 @@ import users from 'src/components/Settings/User/Users.vue';
 import roles from 'src/components/Settings/User/Roles.vue';
 
 /*Variables*/
-const { closeLoading, showloading } = useLoading();
+const { showloading } = useLoading();
 const activeMenu = ref('Farmácias');
 const filter = ref('');
 const selectedTab = ref('clinic');

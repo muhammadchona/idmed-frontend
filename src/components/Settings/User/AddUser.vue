@@ -233,13 +233,8 @@
 
 <script setup>
 /*imports*/
-import UserLogin from 'src/stores/models/userLogin/User';
-import Role from 'src/stores/models/userLogin/Role';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, onMounted, computed, provide } from 'vue';
-import Clinic from '../../../stores/models/clinic/Clinic';
-import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
-import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
+import { ref, inject, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
@@ -289,8 +284,6 @@ const columnsClinicSectors = ref([
 ]);
 const databaseCodes = ref([]);
 const submitting = ref(false);
-const userRole = ref('');
-const clinico = ref('');
 const step = ref(1);
 const isPwd = ref(true);
 const selectedRoles = ref([]);
@@ -300,7 +293,6 @@ const isProvincial = ref(false);
 const stepper = ref();
 
 /*injects*/
-const stepp = inject('step');
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');
@@ -319,6 +311,11 @@ onMounted(() => {
       selectedClinicSectors.value = user.value.clinicSectors;
     }
   }
+
+  console.log(userRoles.value);
+  console.log(selectedRoles.value);
+  console.log(selectedClinicSectors.value);
+
   extractDatabaseCodes();
   if (configs.value.value === 'LOCAL') {
     isProvincial.value = false;
@@ -420,7 +417,6 @@ const submitUser = () => {
         }) */
   // if (website) {
   if (isCreateStep.value) {
-    console.log(user.value);
     userService
       .post(user.value)
       .then((resp) => {
@@ -432,7 +428,6 @@ const submitUser = () => {
         showUserRegistrationScreen.value = false;
       });
   } else {
-    console.log(user.value);
     userService
       .patch(user.value.id, user.value)
       .then((resp) => {
