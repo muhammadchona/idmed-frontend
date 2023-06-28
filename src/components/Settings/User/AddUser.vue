@@ -19,9 +19,7 @@
                   ref="nome"
                   square
                   v-model="user.fullName"
-                  :rules="[
-                    (val) => val.length >= 3 || 'O nome indicado é inválido',
-                  ]"
+                  :rules="[(val) => codeRulesNomeCompleto(val)]"
                   lazy-rules
                   :disable="onlyView"
                   class="col fild-radius"
@@ -235,13 +233,8 @@
 
 <script setup>
 /*imports*/
-import UserLogin from 'src/stores/models/userLogin/User';
-import Role from 'src/stores/models/userLogin/Role';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, onMounted, computed, provide } from 'vue';
-import Clinic from '../../../stores/models/clinic/Clinic';
-import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
-import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
+import { ref, inject, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
@@ -291,8 +284,6 @@ const columnsClinicSectors = ref([
 ]);
 const databaseCodes = ref([]);
 const submitting = ref(false);
-const userRole = ref('');
-const clinico = ref('');
 const step = ref(1);
 const isPwd = ref(true);
 const selectedRoles = ref([]);
@@ -302,7 +293,6 @@ const isProvincial = ref(false);
 const stepper = ref();
 
 /*injects*/
-const stepp = inject('step');
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');
@@ -321,14 +311,18 @@ onMounted(() => {
       selectedClinicSectors.value = user.value.clinicSectors;
     }
   }
+
+  console.log(userRoles.value);
+  console.log(selectedRoles.value);
+  console.log(selectedClinicSectors.value);
+
   extractDatabaseCodes();
   if (configs.value.value === 'LOCAL') {
     isProvincial.value = false;
     user.value.clinics[0] = currClinic.value;
-    selectedClinics.value[0] = currClinic.value;
-    console.log(user.value);
   } else {
     isProvincial.value = true;
+    selectedClinics.value[0] = currClinic.value;
   }
 });
 
@@ -366,7 +360,6 @@ const goToNextStep = () => {
     // if (!$refs.nome.$refs.ref.hasError &&
     //     !$refs.password.hasError && !$refs.username.$refs.ref.hasError &&
     //      !$refs.contact.$refs.ref.hasError) {
-    console.log(userRoles.value);
     stepper.value.next();
     // }
   } else if (step.value === 2) {
@@ -409,8 +402,6 @@ const submitUser = () => {
   selectedRoles.value.forEach((role) => {
     roles.push(role.authority);
   });
-  console.log(selectedClinics.value);
-  console.log(selectedClinicSectors.value);
   selectedClinics.value = JSON.parse(JSON.stringify(selectedClinics.value));
   selectedClinicSectors.value = JSON.parse(
     JSON.stringify(selectedClinicSectors.value)
@@ -420,13 +411,12 @@ const submitUser = () => {
   user.value.clinicSectors = selectedClinicSectors.value;
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
-  user.value.clinics[0] = user.value.clinicSectors[0].clinic;
+  // user.value.clinics[0] = user.value.clinicSectors[0].clinic;
   /* selectedClinicSectors.forEach(item => {
           item.clinic = selectedClinics[0]
         }) */
   // if (website) {
   if (isCreateStep.value) {
-    console.log(user.value);
     userService
       .post(user.value)
       .then((resp) => {
@@ -448,15 +438,20 @@ const submitUser = () => {
         submitting.value = false;
         showUserRegistrationScreen.value = false;
       });
-
   }
-
 };
 
 const extractDatabaseCodes = () => {
   users.value.forEach((element) => {
     databaseCodes.value.push(element.username);
   });
+};
+const codeRulesNomeCompleto = (val) => {
+  if (val === '') {
+    return 'o nome é obrigatorio';
+  } else if (val.length < 3) {
+    return 'O  nome  deve ter no mínimo 3 caracteres';
+  }
 };
 const codeRules = (val) => {
   if (val === '') {

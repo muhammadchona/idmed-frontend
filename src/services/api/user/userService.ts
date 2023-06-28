@@ -6,7 +6,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const secUser = useRepo(SecUser);
+const secUserRepo = useRepo(SecUser);
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -45,7 +45,8 @@ export default {
   async postWeb(params: string) {
     try {
       const resp = await api().post('secUser', params);
-      secUser.save(resp.data);
+      console.log(resp.data);
+      secUserRepo.save(resp.data);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       alertError('Aconteceu um erro inesperado nesta operação.');
@@ -57,7 +58,7 @@ export default {
       return api()
         .get('secUser?offset=' + offset + '&max=100')
         .then((resp) => {
-          secUser.save(resp.data);
+          secUserRepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -74,7 +75,7 @@ export default {
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('secUser/' + uuid, params);
-      secUser.save(resp.data);
+      secUserRepo.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       alertError('Aconteceu um erro inesperado nesta operação.');
@@ -84,7 +85,7 @@ export default {
   async deleteWeb(uuid: string) {
     try {
       const resp = await api().delete('secUser/' + uuid);
-      secUser.destroy(uuid);
+      secUserRepo.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
       alertError('Aconteceu um erro inesperado nesta operação.');
@@ -93,11 +94,11 @@ export default {
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(secUser.use?.entity)
+    return nSQL(secUserRepo.use?.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
-        secUser.save(JSON.parse(params));
+        secUserRepo.save(JSON.parse(params));
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
@@ -106,11 +107,11 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(secUser.use?.entity)
+    return nSQL(secUserRepo.use?.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
-        secUser.save(rows);
+        secUserRepo.save(rows);
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inesperado nesta operação.');
@@ -118,12 +119,12 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(secUser.use?.entity)
+    return nSQL(secUserRepo.use?.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()
       .then(() => {
-        secUser.destroy(paramsId);
+        secUserRepo.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
@@ -139,14 +140,14 @@ export default {
   },
   // Local Storage Pinia
   newInstanceEntity() {
-    return secUser.getModel().$newInstance();
+    return secUserRepo.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return secUser.all();
+    return secUserRepo.all();
   },
 
   getAllUsers() {
-    return secUser
+    return secUserRepo
       .query()
       .with('clinics', (query) => {
         query.with('province');
