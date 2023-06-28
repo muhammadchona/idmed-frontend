@@ -94,9 +94,7 @@ export default {
   // Mobile
   async putMobile(params: string) {
     try {
-      await nSQL(patientVisitDetails.use?.entity)
-        .query('upsert', params)
-        .exec();
+      await nSQL(PatientVisitDetails.entity).query('upsert', params).exec();
       patientVisitDetails.save(JSON.parse(params));
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
@@ -106,7 +104,7 @@ export default {
   },
   async getMobile() {
     try {
-      const rows = await nSQL(patientVisitDetails.use?.entity)
+      const rows = await nSQL(PatientVisitDetails.entity)
         .query('select')
         .exec();
       patientVisitDetails.save(rows);
@@ -117,7 +115,7 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(patientVisitDetails.use?.entity)
+      await nSQL(PatientVisitDetails.entity)
         .query('delete')
         .where(['id', '=', paramsId])
         .exec();
@@ -152,14 +150,19 @@ export default {
   },
 
   async apiGetAllLastOfClinic(clinicId: string, offset: number, max: number) {
-    return await api().get(
-      '/patientVisitDetails/AllLastOfClinic/' +
-        clinicId +
-        '?offset=' +
-        offset +
-        '&max=' +
-        max
-    );
+    return await api()
+      .get(
+        '/patientVisitDetails/AllLastOfClinic/' +
+          clinicId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        nSQL(PatientVisitDetails.entity).query('upsert', resp.data).exec();
+        patientVisitDetails.save(resp.data);
+      });
   },
 
   async apiGetAllByEpisodeId(episodeId: string, offset: number, max: number) {

@@ -21,7 +21,7 @@ export default {
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
@@ -93,11 +93,11 @@ export default {
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(clinicalService.use?.entity)
+    return nSQL(ClinicalService.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
-        clinicalService.save(JSON.parse(params));
+        clinicalService.save(params);
         alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
@@ -106,11 +106,20 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(clinicalService.use?.entity)
+    return nSQL(ClinicalService.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
-        clinicalService.save(rows);
+        if (rows.length === 0) {
+          api()
+            .get('clinicalService?offset=0&max=100')
+            .then((resp) => {
+              console.log(resp);
+              this.putMobile(resp.data);
+            });
+        } else {
+          clinicalService.save(rows);
+        }
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inexperado nesta operação.');

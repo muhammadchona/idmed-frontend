@@ -224,7 +224,7 @@ const getAllGroupsOfClinic = () => {
   const offset = 0;
   const max = 100;
   console.log('Clinica:' + clinic.value);
-  groupService.apiGetAllByClinicId(clinic.value, offset, max);
+  groupService.apiGetAllByClinicId(clinic.value.id, offset, max);
   //  this.doGroupsGet(clinic.id, offset, max);
 };
 

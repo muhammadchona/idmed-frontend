@@ -31,6 +31,7 @@
             @addMember="addMember"
             @desintagrateGroup="desintagrateGroup"
           />
+          <groupPacks v-if="dataFetchDone" />
         </q-scroll-area>
       </div>
     </div>
@@ -391,7 +392,8 @@ const calculateRemainingTime = (memberPrescription) => {
 };
 
 const fecthMemberPrescriptionData = (visitDetails, member) => {
-  if (!isMobile.value) {
+  if (isMobile.value) {
+    //mudar para Online
     if (visitDetails.pack !== null) {
       fecthedMemberData.value = fecthedMemberData.value + 1;
     }
@@ -399,11 +401,11 @@ const fecthMemberPrescriptionData = (visitDetails, member) => {
     if (visitDetails.pack !== null)
       packService.apiFetchById(visitDetails.pack.id);
     if (member.groupMemberPrescription !== null) {
-      Prescription.apiFetchById(member.groupMemberPrescription.id).then(
-        (resp) => {
+      prescriptionService
+        .apiFetchById(member.groupMemberPrescription.id)
+        .then((resp) => {
           fecthedMemberData.value = this.fecthedMemberData + 1;
-        }
-      );
+        });
     } else {
       prescriptionService
         .apiFetchById(visitDetails.prescription.id)

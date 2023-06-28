@@ -93,7 +93,7 @@ export default {
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(patientVisit.use?.entity)
+    return nSQL(PatientVisit.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
@@ -106,11 +106,19 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(patientVisit.use?.entity)
+    return nSQL(PatientVisit.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
-        patientVisit.save(rows);
+        if (rows.length === 0) {
+          api()
+            .get('patientVisit?offset=0&max=700')
+            .then((resp) => {
+              this.putMobile(resp.data);
+            });
+        } else {
+          patientVisit.save(rows);
+        }
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inexperado nesta operação.');
@@ -118,7 +126,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(patientVisit.use?.entity)
+    return nSQL(PatientVisit.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()

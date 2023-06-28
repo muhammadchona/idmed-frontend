@@ -96,11 +96,24 @@ export default {
         alertError(listErrors.value);
       });
       */
-    const resp = await api().post(
-      '/groupMemberPrescription',
-      groupMemberPrescriptionObject
-    );
-    groupMemberPrescription.save(resp.data);
+
+    let resp = null;
+    if (isMobile.value) {
+      groupMemberPrescriptionObject.syncStatus = 'R';
+      resp = await nSQL(GroupMemberPrescription.entity)
+        .query('upsert', groupMemberPrescriptionObject)
+        .exec();
+      console.log(
+        'criacaoPrescricaoMembroMobile' + groupMemberPrescriptionObject
+      );
+      groupMemberPrescription.save(groupMemberPrescriptionObject);
+    } else {
+      resp = await api().post(
+        '/groupMemberPrescription',
+        groupMemberPrescriptionObject
+      );
+      groupMemberPrescription.save(resp.data);
+    }
     return resp;
   },
 

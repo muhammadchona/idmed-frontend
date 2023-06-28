@@ -136,14 +136,19 @@ export default {
   },
 
   async apiGetAllLastOfClinic(clinicId: string, offset: number, max: number) {
-    return await api().get(
-      '/prescription/AllLastOfClinic/' +
-        clinicId +
-        '?offset=' +
-        offset +
-        '&max=' +
-        max
-    );
+    return await api()
+      .get(
+        '/prescription/AllLastOfClinic/' +
+          clinicId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        nSQL(Prescription.entity).query('upsert', resp.data).exec();
+        prescription.save(resp.data);
+      });
   },
 
   async apiFetchById(id: string) {

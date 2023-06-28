@@ -143,9 +143,19 @@ export default {
   },
 
   async apiGetAllLastOfClinic(clinicId: string, offset: number, max: number) {
-    return await api().get(
-      '/pack/AllLastOfClinic/' + clinicId + '?offset=' + offset + '&max=' + max
-    );
+    return await api()
+      .get(
+        '/pack/AllLastOfClinic/' +
+          clinicId +
+          '?offset=' +
+          offset +
+          '&max=' +
+          max
+      )
+      .then((resp) => {
+        nSQL(Pack.entity).query('upsert', resp.data).exec();
+        pack.save(resp.data);
+      });
   },
   async apiGetByPatientId(patientid: string) {
     if (isMobile && !isOnline) {

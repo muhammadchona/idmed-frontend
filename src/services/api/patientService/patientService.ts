@@ -14,28 +14,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -94,8 +94,8 @@ export default {
   // Mobile
   async putMobile(params: string) {
     try {
-      await nSQL(patient.use?.entity).query('upsert', params).exec();
-      patient.save(JSON.parse(params));
+      await nSQL(Patient.entity).query('upsert', params).exec();
+      patient.save(params);
       alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
       alertError('Aconteceu um erro inexperado nesta operação.');
@@ -104,8 +104,17 @@ export default {
   },
   async getMobile() {
     try {
-      const rows = await nSQL(patient.use?.entity).query('select').exec();
-      patient.save(rows);
+      const rows = await nSQL(Patient.entity).query('select').exec();
+      if (rows.length === 0) {
+        api()
+          .get('patient?offset=0&max=400')
+          .then((resp) => {
+            console.log(resp);
+            this.putMobile(resp.data);
+          });
+      } else {
+        patient.save(rows);
+      }
     } catch (error) {
       alertError('Aconteceu um erro inexperado nesta operação.');
       console.log(error);
@@ -125,7 +134,7 @@ export default {
     }
   },
   async apiFetchById(id: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       return nSQL(patient.use?.entity)
         .query('select')
         .where(['id', '=', id])
@@ -145,7 +154,7 @@ export default {
 
   async apiSearch(patienParam: any) {
     patient.flush();
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       return this.getPatientByParams(patienParam)
         .then((rows) => {
           patient.save(rows);

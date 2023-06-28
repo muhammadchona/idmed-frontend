@@ -68,9 +68,10 @@ export default {
   async apiSave(groupInfo: any) {
     let resp = null;
     if (isMobile.value) {
+      groupInfo.syncStatus = 'R';
       resp = await nSQL('groups').query('upsert', groupInfo).exec();
       console.log('criacaoGrupo' + groupInfo);
-      group.save(resp);
+      group.save(groupInfo);
     } else {
       resp = await api().post('/groupInfo', groupInfo);
       group.save(resp.data);
@@ -79,31 +80,38 @@ export default {
   },
 
   async apiUpdate(groupInfo: any) {
-    return await api()
-      .patch('/groupInfo/' + groupInfo.id, groupInfo)
-      .then((resp) => {
-        group.save(resp.data);
-        return resp.data;
-      })
-      .catch((error) => {
-        const listErrors = [];
-        if (error.request.response != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
+    if (isMobile.value) {
+      if (groupInfo.syncStatus !== 'R') groupInfo.syncStatus = 'U';
+      const resp = await nSQL('groups').query('upsert', groupInfo).exec();
+      console.log('edicaoGrupo' + groupInfo);
+      group.save(resp);
+    } else {
+      return await api()
+        .patch('/groupInfo/' + groupInfo.id, groupInfo)
+        .then((resp) => {
+          group.save(resp.data);
+          return resp.data;
+        })
+        .catch((error) => {
+          const listErrors = [];
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
           }
-        }
-        alertError(listErrors.value);
-      });
+          alertError(listErrors.value);
+        });
+    }
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
-    console.log('teste');
-    group.flush();
+    // console.log('teste');
+    //  group.flush();
     if (isMobile.value) {
       return nSQL('groups')
         .query('select')
@@ -131,6 +139,7 @@ export default {
     return await api().get(`/groupInfo/validadePatient/${patientId}/${code}`);
   },
   getAllGroups() {
+    console.log(group.query().with('groupType').with('service').get());
     return group.query().with('groupType').with('service').get();
   },
 
