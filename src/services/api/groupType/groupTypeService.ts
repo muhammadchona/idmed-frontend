@@ -46,7 +46,11 @@ export default {
   },
 
   async apiGetAll() {
-    return await api().get('/groupType');
+    return await api()
+      .get('/groupType')
+      .then((resp) => {
+        groupType.save(resp.data);
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {

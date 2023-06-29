@@ -100,18 +100,13 @@
 
 <script setup>
 /*imports*/
-import Clinic from '../../../stores/models/clinic/Clinic';
-import { ref, inject, onMounted, computed, } from 'vue';
-import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
-import ClinicSectorType from '../../../stores/models/clinicSectorType/ClinicSectorType';
+import { ref, inject, onMounted, computed } from 'vue';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { v4 as uuidv4 } from 'uuid';
 
 /*components import*/
-import nameInput from 'src/components/Shared/NameInput.vue';
-import codeInput from 'src/components/Shared/CodeInput.vue';
 
 /*Declarations*/
 const databaseCodes = ref([]);
@@ -124,7 +119,6 @@ const clinicRef = ref(null);
 /*injects*/
 const clinicSector = inject('selectedClinicSector');
 const viewMode = inject('viewMode');
-const editMode = inject('editMode');
 const currClinic = inject('currClinic');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
@@ -181,7 +175,6 @@ const validateClinicSector = () => {
 
 const submitClinicSector = () => {
   clinicSector.value.active = true;
-  if (clinicSector.value.uuid === null) clinicSector.value.uuid = uuidv4();
   // if (mobile) {
   //   clinicSector.clinic_id = currClinic.id;
   //   clinicSector.clinic_sector_type_id =
@@ -211,6 +204,7 @@ const submitClinicSector = () => {
   //   );
   // } else {
   if (isCreateStep.value) {
+    clinicSector.value.uuid = uuidv4();
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }

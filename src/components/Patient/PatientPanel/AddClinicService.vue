@@ -868,7 +868,7 @@ const doSave = async () => {
           }
         }
         console.error(listErrors);
-        alertError('Aconteceu um erro inexperado, por favor contacte o HIS');
+        alertError('Aconteceu um erro inesperado, por favor contacte o HIS');
       });
   }
 };

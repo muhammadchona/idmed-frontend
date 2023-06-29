@@ -43,7 +43,7 @@ import patientAttributeService from 'src/services/api/patientAttribute/patientAt
 import PrescriptionDetail from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
 import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 
-export function useOnline() {
+export function useOnline(clinic: any) {
   function loadSettingParams() {
     clinicalServiceService.get(0);
     clinicSectorService.get(0);
@@ -77,6 +77,14 @@ export function useOnline() {
     stockService.get(0);
     StockEntranceService.get(0);
     StockCenterService.get(0);
+    patientService.get(0);
+    epiodeService.get(0);
+    //  patientVisitService.get(0);
+    //   patientVisitDetailsService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
+    //   packService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
+    //   prescriptionService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
+    // prescribedDrugService.get(0);
+    // packagedDrugService.get(0);
   }
 
   function loadPatientData() {

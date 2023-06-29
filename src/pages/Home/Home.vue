@@ -130,9 +130,13 @@ const { website, isDeskTop, isMobile } = useSystemUtils();
 
 const { loadSettingParams, loadPatientData } = useOnline();
 
+const clinic = computed(() => {
+  return clinicService.currClinic();
+});
+
 const init = () => {
   showloading();
-  if (website.value) {
+  if (isMobile.value) {
     loadSettingParams;
     // this.loadWebRegimensToVueX();
     // this.loadWebDrugsToVueX();
@@ -182,6 +186,8 @@ onMounted(() => {
     //   }
     // }
     closeLoading();
+    if (isMobile.value) {
+    }
   }, 3000);
 });
 </script>
