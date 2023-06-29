@@ -225,6 +225,39 @@
             </q-card-section>
           </q-card>
         </transition>
+        <q-dialog
+          persistent
+          v-model="notice"
+          transition-show="slide-up"
+          transition-hide="slide-down"
+        >
+          <q-card class="bg-white text-red">
+            <q-card-section>
+              <div class="text-h6 text-weight-bold">
+                Aviso de Confidencialidade
+              </div>
+              <q-separator />
+            </q-card-section>
+            <q-card-section class="q-pt-md">
+              <div class="row">
+                <div class="col-2">
+                  <q-icon name="warning" color="red" size="4.5rem" />
+                </div>
+                <div class="col text-justify">
+                  Ao acessar este sistema, você está prestes a visualizar
+                  informações altamente confidenciais de utentes. É sua
+                  responsabilidade protegê-las adequadamente e usá-las somente
+                  para os fins autorizados. A Privacidade dos utentes é
+                  essencial para a nossa missão
+                </div>
+              </div>
+            </q-card-section>
+
+            <q-card-actions align="right" class="text-primary">
+              <q-btn color="red" label="Fechar" v-close-popup />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
       </q-page>
       <!-- </q-responsive> -->
     </q-page-container>
@@ -257,6 +290,7 @@ const usernameRef = ref(null);
 const passwordRef = ref(null);
 const isPwd = ref(true);
 const submitting = ref(false);
+const notice = ref(true);
 
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const website = computed(() => (isWebScreen.value ? true : false));

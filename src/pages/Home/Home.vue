@@ -114,25 +114,21 @@
 
 <script setup>
 // import Clinic from '../../store/models/clinic/Clinic';
-// import mixinplatform from 'src/mixins/mixin-system-platform';
-// import mixinutils from 'src/mixins/mixin-utils';
-// import SynchronizationService from 'src/services/Synchronization/SynchronizationService';
+import SynchronizationService from 'src/services/Synchronization/SynchronizationService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { computed, onMounted, provide } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import patientService from 'src/services/api/patientService/patientService';
 // import clinicService from 'src/services/api/clinicService/clinicService';
 
-// mixins: [mixinplatform, mixinutils],
-// components: {},
-// methods: {
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 
-const { loadSettingParams } = useOnline();
+const { loadSettingParams, loadPatientData } = useOnline();
 
 const clinic = computed(() => {
   return clinicService.currClinic();
@@ -166,18 +162,22 @@ const menusVisible = (name) => {
 };
 
 onMounted(() => {
-  // if (isMobile.value) {
-  showloading();
-  console.log(clinic.value);
-  loadSettingParams(clinic);
-  //  }
+  if (website.value) {
+    console.log('IS WEB APP ' + website.value);
+    showloading();
+    loadSettingParams();
+  } else {
+    console.log('IS MOBILE APP ' + website.value);
+    if (patientService.getAllFromStorage().length <= 0) {
+      loadSettingParams();
+      loadPatientData();
+    }
+  }
   // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
   // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
   // init();
   setTimeout(() => {
-    console.log(website.value);
-
-    // if (isWeb.value) {
+    // if (website.value) {
     //      console.log(this.isAppSyncDone);
     //   if (!this.isAppSyncDone) {
     //     SynchronizationService.start(this.$q, this.currClinic.id);
