@@ -6,7 +6,7 @@ import { LocalStorage } from 'quasar';
 
 export function useSystemUtils() {
   const isWebScreen = useMediaQuery('(min-width: 1024px)');
-  const website = computed(() => (isWebScreen.value ? true : false));
+  const website = computed(() => (Platform.is.mobile ? false : true));
 
   const isDeskTop = computed(() => (Platform.is.desktop ? true : false));
   const isMobile = computed(() => (Platform.is.mobile ? true : false));

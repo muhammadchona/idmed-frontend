@@ -29,6 +29,19 @@ import clinicalServiceAttributeService from 'src/services/api/clinicalServiceAtt
 import stockService from 'src/services/api/stockService/StockService';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import StockCenterService from 'src/services/api/stockCenterService/StockCenterService';
+import patientService from 'src/services/api/patientService/patientService';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+import episodeService from 'src/services/api/episode/episodeService';
+import Pack from 'src/stores/models/packaging/Pack';
+import packService from 'src/services/api/pack/packService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
+import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDrugService';
+import patientAttributeService from 'src/services/api/patientAttribute/patientAttributeService';
+import PrescriptionDetail from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
+import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 
 export function useOnline() {
   function loadSettingParams() {
@@ -65,5 +78,22 @@ export function useOnline() {
     StockEntranceService.get(0);
     StockCenterService.get(0);
   }
-  return { loadSettingParams };
+
+  function loadPatientData() {
+    patientService.get(0)
+    patientAttributeService.get(0)
+    patientServiceIdentifierService.get(0)
+    patientVisitService.get(0)
+    patientVisitDetailsService.get(0)
+    episodeService.get(0)
+    packService.get(0)
+    prescriptionService.get(0)
+    prescriptionDetailsService.get(0)
+    packagedDrugService.get(0)
+    prescribedDrugService.get(0)
+
+
+  }
+
+  return { loadSettingParams, loadPatientData };
 }

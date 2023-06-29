@@ -1,5 +1,5 @@
 {
-  "name": "org.csaude.idmend.mobile",
+  "name": "org.csaude.idmed.mobile",
   "displayName": "iDMED",
   "version": "1.0.0",
   "description": "A sample Apache Cordova application that responds to the deviceready event.",
@@ -12,23 +12,21 @@
   ],
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
-  "cordova": {
-    "plugins": {
-      "cordova-plugin-nano-sqlite": {},
-      "cordova-plugin-network-information": {},
-      "cordova-plugin-inappbrowser": {},
-      "cordova-plugin-splashscreen": {}
-    },
-    "platforms": [
-      "android"
-    ]
-  },
   "devDependencies": {
+    "@nano-sql/adapter-sqlite-cordova": "^2.1.2",
     "cordova-android": "^12.0.0",
     "cordova-plugin-device": "^2.1.0",
-    "cordova-plugin-inappbrowser": "^5.0.0",
-    "cordova-plugin-network-information": "^3.0.0",
     "cordova-plugin-splashscreen": "^6.0.1",
     "cordova-sqlite-storage": "^6.1.0"
+  },
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {
+      "cordova-plugin-nano-sqlite": {},
+      "adapter-sqlite-cordova": {},
+      "cordova-plugin-splashscreen": {}
+    }
   }
 }
