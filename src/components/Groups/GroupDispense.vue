@@ -541,13 +541,12 @@ const emit = defineEmits([
 const savePatientVisitDetails = (groupPacks, i) => {
   if (isMobile.value) {
     if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
-      const patientVisit = JSON.parse(
-        JSON.stringify(groupPacks[i].pack.patientVisitDetails[0].patientVisit)
-      );
+      const patientVisit =
+        groupPacks[i].pack.patientVisitDetails[0].patientVisit;
 
       console.log(patientVisit);
       patientVisit.patientVisitDetails.push(
-        JSON.parse(JSON.stringify(groupPacks[i].pack.patientVisitDetails[0]))
+        groupPacks[i].pack.patientVisitDetails[0]
       );
       patientVisit.patientVisitDetails[0].patientVisit = null;
       groupPacks[i].pack.patientVisitDetails = [];
@@ -566,11 +565,9 @@ const savePatientVisitDetails = (groupPacks, i) => {
       });
       // patientVisit.patientVisitDetails[0].prescription.calculateLeftDuration(JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
 
-      Pack.localDbAdd(JSON.parse(JSON.stringify(groupPacks[i].pack)));
-      Pack.insert({ data: JSON.parse(JSON.stringify(groupPacks[i].pack)) });
-      patientVisit.patientVisitDetails[0].pack = JSON.parse(
-        JSON.stringify(groupPacks[i].pack)
-      );
+      //   Pack.localDbAdd(JSON.parse(JSON.stringify(groupPacks[i].pack)));
+      //  Pack.insert({ data: JSON.parse(JSON.stringify(groupPacks[i].pack)) });
+      patientVisit.patientVisitDetails[0].pack = groupPacks[i].pack;
       patientVisit.patientVisitDetails[0].pack.packagedDrugs = [];
       patientVisit.clinic_id = patientVisit.clinic.id;
       patientVisit.patient_id = patientVisit.patient.id;
@@ -583,9 +580,9 @@ const savePatientVisitDetails = (groupPacks, i) => {
         patientVisit.patientVisitDetails[0].prescription.id;
       patientVisit.patientVisitDetails[0].pack_id =
         patientVisit.patientVisitDetails[0].pack.id;
-
-      PatientVisit.localDbAdd(patientVisit);
-      PatientVisit.insert({ data: patientVisit });
+      groupPacks[i].patientVisit = patientVisit;
+      //  PatientVisit.localDbAdd(patientVisit);
+      //  PatientVisit.insert({ data: patientVisit });
 
       i = i + 1;
       setTimeout(savePatientVisitDetails(groupPacks, i), 4);
@@ -593,22 +590,52 @@ const savePatientVisitDetails = (groupPacks, i) => {
       curGroupPackHeader.value = JSON.parse(
         JSON.stringify(curGroupPackHeader.value)
       );
-      curGroupPackHeader.groupPacks.forEach((groupPack) => {
+      curGroupPackHeader.value.groupPacks.forEach((groupPack) => {
         groupPack.pack.patientVisitDetails = [];
         groupPack.pack_id = groupPack.pack.id;
         groupPack.header_id = curGroupPackHeader.id;
         groupPack.syncStatus = 'R';
       });
-      curGroupPackHeader.duration_id = curGroupPackHeader.duration.id;
-      curGroupPackHeader.group_id = group.id;
-      curGroupPackHeader.group = null;
-      console.log(curGroupPackHeader);
-      GroupPackHeader.localDbAdd(
-        JSON.parse(JSON.stringify(curGroupPackHeader))
-      );
-      GroupPackHeader.insert({ data: curGroupPackHeader });
-      submitting.value = false;
-      displayAlert('info', 'Operação efectuada com sucesso.');
+      curGroupPackHeader.value.duration_id =
+        curGroupPackHeader.value.duration.id;
+      curGroupPackHeader.value.group_id = selectedGroup.value.id;
+      curGroupPackHeader.value.group = null;
+      console.log(curGroupPackHeader.value);
+      //    GroupPackHeader.localDbAdd(
+      //      JSON.parse(JSON.stringify(curGroupPackHeader))
+      //    );
+      //    GroupPackHeader.insert({ data: curGroupPackHeader });
+      groupPackHeaderService.apiSave(curGroupPackHeader.value).then((resp) => {
+        console.log(resp);
+        //  curGroupPackHeader.id = resp.data.id
+        // Group.apiFetchById(curGroupPackHeader.group.id).then(resp => {a
+        //  console.log(resp)
+        // resp.response.data.packHeaders.forEach(packHeader => {
+        //       GroupPackHeader.apiFetchById(packHeader.id).then(resp => {
+        //        console.log(resp)
+        //      })
+        //    })
+        //})
+        /*
+             patientVisitDetailsToAdd.value.forEach(pvd => {
+              pvd.episode_id = pvd.episode.id
+              pvd.clinic_id = pvd.clinic.id
+              pvd.patient_visit_id = pvd.patientVisit.id
+              pvd.prescription_id = pvd.prescription.id
+              pvd.pack_id = pvd.pack.id
+              console.log(pvd)
+              PatientVisitDetails.insert({ data: pvd })
+            })
+            */
+        // groupPackHeaderService.apiFetchById(curGroupPackHeader.value.id);
+        alertSucess('Operação efectuada com sucesso.');
+        submitting.value = false;
+        showNewPackingForm.value = false;
+        loadedData.value = false;
+        executeGetGroupMembers();
+        // $emit('getGroupMembers', false)
+        //  emit('getGroupMembers');
+      });
     }
   } else {
     if (groupPacks[i] !== null && groupPacks[i] !== undefined) {

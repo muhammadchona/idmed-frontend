@@ -5,6 +5,7 @@ import Patient from 'src/stores/models/patient/Patient';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { nSQL } from 'nano-sql';
+import clinicSectorService from '../clinicSectorService/clinicSectorService';
 
 const patient = useRepo(Patient);
 
@@ -177,8 +178,10 @@ export default {
   },
 
   async apisearchByParam(searchParam: string, clinicId: string) {
+    const replacedString = searchParam.replace(/\//g, '-');
+    console.log(replacedString);
     return await api()
-      .get(`/patient/searchByParam/${searchParam}/${clinicId}`)
+      .get(`/patient/searchByParam/${replacedString}/${clinicId}`)
       .then((resp) => {
         patient.save(resp.data);
         closeLoading();
@@ -231,6 +234,19 @@ export default {
     return await api().get(
       '/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
     );
+  },
+  async apiGetPatientsByClinicSectorId(clinicSectorId: string) {
+    return await api().get('/patient/clinicSector/' + clinicSectorId);
+  },
+  async doPatientsBySectorGet() {
+    const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
+      localStorage.getItem('user_clinic_sectors')
+    );
+    console.log('sector' + clinicSectorUser);
+    console.log('sectorId' + clinicSectorUser.id);
+    const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
+    this.putMobile(resp.data);
+    return resp;
   },
   async syncPatient(patient: any) {
     if (patient.syncStatus === 'R') await this.apiSave(patient, true);

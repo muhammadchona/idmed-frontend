@@ -1,16 +1,16 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw">
-    <form @submit.prevent="submitForm" class="q-ma-none">
-      <q-card-section class="q-pa-none bg-green-2">
-        <div class="q-pa-md">
-          <div class="row items-center">
-            <q-icon name="groups" size="sm" />
-            <span class="q-pl-sm text-subtitle2">Dados do Grupo</span>
+  <q-card style="width: 900px; max-width: 90vw; height: 600px">
+    <q-responsive :ratio="16 / 9" class="col">
+      <form @submit.prevent="submitForm" class="q-ma-none">
+        <q-card-section class="q-pa-none bg-green-2">
+          <div class="q-pa-md">
+            <div class="row items-center">
+              <q-icon name="groups" size="sm" />
+              <span class="q-pl-sm text-subtitle2">Dados do Grupo</span>
+            </div>
           </div>
-        </div>
-        <q-separator color="grey-13" size="1px" />
-      </q-card-section>
-      <q-scroll-area style="height: 630px">
+          <q-separator color="grey-13" size="1px" />
+        </q-card-section>
         <q-card-section class="q-px-md">
           <div class="q-mt-md">
             <div class="row">
@@ -270,17 +270,17 @@
             </div>
           </div>
         </q-card-section>
-      </q-scroll-area>
-      <q-card-actions align="right" class="q-my-md q-mr-sm">
-        <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-        <q-btn
-          type="submit"
-          label="Submeter"
-          color="primary"
-          :loading="submitting"
-        />
-      </q-card-actions>
-    </form>
+        <q-card-actions align="right" class="q-my-md q-mr-sm">
+          <q-btn label="Cancelar" color="red" @click="$emit('close')" />
+          <q-btn
+            type="submit"
+            label="Submeter"
+            color="primary"
+            :loading="submitting"
+          />
+        </q-card-actions>
+      </form>
+    </q-responsive>
   </q-card>
 </template>
 
@@ -304,6 +304,7 @@ import episodeService from 'src/services/api/episode/episodeService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import groupService from 'src/services/api/group/groupService';
 import { v4 as uuidv4 } from 'uuid';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -401,6 +402,7 @@ const search = () => {
     const patients = patientService.getPatientByClinicId(clinic.value.id);
     searchResults.value = patients.filter((patient) => {
       return (
+        hasIdentifierLike(patient, searchParam.value) ||
         stringContains(patient.firstNames, searchParam.value) ||
         stringContains(patient.middleNames, searchParam.value) ||
         stringContains(patient.lastNames, searchParam.value)
@@ -419,6 +421,7 @@ const search = () => {
           const patients = patientService.getPatientByClinicId(clinic.value.id);
           searchResults.value = patients.filter((patient) => {
             return (
+              hasIdentifierLike(patient, searchParam.value) ||
               stringContains(patient.firstNames, searchParam.value) ||
               stringContains(patient.middleNames, searchParam.value) ||
               stringContains(patient.lastNames, searchParam.value)
@@ -523,9 +526,7 @@ const addPatient = (patient) => {
         //  identifier.episodes = episodes;
         let episode = null;
         if (identifier.service.code === curGroup.value.service.code) {
-          episodeService
-            .apiGetAllByIdentifierId(identifier.id)
-            .then((episode = episodeService.lastEpisode(identifier.id)));
+          episode = episodeService.lastEpisode(identifier.id);
           identifier.episodes = [];
           identifier.episodes.push(episode);
           closeLoading();
@@ -536,6 +537,12 @@ const addPatient = (patient) => {
           }
         }
       });
+      if (patientVisitService.getAllFromPatient(patient.id).length === 0) {
+        alertError(
+          'error',
+          'O paciente selecionado não possui visitas efectuadas.'
+        );
+      }
       if (isMemberOfGroupOnService(patient, curGroup.value.service.code)) {
         alertError(
           'O paciente selecionado ja se encontra associado a um grupo activo do serviço '
