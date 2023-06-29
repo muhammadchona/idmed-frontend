@@ -174,4 +174,7 @@ export default {
       .orderBy('code', 'asc')
       .get();
   },
+  getClinicSectorByCode(code: string) {
+    return clinicSector.query().withAllRecursive(1).where('code', code).first();
+  },
 };

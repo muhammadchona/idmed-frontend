@@ -155,4 +155,8 @@ export default {
       .where('key', 'ACTIVATE_DATA_MIGRATION')
       .first();
   },
+
+  getInstallationType() {
+    return systemConfigs.query().where('key', 'INSTALATION_TYPE').first();
+  },
 };
