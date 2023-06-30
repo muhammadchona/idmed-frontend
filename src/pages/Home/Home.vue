@@ -113,22 +113,20 @@
 </template>
 
 <script setup>
-// import Clinic from '../../store/models/clinic/Clinic';
-import SynchronizationService from 'src/services/Synchronization/SynchronizationService';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useOnline } from 'src/composables/shared/loadParams/online';
+import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { computed, onMounted, provide } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
-// import clinicService from 'src/services/api/clinicService/clinicService';
 
-const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { website, isMobile, isOnline } = useSystemUtils();
 
-const { loadSettingParams, loadPatientData } = useOnline();
+const { loadSettingParams } = useOnline();
+
+const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
 
 const clinic = computed(() => {
   return clinicService.currClinic();
@@ -136,19 +134,17 @@ const clinic = computed(() => {
 
 const init = () => {
   showloading();
-  if (isMobile.value) {
-    loadSettingParams;
-    // this.loadWebRegimensToVueX();
-    // this.loadWebDrugsToVueX();
-    // this.loadWebStockToVueX();
-    // this.showloading();
-    // this.loadWebParamsToVueX();
-  } else {
-    if (this.isAppSyncDone) {
-      this.showloading();
-      this.loadParamsToVueX();
-    }
-  }
+  // if (website.value) {
+  //   loadSettingParams;
+  //   // this.loadWebRegimensToVueX();
+  //   // this.loadWebDrugsToVueX();
+  //   // this.loadWebStockToVueX();
+  //   // this.showloading();
+  //   // this.loadWebParamsToVueX();
+  // } else {
+  //   loadSettingParams();
+  //   loadPatientData();
+  // }
 };
 
 const menusVisible = (name) => {
@@ -162,15 +158,15 @@ const menusVisible = (name) => {
 };
 
 onMounted(() => {
-  if (website.value) {
-    console.log('IS WEB APP ' + website.value);
+  if (website.value || (isMobile.value && isOnline.value)) {
+    console.log('IS WEB APP OR MOBILE ONLONE APP' + website.value);
     showloading();
     loadSettingParams();
   } else {
     console.log('IS MOBILE APP ' + website.value);
     if (patientService.getAllFromStorage().length <= 0) {
-      loadSettingParams();
-      loadPatientData();
+      loadSettingParamsToOffline();
+      loadPatientDataToOffline();
     }
   }
   // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
@@ -186,8 +182,6 @@ onMounted(() => {
     //   }
     // }
     closeLoading();
-    if (isMobile.value) {
-    }
   }, 3000);
 });
 </script>

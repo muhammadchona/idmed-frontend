@@ -12,7 +12,5 @@ export function useSystemUtils() {
   const isElectron = computed(() => (Platform.is.electron ? true : false));
   const isOnline = computed(() => (website.value ? false : false));
 
-  console.log('isMobile' + isMobile.value);
-  console.log('isWebsite' + website.value);
   return { website, isDeskTop, isMobile, isElectron, isOnline };
 }

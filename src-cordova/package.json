@@ -14,6 +14,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@nano-sql/adapter-sqlite-cordova": "^2.1.2",
+    "adapter-sqlite-cordova": "^2.1.201",
     "cordova-android": "^12.0.0",
     "cordova-plugin-device": "^2.1.0",
     "cordova-plugin-splashscreen": "^6.0.1",

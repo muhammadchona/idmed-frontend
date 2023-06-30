@@ -251,26 +251,15 @@ const doValidationToDispense = () => {
     });
     patientVisitService
       .post(curPatientVisit.value)
-      .then(() => {
-        alertSucess('Dispensa efectuada com sucesso');
+      .then((resp) => {
         submitting.value = false;
+        alertSucess('Dispensa efectuada com sucesso');
         closePrescriptionOption();
       })
       .catch((error) => {
         submitting.value = false;
-        const listErrors = [];
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
-        if (error.request.response != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-        }
-        alertError('error', listErrors);
       });
   }
 };
