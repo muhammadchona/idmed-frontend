@@ -348,7 +348,7 @@ const loginOnline = (encodedStringBtoA) => {
       localStorage.setItem('user', username.value);
       localStorage.setItem('encodeBase64', encodedStringBtoA);
       localStorage.setItem('role_menus', localuser.menus);
-      localStorage.setItem('user_clinic_sectors', localuser.userClinicSectors);
+      localStorage.setItem('clinic_sector_users', localuser.clinicSectorUsers);
       router.push({ path: '/' });
     })
     .catch((error) => {

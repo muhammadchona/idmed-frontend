@@ -168,6 +168,7 @@ import interoperability from 'src/components/Settings/Interoperability/His.vue';
 import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 import users from 'src/components/Settings/User/Users.vue';
 import roles from 'src/components/Settings/User/Roles.vue';
+// import secUserRoleService from 'src/services/api/secUserRole/secUserRoleService.ts';
 
 /*Variables*/
 const { showloading } = useLoading();
@@ -234,6 +235,7 @@ const currClinic = computed(() => {
 });
 
 onMounted(() => {
+  // secUserRoleService.get(0);
   showloading();
   identifierTypeService.get(0);
   showloading();

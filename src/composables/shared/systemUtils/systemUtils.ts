@@ -14,8 +14,8 @@ export function useSystemUtils() {
   const isOnline = computed(() =>
     website.value
       ? true
-      : LocalStorage.getItem('user_clinic_sectors') !== null &&
-        LocalStorage.getItem('user_clinic_sectors').includes('NORMAL')
+      : LocalStorage.getItem('clinic_sector_users') !== null &&
+        LocalStorage.getItem('clinic_sector_users').includes('NORMAL')
   );
 
   return { website, isDeskTop, isMobile, isElectron, isOnline };

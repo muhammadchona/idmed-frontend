@@ -158,7 +158,7 @@ const users = computed(() => {
 });
 
 const configs = computed(() => {
-  return sysConfigsService.getActiveDataMigration();
+  return sysConfigsService.getInstallationType();
 });
 
 /*Provides*/
@@ -202,12 +202,14 @@ const editUser = (userParam) => {
   user.value = userParam;
   isCreateStep.value = false;
   editMode.value = true;
+  isEditStep.value = true;
   viewMode.value = false;
   showUserRegistrationScreen.value = true;
 };
 const addUser = () => {
   user.value = new SecUser();
   isCreateStep.value = true;
+  isEditStep.value = false;
   editMode.value = false;
   viewMode.value = false;
   showUserRegistrationScreen.value = true;
@@ -216,6 +218,7 @@ const visualizeUser = (userParam) => {
   user.value = userParam;
   viewMode.value = true;
   editMode.value = false;
+  isEditStep.value = false;
   showUserRegistrationScreen.value = true;
 };
 const promptToConfirm = (user) => {
@@ -225,13 +228,11 @@ const promptToConfirm = (user) => {
 
   alertWarningAction(question).then((response) => {
     if (response) {
-      console.log(user);
       if (user.accountLocked) {
         user.accountLocked = false;
       } else {
         user.accountLocked = true;
       }
-      console.log(user);
       userService
         .patch(user.id, user)
         .then((resp) => {

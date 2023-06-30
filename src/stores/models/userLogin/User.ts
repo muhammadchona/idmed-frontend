@@ -2,7 +2,7 @@ import { Model } from 'pinia-orm';
 import Clinic from '../clinic/Clinic';
 import ClinicSector from '../clinicSector/ClinicSector';
 import UserClinics from './UserClinic';
-import UserClinicSectors from './UserClinicSector';
+import ClinicSectorUsers from './ClinicSectorUsers';
 export default class User extends Model {
   static entity = 'users';
   static primaryKey = 'id';
@@ -25,10 +25,10 @@ export default class User extends Model {
       authorities: this.attr(null),
       menus: this.attr(null),
       clinics: this.belongsToMany(Clinic, UserClinics, 'user_id', 'clinic_id'),
-      userClinicSectors: this.attr(''),
+      clinicSectorUsers: this.attr(''),
       clinicSectors: this.belongsToMany(
         ClinicSector,
-        UserClinicSectors,
+        ClinicSectorUsers,
         'user_id',
         'clinic_sector_id'
       ),

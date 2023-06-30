@@ -1,6 +1,6 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import UserClinicSectors from 'src/stores/models/userLogin/UserClinicSector';
+import UserClinicSectors from 'src/stores/models/userLogin/ClinicSectorUsers';
 import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';

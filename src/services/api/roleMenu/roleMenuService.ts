@@ -137,4 +137,7 @@ export default {
   getAllFromStorage() {
     return roleMenu.all();
   },
+  getAllByRole(roleId: any) {
+    return roleMenu.query().where('role_id', roleId).get();
+  },
 };

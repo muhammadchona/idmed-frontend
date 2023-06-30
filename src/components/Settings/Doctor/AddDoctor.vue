@@ -91,6 +91,7 @@
             :disable="onlyView"
             outlined
             class="col"
+            :rules="[(val) => codeRules(val)]"
             ref="phonePrinciparRef"
             maxlength="12"
             type="tel"
@@ -100,11 +101,19 @@
               <q-icon name="phone_android" />
             </template>
           </q-input>
-          <emailInput
+          <q-input
+            outlined
             v-model="doctor.email"
             dense
-            class="q-ml-md"
+            class="col q-ml-md"
             :disable="onlyView"
+            label="Email"
+            ref="emailRef"
+            type="email"
+            :rules="[
+              (val) => !!val || 'Por Favor Indique o Email',
+              isValidEmail,
+            ]"
           />
         </div>
       </q-card-section>
@@ -126,20 +135,11 @@
 
 <script setup>
 /*Imports*/
-import Clinic from '../../../stores/models/clinic/Clinic';
-import { ref, inject, provide, onMounted, computed } from 'vue';
-import Doctor from '../../../stores/models/doctor/Doctor';
+import { ref, inject, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 
-/*Components import*/
-import PhoneField from 'src/components/Shared/Input/PhoneField.vue';
-import nameInput from 'src/components/Shared/FirstNameInput.vue';
-import lastNameInput from 'src/components/Shared/LastNameInput.vue';
-import emailInput from 'src/components/Shared/EmailInput.vue';
-
 /*Declarations*/
-const stringOptions = ['Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'];
 const submitting = ref(false);
 const genders = ref(['Masculino', 'Feminino']);
 const nomeRef = ref(null);
@@ -147,12 +147,11 @@ const apelidoRef = ref(null);
 const clinicRef = ref(null);
 const genderRef = ref(null);
 const phonePrinciparRef = ref(null);
+const emailRef = ref(null);
 
 /*injects*/
 const doctor = inject('selectedDoctor');
 const viewMode = inject('viewMode');
-const editMode = inject('editMode');
-const currClinic = inject('currClinic');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 const showDoctorRegistrationScreen = inject('showDoctorRegistrationScreen');
@@ -162,29 +161,41 @@ const onlyView = computed(() => {
   return viewMode.value;
 });
 
-const doctors = computed(() => {
-  return doctorService.getAlldoctors();
-});
-
 const clinics = computed(() => {
   return clinicService.getAllClinics();
 });
 
 /*Methods*/
+const isValidEmail = (val) => {
+  const emailPattern =
+    /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
+  return emailPattern.test(val) || 'Email Invalido';
+};
+
 const validateDoctor = () => {
   nomeRef.value.validate();
   apelidoRef.value.validate();
   genderRef.value.validate();
   clinicRef.value.validate();
   phonePrinciparRef.value.validate();
+  emailRef.value.validate();
   if (
     !nomeRef.value.hasError &&
     !apelidoRef.value.hasError &&
     !genderRef.value.hasError &&
     !clinicRef.value.hasError &&
-    !phonePrinciparRef.value.hasError
+    !phonePrinciparRef.value.hasError &&
+    !emailRef.value.hasError
   ) {
     submitDoctor();
+  } else {
+    submitting.value = false;
+  }
+};
+
+const codeRules = (val) => {
+  if (val.length < 9) {
+    return 'O  contacto  deve ter no mínimo 3 caracteres';
   }
 };
 
