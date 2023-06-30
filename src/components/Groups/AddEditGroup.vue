@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw; height: 600px">
+  <q-card style="width: 900px; max-width: 90vw; height: 650px">
     <q-responsive :ratio="16 / 9" class="col">
       <form @submit.prevent="submitForm" class="q-ma-none">
         <q-card-section class="q-pa-none bg-green-2">

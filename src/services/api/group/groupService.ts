@@ -138,6 +138,15 @@ export default {
   async apiValidateBeforeAdd(patientId: string, code: string) {
     return await api().get(`/groupInfo/validadePatient/${patientId}/${code}`);
   },
+  async getLocalDbGroupsToSync() {
+    return nSQL(Group.entity)
+      .query('select')
+      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
+      .exec()
+      .then((result) => {
+        return result;
+      });
+  },
   getAllGroups() {
     console.log(group.query().with('groupType').with('service').get());
     return group.query().with('groupType').with('service').get();

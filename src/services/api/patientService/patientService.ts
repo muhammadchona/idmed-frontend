@@ -248,6 +248,20 @@ export default {
     this.putMobile(resp.data);
     return resp;
   },
+
+  async apiSyncPatient(patient: any) {
+    if (patient.syncStatus === 'R') await this.apiSave(patient, true);
+    if (patient.syncStatus === 'U') await this.apiSave(patient, false);
+  },
+  async getLocalDbPatientsToSync() {
+    return nSQL(Patient.entity)
+      .query('select')
+      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
+      .exec()
+      .then((result) => {
+        return result;
+      });
+  },
   async syncPatient(patient: any) {
     if (patient.syncStatus === 'R') await this.apiSave(patient, true);
     if (patient.syncStatus === 'U') await this.apiSave(patient, false);

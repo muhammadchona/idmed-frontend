@@ -285,17 +285,8 @@ const desintagrateGroup = () => {
   if (isMobile.value) {
     if (group.value.syncStatus !== 'R') group.value.syncStatus = 'U';
     const groupUpdate = new Group(JSON.parse(JSON.stringify(group)));
-    Group.localDbUpdate(groupUpdate).then((group) => {
-      group.members.forEach((member) => {
-        const memberUpdate = new GroupMember(
-          JSON.parse(JSON.stringify(member))
-        );
-        //  GroupMember.localDbUpdate(memberUpdate);
-        //   GroupMember.update({ where: memberUpdate.id, data: memberUpdate });
-      });
-    });
-    Group.update({ where: groupUpdate.id, data: groupUpdate });
-    displayAlert('info', 'Operação efectuada com sucesso.');
+    groupService.apiUpdate(groupUpdate);
+    alertSucess('Operação efectuada com sucesso.');
   } else {
     groupService.apiUpdate(group.value).then((resp) => {
       groupService.apiFetchById(group.value.id);
