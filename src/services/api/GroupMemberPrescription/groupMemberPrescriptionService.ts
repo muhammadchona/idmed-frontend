@@ -2,6 +2,10 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { nSQL } from 'nano-sql';
+
+const { website, isDeskTop, isMobile } = useSystemUtils();
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const groupMemberPrescription = useRepo(GroupMemberPrescription);
@@ -48,14 +52,25 @@ export default {
   },
 
   async apiFetchByMemberId(id: string) {
-    return await api()
-      .get(`/groupMemberPrescription/member/${id}`)
-      .then((resp) => {
-        if (resp.data !== '') {
-          groupMemberPrescription.save(resp.data);
-        }
-        return resp;
-      });
+    if (isMobile.value) {
+      return nSQL('groupMemberPrescriptions')
+        .query('select')
+        .where(['member.id', '=', id])
+        .exec()
+        .then((result) => {
+          console.log('groupsssMember' + result);
+          groupMemberPrescription.save(result);
+        });
+    } else {
+      return await api()
+        .get(`/groupMemberPrescription/member/${id}`)
+        .then((resp) => {
+          if (resp.data !== '') {
+            groupMemberPrescription.save(resp.data);
+          }
+          return resp;
+        });
+    }
   },
 
   async apiSave(groupMemberPrescriptionObject: any) {
@@ -81,11 +96,24 @@ export default {
         alertError(listErrors.value);
       });
       */
-    const resp = await api().post(
-      '/groupMemberPrescription',
-      groupMemberPrescriptionObject
-    );
-    groupMemberPrescription.save(resp.data);
+
+    let resp = null;
+    if (isMobile.value) {
+      groupMemberPrescriptionObject.syncStatus = 'R';
+      resp = await nSQL(GroupMemberPrescription.entity)
+        .query('upsert', groupMemberPrescriptionObject)
+        .exec();
+      console.log(
+        'criacaoPrescricaoMembroMobile' + groupMemberPrescriptionObject
+      );
+      groupMemberPrescription.save(groupMemberPrescriptionObject);
+    } else {
+      resp = await api().post(
+        '/groupMemberPrescription',
+        groupMemberPrescriptionObject
+      );
+      groupMemberPrescription.save(resp.data);
+    }
     return resp;
   },
 

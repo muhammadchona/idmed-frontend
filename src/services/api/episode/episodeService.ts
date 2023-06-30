@@ -4,7 +4,13 @@ import Episode from 'src/stores/models/episode/Episode';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import clinicSectorService from '../clinicSectorService/clinicSectorService';
+import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
 import { nSQL } from 'nano-sql';
+import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
+import prescriptionService from '../prescription/prescriptionService';
+import patientVisitService from '../patientVisit/patientVisitService';
+import packService from '../pack/packService';
 
 const episode = useRepo(Episode);
 const { closeLoading } = useLoading();
@@ -13,28 +19,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -45,9 +51,9 @@ export default {
     try {
       const resp = await api().post('episode', params);
       episode.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -65,7 +71,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -76,7 +82,7 @@ export default {
       episode.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -86,49 +92,50 @@ export default {
       episode.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(episode.use?.entity)
-      .query('upsert', params)
-      .exec()
-      .then(() => {
-        episode.save(JSON.parse(params));
-        alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
-        console.log(error);
-      });
+  async putMobile(params: string) {
+    try {
+      await nSQL(Episode.entity).query('upsert', params).exec();
+      episode.save(params);
+      // alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
-  getMobile() {
-    return nSQL(episode.use?.entity)
-      .query('select')
-      .exec()
-      .then((rows: any) => {
+  async getMobile() {
+    try {
+      const rows = await nSQL(Episode.entity).query('select').exec();
+      if (rows.length === 0) {
+        api()
+          .get('episode?offset=0&max=700')
+          .then((resp) => {
+            this.putMobile(resp.data);
+          });
+      } else {
         episode.save(rows);
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
-        console.log(error);
-      });
+      }
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
-  deleteMobile(paramsId: string) {
-    return nSQL(episode.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
-      .then(() => {
-        episode.destroy(paramsId);
-        alertSucess('O Registo foi removido com sucesso');
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
-        console.log(error);
-      });
+  async deleteMobile(paramsId: string) {
+    try {
+      await nSQL(Episode.entity)
+        .query('delete')
+        .where(['id', '=', paramsId])
+        .exec();
+      episode.destroy(paramsId);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
   async apiSave(episodeParams: any, isNew: boolean) {
     if (isNew) {
@@ -174,6 +181,10 @@ export default {
         episode.save(resp.data);
         return resp;
       });
+  },
+
+  async apiGetLastByClinicSectorId(clinicSectorId: string) {
+    return await api().get('/episode/clinicSector/' + clinicSectorId);
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -273,5 +284,59 @@ export default {
       })
       .orderBy('episodeDate', 'desc')
       .first();
+  },
+  lastEpisode(identifierId: string) {
+    return episode
+      .with('startStopReason')
+      .with('episodeType')
+      .with('patientServiceIdentifier')
+      .with('clinicSector')
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+
+  async doEpisodesBySectorGet() {
+    const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
+      localStorage.getItem('user_clinic_sectors')
+    );
+    this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {
+      if (resp.data.length > 0) {
+        resp.data.forEach(async (item: any) => {
+          this.putMobile(item);
+          console.log(item);
+          patientServiceIdentifierService.putMobile(
+            item.patientServiceIdentifier
+          );
+          // const i = 0;
+
+          const respDetails =
+            await patientVisitDetailsService.apiGetLastByEpisodeId(item.id);
+
+          if (respDetails.data) {
+            const pv = respDetails.data.patientVisit;
+            respDetails.data.patientVisit = {};
+            pv.patientVisitDetails[0] = respDetails.data;
+            console.log(pv);
+
+            const respPre = await prescriptionService.apiFetchById(
+              respDetails.data.prescription.id
+            );
+            pv.patientVisitDetails[0].prescription = respPre.data;
+            patientVisitService.putMobile(pv);
+
+            if (respDetails.data.pack !== null) {
+              const respPack = await packService.apiFetchById(
+                respDetails.data.pack.id
+              );
+              pv.patientVisitDetails[0].pack = respPack.data;
+              patientVisitService.putMobile(pv);
+            }
+          }
+        });
+        // offset = offset + max
+        // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
+      }
+    });
   },
 };

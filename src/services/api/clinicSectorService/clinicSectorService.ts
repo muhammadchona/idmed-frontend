@@ -49,9 +49,9 @@ export default {
     try {
       const resp = await api().post('clinicSector', params);
       clinicSector.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -69,7 +69,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -80,7 +80,7 @@ export default {
       clinicSector.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -90,7 +90,7 @@ export default {
       clinicSector.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -101,10 +101,10 @@ export default {
       .exec()
       .then(() => {
         clinicSector.save(JSON.parse(params));
-        alertSucess('O Registo foi efectuado com sucesso');
+        // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
@@ -116,7 +116,7 @@ export default {
         clinicSector.save(rows);
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
@@ -130,7 +130,7 @@ export default {
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
@@ -173,5 +173,8 @@ export default {
       })
       .orderBy('code', 'asc')
       .get();
+  },
+  getClinicSectorByCode(code: string) {
+    return clinicSector.query().withAllRecursive(1).where('code', code).first();
   },
 };

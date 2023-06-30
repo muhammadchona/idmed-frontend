@@ -6,17 +6,11 @@ import { LocalStorage } from 'quasar';
 
 export function useSystemUtils() {
   const isWebScreen = useMediaQuery('(min-width: 1024px)');
-  const website = computed(() => (isWebScreen.value ? true : false));
-
+  const website = computed(() => (Platform.is.mobile ? false : true));
   const isDeskTop = computed(() => (Platform.is.desktop ? true : false));
   const isMobile = computed(() => (Platform.is.mobile ? true : false));
   const isElectron = computed(() => (Platform.is.electron ? true : false));
-  const isOnline = computed(() =>
-    website.value
-      ? true
-      : LocalStorage.getItem('clinic_sector_users') !== null &&
-        LocalStorage.getItem('clinic_sector_users').includes('NORMAL')
-  );
+  const isOnline = computed(() => (website.value ? false : false));
 
   return { website, isDeskTop, isMobile, isElectron, isOnline };
 }

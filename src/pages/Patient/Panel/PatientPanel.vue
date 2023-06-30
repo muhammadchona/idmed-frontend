@@ -50,7 +50,7 @@
           :thumb-style="thumbStyle"
           :content-style="contentStyle"
           :content-active-style="contentActiveStyle"
-          style="height: 690px"
+          style="height: 730px"
           class="q-pr-md"
           v-if="website"
         >

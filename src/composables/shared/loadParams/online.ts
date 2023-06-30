@@ -29,8 +29,19 @@ import clinicalServiceAttributeService from 'src/services/api/clinicalServiceAtt
 import stockService from 'src/services/api/stockService/StockService';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import StockCenterService from 'src/services/api/stockCenterService/StockCenterService';
+import patientService from 'src/services/api/patientService/patientService';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+import episodeService from 'src/services/api/episode/episodeService';
+import packService from 'src/services/api/pack/packService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
+import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDrugService';
+import patientAttributeService from 'src/services/api/patientAttribute/patientAttributeService';
+import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 
-export function useOnline() {
+export function useOnline(clinic: any) {
   function loadSettingParams() {
     clinicalServiceService.get(0);
     clinicSectorService.get(0);
@@ -64,6 +75,30 @@ export function useOnline() {
     stockService.get(0);
     StockEntranceService.get(0);
     StockCenterService.get(0);
+    patientService.get(0);
+    episodeService.get(0);
+    //  patientVisitService.get(0);
+    //   patientVisitDetailsService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
+    //   packService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
+    //   prescriptionService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
+    // prescribedDrugService.get(0);
+    // packagedDrugService.get(0);
   }
-  return { loadSettingParams };
+
+  function loadPatientData() {
+    patientService.get(0);
+    patientAttributeService.get(0);
+    patientServiceIdentifierService.get(0);
+    patientVisitService.get(0);
+    patientVisitDetailsService.get(0);
+    episodeService.get(0);
+    packService.get(0);
+    prescriptionService.get(0);
+    prescriptionDetailsService.get(0);
+    packagedDrugService.get(0);
+    prescribedDrugService.get(0);
+    // patientService.doPatientsBySectorGet()
+    //episodeService.doEpisodesBySectorGet()
+  }
+  return { loadSettingParams, loadPatientData };
 }

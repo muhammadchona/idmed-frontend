@@ -14,28 +14,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -46,9 +46,9 @@ export default {
     try {
       const resp = await api().post('patientServiceIdentifier', params);
       patientServiceIdentifier.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -66,7 +66,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -80,7 +80,7 @@ export default {
       patientServiceIdentifier.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -90,7 +90,7 @@ export default {
       patientServiceIdentifier.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -101,33 +101,33 @@ export default {
         .query('upsert', params)
         .exec();
       patientServiceIdentifier.save(JSON.parse(params));
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   async getMobile() {
     try {
-      const rows = await nSQL(patientServiceIdentifier.use?.entity)
+      const rows = await nSQL(PatientServiceIdentifier.value)
         .query('select')
         .exec();
       patientServiceIdentifier.save(rows);
     } catch (error) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(patientServiceIdentifier.use?.entity)
+      await nSQL(PatientServiceIdentifier.value)
         .query('delete')
         .where(['id', '=', paramsId])
         .exec();
       patientServiceIdentifier.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -163,8 +163,8 @@ export default {
   },
 
   async apiGetAllByPatientId(patientId: string, offset: number, max: number) {
-    if (isMobile && !isOnline) {
-      return nSQL(patientServiceIdentifier.use?.entity)
+    if (isMobile.value && !isOnline.value) {
+      return nSQL(PatientServiceIdentifier.value)
         .query('select')
         .where(['patient_id', '=', patientId])
         .exec()

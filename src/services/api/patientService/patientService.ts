@@ -5,6 +5,7 @@ import Patient from 'src/stores/models/patient/Patient';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { nSQL } from 'nano-sql';
+import clinicSectorService from '../clinicSectorService/clinicSectorService';
 
 const patient = useRepo(Patient);
 
@@ -14,28 +15,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -46,9 +47,9 @@ export default {
     try {
       const resp = await api().post('patient', params);
       patient.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -66,7 +67,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -77,7 +78,7 @@ export default {
       patient.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -87,27 +88,36 @@ export default {
       patient.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
   async putMobile(params: string) {
     try {
-      await nSQL(patient.use?.entity).query('upsert', params).exec();
-      patient.save(JSON.parse(params));
-      alertSucess('O Registo foi efectuado com sucesso');
+      await nSQL(Patient.entity).query('upsert', params).exec();
+      patient.save(params);
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   async getMobile() {
     try {
-      const rows = await nSQL(patient.use?.entity).query('select').exec();
-      patient.save(rows);
+      const rows = await nSQL(Patient.entity).query('select').exec();
+      if (rows.length === 0) {
+        api()
+          .get('patient?offset=0&max=400')
+          .then((resp) => {
+            console.log(resp);
+            this.putMobile(resp.data);
+          });
+      } else {
+        patient.save(rows);
+      }
     } catch (error) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -120,12 +130,12 @@ export default {
       patient.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   async apiFetchById(id: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       return nSQL(patient.use?.entity)
         .query('select')
         .where(['id', '=', id])
@@ -145,7 +155,7 @@ export default {
 
   async apiSearch(patienParam: any) {
     patient.flush();
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       return this.getPatientByParams(patienParam)
         .then((rows) => {
           patient.save(rows);
@@ -168,8 +178,10 @@ export default {
   },
 
   async apisearchByParam(searchParam: string, clinicId: string) {
+    const replacedString = searchParam.replace(/\//g, '-');
+    console.log(replacedString);
     return await api()
-      .get(`/patient/searchByParam/${searchParam}/${clinicId}`)
+      .get(`/patient/searchByParam/${replacedString}/${clinicId}`)
       .then((resp) => {
         patient.save(resp.data);
         closeLoading();
@@ -222,6 +234,19 @@ export default {
     return await api().get(
       '/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
     );
+  },
+  async apiGetPatientsByClinicSectorId(clinicSectorId: string) {
+    return await api().get('/patient/clinicSector/' + clinicSectorId);
+  },
+  async doPatientsBySectorGet() {
+    const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
+      localStorage.getItem('user_clinic_sectors')
+    );
+    console.log('sector' + clinicSectorUser);
+    console.log('sectorId' + clinicSectorUser.id);
+    const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
+    this.putMobile(resp.data);
+    return resp;
   },
   async syncPatient(patient: any) {
     if (patient.syncStatus === 'R') await this.apiSave(patient, true);

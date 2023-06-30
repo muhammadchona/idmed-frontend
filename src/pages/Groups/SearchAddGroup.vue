@@ -132,15 +132,21 @@
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showGroupRegister">
-      <groupRegister
-        @close="showGroupRegister = false"
-      />
+      <groupRegister @close="showGroupRegister = false" />
     </q-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue';
+import {
+  computed,
+  inject,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  watch,
+} from 'vue';
 import { SessionStorage } from 'quasar';
 import Group from '../../stores/models/group/Group';
 import { useRouter } from 'vue-router';
@@ -192,8 +198,13 @@ const clinic = computed(() => {
 const step = ref('create');
 
 onMounted(() => {
-  console.log(isOnline.value)
+  console.log(isOnline.value);
+  console.log(isMobile.value);
   if (isMobile.value) {
+    groupTypeService.apiGetAll();
+    clinicalServiceService.get(0);
+    getAllGroupsOfClinic();
+    searchResults.value = groupService.getAllGroups();
   } else {
     showloading();
     groupTypeService.apiGetAll();
@@ -212,6 +223,7 @@ const getAllGroups = () => {
 const getAllGroupsOfClinic = () => {
   const offset = 0;
   const max = 100;
+  console.log('Clinica:' + clinic.value);
   groupService.apiGetAllByClinicId(clinic.value.id, offset, max);
   //  this.doGroupsGet(clinic.id, offset, max);
 };

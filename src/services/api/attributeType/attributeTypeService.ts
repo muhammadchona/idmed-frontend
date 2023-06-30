@@ -12,28 +12,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -44,9 +44,9 @@ export default {
     try {
       const resp = await api().post('attributeType', params);
       attributeType.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -62,7 +62,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inexperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -73,7 +73,7 @@ export default {
       attributeType.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -83,38 +83,38 @@ export default {
       attributeType.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inexperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(attributeType.use?.entity)
+    return nSQL(AttributeType.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
         attributeType.save(JSON.parse(params));
-        alertSucess('O Registo foi efectuado com sucesso');
+        // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(attributeType.use?.entity)
+    return nSQL(AttributeType.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
         attributeType.save(rows);
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(attributeType.use?.entity)
+    return nSQL(AttributeType.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()
@@ -123,7 +123,7 @@ export default {
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        alertError('Aconteceu um erro inexperado nesta operação.');
+        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },

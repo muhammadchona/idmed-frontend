@@ -1,16 +1,16 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw">
-    <form @submit.prevent="submitForm" class="q-ma-none">
-      <q-card-section class="q-pa-none bg-green-2">
-        <div class="q-pa-md">
-          <div class="row items-center">
-            <q-icon name="groups" size="sm" />
-            <span class="q-pl-sm text-subtitle2">Dados do Grupo</span>
+  <q-card style="width: 900px; max-width: 90vw; height: 600px">
+    <q-responsive :ratio="16 / 9" class="col">
+      <form @submit.prevent="submitForm" class="q-ma-none">
+        <q-card-section class="q-pa-none bg-green-2">
+          <div class="q-pa-md">
+            <div class="row items-center">
+              <q-icon name="groups" size="sm" />
+              <span class="q-pl-sm text-subtitle2">Dados do Grupo</span>
+            </div>
           </div>
-        </div>
-        <q-separator color="grey-13" size="1px" />
-      </q-card-section>
-      <q-scroll-area style="height: 630px">
+          <q-separator color="grey-13" size="1px" />
+        </q-card-section>
         <q-card-section class="q-px-md">
           <div class="q-mt-md">
             <div class="row">
@@ -25,7 +25,9 @@
                 option-value="id"
                 option-label="code"
                 label="Serviço de Saúde *"
-                :rules="[(val) => !!val || 'Por favor indicar o Serviço de Saúde']"
+                :rules="[
+                  (val) => !!val || 'Por favor indicar o Serviço de Saúde',
+                ]"
               />
               <q-input
                 outlined
@@ -38,7 +40,9 @@
                 label="Numero do grupo *"
                 dense
                 class="col q-ml-md"
-                :rules="[(val) => !!val || 'Por favor indicar o Numero de Grupo']"
+                :rules="[
+                  (val) => !!val || 'Por favor indicar o Numero de Grupo',
+                ]"
               >
                 <template
                   v-slot:append
@@ -96,7 +100,9 @@
                 :disable="isMemberEditionStep"
                 ref="creationDateRef"
                 label="Data de Criação *"
-                :rules="[(val) => !!val || 'Por favor indicar a Data de Criação']"
+                :rules="[
+                  (val) => !!val || 'Por favor indicar a Data de Criação',
+                ]"
               >
                 <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer">
@@ -240,12 +246,10 @@
                     <!--q-td key="order" :props="props">
                         </q-td-->
                     <q-td key="id" :props="props">
-                      {{
-                        preferedIdentifier(props.row.patient).value
-                      }}
+                      {{ preferedIdentifier(props.row.patient).value }}
                     </q-td>
                     <q-td key="name" :props="props">
-                      {{  fullName(props.row.patient) }}
+                      {{ fullName(props.row.patient) }}
                     </q-td>
                     <q-td key="options" :props="props">
                       <div class="col">
@@ -266,17 +270,17 @@
             </div>
           </div>
         </q-card-section>
-      </q-scroll-area>
-      <q-card-actions align="right" class="q-my-md q-mr-sm">
-        <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-        <q-btn
-          type="submit"
-          label="Submeter"
-          color="primary"
-          :loading="submitting"
-        />
-      </q-card-actions>
-    </form>
+        <q-card-actions align="right" class="q-my-md q-mr-sm">
+          <q-btn label="Cancelar" color="red" @click="$emit('close')" />
+          <q-btn
+            type="submit"
+            label="Submeter"
+            color="primary"
+            :loading="submitting"
+          />
+        </q-card-actions>
+      </form>
+    </q-responsive>
   </q-card>
 </template>
 
@@ -287,7 +291,7 @@ import moment from 'moment';
 import { SessionStorage } from 'quasar';
 import GroupMember from '../../stores/models/groupMember/GroupMember';
 import Episode from 'src/stores/models/episode/Episode';
-import {  usePatient } from 'src/composables/patient/patientMethods';
+import { usePatient } from 'src/composables/patient/patientMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -300,6 +304,7 @@ import episodeService from 'src/services/api/episode/episodeService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import groupService from 'src/services/api/group/groupService';
 import { v4 as uuidv4 } from 'uuid';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -309,7 +314,7 @@ const columns = [
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
-const { preferedIdentifier, fullName } = usePatient();
+const { preferedIdentifier, fullName, hasEpisodes } = usePatient();
 
 const emit = defineEmits(['close']);
 
@@ -351,17 +356,18 @@ const curGroupNameRef = ref(null);
 const curGroupGroupTypeRef = ref(null);
 const creationDateRef = ref(null);
 
-
 const isMemberOfGroupOnService = (patient, serviceCode) => {
   let res = false;
   const members = groupMemberService.getAllFromStorage();
+  console.log(members);
   if (members !== null) {
     members.forEach((member) => {
+      member.group = groupService.getGroupById(member.group_id);
       member.patient = patientService.getPatientByID(member.patient_id);
       if (
         patient.id === member.patient.id &&
         serviceCode === member.group.service.code &&
-        member.endDate === null
+        (member.endDate === null || member.endDate === '')
       ) {
         res = true;
       }
@@ -396,11 +402,13 @@ const search = () => {
     const patients = patientService.getPatientByClinicId(clinic.value.id);
     searchResults.value = patients.filter((patient) => {
       return (
-        stringContains(patient.firstNames, searchParam) ||
-        stringContains(patient.middleNames, searchParam) ||
-        stringContains(patient.lastNames, searchParam)
+        hasIdentifierLike(patient, searchParam.value) ||
+        stringContains(patient.firstNames, searchParam.value) ||
+        stringContains(patient.middleNames, searchParam.value) ||
+        stringContains(patient.lastNames, searchParam.value)
       );
     });
+    closeLoading();
   } else {
     if (searchParam.value.length > 0) {
       patientService.deletePatientStorage((patient) => {
@@ -413,6 +421,7 @@ const search = () => {
           const patients = patientService.getPatientByClinicId(clinic.value.id);
           searchResults.value = patients.filter((patient) => {
             return (
+              hasIdentifierLike(patient, searchParam.value) ||
               stringContains(patient.firstNames, searchParam.value) ||
               stringContains(patient.middleNames, searchParam.value) ||
               stringContains(patient.lastNames, searchParam.value)
@@ -506,25 +515,35 @@ const addPatient = (patient) => {
     );
   } else {
     if (isMobile.value) {
-      // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)
+      // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)  //mudar Para mobile
       let lastEpisode = {};
       patient.identifiers.forEach((identifier) => {
-        const episodes = Episode.query()
-          .where('patientServiceIdentifier_id', identifier.id)
-          .get();
-        identifier.episodes = episodes;
+        /*
+        const episodes = episodeService.getLastStartEpisodeByIdentifier(
+          identifier.id
+        );
+          */
+        //  identifier.episodes = episodes;
+        let episode = null;
         if (identifier.service.code === curGroup.value.service.code) {
-          lastEpisode = lastEpisode(identifier);
+          episode = episodeService.lastEpisode(identifier.id);
+          identifier.episodes = [];
+          identifier.episodes.push(episode);
+          closeLoading();
+          if (!identifier.episodes.length > 0) {
+            alertError('O paciente selecionado não possui episódios.');
+          } else if (!identifier.episodes[0].startStopReason.isStartReason) {
+            alertError('O Último episódio do paciente não é de inicio');
+          }
         }
       });
-
-      if (!patient.hasEpisodes()) {
-        alertError('O paciente selecionado não possui episódios.');
-      } else if (!lastEpisode.startStopReason.isStartReason) {
-        alertError('O Último episódio do paciente não é de inicio');
-      } else if (
-        isMemberOfGroupOnService(patient, curGroup.value.service.code)
-      ) {
+      if (patientVisitService.getAllFromPatient(patient.id).length === 0) {
+        alertError(
+          'error',
+          'O paciente selecionado não possui visitas efectuadas.'
+        );
+      }
+      if (isMemberOfGroupOnService(patient, curGroup.value.service.code)) {
         alertError(
           'O paciente selecionado ja se encontra associado a um grupo activo do serviço '
         );
@@ -558,7 +577,7 @@ const doSave = async () => {
   curGroupGroupTypeRef.value.validate();
   curGroupNameRef.value.validate();
   creationDateRef.value.validate();
-      if (
+  if (
     !curGroupServiceRef.value.hasError &&
     !curGroupCodeRef.value.hasError &&
     !curGroupGroupTypeRef.value.hasError &&
@@ -567,115 +586,96 @@ const doSave = async () => {
   ) {
     if (curGroup.value.members.length === 0) {
       submitting.value = false;
-    return  alertError('Por favor adicione membros ao grupo antes de gravar.')
-
+      return alertError('Por favor adicione membros ao grupo antes de gravar.');
     }
-    showloading()
-      setTimeout(() => {
-        closeLoading()
-      }, 700)
+    showloading();
+    setTimeout(() => {
+      closeLoading();
+    }, 700);
+    curGroup.value.startDate = getJSDateFromDDMMYYY(startDate.value);
+    const groupToSend = new Group(JSON.parse(JSON.stringify(curGroup.value)));
+    groupToSend.clinic = {};
+    groupToSend.service = {};
+    groupToSend.groupType = {};
+    groupToSend.clinic.id = clinic.value.id;
+    groupToSend.clinic_id = clinic.value.id;
+    groupToSend.service.id = curGroup.value.service.id;
+    groupToSend.service_id = curGroup.value.service.id;
+    groupToSend.groupType.id = curGroup.value.groupType.id;
+    groupToSend.groupType_id = curGroup.value.groupType.id;
+    groupToSend.members.forEach((member) => {
+      member.startDate = groupToSend.startDate;
+      member.group_id = curGroup.value.id;
+      const memberPatientId = member.patient.id;
+      member.patient = {};
+      member.clinic = {};
+      member.group = {};
+      member.patient.id = memberPatientId;
+      member.patient_id = memberPatientId;
+      member.clinic_id = groupToSend.clinic.id;
+      member.clinic.id = clinic.value.id;
+      member.group.id = groupToSend.id;
+      // member.syncStatus = 'R';
       if (isCreateStep.value) {
-        curGroup.value.service.attributes = []
-        curGroup.value.startDate = getJSDateFromDDMMYYY(startDate.value)
-       // curGroup.value.clinic = clinic.value
-        // curGroup.value.clinic = {}
-       // curGroup.value.clinic.id = clinic.value.id
-      }
-   console.log(curGroup.value)
-      curGroup.value = new Group(JSON.parse(JSON.stringify(curGroup.value)))
-      curGroup.value.clinic = {}
-        curGroup.value.clinic.id = clinic.value.id
-        curGroup.value.members.forEach((member) => {
-        //  member.startDate = curGroup.startDate
-          member.group_id = curGroup.value.id
-       //   const memberPatientId =  member.patient.id
-       //   member.patient =  {}
-       //   member.patient.id = memberPatientId
-        //  member.clinic_id = curGroup.clinic.id
-        member.patient.clinic = clinic.value
-          member.clinic =  {}
-          member.clinic.id = clinic.value.id
-          member.syncStatus = 'R'
-          member.group = null
-        })
-      if (isMobile.value) {
-        if (isCreateStep.value) {
-          curGroup.value.syncStatus = 'R'
-          curGroup.value.clinic_id = clinic.id
-          curGroup.value.clinical_service_id = curGroup.value.service.id
-          curGroup.value.groupType_id = curGroup.value.groupType.id
-          await Group.localDbAdd(JSON.parse(JSON.stringify(curGroup)))
-          await Group.insert({ data: curGroup })
-        } else {
-          if (curGroup.value.syncStatus !== 'R') curGroup.value.syncStatus = 'U'
-          curGroup.value.clinic_id = clinic.id
-          curGroup.value.clinical_service_id = curGroup.value.service.id
-          curGroup.value.groupType_id = JSON.parse(JSON.stringify(curGroup.value.groupType.id))
-          curGroup.value.members.forEach((member) => {
-            member.startDate = curGroup.value.startDate
-            if (member.syncStatus !== 'R') member.syncStatus = 'U'
-            member.patient.identifiers = []
-            const groupUpdate = new Group(JSON.parse(JSON.stringify((curGroup))))
-            Group.localDbUpdate(groupUpdate).then(groupRes => {
-              Group.update({ data: groupUpdate })
-            })
-          })
-        }
-        displayAlert('info', 'Operação efectuada com sucesso.')
-      } else {
-        if (isCreateStep.value) {
-          console.log(curGroup)
-          groupService.apiSave(curGroup.value).then(resp => {
+        console.log(groupToSend);
+        groupService
+          .apiSave(groupToSend)
+          .then((resp) => {
             submitting.value = false;
-  // groupService.apiFetchById(resp.data.id).then(resp => {
-            loadMembersData()
-          //  curGroup = groupService.getGroupById(resp.data.id)
-            alertSucess(
-              'Operação efectuada com sucesso.'
-              )
-         // emit('close')
-         // curGroup.value.clinic_id = curGroup.clinic.id
-         // curGroup.clinical_service_id = curGroup.service.id
-         // curGroup.groupType_id = curGroup.groupType.id
-         SessionStorage.set('selectedGroupId', curGroup.value.id)
-        router.push('/group/panel')
-         }).catch((error) => {
-          submitting.value = false;
-          const listErrors = [];
-          console.log(error);
-          if (error.request.response != null) {
-            const arrayErrors = JSON.parse(error.request.response);
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
+            loadMembersData();
+            alertSucess('Operação efectuada com sucesso.');
+            SessionStorage.set('selectedGroupId', curGroup.value.id);
+            router.push('/group/panel');
+          })
+          .catch((error) => {
+            submitting.value = false;
+            const listErrors = [];
+            console.log(error);
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response);
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message);
+              } else {
+                arrayErrors._embedded.errors.forEach((element) => {
+                  listErrors.push(element.message);
+                });
+              }
             }
-          }
-          alertError('error', listErrors);
-        });
-  }
-        //  })
-         else {
-          console.log('Edit Step')
-          console.log(curGroup)
-          groupService.apiUpdate(curGroup.value).then(resp => {
-           // groupService.apiFetchById(resp.id).then(resp => {
-            loadMembersData()
-           // curGroup.value = groupService.getGroupById(SessionStorage.getItem('selectedGroupId'))
-            alertSucess(
-              'Operação efectuada com sucesso.'
-              )
-              emit('close')
-         // })
-        })
-        }
+            alertError('error', listErrors);
+          });
+      } else {
+        console.log(groupToSend);
+        groupService
+          .apiUpdate(groupToSend)
+          .then((resp) => {
+            submitting.value = false;
+            loadMembersData();
+            alertSucess('Operação efectuada com sucesso.');
+            emit('close');
+            SessionStorage.set('selectedGroupId', curGroup.value.id);
+          })
+          .catch((error) => {
+            submitting.value = false;
+            const listErrors = [];
+            console.log(error);
+            if (error.request.response != null) {
+              const arrayErrors = JSON.parse(error.request.response);
+              if (arrayErrors.total == null) {
+                listErrors.push(arrayErrors.message);
+              } else {
+                arrayErrors._embedded.errors.forEach((element) => {
+                  listErrors.push(element.message);
+                });
+              }
+            }
+            alertError('error', listErrors);
+          });
       }
-    } else {
-      submitting.value = false
-    }
-}
+    });
+  } else {
+    submitting.value = false;
+  }
+};
 
 const init = () => {
   curGroup.value = new Group({
@@ -689,7 +689,6 @@ onMounted(() => {
   console.log(curGroup.value.id);
   getGroupForEdit();
 });
-
 
 watch(
   () => searchResults,
