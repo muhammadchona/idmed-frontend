@@ -17,7 +17,7 @@
               ref="nomeRef"
               square
               v-model="role.name"
-              :rules="[(val) => codeRules(val)]"
+              :rules="[(val) => nameRules(val)]"
               lazy-rules
               :disable="onlyView"
               class="col fild-radius"
@@ -31,11 +31,7 @@
               ref="descriptionRef"
               square
               v-model="role.description"
-              :rules="[
-                (val) =>
-                  val.length >= 3 ||
-                  'A descrição indicado deve ter no mínimo 3 caracteres',
-              ]"
+              :rules="[(val) => descriptionRules(val)]"
               lazy-rules
               :disable="onlyView"
               class="col fild-radius"
@@ -204,9 +200,9 @@ const submitUser = () => {
   }
 };
 
-const codeRules = (val) => {
+const nameRules = (val) => {
   if (val === '') {
-    return 'o Código é obrigatorio';
+    return 'O nome é obrigatorio';
   } else if (val.length < 3) {
     return 'O nome indicado deve ter no mínimo 3 caracteres';
   } else if (
@@ -217,7 +213,25 @@ const codeRules = (val) => {
       userRoles.value.filter((x) => x.name === val)[0].id !== role.value.id &&
       isEditStep.value)
   ) {
-    return !databaseCodes.value.includes(val) || 'o Código indicado já existe';
+    return !databaseCodes.value.includes(val) || 'o nome indicado já existe';
+  }
+};
+const descriptionRules = (val) => {
+  if (val.length < 3) {
+    console.log(val);
+    return 'A descricao indicada deve ter no mínimo 3 caracteres';
+  } else if (
+    (databaseCodes.value.includes(val) &&
+      selectedRole.value.id === role.value.id &&
+      !isEditStep.value) ||
+    (databaseCodes.value.includes(val) &&
+      userRoles.value.filter((x) => x.description === val)[0].id !==
+        role.value.id &&
+      isEditStep.value)
+  ) {
+    return (
+      !databaseCodes.value.includes(val) || 'A descricao indicada já existe'
+    );
   }
 };
 </script>

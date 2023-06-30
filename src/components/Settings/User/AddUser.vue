@@ -4,7 +4,15 @@
       <div class="q-pa-md">
         <div class="row items-center">
           <q-icon name="people" size="sm" />
-          <span class="q-pl-sm text-subtitle2">Cadastrar Utilizador</span>
+          <span v-if="isCreateStep" class="q-pl-sm text-subtitle2"
+            >Cadastrar Utilizador</span
+          >
+          <span v-if="isEditStep" class="q-pl-sm text-subtitle2"
+            >Editar Utilizador</span
+          >
+          <span v-if="onlyView" class="q-pl-sm text-subtitle2"
+            >Dados do Utilizador</span
+          >
         </div>
       </div>
       <q-separator color="grey-13" size="1px" />
@@ -304,25 +312,18 @@ const showUserRegistrationScreen = inject('showUserRegistrationScreen');
 
 /*Hooks*/
 onMounted(() => {
-  if (user.value !== null && user.value !== undefined) {
-    if (user.value.id !== null) {
-      selectedRoles.value = user.value.authorities;
-      selectedClinics.value = user.value.clinics;
-      selectedClinicSectors.value = user.value.clinicSectors;
-    }
-  }
-
-  console.log(userRoles.value);
-  console.log(selectedRoles.value);
-  console.log(selectedClinicSectors.value);
+  loadUserRelations();
 
   extractDatabaseCodes();
+  console.log('aaaaaa', configs.value.value);
   if (configs.value.value === 'LOCAL') {
     isProvincial.value = false;
     user.value.clinics[0] = currClinic.value;
+    console.log(isProvincial.value);
   } else {
     isProvincial.value = true;
     selectedClinics.value[0] = currClinic.value;
+    console.log('BBB', isProvincial.value);
   }
 });
 
@@ -331,7 +332,20 @@ const onlyView = computed(() => {
 });
 
 const userRoles = computed(() => {
-  return roleService.getActiveWithMenus();
+  const allRoles = roleService.getActiveWithMenus();
+
+  const rolesForView = ref([]);
+
+  if (onlyView.value && user.value !== null && user.value !== undefined) {
+    console.log(user.value);
+    if (user.value.roles !== null) {
+      user.value.roles.forEach((auth) => {
+        rolesForView.value.push(roleService.getByAuthority(auth));
+      });
+    }
+  }
+
+  return onlyView.value ? rolesForView.value : allRoles;
 });
 const clinics = computed(() => {
   return clinicService.getAllClinics();
@@ -343,14 +357,20 @@ const clinicSectors = computed(() => {
   const allClinicSectors = clinicSectorService.getActivebyClinicId(
     currClinic.value.id
   );
-  // const allClinicSectors = ClinicSector.query().with('clinic.province')
-  //             .with('clinic.district.province')
-  //             .with('clinic.facilityType')
-  //             .with('clinicSectorType').has('code').where('active', true).get()
   return onlyView.value ? user.value.clinicSectors : allClinicSectors;
 });
 
 /*Methods*/
+const loadUserRelations = () => {
+  if (user.value !== null && user.value !== undefined) {
+    if (user.value.id !== null) {
+      selectedRoles.value = user.value.authorities;
+      selectedClinics.value = user.value.clinics;
+      selectedClinicSectors.value = user.value.clinicSectors;
+    }
+  }
+};
+
 const goToNextStep = () => {
   if (step.value === 1) {
     // $refs.nome.$refs.ref.validate()
@@ -364,18 +384,13 @@ const goToNextStep = () => {
     // }
   } else if (step.value === 2) {
     if (selectedRoles.value.length <= 0) {
-      alertError(
-        'erro',
-        'Por Favor seleccione pelo menos um Menu para dar Acesso'
-      );
+      alertError('Por Favor seleccione pelo menos um Menu para dar Acesso');
     } else {
       stepper.value.next();
     }
   } else if (step.value === 3) {
-    console.log(selectedClinicSectors.value);
     if (selectedClinicSectors.value.length <= 0) {
       alertError(
-        'error',
         'Por Favor seleccione pelo menos uma Farmácia para dar Acesso'
       );
     } else {
@@ -402,12 +417,10 @@ const submitUser = () => {
   selectedRoles.value.forEach((role) => {
     roles.push(role.authority);
   });
-  selectedClinics.value = JSON.parse(JSON.stringify(selectedClinics.value));
-  selectedClinicSectors.value = JSON.parse(
-    JSON.stringify(selectedClinicSectors.value)
-  );
+
   user.value.roles = roles;
   user.value.clinics = selectedClinics.value;
+  user.value.clinics.push(currClinic.value);
   user.value.clinicSectors = selectedClinicSectors.value;
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
@@ -417,6 +430,7 @@ const submitUser = () => {
         }) */
   // if (website) {
   if (isCreateStep.value) {
+    console.log(user.value);
     userService
       .post(user.value)
       .then((resp) => {

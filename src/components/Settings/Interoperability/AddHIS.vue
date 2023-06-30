@@ -107,6 +107,7 @@ import interoperabilityTypeService from 'src/services/api/InteroperabilityType/I
 import interoperabilityAttributeService from 'src/services/api/InteroperabilityAttribute/InteroperabilityAttributeService.ts';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { v4 as uuidv4 } from 'uuid';
 
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
@@ -150,7 +151,6 @@ const columnsSelectedAttributes = [
 const stepper = ref();
 const submitting = ref(false);
 const databaseCodes = ref([]);
-const codes = ref([]);
 const healthInformationAttributeTypes = ref([]);
 const interoperabilityAttribute = ref([]);
 const selectedAttributes = ref([]);
@@ -159,13 +159,12 @@ const nomeRef = ref(null);
 const codeRef = ref(null);
 
 /*injects*/
-const createMode = inject('createMode');
 const editMode = inject('editMode');
-const stepp = inject('step');
 const his = inject('selectedHis');
 const isCreateStep = inject('isCreateStep');
 const isEditStep = inject('isEditStep');
 const showHISRegistrationScreen = inject('showHISRegistrationScreen');
+const viewMode = inject('viewMode');
 
 /*Provide*/
 provide('rows', healthInformationAttributeTypes);
@@ -182,7 +181,8 @@ const healthInformationSystemList = computed(() => {
 
 onMounted(() => {
   if (isCreateStep.value) {
-    his.value = ref(healthInformationSystemService.newInstanceEntity());
+    his.value = healthInformationSystemService.newInstanceEntity();
+    console.log(his.value);
   }
   if (his.value != null) {
     his.value.interoperabilityAttributes.forEach((attribute) => {
@@ -209,6 +209,9 @@ const submitHis = () => {
   submitting.value = true;
   his.value.interoperabilityAttributes = [];
   healthInformationAttributeTypes.value.forEach((attribute) => {
+    if (isCreateStep.value) {
+      attribute.id = uuidv4();
+    }
     his.value.interoperabilityAttributes.push(attribute);
   });
 
@@ -234,10 +237,12 @@ const submitHis = () => {
       .post(his.value)
       .then((resp) => {
         submitting.value = false;
+        viewMode.value = true;
         showHISRegistrationScreen.value = false;
       })
       .catch((error) => {
         submitting.value = false;
+        viewMode.value = true;
         showHISRegistrationScreen.value = false;
       });
   } else {
@@ -245,10 +250,12 @@ const submitHis = () => {
       .patch(his.value.id, his.value)
       .then((resp) => {
         submitting.value = false;
+        viewMode.value = true;
         showHISRegistrationScreen.value = false;
       })
       .catch((error) => {
         submitting.value = false;
+        viewMode.value = true;
         showHISRegistrationScreen.value = false;
       });
   }

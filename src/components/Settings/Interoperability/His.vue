@@ -191,10 +191,9 @@ const step = inject('step');
 const filter = inject('filter');
 const createMode = inject('createMode');
 const editMode = inject('editMode');
-const viewMode = inject('viewMode');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
-const currClinic = inject('currClinic');
+const viewMode = inject('viewMode');
 
 /*provides*/
 provide('showHISRegistrationScreen', showHISRegistrationScreen);
@@ -204,6 +203,10 @@ provide('selectedHis', healthInformationSystem);
 /*Hooks*/
 const getHis = computed(() => {
   return healthInformationSystemService.getAllHis();
+});
+
+onMounted(() => {
+  viewMode.value = true;
 });
 
 /*Methods*/
@@ -237,6 +240,7 @@ const editHealthInformationSystem = (healthInformationSystemParam) => {
   createMode.value = false;
   isCreateStep.value = false;
   isEditStep.value = true;
+  viewMode.value = false;
   showHISRegistrationScreen.value = true;
 };
 const addHealthInformationSystem = () => {
@@ -245,6 +249,7 @@ const addHealthInformationSystem = () => {
   editMode.value = false;
   createMode.value = true;
   isCreateStep.value = true;
+  viewMode.value = false;
   showHISRegistrationScreen.value = true;
 };
 const promptToConfirm = (his) => {
@@ -269,15 +274,23 @@ const promptToConfirm = (his) => {
       //           'Tipo de identificador actualizado com sucesso'
       //         );
       //       } else {
-      console.log(his);
+      step.value = 'edit';
+      filter.value = '';
+      editMode.value = true;
+      createMode.value = false;
+      isCreateStep.value = false;
+      isEditStep.value = true;
+      viewMode.value = false;
       healthInformationSystemService
         .patch(his.id, his)
         .then((resp) => {
           submitting.value = false;
+          viewMode.value = true;
           showHISRegistrationScreen.value = false;
         })
         .catch((error) => {
           submitting.value = false;
+          viewMode.value = true;
           showHISRegistrationScreen.value = false;
         });
       // }
