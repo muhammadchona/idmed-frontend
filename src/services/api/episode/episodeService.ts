@@ -186,6 +186,21 @@ export default {
   async apiGetLastByClinicSectorId(clinicSectorId: string) {
     return await api().get('/episode/clinicSector/' + clinicSectorId);
   },
+
+  async syncEpisode(episode: any) {
+    if (episode.syncStatus === 'R') await this.apiSave(episode, true);
+    if (episode.syncStatus === 'U') await this.apiUpdate(episode);
+  },
+
+  async getLocalDbEpisodesToSync() {
+    return nSQL(Episode.entity)
+      .query('select')
+      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
+      .exec()
+      .then((result) => {
+        return result;
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return episode.getModel().$newInstance();

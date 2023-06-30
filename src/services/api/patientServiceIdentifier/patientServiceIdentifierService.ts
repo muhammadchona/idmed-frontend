@@ -190,6 +190,15 @@ export default {
     if (identifier.syncStatus === 'R') await this.apiSave(identifier, true);
     if (identifier.syncStatus === 'U') await this.apiUpdate(identifier);
   },
+  async getLocalDbPatientServiceIdentifierToSync() {
+    return nSQL(PatientServiceIdentifier.entity)
+      .query('select')
+      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
+      .exec()
+      .then((result) => {
+        return result;
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return patientServiceIdentifier.getModel().$newInstance();
