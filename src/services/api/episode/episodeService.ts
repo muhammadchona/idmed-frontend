@@ -4,7 +4,13 @@ import Episode from 'src/stores/models/episode/Episode';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import clinicSectorService from '../clinicSectorService/clinicSectorService';
+import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
 import { nSQL } from 'nano-sql';
+import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
+import prescriptionService from '../prescription/prescriptionService';
+import patientVisitService from '../patientVisit/patientVisitService';
+import packService from '../pack/packService';
 
 const episode = useRepo(Episode);
 const { closeLoading } = useLoading();
@@ -176,6 +182,10 @@ export default {
         return resp;
       });
   },
+
+  async apiGetLastByClinicSectorId(clinicSectorId: string) {
+    return await api().get('/episode/clinicSector/' + clinicSectorId);
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return episode.getModel().$newInstance();
@@ -284,5 +294,49 @@ export default {
       .where('patientServiceIdentifier_id', identifierId)
       .orderBy('episodeDate', 'desc')
       .first();
+  },
+
+  async doEpisodesBySectorGet() {
+    const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
+      localStorage.getItem('user_clinic_sectors')
+    );
+    this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {
+      if (resp.data.length > 0) {
+        resp.data.forEach(async (item: any) => {
+          this.putMobile(item);
+          console.log(item);
+          patientServiceIdentifierService.putMobile(
+            item.patientServiceIdentifier
+          );
+          // const i = 0;
+
+          const respDetails =
+            await patientVisitDetailsService.apiGetLastByEpisodeId(item.id);
+
+          if (respDetails.data) {
+            const pv = respDetails.data.patientVisit;
+            respDetails.data.patientVisit = {};
+            pv.patientVisitDetails[0] = respDetails.data;
+            console.log(pv);
+
+            const respPre = await prescriptionService.apiFetchById(
+              respDetails.data.prescription.id
+            );
+            pv.patientVisitDetails[0].prescription = respPre.data;
+            patientVisitService.putMobile(pv);
+
+            if (respDetails.data.pack !== null) {
+              const respPack = await packService.apiFetchById(
+                respDetails.data.pack.id
+              );
+              pv.patientVisitDetails[0].pack = respPack.data;
+              patientVisitService.putMobile(pv);
+            }
+          }
+        });
+        // offset = offset + max
+        // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
+      }
+    });
   },
 };

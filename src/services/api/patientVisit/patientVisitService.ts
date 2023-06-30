@@ -14,28 +14,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -216,5 +216,15 @@ export default {
       })
       .orderBy('visitDate', 'desc')
       .first();
+  },
+  getAllFromPatient(patientId: string) {
+    return patientVisit
+      .withAll()
+      .whereHas('patientVisitDetails', (query) => {
+        query.has('prescription');
+      })
+      .where('patient_id', patientId)
+      .orderBy('visitDate', 'desc')
+      .get();
   },
 };

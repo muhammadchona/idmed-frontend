@@ -12,28 +12,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -89,7 +89,7 @@ export default {
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(pregnancyScreening.use?.entity)
+    return nSQL(PregnancyScreening.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
@@ -102,7 +102,7 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(pregnancyScreening.use?.entity)
+    return nSQL(PregnancyScreening.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
@@ -114,7 +114,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(pregnancyScreening.use?.entity)
+    return nSQL(PregnancyScreening.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()

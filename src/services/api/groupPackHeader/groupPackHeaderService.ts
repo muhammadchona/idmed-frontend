@@ -3,8 +3,12 @@ import api from '../apiService/apiService';
 import GroupPackHeader from 'src/stores/models/group/GroupPackHeader';
 import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
 import patientVisitService from '../patientVisit/patientVisitService';
+import { nSQL } from 'nano-sql';
+import patientService from '../patientService/patientService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const groupPackHeader = useRepo(GroupPackHeader);
+const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   // Axios API call
@@ -53,20 +57,40 @@ export default {
   },
 
   async apiSave(groupPackHeaderParam: any) {
-    return await api()
-      .post('/groupPackHeader', groupPackHeaderParam)
-      .then((resp) => {
-        groupPackHeaderParam.groupPacks.forEach(groupPack => {
-          /*
+    let resp = null;
+    if (isMobile.value && !isOnline.value) {
+      groupPackHeaderParam.syncStatus = 'R';
+      resp = await nSQL(GroupPackHeader.entity)
+        .query('upsert', groupPackHeaderParam)
+        .exec();
+      console.log('criacaoGrupoPack' + groupPackHeaderParam);
+      groupPackHeaderParam.groupPacks.forEach((groupPack) => {
+        /*
+        groupPack.patientVisit.patientVisitDetails.forEach(pvd => {
+          patientVisitDetailsService.saveInStorage(pvd)
+        });
+        */
+        console.log('criacaoVisitPack' + groupPack.patientVisit);
+        patientVisitService.saveInStorage(groupPack.patientVisit);
+        patientService.putMobile(groupPack.patientVisit);
+      });
+      groupPackHeader.save(groupPackHeaderParam);
+    } else {
+      return await api()
+        .post('/groupPackHeader', groupPackHeaderParam)
+        .then((resp) => {
+          groupPackHeaderParam.groupPacks.forEach((groupPack) => {
+            /*
           groupPack.patientVisit.patientVisitDetails.forEach(pvd => {
             patientVisitDetailsService.saveInStorage(pvd)
           });
           */
-         patientVisitService.saveInStorage(groupPack.patientVisit)
-        })
-        // groupPackHeader.save(groupPackHeaderParam);
-        return resp;
-      });
+            patientVisitService.saveInStorage(groupPack.patientVisit);
+          });
+          // groupPackHeader.save(groupPackHeaderParam);
+          return resp;
+        });
+    }
   },
 
   async apiUpdate(groupPackHeader: any) {
