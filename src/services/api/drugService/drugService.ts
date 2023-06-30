@@ -12,7 +12,7 @@ export default {
   async post(params: string) {
     const resp = await api().post('drug', params);
     drug.save(resp.data);
-    alertSucess('O Registo foi efectuado com sucesso');
+    // alertSucess('O Registo foi efectuado com sucesso');
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -61,10 +61,8 @@ export default {
       .where('id', id)
       .first();
   },
-    getCleanDrugById(id: string) {
-    return drug
-      .where('id', id)
-      .first();
+  getCleanDrugById(id: string) {
+    return drug.where('id', id).first();
   },
   // Local Storage Pinia
   newInstanceEntity() {

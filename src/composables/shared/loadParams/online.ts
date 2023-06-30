@@ -34,13 +34,11 @@ import patientServiceIdentifierService from 'src/services/api/patientServiceIden
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import episodeService from 'src/services/api/episode/episodeService';
-import Pack from 'src/stores/models/packaging/Pack';
 import packService from 'src/services/api/pack/packService';
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
 import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDrugService';
 import patientAttributeService from 'src/services/api/patientAttribute/patientAttributeService';
-import PrescriptionDetail from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
 import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 
 export function useOnline(clinic: any) {

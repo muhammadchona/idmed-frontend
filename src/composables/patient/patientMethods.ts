@@ -2,7 +2,16 @@ import moment from 'moment';
 
 export function usePatient() {
   function fullName(patient: any) {
-    return `${patient.firstNames} ${patient.middleNames} ${patient.lastNames}`;
+    if (
+      patient.middleNames === null ||
+      patient.middleNames === 'null' ||
+      patient.middleNames === undefined ||
+      patient.middleNames === 'NULL'
+    ) {
+      return `${patient.firstNames} ${patient.lastNames}`;
+    } else {
+      return `${patient.firstNames} ${patient.middleNames} ${patient.lastNames}`;
+    }
   }
 
   function isActiveOnGroupOfService(patient: any, service: any) {

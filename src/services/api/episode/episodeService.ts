@@ -51,9 +51,9 @@ export default {
     try {
       const resp = await api().post('episode', params);
       episode.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -71,7 +71,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inesperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -82,7 +82,7 @@ export default {
       episode.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -92,57 +92,50 @@ export default {
       episode.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(Episode.entity)
-      .query('upsert', params)
-      .exec()
-      .then(() => {
-        episode.save(params);
-        alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async putMobile(params: string) {
+    try {
+      await nSQL(Episode.entity).query('upsert', params).exec();
+      episode.save(params);
+      // alertSucess('O Registo foi efectuado com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
-  getMobile() {
-    return nSQL(Episode.entity)
-      .query('select')
-      .exec()
-      .then((rows: any) => {
-        if (rows.length === 0) {
-          api()
-            .get('episode?offset=0&max=700')
-            .then((resp) => {
-              this.putMobile(resp.data);
-            });
-        } else {
-          episode.save(rows);
-        }
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async getMobile() {
+    try {
+      const rows = await nSQL(Episode.entity).query('select').exec();
+      if (rows.length === 0) {
+        api()
+          .get('episode?offset=0&max=700')
+          .then((resp) => {
+            this.putMobile(resp.data);
+          });
+      } else {
+        episode.save(rows);
+      }
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
-  deleteMobile(paramsId: string) {
-    return nSQL(Episode.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
-      .then(() => {
-        episode.destroy(paramsId);
-        alertSucess('O Registo foi removido com sucesso');
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async deleteMobile(paramsId: string) {
+    try {
+      await nSQL(Episode.entity)
+        .query('delete')
+        .where(['id', '=', paramsId])
+        .exec();
+      episode.destroy(paramsId);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
   async apiSave(episodeParams: any, isNew: boolean) {
     if (isNew) {

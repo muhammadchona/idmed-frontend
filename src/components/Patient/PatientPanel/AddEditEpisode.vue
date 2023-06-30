@@ -28,8 +28,8 @@
         <q-separator />
       </q-card-section>
       <div class="text-center text-h6 q-mt-sm">
-        <span v-if="!isNewEpisode & !isCloseEpisode">Actualizar</span>
-        <span v-else-if="!isNewEpisode & isCloseEpisode">Fechar</span>
+        <span v-if="!isNewEpisode && !isCloseEpisode">Actualizar</span>
+        <span v-else-if="!isNewEpisode && isCloseEpisode">Fechar</span>
         <span v-else>Adicionar</span>
         Histórico Clínico
       </div>
@@ -315,9 +315,7 @@
 <script setup>
 import moment from 'moment';
 import { computed, inject, onMounted, ref } from 'vue';
-import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
 import Episode from 'src/stores/models/episode/Episode';
-import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import startStopReasonService from 'src/services/api/startStopReasonService/startStopReasonService';
@@ -327,11 +325,9 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import provinceService from 'src/services/api/provinceService/provinceService';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService';
-import Patient from 'src/stores/models/patient/Patient';
 import districtService from 'src/services/api/districtService/districtService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import episodeTypeService from 'src/services/api/episodeType/episodeTypeService';
-import { usePatientVisitDetail } from 'src/composables/patient/patientVisitDetailsMethods';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 
@@ -343,21 +339,14 @@ const {
   getYYYYMMDDFromJSDate,
   extractHyphenDateFromDMYConvertYMD,
 } = useDateUtils();
-const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
+const { alertSucess, alertError } = useSwal();
 const { fullName, age } = usePatient();
-const {
-  isReferenceOrTransferenceEpisode,
-  isStartEpisode,
-  hasVisits,
-  lastVisit,
-} = useEpisode();
-const { lastEpisodeIdentifier } = usePatientServiceIdentifier();
+const { isReferenceOrTransferenceEpisode, hasVisits } = useEpisode();
 const { remainigDurationInWeeks } = usePrescription();
 
 const submitting = ref(false);
 const closureEpisode = ref(new Episode());
 const episode = ref(new Episode());
-const estados = ref(['Activo', 'Curado']);
 const startDate = ref('');
 const stopDate = ref('');
 const selectedProvince = ref(null);
@@ -556,9 +545,6 @@ const stopReasons = computed(() => {
 const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
 };
-const desableSubmitting = () => {
-  submitting.value = false;
-};
 const init = async () => {
   selectedProvince.value = provinceService.getAllProvincesById(
     curIdentifier.value.clinic.province_id
@@ -684,6 +670,8 @@ const submitForm = () => {
         } else {
           doSave();
         }
+      } else {
+        submitting.value = false;
       }
     } else {
       doSave();
@@ -730,34 +718,30 @@ const doSave = async () => {
       closureEpisode.value.patientServiceIdentifier = curIdentifier.value;
     }
   }
-  episodeService
-    .apiSave(episode.value, isNewEpisode.value)
-    .then((resp) => {
-      if (isCloseEpisode.value) {
-        episodeService
-          .apiSave(closureEpisode.value, true)
-          .then((resp) => {
-            console.log('Episódio de fecho criado com sucesso');
-          })
-          .catch((error) => {
-            console.log(error);
-            alertError(
-              'Aconteceu um errro ao durante a operacao de registo do episodio de Fecho'
-            );
-          });
+  try {
+    episodeService.apiSave(episode.value, isNewEpisode.value);
+    if (isCloseEpisode.value) {
+      try {
+        episodeService.apiSave(closureEpisode.value, true);
+        console.log('Histórico Clínico de fecho criado com sucesso');
+      } catch (error) {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro ao durante a operacao de registo do Histórico Clínico de Fecho'
+        );
       }
-      alertSucess(
-        isNewEpisode.value
-          ? 'Histórico Clínico adicionado com sucesso.'
-          : 'Histórico Clínico actualizado com sucesso.'
-      );
-      closeEpisodeCreation();
-    })
-    .catch((error) => {
-      console.log(error);
-      alertError('Aconteceu um errro ao gravar o episódio');
-      submitting.value = false;
-    });
+    }
+    alertSucess(
+      isNewEpisode.value
+        ? 'Histórico Clínico adicionado com sucesso.'
+        : 'Histórico Clínico actualizado com sucesso.'
+    );
+    closeEpisodeCreation();
+  } catch (error) {
+    console.log(error);
+    alertError('Aconteceu um erro ao gravar o episódio');
+    submitting.value = false;
+  }
 };
 
 const identifierHasValidPrescription = (episode) => {

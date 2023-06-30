@@ -42,15 +42,16 @@ export default {
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('patientVisit', params);
-      patientVisit.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  postWeb(params: string) {
+    return api()
+      .post('patientVisit', params)
+      .then((resp) => {
+        patientVisit.save(resp.data);
+      })
+      .catch((error) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -66,7 +67,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inesperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -77,7 +78,7 @@ export default {
       patientVisit.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -87,57 +88,49 @@ export default {
       patientVisit.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(PatientVisit.entity)
-      .query('upsert', params)
-      .exec()
-      .then(() => {
-        patientVisit.save(params);
-        alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async putMobile(params: string) {
+    try {
+      await nSQL(PatientVisit.entity).query('upsert', params).exec();
+      patientVisit.save(JSON.parse(params));
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
-  getMobile() {
-    return nSQL(PatientVisit.entity)
-      .query('select')
-      .exec()
-      .then((rows: any) => {
-        if (rows.length === 0) {
-          api()
-            .get('patientVisit?offset=0&max=700')
-            .then((resp) => {
-              this.putMobile(resp.data);
-            });
-        } else {
-          patientVisit.save(rows);
-        }
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async getMobile() {
+    try {
+      const rows = await nSQL(PatientVisit.entity).query('select').exec();
+      if (rows.length === 0) {
+        api()
+          .get('patientVisit?offset=0&max=700')
+          .then((resp) => {
+            this.putMobile(resp.data);
+          });
+      } else {
+        patientVisit.save(rows);
+      }
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
-  deleteMobile(paramsId: string) {
-    return nSQL(PatientVisit.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
-      .then(() => {
-        patientVisit.destroy(paramsId);
-        alertSucess('O Registo foi removido com sucesso');
-      })
-      .catch((error: any) => {
-        alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async deleteMobile(paramsId: string) {
+    try {
+      await nSQL(PatientVisit.entity)
+        .query('delete')
+        .where(['id', '=', paramsId])
+        .exec();
+      patientVisit.destroy(paramsId);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisit/${id}`);

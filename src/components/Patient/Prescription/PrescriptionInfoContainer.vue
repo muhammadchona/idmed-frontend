@@ -4,7 +4,7 @@
       dense
       header-class="bg-grey-6 text-white text-bold vertical-middle q-pl-md"
       expand-icon-class="text-white"
-      default-opened
+      :default-opened="curIdentifier.service.code === 'TARV'"
     >
       <template v-slot:header>
         <q-item-section avatar>

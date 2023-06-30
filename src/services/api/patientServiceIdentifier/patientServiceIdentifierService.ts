@@ -46,9 +46,9 @@ export default {
     try {
       const resp = await api().post('patientServiceIdentifier', params);
       patientServiceIdentifier.save(resp.data);
-      alertSucess('O Registo foi efectuado com sucesso');
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -66,7 +66,7 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inesperado nesta operação.');
+          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -80,7 +80,7 @@ export default {
       patientServiceIdentifier.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -90,18 +90,20 @@ export default {
       patientServiceIdentifier.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
   async putMobile(params: string) {
     try {
-      await nSQL(PatientServiceIdentifier.value).query('upsert', params).exec();
-      patientServiceIdentifier.save(params);
-      alertSucess('O Registo foi efectuado com sucesso');
+      await nSQL(patientServiceIdentifier.use?.entity)
+        .query('upsert', params)
+        .exec();
+      patientServiceIdentifier.save(JSON.parse(params));
+      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -112,7 +114,7 @@ export default {
         .exec();
       patientServiceIdentifier.save(rows);
     } catch (error) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -125,7 +127,7 @@ export default {
       patientServiceIdentifier.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
+      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },

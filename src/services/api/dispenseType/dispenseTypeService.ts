@@ -101,6 +101,7 @@ export default {
           return (
             value === 'DM' ||
             value === 'DB' ||
+            value === 'DT' ||
             value === 'DS' ||
             value === 'FRM'
           );

@@ -547,6 +547,8 @@ const localSearch = () => {
   if (website.value) {
     showloading();
     patientService.apiSearch(currPatient.value);
+  }else{
+    patientService.get(0)
   }
 };
 
