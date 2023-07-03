@@ -262,14 +262,13 @@ const addClinicService = () => {
   clinicSectors.value = clinicSectorService.getActivebyClinicId(
     currClinic.value.id
   );
-  console.log(therapeuticRegimens.value);
   isCreateStep.value = true;
   isEditStep.value = false;
   clinicalService.value = ref(clinicalServiceService.newInstanceEntity());
   step.value = 'create';
-  showClinicServiceRegistrationScreen.value = true;
   editMode.value = false;
   viewMode.value = false;
+  showClinicServiceRegistrationScreen.value = true;
 };
 const promptToConfirm = (clinicalServiceParam) => {
   const question = clinicalServiceParam.active

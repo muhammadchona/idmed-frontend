@@ -105,6 +105,9 @@ import clinicSectorService from 'src/services/api/clinicSectorService/clinicSect
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { v4 as uuidv4 } from 'uuid';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+
+const { alertSucess, alertError } = useSwal();
 
 /*components import*/
 
@@ -211,6 +214,7 @@ const submitClinicSector = () => {
     clinicSectorService
       .post(clinicSector.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
       })

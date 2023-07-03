@@ -32,23 +32,17 @@
 </template>
 <script setup>
 /*imports*/
-import { ref, inject, defineProps } from 'vue';
+import { inject } from 'vue';
 
 /*components import*/
 
 /*Variables*/
-const selected = ref([]);
-const lastIndex = ref(null);
-const tableRef = ref(null);
-const selection = ref(['']);
 
 /*injects*/
 const filter = inject('filter');
 const rows = inject('rows');
 const columns = inject('columns');
 const viewMode = inject('viewMode');
-const showHISRegistrationScreen = inject('showHISRegistrationScreen');
-const step = inject('step');
 
 /*Hooks*/
 </script>

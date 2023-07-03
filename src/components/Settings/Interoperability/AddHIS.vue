@@ -100,22 +100,18 @@
 <script setup>
 /*imports*/
 import { ref, inject, onMounted, computed, provide } from 'vue';
-import HealthInformationSystem from '../../../stores/models/healthInformationSystem/HealthInformationSystem';
-import InteroperabilityAttribute from '../../../stores/models/interoperabilityAttribute/InteroperabilityAttribute';
-import InteroperabilityType from '../../../stores/models/interoperabilityType/InteroperabilityType';
 import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 import interoperabilityAttributeService from 'src/services/api/InteroperabilityAttribute/InteroperabilityAttributeService.ts';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { v4 as uuidv4 } from 'uuid';
 
+const { alertSucess, alertError } = useSwal();
+
 /*Components import*/
-import nameInput from 'src/components/Shared/NameInput.vue';
-import codeInput from 'src/components/Shared/CodeInput.vue';
 import selectedAttributesTable from 'src/components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue';
 
 /*Variables*/
-const { alertError } = useSwal();
 const columnsAttributes = [
   {
     name: 'name',
@@ -236,6 +232,7 @@ const submitHis = () => {
     healthInformationSystemService
       .post(his.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         submitting.value = false;
         viewMode.value = true;
         showHISRegistrationScreen.value = false;
