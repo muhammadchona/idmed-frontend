@@ -1,26 +1,61 @@
 import api from '../apiService/apiService';
 import { useRepo } from 'pinia-orm';
 import destroyedStock from 'src/stores/models/stockdestruction/DestroyedStock';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-const { alertSucess, alertError, alertWarning } = useSwal();
+import { nSQL } from 'nano-sql';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isMobile, isOnline } = useSystemUtils();
 const destroyedStockRepo = useRepo(destroyedStock)
 
 
 export default {
   // Axios API call
-  post(params: string) {
+
+  post(params: any) {
+    if (isMobile.value) {
+     return this.putMobile(params);
+    } else {
+     return this.postWeb(params);
+    }
+  },
+  get(offset: number) {
+
+    if (isMobile.value) {
+     return this.getMobile();
+    } else {
+      return this.getWeb(offset);
+    }
+   },
+  patch( params: any) {
+    if (isMobile.value) {
+      return this.putMobile(params);
+    } else {
+      return this.apiUpdateWeb( params);
+    }
+     },
+
+  async delete(id: string) {
+    if (isMobile.value ) {
+      return this.deleteMobile(id);
+    } else {
+     return  this.deleteWeb(id);
+    }
+  },
+
+
+  postWeb(params: string) {
     return api()
-      .post('destroyedStock', params)
+      .post('destroyedStocks', params)
       .then((resp) => {
         destroyedStockRepo.save(resp.data);
       })
   },
 
-  get(offset: number) {
+  getWeb(offset: number) {
     if (offset >= 0) {
       return api()
-      .get('destroyedStock?offset=' + offset)
+      .get('destroyedStocks?offset=' + offset)
         .then((resp) => {
           destroyedStockRepo.save(resp.data);
           offset = offset + 100;
@@ -30,24 +65,52 @@ export default {
         })
     }
   },
-
-   async apiSave(destroyedStock: any) {
-    return await api().post('/destroyedStock', destroyedStock);
+  deleteWeb(id: any) {
+    return api()
+      .delete('destroyedStocks/' + id)
+      .then(() => {
+        destroyedStockRepo.destroy(id);
+      });
   },
-
-  async apiRemove(id: any) {
-    return await api().delete(`/destroyedStock/${id}`);
-  },
-
-    async apiUpdate(destroyedStock: any) {
+  async apiUpdateWeb(destroyedStock: any) {
     return await  api().patch('/destroyedStock', destroyedStock);
   },
+// Mobile
 
-   async apiGetAll(offset: any, max: any) {
-    return await api().get(
-      '/destroyedStock?offset=' + offset + '&max=' + max
-    );
-  }
+
+async putMobile (params: any) {
+  const resp = await nSQL('referedStockMoviments').query('upsert',
+  JSON.parse( JSON.stringify(params))
+ ).exec()
+ destroyedStockRepo.save(params);
+ return resp
+},
+
+getMobile () {
+return nSQL().onConnected(() => {
+  nSQL('referedStockMoviments').query('select').exec().then(result => {
+   console.log(result)
+   destroyedStockRepo.save(result)
+    return result
+   })
+ })
+},
+
+getBystockMobile (stock: any) {
+return nSQL().onConnected(() => {
+ nSQL('referedStockMoviments').query('select').where(['stocks[id]', '=', stock.id]).exec().then(result => {
+   console.log(result)
+   destroyedStockRepo.save(result)
+ })
+})
+},
+
+async deleteMobile (id: any) {
+const resp = await  nSQL('referedStockMoviments').query('delete').where(['id', '=', id]).exec()
+destroyedStockRepo.destroy(id)
+return resp
+},
+
  
   
 

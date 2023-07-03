@@ -125,11 +125,10 @@ import { useRouter } from 'vue-router';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 
 const { showloading, closeLoading } = useLoading();
 
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
 const router = useRouter();
 const { alertError } = useSwal();
 
@@ -171,13 +170,13 @@ const getSelectedString = () => {
 const submitForm = () => {
         showloading()
         const inventory = inventoryService.getLastInventory();
-        const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate) 
-
+       
         if (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)) {
           alertError('A data de inicio do inventário não pode ser superior a data corrente.'
       );
         } else
         if (inventory !== null && (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0))) {
+          const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate) 
           console.log(new Date(currInventory.value.startDate))
           console.log(new Date(inventory.endDate))
           alertError(
@@ -210,32 +209,13 @@ const initInventory = () => {
   currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
     currInventory.value.startDate
   ));
-  if (!mobile.value) {
     inventoryService.post(currInventory.value).then((resp) => {
       localStorage.setItem('currInventory', currInventory.value.id);
       // console.log(resp.response);
       closeLoading()
       router.push('/stock/inventory');
     });
-  } else {
-    currInventory.value.syncStatus = 'R';
-    Object.keys(currInventory.value.adjustments).forEach(
-      function (k) {
-        const item = currInventory.value.adjustments[k];
-        item.inventory_id = currInventory.value.id;
-        item.adjusted_stock_id = item.adjustedStock.id;
-      }.bind(this)
-    );
-
-    const targetCopy = JSON.parse(JSON.stringify(currInventory));
-    Inventory.localDbAdd(targetCopy).then((inv) => {
-      Inventory.insert({
-        data: targetCopy,
-      });
-      localStorage.setItem('currInventory', currInventory);
-      router.push('/stock/inventory');
-    });
-  }
+  
 };
 
 const doBeforeSave = () => {

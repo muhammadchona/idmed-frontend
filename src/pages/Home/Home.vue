@@ -127,6 +127,7 @@ const { website, isMobile, isOnline } = useSystemUtils();
 const { loadSettingParams } = useOnline();
 
 const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
+const { loadPatientData } = useOnline()
 
 const clinic = computed(() => {
   return clinicService.currClinic();
@@ -163,11 +164,12 @@ onMounted(() => {
     showloading();
     loadSettingParams();
   } else {
+    loadPatientData()
     console.log('IS MOBILE APP ' + website.value);
-    if (patientService.getAllFromStorage().length <= 0) {
+    /*if (patientService.getAllFromStorage().length <= 0) {
       loadSettingParamsToOffline();
       loadPatientDataToOffline();
-    }
+    }*/
   }
   // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
   // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)

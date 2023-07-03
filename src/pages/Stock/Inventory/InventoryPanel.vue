@@ -197,6 +197,7 @@ import AdjustmentTable from 'components/Stock/Inventory/InventoryAdjustmentsCont
 import StockService from 'src/services/api/stockService/StockService';
 import drugService from 'src/services/api/drugService/drugService';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
+import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const mobile = computed(() => (isWebScreen.value ? false : true));
@@ -248,27 +249,27 @@ const initInventoryClosure = () => {
 
 const closeInventory = () => {
   showloading();
-  if (!mobile.value) {
-    InventoryService.apiFetchById(currInventory.value.id).then((resp) => {
-      doProcessAndClose();
+    InventoryService.apiFetchById(currInventory.value.id).then(async (resp) => {
+     await doProcessAndClose();
     });
-  } else {
-    const targetCopy = JSON.parse(JSON.stringify(currInventory));
-    Inventory.insert({
-      data: targetCopy,
-    }).then((inv) => {
-      doProcessAndCloseMobile();
-    });
-  }
 };
 
-const doProcessAndClose = () => {
+const doProcessAndClose = async () => {
   const inventory = InventoryService.getInvnetoryById(currInventory.value.id);
 
   inventory.endDate = new Date();
   inventory.open = false;
-  inventory.startDate = dateUtils;
-  inventory.adjustments.forEach((adjustment) => {
+  inventory.generic = JSON.parse(inventory.generic )
+ /* inventory.startDate =  dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
+    currInventory.value.startDate
+  )); */
+  let adjustments = inventory.adjustments 
+  if (mobile.value) { 
+    adjustments = await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(inventory.id)
+    inventory.adjustments = []
+    inventory.open = false;
+  }
+  adjustments.forEach((adjustment) => {
     processAdjustment(adjustment, inventory);
   });
   doSaveAdjustment(0);
@@ -284,59 +285,10 @@ const doProcessAndClose = () => {
   });
 };
 
-const doProcessAndCloseMobile = () => {
-  const inventory = Inventory.query()
-    .with([
-      'clinic.province',
-      'clinic.district.province',
-      'clinic.facilityType',
-    ])
-    .where('id', currInventory.value.id)
-    .first();
-
-  Inventory.localDbGetById(currInventory.value.id).then((it) => {
-    inventory.syncStatus = it.syncStatus;
-  });
-
-  inventory.endDate = new Date();
-  inventory.open = false;
-
-  InventoryStockAdjustment.localDbGetAll().then((adjustments) => {
-    const adjustmentsList = adjustments.filter(
-      (adjustment) => adjustment.inventory_id === inventory.id
-    );
-    inventory.adjustments = [];
-    adjustmentsList.forEach((adjustment) => {
-      adjustment.clinic = currClinic;
-      adjustment.adjustedStock.clinic = currClinic;
-      adjustment.adjustedStock.stockMoviment = adjustment.balance;
-      adjustment.inventory = null;
-      processedAdjustments.push(adjustment);
-      //  doSaveAdjustmentMobile(0)
-      const targetCopyAdj = JSON.parse(JSON.stringify(adjustment));
-      InventoryStockAdjustment.localDbUpdate(targetCopyAdj).then((item) => {
-        InventoryStockAdjustment.update(targetCopyAdj);
-      });
-    });
-    inventory.clinic = currClinic;
-    inventory.adjustments = processedAdjustments;
-    const targetCopy = JSON.parse(JSON.stringify(inventory));
-    Inventory.localDbUpdate(targetCopy)
-      .then((item) => {
-        Inventory.update(targetCopy);
-      })
-      .then((item) => {
-        step = 'display';
-        currInventory.value.open = false;
-        alertSucess('Operação efectuada com sucesso.');
-      });
-  });
-  // SessionStorage.set('currInventory', inventory)
-};
-
 const doSaveAdjustment = (i) => {
   if (processAdjustment[i] !== undefined && processAdjustment[i] !== null) {
-    InventoryStockAdjustment.apiUpdate(processAdjustment[i]).then((resp) => {
+    processAdjustment[i].inventory_id = null
+    InventoryStockAdjustmentService.patch(processAdjustment[i].id, processAdjustment[i]).then((resp) => {
       i = i + 1;
       setTimeout(doSaveAdjustment(i), 2);
     });
@@ -367,18 +319,7 @@ const processAdjustment = (adjustment, inventory) => {
   processedAdjustments.push(adjustment);
 };
 
-const doStockEntranceGet = (clinicId, offset, max) => {
-  StockEntrance.apiGetAllByClinicId(clinicId, offset, max)
-    .then((resp) => {
-      if (resp.response.data.length > 0) {
-        offset = offset + max;
-        setTimeout(doStockEntranceGet(clinicId, offset, max), 2);
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-};
+
 
 const retriveRelatedDrug = (adjustment, drugList) => {
   let isNewDrug = true;
@@ -413,7 +354,8 @@ const currInventory = computed(() => {
 });
 
 const drugs = computed(() => {
-  if (currInventory.value.generic) {
+  var isGeneric = JSON.parse(currInventory.value.generic)
+  if (isGeneric) {
     return drugService.getActiveDrugs();
   } else {
     const drugList = [];

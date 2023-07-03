@@ -14,6 +14,7 @@
               :id="id"
               :typeService="selectedService"
               :progress="progress"
+              :clinicalService="selectedService"
               :applicablePeriods="periodType"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
@@ -63,7 +64,7 @@ const qtyProcessed = ref(0)
 
 const closeSection = () => {
         filterDPatientHistorySection.value.remove()
-        if (!website) {
+        if (!website.value) {
           PatientHistoryReport.localDbGetByReportId().then(reports => {
       //   const reportData = []
          reports.forEach(report => {
@@ -102,7 +103,7 @@ const closeSection = () => {
 
      const generateReport =  (id, fileType) => {
          //  UID da tab corrente
-        if (website) {
+        if (website.value) {
           Report.printReport('historicoLevantamentoReport',id, fileType).then(resp => {
            if (!resp.data[0]) {
               alertError('Nao existem Dados para o periodo selecionado')

@@ -211,35 +211,15 @@ const expandLess = (value) => {
   infoContainerVisible = !value;
 };
 const init = () => {
-  if (mobile.value) {
-    /* Inventory.localDbGetAll().then(item => {
-              console.log('LISTA Inventarios: ', item)
-              if (item.syncStatus !== '') {
-                  Inventory.insert({
-                    data: item
-                  })
-              }
-            }) */
-    InventoryStockAdjustment.localDbGetAll().then((item) => {
-      console.log('LISTA AJustes: ', item);
-      if (item.syncStatus !== '') {
-        InventoryStockAdjustment.insert({
-          data: item,
-        });
-      }
-    });
-    Drug.localDbGetAll().then((drugs) => {
-      Drug.insertOrUpdate({ data: drugs });
-    });
-    prepareInit();
-  } else {
-    prepareInit();
-  }
+  if(mobile.value) {
+  InventoryStockAdjustmentService.apiGetAllMobile()
+}
+  
+   prepareInit();
 };
 
 const prepareInit = () => {
   showloading()
-
   let i = 1;
   const stockList = getValidStocks(drug)
 
@@ -278,6 +258,7 @@ const initNewAdjustment = (stock, drug, i) => {
     newAdjustment.adjustedStock.expireDate
   );
   newAdjustment.adjustedStock.drug = drug;
+
   adjustments.value.push(newAdjustment);
 };
 
@@ -329,14 +310,13 @@ const doSave = (i) => {
       );
     } else {
       console.log(adjustments.value[i]); // devolver ajustes ao salvar
-      if (!mobile.value) {
         InventoryStockAdjustmentService.apiFetchById(
           adjustments.value[i].id
         ).then((resp1) => {
-          if (resp1.data.length === 0) {
+          if (resp1.length === 0) {
             InventoryStockAdjustmentService.post(adjustments.value[i]).then(
               (resp) => {
-                adjustments.value[i].id = resp.data.id;
+                adjustments.value[i].id = resp.id;
                 i = i + 1;
                 setTimeout(doSave(i), 2);
                 alertSucess('Operação efectuada com sucesso.');
@@ -345,7 +325,7 @@ const doSave = (i) => {
           } else {
             const adjustment = adjustments.value[i];
             adjustment.adjustedStock.adjustments = [];
-            InventoryStockAdjustmentService.apiUpdate(adjustment).then(
+            InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
               (resp) => {
                 i = i + 1;
                 setTimeout(doSave(i), 2);
@@ -354,54 +334,7 @@ const doSave = (i) => {
             );
           }
         });
-      } else {
-        const targetCopy = new InventoryStockAdjustment(
-          JSON.parse(JSON.stringify(adjustment))
-        );
-        const id = targetCopy.id;
-        InventoryStockAdjustment.localDbGetById(id).then((item) => {
-          if (item !== null && item !== undefined) {
-            targetCopy.syncStatus = 'U';
-            targetCopy.operation_id = targetCopy.operation.id;
-            targetCopy.clinic = clinicService.currClinic();
-            targetCopy.clinic_id = tclinicService.currClinic().id;
-            InventoryStockAdjustment.localDbUpdate(targetCopy).then((resp) => {
-              InventoryStockAdjustment.insert({
-                data: targetCopy,
-              });
-              i = i + 1;
-              setTimeout(doSave(i), 2);
-              alertSucess('info', 'Operação efectuada com sucesso.');
-            });
-          } else {
-            targetCopy.syncStatus = 'R';
-            targetCopy.inventory_id = targetCopy.inventory.id;
-            targetCopy.adjusted_stock_id = targetCopy.adjustedStock.id;
-            targetCopy.operation_id = targetCopy.operation.id;
-            InventoryStockAdjustment.localDbAdd(targetCopy).then((resp) => {
-              InventoryStockAdjustment.insert({
-                data: targetCopy,
-              });
-              i = i + 1;
-              setTimeout(doSave(i), 2);
-              alertSucess('info', 'Operação efectuada com sucesso.');
-            });
-          }
-          if (
-            inventory.value.open &&
-            inventory.value.syncStatus !== 'R' &&
-            inventory.value.syncStatus !== 'U'
-          ) {
-            Inventory.localDbGetById(inventory.value.id).then((item) => {
-              const target = JSON.parse(JSON.stringify(item));
-              target.syncStatus = 'U';
-              Inventory.localDbUpdate(target).then((item) => {
-                Inventory.update({ data: target });
-              });
-            });
-          }
-        });
-      }
+   
     }
   } else {
     step.value = 'display';
