@@ -5,8 +5,10 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import InteroperabilityAttribute from 'src/stores/models/interoperabilityAttribute/InteroperabilityAttribute';
 
 const healthInformationSystem = useRepo(HealthInformationSystem);
+const interoperabilityAttributeRepo = useRepo(InteroperabilityAttribute);
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -31,6 +33,7 @@ export default {
     if (isMobile && !isOnline) {
       this.putMobile(params);
     } else {
+      console.log(uuid, ' ** ', params);
       this.patchWeb(uuid, params);
     }
   },
@@ -66,7 +69,7 @@ export default {
           }
         })
         .catch((error) => {
-          // alertError('Aconteceu um erro inesperado nesta operação.');
+          alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
@@ -74,10 +77,14 @@ export default {
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('healthInformationSystem/' + uuid, params);
+      console.log(resp.data);
+      interoperabilityAttributeRepo
+        .where('healthInformationSystem_id', resp.data.id)
+        .delete();
       healthInformationSystem.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -87,7 +94,7 @@ export default {
       healthInformationSystem.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -101,7 +108,7 @@ export default {
         // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },

@@ -1,4 +1,6 @@
 import SecUser from 'src/stores/models/userLogin/User';
+import ClinicSectorUsers from 'src/stores/models/userLogin/ClinicSectorUsers';
+import SecUserRole from 'src/stores/models/userLogin/SecUserRole';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -7,6 +9,8 @@ import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const secUserRepo = useRepo(SecUser);
+const clinicSectorUsersRepo = useRepo(ClinicSectorUsers);
+const secUserRoleRepo = useRepo(SecUserRole);
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -45,7 +49,6 @@ export default {
   async postWeb(params: string) {
     try {
       const resp = await api().post('secUser', params);
-      console.log(resp.data);
       secUserRepo.save(resp.data);
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
@@ -75,6 +78,10 @@ export default {
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('secUser/' + uuid, params);
+      if (resp.data) {
+        clinicSectorUsersRepo.where('user_id', resp.data.id).delete();
+        secUserRoleRepo.where('user_id', resp.data.id).delete();
+      }
       secUserRepo.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {

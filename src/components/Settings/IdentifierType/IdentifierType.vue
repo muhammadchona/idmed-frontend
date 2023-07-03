@@ -89,6 +89,9 @@
 import { ref, inject, onMounted, computed, provide } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+
+const { alertSucess, alertError } = useSwal();
 
 /*Components import*/
 
@@ -165,6 +168,7 @@ const doSave = () => {
     identifierTypeService
       .post(identifierType.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         showAddEditIdentifierType.value = false;
       })
       .catch((error) => {

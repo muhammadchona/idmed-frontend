@@ -79,7 +79,7 @@ import Menu from './models/userLogin/Menu';
 import RoleMenu from './models/userLogin/RoleMenu';
 import UserRole from './models/userLogin/UserRole';
 import UserClinic from './models/userLogin/UserClinic';
-import UserClinicSector from './models/userLogin/UserClinicSector';
+import UserClinicSector from './models/userLogin/ClinicSectorUsers';
 import SecUserRole from './models/userLogin/SecUserRole';
 import GroupMemberPrescription from './models/group/GroupMemberPrescription';
 import DrugStockFileEvent from './models/drugStockFileEvent/DrugStockFileEvent';

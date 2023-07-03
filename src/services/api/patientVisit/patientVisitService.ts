@@ -178,6 +178,16 @@ export default {
     return await api().get('/patientVisit/getLastVisitOfPatient/' + patientId);
   },
 
+  async getLocalDbPatientVisitsToSync() {
+    return nSQL(PatientVisit.entity)
+      .query('select')
+      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
+      .exec()
+      .then((result) => {
+        return result;
+      });
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisit.getModel().$newInstance();

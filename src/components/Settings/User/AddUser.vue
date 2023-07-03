@@ -4,7 +4,15 @@
       <div class="q-pa-md">
         <div class="row items-center">
           <q-icon name="people" size="sm" />
-          <span class="q-pl-sm text-subtitle2">Cadastrar Utilizador</span>
+          <span v-if="isCreateStep" class="q-pl-sm text-subtitle2"
+            >Cadastrar Utilizador</span
+          >
+          <span v-if="isEditStep" class="q-pl-sm text-subtitle2"
+            >Editar Utilizador</span
+          >
+          <span v-if="onlyView" class="q-pl-sm text-subtitle2"
+            >Dados do Utilizador</span
+          >
         </div>
       </div>
       <q-separator color="grey-13" size="1px" />
@@ -119,7 +127,7 @@
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Perfis"
-                    :rows="selectedRoles"
+                    :rows="rolesForView"
                     :columns="columns"
                     row-key="authority"
                     v-if="onlyView"
@@ -233,20 +241,20 @@
 
 <script setup>
 /*imports*/
-import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
-// import SecUserRole from 'src/stores/models/userLogin/SecUserRole'
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+
+const { alertSucess, alertError } = useSwal();
 
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
 import PhoneField from 'src/components/Shared/Input/PhoneField.vue';
 
 /*Variables*/
-const { alertError } = useSwal();
 const columns = ref([
   {
     name: 'descricao',
@@ -304,17 +312,7 @@ const showUserRegistrationScreen = inject('showUserRegistrationScreen');
 
 /*Hooks*/
 onMounted(() => {
-  if (user.value !== null && user.value !== undefined) {
-    if (user.value.id !== null) {
-      selectedRoles.value = user.value.authorities;
-      selectedClinics.value = user.value.clinics;
-      selectedClinicSectors.value = user.value.clinicSectors;
-    }
-  }
-
-  console.log(userRoles.value);
-  console.log(selectedRoles.value);
-  console.log(selectedClinicSectors.value);
+  loadUserRelations();
 
   extractDatabaseCodes();
   if (configs.value.value === 'LOCAL') {
@@ -330,9 +328,20 @@ const onlyView = computed(() => {
   return viewMode.value;
 });
 
+const rolesForView = computed(() => {
+  const res = ref([]);
+
+  if (onlyView.value && user.value.id !== null) {
+    res.value = user.value.authorities;
+  }
+
+  return res.value;
+});
+
 const userRoles = computed(() => {
   return roleService.getActiveWithMenus();
 });
+
 const clinics = computed(() => {
   return clinicService.getAllClinics();
 });
@@ -343,14 +352,20 @@ const clinicSectors = computed(() => {
   const allClinicSectors = clinicSectorService.getActivebyClinicId(
     currClinic.value.id
   );
-  // const allClinicSectors = ClinicSector.query().with('clinic.province')
-  //             .with('clinic.district.province')
-  //             .with('clinic.facilityType')
-  //             .with('clinicSectorType').has('code').where('active', true).get()
   return onlyView.value ? user.value.clinicSectors : allClinicSectors;
 });
 
 /*Methods*/
+const loadUserRelations = () => {
+  if (user.value !== null && user.value !== undefined) {
+    if (user.value.id !== null) {
+      selectedRoles.value = user.value.authorities;
+      selectedClinics.value = user.value.clinics;
+      selectedClinicSectors.value = user.value.clinicSectors;
+    }
+  }
+};
+
 const goToNextStep = () => {
   if (step.value === 1) {
     // $refs.nome.$refs.ref.validate()
@@ -364,18 +379,13 @@ const goToNextStep = () => {
     // }
   } else if (step.value === 2) {
     if (selectedRoles.value.length <= 0) {
-      alertError(
-        'erro',
-        'Por Favor seleccione pelo menos um Menu para dar Acesso'
-      );
+      alertError('Por Favor seleccione pelo menos um Menu para dar Acesso');
     } else {
       stepper.value.next();
     }
   } else if (step.value === 3) {
-    console.log(selectedClinicSectors.value);
     if (selectedClinicSectors.value.length <= 0) {
       alertError(
-        'error',
         'Por Favor seleccione pelo menos uma Farmácia para dar Acesso'
       );
     } else {
@@ -398,16 +408,14 @@ const goToNextStep = () => {
 const submitUser = () => {
   submitting.value = true;
   selectedRoles.value = JSON.parse(JSON.stringify(selectedRoles.value));
-  const roles = [];
+  const roless = [];
   selectedRoles.value.forEach((role) => {
-    roles.push(role.authority);
+    roless.push(role.authority);
   });
-  selectedClinics.value = JSON.parse(JSON.stringify(selectedClinics.value));
-  selectedClinicSectors.value = JSON.parse(
-    JSON.stringify(selectedClinicSectors.value)
-  );
-  user.value.roles = roles;
+
+  user.value.roles = roless;
   user.value.clinics = selectedClinics.value;
+  user.value.clinics.push(currClinic.value);
   user.value.clinicSectors = selectedClinicSectors.value;
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
@@ -420,7 +428,10 @@ const submitUser = () => {
     userService
       .post(user.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         submitting.value = false;
+        rolesForView.value = user.value.authorities;
+        console.log(rolesForView.value);
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {
@@ -432,6 +443,8 @@ const submitUser = () => {
       .patch(user.value.id, user.value)
       .then((resp) => {
         submitting.value = false;
+        rolesForView.value = user.value.authorities;
+        console.log(rolesForView.value);
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {

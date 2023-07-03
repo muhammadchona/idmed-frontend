@@ -1,7 +1,7 @@
 import { Model } from 'pinia-orm';
 
-export default class UserClinicSectors extends Model {
-  static entity = 'userClinicSectors';
+export default class ClinicSectorUsers extends Model {
+  static entity = 'clinicSectorUsers';
   static primaryKey = ['user_id', 'clinic_sector_id'];
 
   static fields() {

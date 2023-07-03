@@ -6,7 +6,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const secUserRole = useRepo(SecUserRole);
+const secUserRoleRepo = useRepo(SecUserRole);
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -45,8 +45,8 @@ export default {
   async postWeb(params: string) {
     try {
       const resp = await api().post('secUserRole', params);
-      secUserRole.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
+      secUserRoleRepo.save(resp.data);
+      alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -57,7 +57,7 @@ export default {
       return api()
         .get('secUserRole?offset=' + offset + '&max=100')
         .then((resp) => {
-          secUserRole.save(resp.data);
+          secUserRoleRepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
@@ -74,7 +74,7 @@ export default {
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('secUserRole/' + uuid, params);
-      secUserRole.save(resp.data);
+      secUserRoleRepo.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -84,7 +84,7 @@ export default {
   async deleteWeb(uuid: string) {
     try {
       const resp = await api().delete('secUserRole/' + uuid);
-      secUserRole.destroy(uuid);
+      secUserRoleRepo.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -93,12 +93,12 @@ export default {
   },
   // Mobile
   putMobile(params: string) {
-    return nSQL(secUserRole.use?.entity)
+    return nSQL(secUserRoleRepo.use?.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
-        secUserRole.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+        secUserRoleRepo.save(JSON.parse(params));
+        alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -106,11 +106,11 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(secUserRole.use?.entity)
+    return nSQL(secUserRoleRepo.use?.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
-        secUserRole.save(rows);
+        secUserRoleRepo.save(rows);
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -118,12 +118,12 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(secUserRole.use?.entity)
+    return nSQL(secUserRoleRepo.use?.entity)
       .query('delete')
       .where(['id', '=', paramsId])
       .exec()
       .then(() => {
-        secUserRole.destroy(paramsId);
+        secUserRoleRepo.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
@@ -136,9 +136,9 @@ export default {
   },
   // Local Storage Pinia
   newInstanceEntity() {
-    return secUserRole.getModel().$newInstance();
+    return secUserRoleRepo.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return secUserRole.all();
+    return secUserRoleRepo.all();
   },
 };
