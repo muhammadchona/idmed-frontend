@@ -127,7 +127,7 @@
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Perfis"
-                    :rows="selectedRoles"
+                    :rows="rolesForView"
                     :columns="columns"
                     row-key="authority"
                     v-if="onlyView"
@@ -315,15 +315,12 @@ onMounted(() => {
   loadUserRelations();
 
   extractDatabaseCodes();
-  console.log('aaaaaa', configs.value.value);
   if (configs.value.value === 'LOCAL') {
     isProvincial.value = false;
     user.value.clinics[0] = currClinic.value;
-    console.log(isProvincial.value);
   } else {
     isProvincial.value = true;
     selectedClinics.value[0] = currClinic.value;
-    console.log('BBB', isProvincial.value);
   }
 });
 
@@ -331,22 +328,20 @@ const onlyView = computed(() => {
   return viewMode.value;
 });
 
-const userRoles = computed(() => {
-  const allRoles = roleService.getActiveWithMenus();
+const rolesForView = computed(() => {
+  const res = ref([]);
 
-  const rolesForView = ref([]);
-
-  if (onlyView.value && user.value !== null && user.value !== undefined) {
-    console.log(user.value);
-    if (user.value.roles !== null) {
-      user.value.roles.forEach((auth) => {
-        rolesForView.value.push(roleService.getByAuthority(auth));
-      });
-    }
+  if (onlyView.value && user.value.id !== null) {
+    res.value = user.value.authorities;
   }
 
-  return onlyView.value ? rolesForView.value : allRoles;
+  return res.value;
 });
+
+const userRoles = computed(() => {
+  return roleService.getActiveWithMenus();
+});
+
 const clinics = computed(() => {
   return clinicService.getAllClinics();
 });
@@ -413,12 +408,12 @@ const goToNextStep = () => {
 const submitUser = () => {
   submitting.value = true;
   selectedRoles.value = JSON.parse(JSON.stringify(selectedRoles.value));
-  const roles = [];
+  const roless = [];
   selectedRoles.value.forEach((role) => {
-    roles.push(role.authority);
+    roless.push(role.authority);
   });
 
-  user.value.roles = roles;
+  user.value.roles = roless;
   user.value.clinics = selectedClinics.value;
   user.value.clinics.push(currClinic.value);
   user.value.clinicSectors = selectedClinicSectors.value;
@@ -430,11 +425,13 @@ const submitUser = () => {
         }) */
   // if (website) {
   if (isCreateStep.value) {
-    console.log(user.value);
     userService
       .post(user.value)
       .then((resp) => {
         submitting.value = false;
+        loadUserRelations();
+        rolesForView.value = user.value.authorities;
+        console.log(rolesForView.value);
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {
@@ -446,6 +443,8 @@ const submitUser = () => {
       .patch(user.value.id, user.value)
       .then((resp) => {
         submitting.value = false;
+        rolesForView.value = user.value.authorities;
+        console.log(rolesForView.value);
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {

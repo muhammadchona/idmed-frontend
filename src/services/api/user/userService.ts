@@ -49,7 +49,6 @@ export default {
   async postWeb(params: string) {
     try {
       const resp = await api().post('secUser', params);
-      console.log(resp.data);
       secUserRepo.save(resp.data);
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
@@ -79,7 +78,6 @@ export default {
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('secUser/' + uuid, params);
-      console.log(resp.data);
       if (resp.data) {
         clinicSectorUsersRepo.where('user_id', resp.data.id).delete();
         secUserRoleRepo.where('user_id', resp.data.id).delete();
