@@ -98,7 +98,14 @@ export default {
   },
 
   async apiDelete(groupPackHeader: any) {
-    return await api().delete(`/groupPackHeader/${groupPackHeader.id}`);
+    if (isMobile.value) {
+      await nSQL(GroupPackHeader.entity)
+        .query('delete')
+        .where(['id', '=', groupPackHeader.id])
+        .exec();
+    } else {
+      return await api().delete(`/groupPackHeader/${groupPackHeader.id}`);
+    }
   },
   // Local Storage Pinia
   newInstanceEntity() {

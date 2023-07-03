@@ -124,7 +124,7 @@ import patientService from 'src/services/api/patientService/patientService';
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
 
-const { loadSettingParams } = useOnline();
+const { loadSettingParams, loadPatientData } = useOnline();
 
 const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
 
@@ -165,10 +165,16 @@ onMounted(() => {
   } else {
     console.log('IS MOBILE APP ' + website.value);
     if (patientService.getAllFromStorage().length <= 0) {
+      showloading();
       loadSettingParamsToOffline();
-      loadPatientDataToOffline();
+      setTimeout(() => {
+        loadPatientDataToOffline();
+      }, 2000);
+      //  const r = new Promise(r => setTimeout(r, 2000));
     }
   }
+  loadSettingParams();
+  // loadPatientData();
   // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
   // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
   // init();

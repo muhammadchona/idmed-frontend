@@ -795,24 +795,7 @@ const loadGroup = () => {
 };
 
 const lastStartEpisodeWithPrescription = (identifierId) => {
-  let episode = null;
-  const episodes = episodeService.getStartEpisodeByIdentifierId(identifierId);
-  Object.keys(episodes).forEach(function (k) {
-    const id = episodes[k];
-    if (episode === null && useEpisode().hasVisits(id)) {
-      episode = id;
-      /*
-          episode.lastVisit().prescription = Prescription.query()
-                                                          .with('doctor')
-                                                          .with('duration')
-                                                          .with('prescribedDrugs.drug.form')
-                                                          .with('prescriptionDetails')
-                                                          .where('id', episode.lastVisit().prescription.id)
-                                                          .first()
-                                                          */
-    }
-  });
-  return episode;
+  return episodeService.getStartEpisodeByIdentifierId(identifierId);
 };
 
 const determineNextPickUpDate = () => {

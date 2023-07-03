@@ -230,6 +230,7 @@ const getAllGroupsOfClinic = () => {
 
 const search = () => {
   const groups = groupService.getAllGroups();
+  console.log('22' + groups);
   searchResults.value = groups.filter((group) => {
     return (
       stringContains(group.code, curGroup.value.code) ||

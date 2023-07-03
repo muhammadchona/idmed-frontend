@@ -266,7 +266,7 @@ export default {
       })
       .where('patientServiceIdentifier_id', identifierId)
       .orderBy('creationDate', 'desc')
-      .get();
+      .first();
   },
 
   getLastStartEpisodeWithPrescription(patientIdentifierid: string) {
@@ -312,11 +312,13 @@ export default {
   },
 
   async doEpisodesBySectorGet() {
+    console.log('user_sector' + localStorage.getItem('user_clinic_sectors'));
     const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
       localStorage.getItem('user_clinic_sectors')
     );
     this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {
       if (resp.data.length > 0) {
+        console.log('epsiodioSecotr' + resp.data);
         resp.data.forEach(async (item: any) => {
           this.putMobile(item);
           console.log(item);

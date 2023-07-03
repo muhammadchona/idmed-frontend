@@ -1,6 +1,8 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
 import StartStopReason from 'src/stores/models/startStopReason/StartStopReason';
+import { useRepo } from 'pinia-orm';
+const startStopReason = useRepo(StartStopReason);
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -9,6 +11,7 @@ export default {
         .get('startStopReason?offset=' + offset + '&max=100')
         .then((resp) => {
           nSQL(StartStopReason.entity).query('upsert', resp.data).exec();
+          startStopReason.save(resp.data);
           console.log('Data synced from backend: StartStopReason');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -4,6 +4,7 @@ import Group from 'src/stores/models/group/Group';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import groupMemberService from '../groupMember/groupMemberService';
 
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const { alertSucess, alertError, alertInfo } = useSwal();
@@ -57,12 +58,31 @@ export default {
       });
   },
   async apiFetchById(id: string) {
-    return await api()
-      .get(`/groupInfo/${id}`)
-      .then((resp) => {
-        group.save(resp.data);
-        return resp;
-      });
+    if (isMobile.value) {
+      return nSQL(Group.entity)
+        .query('select')
+        .where(['id', '=', id])
+        .exec()
+        .then((rows) => {
+          group.save(rows);
+        });
+    } else {
+      return await api()
+        .get(`/groupInfo/${id}`)
+        .then((resp) => {
+          group.save(resp.data);
+          return resp;
+        });
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('/groupInfo', params);
+      group.save(resp.data);
+    } catch (error: any) {
+      console.log(error);
+    }
   },
 
   async apiSave(groupInfo: any) {
@@ -73,8 +93,7 @@ export default {
       console.log('criacaoGrupo' + groupInfo);
       group.save(groupInfo);
     } else {
-      resp = await api().post('/groupInfo', groupInfo);
-      group.save(resp.data);
+      this.postWeb(groupInfo);
     }
     return resp;
   },
@@ -84,7 +103,7 @@ export default {
       if (groupInfo.syncStatus !== 'R') groupInfo.syncStatus = 'U';
       const resp = await nSQL('groups').query('upsert', groupInfo).exec();
       console.log('edicaoGrupo' + groupInfo);
-      group.save(resp);
+      group.save(groupInfo);
     } else {
       return await api()
         .patch('/groupInfo/' + groupInfo.id, groupInfo)
@@ -118,7 +137,9 @@ export default {
         .exec()
         .then((result) => {
           console.log('groupsss' + result);
+          console.log(groupMemberService.getAllFromStorage());
           group.save(result);
+          console.log(groupMemberService.getAllFromStorage());
         });
     } else {
       return await api()
@@ -126,6 +147,7 @@ export default {
           '/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
         )
         .then((resp) => {
+          console.log('groupsss555' + resp.data);
           group.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
@@ -148,11 +170,12 @@ export default {
       });
   },
   getAllGroups() {
-    console.log(group.query().with('groupType').with('service').get());
+    console.log('111' + group.query().with('groupType').with('service').get());
     return group.query().with('groupType').with('service').get();
   },
 
   getGroupById(groupId: string) {
+    console.log(group.withAllRecursive(3).where('id', groupId).first());
     return group.withAllRecursive(3).where('id', groupId).first();
   },
 

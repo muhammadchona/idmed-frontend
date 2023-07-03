@@ -1,6 +1,9 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
 import HealthInformationSystem from 'src/stores/models/healthInformationSystem/HealthInformationSystem';
+import { useRepo } from 'pinia-orm';
+
+const healthInformationSystem = useRepo(HealthInformationSystem);
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -11,6 +14,7 @@ export default {
           nSQL(HealthInformationSystem.entity)
             .query('upsert', resp.data)
             .exec();
+          healthInformationSystem.save(resp.data);
           console.log('Data synced from backend: HealthInformationSystem');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -293,7 +293,7 @@ const submitting = ref(false);
 const notice = ref(true);
 
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const website = computed(() => (isWebScreen.value ? true : false));
+const website = computed(() => (isWebScreen.value ? false : false));
 /*
 Hook
 */
@@ -315,7 +315,7 @@ onMounted(() => {
 Computed
 */
 const configs = computed(() => {
-  return systemConfigsService.getActiveDataMigration();
+  return systemConfigsService.getInstallationType();
 });
 const provinces = computed(() => {
   return provinceService.apiGetAllWithDistricts();
@@ -324,7 +324,14 @@ const districts = computed(() => {
   return districtService.getAllDistrictByProvinceId(province.value.id);
 });
 const clinics = computed(() => {
-  return clinicService.getClinicsByDistrictId(district.value.id);
+  if (district.value.id) {
+    showloading();
+    clinicService.getAllClinicsByDistrictId(district.value.id);
+    closeLoading();
+    return clinicService.getClinicsByDistrictId(district.value.id);
+    // closeLoading()
+  }
+  return null;
 });
 
 /*
@@ -359,7 +366,9 @@ const authUser = () => {
   passwordRef.value.validate();
   if (!passwordRef.value.hasError && !usernameRef.value.hasError) {
     submitting.value = true;
-    if (website.value) {
+    console.log('111 >>>>>>>>', website.value);
+    if (!website.value) {
+      console.log('0000 >>>>>>>>', website.value);
       loginOnline(encodedStringBtoA);
     }
   }
@@ -375,6 +384,7 @@ const loginOnline = (encodedStringBtoA) => {
       const localuser = UsersService.getUserByUserName(username.value);
       console.log('Login >>>>>>>>', response);
       console.log('Login >>>>>>>>', localuser);
+      console.log('Login >>>>>>>>', localuser.userClinicSectors);
 
       localStorage.setItem('id_token', localuser.access_token);
       localStorage.setItem('refresh_token', localuser.refresh_token);

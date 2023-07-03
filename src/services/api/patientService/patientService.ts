@@ -106,16 +106,7 @@ export default {
   async getMobile() {
     try {
       const rows = await nSQL(Patient.entity).query('select').exec();
-      if (rows.length === 0) {
-        api()
-          .get('patient?offset=0&max=400')
-          .then((resp) => {
-            console.log(resp);
-            this.putMobile(resp.data);
-          });
-      } else {
-        patient.save(rows);
-      }
+      patient.save(rows);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -136,7 +127,7 @@ export default {
   },
   async apiFetchById(id: string) {
     if (isMobile.value && !isOnline.value) {
-      return nSQL(patient.use?.entity)
+      return nSQL(Patient.entity)
         .query('select')
         .where(['id', '=', id])
         .exec()
@@ -242,9 +233,19 @@ export default {
     const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
       localStorage.getItem('user_clinic_sectors')
     );
+    if (clinicSectorUser === null || clinicSectorUser === undefined) {
+      alertError(
+        'O Utilizador Logado nao pertence a nenhum sector Clinico , Nao tera Informacao carregada do Servidor'
+      );
+    }
+    console.log(
+      'sectorLocalStorage' + localStorage.getItem('user_clinic_sectors')
+    );
     console.log('sector' + clinicSectorUser);
     console.log('sectorId' + clinicSectorUser.id);
     const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
+    console.log('PacientesSector' + resp.data);
+    alertSucess(resp.data);
     this.putMobile(resp.data);
     return resp;
   },

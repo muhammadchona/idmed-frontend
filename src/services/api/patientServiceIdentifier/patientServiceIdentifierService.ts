@@ -97,7 +97,7 @@ export default {
   // Mobile
   async putMobile(params: string) {
     try {
-      await nSQL(patientServiceIdentifier.use?.entity)
+      await nSQL(PatientServiceIdentifier.entity)
         .query('upsert', params)
         .exec();
       patientServiceIdentifier.save(JSON.parse(params));
@@ -109,7 +109,7 @@ export default {
   },
   async getMobile() {
     try {
-      const rows = await nSQL(PatientServiceIdentifier.value)
+      const rows = await nSQL(PatientServiceIdentifier.entity)
         .query('select')
         .exec();
       patientServiceIdentifier.save(rows);
@@ -120,7 +120,7 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(PatientServiceIdentifier.value)
+      await nSQL(PatientServiceIdentifier.entity)
         .query('delete')
         .where(['id', '=', paramsId])
         .exec();

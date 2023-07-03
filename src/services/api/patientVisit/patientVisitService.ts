@@ -112,7 +112,20 @@ export default {
             this.putMobile(resp.data);
           });
       } else {
-        patientVisit.save(rows);
+        rows.forEach((row) => {
+          //   console.log(row);
+          //   row.patientVisitDetails = [];
+          row.patientVisitDetails.forEach((rowDetails) => {
+            // rowDetails.episode = null;
+            // rowDetails.pack = null;
+            // rowDetails.prescription = null;
+            // rowDetails.clinic = null;
+            rowDetails.patientVisit = null;
+          });
+          console.log(row);
+          patientVisit.save(row);
+        });
+        //  patientVisit.save(rows);
       }
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');

@@ -615,63 +615,63 @@ const doSave = async () => {
       member.clinic_id = groupToSend.clinic.id;
       member.clinic.id = clinic.value.id;
       member.group.id = groupToSend.id;
-      // member.syncStatus = 'R';
-      if (isCreateStep.value) {
-        console.log(groupToSend);
-        groupService
-          .apiSave(groupToSend)
-          .then((resp) => {
-            submitting.value = false;
-            loadMembersData();
-            alertSucess('Operação efectuada com sucesso.');
-            SessionStorage.set('selectedGroupId', curGroup.value.id);
-            router.push('/group/panel');
-          })
-          .catch((error) => {
-            submitting.value = false;
-            const listErrors = [];
-            console.log(error);
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response);
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message);
-              } else {
-                arrayErrors._embedded.errors.forEach((element) => {
-                  listErrors.push(element.message);
-                });
-              }
-            }
-            alertError('error', listErrors);
-          });
-      } else {
-        console.log(groupToSend);
-        groupService
-          .apiUpdate(groupToSend)
-          .then((resp) => {
-            submitting.value = false;
-            loadMembersData();
-            alertSucess('Operação efectuada com sucesso.');
-            emit('close');
-            SessionStorage.set('selectedGroupId', curGroup.value.id);
-          })
-          .catch((error) => {
-            submitting.value = false;
-            const listErrors = [];
-            console.log(error);
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response);
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message);
-              } else {
-                arrayErrors._embedded.errors.forEach((element) => {
-                  listErrors.push(element.message);
-                });
-              }
-            }
-            alertError('error', listErrors);
-          });
-      }
+      member.syncStatus = 'R';
     });
+    if (isCreateStep.value) {
+      console.log(groupToSend);
+      groupService
+        .apiSave(groupToSend)
+        .then((resp) => {
+          submitting.value = false;
+          loadMembersData();
+          alertSucess('Operação efectuada com sucesso.');
+          SessionStorage.set('selectedGroupId', curGroup.value.id);
+          router.push('/group/panel');
+        })
+        .catch((error) => {
+          submitting.value = false;
+          const listErrors = [];
+          console.log(error);
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+          }
+          alertError('error', listErrors);
+        });
+    } else {
+      console.log(groupToSend);
+      groupService
+        .apiUpdate(groupToSend)
+        .then((resp) => {
+          submitting.value = false;
+          loadMembersData();
+          alertSucess('Operação efectuada com sucesso.');
+          emit('close');
+          SessionStorage.set('selectedGroupId', curGroup.value.id);
+        })
+        .catch((error) => {
+          submitting.value = false;
+          const listErrors = [];
+          console.log(error);
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+          }
+          alertError('error', listErrors);
+        });
+    }
   } else {
     submitting.value = false;
   }

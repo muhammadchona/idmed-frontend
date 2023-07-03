@@ -34,11 +34,14 @@ import NanospetialPrescriptionMotiveService from 'src/services/Synchronization/s
 import NanostartStopReasonService from 'src/services/Synchronization/startStopReasonService/NanostartStopReasonService';
 import NanotherapeuticLineService from 'src/services/Synchronization/therapeuticLineService/NanotherapeuticLineService';
 import NanotherapeuticRegimenService from 'src/services/Synchronization/therapeuticRegimenService/NanotherapeuticRegimenService';
+import episodeService from 'src/services/api/episode/episodeService';
+import patientService from 'src/services/api/patientService/patientService';
 
 export function useOffline() {
-  function loadSettingParamsToOffline() {
+  async function loadSettingParamsToOffline() {
+    await NanoclinicSectorTypeService.getFromBackEnd(0);
+    await NanoclinicSectorService.getFromBackEnd(0);
     NanoclinicalServiceService.getFromBackEnd(0);
-    NanoclinicSectorService.getFromBackEnd(0);
     NanoclinicalServiceAttributeService.getFromBackEnd(0);
     NanoidentifierTypeService.getFromBackEnd(0);
     NanoepisodeTypeService.getFromBackEnd(0);
@@ -56,7 +59,7 @@ export function useOffline() {
     NanohealthInformationSystemService.getFromBackEnd(0);
     // NanostockCenterService.getFromBackEnd(0);
     NanofacilityTypeService.getFromBackEnd(0);
-    NanoclinicSectorTypeService.getFromBackEnd(0);
+
     NanoPatientTransReferenceTypeService.getFromBackEnd(0);
     NanospetialPrescriptionMotiveService.getFromBackEnd(0);
     NanoprovincialServerService.getFromBackEnd(0);
@@ -71,7 +74,8 @@ export function useOffline() {
     // NanoStockCenterService.getFromBackEnd(0);
   }
 
-  function loadPatientDataToOffline() {
+  async function loadPatientDataToOffline() {
+    /*
     NanopatientService.getFromBackEnd(0);
     NanopatientAttributeService.getFromBackEnd(0);
     NanopatientServiceIdentifierService.getFromBackEnd(0);
@@ -83,6 +87,9 @@ export function useOffline() {
     NanoprescriptionDetailsService.getFromBackEnd(0);
     NanopackagedDrugService.getFromBackEnd(0);
     NanoprescribedDrugService.getFromBackEnd(0);
+    */
+    await patientService.doPatientsBySectorGet();
+    await episodeService.doEpisodesBySectorGet();
   }
 
   return { loadSettingParamsToOffline, loadPatientDataToOffline };
