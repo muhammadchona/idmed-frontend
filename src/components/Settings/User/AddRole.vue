@@ -90,7 +90,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import nameInput from 'src/components/Shared/NameInput.vue';
 
 /*Variables*/
-const { alertError } = useSwal();
+const { alertSucess, alertError } = useSwal();
 const step = ref(1);
 const columns = [
   {
@@ -174,6 +174,7 @@ const submitUser = () => {
     roleService
       .post(role.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         submitting.value = false;
         showRoleRegistrationScreen.value = false;
       })

@@ -138,6 +138,9 @@
 import { ref, inject, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+
+const { alertSucess, alertError } = useSwal();
 
 /*Declarations*/
 const submitting = ref(false);
@@ -224,6 +227,7 @@ const submitDoctor = () => {
     doctorService
       .post(doctor.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         submitting.value = false;
         showDoctorRegistrationScreen.value = false;
       })

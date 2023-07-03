@@ -241,20 +241,20 @@
 
 <script setup>
 /*imports*/
-import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
-// import SecUserRole from 'src/stores/models/userLogin/SecUserRole'
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+
+const { alertSucess, alertError } = useSwal();
 
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
 import PhoneField from 'src/components/Shared/Input/PhoneField.vue';
 
 /*Variables*/
-const { alertError } = useSwal();
 const columns = ref([
   {
     name: 'descricao',
@@ -428,8 +428,8 @@ const submitUser = () => {
     userService
       .post(user.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         submitting.value = false;
-        loadUserRelations();
         rolesForView.value = user.value.authorities;
         console.log(rolesForView.value);
         showUserRegistrationScreen.value = false;
