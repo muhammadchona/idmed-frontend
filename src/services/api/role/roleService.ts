@@ -1,12 +1,14 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Role from 'src/stores/models/userLogin/Role';
+import RoleMenu from 'src/stores/models/userLogin/RoleMenu';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const role = useRepo(Role);
+const roleMenuRepo = useRepo(RoleMenu);
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -74,6 +76,10 @@ export default {
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('role/' + uuid, params);
+      console.log(resp.data);
+      if (resp.data) {
+        roleMenuRepo.where('role_id', resp.data.id).delete();
+      }
       role.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
@@ -150,6 +156,9 @@ export default {
   },
   getActiveWithMenus() {
     return role.query().with('menus').where('active', true).get();
+  },
+  getByAuthority(auth: any) {
+    return role.query().where('authority', auth).first();
   },
   getAllWithMenus() {
     return role.query().with('menus').get();

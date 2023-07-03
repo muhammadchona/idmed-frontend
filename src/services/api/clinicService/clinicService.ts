@@ -181,7 +181,11 @@ export default {
 
   /*PINIA*/
   currClinic() {
-    return clinic.withAllRecursive(2).where('mainClinic', true).first();
+    return  clinic.withAllRecursive(2).where('mainClinic', true).first();
+  },
+
+  savePinia(clin: any) {
+    clinic.save(clin)
   },
   getAllClinics() {
     return clinic

@@ -17,7 +17,7 @@
               ref="nomeRef"
               square
               v-model="role.name"
-              :rules="[(val) => codeRules(val)]"
+              :rules="[(val) => nameRules(val)]"
               lazy-rules
               :disable="onlyView"
               class="col fild-radius"
@@ -31,11 +31,7 @@
               ref="descriptionRef"
               square
               v-model="role.description"
-              :rules="[
-                (val) =>
-                  val.length >= 3 ||
-                  'A descrição indicado deve ter no mínimo 3 caracteres',
-              ]"
+              :rules="[(val) => descriptionRules(val)]"
               lazy-rules
               :disable="onlyView"
               class="col fild-radius"
@@ -94,7 +90,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import nameInput from 'src/components/Shared/NameInput.vue';
 
 /*Variables*/
-const { alertError } = useSwal();
+const { alertSucess, alertError } = useSwal();
 const step = ref(1);
 const columns = [
   {
@@ -120,19 +116,13 @@ const columns1 = [
   },
 ];
 const databaseCodes = ref([]);
+const databaseDescriptions = ref([]);
 const submitting = ref(false);
-const userRole = ref('');
-const clinico = ref('');
-const isPwd = ref(true);
 const nomeRef = ref(null);
 const descriptionRef = ref(null);
 
 /*Injects*/
-const createMode = inject('createMode');
-const editMode = inject('editMode');
 const viewMode = inject('viewMode');
-const stepp = inject('step');
-const his = inject('selectedHis');
 const isCreateStep = inject('isCreateStep');
 const showRoleRegistrationScreen = inject('showRoleRegistrationScreen');
 const role = inject('selectedRole');
@@ -159,6 +149,7 @@ onMounted(() => {
 const extractDatabaseCodes = () => {
   userRoles.value.forEach((element) => {
     databaseCodes.value.push(element.name);
+    databaseDescriptions.value.push(element.description);
   });
 };
 
@@ -183,6 +174,7 @@ const submitUser = () => {
     roleService
       .post(role.value)
       .then((resp) => {
+        alertSucess('O Registo foi efectuado com sucesso');
         submitting.value = false;
         showRoleRegistrationScreen.value = false;
       })
@@ -204,9 +196,9 @@ const submitUser = () => {
   }
 };
 
-const codeRules = (val) => {
+const nameRules = (val) => {
   if (val === '') {
-    return 'o Código é obrigatorio';
+    return 'O nome é obrigatorio';
   } else if (val.length < 3) {
     return 'O nome indicado deve ter no mínimo 3 caracteres';
   } else if (
@@ -217,7 +209,27 @@ const codeRules = (val) => {
       userRoles.value.filter((x) => x.name === val)[0].id !== role.value.id &&
       isEditStep.value)
   ) {
-    return !databaseCodes.value.includes(val) || 'o Código indicado já existe';
+    return !databaseCodes.value.includes(val) || 'o nome indicado já existe';
+  }
+};
+const descriptionRules = (val) => {
+  if (val.length < 3) {
+    console.log(val);
+    console.log(databaseDescriptions.value);
+    return 'A descricao indicada deve ter no mínimo 3 caracteres';
+  } else if (
+    (databaseDescriptions.value.includes(val) &&
+      selectedRole.value.id === role.value.id &&
+      !isEditStep.value) ||
+    (databaseDescriptions.value.includes(val) &&
+      userRoles.value.filter((x) => x.description === val)[0].id !==
+        role.value.id &&
+      isEditStep.value)
+  ) {
+    return (
+      !databaseDescriptions.value.includes(val) ||
+      'A descricao indicada já existe'
+    );
   }
 };
 </script>

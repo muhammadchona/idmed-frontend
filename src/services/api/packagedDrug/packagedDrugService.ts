@@ -117,6 +117,21 @@ export default {
         console.log(error);
       });
   },
+  getAllByPackIdMobile(packId: any) {
+    return nSQL(PackagedDrug.entity)
+      .query('select') .where(['pack_id', '=', packId])
+      .exec()
+      .then((rows: any) => {
+        return rows
+        //console.log(rows);
+        // packagedDrug.save(rows);
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+
   deleteMobile(paramsId: string) {
     return nSQL(PackagedDrug.entity)
       .query('delete')

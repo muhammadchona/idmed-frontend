@@ -32,6 +32,8 @@ import NanoprovinceService from 'src/services/Synchronization/provinceService/Na
 import NanoprovincialServerService from 'src/services/Synchronization/provincialServerService/NanoprovincialServerService';
 import NanospetialPrescriptionMotiveService from 'src/services/Synchronization/spetialPrescriptionMotive/NanospetialPrescriptionMotiveService';
 import NanostartStopReasonService from 'src/services/Synchronization/startStopReasonService/NanostartStopReasonService';
+import NanoStockCenterService from 'src/services/Synchronization/stockCenter/NanoStockCenterService';
+import NanoStockOperationTypeService from 'src/services/Synchronization/stockOperationType/NanoStockOperationTypeService';
 import NanotherapeuticLineService from 'src/services/Synchronization/therapeuticLineService/NanotherapeuticLineService';
 import NanotherapeuticRegimenService from 'src/services/Synchronization/therapeuticRegimenService/NanotherapeuticRegimenService';
 import episodeService from 'src/services/api/episode/episodeService';
@@ -49,7 +51,6 @@ export function useOffline() {
     NanostartStopReasonService.getFromBackEnd(0);
     NanoclinicalServiceAttributeService.getFromBackEnd(0);
     NanodurationService.getFromBackEnd(0);
-    NanodrugService.getFromBackEnd(0);
     NanotherapeuticRegimenService.getFromBackEnd(0);
     NanotherapeuticLineService.getFromBackEnd(0);
     NanoformService.getFromBackEnd(0);
@@ -57,7 +58,6 @@ export function useOffline() {
     NanoInteroperabilityTypeService.getFromBackEnd(0);
     NanoInteroperabilityAttributeService.getFromBackEnd(0);
     NanohealthInformationSystemService.getFromBackEnd(0);
-    // NanostockCenterService.getFromBackEnd(0);
     NanofacilityTypeService.getFromBackEnd(0);
 
     NanoPatientTransReferenceTypeService.getFromBackEnd(0);
@@ -69,9 +69,8 @@ export function useOffline() {
     NanoprovinceService.getFromBackEnd(0);
     NanodistrictService.getFromBackEnd(0);
     NanoclinicService.getFromBackEnd(0);
-    // NanostockService.getFromBackEnd(0);
-    // NanoStockEntranceService.getFromBackEnd(0);
-    // NanoStockCenterService.getFromBackEnd(0);
+    NanoStockCenterService.getFromBackEnd(0);
+    NanoStockOperationTypeService.getFromBackEnd(0);
   }
 
   async function loadPatientDataToOffline() {

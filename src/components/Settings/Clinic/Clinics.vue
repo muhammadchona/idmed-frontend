@@ -39,6 +39,9 @@
             <q-td key="clinicName" :props="props">
               {{ props.row.clinicName }}
             </q-td>
+            <q-td key="facilityType" :props="props">
+              {{ props.row.facilityType.description }}
+            </q-td>
             <q-td key="code" :props="props">
               {{ props.row.code }}
             </q-td>
@@ -124,6 +127,15 @@ const columns = [
     label: 'Nome',
     align: 'left',
     field: (row) => row.clinicName,
+    format: (val) => `${val}`,
+    sortable: true,
+  },
+  {
+    name: 'facilityType',
+    required: true,
+    label: 'Tipo de Farmácia',
+    align: 'left',
+    field: (row) => row.facilityType.description,
     format: (val) => `${val}`,
     sortable: true,
   },

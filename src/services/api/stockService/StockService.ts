@@ -4,45 +4,46 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import moment from 'moment';
+import { nSQL } from 'nano-sql';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { v4 as uuidv4 } from 'uuid';
+
+
+const { isMobile, isOnline } = useSystemUtils();
 
 const stock = useRepo(Stock);
-const { alertSucess, alertError } = useSwal();
 
 export default {
   // Axios API call
   post(params: any) {
-    return api()
-      .post('stock', params)
-      .then((resp) => {
-        stock.save(resp.data);
-      })
+    if (isMobile.value) {
+     return this.putMobile(params);
+    } else {
+     return this.postWeb(params);
+    }
   },
   get(offset: number) {
-    if (offset >= 0) {
-      return api()
-        .get('stock?offset=' + offset + '&max=100')
-        .then((resp) => {
-          stock.save(resp.data);
-          offset = offset + 100;
-          if (resp.data.length > 0) {
-            this.get(offset);
-          }
-        })
-      }
-  },
+
+    if (isMobile.value) {
+     return this.getMobile();
+    } else {
+      return this.getWeb(offset);
+    }
+   },
   patch(id: string, params: any) {
-    return api()
-      .patch('stock/' + id, params)
-      .then((resp) => {
-        stock.save(resp.data);
-      })
-  },
-  delete(id: string) {
-    return api()
-      .delete('stock/' + id)
-      .then(() => {
-        stock.destroy(id);
-      })
+    if (isMobile.value) {
+      return this.putMobile(params);
+    } else {
+      return this.apiUpdateWeb(id, params);
+    }
+     },
+
+  async delete(id: string) {
+    if (isMobile.value ) {
+      return this.deleteMobile(id);
+    } else {
+     return  this.deleteWeb(id);
+    }
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -58,11 +59,13 @@ export default {
 
    async apiUpdate (stock: any) {
     return api().patch('/stock/' + stock.id, stock)
-  }
-,
+  },
+
    async apiGetAll (offset: number, max: number) {
     return  api().get('/stock?offset=' + offset + '&max=' + max)
   },
+
+  // PINIA
   getStockByDrug(drugId: string) {
     return stock.where('drug_id', drugId).
     orderBy('expireDate', 'desc').
@@ -110,5 +113,82 @@ export default {
               .with('center')
                       .where('id', id)
                       .first();
-  }
+  },
+  // Web
+  postWeb(params: string) {
+    return api()
+    .post('stock', params)
+    .then((resp) => {
+      stock.save(resp.data);
+      return resp.data
+    })
+  },
+  
+  getWeb(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('stock?offset=' + offset + '&max=100')
+        .then((resp) => {
+          stock.save(resp.data);
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.get(offset);
+          }
+        })
+    }
+  },
+  
+  apiUpdateWeb(id: any, params: any) {
+    return api()
+      .patch('stock/' + id, params)
+      .then((resp) => {
+        stock.save(resp.data);
+      })
+  },
+  
+  deleteWeb(id: any) {
+    return api()
+        .delete('stock/' + id)
+        .then(() => {
+          stock.destroy(id);
+        })
+  },
+
+  //Mobile
+async putMobile (params: any) {
+     const resp = await nSQL('stocks').query('upsert',
+     JSON.parse( JSON.stringify(params))
+    ).exec()
+    stock.save(params);
+    return resp
+  },
+
+   getMobile () {
+   return nSQL().onConnected(() => {
+     nSQL('stocks').query('select').exec().then(result => {
+      console.log(result)
+      stock.save(result)
+       return result
+      })
+    })
+  },
+
+   getBystockMobile (stock: any) {
+   return nSQL().onConnected(() => {
+    nSQL('stocks').query('select').where(['stocks[id]', '=', stock.id]).exec().then(result => {
+      console.log(result)
+      stock.save(result)
+    })
+  })
+},
+
+async deleteMobile (id: any) {
+   const resp = await  nSQL('stocks').query('delete').where(['id', '=', id]).exec()
+  stock.destroy(id)
+  return resp
+},
+
+
+
+
 };

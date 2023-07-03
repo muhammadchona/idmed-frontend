@@ -163,6 +163,7 @@ onMounted(() => {
     showloading();
     loadSettingParams();
   } else {
+    loadPatientData();
     console.log('IS MOBILE APP ' + website.value);
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
@@ -172,6 +173,10 @@ onMounted(() => {
       }, 2000);
       //  const r = new Promise(r => setTimeout(r, 2000));
     }
+    /*if (patientService.getAllFromStorage().length <= 0) {
+      loadSettingParamsToOffline();
+      loadPatientDataToOffline();
+    }*/
   }
   loadSettingParams();
   // loadPatientData();

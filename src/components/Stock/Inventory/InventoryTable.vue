@@ -84,7 +84,6 @@
 <script setup>
 import Inventory from '../../../stores/models/stockinventory/Inventory';
 import { ref, onMounted, computed } from 'vue';
-import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
 import { useMediaQuery } from '@vueuse/core';
@@ -127,20 +126,6 @@ const filter = ref('');
 
 const openFile = (inventory) => {
   showloading()
-  if (mobile.value) {
-    // Inserir no VueX inventory e InvstockAdj
-    Inventory.deleteAll();
-    Inventory.localDbGetAll().then((item) => {
-      Inventory.insert({
-        data: item,
-      });
-    });
-    InventoryStockAdjustment.deleteAll();
-    InventoryStockAdjustment.insert({
-      data: inventory.adjustments,
-    });
-  }
-
   localStorage.setItem('currInventory', inventory.id);
   router.push('/stock/inventory');
   closeLoading()

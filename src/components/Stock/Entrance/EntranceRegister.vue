@@ -68,6 +68,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { computed, reactive, provide, ref, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { v4 as uuidv4 } from 'uuid';
 
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const mobile = computed(() => (isWebScreen.value ? false : true));
@@ -99,12 +100,10 @@ const submitForm = () => {
     orderNumberRef.value.validate();
     if (!orderNumberRef.value.hasError) {
       showloading();
-      if (!mobile.value) {
-        stockEntrance.clinic = currClinic;
-        stockEntrance.id = null;
+        stockEntrance.clinic = null;
+        stockEntrance.id = uuidv4();
         StockEntranceService.post(stockEntrance)
           .then((resp) => {
-            stockEntrance = resp;
             localStorage.setItem(
               'currStockEntrance',
               JSON.stringify(stockEntrance)
@@ -113,31 +112,13 @@ const submitForm = () => {
             router.push('/stock/entrance');
             //$emit('close')
           })
-          .catch((error) => {
+         .catch((error) => {
             console.log('ERRO: ', error);
             closeLoading();
             alertError(
               'Ocorreu um erro inesperado, contacte o administrador!'
             );
           });
-      } else {
-        stockEntrance.clinic = currClinic;
-        stockEntrance.syncStatus = 'R';
-        const targetCopy = new StockEntrance(
-          JSON.parse(JSON.stringify(this.stockEntrance))
-        );
-       /* StockEntranceMethod.localDbAdd(targetCopy)
-          .then((item) => {
-            SessionStorage.set('currStockEntrance', targetCopy);
-            closeLoading();
-            router.push('/stock/entrance');
-            $emit('close');
-          })
-          .catch((error) => {
-           console.log(error)
-           alertError( 'Ocorreu um erro inesperado!');
-          }); */
-      }
     }
   }
 };

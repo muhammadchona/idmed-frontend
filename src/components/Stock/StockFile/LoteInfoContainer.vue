@@ -205,16 +205,14 @@
 import { date } from 'quasar';
 import Stock from '../../../stores/models/stock/Stock';
 import { StockDestructionAdjustment } from '../../../stores/models/stockadjustment/StockDestructionAdjustment';
-import StockOperationType from '../../../stores/models/stockoperation/StockOperationType';
 import DestroyedStock from '../../../stores/models/stockdestruction/DestroyedStock';
 import { onMounted, ref, computed, provide } from 'vue';
 import { StockReferenceAdjustment } from '../../../stores/models/stockadjustment/StockReferenceAdjustment';
 import ReferedStockMoviment from '../../../stores/models/stockrefered/ReferedStockMoviment';
-import db from 'src/stores/localbase';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
-import StockService from 'src/services/api/stockService/StockService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useMediaQuery } from '@vueuse/core';
+import StockService from 'src/services/api/stockService/StockService';
 // components
 
 import ListHeader from 'components/Stock/StockFile/StockFileListHeader.vue';
@@ -265,6 +263,7 @@ const props = defineProps(['stockInfo', 'batchS']);
 const dateUtils = useDateUtils();
 const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const mobile = computed(() => (isWebScreen.value ? false : true));
+
 
 const stockExpiteStatus = ref('');
 const drugEventList = ref([]);
@@ -347,7 +346,7 @@ const saveAjustment = () => {
     adjustment.adjustedStock.clinic = clinic;
     if (isPosetiveAdjustment.value) {
       adjustment.adjustedStock.stockMoviment = Number(
-        adjustment.adjustedStock.stockMoviment + adjustment.adjustedValue
+        adjustment.adjustedStock.stockMoviment) + Number(adjustment.adjustedValue
       );
     } else {
       adjustment.adjustedStock.stockMoviment = Number(
@@ -356,11 +355,7 @@ const saveAjustment = () => {
     }
     adjustment.balance = adjustment.adjustedStock.stockMoviment;
     curEvent.value.balance = adjustment.balance;
-    if (mobile.value) {
-      drugEventList.value.shift();
-    } else {
-      doSave(reference, destruction);
-    }
+    doSave(reference, destruction);
   }
 };
 
@@ -434,18 +429,26 @@ const determineValidade = () => {
 };
 
 const generateDrugBatchEventSummary = () => {
-  drugFileService
-    .apiGetDrugBatchSummary(clinicService.currClinic().id, stock.value.id)
-    .then((resp) => {
-      //  console.log(resp.data);
-      const t = resp.data;
-      /* t.sort((a, b) => {
+
+const clinic =   clinicService.currClinic()
+  if (mobile.value) {
+    drugFileService.getDrugFileSummaryBatch(stock.value.id).then(resp => {
+        drugEventList.value = resp
+      })
+  
+    } else {
+      drugFileService.apiGetDrugBatchSummary(clinic.id, stock.value.id).then(resp => {
+        console.log(resp.data)
+        const t = resp.data
+        /* t.sort((a, b) => {
           const d1 = new Date(a.eventDate)
           const d2 = new Date(b.eventDate)
           return d2 - d1
         }) */
-      drugEventList.value = t;
-    });
+        drugEventList.value = t
+      })
+     
+    }
 };
 
 const stock = computed(() => {

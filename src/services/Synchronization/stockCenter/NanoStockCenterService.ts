@@ -1,21 +1,15 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
-import clinicService from 'src/services/api/clinicService/clinicService';
-import Clinic from 'src/stores/models/clinic/Clinic';
-import { useRepo } from 'pinia-orm';
-
-const clinic = useRepo(Clinic);
+import StockCenter from 'src/stores/models/stockcenter/StockCenter';
 
 export default {
   async getFromBackEnd(offset: number) {
     if (offset >= 0) {
       return await api()
-        .get('clinic?offset=' + offset + '&max=100')
+        .get('stockCenter?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(Clinic.entity).query('upsert', resp.data).exec();
-          clinic.save(resp.data);
-          console.log('Data synced from backend: Clinic');
-          clinicService.savePinia(resp.data)
+          nSQL(StockCenter.entity).query('upsert', resp.data).exec();
+          console.log('Data synced from backend: StockCenter');
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getFromBackEnd(offset);
