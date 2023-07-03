@@ -116,19 +116,13 @@ const columns1 = [
   },
 ];
 const databaseCodes = ref([]);
+const databaseDescriptions = ref([]);
 const submitting = ref(false);
-const userRole = ref('');
-const clinico = ref('');
-const isPwd = ref(true);
 const nomeRef = ref(null);
 const descriptionRef = ref(null);
 
 /*Injects*/
-const createMode = inject('createMode');
-const editMode = inject('editMode');
 const viewMode = inject('viewMode');
-const stepp = inject('step');
-const his = inject('selectedHis');
 const isCreateStep = inject('isCreateStep');
 const showRoleRegistrationScreen = inject('showRoleRegistrationScreen');
 const role = inject('selectedRole');
@@ -155,6 +149,7 @@ onMounted(() => {
 const extractDatabaseCodes = () => {
   userRoles.value.forEach((element) => {
     databaseCodes.value.push(element.name);
+    databaseDescriptions.value.push(element.description);
   });
 };
 
@@ -219,18 +214,20 @@ const nameRules = (val) => {
 const descriptionRules = (val) => {
   if (val.length < 3) {
     console.log(val);
+    console.log(databaseDescriptions.value);
     return 'A descricao indicada deve ter no mínimo 3 caracteres';
   } else if (
-    (databaseCodes.value.includes(val) &&
+    (databaseDescriptions.value.includes(val) &&
       selectedRole.value.id === role.value.id &&
       !isEditStep.value) ||
-    (databaseCodes.value.includes(val) &&
+    (databaseDescriptions.value.includes(val) &&
       userRoles.value.filter((x) => x.description === val)[0].id !==
         role.value.id &&
       isEditStep.value)
   ) {
     return (
-      !databaseCodes.value.includes(val) || 'A descricao indicada já existe'
+      !databaseDescriptions.value.includes(val) ||
+      'A descricao indicada já existe'
     );
   }
 };
