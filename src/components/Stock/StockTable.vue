@@ -55,13 +55,13 @@
         <q-tr :props="props">
           <q-td key="order" :props="props" v-if="false"> </q-td>
           <q-td key="drug" :props="props">
-            {{ props.row.drug }}
+            {{!sMobile ? props.row.drug.name : props.row.drug }}
           </q-td>
           <q-td key="avgConsuption" :props="props">
             {{ props.row.avgConsuption }}
           </q-td>
           <q-td key="balance" :props="props">
-            {{ props.row.balance }}
+            {{ Number(props.row.balance) }}
           </q-td>
           <q-td key="state" :props="props">
             <q-chip
@@ -94,20 +94,14 @@
 <script setup >
 import { ref, computed, inject, provide, reactive, onMounted } from 'vue';
 
-// import mixinplatform from 'src/mixins/mixin-system-platform'
-import StockAlert from '../../stores/models/stockAlert/StockAlert';
-import clinicService from 'src/services/api/clinicService/clinicService';
-import { useMediaQuery } from '@vueuse/core';
 import stockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 import drugService from 'src/services/api/drugService/drugService';
 import { useRouter } from 'vue-router';
 import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
-// import CryptoJS from 'crypto-js'
 
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
 const router = useRouter();
 const { showloading, closeLoading } = useLoading();
 
@@ -161,7 +155,6 @@ const isCharts = inject('isCharts');
 const filter = ref('');
 const headerClass = ref('');
 const title = ref('');
-let rowData = [];
 const drug = reactive(ref(null));
 provide('drug', drug);
 const clinic = inject('currClinic');
@@ -179,24 +172,11 @@ const getStyleIfCharts = () => {
     return '';
   }
 };
-const getStockAlert = () => {
-  if (!mobile.value) {
+const getStockAlert = async () => {
     showloading();
-    stockAlertService.apiGetStockAlertAll(clinic.value.id).then((resp) => {
-      closeLoading();
-    });
-  } else {
-    db.newDb()
-      .collection('stockAlert')
-      .get()
-      .then((stockAlert) => {
-        StockAlert.insert({
-          data: stockAlert,
-        });
-      });
-    rowData = StockAlert.all();
-  }
-  return rowData;
+    const clinica = clinicService.currClinic()
+     await stockAlertService.apiGetStockAlertAll(clinica.id)
+    closeLoading();
 };
 
 const getConsuptionRelatedColor = (state) => {
@@ -212,9 +192,7 @@ const getConsuptionRelatedColor = (state) => {
 };
 
 onMounted(() => {
-  if (!mobile.value) {
     getStockAlert();
-  }
 });
 const rows = computed(() => {
   return StockAlertService.getStockAlertsByClinic();

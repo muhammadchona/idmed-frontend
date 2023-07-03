@@ -107,17 +107,9 @@
             bgColor="bg-primary"
             >Informação por Lote
           </list-header>
-          <div v-if="mobile">
-            <span v-for="batchS in drugEventListBatch" :key="batchS.id">
-              <lote-info-container
-                :batchS="batchS"
-                @updateDrugFileAdjustment="updateDrugFileAdjustment"
-              />
-            </span>
-          </div>
-          <div v-else-if="!mobile">
+          <div>
             <span v-for="lote in stocks(drug)" :key="lote.id">
-              <lote-info-container :stockInfo="lote" />
+              <lote-info-container :stockInfo="lote"  @updateDrugFileAdjustment="updateDrugFileAdjustment" />
             </span>
           </div>
         </div>
@@ -209,42 +201,23 @@ const goBack = () => {
   router.go(-1);
 };
 
-const generateDrugEventSummary = () => {
+const generateDrugEventSummary =async () => {
+  const clinic = clinicService.currClinic()
   if (mobile.value) {
-    drugFile = DrugFile.query().where('drugId', drug.value.id).first();
-    // busca do local base e faz insert no VueX ORM
-    db.newDb()
-      .collection('drugFile')
-      .get()
-      .then((drugFile) => {
-        DrugFile.insert({
-          data: drugFile,
-        });
-      })
-      .then((drugFile) => {
-        // query().where('id', batchS.stockId).first()
-        console.log('Drug ID: ', drug.value.id);
-        console.log('VueX ORM: ', DrugFile.all());
-        drugEventList.value = drugFile.drugFileSummary;
-        drugEventListBatch.value = drugFile.drugFileSummaryBatch; // DrugFile.all()[1].drugFileSummaryBatch
-      });
-  } else {
-    showloading();
-    drugFileService
-      .apiGetDrugSummary(clinicService.currClinic().id, drug.value.id)
-      .then((resp) => {
-        console.log(resp.data);
-        const t = resp.data;
-        /* t.sort((a, b) => {
-                  const d1 = new Date(a.eventDate)
-                  const d2 = new Date(b.eventDate)
-                  return d2 - d1
-                }) */
-        drugEventList.value = t;
-        closeLoading();
-      });
-  }
-};
+        showloading()
+        drugEventList.value = await drugFileService.getDrugFileSummary(drug.value)
+        closeLoading()
+          } else {
+              showloading()
+              drugFileService.apiGetDrugSummary(clinic.id, drug.value.id).then(resp => {
+                console.log(resp.data)
+                const t = resp.data
+                drugEventList.value = t
+                closeLoading()
+              })
+          }}
+
+;
 
 const updateDrugFileAdjustment = (adjustment) => {
   console.log(' drugFile.drugFileSummary[0]::', drugFile.drugFileSummary[0]);
@@ -274,9 +247,9 @@ const updateDrugFileAdjustment = (adjustment) => {
         adjustment.constructor.name === 'StockReferenceAdjustment' &&
         adjustment.operation.code === 'AJUSTE_POSETIVO'
       ) {
-        drugFile.drugFileSummaryBatch[i].posetiveAdjustment +=
+        drugFile.drugFileSummaryBatch[i].posetiveAdjustment =drugFile.drugFileSummaryBatch[i].posetiveAdjustment+
           adjustment.adjustedValue;
-        drugFile.drugFileSummaryBatch[i].balance += adjustment.adjustedValue;
+        drugFile.drugFileSummaryBatch[i].balance = drugFile.drugFileSummaryBatch[i].balance + adjustment.adjustedValue;
         console.log('AJUSTE_POSETIVO: ');
       } else if (
         adjustment.constructor.name === 'StockReferenceAdjustment' &&
@@ -313,7 +286,7 @@ const stocks = (drug) => {
 
 const drugFile = () => {
   return DrugFile.query().where('drugId', drug.value.id).first();
-};
+}
 
 provide('title', title);
 </script>

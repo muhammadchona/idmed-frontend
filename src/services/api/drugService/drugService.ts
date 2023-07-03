@@ -3,6 +3,12 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import Drug from 'src/stores/models/drug/Drug';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { nSQL } from 'nano-sql';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { v4 as uuidv4 } from 'uuid';
+
+
+const { isMobile, isOnline } = useSystemUtils();
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
@@ -12,7 +18,7 @@ export default {
   async post(params: string) {
     const resp = await api().post('drug', params);
     drug.save(resp.data);
-    // alertSucess('O Registo foi efectuado com sucesso');
+    alertSucess('O Registo foi efectuado com sucesso');
   },
   get(offset: number) {
     if (offset >= 0) {
@@ -61,8 +67,10 @@ export default {
       .where('id', id)
       .first();
   },
-  getCleanDrugById(id: string) {
-    return drug.where('id', id).first();
+    getCleanDrugById(id: string) {
+    return drug
+      .where('id', id)
+      .first();
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -73,4 +81,27 @@ export default {
   getAllDrugs() {
     return drug.withAllRecursive(1).orderBy('name').get();
   },
+
+  savePinia(drugs: any) {
+    drug.save(drugs)
+  },
+
+  // Mobile
+
+  async getAllActiveDrugsMobile () {
+    return nSQL('drugs').query('select').exec().then(result => {
+       drug.save( result )
+       return result
+       })
+   },
+ 
+    async hasStock (drug: any) {
+     return nSQL('stocks').query('select').where(['drug_id', '=', drug.id])
+   .exec().then(result => {
+     if (result.length > 0) {
+       console.log('ssd', result)
+     }
+     return result.length > 0
+   })
+ }
 };

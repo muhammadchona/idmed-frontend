@@ -1,14 +1,13 @@
 <template>
   <div>
     <TitleBar />
-    <div class="row" v-if="mobile.value">
+    <div class="row" v-if="isMobile">
       <div class="col q-mx-md q-mt-md">
         <ListHeader
           :addVisible="false"
           :expandVisible="false"
           :mainContainer="true"
           bgColor="bg-primary"
-          :addButtonActions="initNewStock"
           >Notas da Guia
         </ListHeader>
         <div class="box-border row q-pt-sm">
@@ -100,6 +99,7 @@
             :mainContainer="true"
             @showAdd="initNewStock"
             bgColor="bg-primary"
+            :addButtonActions="initNewStock"
             >Medicamentos
           </ListHeader>
           <div class="box-border q-pb-md">
@@ -300,7 +300,7 @@
       </div>
     </div>
 
-    <div class="row" v-if="!mobile.value">
+    <div class="row" v-if="!isMobile">
       <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg">
         <div>
           <ListHeader
@@ -613,7 +613,6 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import Drug from '../../../stores/models/drug/Drug';
 import Stock from '../../../stores/models/stock/Stock';
 import { computed, onMounted, provide, ref } from 'vue';
-import StockCenter from '../../../stores/models/stockcenter/StockCenter';
 import { date, SessionStorage } from 'quasar';
 import moment from 'moment';
 import StockService from 'src/services/api/stockService/StockService';
@@ -623,6 +622,9 @@ import { useMediaQuery } from '@vueuse/core';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+
 
 // import { v4 as uuidv4 } from 'uuid'
 
@@ -634,12 +636,11 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import StockCenterService from 'src/services/api/stockCenterService/StockCenterService';
 
 const router = useRouter();
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
 const stockMethod = useStock();
-const mobile = computed(() => (isWebScreen.value ? false : true));
 const dateUtils = useDateUtils();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
 const columns = [
   {
@@ -721,7 +722,7 @@ const doSaveGuia = () => {
     dateReceived.value
   ); // getJSDateFromDDMMYYY()
   currStockEntrance.value.orderNumber = orderNumber.value;
-  currStockEntrance.value.clinic = currClinic;
+  currStockEntrance.value.clinic = currClinic.value;
 
   orderNumberRef.value.validate();
   if (dateReceived.value === '') {
@@ -731,8 +732,7 @@ const doSaveGuia = () => {
       'A data de criação da guia não pode ser superior a data corrente.'
     );
   } else if (!orderNumberRef.value.hasError) {
-    if (!mobile.value) {
-      if (guiaStep.value === 'create') {
+         if (guiaStep.value === 'create') {
         StockEntranceService.post(currStockEntrance.value)
           .then((resp) => {
             currStockEntrance.value = resp.response.data;
@@ -766,15 +766,8 @@ const doSaveGuia = () => {
           alertSucess('Operação efectuada com sucesso.');
         });
       }
-    } else {
-      currStockEntrance.value.syncStatus = 'U';
-      /*StockEntranceMethod.localDbUpdate(currStockEntrance).then((stockEnt) => {
-        stockEntranceRepo.update(currStockEntrance);
-        guiaStep.value = 'display';
-        alertSucess('Operação efectuada com sucesso.');
-      }); */
     }
-  }
+    
 };
 
 const circularReferenceReplacer = () => {
@@ -820,33 +813,14 @@ const removeGuia = () => {
 };
 
 const doRemoveGuia = () => {
-  if (!mobile.value) {
     StockEntranceService.delete(currStockEntrance.value.id).then((resp) => {
       goBack();
       alertSucess('Operação efectuada com sucesso.');
     });
-  } else {
-    const targetEntrance = JSON.parse(JSON.stringify(currStockEntrance));
-  /*  StockEntranceMethod.localDbGetById(targetEntrance.id).then((item) => {
-      if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
-        const auditSync = new AuditSyncronization();
-        auditSync.operationType = 'remove';
-        auditSync.className = StockEntrance.getClassName();
-        auditSync.syncStatus = 'D';
-        auditSync.entity = item;
-        AuditSyncronization.localDbAdd(auditSync);
-      }
-      StockEntranceMethod.localDbDelete(item).then((stock) => {
-        stockEntranceRepo.destroy(item.id);
-      });
-      $router.go(-1);
-    });*/
-  }
 };
 
 const doRemoveStock = (stock) => {
   step.value = 'delete';
-  if (!mobile.value) {
     showloading();
     StockService.delete(stock.id)
       .then((resp) => {
@@ -857,24 +831,6 @@ const doRemoveStock = (stock) => {
       .catch((error) => {
         alertError('Ocorreu um erro inesperado, contacte o administrador!');
       });
-  } else {
-    const targetStock = JSON.parse(JSON.stringify(selectedStock));
-    removeFromList(targetStock);
-   /* Stock.localDbGetById(targetStock.id).then((item) => {
-      if (item.syncStatus !== 'R' && item.syncStatus !== 'U') {
-        const auditSync = new AuditSyncronization();
-        auditSync.operationType = 'remove';
-        auditSync.className = Stock.getClassName();
-        auditSync.syncStatus = 'D';
-        auditSync.entity = item;
-        AuditSyncronization.localDbAdd(auditSync);
-      }
-      StockMethod.localDbDelete(item).then((stock) => {
-        StockRepo.destroy(item.id);
-      });
-      step.value = 'display';
-    }); */
-  }
 };
 
 const initNewStock = () => {
@@ -974,7 +930,6 @@ const doSave = (stock) => {
   // const entrance = currStockEntrance.value
   stock.entrance_id = currStockEntrance.value.id;
   // stock.entrance = entrance
-  if (!mobile.value) {
     if (isCreationStep.value) {
       StockService.post(stock)
         .then((resp) => {
@@ -1002,63 +957,7 @@ const doSave = (stock) => {
           console.log('ERRO: ', error);
         });
     }
-  } else {
-    //  const targetCopy = new Stock(JSON.parse(JSON.stringify(stock)))
-    stock.entrance_id = currStockEntrance.value.id; // stock.entrance.id
-    stock.drug_id = stock.drug.id;
-    stock.clinic = clinicService.currClinic();
-    stock.clinic_id = clinicService.currClinic().id;
-    stock.enabled = false;
-    stock.center = StockCenter.query().where('prefered', true).first();
-    stock.stock_center_id = stock.center.id;
-    stock.entrance.clinic_id = clinicService.currClinic().id;
-    stock.center.clinic = clinicService.currClinic();
-    // const uuid = uuidv4
-    const targetCopy = JSON.parse(JSON.stringify(stock));
-    /*Stock.localDbAddOrUpdate(targetCopy, step)
-      .then((stock1) => {
-        Stock.insert({
-          data: stock1.data.data,
-        });
-        if (step.value === 'edit') {
-          Stock.localDbGetAll().then((stocks) => {
-            const toUpdates = stocks.filter(
-              (stock) => stock.entrance.id === currStockEntrance.value.id
-            );
-            StockEntranceMethod.localDbGetByStockEntranceId(
-              currStockEntrance.value.id
-            ).then((entrance) => {
-              entrance.stocks = [];
-              entrance.syncStatus =
-                (entrance.syncStatus === '' || entrance.syncStatus === 'S') &&
-                stock.syncStatus === 'U'
-                  ? 'U'
-                  : 'R';
-              entrance.stocks = toUpdates;
-              StockEntranceMethod.localDbUpdate(entrance).then((stockEntr) => {
-                stockEntranceRepo.save({
-                  data: stockEntr.data,
-                });
-              });
-            });
-          });
-        } else {
-          currStockEntrance.value.syncStatus =
-            currStockEntrance.value.syncStatus !== 'R' &&
-            currStockEntrance.value.syncStatus !== 'U'
-              ? 'U'
-              : 'R';
-          currStockEntrance.value.stocks.push(targetCopy);
-          StockEntranceMethod.localDbUpdate(currStockEntrance);
-        }
-        submitting = false;
-        step.value = 'display';
-        alertSucess('Operação efectuada com sucesso.');
-      })
-      .catch((error) => {
-        alertError('Ocorreu um erro inesperado');
-      });*/
-  }
+ 
   closeLoading();
 };
 

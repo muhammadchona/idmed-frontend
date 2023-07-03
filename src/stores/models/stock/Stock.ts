@@ -18,7 +18,7 @@ export default class Stock extends Model {
       auxExpireDate: this.attr(''),
       modified: this.boolean(false),
       shelfNumber: this.attr(''),
-      unitsReceived: this.attr(0),
+      unitsReceived: this.number(0),
       stockMoviment: this.number(0),
       manufacture: this.attr(''),
       batchNumber: this.attr(''),
