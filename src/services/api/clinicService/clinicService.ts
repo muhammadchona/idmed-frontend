@@ -151,6 +151,16 @@ export default {
     // return await api().post('/clinic', clinic)
     return this.patch(clinic.id, clinic);
   },
+  async getAllClinicsByDistrictId(districtId: any) {
+    return await api()
+      .get('/clinic/district/' + districtId)
+      .then((resp) => {
+        clinic.save(resp.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return clinic.getModel().$newInstance();

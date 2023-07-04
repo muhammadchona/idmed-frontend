@@ -164,7 +164,7 @@ import { useMediaQuery } from '@vueuse/core';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-
+import { sendData } from 'src/services/SendInfo';
 const { website } = useSystemUtils();
 const userInfoOpen = ref(false);
 const onMainClick = ref('');
@@ -172,6 +172,8 @@ const onItemClick = ref('');
 const username = ref(localStorage.getItem('user'));
 const tab = ref('home');
 const mobile = ref(false);
+
+const { sendDataToBackEnd, getPatientsToSend, getGroupsToSend } = sendData();
 
 onMounted(() => {
   if (website.value) {
@@ -206,6 +208,7 @@ const menusVisible = (name) => {
 };
 
 const sync = async () => {
+  /*
   await isOnline().then((resp) => {
     if (resp === true) {
       if (localStorage.getItem('isSyncronizing') === 'true') {
@@ -222,6 +225,10 @@ const sync = async () => {
         });
       }
     } else if (resp === false) {
+      //  const userPass = localStorage.getItem('sync_pass')
+      //     const decryptedPass = this.decryptPlainText(userPass)
+      //       SynchronizationService.send(decryptedPass)
+      sendDataToBackEnd();
       Notify.create({
         icon: 'announcement',
         message:
@@ -236,5 +243,7 @@ const sync = async () => {
       });
     }
   });
+  */
+  getGroupsToSend();
 };
 </script>

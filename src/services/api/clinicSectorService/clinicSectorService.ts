@@ -176,4 +176,7 @@ export default {
   getClinicSectorByCode(code: string) {
     return clinicSector.query().withAllRecursive(1).where('code', code).first();
   },
+  getClinicSectorSlimByCode(code: string) {
+    return clinicSector.query().where('code', code).first();
+  },
 };

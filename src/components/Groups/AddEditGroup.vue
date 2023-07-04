@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw; height: 650px">
+  <q-card style="width: 900px; max-width: 90vw; height: 80%">
     <q-responsive :ratio="16 / 9" class="col">
       <form @submit.prevent="submitForm" class="q-ma-none">
         <q-card-section class="q-pa-none bg-green-2">
@@ -270,11 +270,11 @@
             </div>
           </div>
         </q-card-section>
-        <q-card-actions align="right" class="q-my-md q-mr-sm">
+        <q-card-actions align="right" class="fixed-card-actions">
           <q-btn label="Cancelar" color="red" @click="$emit('close')" />
           <q-btn
             type="submit"
-            label="Submeter"
+            label="Gravar"
             color="primary"
             :loading="submitting"
           />
@@ -310,11 +310,10 @@ const columns = [
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-
+const { preferedIdentifier, fullName, hasEpisodes } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
-const { preferedIdentifier, fullName, hasEpisodes } = usePatient();
+const { isOnline } = useSystemUtils();
 
 const emit = defineEmits(['close']);
 
@@ -322,7 +321,6 @@ const router = useRouter();
 const startDate = ref('');
 const filter = ref('');
 const selected = ref([]);
-const username = localStorage.getItem('user');
 const searchResults = ref([]);
 const clinic = inject('clinic');
 const curGroup = ref(new Group({ id: uuidv4(), members: [] }));
@@ -397,7 +395,7 @@ const getGroupForEdit = () => {
 
 const search = () => {
   showloading();
-  if (isMobile.value) {
+  if (!isOnline.value) {
     // Depois mudar para mobile
     const patients = patientService.getPatientByClinicId(clinic.value.id);
     searchResults.value = patients.filter((patient) => {
@@ -467,7 +465,9 @@ const loadMembersData = () => {
   curGroup.value.members.forEach((member) => {
     member.patient.identifiers.forEach((identifier) => {
       identifier.episodes.forEach((episode) => {
-        patientVisitDetailsService.apiGetAllByEpisodeId(episode.id, 0, 500);
+        if (isOnline.value) {
+          patientVisitDetailsService.apiGetAllByEpisodeId(episode.id, 0, 500);
+        }
       });
     });
   });
@@ -514,7 +514,7 @@ const addPatient = (patient) => {
         '].'
     );
   } else {
-    if (isMobile.value) {
+    if (!isOnline.value) {
       // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)  //mudar Para mobile
       let lastEpisode = {};
       patient.identifiers.forEach((identifier) => {
@@ -615,63 +615,63 @@ const doSave = async () => {
       member.clinic_id = groupToSend.clinic.id;
       member.clinic.id = clinic.value.id;
       member.group.id = groupToSend.id;
-      // member.syncStatus = 'R';
-      if (isCreateStep.value) {
-        console.log(groupToSend);
-        groupService
-          .apiSave(groupToSend)
-          .then((resp) => {
-            submitting.value = false;
-            loadMembersData();
-            alertSucess('Operação efectuada com sucesso.');
-            SessionStorage.set('selectedGroupId', curGroup.value.id);
-            router.push('/group/panel');
-          })
-          .catch((error) => {
-            submitting.value = false;
-            const listErrors = [];
-            console.log(error);
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response);
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message);
-              } else {
-                arrayErrors._embedded.errors.forEach((element) => {
-                  listErrors.push(element.message);
-                });
-              }
-            }
-            alertError('error', listErrors);
-          });
-      } else {
-        console.log(groupToSend);
-        groupService
-          .apiUpdate(groupToSend)
-          .then((resp) => {
-            submitting.value = false;
-            loadMembersData();
-            alertSucess('Operação efectuada com sucesso.');
-            emit('close');
-            SessionStorage.set('selectedGroupId', curGroup.value.id);
-          })
-          .catch((error) => {
-            submitting.value = false;
-            const listErrors = [];
-            console.log(error);
-            if (error.request.response != null) {
-              const arrayErrors = JSON.parse(error.request.response);
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message);
-              } else {
-                arrayErrors._embedded.errors.forEach((element) => {
-                  listErrors.push(element.message);
-                });
-              }
-            }
-            alertError('error', listErrors);
-          });
-      }
+      member.syncStatus = 'R';
     });
+    if (isCreateStep.value) {
+      console.log(groupToSend);
+      groupService
+        .apiSave(groupToSend)
+        .then((resp) => {
+          submitting.value = false;
+          loadMembersData();
+          alertSucess('Operação efectuada com sucesso.');
+          SessionStorage.set('selectedGroupId', curGroup.value.id);
+          router.push('/group/panel');
+        })
+        .catch((error) => {
+          submitting.value = false;
+          const listErrors = [];
+          console.log(error);
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+          }
+          alertError('error', listErrors);
+        });
+    } else {
+      console.log(groupToSend);
+      groupService
+        .apiUpdate(groupToSend)
+        .then((resp) => {
+          submitting.value = false;
+          loadMembersData();
+          alertSucess('Operação efectuada com sucesso.');
+          emit('close');
+          SessionStorage.set('selectedGroupId', curGroup.value.id);
+        })
+        .catch((error) => {
+          submitting.value = false;
+          const listErrors = [];
+          console.log(error);
+          if (error.request.response != null) {
+            const arrayErrors = JSON.parse(error.request.response);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
+            }
+          }
+          alertError('error', listErrors);
+        });
+    }
   } else {
     submitting.value = false;
   }
@@ -700,4 +700,12 @@ watch(
 );
 </script>
 
-<style></style>
+<style>
+.fixed-card-actions {
+  position: sticky;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1;
+}
+</style>

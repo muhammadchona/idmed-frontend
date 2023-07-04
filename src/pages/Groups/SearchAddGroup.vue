@@ -155,9 +155,7 @@ import clinicalServiceService from 'src/services/api/clinicalServiceService/clin
 import groupService from 'src/services/api/group/groupService';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import groupRegister from 'components/Groups/AddEditGroup.vue';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
 
 const columns = [
@@ -173,11 +171,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 
-//import Patient from 'src/stores/models/patient/Patient';
-
-const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile, isOnline } = useSystemUtils();
 
 //Declaration
 const title = ref('Procurar ou adicionar Grupo');
@@ -198,38 +192,21 @@ const clinic = computed(() => {
 const step = ref('create');
 
 onMounted(() => {
-  console.log(isOnline.value);
-  console.log(isMobile.value);
-  if (isMobile.value) {
-    groupTypeService.apiGetAll();
-    clinicalServiceService.get(0);
-    getAllGroupsOfClinic();
-    searchResults.value = groupService.getAllGroups();
-  } else {
-    showloading();
-    groupTypeService.apiGetAll();
-    clinicalServiceService.get();
-    getAllGroupsOfClinic();
-    searchResults.value = groupService.getAllGroups();
-    closeLoading();
-    // curGroup = new Group()
-  }
+  showloading();
+  groupTypeService.get(0);
+  clinicalServiceService.get(0);
+  groupService.get(0);
+  searchResults.value = getAllGroups();
+  closeLoading();
 });
 
 const getAllGroups = () => {
   searchResults.value = groupService.getAllGroups();
 };
 
-const getAllGroupsOfClinic = () => {
-  const offset = 0;
-  const max = 100;
-  console.log('Clinica:' + clinic.value);
-  groupService.apiGetAllByClinicId(clinic.value.id, offset, max);
-  //  this.doGroupsGet(clinic.id, offset, max);
-};
-
 const search = () => {
   const groups = groupService.getAllGroups();
+  console.log('22' + groups);
   searchResults.value = groups.filter((group) => {
     return (
       stringContains(group.code, curGroup.value.code) ||

@@ -6,6 +6,9 @@ import patientVisitService from '../patientVisit/patientVisitService';
 import { nSQL } from 'nano-sql';
 import patientService from '../patientService/patientService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import groupPackService from 'src/services/api/groupPack/groupPackService';
+import packService from 'src/services/api/pack/packService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
 
 const groupPackHeader = useRepo(GroupPackHeader);
 const { isMobile, isOnline } = useSystemUtils();
@@ -98,7 +101,33 @@ export default {
   },
 
   async apiDelete(groupPackHeader: any) {
-    return await api().delete(`/groupPackHeader/${groupPackHeader.id}`);
+    if (isOnline.value) {
+      return await api()
+        .delete(`/groupPackHeader/${groupPackHeader.id}`)
+        .then((resp) => {
+          const packsToDelete = groupPackService.getGroupPackByHeaderId(
+            groupPackHeader.id
+          );
+          console.log(packsToDelete);
+          packsToDelete.forEach((packToDelete) => {
+            const pvd =
+              patientVisitDetailsService.getPatientVisitDetailsByPackId(
+                packToDelete.pack_id
+              );
+            const pack = packService.getPackByID(packToDelete.pack_id);
+            const memberPrescription = prescriptionService.getPrescriptionByID(
+              pvd.prescription_id
+            );
+            memberPrescription.leftDuration = Number(pack.weeksSupply / 4);
+            console.log(pvd);
+          });
+        });
+    } else {
+      await nSQL(GroupPackHeader.entity)
+        .query('delete')
+        .where(['id', '=', groupPackHeader.id])
+        .exec();
+    }
   },
   // Local Storage Pinia
   newInstanceEntity() {
