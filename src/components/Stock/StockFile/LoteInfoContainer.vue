@@ -211,7 +211,6 @@ import { StockReferenceAdjustment } from '../../../stores/models/stockadjustment
 import ReferedStockMoviment from '../../../stores/models/stockrefered/ReferedStockMoviment';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useMediaQuery } from '@vueuse/core';
 import StockService from 'src/services/api/stockService/StockService';
 // components
 
@@ -222,7 +221,9 @@ import drugFileService from 'src/services/api/drugFile/drugFileService';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import ReferedStockMovimentService from 'src/services/api/referedStockMovimentService/ReferedStockMovimentService';
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
+const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError } = useSwal();
 
 const columns = [
@@ -261,9 +262,6 @@ const columns = [
 ];
 const props = defineProps(['stockInfo', 'batchS']);
 const dateUtils = useDateUtils();
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
-
 
 const stockExpiteStatus = ref('');
 const drugEventList = ref([]);
@@ -431,7 +429,7 @@ const determineValidade = () => {
 const generateDrugBatchEventSummary = () => {
 
 const clinic =   clinicService.currClinic()
-  if (mobile.value) {
+  if (!isOnline.value) {
     drugFileService.getDrugFileSummaryBatch(stock.value.id).then(resp => {
         drugEventList.value = resp
       })
@@ -452,8 +450,7 @@ const clinic =   clinicService.currClinic()
 };
 
 const stock = computed(() => {
-  if (!mobile.value) return props.stockInfo;
-  return Stock.query().where('id', batchS.stockId).first();
+  return props.stockInfo
 });
 
 const getValidade = computed(() => {
@@ -502,11 +499,8 @@ const headerColor = computed(() => {
 });
 
 onMounted(() => {
-  if (!mobile.value) {
     generateDrugBatchEventSummary();
-  } else {
-    drugEventList.value.push(batchS);
-  }
+
 });
 provide('expandLess', expandLess);
 provide('addNewAdjustment', addNewAdjustment);

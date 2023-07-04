@@ -55,7 +55,7 @@
         <q-tr :props="props">
           <q-td key="order" :props="props" v-if="false"> </q-td>
           <q-td key="drug" :props="props">
-            {{!sMobile ? props.row.drug.name : props.row.drug }}
+            {{isOnline ?  props.row.drug.name  :props.row.drug   }}
           </q-td>
           <q-td key="avgConsuption" :props="props">
             {{ props.row.avgConsuption }}
@@ -100,6 +100,9 @@ import { useRouter } from 'vue-router';
 import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isMobile, isOnline } = useSystemUtils();
 
 
 const router = useRouter();

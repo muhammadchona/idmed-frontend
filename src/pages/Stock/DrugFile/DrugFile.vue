@@ -135,6 +135,10 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import drugFileService from 'src/services/api/drugFile/drugFileService';
 import StockService from 'src/services/api/stockService/StockService';
 
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isOnline, isOnline } = useSystemUtils();
+
 const columns = [
   {
     name: 'eventDate',
@@ -172,8 +176,6 @@ const columns = [
 
 const dateUtils = useDateUtils();
 const router = useRouter();
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
 const { closeLoading, showloading } = useLoading();
 const title = ref('Ficha do Medicamento');
 const drugEventList = ref([]);
@@ -203,7 +205,7 @@ const goBack = () => {
 
 const generateDrugEventSummary =async () => {
   const clinic = clinicService.currClinic()
-  if (mobile.value) {
+  if (!isOnline.value) {
         showloading()
         drugEventList.value = await drugFileService.getDrugFileSummary(drug.value)
         closeLoading()

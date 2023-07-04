@@ -1,12 +1,10 @@
 import { useRepo } from 'pinia-orm';
 import Stock from 'src/stores/models/stock/Stock';
 import api from '../apiService/apiService';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import moment from 'moment';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { v4 as uuidv4 } from 'uuid';
+
 
 
 const { isMobile, isOnline } = useSystemUtils();
@@ -16,7 +14,7 @@ const stock = useRepo(Stock);
 export default {
   // Axios API call
   post(params: any) {
-    if (isMobile.value) {
+    if (!isOnline.value) {
      return this.putMobile(params);
     } else {
      return this.postWeb(params);
@@ -24,14 +22,14 @@ export default {
   },
   get(offset: number) {
 
-    if (isMobile.value) {
+    if (!isOnline.value) {
      return this.getMobile();
     } else {
       return this.getWeb(offset);
     }
    },
   patch(id: string, params: any) {
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return this.putMobile(params);
     } else {
       return this.apiUpdateWeb(id, params);
@@ -39,7 +37,7 @@ export default {
      },
 
   async delete(id: string) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
       return this.deleteMobile(id);
     } else {
      return  this.deleteWeb(id);

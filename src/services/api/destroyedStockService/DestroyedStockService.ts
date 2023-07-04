@@ -13,7 +13,7 @@ export default {
   // Axios API call
 
   post(params: any) {
-    if (isMobile.value) {
+    if (isOnline.value) {
      return this.putMobile(params);
     } else {
      return this.postWeb(params);
@@ -21,14 +21,14 @@ export default {
   },
   get(offset: number) {
 
-    if (isMobile.value) {
+    if (isOnline.value) {
      return this.getMobile();
     } else {
       return this.getWeb(offset);
     }
    },
   patch( params: any) {
-    if (isMobile.value) {
+    if (isOnline.value) {
       return this.putMobile(params);
     } else {
       return this.apiUpdateWeb( params);
@@ -36,7 +36,7 @@ export default {
      },
 
   async delete(id: string) {
-    if (isMobile.value ) {
+    if (isOnline.value ) {
       return this.deleteMobile(id);
     } else {
      return  this.deleteWeb(id);
@@ -46,7 +46,7 @@ export default {
 
   postWeb(params: string) {
     return api()
-      .post('destroyedStocks', params)
+      .post('destroyedStock', params)
       .then((resp) => {
         destroyedStockRepo.save(resp.data);
       })
@@ -55,7 +55,7 @@ export default {
   getWeb(offset: number) {
     if (offset >= 0) {
       return api()
-      .get('destroyedStocks?offset=' + offset)
+      .get('destroyedStock?offset=' + offset)
         .then((resp) => {
           destroyedStockRepo.save(resp.data);
           offset = offset + 100;
@@ -67,7 +67,7 @@ export default {
   },
   deleteWeb(id: any) {
     return api()
-      .delete('destroyedStocks/' + id)
+      .delete('destroyedStock/' + id)
       .then(() => {
         destroyedStockRepo.destroy(id);
       });
@@ -79,7 +79,7 @@ export default {
 
 
 async putMobile (params: any) {
-  const resp = await nSQL('referedStockMoviments').query('upsert',
+  const resp = await nSQL('destroyedStocks').query('upsert',
   JSON.parse( JSON.stringify(params))
  ).exec()
  destroyedStockRepo.save(params);
@@ -88,7 +88,7 @@ async putMobile (params: any) {
 
 getMobile () {
 return nSQL().onConnected(() => {
-  nSQL('referedStockMoviments').query('select').exec().then(result => {
+  nSQL('destroyedStocks').query('select').exec().then(result => {
    console.log(result)
    destroyedStockRepo.save(result)
     return result
@@ -98,7 +98,7 @@ return nSQL().onConnected(() => {
 
 getBystockMobile (stock: any) {
 return nSQL().onConnected(() => {
- nSQL('referedStockMoviments').query('select').where(['stocks[id]', '=', stock.id]).exec().then(result => {
+ nSQL('destroyedStocks').query('select').where(['stocks[id]', '=', stock.id]).exec().then(result => {
    console.log(result)
    destroyedStockRepo.save(result)
  })
@@ -106,7 +106,7 @@ return nSQL().onConnected(() => {
 },
 
 async deleteMobile (id: any) {
-const resp = await  nSQL('referedStockMoviments').query('delete').where(['id', '=', id]).exec()
+const resp = await  nSQL('destroyedStocks').query('delete').where(['id', '=', id]).exec()
 destroyedStockRepo.destroy(id)
 return resp
 },

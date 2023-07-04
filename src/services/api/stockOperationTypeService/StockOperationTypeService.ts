@@ -14,7 +14,7 @@ export default {
 
   get(offset: number) {
 
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return nSQL().onConnected(() => {
         nSQL('stockOperationTypes').query('select').exec().then(result => {
          console.log(result)

@@ -1,5 +1,6 @@
 import { date } from 'quasar';
 import { nSQL } from 'nano-sql';
+import { v4 as uuidv4 } from 'uuid';
 
 
 export function useStock () {
@@ -45,14 +46,17 @@ export function useStock () {
   
    function localDbGetQuantitySuppliedByDrug (drug: any) {
   let drugQuantitySupplied = 0
-  return nSQL('patientVisits').query('select', ['patientVisitDetails']).exec().then(result => {
+  return nSQL('patientVisits').query('select', ['patientVisitDetails']).
+  exec().then(result => {
   for (const pvd of result) {
      for (const pvdObj of pvd.patientVisitDetails) {
     // if (pvd.pack.pickupDate > new Date()) {
+      if (pvdObj.pack !== undefined) {
       for (const pcd of pvdObj.pack.packagedDrugs) {
           if (pcd.drug_id === drug.id) {
             drugQuantitySupplied += Number(pcd.quantitySupplied)
           }
+        }
     }
   }
   // }
@@ -192,7 +196,7 @@ export function useStock () {
           return nSQL('patientVisits').query('select', ['patientVisitDetails']).exec().then(result => {
             for (const pvd of result) {
               for (const pvdObj of pvd.patientVisitDetails) {
-              // if (pvd.pack.pickupDate > new Date()) {
+              if ( pvdObj.pack !==undefined ) {
                 for (const pcd of pvdObj.pack.packagedDrugs) {
                   if (pcd.drug_id === drug.id) {
                     const recordFile = {}
@@ -214,7 +218,7 @@ export function useStock () {
                   recordFileList.push(recordFile)
                 }
             }
-          // }
+           }
           }
           }
           return recordFileList
@@ -319,21 +323,16 @@ export function useStock () {
           })
           }
   
-    function getEntrancesDrugFileBatch (stockId: any) {
+    function getEntrancesDrugFileBatch (stockId: string) {
+      console.log('STOCKID: ', stockId)
           const recordFileList = []
-          return nSQL('stocks').query('select', ['SUM(stocks.unitsReceived) AS stockEntrances.incomes', 'stocks.id', 'stockEntrances.dateReceived', 'stockEntrances.orderNumber'])
-          .where(['id', '=', stockId])
+  
+          return nSQL('stocks').query('select',  ['SUM(stocks.unitsReceived) AS incomes', 'stocks.id', 'stockEntrances.dateReceived', 'stockEntrances.orderNumber'])
+          .where(['id', 'LIKE', stockId])
           .join({
             type: 'inner',
             table: 'stockEntrances',
             where: ['stocks.entrance_id', '=', 'stockEntrances.id']
-          })
-          .groupBy({
-          'stockEntrances.id': 'asc',
-          'stockEntrances.dateReceived': 'asc',
-          'stockEntrances.orderNumber': 'asc',
-          'stocks.drug_id': 'asc',
-          'stockEntrances.clinic_id': 'asc'
           })
           .exec().then(result => {
           for (const item of result) {
@@ -343,7 +342,7 @@ export function useStock () {
             recordFile.eventDate = item['stockEntrances.dateReceived']
             recordFile.moviment = 'Entrada de Stock'
             recordFile.orderNumber = item['stockEntrances.orderNumber']
-            recordFile.incomes = Number(item['stockEntrances.incomes'])
+            recordFile.incomes = Number(item['incomes'])
             recordFile.outcomes = 0
             recordFile.posetiveAdjustment = 0
             recordFile.negativeAdjustment = 0
@@ -370,6 +369,7 @@ export function useStock () {
               for (const pvd of result) {
                 for (const pvdObj of pvd.patientVisitDetails) {
                 // if (pvd.pack.pickupDate > new Date()) {
+                  if (pvdObj.pack !== undefined) {
                   for (const pcd of pvdObj.pack.packagedDrugs) {
                     for (const pcdStockObj of pcd.packagedDrugStocks) {
                       if (pcdStockObj.stock_id === stockId) {
@@ -392,6 +392,7 @@ export function useStock () {
                       }
                   }
               }
+            }
             // }
             }
             }

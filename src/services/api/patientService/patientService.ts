@@ -240,7 +240,7 @@ export default {
   },
   async doPatientsBySectorGet() {
     const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
-      localStorage.getItem('user_clinic_sectors')
+      localStorage.getItem('clinic_sector_users')
     );
     console.log('sector' + clinicSectorUser);
     console.log('sectorId' + clinicSectorUser.id);

@@ -63,15 +63,13 @@
 import StockEntrance from '../../../stores/models/stockentrance/StockEntrance';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
-import { useMediaQuery } from '@vueuse/core';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { computed, reactive, provide, ref, inject } from 'vue';
+import {  reactive, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { v4 as uuidv4 } from 'uuid';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
 const dateUtils = useDateUtils();
 /*
 Declarations
@@ -83,7 +81,6 @@ const orderNumberRef = ref(null);
 const router = useRouter();
 const { alertError } = useSwal();
 
-const currClinic = inject('currClinic');
 /*
   Methods
 */
@@ -100,13 +97,15 @@ const submitForm = () => {
     orderNumberRef.value.validate();
     if (!orderNumberRef.value.hasError) {
       showloading();
-        stockEntrance.clinic = null;
+        stockEntrance.clinic = clinicService.currClinic();
+        stockEntrance.clinic_id = clinicService.currClinic().id
         stockEntrance.id = uuidv4();
         StockEntranceService.post(stockEntrance)
           .then((resp) => {
+            stockEntrance.clinic = null
             localStorage.setItem(
               'currStockEntrance',
-              JSON.stringify(stockEntrance)
+              JSON.stringify(stockEntrance.id)
             );
             closeLoading();
             router.push('/stock/entrance');
