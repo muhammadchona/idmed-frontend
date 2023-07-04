@@ -73,6 +73,7 @@ export default {
     try {
       const resp = await api().post('/groupInfo', params);
       group.save(resp.data);
+      return resp;
     } catch (error: any) {
       console.log(error);
     }
@@ -81,7 +82,9 @@ export default {
   async apiSave(groupInfo: any) {
     let resp = null;
     if (isOnline.value) {
-      this.postWeb(groupInfo);
+      resp = await api().post('/groupInfo', groupInfo);
+      group.save(resp.data);
+      return resp;
     } else {
       groupInfo.syncStatus = 'R';
       resp = await nSQL('groups').query('upsert', groupInfo).exec();

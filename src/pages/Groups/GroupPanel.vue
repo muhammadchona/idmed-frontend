@@ -244,8 +244,9 @@ const loadMemberInfo = () => {
   }
 };
 onMounted(() => {
-  // console.log(groupMemberRef.value);
+  console.log(group.value);
   loadMemberInfo();
+  closeLoading();
   console.log('Parent Component: onMounted');
 });
 
@@ -264,6 +265,11 @@ const dataFetchDone = computed(() => {
 });
 
 const group = computed(() => {
+  console.log(SessionStorage.getItem('selectedGroupId'));
+  console.log(
+    '4444' +
+      groupService.getGroupWithsById(SessionStorage.getItem('selectedGroupId'))
+  );
   return groupService.getGroupWithsById(
     SessionStorage.getItem('selectedGroupId')
   );
@@ -287,8 +293,8 @@ const desintagrateGroup = () => {
   //  group.service.identifierType = IdentifierType.find(group.service.identifier_type_id)
   group.value.endDate = new Date();
   group.value.packHeaders = [];
-  groupService.apiUpdate(groupUpdate).then((resp) => {
-    groupService.apiFetchById(groupUpdate.id);
+  groupService.apiUpdate(group.value).then((resp) => {
+    groupService.apiFetchById(group.value.id);
     alertSucess('Operação efectuada com sucesso.');
   });
 };
@@ -384,9 +390,9 @@ const fecthMemberPrescriptionData = (visitDetails, member) => {
       packService.apiFetchById(visitDetails.pack.id);
     if (member.groupMemberPrescription !== null) {
       prescriptionService
-        .apiFetchById(member.groupMemberPrescription.id)
+        .apiFetchById(member.groupMemberPrescription.prescription.id)
         .then((resp) => {
-          fecthedMemberData.value = this.fecthedMemberData + 1;
+          fecthedMemberData.value = fecthedMemberData.value + 1;
         });
     } else {
       prescriptionService
