@@ -11,44 +11,41 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
-      this.getWeb(offset);
+      return this.getWeb(offset);
     }
   },
-  async patch(uid: string, params: string) {
+  patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uid, params);
+      return this.patchWeb(uid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('adherenceScreening', params);
-      adherenceScreening.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  postWeb(params: string) {
+    return api()
+      .post('adherenceScreening', params)
+      .then((resp) => {
+        adherenceScreening.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -62,30 +59,23 @@ export default {
           }
         })
         .catch((error) => {
-          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('adherenceScreening/' + uuid, params);
-      adherenceScreening.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('adherenceScreening/' + uuid, params)
+      .then((resp) => {
+        adherenceScreening.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('adherenceScreening/' + uuid);
-      adherenceScreening.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('adherenceScreening/' + uuid)
+      .then(() => {
+        adherenceScreening.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {

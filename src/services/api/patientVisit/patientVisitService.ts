@@ -13,32 +13,32 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
-      this.getWeb(offset);
+      return this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
@@ -47,10 +47,6 @@ export default {
       .post('patientVisit', params)
       .then((resp) => {
         patientVisit.save(resp.data);
-      })
-      .catch((error) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
       });
   },
   getWeb(offset: number) {
@@ -62,35 +58,26 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
-          } else {
-            closeLoading();
           }
         })
         .catch((error) => {
-          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('patientVisit/' + uuid, params);
-      patientVisit.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('patientVisit/' + uuid, params)
+      .then((resp) => {
+        patientVisit.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('patientVisit/' + uuid);
-      patientVisit.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('patientVisit/' + uuid)
+      .then(() => {
+        patientVisit.destroy(uuid);
+      });
   },
   // Mobile
   async putMobile(params: string) {
