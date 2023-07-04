@@ -1,6 +1,8 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
 import SpetialPrescriptionMotive from 'src/stores/models/prescription/SpetialPrescriptionMotive';
+import { useRepo } from 'pinia-orm';
+const spetialPrescriptionMotive = useRepo(SpetialPrescriptionMotive);
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -11,6 +13,7 @@ export default {
           nSQL(SpetialPrescriptionMotive.entity)
             .query('upsert', resp.data)
             .exec();
+          spetialPrescriptionMotive.save(resp.data);
           console.log('Data synced from backend: SpetialPrescriptionMotive');
           offset = offset + 100;
           if (resp.data.length > 0) {

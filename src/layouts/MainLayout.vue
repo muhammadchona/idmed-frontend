@@ -84,7 +84,7 @@
               label="Relatórios"
             />
             <q-route-tab
-              v-if="menusVisible('Administração')"
+              v-if="menusVisible('Administração') && isOnline"
               exact
               :to="'/settings'"
               name="settings"
@@ -92,7 +92,7 @@
               label="Administração"
             />
             <q-route-tab
-              v-if="activateMigration"
+              v-if="activateMigration && website"
               exact
               :to="'/migration'"
               name="migration"
@@ -159,12 +159,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { Notify } from 'quasar';
-import isOnline from 'is-online';
 import { useMediaQuery } from '@vueuse/core';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-
+import { sendData } from 'src/services/SendInfo';
 const { website } = useSystemUtils();
 const userInfoOpen = ref(false);
 const onMainClick = ref('');
@@ -173,8 +172,11 @@ const username = ref(localStorage.getItem('user'));
 const tab = ref('home');
 const mobile = ref(false);
 
+const { isOnline } = useSystemUtils();
+const { sendDataToBackEnd, getPatientsToSend, getGroupsToSend } = sendData();
+
 onMounted(() => {
-  if (website.value) {
+  if (website.value || isOnline.value) {
     mobile.value = false;
     systemConfigsService.apiGetAll();
   } else {
@@ -206,6 +208,7 @@ const menusVisible = (name) => {
 };
 
 const sync = async () => {
+  /*
   await isOnline().then((resp) => {
     if (resp === true) {
       if (localStorage.getItem('isSyncronizing') === 'true') {
@@ -222,6 +225,10 @@ const sync = async () => {
         });
       }
     } else if (resp === false) {
+      //  const userPass = localStorage.getItem('sync_pass')
+      //     const decryptedPass = this.decryptPlainText(userPass)
+      //       SynchronizationService.send(decryptedPass)
+      sendDataToBackEnd();
       Notify.create({
         icon: 'announcement',
         message:
@@ -236,5 +243,7 @@ const sync = async () => {
       });
     }
   });
+  */
+  getGroupsToSend();
 };
 </script>

@@ -110,16 +110,7 @@ export default {
       .query('select')
       .exec()
       .then((rows: any) => {
-        if (rows.length === 0) {
-          api()
-            .get('clinicalService?offset=0&max=100')
-            .then((resp) => {
-              console.log(resp);
-              this.putMobile(resp.data);
-            });
-        } else {
-          clinicalService.save(rows);
-        }
+        clinicalService.save(rows);
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');

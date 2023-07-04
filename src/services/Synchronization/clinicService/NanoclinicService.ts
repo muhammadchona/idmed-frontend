@@ -2,6 +2,9 @@ import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import Clinic from 'src/stores/models/clinic/Clinic';
+import { useRepo } from 'pinia-orm';
+
+const clinic = useRepo(Clinic);
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -10,6 +13,7 @@ export default {
         .get('clinic?offset=' + offset + '&max=100')
         .then((resp) => {
           nSQL(Clinic.entity).query('upsert', resp.data).exec();
+          clinic.save(resp.data);
           console.log('Data synced from backend: Clinic');
           clinicService.savePinia(resp.data)
           offset = offset + 100;

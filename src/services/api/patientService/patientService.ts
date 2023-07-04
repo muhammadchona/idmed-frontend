@@ -14,44 +14,41 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
-      this.getWeb(offset);
+      return this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uuid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uuid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('patient', params);
-      patient.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  postWeb(params: string) {
+    return api()
+      .post('patient', params)
+      .then((resp) => {
+        patient.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -72,31 +69,25 @@ export default {
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('patient/' + uuid, params);
-      patient.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('patient/' + uuid, params)
+      .then((resp) => {
+        patient.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('patient/' + uuid);
-      patient.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('patient/' + uuid)
+      .then((resp) => {
+        patient.destroy(uuid);
+      });
   },
   // Mobile
   async putMobile(params: string) {
     try {
       await nSQL(Patient.entity).query('upsert', params).exec();
-      patient.save(params);
+      patient.save(JSON.parse(params));
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -106,16 +97,7 @@ export default {
   async getMobile() {
     try {
       const rows = await nSQL(Patient.entity).query('select').exec();
-      if (rows.length === 0) {
-        api()
-          .get('patient?offset=0&max=400')
-          .then((resp) => {
-            console.log(resp);
-            this.putMobile(resp.data);
-          });
-      } else {
-        patient.save(rows);
-      }
+      patient.save(rows);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -136,7 +118,7 @@ export default {
   },
   async apiFetchById(id: string) {
     if (isMobile.value && !isOnline.value) {
-      return nSQL(patient.use?.entity)
+      return nSQL(Patient.entity)
         .query('select')
         .where(['id', '=', id])
         .exec()
@@ -241,10 +223,19 @@ export default {
   async doPatientsBySectorGet() {
     const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
       localStorage.getItem('clinic_sector_users')
+
     );
+    if (clinicSectorUser === null || clinicSectorUser === undefined) {
+      alertError(
+        'O Utilizador logado nao pertence a nenhum sector clinico , não terá informação carregada do Servidor'
+      );
+    }
+    
     console.log('sector' + clinicSectorUser);
     console.log('sectorId' + clinicSectorUser.id);
     const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
+    console.log('PacientesSector' + resp.data);
+    // alertSucess(resp.data);
     this.putMobile(resp.data);
     return resp;
   },

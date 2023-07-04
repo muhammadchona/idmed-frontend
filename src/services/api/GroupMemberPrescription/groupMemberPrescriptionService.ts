@@ -5,7 +5,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const groupMemberPrescription = useRepo(GroupMemberPrescription);
@@ -52,16 +52,7 @@ export default {
   },
 
   async apiFetchByMemberId(id: string) {
-    if (isMobile.value) {
-      return nSQL('groupMemberPrescriptions')
-        .query('select')
-        .where(['member.id', '=', id])
-        .exec()
-        .then((result) => {
-          console.log('groupsssMember' + result);
-          groupMemberPrescription.save(result);
-        });
-    } else {
+    if (isOnline.value) {
       return await api()
         .get(`/groupMemberPrescription/member/${id}`)
         .then((resp) => {
@@ -70,35 +61,27 @@ export default {
           }
           return resp;
         });
+    } else {
+      return nSQL('groupMemberPrescriptions')
+        .query('select')
+        .where(['member.id', '=', id])
+        .exec()
+        .then((result) => {
+          console.log('groupsssMember' + result);
+          groupMemberPrescription.save(result);
+        });
     }
   },
 
   async apiSave(groupMemberPrescriptionObject: any) {
-    /*
-    return await api()
-      .post('/groupMemberPrescription', groupMemberPrescriptionObject)
-      .then((resp) => {
-        groupMemberPrescription.save(resp.data);
-        return resp.data;
-      })
-      .catch((error) => {
-        const listErrors = [];
-        if (error.request.response != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-        }
-        alertError(listErrors.value);
-      });
-      */
-
     let resp = null;
-    if (isMobile.value) {
+    if (isOnline.value) {
+      resp = await api().post(
+        '/groupMemberPrescription',
+        groupMemberPrescriptionObject
+      );
+      groupMemberPrescription.save(resp.data);
+    } else {
       groupMemberPrescriptionObject.syncStatus = 'R';
       resp = await nSQL(GroupMemberPrescription.entity)
         .query('upsert', groupMemberPrescriptionObject)
@@ -107,12 +90,6 @@ export default {
         'criacaoPrescricaoMembroMobile' + groupMemberPrescriptionObject
       );
       groupMemberPrescription.save(groupMemberPrescriptionObject);
-    } else {
-      resp = await api().post(
-        '/groupMemberPrescription',
-        groupMemberPrescriptionObject
-      );
-      groupMemberPrescription.save(resp.data);
     }
     return resp;
   },

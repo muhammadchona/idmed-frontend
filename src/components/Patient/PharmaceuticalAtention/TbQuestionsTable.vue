@@ -316,7 +316,7 @@ const addingValueToArray = () => {
           tbQuestion.date = selectedTbTracing.value.startTreatmentDate;
         }
       } else {
-     //   visible.value = false;
+        //   visible.value = false;
       }
     });
 

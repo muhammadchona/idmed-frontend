@@ -46,6 +46,43 @@
             </q-tabs>
           </div>
         </q-toolbar>
+        <div class="" v-if="!website">
+          <q-tab-panels v-model="tab" animated>
+            <q-tab-panel name="clinicService">
+              <q-scroll-area
+                :thumb-style="thumbStyle"
+                :content-style="contentStyle"
+                :content-active-style="contentActiveStyle"
+                style="height: 440px"
+                class="q-pr-md"
+              >
+                <ClinicServiceInfo class="q-mb-lg" />
+              </q-scroll-area>
+            </q-tab-panel>
+            <q-tab-panel name="prescription">
+              <q-scroll-area
+                :thumb-style="thumbStyle"
+                :content-style="contentStyle"
+                :content-active-style="contentActiveStyle"
+                style="height: 440px"
+                class="q-pr-md"
+              >
+                <PrescriptionInfo class="q-mb-lg" />
+              </q-scroll-area>
+            </q-tab-panel>
+            <q-tab-panel name="screening">
+              <q-scroll-area
+                :thumb-style="thumbStyle"
+                :content-style="contentStyle"
+                :content-active-style="contentActiveStyle"
+                style="height: 440px"
+                class="q-pr-md"
+              >
+                <PharmaceuticalAtentionInfo />
+              </q-scroll-area>
+            </q-tab-panel>
+          </q-tab-panels>
+        </div>
         <q-scroll-area
           :thumb-style="thumbStyle"
           :content-style="contentStyle"

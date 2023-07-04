@@ -13,44 +13,41 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
-      this.getWeb(offset);
+      return this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('vitalSignsScreening', params);
-      vitalSignsScreening.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  postWeb(params: string) {
+    return api()
+      .post('vitalSignsScreening', params)
+      .then((resp) => {
+        vitalSignsScreening.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -61,35 +58,26 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
-          } else {
-            closeLoading();
           }
         })
         .catch((error) => {
-          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('vitalSignsScreening/' + uuid, params);
-      vitalSignsScreening.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('vitalSignsScreening/' + uuid, params)
+      .then((resp) => {
+        vitalSignsScreening.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('vitalSignsScreening/' + uuid);
-      vitalSignsScreening.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('vitalSignsScreening/' + uuid)
+      .then(() => {
+        vitalSignsScreening.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {

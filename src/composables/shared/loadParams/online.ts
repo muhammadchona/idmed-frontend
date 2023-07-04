@@ -76,10 +76,10 @@ export function useOnline(clinic: any) {
     stockService.get(0);
     StockEntranceService.get(0);
     StockCenterService.get(0);
-    patientService.get(0);
-    episodeService.get(0);
+    // patientService.get(0);
+    // episodeService.get(0);
     StockOperationTypeService.get(0);
-    StockCenterService.get(0)
+    StockCenterService.get(0);
     //  patientVisitService.get(0);
     //   patientVisitDetailsService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
     //   packService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
@@ -89,7 +89,7 @@ export function useOnline(clinic: any) {
   }
 
   function loadPatientData() {
-   /* patientService.get(0);
+    /* patientService.get(0);
     patientAttributeService.get(0);
     patientServiceIdentifierService.get(0);
     patientVisitService.get(0);
@@ -101,8 +101,8 @@ export function useOnline(clinic: any) {
     packagedDrugService.get(0);
     prescribedDrugService.get(0);
     */
-    patientService.doPatientsBySectorGet()
-    episodeService.doEpisodesBySectorGet()
+    patientService.doPatientsBySectorGet();
+    episodeService.doEpisodesBySectorGet();
   }
   return { loadSettingParams, loadPatientData };
 }

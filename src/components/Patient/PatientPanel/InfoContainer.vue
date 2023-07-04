@@ -8,7 +8,7 @@
           : 'bg-red-7 text-white text-bold vertical-middle q-pl-md'
       "
       expand-icon-class="text-white"
-      :default-opened="curIdentifier.service.code === 'TARV'"
+      :default-opened="curIdentifier.service.code === 'TARV' || !website"
     >
       <template v-slot:header>
         <q-item-section avatar>

@@ -341,8 +341,13 @@
       </div>
     </div>
   </div>
-  <div class=""  v-if="(showServiceDrugsManagement && selectedMember == null) ||
-      (!isNewPrescription && selectedMember == null)">
+  <div
+    class=""
+    v-if="
+      (showServiceDrugsManagement && selectedMember == null) ||
+      (!isNewPrescription && selectedMember == null)
+    "
+  >
     <div>
       <ServiceDrugsManagement />
     </div>
@@ -852,10 +857,10 @@ const allGoodvalidatedForm = () => {
 
   addPackagedDrugs();
   showServiceDrugsManagement.value = true;
-  if(selectedMember.value !== null) {
-   curPatientVisitDetail.value.prescription = curPrescription.value;
-   curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
-      }
+  if (selectedMember !== undefined && selectedMember.value !== null) {
+    curPatientVisitDetail.value.prescription = curPrescription.value;
+    curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
+  }
 };
 
 const addPackagedDrugs = () => {
@@ -1053,6 +1058,8 @@ const setRelationIdentifiers = () => {
     pvd.prescription.doctor_id = pvd.prescription.doctor.id;
     pvd.prescription.clinic_id = pvd.prescription.clinic.id;
     pvd.prescription.duration_id = pvd.prescription.duration.id;
+    pvd.prescription.doctor = {};
+    pvd.prescription.doctor.id = pvd.prescription.doctor_id;
     pvd.prescription.prescriptionDetails[0].prescription_id =
       pvd.prescription.id;
     pvd.prescription.prescriptionDetails[0].therapeutic_line_id =
@@ -1417,8 +1424,8 @@ const filterFnpatientStatus = (val, update, abort) => {
 
 // Hook
 onMounted(() => {
-  console.log(showServiceDrugsManagement.value)
-  console.log(isNewPrescription.value)
+  console.log(showServiceDrugsManagement.value);
+  console.log(isNewPrescription.value);
   init();
 });
 

@@ -4,26 +4,20 @@ import Group from 'src/stores/models/group/Group';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import groupMemberService from '../groupMember/groupMemberService';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertInfo } = useSwal();
 
 const group = useRepo(Group);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('group', params)
-      .then((resp) => {
-        group.save(resp.data);
-      });
-  },
   get(offset: number) {
     if (offset >= 0) {
-      if (isMobile.value) {
+      if (isOnline.value) {
         return api()
-          .get('group?offset=' + offset + '&max=100')
+          .get('groupInfo?offset=' + offset + '&max=100')
           .then((resp) => {
             group.save(resp.data);
             offset = offset + 100;
@@ -57,35 +51,48 @@ export default {
       });
   },
   async apiFetchById(id: string) {
-    return await api()
-      .get(`/groupInfo/${id}`)
-      .then((resp) => {
-        group.save(resp.data);
-        return resp;
-      });
+    if (isOnline.value) {
+      return await api()
+        .get(`/groupInfo/${id}`)
+        .then((resp) => {
+          group.save(resp.data);
+          return resp;
+        });
+    } else {
+      return nSQL(Group.entity)
+        .query('select')
+        .where(['id', '=', id])
+        .exec()
+        .then((rows) => {
+          group.save(rows);
+        });
+    }
+  },
+  // WEB
+  async postWeb(params: string) {
+    try {
+      const resp = await api().post('/groupInfo', params);
+      group.save(resp.data);
+    } catch (error: any) {
+      console.log(error);
+    }
   },
 
   async apiSave(groupInfo: any) {
     let resp = null;
-    if (isMobile.value) {
+    if (isOnline.value) {
+      this.postWeb(groupInfo);
+    } else {
       groupInfo.syncStatus = 'R';
       resp = await nSQL('groups').query('upsert', groupInfo).exec();
       console.log('criacaoGrupo' + groupInfo);
       group.save(groupInfo);
-    } else {
-      resp = await api().post('/groupInfo', groupInfo);
-      group.save(resp.data);
     }
     return resp;
   },
 
   async apiUpdate(groupInfo: any) {
-    if (isMobile.value) {
-      if (groupInfo.syncStatus !== 'R') groupInfo.syncStatus = 'U';
-      const resp = await nSQL('groups').query('upsert', groupInfo).exec();
-      console.log('edicaoGrupo' + groupInfo);
-      group.save(resp);
-    } else {
+    if (isOnline.value) {
       return await api()
         .patch('/groupInfo/' + groupInfo.id, groupInfo)
         .then((resp) => {
@@ -104,21 +111,27 @@ export default {
               });
             }
           }
-          alertError(listErrors.value);
+          alertError('Ocorreu um erro inesperado nesta operação.');
         });
+    } else {
+      if (groupInfo.syncStatus !== 'R') groupInfo.syncStatus = 'U';
+      const resp = await nSQL('groups').query('upsert', groupInfo).exec();
+      console.log('edicaoGrupo' + groupInfo);
+      group.save(groupInfo);
+      return resp;
     }
   },
-
+  /*
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
-    // console.log('teste');
-    //  group.flush();
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return nSQL('groups')
         .query('select')
         .exec()
         .then((result) => {
           console.log('groupsss' + result);
+          console.log(groupMemberService.getAllFromStorage());
           group.save(result);
+          console.log(groupMemberService.getAllFromStorage());
         });
     } else {
       return await api()
@@ -126,6 +139,7 @@ export default {
           '/groupInfo/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
         )
         .then((resp) => {
+          console.log('groupsss555' + resp.data);
           group.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
@@ -134,6 +148,7 @@ export default {
         });
     }
   },
+  */
 
   async apiValidateBeforeAdd(patientId: string, code: string) {
     return await api().get(`/groupInfo/validadePatient/${patientId}/${code}`);
@@ -148,11 +163,12 @@ export default {
       });
   },
   getAllGroups() {
-    console.log(group.query().with('groupType').with('service').get());
+    console.log('111' + group.query().with('groupType').with('service').get());
     return group.query().with('groupType').with('service').get();
   },
 
   getGroupById(groupId: string) {
+    console.log(group.withAllRecursive(3).where('id', groupId).first());
     return group.withAllRecursive(3).where('id', groupId).first();
   },
 

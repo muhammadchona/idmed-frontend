@@ -169,6 +169,7 @@ import drugService from 'src/services/api/drugService/drugService';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import addMemberDispense from 'src/components/Groups/AddMemberDispense.vue';
 import { v4 as uuidv4 } from 'uuid';
+// import isOnline from 'is-online';
 
 const {
   getDDMMYYYFromJSDate,
@@ -180,7 +181,7 @@ const {
 } = useDateUtils();
 const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isOnline } = useSystemUtils();
 
 const nextPDate = ref('');
 const pickupDate = ref('');
@@ -215,7 +216,7 @@ const loadDetails = () => {
   if (defaultPickUpDate !== undefined && defaultPickUpDate.value !== null) {
     pickupDate.value = getDDMMYYYFromJSDate(defaultPickUpDate);
   }
-  if (isMobile.value) {
+  if (!isOnline.value) {
     drugService.getAllDrugs();
     durationService.getAllFromStorage();
     dispenseModeService.getAllFromStorage();
@@ -506,7 +507,7 @@ const validatePack = (pack) => {
 
 const generatepacks = () => {
   console.log('generatepacks');
-  // showloading()
+  showloading();
   let errorMsg = 'Não existe stock suficiente do medicamento [';
   let error = '';
   initGroupPackHeader();
@@ -534,12 +535,8 @@ const generatepacks = () => {
   }
 };
 
-const emit = defineEmits([
-  // 'getGroupMembers'
-]);
-
 const savePatientVisitDetails = (groupPacks, i) => {
-  if (isMobile.value) {
+  if (!isOnline.value) {
     if (groupPacks[i] !== null && groupPacks[i] !== undefined) {
       const patientVisit =
         groupPacks[i].pack.patientVisitDetails[0].patientVisit;
@@ -563,10 +560,6 @@ const savePatientVisitDetails = (groupPacks, i) => {
           pDrugStock.packagedDrug_id = pDrug.id;
         });
       });
-      // patientVisit.patientVisitDetails[0].prescription.calculateLeftDuration(JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
-
-      //   Pack.localDbAdd(JSON.parse(JSON.stringify(groupPacks[i].pack)));
-      //  Pack.insert({ data: JSON.parse(JSON.stringify(groupPacks[i].pack)) });
       patientVisit.patientVisitDetails[0].pack = groupPacks[i].pack;
       patientVisit.patientVisitDetails[0].pack.packagedDrugs = [];
       patientVisit.clinic_id = patientVisit.clinic.id;
@@ -601,38 +594,15 @@ const savePatientVisitDetails = (groupPacks, i) => {
       curGroupPackHeader.value.group_id = selectedGroup.value.id;
       curGroupPackHeader.value.group = null;
       console.log(curGroupPackHeader.value);
-      //    GroupPackHeader.localDbAdd(
-      //      JSON.parse(JSON.stringify(curGroupPackHeader))
-      //    );
-      //    GroupPackHeader.insert({ data: curGroupPackHeader });
+
       groupPackHeaderService.apiSave(curGroupPackHeader.value).then((resp) => {
         console.log(resp);
-        //  curGroupPackHeader.id = resp.data.id
-        // Group.apiFetchById(curGroupPackHeader.group.id).then(resp => {a
-        //  console.log(resp)
-        // resp.response.data.packHeaders.forEach(packHeader => {
-        //       GroupPackHeader.apiFetchById(packHeader.id).then(resp => {
-        //        console.log(resp)
-        //      })
-        //    })
-        //})
-        /*
-             patientVisitDetailsToAdd.value.forEach(pvd => {
-              pvd.episode_id = pvd.episode.id
-              pvd.clinic_id = pvd.clinic.id
-              pvd.patient_visit_id = pvd.patientVisit.id
-              pvd.prescription_id = pvd.prescription.id
-              pvd.pack_id = pvd.pack.id
-              console.log(pvd)
-              PatientVisitDetails.insert({ data: pvd })
-            })
-            */
-        // groupPackHeaderService.apiFetchById(curGroupPackHeader.value.id);
         alertSucess('Operação efectuada com sucesso.');
         submitting.value = false;
         showNewPackingForm.value = false;
         loadedData.value = false;
         executeGetGroupMembers();
+        closeLoading();
         // $emit('getGroupMembers', false)
         //  emit('getGroupMembers');
       });
@@ -679,22 +649,6 @@ const savePatientVisitDetails = (groupPacks, i) => {
         pvd.prescription.id = prescriptionId;
       });
       groupPacks[i].patientVisit = patientVisit;
-      //  usePrescription().calculateLeftDuration(patientVisit.patientVisitDetails[0].prescription,JSON.parse(JSON.stringify(groupPacks[i].pack)).weeksSupply)
-      /*
-          patientVisitService.apiSave(patientVisit).then(resp => {
-              // groupPacks[i].pack.patientVisitDetails = []
-              const pv = JSON.parse(JSON.stringify(patientVisit))
-            //  PatientVisit.insert({ data: pv })
-          pv.patientVisitDetails.forEach((pvd) => {
-            patientVisit.patientVisitDetails = []
-            pvd.patientVisit = JSON.parse(JSON.stringify(patientVisit))
-            patientVisitDetailsToAdd.value.push(pvd)
-          })
-              i = i + 1
-              setTimeout(savePatientVisitDetails(groupPacks, i), 4)
-            })
-         // })
-         */
       i = i + 1;
       setTimeout(savePatientVisitDetails(groupPacks, i), 4);
     } else {
@@ -707,32 +661,13 @@ const savePatientVisitDetails = (groupPacks, i) => {
         .apiSave(curGroupPackHeader.value)
         .then((resp) => {
           console.log(resp);
-          //  curGroupPackHeader.id = resp.data.id
-          // Group.apiFetchById(curGroupPackHeader.group.id).then(resp => {a
-          //  console.log(resp)
-          // resp.response.data.packHeaders.forEach(packHeader => {
-          //       GroupPackHeader.apiFetchById(packHeader.id).then(resp => {
-          //        console.log(resp)
-          //      })
-          //    })
-          //})
-          /*
-             patientVisitDetailsToAdd.value.forEach(pvd => {
-              pvd.episode_id = pvd.episode.id
-              pvd.clinic_id = pvd.clinic.id
-              pvd.patient_visit_id = pvd.patientVisit.id
-              pvd.prescription_id = pvd.prescription.id
-              pvd.pack_id = pvd.pack.id
-              console.log(pvd)
-              PatientVisitDetails.insert({ data: pvd })
-            })
-            */
           groupPackHeaderService.apiFetchById(curGroupPackHeader.value.id);
           alertSucess('Operação efectuada com sucesso.');
           submitting.value = false;
           showNewPackingForm.value = false;
           loadedData.value = false;
           executeGetGroupMembers();
+          closeLoading();
           // $emit('getGroupMembers', false)
           //  emit('getGroupMembers');
         })
@@ -784,7 +719,7 @@ const loadGroup = () => {
         return identifier.service.id === selectedGroup.value.service.id;
       }
     );
-    member.patient.identifiers[0].episodes = [];
+    //  member.patient.identifiers[0].episodes = [];
     member.patient.identifiers[0].episodes[0] =
       lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
   });
@@ -795,24 +730,7 @@ const loadGroup = () => {
 };
 
 const lastStartEpisodeWithPrescription = (identifierId) => {
-  let episode = null;
-  const episodes = episodeService.getStartEpisodeByIdentifierId(identifierId);
-  Object.keys(episodes).forEach(function (k) {
-    const id = episodes[k];
-    if (episode === null && useEpisode().hasVisits(id)) {
-      episode = id;
-      /*
-          episode.lastVisit().prescription = Prescription.query()
-                                                          .with('doctor')
-                                                          .with('duration')
-                                                          .with('prescribedDrugs.drug.form')
-                                                          .with('prescriptionDetails')
-                                                          .where('id', episode.lastVisit().prescription.id)
-                                                          .first()
-                                                          */
-    }
-  });
-  return episode;
+  return episodeService.getStartEpisodeByIdentifierId(identifierId);
 };
 
 const determineNextPickUpDate = () => {
