@@ -347,6 +347,7 @@ const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
 };
 const onChangeProvincia = () => {
+  patientReg.value = new Patient();
   if (patientReg.value.province !== null) {
     if (patientReg.value.province.description !== patientReg.value.province) {
       patientReg.value.district = null;
@@ -559,11 +560,12 @@ const doSave = async () => {
         // ) {
         //   doPatientTranference(resp);
         // } else {
+        console.log(resp);
         alertSucess('Dados do paciente gravados com sucesso.');
         submitLoading.value = false;
         showPatientRegister.value = false;
         closePatient();
-        goToPatientPanel(resp.data);
+        goToPatientPanel(patientReg.value);
         // }
       })
       .catch((error) => {

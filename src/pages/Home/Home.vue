@@ -159,7 +159,7 @@ const menusVisible = (name) => {
 
 onMounted(() => {
   if (website.value || (isMobile.value && isOnline.value)) {
-    console.log('IS WEB APP OR MOBILE ONLONE APP' + website.value);
+    console.log('IS WEB APP OR MOBILE ONLONE APP ' + website.value);
     showloading();
     loadSettingParams();
   } else {
