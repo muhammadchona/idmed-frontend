@@ -662,12 +662,12 @@ const savePatientVisitDetails = (groupPacks, i) => {
         .then((resp) => {
           console.log(resp);
           groupPackHeaderService.apiFetchById(curGroupPackHeader.value.id);
+          closeLoading();
           alertSucess('Operação efectuada com sucesso.');
           submitting.value = false;
           showNewPackingForm.value = false;
           loadedData.value = false;
           executeGetGroupMembers();
-          closeLoading();
           // $emit('getGroupMembers', false)
           //  emit('getGroupMembers');
         })

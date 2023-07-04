@@ -193,10 +193,12 @@ const step = ref('create');
 
 onMounted(() => {
   showloading();
+  groupService.get(0);
   groupTypeService.get(0);
   clinicalServiceService.get(0);
-  groupService.get(0);
-  searchResults.value = getAllGroups();
+  setTimeout(() => {
+    searchResults.value = getAllGroups();
+  }, 4000);
   closeLoading();
 });
 
@@ -218,6 +220,7 @@ const search = () => {
 const openGroup = (group) => {
   SessionStorage.set('selectedGroupId', group.id);
   // pull all selected group info
+  showloading();
   router.push('/group/panel');
 };
 

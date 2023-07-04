@@ -109,7 +109,10 @@
           </list-header>
           <div>
             <span v-for="lote in stocks(drug)" :key="lote.id">
-              <lote-info-container :stockInfo="lote"  @updateDrugFileAdjustment="updateDrugFileAdjustment" />
+              <lote-info-container
+                :stockInfo="lote"
+                @updateDrugFileAdjustment="updateDrugFileAdjustment"
+              />
             </span>
           </div>
         </div>
@@ -137,7 +140,7 @@ import StockService from 'src/services/api/stockService/StockService';
 
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const { isOnline, isOnline } = useSystemUtils();
+const { isOnline } = useSystemUtils();
 
 const columns = [
   {
@@ -203,23 +206,22 @@ const goBack = () => {
   router.go(-1);
 };
 
-const generateDrugEventSummary =async () => {
-  const clinic = clinicService.currClinic()
+const generateDrugEventSummary = async () => {
+  const clinic = clinicService.currClinic();
   if (!isOnline.value) {
-        showloading()
-        drugEventList.value = await drugFileService.getDrugFileSummary(drug.value)
-        closeLoading()
-          } else {
-              showloading()
-              drugFileService.apiGetDrugSummary(clinic.id, drug.value.id).then(resp => {
-                console.log(resp.data)
-                const t = resp.data
-                drugEventList.value = t
-                closeLoading()
-              })
-          }}
-
-;
+    showloading();
+    drugEventList.value = await drugFileService.getDrugFileSummary(drug.value);
+    closeLoading();
+  } else {
+    showloading();
+    drugFileService.apiGetDrugSummary(clinic.id, drug.value.id).then((resp) => {
+      console.log(resp.data);
+      const t = resp.data;
+      drugEventList.value = t;
+      closeLoading();
+    });
+  }
+};
 
 const updateDrugFileAdjustment = (adjustment) => {
   console.log(' drugFile.drugFileSummary[0]::', drugFile.drugFileSummary[0]);
@@ -249,9 +251,11 @@ const updateDrugFileAdjustment = (adjustment) => {
         adjustment.constructor.name === 'StockReferenceAdjustment' &&
         adjustment.operation.code === 'AJUSTE_POSETIVO'
       ) {
-        drugFile.drugFileSummaryBatch[i].posetiveAdjustment =drugFile.drugFileSummaryBatch[i].posetiveAdjustment+
+        drugFile.drugFileSummaryBatch[i].posetiveAdjustment =
+          drugFile.drugFileSummaryBatch[i].posetiveAdjustment +
           adjustment.adjustedValue;
-        drugFile.drugFileSummaryBatch[i].balance = drugFile.drugFileSummaryBatch[i].balance + adjustment.adjustedValue;
+        drugFile.drugFileSummaryBatch[i].balance =
+          drugFile.drugFileSummaryBatch[i].balance + adjustment.adjustedValue;
         console.log('AJUSTE_POSETIVO: ');
       } else if (
         adjustment.constructor.name === 'StockReferenceAdjustment' &&
@@ -281,14 +285,13 @@ const drug = computed(() => {
   return dru;
 });
 
-
 const stocks = (drug) => {
-  return StockService.getStockByDrug(drug.id) 
-}
+  return StockService.getStockByDrug(drug.id);
+};
 
 const drugFile = () => {
   return DrugFile.query().where('drugId', drug.value.id).first();
-}
+};
 
 provide('title', title);
 </script>
