@@ -826,51 +826,49 @@ const doSave = async () => {
       getDateFromHyphenDDMMYYYY(identifierstartDate.value)
     );
   }
-  if (website.value) {
-    let clinical_service_id = identifier.value.service.id;
-    identifier.value.patient = {};
-    identifier.value.patient.id = patient.value.id;
-    identifier.value.service = {};
-    identifier.value.service.id = clinical_service_id;
+  let clinical_service_id = identifier.value.service.id;
+  identifier.value.patient = {};
+  identifier.value.patient.id = patient.value.id;
+  identifier.value.service = {};
+  identifier.value.service.id = clinical_service_id;
 
-    await patientServiceIdentifierService
-      .apiSave(identifier.value, isCreateStep.value)
-      .then((resp) => {
-        submitting.value = false;
-        if (isTransferenceEpisode.value) {
-          initPatientTransReference();
+  await patientServiceIdentifierService
+    .apiSave(identifier.value, isCreateStep.value)
+    .then((resp) => {
+      submitting.value = false;
+      if (isTransferenceEpisode.value) {
+        initPatientTransReference();
+      }
+      let msg = '';
+      if (isCloseStep.value) {
+        msg = 'Serviço de saúde fechado com sucesso.';
+      } else if (isCreateStep.value) {
+        msg = 'Serviço de saúde adicionado com sucesso.';
+      } else if (isEditStep.value) {
+        msg = 'Serviço de saúde actualizado com sucesso.';
+      } else if (isReOpenStep.value) {
+        msg = 'Serviço de saúde reaberto com sucesso.';
+      }
+      alertSucess(msg);
+      close();
+    })
+    .catch((error) => {
+      submitting.value = false;
+      const listErrors = [];
+      console.error(error);
+      if (error.request.response != null) {
+        const arrayErrors = JSON.parse(error.request.response);
+        if (arrayErrors.total == null) {
+          listErrors.push(arrayErrors.message);
+        } else {
+          arrayErrors._embedded.errors.forEach((element) => {
+            listErrors.push(element.message);
+          });
         }
-        let msg = '';
-        if (isCloseStep.value) {
-          msg = 'Serviço de saúde fechado com sucesso.';
-        } else if (isCreateStep.value) {
-          msg = 'Serviço de saúde adicionado com sucesso.';
-        } else if (isEditStep.value) {
-          msg = 'Serviço de saúde actualizado com sucesso.';
-        } else if (isReOpenStep.value) {
-          msg = 'Serviço de saúde reaberto com sucesso.';
-        }
-        alertSucess(msg);
-        close();
-      })
-      .catch((error) => {
-        submitting.value = false;
-        const listErrors = [];
-        console.error(error);
-        if (error.request.response != null) {
-          const arrayErrors = JSON.parse(error.request.response);
-          if (arrayErrors.total == null) {
-            listErrors.push(arrayErrors.message);
-          } else {
-            arrayErrors._embedded.errors.forEach((element) => {
-              listErrors.push(element.message);
-            });
-          }
-        }
-        console.error(listErrors);
-        alertError('Aconteceu um erro inesperado, por favor contacte o HIS');
-      });
-  }
+      }
+      console.error(listErrors);
+      alertError('Aconteceu um erro inesperado, por favor contacte o HIS');
+    });
 };
 
 const initPatientTransReference = () => {

@@ -300,6 +300,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRouter } from 'vue-router';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import Localidade from 'src/stores/models/Localidade/Localidade';
 
 // Declaration
 const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
@@ -548,74 +549,72 @@ const savePatient = async () => {
 };
 const doSave = async () => {
   patientReg.value.clinic = currClinic.value;
-  if (website.value) {
-    if (newPatient.value) {
-      patientService
-        .post(patientReg.value)
-        .then((resp) => {
-          // if (
-          //   transferencePatientData !== undefined &&
-          //   transferencePatientData.length > 0
-          // ) {
-          //   doPatientTranference(resp);
-          // } else {
-          alertSucess('Dados do paciente gravados com sucesso.');
-          submitLoading.value = false;
-          showPatientRegister.value = false;
-          closePatient();
-          goToPatientPanel(resp.data);
-          // }
-        })
-        .catch((error) => {
-          let listErrors = [];
-          submitLoading.value = false;
-          if (error.request !== undefined && error.request.status !== 0) {
-            const arrayErrors = JSON.parse(error.request.response);
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
+  if (newPatient.value) {
+    patientService
+      .post(patientReg.value)
+      .then((resp) => {
+        // if (
+        //   transferencePatientData !== undefined &&
+        //   transferencePatientData.length > 0
+        // ) {
+        //   doPatientTranference(resp);
+        // } else {
+        alertSucess('Dados do paciente gravados com sucesso.');
+        submitLoading.value = false;
+        showPatientRegister.value = false;
+        closePatient();
+        goToPatientPanel(resp.data);
+        // }
+      })
+      .catch((error) => {
+        let listErrors = [];
+        submitLoading.value = false;
+        if (error.request !== undefined && error.request.status !== 0) {
+          const arrayErrors = JSON.parse(error.request.response);
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
           }
-          console.error(error);
-          alertError('Ocorreu um problema ao executar a operação');
-        });
-    } else {
-      patientService
-        .patch(patientReg.value.id, patientReg.value)
-        .then((resp) => {
-          // if (
-          //   transferencePatientData !== undefined &&
-          //   transferencePatientData.length > 0
-          // ) {
-          //   doPatientTranference(resp);
-          // } else {
-          alertSucess('Dados do paciente Actualizados com sucesso.');
-          closePatient();
-          showPatientRegister.value = false;
-          submitLoading.value = false;
+        }
+        console.error(error);
+        alertError('Ocorreu um problema ao executar a operação');
+      });
+  } else {
+    patientService
+      .patch(patientReg.value.id, patientReg.value)
+      .then((resp) => {
+        // if (
+        //   transferencePatientData !== undefined &&
+        //   transferencePatientData.length > 0
+        // ) {
+        //   doPatientTranference(resp);
+        // } else {
+        alertSucess('Dados do paciente Actualizados com sucesso.');
+        closePatient();
+        showPatientRegister.value = false;
+        submitLoading.value = false;
 
-          // }
-        })
-        .catch((error) => {
-          let listErrors = [];
-          submitLoading.value = false;
-          if (error.request !== undefined && error.request.status !== 0) {
-            const arrayErrors = JSON.parse(error.request.response);
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
+        // }
+      })
+      .catch((error) => {
+        let listErrors = [];
+        submitLoading.value = false;
+        if (error.request !== undefined && error.request.status !== 0) {
+          const arrayErrors = JSON.parse(error.request.response);
+          if (arrayErrors.total == null) {
+            listErrors.push(arrayErrors.message);
+          } else {
+            arrayErrors._embedded.errors.forEach((element) => {
+              listErrors.push(element.message);
+            });
           }
-          console.error(error, listErrors);
-          alertError('Ocorreu um problema ao executar a operação');
-        });
-    }
+        }
+        console.error(error, listErrors);
+        alertError('Ocorreu um problema ao executar a operação');
+      });
   }
 };
 

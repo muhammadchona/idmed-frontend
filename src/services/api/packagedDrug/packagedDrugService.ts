@@ -13,44 +13,41 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
-      this.getWeb(offset);
+      return this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('packagedDrug', params);
-      packagedDrug.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  postWeb(params: string) {
+    return api()
+      .post('packagedDrug', params)
+      .then((resp) => {
+        packagedDrug.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -61,35 +58,26 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
-          } else {
-            closeLoading();
           }
         })
         .catch((error) => {
-          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('packagedDrug/' + uuid, params);
-      packagedDrug.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('packagedDrug/' + uuid, params)
+      .then((resp) => {
+        packagedDrug.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('packagedDrug/' + uuid);
-      packagedDrug.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('packagedDrug/' + uuid)
+      .then(() => {
+        packagedDrug.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {
@@ -119,10 +107,11 @@ export default {
   },
   getAllByPackIdMobile(packId: any) {
     return nSQL(PackagedDrug.entity)
-      .query('select') .where(['pack_id', '=', packId])
+      .query('select')
+      .where(['pack_id', '=', packId])
       .exec()
       .then((rows: any) => {
-        return rows
+        return rows;
         //console.log(rows);
         // packagedDrug.save(rows);
       })
