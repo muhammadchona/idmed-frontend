@@ -613,12 +613,11 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import Drug from '../../../stores/models/drug/Drug';
 import Stock from '../../../stores/models/stock/Stock';
 import { computed, onMounted, provide, ref } from 'vue';
-import { date, SessionStorage } from 'quasar';
+import { date } from 'quasar';
 import moment from 'moment';
 import StockService from 'src/services/api/stockService/StockService';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import { useStock } from 'src/composables/stock/StockMethod';
-import { useMediaQuery } from '@vueuse/core';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
@@ -761,7 +760,7 @@ const doSaveGuia = () => {
           currStockEntrance.value.id,
           entrance
         ).then((resp) => {
-          SessionStorage.set('currStockEntrance', currStockEntrance.value.id);
+          localStorage.setItem('currStockEntrance', currStockEntrance.value.id);
           guiaStep.value = 'display';
           alertSucess('Operação efectuada com sucesso.');
         });
@@ -927,6 +926,7 @@ const doSave = (stock) => {
   stock.clinic = clinicService.currClinic();
   stock.stock_center_id = center.id;
   stock.entrance = currStockEntrance;
+  stock.enabled = false;
   // const entrance = currStockEntrance.value
   stock.entrance_id = currStockEntrance.value.id;
   // stock.entrance = entrance
@@ -1020,8 +1020,8 @@ const promptStockDeletion = (stock) => {
 };
 
 const getCurrStockEntrance = () => {
-  const stockEntr = JSON.parse(localStorage.getItem('currStockEntrance'));
-  return StockEntranceService.getStockEntranceById(stockEntr.id);
+  const stockEntrId = JSON.parse(localStorage.getItem('currStockEntrance'));
+  return StockEntranceService.getStockEntranceById(stockEntrId);
 };
 
 const loadStockList = () => {

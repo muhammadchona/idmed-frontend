@@ -11,7 +11,7 @@ const inventoryStockAdjustment = useRepo(InventoryStockAdjustment);
 export default {
   // Axios API call
   async post(params: string) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
       return  this.putMobile(params);
       } else {
     return this.postWeb(params);
@@ -19,7 +19,7 @@ export default {
     },
 
   get(offset: number) {
-    if (isMobile.value) {
+    if (!isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
@@ -27,7 +27,7 @@ export default {
 
   },
   async patch(id: string, params: string) {
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return this.putMobile(params);
     } else {
      return  this.apiUpdateWeb(id, params);
@@ -35,14 +35,14 @@ export default {
   },
 
   async delete(id: any) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
      return this.deleteMobile(id);
     } else {
      return this.deleteWeb(id);
     }
   },
   async apiFetchById(id: string) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
       return this.apiFetchByIdMobile(id);
       } else {
       return this.apiFetchByIdWeb(id);
@@ -50,7 +50,7 @@ export default {
   },
 
     async apiGetAll(offset: number, max: number) {
-      if (isMobile.value ) {
+      if (!isOnline.value ) {
         return this.apiGetAllMobile();
         } else {
         return this.apiGetAllWeb(offset,max);

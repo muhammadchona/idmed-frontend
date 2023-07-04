@@ -102,7 +102,8 @@ const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
 const editStockEntrance = (entrance) => {
-  localStorage.setItem('currStockEntrance', JSON.stringify(entrance));
+  entrance.clinic = null
+  localStorage.setItem('currStockEntrance', JSON.stringify(entrance.id));
   router.push('/stock/entrance');
 };
 

@@ -2,7 +2,6 @@ import { useRepo } from 'pinia-orm';
 import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-const { alertSucess, alertError, alertWarning } = useSwal();
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 
@@ -14,7 +13,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   // Axios API call
   async post(params: string) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
       return  this.putMobile(params);
       } else {
     return this.postWeb(params);
@@ -23,7 +22,7 @@ export default {
 
   get(offset: number) {
 
-    if (isMobile.value) {
+    if (!isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
@@ -31,7 +30,7 @@ export default {
 
   },
   async apiUpdate(id: string, params: string) {
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return this.putMobile(params);
     } else {
      return  this.apiUpdateWeb(id, params);
@@ -39,7 +38,7 @@ export default {
   },
 
   async delete(id: any) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
      return this.deleteMobile(id);
     } else {
      return this.deleteWeb(id);
@@ -47,14 +46,14 @@ export default {
       },
 
   apiFetchById(id: string) {
-    if (isMobile ) {
+    if (!isOnline ) {
      return this.apiFetchByIdMobile(id);
     } else {
       return this.apiFetchByIdWeb(id);
     }
   },
    async apiGetAllByClinicId (clinicId: string, offset: number, max: number) {
-    if (isMobile) {
+    if (!isOnline) {
       this.apiGetAllByClinicIdMobile(clinicId);
     } else {
       this.apiGetAllByClinicIdWeb(clinicId, offset,max);

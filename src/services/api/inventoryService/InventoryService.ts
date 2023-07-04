@@ -10,7 +10,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   // Axios API call
   async post(params: string) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
       return  this.putMobile(params);
       } else {
     return this.postWeb(params);
@@ -20,7 +20,7 @@ export default {
   
   async get(offset: number) {
 
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return this.getMobile();
     } else {
      return  this.getWeb(offset);
@@ -28,14 +28,14 @@ export default {
   },
 
   async patch(id: string, params: string) {
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return this.putMobile(params);
     } else {
      return  this.apiUpdateWeb(id, params);
     }
   },
  async  delete(id: number) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
       return this.deleteMobile(id);
      } else {
       return this.deleteWeb(id);
@@ -43,7 +43,7 @@ export default {
   },
 
  async apiFetchById(id: string) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
       return this.apiFetchByIdMobile(id);
      } else {
       return this.apiFetchByIdWeb(id);
@@ -53,7 +53,7 @@ export default {
    
 
    async apiClose(id: string) {
-    if (isMobile.value ) {
+    if (!isOnline.value ) {
     return await api().patch(`/inventory/close/${id}`);
     } 
   },
