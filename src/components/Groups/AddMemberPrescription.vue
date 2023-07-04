@@ -110,6 +110,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
 import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription';
 import { v4 as uuidv4 } from 'uuid';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 // Declaration
 const {
   idadeCalculator,
