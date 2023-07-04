@@ -3,7 +3,7 @@
     <div class="col">
       <q-table
         style="max-width: 100%"
-        :rows="rows"
+        :rows="rowData"
         :columns="columnsGender"
         class="my-sticky-header-table text-color-white"
         title="Total de dispensa por Idade no Serviço"
@@ -28,50 +28,50 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted, inject, watch } from 'vue';
-import reportService from 'src/services/api/report/reportService.ts';
+import { ref, watchEffect, onMounted, inject, watch } from "vue";
+import reportService from "src/services/api/report/reportService.ts";
 
 const columnsGender = [
   {
-    name: 'dispenseType',
+    name: "dispenseType",
     required: true,
-    label: 'Tipo de Dispensa',
-    align: 'left',
+    label: "Tipo de Dispensa",
+    align: "left",
     field: (row) => row.dispenseType,
     format: (val) => `${val}`,
   },
   {
-    name: 'adulto',
+    name: "adulto",
     required: true,
-    label: 'Adulto',
-    align: 'left',
+    label: "Adulto",
+    align: "left",
     field: (row) => row.adulto,
     format: (val) => `${val}`,
   },
   {
-    name: 'menor',
+    name: "menor",
     required: true,
-    label: 'Criança',
-    align: 'left',
+    label: "Criança",
+    align: "left",
     field: (row) => row.menor,
     format: (val) => `${val}`,
   },
 ];
 
-const serviceCode = inject('serviceCode');
-const year = inject('year');
-const clinic = inject('currClinic');
+const serviceCode = inject("serviceCode");
+const year = inject("year");
+const clinic = inject("currClinic");
 const rowData = ref([]);
 
 function getDispenseByAge() {
   reportService
-    .getDispenseByAge(year, clinic.id, serviceCode.value)
+    .getDispenseByAge(year.value, clinic.value.id, serviceCode.value)
     .then((resp) => {
       rowData.value = resp.data;
     });
 }
 
-watchEffect(() => {
+watch([serviceCode, year], () => {
   getDispenseByAge();
 });
 

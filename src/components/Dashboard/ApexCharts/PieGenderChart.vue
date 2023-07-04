@@ -15,31 +15,31 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, computed, watchEffect, inject } from 'vue';
-import apexchart from 'vue3-apexcharts';
-import reportService from 'src/services/api/report/reportService.ts';
+import { ref, watch, onMounted, computed, watchEffect, inject } from "vue";
+import apexchart from "vue3-apexcharts";
+import reportService from "src/services/api/report/reportService.ts";
 
-const clinic = inject('currClinic');
+const clinic = inject("currClinic");
 const loaded = computed(() => !loading.value);
-const serviceCode = inject('serviceCode');
-const year = inject('year');
+const serviceCode = inject("serviceCode");
+const year = inject("year");
 
 const loading = ref(false);
 const series = ref([]);
 const chartOptions = {
-  labels: ['Masculino', 'Feminino'],
-  colors: ['#0096FF', '#FF1493'],
+  labels: ["Masculino", "Feminino"],
+  colors: ["#0096FF", "#FF1493"],
   animations: {
     enabled: true,
-    easing: 'easeinout',
+    easing: "easeinout",
     speed: 2000,
   },
   title: {
-    text: 'Percentual de Pacientes activos no Serviço ' + serviceCode.value,
-    align: 'center',
+    text: "Percentual de Pacientes activos no Serviço " + serviceCode.value,
+    align: "center",
     style: {
-      color: '#000000',
-      fontSize: '13px',
+      color: "#000000",
+      fontSize: "13px",
     },
   },
   plotOptions: {
@@ -49,15 +49,15 @@ const chartOptions = {
           show: true,
           name: {
             show: true,
-            fontSize: '22px',
-            fontFamily: 'Rubik',
-            color: '#dfsda',
+            fontSize: "22px",
+            fontFamily: "Rubik",
+            color: "#dfsda",
             offsetY: -10,
           },
           value: {
             show: true,
-            fontSize: '16px',
-            fontFamily: 'Helvetica, Arial, sans-serif',
+            fontSize: "16px",
+            fontFamily: "Helvetica, Arial, sans-serif",
             color: undefined,
             offsetY: 16,
             formatter: function (val) {
@@ -66,8 +66,8 @@ const chartOptions = {
           },
           total: {
             show: true,
-            label: 'Total',
-            color: '#373d3f',
+            label: "Total",
+            color: "#373d3f",
             formatter: function (w) {
               return w.globals.seriesTotals.reduce((a, b) => {
                 return a + b;
@@ -83,18 +83,11 @@ const chartOptions = {
 const getActivePatientPercentage = () => {
   loading.value = true;
   reportService
-    .getActivePatientPercentage(year, clinic.id, serviceCode.value)
+    .getActivePatientPercentage(year.value, clinic.value.id, serviceCode.value)
     .then((resp) => {
-      console.log(resp.data);
       if (resp.data.length > 0) {
-        series.value[0] =
-          resp.response.data[0] !== undefined
-            ? resp.response.data[0].quantity
-            : 0;
-        series.value[1] =
-          resp.response.data[1] !== undefined
-            ? resp.response.data[1].quantity
-            : 0;
+        series.value[0] = resp.data[0] !== undefined ? resp.data[0].quantity : 0;
+        series.value[1] = resp.data[1] !== undefined ? resp.data[1].quantity : 0;
       } else {
         series.value[0] = 0;
         series.value[1] = 0;
@@ -112,10 +105,10 @@ watch([serviceCode, year], () => {
   chartOptions.title = {
     ...chartOptions.title,
     ...{
-      text: 'Percentual de Pacientes activos no Serviço ' + serviceCode.value,
-      align: 'center',
+      text: "Percentual de Pacientes activos no Serviço " + serviceCode.value,
+      align: "center",
       style: {
-        color: '#000000',
+        color: "#000000",
       },
     },
   };

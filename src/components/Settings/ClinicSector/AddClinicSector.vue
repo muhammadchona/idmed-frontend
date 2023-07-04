@@ -57,9 +57,7 @@
             ref="clinicSectorRef"
             option-value="id"
             option-label="description"
-            :rules="[
-              (val) => val != null || ' Por favor indique o tipo de Sector',
-            ]"
+            :rules="[(val) => val != null || ' Por favor indique o tipo de Sector']"
             lazy-rules
             label="Tipo de Sector Clinico"
           />
@@ -100,12 +98,12 @@
 
 <script setup>
 /*imports*/
-import { ref, inject, onMounted, computed } from 'vue';
-import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
-import clinicService from 'src/services/api/clinicService/clinicService.ts';
-import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
-import { v4 as uuidv4 } from 'uuid';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { ref, inject, onMounted, computed } from "vue";
+import clinicSectorService from "src/services/api/clinicSectorService/clinicSectorService.ts";
+import clinicService from "src/services/api/clinicService/clinicService.ts";
+import clinicSectorTypeService from "src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts";
+import { v4 as uuidv4 } from "uuid";
+import { useSwal } from "src/composables/shared/dialog/dialog";
 
 const { alertSucess, alertError } = useSwal();
 
@@ -120,14 +118,12 @@ const clinicSectorRef = ref(null);
 const clinicRef = ref(null);
 
 /*injects*/
-const clinicSector = inject('selectedClinicSector');
-const viewMode = inject('viewMode');
-const currClinic = inject('currClinic');
-const isEditStep = inject('isEditStep');
-const isCreateStep = inject('isCreateStep');
-const showClinicSectorRegistrationScreen = inject(
-  'showClinicSectorRegistrationScreen'
-);
+const clinicSector = inject("selectedClinicSector");
+const viewMode = inject("viewMode");
+const currClinic = inject("currClinic");
+const isEditStep = inject("isEditStep");
+const isCreateStep = inject("isCreateStep");
+const showClinicSectorRegistrationScreen = inject("showClinicSectorRegistrationScreen");
 
 /*Hooks*/
 // const clinicSector = computed(() => {
@@ -177,7 +173,6 @@ const validateClinicSector = () => {
 };
 
 const submitClinicSector = () => {
-  clinicSector.value.active = true;
   // if (mobile) {
   //   clinicSector.clinic_id = currClinic.id;
   //   clinicSector.clinic_sector_type_id =
@@ -207,18 +202,22 @@ const submitClinicSector = () => {
   //   );
   // } else {
   if (isCreateStep.value) {
+    clinicSector.value.active = true;
     clinicSector.value.uuid = uuidv4();
+    clinicSector.value.syncStatus = "P";
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }
     clinicSectorService
       .post(clinicSector.value)
       .then((resp) => {
-        alertSucess('O Registo foi efectuado com sucesso');
+        console.log(resp);
+        alertSucess("O Registo foi efectuado com sucesso");
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
       })
       .catch((error) => {
+        alertError("Aconteceu um erro inesperado nesta operação.");
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
       });
@@ -243,16 +242,15 @@ const submitClinicSector = () => {
 };
 
 const codeRules = (val) => {
-  if (clinicSector.value.code === '') {
-    return 'o Código é obrigatorio';
+  if (clinicSector.value.code === "") {
+    return "o Código é obrigatorio";
   } else if (
     (databaseCodes.value.includes(val) && !isEditStep.value) ||
     (databaseCodes.value.includes(val) &&
-      clinicSectors.value.filter((x) => x.code === val)[0].id !==
-        clinicSector.value.id &&
+      clinicSectors.value.filter((x) => x.code === val)[0].id !== clinicSector.value.id &&
       isEditStep.value)
   ) {
-    return !databaseCodes.value.includes(val) || 'o Código indicado já existe';
+    return !databaseCodes.value.includes(val) || "o Código indicado já existe";
   }
 };
 </script>
