@@ -100,7 +100,8 @@ export default {
       await nSQL(PatientServiceIdentifier.entity)
         .query('upsert', params)
         .exec();
-      patientServiceIdentifier.save(JSON.parse(params));
+      // patientServiceIdentifier.save(JSON.parse(params));
+      patientServiceIdentifier.save(params);
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');

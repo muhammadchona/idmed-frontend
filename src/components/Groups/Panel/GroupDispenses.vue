@@ -78,16 +78,8 @@
 <script setup>
 import { computed, inject, provide, ref } from 'vue';
 import { date, SessionStorage } from 'quasar';
-import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails';
-import Pack from 'src/stores/models/packaging/Pack';
-import PatientVisit from '../../../stores/models/patientVisit/PatientVisit';
-import Prescription from '../../../stores/models/prescription/Prescription';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import groupService from 'src/services/api/group/groupService';
-import groupPackService from 'src/services/api/groupPack/groupPackService';
-import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
-import packService from 'src/services/api/pack/packService';
-import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useGroup } from 'src/composables/group/groupMethods';
 import groupPack from 'src/components/Groups/GroupDispense.vue';
@@ -144,34 +136,10 @@ const getGroupMembers = inject('getGroupMembers');
 const defaultPickUpDate = ref(null);
 
 const removePackHeader = (groupPackHeader) => {
-  if (isMobile.value) {
-    groupPackHeaderService.apiDelete(groupPackHeader);
-  } else {
-    groupPackHeaderService.apiDelete(groupPackHeader).then((resp) => {
-      const packsToDelete = groupPackService.getGroupPackByHeaderId(
-        groupPackHeader.id
-      );
-      console.log(packsToDelete);
-      packsToDelete.forEach((packToDelete) => {
-        const pvd = patientVisitDetailsService.getPatientVisitDetailsByPackId(
-          packToDelete.pack_id
-        );
-        const pack = packService.getPackByID(packToDelete.pack_id);
-        const memberPrescription = prescriptionService.getPrescriptionByID(
-          pvd.prescription_id
-        );
-        memberPrescription.leftDuration = Number(pack.weeksSupply / 4);
-        console.log(pvd);
-        Prescription.update(memberPrescription);
-        Pack.delete(pvd.pack_id);
-        PatientVisitDetails.delete(pvd.id);
-        PatientVisit.delete(pvd.patient_visit_id);
-      });
-      // groupPackHeaderService.delete(groupPackHeader.id)
-      // this.$emit('getGroupMembers')
-      alertSucess('Operação efectuada com sucesso.');
-    });
-  }
+  groupPackHeaderService.apiDelete(groupPackHeader);
+  // groupPackHeaderService.delete(groupPackHeader.id)
+  getGroupMembers();
+  alertSucess('Operação efectuada com sucesso.');
 };
 
 const emit = defineEmits([

@@ -312,9 +312,9 @@ export default {
   },
 
   async doEpisodesBySectorGet() {
-    console.log('user_sector' + localStorage.getItem('user_clinic_sectors'));
-    const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
-      localStorage.getItem('user_clinic_sectors')
+    console.log('user_sector' + localStorage.getItem('clinic_sector_users'));
+    const clinicSectorUser = clinicSectorService.getClinicSectorSlimByCode(
+      localStorage.getItem('clinic_sector_users')
     );
     this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {
       if (resp.data.length > 0) {

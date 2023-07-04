@@ -7,7 +7,7 @@ import { nSQL } from 'nano-sql';
 import Group from 'src/stores/models/group/Group';
 import groupService from '../group/groupService';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 const groupMember = useRepo(GroupMember);
 
 export default {
@@ -47,7 +47,13 @@ export default {
       });
   },
   async apiUpdate(member: any) {
-    if (isMobile.value) {
+    if (isOnline.value) {
+      return await api()
+        .patch('/groupMember/' + member.id, member)
+        .then((resp) => {
+          groupMember.save(resp.data);
+        });
+    } else {
       const group = groupService.getGroupWithsById(member.group_id);
       console.log(group);
       const memberToRemove = group.members.filter((memberParam: any) => {
@@ -75,12 +81,6 @@ export default {
       });
       groupMember.save(member);
       groupService.apiUpdate(group);
-    } else {
-      return await api()
-        .patch('/groupMember/' + member.id, member)
-        .then((resp) => {
-          groupMember.save(resp.data);
-        });
     }
   },
   // Local Storage Pinia

@@ -31,7 +31,7 @@
               <div
                 class="col-auto text-grey text-caption q-pt-sm row no-wrap items-center justify-center"
               >
-                <q-avatar :size="website ? '240px' : '100px'">
+                <q-avatar :size="Mobile ? '240px' : '100px'">
                   <q-img src="~assets/LogoiDMED.png" />
                 </q-avatar>
               </div>
@@ -39,7 +39,7 @@
                 <p
                   style="font-family: 'line-awesome'"
                   class="text-gray ellipsis text-weight-bold"
-                  :class="website ? 'text-h4' : 'text-h5'"
+                  :class="!isMobile ? 'text-h4' : 'text-h5'"
                 >
                   Sistema Inteligente para Dispensa <br />
                   de Medicamentos
@@ -205,7 +205,7 @@
                 <div class="justify-left q-pt-lg">
                   <q-avatar
                     round
-                    :size="website ? '130px' : '60px'"
+                    :size="!isMobile ? '130px' : '60px'"
                     style="opacity: 40%"
                   >
                     <q-img src="~assets/MoHLogo.png" />
@@ -214,7 +214,7 @@
                 <div class="q-pb-lg">
                   <q-avatar
                     square
-                    :size="website ? '190px' : '90px'"
+                    :size="!isMobile ? '190px' : '90px'"
                     style="opacity: 40%"
                   >
                     <q-img src="~assets/pepfar-new-logo.jpeg" />
@@ -265,7 +265,6 @@
 </template>
 
 <script setup>
-import { useMediaQuery } from '@vueuse/core';
 import { QSpinnerBall, useQuasar } from 'quasar';
 import UsersService from 'src/services/UsersService';
 import clinicService from 'src/services/api/clinicService/clinicService';
@@ -276,7 +275,10 @@ import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsSe
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import bcrypt from 'bcryptjs';
 
+const { isMobile, isOnline } = useSystemUtils();
 const $q = useQuasar();
 const router = useRouter();
 const instalation_type = ref(null);
@@ -292,13 +294,11 @@ const isPwd = ref(true);
 const submitting = ref(false);
 const notice = ref(true);
 
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const website = computed(() => (isWebScreen.value ? false : false));
 /*
 Hook
 */
 onMounted(() => {
-  console.log(website.value);
+  console.log(isOnline.value);
   $q.loading.show({
     message: 'Carregando ...',
     spinnerColor: 'grey-4',
@@ -357,7 +357,7 @@ const loadMenusFromLocalToVuex = async () => {
   menuService.get(0);
 };
 
-const authUser = () => {
+const authUser = async () => {
   const encodedStringBtoA = btoa(
     String(username.value).concat(':').concat(password.value)
   );
@@ -366,10 +366,17 @@ const authUser = () => {
   passwordRef.value.validate();
   if (!passwordRef.value.hasError && !usernameRef.value.hasError) {
     submitting.value = true;
-    console.log('111 >>>>>>>>', website.value);
-    if (!website.value) {
-      console.log('0000 >>>>>>>>', website.value);
+    console.log('111 >>>>>>>>', isOnline.value);
+    if (isOnline.value) {
+      //  console.log('0000 >>>>>>>>', website.value);
       loginOnline(encodedStringBtoA);
+    } else {
+      const users = await UsersService.getMobile();
+      if (users.length === 0 && isMobile.value) {
+        loginOnline(encodedStringBtoA);
+      } else {
+        loginOffline(encodedStringBtoA);
+      }
     }
   }
 };
@@ -381,19 +388,25 @@ const loginOnline = (encodedStringBtoA) => {
   })
     .then((response) => {
       submitting.value = false;
-      const localuser = UsersService.getUserByUserName(username.value);
-      console.log('Login >>>>>>>>', response);
-      console.log('Login >>>>>>>>', localuser);
-      console.log('Login >>>>>>>>', localuser.userClinicSectors);
+      // userLogin.save(resp.data);
+      if (response !== undefined && response.status === 200) {
+        const localuser = UsersService.getUserByUserName(username.value);
+        console.log('Login >>>>>>>>', response);
+        console.log('Login >>>>>>>>', localuser);
+        //   console.log('Login >>>>>>>>', localuser.clinicSectorUsers);
 
-      localStorage.setItem('id_token', localuser.access_token);
-      localStorage.setItem('refresh_token', localuser.refresh_token);
-      localStorage.setItem('username', localuser.username);
-      localStorage.setItem('user', username.value);
-      localStorage.setItem('encodeBase64', encodedStringBtoA);
-      localStorage.setItem('role_menus', localuser.menus);
-      localStorage.setItem('clinic_sector_users', localuser.clinicSectorUsers);
-      router.push({ path: '/' });
+        localStorage.setItem('id_token', localuser.access_token);
+        localStorage.setItem('refresh_token', localuser.refresh_token);
+        localStorage.setItem('username', localuser.username);
+        localStorage.setItem('user', localuser.username);
+        localStorage.setItem('encodeBase64', encodedStringBtoA);
+        localStorage.setItem('role_menus', localuser.menus);
+        localStorage.setItem(
+          'clinic_sector_users',
+          localuser.clinicSectorUsers
+        );
+        router.push({ path: '/' });
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -410,6 +423,33 @@ const loginOnline = (encodedStringBtoA) => {
         console.log(listErrors);
       }
     });
+};
+
+const loginOffline = (encodedStringBtoA) => {
+  const userLoged = UsersService.getUserByUserName(username.value);
+  if (
+    userLoged.username === username.value &&
+    bcrypt.compareSync(password.value, userLoged.password.substring(8))
+  ) {
+    localStorage.setItem('username', userLoged.username);
+    localStorage.setItem('user', userLoged.username);
+    localStorage.setItem('encodeBase64', encodedStringBtoA);
+    // localStorage.setItem('sync_pass', encryption.encryptPlainText('user.sync'));
+    router.push({ path: '/' });
+  } else {
+    Notify.create({
+      icon: 'announcement',
+      message: 'Utilizador ou a senha inválida',
+      type: 'negative',
+      progress: true,
+      timeout: 3000,
+      position: 'top',
+      color: 'negative',
+      textColor: 'white',
+      classes: 'glossy',
+    });
+    submitting.value = false;
+  }
 };
 </script>
 

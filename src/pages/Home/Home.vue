@@ -163,14 +163,14 @@ onMounted(() => {
     showloading();
     loadSettingParams();
   } else {
-    loadPatientData();
+    // loadPatientData();
     console.log('IS MOBILE APP ' + website.value);
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
       loadSettingParamsToOffline();
       setTimeout(() => {
         loadPatientDataToOffline();
-      }, 2000);
+      }, 5000);
       //  const r = new Promise(r => setTimeout(r, 2000));
     }
     /*if (patientService.getAllFromStorage().length <= 0) {
@@ -178,7 +178,7 @@ onMounted(() => {
       loadPatientDataToOffline();
     }*/
   }
-  loadSettingParams();
+  // loadSettingParams();
   // loadPatientData();
   // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
   // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)

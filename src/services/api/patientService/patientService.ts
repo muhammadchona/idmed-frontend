@@ -230,22 +230,22 @@ export default {
     return await api().get('/patient/clinicSector/' + clinicSectorId);
   },
   async doPatientsBySectorGet() {
-    const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
-      localStorage.getItem('user_clinic_sectors')
+    const clinicSectorUser = clinicSectorService.getClinicSectorSlimByCode(
+      localStorage.getItem('clinic_sector_users')
     );
     if (clinicSectorUser === null || clinicSectorUser === undefined) {
       alertError(
-        'O Utilizador Logado nao pertence a nenhum sector Clinico , Nao tera Informacao carregada do Servidor'
+        'O Utilizador logado nao pertence a nenhum sector clinico , não terá informação carregada do Servidor'
       );
     }
     console.log(
-      'sectorLocalStorage' + localStorage.getItem('user_clinic_sectors')
+      'sectorLocalStorage' + localStorage.getItem('clinic_sector_users')
     );
     console.log('sector' + clinicSectorUser);
     console.log('sectorId' + clinicSectorUser.id);
     const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
     console.log('PacientesSector' + resp.data);
-    alertSucess(resp.data);
+    // alertSucess(resp.data);
     this.putMobile(resp.data);
     return resp;
   },

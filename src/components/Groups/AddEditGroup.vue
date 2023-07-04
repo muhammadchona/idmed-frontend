@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw; height: 650px">
+  <q-card style="width: 900px; max-width: 90vw; height: 80%">
     <q-responsive :ratio="16 / 9" class="col">
       <form @submit.prevent="submitForm" class="q-ma-none">
         <q-card-section class="q-pa-none bg-green-2">
@@ -270,11 +270,11 @@
             </div>
           </div>
         </q-card-section>
-        <q-card-actions align="right" class="q-my-md q-mr-sm">
+        <q-card-actions align="right" class="fixed-card-actions">
           <q-btn label="Cancelar" color="red" @click="$emit('close')" />
           <q-btn
             type="submit"
-            label="Submeter"
+            label="Gravar"
             color="primary"
             :loading="submitting"
           />
@@ -310,11 +310,10 @@ const columns = [
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
-
+const { preferedIdentifier, fullName, hasEpisodes } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
-const { preferedIdentifier, fullName, hasEpisodes } = usePatient();
+const { isOnline } = useSystemUtils();
 
 const emit = defineEmits(['close']);
 
@@ -322,7 +321,6 @@ const router = useRouter();
 const startDate = ref('');
 const filter = ref('');
 const selected = ref([]);
-const username = localStorage.getItem('user');
 const searchResults = ref([]);
 const clinic = inject('clinic');
 const curGroup = ref(new Group({ id: uuidv4(), members: [] }));
@@ -397,7 +395,7 @@ const getGroupForEdit = () => {
 
 const search = () => {
   showloading();
-  if (isMobile.value) {
+  if (!isOnline.value) {
     // Depois mudar para mobile
     const patients = patientService.getPatientByClinicId(clinic.value.id);
     searchResults.value = patients.filter((patient) => {
@@ -467,7 +465,9 @@ const loadMembersData = () => {
   curGroup.value.members.forEach((member) => {
     member.patient.identifiers.forEach((identifier) => {
       identifier.episodes.forEach((episode) => {
-        patientVisitDetailsService.apiGetAllByEpisodeId(episode.id, 0, 500);
+        if (isOnline.value) {
+          patientVisitDetailsService.apiGetAllByEpisodeId(episode.id, 0, 500);
+        }
       });
     });
   });
@@ -514,7 +514,7 @@ const addPatient = (patient) => {
         '].'
     );
   } else {
-    if (isMobile.value) {
+    if (!isOnline.value) {
       // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)  //mudar Para mobile
       let lastEpisode = {};
       patient.identifiers.forEach((identifier) => {
@@ -700,4 +700,12 @@ watch(
 );
 </script>
 
-<style></style>
+<style>
+.fixed-card-actions {
+  position: sticky;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1;
+}
+</style>

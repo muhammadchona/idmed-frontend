@@ -7,11 +7,11 @@ export default {
   async getFromBackEnd(offset: number) {
     if (offset >= 0) {
       return await api()
-        .get('clinic?offset=' + offset + '&max=100')
+        .get('clinicSector?offset=' + offset + '&max=100')
         .then((resp) => {
           nSQL(ClinicSector.entity).query('upsert', resp.data).exec();
           clinicSector.save(resp.data);
-          console.log('Data synced from backend: Clinic');
+          console.log('Data synced from backend: ClinicSector');
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getFromBackEnd(offset);

@@ -3,9 +3,13 @@ import { Notify } from 'quasar';
 import UserLogin from 'src/stores/models/userLogin/User';
 import api from 'src/services/api/apiService/apiService';
 import { useRepo } from 'pinia-orm';
+import { nSQL } from 'nano-sql';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import encryption from 'src/services/Encryption';
 
 const userLogin = useRepo(UserLogin);
 const userRoles = useRepo(UserRole);
+const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   logout() {
@@ -54,7 +58,15 @@ export default {
     return api()
       .post('/login', params)
       .then((resp) => {
+        if (isMobile.value) {
+          this.putMobile(resp.data);
+          localStorage.setItem(
+            'sync_pass',
+            encryption.encryptPlainText('user.sync')
+          );
+        }
         userLogin.save(resp.data);
+        return resp;
       })
       .catch((error) => {
         if (error.response) {
@@ -70,8 +82,6 @@ export default {
             classes: 'glossy',
           });
           console.log('O erro: ', error.response);
-        } else if (error.request) {
-          console.log(error.request);
         } else {
           Notify.create({
             icon: 'announcement',
@@ -86,6 +96,7 @@ export default {
           });
           console.log('Error', error.message);
         }
+        //return error;
       });
   },
   updateUser(params) {
@@ -133,5 +144,31 @@ export default {
 
   getUserByUserName(username: string) {
     return userLogin.query().where('username', username).first();
+  },
+
+  // Mobile
+  putMobile(params: string) {
+    return nSQL(UserLogin.entity)
+      .query('upsert', params)
+      .exec()
+      .then(() => {
+        userLogin.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+    0;
+  },
+  getMobile() {
+    return nSQL(UserLogin.entity)
+      .query('select')
+      .exec()
+      .then((rows: any) => {
+        userLogin.save(rows);
+        return rows;
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
 };

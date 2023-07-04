@@ -10,7 +10,13 @@ export function useSystemUtils() {
   const isDeskTop = computed(() => (Platform.is.desktop ? true : false));
   const isMobile = computed(() => (Platform.is.mobile ? true : false));
   const isElectron = computed(() => (Platform.is.electron ? true : false));
-  const isOnline = computed(() => (website.value ? false : false));
-
+  const isOnline = computed(() =>
+    website.value
+      ? true
+      : LocalStorage.getItem('clinic_sector_users') === null ||
+        (LocalStorage.getItem('clinic_sector_users') !== null &&
+          LocalStorage.getItem('clinic_sector_users').includes('NORMAL'))
+  );
+  //(LocalStorage.getItem('clinic_sectors') !== null && LocalStorage.getItem('clinic_sectors').includes('NORMAL'))
   return { website, isDeskTop, isMobile, isElectron, isOnline };
 }

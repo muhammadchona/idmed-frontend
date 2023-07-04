@@ -107,7 +107,6 @@ import ListHeader from 'src/components/Shared/ListHeader.vue';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import moment from 'moment';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
 import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription';
 import { v4 as uuidv4 } from 'uuid';
@@ -120,7 +119,6 @@ const {
 } = useDateUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
-const { website, isDeskTop, isMobile } = useSystemUtils();
 const mds = ref('US_');
 const dispenseMode = ref();
 const selected_model = ref([]);
@@ -194,7 +192,7 @@ const doValidationToDispense = () => {
                                                                                                         .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
                                                                                                         .first()
                                                                                                         */
-  if (isMobile.value) {
+  if (!isOnline.value) {
     memberPrescription.prescription.doctor_id =
       memberPrescription.prescription.doctor.id;
     memberPrescription.prescription.clinic_id =

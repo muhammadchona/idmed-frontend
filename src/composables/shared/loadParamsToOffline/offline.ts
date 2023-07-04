@@ -41,8 +41,8 @@ import patientService from 'src/services/api/patientService/patientService';
 
 export function useOffline() {
   async function loadSettingParamsToOffline() {
-    await NanoclinicSectorTypeService.getFromBackEnd(0);
-    await NanoclinicSectorService.getFromBackEnd(0);
+    //  await NanoclinicSectorTypeService.getFromBackEnd(0);
+    //  await NanoclinicSectorService.getFromBackEnd(0);
     NanoclinicalServiceService.getFromBackEnd(0);
     NanoclinicalServiceAttributeService.getFromBackEnd(0);
     NanoidentifierTypeService.getFromBackEnd(0);
@@ -87,6 +87,8 @@ export function useOffline() {
     NanopackagedDrugService.getFromBackEnd(0);
     NanoprescribedDrugService.getFromBackEnd(0);
     */
+    await NanoclinicSectorService.getFromBackEnd(0);
+    await NanoclinicSectorTypeService.getFromBackEnd(0);
     await patientService.doPatientsBySectorGet();
     await episodeService.doEpisodesBySectorGet();
   }

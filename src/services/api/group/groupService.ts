@@ -6,25 +6,18 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 import groupMemberService from '../groupMember/groupMemberService';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertInfo } = useSwal();
 
 const group = useRepo(Group);
 
 export default {
   // Axios API call
-  post(params: string) {
-    return api()
-      .post('group', params)
-      .then((resp) => {
-        group.save(resp.data);
-      });
-  },
   get(offset: number) {
     if (offset >= 0) {
-      if (isMobile.value) {
+      if (isOnline.value) {
         return api()
-          .get('group?offset=' + offset + '&max=100')
+          .get('groupInfo?offset=' + offset + '&max=100')
           .then((resp) => {
             group.save(resp.data);
             offset = offset + 100;
@@ -58,20 +51,20 @@ export default {
       });
   },
   async apiFetchById(id: string) {
-    if (isMobile.value) {
+    if (isOnline.value) {
+      return await api()
+        .get(`/groupInfo/${id}`)
+        .then((resp) => {
+          group.save(resp.data);
+          return resp;
+        });
+    } else {
       return nSQL(Group.entity)
         .query('select')
         .where(['id', '=', id])
         .exec()
         .then((rows) => {
           group.save(rows);
-        });
-    } else {
-      return await api()
-        .get(`/groupInfo/${id}`)
-        .then((resp) => {
-          group.save(resp.data);
-          return resp;
         });
     }
   },
@@ -87,24 +80,19 @@ export default {
 
   async apiSave(groupInfo: any) {
     let resp = null;
-    if (isMobile.value) {
+    if (isOnline.value) {
+      this.postWeb(groupInfo);
+    } else {
       groupInfo.syncStatus = 'R';
       resp = await nSQL('groups').query('upsert', groupInfo).exec();
       console.log('criacaoGrupo' + groupInfo);
       group.save(groupInfo);
-    } else {
-      this.postWeb(groupInfo);
     }
     return resp;
   },
 
   async apiUpdate(groupInfo: any) {
-    if (isMobile.value) {
-      if (groupInfo.syncStatus !== 'R') groupInfo.syncStatus = 'U';
-      const resp = await nSQL('groups').query('upsert', groupInfo).exec();
-      console.log('edicaoGrupo' + groupInfo);
-      group.save(groupInfo);
-    } else {
+    if (isOnline.value) {
       return await api()
         .patch('/groupInfo/' + groupInfo.id, groupInfo)
         .then((resp) => {
@@ -123,15 +111,19 @@ export default {
               });
             }
           }
-          alertError(listErrors.value);
+          alertError('Ocorreu um erro inesperado nesta operação.');
         });
+    } else {
+      if (groupInfo.syncStatus !== 'R') groupInfo.syncStatus = 'U';
+      const resp = await nSQL('groups').query('upsert', groupInfo).exec();
+      console.log('edicaoGrupo' + groupInfo);
+      group.save(groupInfo);
+      return resp;
     }
   },
-
+  /*
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
-    // console.log('teste');
-    //  group.flush();
-    if (isMobile.value) {
+    if (!isOnline.value) {
       return nSQL('groups')
         .query('select')
         .exec()
@@ -156,6 +148,7 @@ export default {
         });
     }
   },
+  */
 
   async apiValidateBeforeAdd(patientId: string, code: string) {
     return await api().get(`/groupInfo/validadePatient/${patientId}/${code}`);

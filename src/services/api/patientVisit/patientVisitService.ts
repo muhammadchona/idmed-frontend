@@ -96,7 +96,8 @@ export default {
   async putMobile(params: string) {
     try {
       await nSQL(PatientVisit.entity).query('upsert', params).exec();
-      patientVisit.save(JSON.parse(params));
+      // patientVisit.save(JSON.parse(params));
+      patientVisit.save(params);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);

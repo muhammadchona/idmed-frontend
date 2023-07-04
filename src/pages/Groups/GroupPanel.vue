@@ -40,6 +40,7 @@
       <div class="row q-mt-md">
         <div class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg panel">
           <groupInfo
+            v-if="dataFetchDone"
             @editGroup="editGroup"
             @desintagrateGroup="desintagrateGroup"
           />
@@ -103,10 +104,11 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import { useGroup } from 'src/composables/group/groupMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+// import isOnline from 'is-online';
 
 const { alertSucess } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isOnline, isMobile, website } = useSystemUtils();
 
 // const defaultPickUpDate = ref([]);
 const selectedMember = ref(null);
@@ -170,7 +172,7 @@ const showGroupDetails = () => {
 
 const loadMemberInfo = () => {
   showloading();
-  if (isMobile.value) {
+  if (!isOnline.value) {
     console.log('membros: ' + group.value.members);
     group.value.members.forEach((member) => {
       groupMemberPrescriptionService.apiFetchByMemberId(member.id);
@@ -285,19 +287,10 @@ const desintagrateGroup = () => {
   //  group.service.identifierType = IdentifierType.find(group.service.identifier_type_id)
   group.value.endDate = new Date();
   group.value.packHeaders = [];
-  if (isMobile.value) {
-    if (group.value.syncStatus !== 'R') group.value.syncStatus = 'U';
-    const groupUpdate = new Group(group.value);
-    groupService.apiUpdate(groupUpdate).then((resp) => {
-      groupService.apiFetchById(groupUpdate.id);
-      alertSucess('Operação efectuada com sucesso.');
-    });
-  } else {
-    groupService.apiUpdate(group.value).then((resp) => {
-      groupService.apiFetchById(group.value.id);
-      alertSucess('Operação efectuada com sucesso.');
-    });
-  }
+  groupService.apiUpdate(groupUpdate).then((resp) => {
+    groupService.apiFetchById(groupUpdate.id);
+    alertSucess('Operação efectuada com sucesso.');
+  });
 };
 
 watch(
@@ -381,7 +374,7 @@ const calculateRemainingTime = (memberPrescription) => {
 };
 
 const fecthMemberPrescriptionData = (visitDetails, member) => {
-  if (isMobile.value) {
+  if (!isOnline.value) {
     //mudar para Online
     if (visitDetails.pack !== null) {
       fecthedMemberData.value = fecthedMemberData.value + 1;
