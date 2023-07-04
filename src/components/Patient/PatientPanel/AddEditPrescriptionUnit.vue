@@ -829,9 +829,6 @@ const allGoodvalidatedForm = () => {
     prescribedDrug.prescription_id = null;
   });
   curPrescription.value.prescriptionDetails.push(curPrescriptionDetail.value);
-  const doctorId = curPrescription.value.doctor.id;
-  curPrescription.value.doctor = {};
-  curPrescription.value.doctor.id = doctorId;
 
   curPrescription.value.prescriptionDetails.forEach((prescriptionDetail) => {
     prescriptionDetail.prescription = null;
