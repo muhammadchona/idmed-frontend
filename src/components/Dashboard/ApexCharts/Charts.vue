@@ -4,11 +4,7 @@
       <div class="col"></div>
       <div class="col-10">
         <div class="row justify-center">
-          <div
-            class="q-ml-md"
-            v-for="item in clinicalServiceReports"
-            :key="item.id"
-          >
+          <div class="q-ml-md" v-for="item in clinicalServiceReports" :key="item.id">
             <q-btn
               :color="item.colour"
               @click="setServiceCode(item.service)"
@@ -64,71 +60,75 @@
 </template>
 
 <script setup>
-import { ref, inject, watch, onMounted, provide } from 'vue';
-import reportService from 'src/services/api/report/reportService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
-
-/*Variables*/
-const { closeLoading, showloading } = useLoading();
-const dataLoaded = inject('dataLoaded');
-const loading = ref(false);
-const year = new Date().getFullYear();
-const serviceCode = ref('TARV');
-const clinicalServiceReports = ref([]);
-const currClinic = inject('currClinic');
+import { ref, inject, watch, onMounted, provide, reactive } from "vue";
+import reportService from "src/services/api/report/reportService.ts";
+import { useLoading } from "src/composables/shared/loading/loading";
 
 /*Components*/
 
-import BarByDispenseType from 'src/components/Dashboard/ApexCharts/BarReportDispenseType.vue';
-import LineByAge from 'src/components/Dashboard/ApexCharts/LineChartAgeTarv.vue';
-import PieGenderChart from 'src/components/Dashboard/ApexCharts/PieGenderChart.vue';
-import LineBySex from 'src/components/Dashboard/ApexCharts/LineChartSex.vue';
-import DispenseTypeByAgeTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue';
-import StockAlert from 'src/components/Dashboard/ApexCharts/StockAlert.vue';
-import DispenseTypeByGenderTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue';
+import BarByDispenseType from "src/components/Dashboard/ApexCharts/BarReportDispenseType.vue";
+import LineByAge from "src/components/Dashboard/ApexCharts/LineChartAgeTarv.vue";
+import PieGenderChart from "src/components/Dashboard/ApexCharts/PieGenderChart.vue";
+import LineBySex from "src/components/Dashboard/ApexCharts/LineChartSex.vue";
+import DispenseTypeByAgeTable from "src/components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue";
+import StockAlert from "src/components/Dashboard/ApexCharts/StockAlert.vue";
+import DispenseTypeByGenderTable from "src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue";
+
+/*Variables*/
+const { closeLoading } = useLoading();
+const year = ref(new Date().getFullYear());
+const serviceCode = ref("TARV");
+const clinicalServiceReports = ref([]);
+const currClinic = inject("currClinic");
+
+let loaded = reactive({
+  loaded: false,
+});
 
 //   methods: {
 const reload = () => {
   getDashboardServiceButton();
+  closeLoading();
 };
+
 const setServiceCode = (code) => {
   serviceCode.value = code;
 };
 const getDashboardServiceButton = () => {
   reportService
-    .getDashboardServiceButton(year, currClinic.value.id)
+    .getDashboardServiceButton(year.value, currClinic.value.id)
     .then((resp) => {
       clinicalServiceReports.value = resp.data;
       if (clinicalServiceReports.value.length > 0) {
         clinicalServiceReports.value.forEach((item) => {
-          if (item.service === 'TARV') {
-            item.colour = 'green';
-            item.icon = 'medication';
-          } else if (item.service === 'TPT') {
-            item.colour = 'red';
-            item.icon = 'vaccines';
-          } else if (item.service === 'PREP') {
-            item.colour = 'teal';
-            item.icon = 'health_and_safety';
+          if (item.service === "TARV") {
+            item.colour = "green";
+            item.icon = "medication";
+          } else if (item.service === "TPT") {
+            item.colour = "red";
+            item.icon = "vaccines";
+          } else if (item.service === "PREP") {
+            item.colour = "teal";
+            item.icon = "health_and_safety";
           } else {
-            item.icon = 'health_and_safety';
+            item.icon = "health_and_safety";
             // const randomColor = require('randomcolor'); // import the script
             const color = Math.floor(Math.random() * 16777215).toString(16); //randomcolor(); // a hex code for an attractive color
-            item.style = 'background-color: #' + color + ';' + 'color: ##ffffff';
+            item.style = "background-color: #" + color + ";" + "color: ##ffffff";
           }
         });
       }
     });
 };
 
+provide("serviceCode", serviceCode);
+provide("year", year);
+provide("currClinic", currClinic);
+
 onMounted(() => {
   getDashboardServiceButton();
   closeLoading();
 });
-
-provide('serviceCode', serviceCode);
-provide('year', year);
-provide('currClinic', currClinic.value);
 //   computed: {
 //     getCodeService () {
 //       return this.serviceCode
@@ -153,12 +153,8 @@ provide('currClinic', currClinic.value);
 //     }
 //   },
 //
-watch(year.value, (newVal, oldVal) => {
+watch(year, (newVal, oldVal) => {
   reload();
-  console.log('Prop changed:', newVal, '| was:', oldVal);
-  // getClinicalServicesOptions();
-  // serviceCode.value = 'TARV';
-  // setServiceCode('TARV');
 });
 </script>
 

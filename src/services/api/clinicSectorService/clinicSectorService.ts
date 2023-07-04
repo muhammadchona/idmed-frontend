@@ -15,11 +15,11 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile && !isOnline) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
@@ -44,16 +44,15 @@ export default {
     }
   },
   // WEB
-  async postWeb(params: string) {
+  postWeb(params: string) {
     params.id = uuidv4();
-    try {
-      const resp = await api().post('clinicSector', params);
-      clinicSector.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+
+    return api()
+      .post('clinicSector', params)
+      .then((resp) => {
+        console.log(resp);
+        clinicSector.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
