@@ -84,7 +84,7 @@
               label="Relatórios"
             />
             <q-route-tab
-              v-if="menusVisible('Administração')"
+              v-if="menusVisible('Administração') && isOnline"
               exact
               :to="'/settings'"
               name="settings"
@@ -92,7 +92,7 @@
               label="Administração"
             />
             <q-route-tab
-              v-if="activateMigration"
+              v-if="activateMigration && website"
               exact
               :to="'/migration'"
               name="migration"
@@ -159,7 +159,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { Notify } from 'quasar';
-import isOnline from 'is-online';
 import { useMediaQuery } from '@vueuse/core';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import clinicService from 'src/services/api/clinicService/clinicService';
@@ -173,10 +172,11 @@ const username = ref(localStorage.getItem('user'));
 const tab = ref('home');
 const mobile = ref(false);
 
+const { isOnline } = useSystemUtils();
 const { sendDataToBackEnd, getPatientsToSend, getGroupsToSend } = sendData();
 
 onMounted(() => {
-  if (website.value) {
+  if (website.value || isOnline.value) {
     mobile.value = false;
     systemConfigsService.apiGetAll();
   } else {
