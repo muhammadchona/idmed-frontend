@@ -124,6 +124,7 @@ const dispenseMode = ref();
 const selected_model = ref([]);
 const submitting = ref(false);
 const curPatientVisit = ref(new PatientVisit());
+const { isOnline } = useSystemUtils();
 
 //Inject
 const patient = inject('patient');
