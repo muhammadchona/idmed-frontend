@@ -19,7 +19,9 @@
       v-if="showDispensesData"
       :rows="
         member.groupMemberPrescription !== null
-          ? member.groupMemberPrescription.prescription.prescribedDrugs
+          ? member.groupMemberPrescription.prescription !== undefined
+            ? member.groupMemberPrescription.prescription.prescribedDrugs
+            : []
           : useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
               .prescription.prescribedDrugs
       "
@@ -85,7 +87,11 @@
       class="col"
       dense
       flat
-      :rows="membersDispenses.get(member).packagedDrugs"
+      :rows="
+        membersDispenses.get(member) !== undefined
+          ? membersDispenses.get(member).packagedDrugs
+          : []
+      "
       :columns="columns"
       row-key="id"
       v-if="showDispensesData"
@@ -285,7 +291,9 @@ const initDispenses = () => {
   });
   patientVisitDetails.prescription = prescription;
   patientVisitDetails.pack = pack;
-  patientVisitDetails.clinic = props.member.patient.clinic;
+  // patientVisitDetails.clinic = props.member.patient.clinic;
+  patientVisitDetails.clinic = {};
+  patientVisitDetails.clinic.id = props.member.patient.clinic.id;
   patientVisitDetails.episode = episodeService.getEpisodeById(
     props.member.patient.identifiers[0].episodes[0].id
   );
