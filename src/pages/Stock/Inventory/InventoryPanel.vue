@@ -260,9 +260,6 @@ const doProcessAndClose = async () => {
   inventory.endDate = new Date();
   inventory.open = false;
   inventory.generic = JSON.parse(inventory.generic )
- /* inventory.startDate =  dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
-    currInventory.value.startDate
-  )); */
   let adjustments = inventory.adjustments 
   if (mobile.value) { 
     adjustments = await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(inventory.id)
@@ -273,7 +270,6 @@ const doProcessAndClose = async () => {
     processAdjustment(adjustment, inventory);
   });
   doSaveAdjustment(0);
-  // inventory.adjustments = [];
   const inv = JSON.parse(
     JSON.stringify(inventory, inventoryMethod.circularReferenceReplacer())
   );
