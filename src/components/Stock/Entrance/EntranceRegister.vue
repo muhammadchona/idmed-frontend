@@ -85,7 +85,7 @@ const { alertError } = useSwal();
   Methods
 */
 const submitForm = () => {
-  // submitting = true
+  showloading();
   stockEntrance.dateReceived = dateUtils.getJSDateFromDDMMYYY(
     dateReceived.value
   );
@@ -96,7 +96,6 @@ const submitForm = () => {
   } else {
     orderNumberRef.value.validate();
     if (!orderNumberRef.value.hasError) {
-      showloading();
         stockEntrance.clinic = clinicService.currClinic();
         stockEntrance.clinic_id = clinicService.currClinic().id
         stockEntrance.id = uuidv4();

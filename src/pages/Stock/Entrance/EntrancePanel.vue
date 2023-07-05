@@ -146,10 +146,10 @@
                       ref="drug"
                       v-model="props.row.drug"
                       :options="drugs"
+                      @filter="filterFn"
                       option-value="id"
                       option-label="name"
                       label="Medicamento"
-                      @filter="filterFn"
                       use-input
                       hide-selected
                       fill-input
@@ -670,7 +670,7 @@ const orderNumber = ref('');
 const step = ref('display');
 const guiaStep = ref('display');
 const selectedStock = ref([]);
-let drugs = [];
+const drugs = ref([]);
 const stockList = ref([]);
 let stock = '';
 const orderNumberRef = ref('');
@@ -679,24 +679,33 @@ const goBack = () => {
   router.go(-1);
 };
 
-const blockDataFutura = () => {
-  const data = ref(moment(date).format('YYYY/MM/DD'));
-  return true;
-  //  data.value >= moment(new Date()).add(28, 'd').format('YYYY/MM/DD')
+
+const blockDataFutura = (date) => {
+  return date >= moment(new Date()).add(28, 'd').format('YYYY/MM/DD');
 };
 
+
 const filterFn = (val, update, abort) => {
+  const stringOptions = activeDrugs.value;
   if (val === '') {
     update(() => {
-      drugs = activeDrugs;
+    return  drugs.value = stringOptions.map((drug) => drug);
     });
-    return;
+  } else if (stringOptions.length === 0) {
+    update(() => {
+      drugs.value = [];
+    });
+  } else {
+    update(() => {
+      drugs.value = stringOptions
+        .map((drug) => drug)
+        .filter((drug) => {
+          return (
+            drug && drug.name.toLowerCase().indexOf(val.toLowerCase()) !== -1
+          );
+        });
+    });
   }
-  update(() => {
-    drugs = activeDrugs.value.filter((drug) => {
-      return stringContains(drug.name, val);
-    });
-  });
 };
 
 const stringContains = (stringToCheck, stringText) => {
@@ -938,10 +947,12 @@ const doSave = (stock) => {
           stock.enabled = false;
           step.value = 'display';
           alertSucess('Operação efectuada com sucesso.');
+          closeLoading();
         })
         .catch((error) => {
           alertError('Ocorreu um erro inesperado');
           console.log('ERRO: ', error);
+          closeLoading();
         });
     } else if (isEditionStep.value) {
       StockService.patch(stock.id, stock)
@@ -951,14 +962,16 @@ const doSave = (stock) => {
           stock.enabled = false;
           step.value = 'display';
           alertSucess('Operação efectuada com sucesso.');
+          closeLoading();
         })
         .catch((error) => {
           alertError('Ocorreu um erro inesperado');
           console.log('ERRO: ', error);
+          closeLoading();
         });
     }
  
-  closeLoading();
+
 };
 
 const fetchStockEntrance = () => {
@@ -1042,7 +1055,7 @@ const loadStockList = () => {
 onMounted(() => {
   init();
   loadStockList();
-  drugs = activeDrugs;
+  //drugs.value = activeDrugs;
 });
 
 const currStockEntrance = computed(() => {
