@@ -473,11 +473,17 @@ const validatePack = (pack) => {
             stocksToMoviment.push(validStock[i]);
             quantitySupplied = 0;
             // const pkstock = initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
-            const packagedDrugStock = new PackagedDrugStock();
+            const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
+            /*
             packagedDrugStock.drug = drugService.getDrugById(
               packagedDrug.drug.id
             );
-            packagedDrugStock.stock = validStock[i];
+            */
+            packagedDrugStock.drug = {};
+            packagedDrugStock.drug.id = packagedDrug.drug.id;
+            //   packagedDrugStock.stock = validStock[i];
+            packagedDrugStock.stock = {};
+            packagedDrugStock.stock.id = validStock[i].id;
             packagedDrugStock.quantitySupplied = packagedDrug.quantitySupplied;
             packagedDrugStock.creationDate = new Date();
             packagedDrugStocks.push(packagedDrugStock);
@@ -487,10 +493,16 @@ const validatePack = (pack) => {
             validStock[i].stockMoviment = 0;
             stocksToMoviment.push(validStock[i]);
             const packagedDrugStock = new PackagedDrugStock();
+            /*
             packagedDrugStock.drug = drugService.getDrugById(
               packagedDrug.drug.id
             );
-            packagedDrugStock.stock = validStock[i];
+            */
+            packagedDrugStock.drug = {};
+            packagedDrugStock.drug.id = packagedDrug.drug.id;
+            //   packagedDrugStock.stock = validStock[i];
+            packagedDrugStock.stock = {};
+            packagedDrugStock.stock.id = validStock[i].id;
             packagedDrugStock.quantitySupplied = availableBalance;
             packagedDrugStock.creationDate = new Date();
             i = i + 1;
@@ -517,8 +529,12 @@ const generatepacks = () => {
     groupPack.pack.pickupDate = curGroupPackHeader.value.packDate;
     groupPack.pack.nextPickUpDate = curGroupPackHeader.value.nextPickUpDate;
     groupPack.pack.weeksSupply = curGroupPackHeader.value.duration.weeks;
-    groupPack.pack.dispenseMode = dispenseMode.value;
-    groupPack.pack.clinic = clinic.value;
+    // groupPack.pack.dispenseMode = dispenseMode.value;
+    groupPack.pack.dispenseMode = {};
+    groupPack.pack.dispenseMode.id = dispenseMode.value.id;
+    // groupPack.pack.clinic = clinic.value;
+    groupPack.pack.clinic = {};
+    groupPack.pack.clinic.id = clinic.value.id;
     const drugerror = validatePack(groupPack.pack);
     if (drugerror !== undefined) error += drugerror;
     console.log(error);
@@ -625,6 +641,8 @@ const savePatientVisitDetails = (groupPacks, i) => {
         pck.drug.form.drugs = [];
         pck.drug.therapeuticRegimenList = [];
         pck.drug.clinicalService.drugs = [];
+        pck.drug.packagedDrugStocks = [];
+        pck.drug.packaged_drugs = [];
       });
       patientVisit.patientVisitDetails[0].pack = groupPacks[i].pack;
       patientVisit.patientVisitDetails[0].prescription.prescribedDrugs.forEach(
@@ -663,11 +681,11 @@ const savePatientVisitDetails = (groupPacks, i) => {
           console.log(resp);
           groupPackHeaderService.apiFetchById(curGroupPackHeader.value.id);
           closeLoading();
-          alertSucess('Operação efectuada com sucesso.');
           submitting.value = false;
           showNewPackingForm.value = false;
           loadedData.value = false;
           executeGetGroupMembers();
+          alertSucess('Operação efectuada com sucesso.');
           // $emit('getGroupMembers', false)
           //  emit('getGroupMembers');
         })
@@ -693,8 +711,12 @@ const savePatientVisitDetails = (groupPacks, i) => {
 
 const initGroupPackHeader = () => {
   // curGroupPackHeader = new GroupPackHeader()
-  curGroupPackHeader.value.group = selectedGroup.value;
-  curGroupPackHeader.value.duration = drugsDuration.value;
+  // curGroupPackHeader.value.group = selectedGroup.value;
+  curGroupPackHeader.value.group = {};
+  curGroupPackHeader.value.group.id = selectedGroup.value.id;
+  // curGroupPackHeader.value.duration = drugsDuration.value;
+  curGroupPackHeader.value.duration = {};
+  curGroupPackHeader.value.duration.id = drugsDuration.value.id;
   curGroupPackHeader.value.packDate = getJSDateFromDDMMYYY(pickupDate.value);
   curGroupPackHeader.value.nextPickUpDate = getJSDateFromDDMMYYY(
     nextPDate.value
