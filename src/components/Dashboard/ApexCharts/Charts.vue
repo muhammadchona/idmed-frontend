@@ -19,13 +19,15 @@
           </div>
         </div>
       </div>
-      <div class="col q-mt-lg">
-        <q-input
-          class="col q-mr-md"
-          dense
+      <div class="col q-mt-lg q-pr-md">
+        <q-select
           outlined
           v-model="year"
-          type="number"
+          :options="yearsToShow"
+          option-label="name"
+          option-value="name"
+          filled
+          dense
           label="Ano"
         />
       </div>
@@ -41,17 +43,11 @@
         <div class="row">
           <LineByAge class="col graph-conainer"> </LineByAge>
           <PieGenderChart class="col graph-conainer"> </PieGenderChart>
-          <!-- <LineBySex class="col graph-conainer" v-if="this.website"> </LineBySex> -->
           <LineBySex class="col graph-conainer"> </LineBySex>
         </div>
-        <!-- <div class="row" v-if="this.mobile"> -->
-        <!-- <LineBySex class="col graph-conainer" :serviceCode=serviceCode :year="year"> </LineBySex>
-      <DispenseTypeByGenderTable class="col-6 " :serviceCode=serviceCode :year="year"/> -->
-        <!-- </div> -->
         <div class="row q-mb-xl q-ma-md">
           <DispenseTypeByAgeTable class="col-4" />
           <StockAlert class="col q-mx-md" />
-          <!-- <DispenseTypeByGenderTable class="col-3 " :serviceCode=serviceCode :year="year" v-if="this.website"/> -->
           <DispenseTypeByGenderTable class="col-3" />
         </div>
       </div>
@@ -60,32 +56,29 @@
 </template>
 
 <script setup>
-import { ref, inject, watch, onMounted, provide, reactive } from "vue";
-import reportService from "src/services/api/report/reportService.ts";
-import { useLoading } from "src/composables/shared/loading/loading";
+import { ref, inject, watch, onMounted, provide, reactive, computed } from 'vue';
+import reportService from 'src/services/api/report/reportService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 /*Components*/
 
-import BarByDispenseType from "src/components/Dashboard/ApexCharts/BarReportDispenseType.vue";
-import LineByAge from "src/components/Dashboard/ApexCharts/LineChartAgeTarv.vue";
-import PieGenderChart from "src/components/Dashboard/ApexCharts/PieGenderChart.vue";
-import LineBySex from "src/components/Dashboard/ApexCharts/LineChartSex.vue";
-import DispenseTypeByAgeTable from "src/components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue";
-import StockAlert from "src/components/Dashboard/ApexCharts/StockAlert.vue";
-import DispenseTypeByGenderTable from "src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue";
+import BarByDispenseType from 'src/components/Dashboard/ApexCharts/BarReportDispenseType.vue';
+import LineByAge from 'src/components/Dashboard/ApexCharts/LineChartAgeTarv.vue';
+import PieGenderChart from 'src/components/Dashboard/ApexCharts/PieGenderChart.vue';
+import LineBySex from 'src/components/Dashboard/ApexCharts/LineChartSex.vue';
+import DispenseTypeByAgeTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue';
+import StockAlert from 'src/components/Dashboard/ApexCharts/StockAlert.vue';
+import DispenseTypeByGenderTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue';
 
 /*Variables*/
 const { closeLoading } = useLoading();
 const year = ref(new Date().getFullYear());
-const serviceCode = ref("TARV");
+const serviceCode = ref('TARV');
 const clinicalServiceReports = ref([]);
-const currClinic = inject("currClinic");
+const currClinic = inject('currClinic');
 
-let loaded = reactive({
-  loaded: false,
-});
 
-//   methods: {
+//   methods:
 const reload = () => {
   getDashboardServiceButton();
   closeLoading();
@@ -101,58 +94,44 @@ const getDashboardServiceButton = () => {
       clinicalServiceReports.value = resp.data;
       if (clinicalServiceReports.value.length > 0) {
         clinicalServiceReports.value.forEach((item) => {
-          if (item.service === "TARV") {
-            item.colour = "green";
-            item.icon = "medication";
-          } else if (item.service === "TPT") {
-            item.colour = "red";
-            item.icon = "vaccines";
-          } else if (item.service === "PREP") {
-            item.colour = "teal";
-            item.icon = "health_and_safety";
+          if (item.service === 'TARV') {
+            item.colour = 'green';
+            item.icon = 'medication';
+          } else if (item.service === 'TPT') {
+            item.colour = 'red';
+            item.icon = 'vaccines';
+          } else if (item.service === 'PREP') {
+            item.colour = 'teal';
+            item.icon = 'health_and_safety';
           } else {
-            item.icon = "health_and_safety";
-            // const randomColor = require('randomcolor'); // import the script
-            const color = Math.floor(Math.random() * 16777215).toString(16); //randomcolor(); // a hex code for an attractive color
-            item.style = "background-color: #" + color + ";" + "color: ##ffffff";
+            item.icon = 'health_and_safety';
+            const color = Math.floor(Math.random() * 16777215).toString(16);
+            item.style = 'background-color: #' + color + ';' + 'color: ##ffffff';
           }
         });
       }
     });
 };
 
-provide("serviceCode", serviceCode);
-provide("year", year);
-provide("currClinic", currClinic);
+const yearsToShow = computed(() => {
+  const years = [];
+  const currentYear = new Date().getFullYear();
+  years.push(currentYear);
+  for (let i = 1; i < 5; i++) {
+    years.push(currentYear - i);
+  }
+  return years;
+});
+
+provide('serviceCode', serviceCode);
+provide('year', year);
+provide('currClinic', currClinic);
 
 onMounted(() => {
   getDashboardServiceButton();
   closeLoading();
 });
-//   computed: {
-//     getCodeService () {
-//       return this.serviceCode
-//     },
-//     clinic () {
-//     if (SessionStorage.getItem('currClinic') === null || SessionStorage.getItem('currClinic').id === null) {
-//         const clinic = Clinic.query()
-//                               .with('province.*')
-//                               .with('facilityType.*')
-//                               .with('district.*')
-//                               .with('sectors.*')
-//                               .where('mainClinic', true)
-//                               .first()
-//          SessionStorage.set('currClinic', clinic)
-//          return clinic
-//       } else {
-//         return new Clinic(SessionStorage.getItem('currClinic'))
-//       }
-//   },
-//     loaded () {
-//       return !this.loading
-//     }
-//   },
-//
+
 watch(year, (newVal, oldVal) => {
   reload();
 });
