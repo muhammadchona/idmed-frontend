@@ -55,7 +55,7 @@
         <q-tr :props="props">
           <q-td key="order" :props="props" v-if="false"> </q-td>
           <q-td key="drug" :props="props">
-            {{isOnline ?  props.row.drug.name  :props.row.drug   }}
+            {{isMobile ?  props.row.drug.name  :props.row.drug   }}
           </q-td>
           <q-td key="avgConsuption" :props="props">
             {{ props.row.avgConsuption }}
