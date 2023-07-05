@@ -138,15 +138,7 @@
 </template>
 
 <script setup>
-import {
-  computed,
-  inject,
-  onMounted,
-  provide,
-  reactive,
-  ref,
-  watch,
-} from 'vue';
+import { computed, onMounted, provide, ref } from 'vue';
 import { SessionStorage } from 'quasar';
 import Group from '../../stores/models/group/Group';
 import { useRouter } from 'vue-router';
@@ -171,17 +163,13 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 
-const { closeLoading, showloading } = useLoading();
+const { showloading } = useLoading();
 
 //Declaration
 const title = ref('Procurar ou adicionar Grupo');
 const router = useRouter();
-const searchField = ref('');
-const filter = ref('');
-const selected = ref([]);
 const username = localStorage.getItem('user');
 const searchResults = ref([]);
-// const clinic = inject('clinic');
 const curGroup = ref(new Group());
 const showGroupRegister = ref(false);
 
@@ -196,13 +184,11 @@ onMounted(() => {
   groupService.get(0);
   groupTypeService.get(0);
   clinicalServiceService.get(0);
-  setTimeout(() => {
-    searchResults.value = getAllGroups();
-  }, 4000);
-  closeLoading();
+  getAllGroups();
 });
 
 const getAllGroups = () => {
+  console.log(groupService.getAllGroups());
   searchResults.value = groupService.getAllGroups();
 };
 
@@ -232,7 +218,6 @@ const stringContains = (stringToCheck, stringText) => {
 provide('clinic', clinic);
 provide('step', step);
 provide('title', title);
-// provide('refInput', curGroup.value.groupName);
 </script>
 
 <style></style>

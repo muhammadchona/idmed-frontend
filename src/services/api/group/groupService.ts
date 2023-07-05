@@ -5,10 +5,11 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 import groupMemberService from '../groupMember/groupMemberService';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertInfo } = useSwal();
-
+const { closeLoading } = useLoading();
 const group = useRepo(Group);
 
 export default {
@@ -20,6 +21,7 @@ export default {
           .get('groupInfo?offset=' + offset + '&max=100')
           .then((resp) => {
             group.save(resp.data);
+            closeLoading();
             offset = offset + 100;
             if (resp.data.length > 0) {
               this.get(offset);

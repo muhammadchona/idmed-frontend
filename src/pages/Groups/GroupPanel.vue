@@ -171,9 +171,8 @@ const showGroupDetails = () => {
 };
 
 const loadMemberInfo = () => {
-  showloading();
+  // showloading();
   if (!isOnline.value) {
-    console.log('membros: ' + group.value.members);
     group.value.members.forEach((member) => {
       groupMemberPrescriptionService.apiFetchByMemberId(member.id);
     });
@@ -201,9 +200,6 @@ const loadMemberInfo = () => {
       patientService.apiFetchById(member.patient_id).then((res0) => {
         member.patient = res0.data;
         member.patient.identifiers.forEach((identifier) => {
-          console.log(
-            patientServiceIdentifierService.curIdentifierById(identifier.id)
-          );
           identifier = patientServiceIdentifierService.curIdentifierById(
             identifier.id
           );
@@ -233,6 +229,7 @@ const loadMemberInfo = () => {
                       .then((resp) => {
                         console.log(resp);
                       });
+                    closeLoading();
                   });
                 }
               });
@@ -240,14 +237,10 @@ const loadMemberInfo = () => {
         });
       });
     });
-    closeLoading();
   }
 };
 onMounted(() => {
-  console.log(group.value);
   loadMemberInfo();
-  closeLoading();
-  console.log('Parent Component: onMounted');
 });
 
 const addMember = () => {
@@ -265,18 +258,12 @@ const dataFetchDone = computed(() => {
 });
 
 const group = computed(() => {
-  console.log(SessionStorage.getItem('selectedGroupId'));
-  console.log(
-    '4444' +
-      groupService.getGroupWithsById(SessionStorage.getItem('selectedGroupId'))
-  );
   return groupService.getGroupWithsById(
     SessionStorage.getItem('selectedGroupId')
   );
 });
 
 const desintagrateGroup = () => {
-  console.log(group.value);
   group.value.members = group.value.members.filter((member) => {
     return useGroupMember().isActive(member);
   });
@@ -303,7 +290,6 @@ watch(
   () => membersInfoLoaded.value,
   (oldp, newp) => {
     if (oldp !== newp) {
-      //   console.log(groupMembers.getGroupMembers())
       fecthMembersData();
       closeLoading();
     }
@@ -314,9 +300,7 @@ const getGroupMembers = (isPrescription) => {
   const group = groupService.getGroupById(
     SessionStorage.getItem('selectedGroupId')
   );
-  console.log('getGroupMembers' + group);
   group.members.forEach((member) => {
-    console.log('getGroupMembers1' + member.patient);
     member.groupMemberPrescription =
       groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(
         member.id
@@ -341,7 +325,6 @@ const getGroupMembers = (isPrescription) => {
     //   member.patient.identifiers[0].episodes = []
     member.patient.identifiers[0].episodes[0] =
       lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
-    console.log('epsiodeMembers' + member.patient.identifiers[0].episodes[0]);
     if (
       member.patient.identifiers[0].episodes.length > 0 &&
       member.patient.identifiers[0].episodes[0] !== null
@@ -353,17 +336,14 @@ const getGroupMembers = (isPrescription) => {
     }
   });
   allMembers.value = group.members;
-  console.log('getGroupMembers2' + allMembers.value);
   if (!useGroup().isDesintegrated(group)) {
     members.value = group.members.filter((member) => {
       return useGroupMember().isActive(member);
     });
-    console.log(members.value);
     //  group.members = members.value
   } else {
     members.value = group.members;
   }
-  console.log('this.isthis' + group.members);
 };
 
 const lastStartEpisodeWithPrescription = (identifierId) => {
@@ -372,7 +352,6 @@ const lastStartEpisodeWithPrescription = (identifierId) => {
 
 const calculateRemainingTime = (memberPrescription) => {
   if (memberPrescription !== null && memberPrescription !== undefined) {
-    //   console.log(memberPrescription.prescription.remainigDuration())
     return usePrescription().remainigDuration(memberPrescription.prescription);
   } else {
     return 0;
