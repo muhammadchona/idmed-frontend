@@ -74,7 +74,7 @@ export default {
     return stock
       .where('drug_id', drug.id)
       .where((stock) => {
-        return  moment(stock.expireDate , 'YYYY-MM-DD').isAfter( moment().format('YYYY-MM-DD')) ;
+        return  moment(stock.expireDate , 'YYYY-MM-DD').isAfter( moment().format('YYYY-MM-DD')) && stock.stockMoviment > 0 ;
       })
       .orderBy('expireDate', 'desc')
       .get();
@@ -185,6 +185,39 @@ async deleteMobile (id: any) {
   stock.destroy(id)
   return resp
 },
+
+ localDbGetAll () {
+  return nSQL('stocks').query('select').exec().then(result => {
+    console.log(result)
+    })
+},
+
+  localDbGetUsedStock (reportParams: any) {
+  return nSQL('stocks').query('select').where(['drug.clinical_service_id', '=', reportParams.clinicalService]).exec().then(result => {
+     console.log(result)
+     return result
+   })
+},
+
+  localDbGetById (stock: any) {
+ return nSQL('stocks').query('select').where(['id', '=', stock.id]).exec().then(result => {
+    console.log(result)
+    // Stock.insert({ data: result })
+    return result[0]
+  })
+},
+
+ localDbGetByStockEntranceId (stockEntrance: any) {
+return nSQL('stocks').query('select').where(['stocks[entrance_id]', '=', stockEntrance.id]).exec().then(result => {
+  return result
+})
+},
+
+ localDbGetByDrug (drug: any) {
+return nSQL('stocks').query('select').where(['drug_id', '=', drug.id]).exec().then(result => {
+ return result
+})
+}
 
 
 

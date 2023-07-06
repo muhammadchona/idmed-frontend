@@ -233,10 +233,12 @@ const prepareInit = () => {
   } else if(stockList.length === i) {
   closeLoading()
 }
+closeLoading()
 };
 
 
 const getValidStocks = (drug) =>{
+  closeLoading()
   return StockService.getValidStockByDrug(drug)
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div>
     <TitleBar />
-    <div class="row" v-if="!mobile.value">
+    <div class="row" v-if="!isMobile">
       <div
         class="col-3 q-pa-md q-pl-lg q-ml-lg q-mr-lg"
         style="max-width: 500px"
@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <div class="row" v-if="mobile.value">
+    <div class="row" v-if="isMobile">
       <div class="col q-mx-md q-mt-md">
         <div>
           <ListHeader
@@ -176,12 +176,8 @@
 </template>
 
 <script setup>
-import Drug from 'src/stores/models/drug/Drug';
 import { ref, computed, onMounted, inject, provide } from 'vue';
-import Inventory from 'src/stores/models/stockinventory/Inventory';
 import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
-import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
-import { useMediaQuery } from '@vueuse/core';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import moment from 'moment';
@@ -198,12 +194,14 @@ import StockService from 'src/services/api/stockService/StockService';
 import drugService from 'src/services/api/drugService/drugService';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
+
+const { isMobile, isOnline } = useSystemUtils(); 
+
+
 const inventoryMethod = useInventory();
 const router = useRouter();
-const dateUtils = useDateUtils();
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
@@ -261,7 +259,7 @@ const doProcessAndClose = async () => {
   inventory.open = false;
   inventory.generic = JSON.parse(inventory.generic )
   let adjustments = inventory.adjustments 
-  if (mobile.value) { 
+  if (!isOnline.value) { 
     adjustments = await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(inventory.id)
     inventory.adjustments = []
     inventory.open = false;
@@ -374,13 +372,7 @@ const inventoryType = computed(() => {
   return inventoryMethod.getInventoryType(currInventory);
 });
 
-onMounted(() => {
-  if (mobile.value) {
-    Drug.localDbGetAll().then((drugs) => {
-      Drug.insertOrUpdate({ data: drugs });
-    });
-  }
-});
+
 provide('title', title);
 </script>
 
