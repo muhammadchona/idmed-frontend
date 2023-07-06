@@ -171,7 +171,7 @@ const mds = ref('US_');
 const dispenseMode = ref();
 const selected_model = ref([]);
 const submitting = ref(false);
-const curPatientVisit = ref(new PatientVisit());
+const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
 
 //Inject
 const patient = inject('patient');
