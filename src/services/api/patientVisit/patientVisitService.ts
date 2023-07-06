@@ -199,7 +199,6 @@ export default {
   saveInStorage(patientVisitParam: any) {
     return patientVisit.save(patientVisitParam);
   },
-
   getLastFourWithVitalSignByPatientId(patientId: string) {
     return patientVisit
       .withAllRecursive(2)
@@ -225,6 +224,21 @@ export default {
         query.has('prescription');
         query.where('episode_id', episodeId);
       })
+      .orderBy('visitDate', 'desc')
+      .first();
+  },
+  getLastFromPatientVisitList(patientvisitids: any) {
+    return patientVisit
+      .query()
+      .withAllRecursive(2)
+      .whereIn('id', patientvisitids)
+      .orderBy('visitDate', 'desc')
+      .first();
+  },
+  getPatientVisitById(patientVisitId: string) {
+    return patientVisit
+      .withAllRecursive(2)
+      .where('id', patientVisitId)
       .orderBy('visitDate', 'desc')
       .first();
   },

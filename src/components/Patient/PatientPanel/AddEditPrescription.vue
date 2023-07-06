@@ -171,7 +171,7 @@ const mds = ref('US_');
 const dispenseMode = ref();
 const selected_model = ref([]);
 const submitting = ref(false);
-const curPatientVisit = ref(new PatientVisit());
+const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
 
 //Inject
 const patient = inject('patient');
@@ -203,6 +203,7 @@ const dispenseLabel = computed(() => {
 // Methods
 
 const init = () => {
+  //curPatientVisit.value = new PatientVisit();
   curPatientVisit.value.visitDate = getYYYYMMDDFromJSDate(moment());
   curPatientVisit.value.clinic = patient.value.clinic;
   curPatientVisit.value.clinic_id = patient.value.clinic_id;

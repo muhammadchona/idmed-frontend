@@ -413,9 +413,7 @@ import PatientTransReference from 'src/stores/models/transreference/PatientTrans
 import PatientTransReferenceTypeService from 'src/services/api/patientTransReferenceServiceType/PatientTransReferenceTypeService';
 import patientTransReferenceService from 'src/services/api/patientTransReferenceService/patientTransReferenceService';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
-import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService';
 import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
-import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useStringUtils } from 'src/composables/shared/stringUtils/stringUtils';
 import episodeTypeService from 'src/services/api/episodeType/episodeTypeService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
@@ -435,10 +433,9 @@ const {
 const { stringContains } = useStringUtils();
 const { isReferenceOrTransferenceEpisode, lastVisit } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
-const { website, isDeskTop, isMobile } = useSystemUtils();
 const { fullName, age } = usePatient();
 const { lastPack } = usePatientVisitDetail();
-const { canBeEdited, lastVisitPrescription } = usePatientServiceIdentifier();
+const { lastVisitPrescription } = usePatientServiceIdentifier();
 const submitting = ref(false);
 const identifierstartDate = ref('');
 const identifier = ref(new PatientServiceIdentifier());
@@ -490,10 +487,6 @@ onMounted(() => {
 // Method
 const optionsNonFutureDate = (date) => {
   return date <= moment().format('YYYY/MM/DD');
-};
-
-const desableSubmitting = () => {
-  submitting.value = false;
 };
 
 const init = () => {
@@ -754,10 +747,6 @@ const lastStartEpisodeWithPrescription = () => {
   );
 };
 
-const canEditIdentifier = () => {
-  return canBeEdited(identifier.value);
-};
-
 const doSave = async () => {
   identifier.value.episodes = [];
   if (isCloseStep.value) {
@@ -910,15 +899,6 @@ const doTransReference = (transReference) => {
   patientTransReferenceService.post(transReference);
 };
 
-const fetchUpdatedIdentifier = async (id) => {
-  return patientServiceIdentifierService.identifierCurr(id);
-};
-
-const commitOperation = () => {
-  submitting.value = true;
-  doSave();
-};
-
 // Compputed
 const clinicSectorTypes = computed(() => {
   return clinicSectorTypeService.getAllClinicSectorTypes(); //ClinicSectorType.query().with('clinicSectorList.*').get();
@@ -1001,28 +981,12 @@ const hasVisitsMade = computed(() => {
   return lastStartEpisodeWithPrescription() !== null;
 });
 
-const canEdit = computed(() => {
-  return canEditIdentifier();
-});
-
 const clinicalServices = computed(() => {
   return clinicalServiceService.getAllClinicalServices();
 });
 
 const notAssociatedServices = computed(() => {
   return filterNotAssociatedServices();
-});
-
-const clinicSerctors = computed(() => {
-  return clinicSectorService.getActivebyClinicId(currClinic.value.id);
-});
-
-const identifierTypes = computed(() => {
-  return identifierTypeService.all();
-});
-
-const pharmacies = computed(() => {
-  return clinicService.getAllActiveUSWithoutMain();
 });
 
 const stopReasons = computed(() => {

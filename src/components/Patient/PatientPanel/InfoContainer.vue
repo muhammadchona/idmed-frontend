@@ -156,7 +156,7 @@ import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import EpisodeInfo from './Episode.vue';
 
 //props
-const props = defineProps(['identifierId']);
+const props = defineProps(['identifierId', 'serviceId']);
 
 // Declaration
 const { hasVisits, isCloseEpisode, isDCReferenceEpisode } = useEpisode();
@@ -185,7 +185,10 @@ const isReOpenStep = inject('isReOpenStep');
 
 // Computed
 const curIdentifier = computed(() => {
-  return patientServiceIdentifierService.identifierCurr(props.identifierId);
+  return patientServiceIdentifierService.identifierCurr(
+    props.identifierId,
+    props.serviceId
+  );
 });
 // Methods
 const openEpisodeCreation = () => {
