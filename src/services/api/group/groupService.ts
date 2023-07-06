@@ -168,12 +168,10 @@ export default {
       });
   },
   getAllGroups() {
-    console.log('111' + group.query().with('groupType').with('service').get());
     return group.query().with('groupType').with('service').get();
   },
 
   getGroupById(groupId: string) {
-    console.log(group.withAllRecursive(3).where('id', groupId).first());
     return group.withAllRecursive(3).where('id', groupId).first();
   },
 
