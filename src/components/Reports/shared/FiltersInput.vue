@@ -348,7 +348,6 @@ import SemesterPeriod from 'components/Reports/shared/SemesterPeriod.vue'
 
       const initParams = ()=> {
         if (isClinicLevel.value) {
-          console.log('trsteee' + currClinic.value)
           reportParams.value.clinicId = currClinic.value.id
           reportParams.value.clinic = currClinic.value
         } else {
@@ -389,13 +388,11 @@ import SemesterPeriod from 'components/Reports/shared/SemesterPeriod.vue'
           initProcessing.value = true
           $emit('initReportProcessing', reportParams.value)
           $emit('updateProgressBar', progress1.value)
-          // ReportDatesParams.determineStartEndDate(reportParams)
-         // updateProgressBar()
+
       }
 
       const saveParams= ()=> {
         reportParams.value.tabName = props.tabName
-       // reportParams.id = 'report' + reportParams.id
        const jsonPar = JSON.parse(JSON.stringify(reportParams.value))
        reportParams.value.clinic = null
        
