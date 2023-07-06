@@ -494,7 +494,6 @@ const initNewMember = (patient) => {
     patient: patient,
     clinic: clinic,
   });
-  console.log(member);
   return member;
 };
 const getJSDateFromDDMMYYY = (dateString) => {

@@ -426,7 +426,7 @@ const prescriptionDateRef = ref(null);
 // New Values
 const curPrescription = ref(new Prescription({ id: uuidv4() }));
 const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
-const curPatientVisitDetail = ref(new PatientVisitDetails());
+const curPatientVisitDetail = ref(new PatientVisitDetails({ id: uuidv4() }));
 const curPack = ref(new Pack());
 const validateDispense = ref(false);
 
@@ -1424,6 +1424,7 @@ const filterFnpatientStatus = (val, update, abort) => {
 
 // Hook
 onMounted(() => {
+  // curPrescription = ref(new Prescription({ id: uuidv4() }));
   console.log(showServiceDrugsManagement.value);
   console.log(isNewPrescription.value);
   init();
