@@ -350,7 +350,7 @@ import SemesterPeriod from 'components/Reports/shared/SemesterPeriod.vue'
         if (isClinicLevel.value) {
           console.log('trsteee' + currClinic.value)
           reportParams.value.clinicId = currClinic.value.id
-          reportParams.value.clinic = null //currClinic.value
+          reportParams.value.clinic = currClinic.value
         } else {
           reportParams.value.provinceId = currClinic.value.province.id
           reportParams.value.province = currClinic.value.province
@@ -383,8 +383,7 @@ import SemesterPeriod from 'components/Reports/shared/SemesterPeriod.vue'
           if (reportParams.value.district !== null) {
              reportParams.value.districtId = reportParams.value.district.id
            }
-        //   reportParams.clinicId = currClinic.id
-     //     reportParams.clinic = currClinic
+  
           saveParams()
           console.log(reportParams.value)
           initProcessing.value = true
@@ -398,6 +397,8 @@ import SemesterPeriod from 'components/Reports/shared/SemesterPeriod.vue'
         reportParams.value.tabName = props.tabName
        // reportParams.id = 'report' + reportParams.id
        const jsonPar = JSON.parse(JSON.stringify(reportParams.value))
+       reportParams.value.clinic = null
+       
         LocalStorage.set(reportParams.value.id,jsonPar)
       }
 
