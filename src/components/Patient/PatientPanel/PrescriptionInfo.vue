@@ -15,6 +15,7 @@
           v-for="identifier in patient.identifiers"
           :key="identifier.id"
           :identifierId="identifier.id"
+          :serviceId="identifier.service.id"
         />
       </div>
       <q-dialog persistent v-model="showAddPrescription">

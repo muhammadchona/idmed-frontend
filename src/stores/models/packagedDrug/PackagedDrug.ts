@@ -15,7 +15,7 @@ export default class PackagedDrug extends Model {
       form: this.attr(''),
       quantitySupplied: this.attr(''),
       nextPickUpDate: this.attr(''),
-      toContinue: this.boolean(false),
+      toContinue: this.boolean(true),
       creationDate: this.attr(''),
       pack_id: this.attr(''),
       drug_id: this.attr(''),

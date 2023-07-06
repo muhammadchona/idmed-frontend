@@ -203,6 +203,7 @@ const dispenseLabel = computed(() => {
 // Methods
 
 const init = () => {
+  //curPatientVisit.value = new PatientVisit();
   curPatientVisit.value.visitDate = getYYYYMMDDFromJSDate(moment());
   curPatientVisit.value.clinic = patient.value.clinic;
   curPatientVisit.value.clinic_id = patient.value.clinic_id;
