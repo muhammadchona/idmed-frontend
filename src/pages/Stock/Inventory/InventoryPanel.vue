@@ -369,7 +369,7 @@ const drugs = computed(() => {
 });
 
 const inventoryType = computed(() => {
-  return inventoryMethod.getInventoryType(currInventory);
+  return inventoryMethod.getInventoryType(currInventory.value);
 });
 
 

@@ -82,19 +82,18 @@
 </template>
 
 <script setup>
-import Inventory from '../../../stores/models/stockinventory/Inventory';
 import { ref, onMounted, computed } from 'vue';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
-import { useMediaQuery } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
 
 
 const inventoryMethod = useInventory();
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
+const { isMobile, isOnline } = useSystemUtils(); 
 const { showloading, closeLoading } = useLoading();
 
 const columns = [
@@ -132,7 +131,7 @@ const openFile = (inventory) => {
 };
 
 onMounted(() => {
-  if (!mobile.value) {
+  if (!isOnline.value) {
     InventoryService.apiGetAllByClinicId(clinicService.currClinic().id, 0, 300);
   }
 });
