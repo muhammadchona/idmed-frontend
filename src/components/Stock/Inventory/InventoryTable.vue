@@ -131,8 +131,8 @@ const openFile = (inventory) => {
 };
 
 onMounted(() => {
-  if (!isOnline.value) {
-    InventoryService.apiGetAllByClinicId(clinicService.currClinic().id, 0, 300);
+  if (isOnline.value) {
+     InventoryService.apiGetAllByClinicId(clinicService.currClinic().id, 0, 300);
   }
 });
 
