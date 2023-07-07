@@ -34,6 +34,7 @@ export default {
           .then((result) => {
             console.log('groups' + result);
             group.save(result);
+            closeLoading();
           });
       }
     }

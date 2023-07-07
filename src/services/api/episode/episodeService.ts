@@ -328,7 +328,7 @@ export default {
               respDetails.data.prescription.id
             );
             pv.patientVisitDetails[0].prescription = respPre.data;
-            patientVisitService.putMobile(pv);
+            // patientVisitService.putMobile(pv);
 
             if (respDetails.data.pack !== null) {
               const respPack = await packService.apiFetchById(
@@ -338,6 +338,7 @@ export default {
               patientVisitService.putMobile(pv);
             }
           }
+          closeLoading();
         });
         // offset = offset + max
         // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
