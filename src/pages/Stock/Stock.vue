@@ -6,7 +6,6 @@
 
 <script setup>
 
-import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 
 import { onMounted } from 'vue';
 import StockCenterService from 'src/services/api/stockCenterService/StockCenterService';
@@ -19,54 +18,28 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 
 import Index from 'src/components/Stock/Index.vue';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
+import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 
 
 const init = () => {
-  // copoia o stock do localbase para o VueX
- 
     const offset = 0;
     StockCenterService.get(offset);
     StockService.get(offset);
     StockOperationTypeService.get(offset);
     ReferedStockMovimentService.get(offset);
-
     DestroyedStockService.get(offset);
-    //  DrugSe.apiGetAll(offset, max)
-    getAllStockOfClinic();
+    StockEntranceService.get(offset)
     InventoryStockAdjustmentService.get(offset);
-    // packagedDrugStockService.get(offset)
     InventoryService.get(offset);
     StockEntranceService.get(offset);
-  
 };
 
-const getAllStockOfClinic = () => {
-  const offset = 0;
-  const max = 100;
-  //  doStockEntranceGet(clinic.value.id, offset, max)
-};
-
-const doStockEntranceGet = (clinicId, offset, max) => {
-  StockEntranceService.apiGetAllByClinicId(clinicId, offset, max)
-    .then((resp) => {
-      console.log(resp.response.data);
-      if (resp.response.data.length > 0) {
-        offset = offset + max;
-        setTimeout(doStockEntranceGet(clinicId, offset, max), 2);
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-};
 
 onMounted(() => {
   init();
 });
 
-setTimeout(() => {
-  // this.$q.loading.hide()
-}, 600);
+
 </script>
 
 <style></style>

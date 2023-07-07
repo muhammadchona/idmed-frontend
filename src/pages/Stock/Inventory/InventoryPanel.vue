@@ -14,7 +14,8 @@
             >Notas do Inventário
           </ListHeader>
           <div class="box-border q-pt-md">
-            <TextInput
+            <q-input
+            outlined
               v-model="inventoryType"
               label="Tipo de Inventário"
               disable
@@ -98,7 +99,8 @@
             >Notas do Inventário
           </ListHeader>
           <div class="box-border row q-pt-md">
-            <TextInput
+            <q-input
+            outlined
               v-model="inventoryType"
               label="Tipo de Inventário"
               disable
@@ -176,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject, provide } from 'vue';
+import { ref, computed, onMounted, provide } from 'vue';
 import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -184,32 +186,25 @@ import moment from 'moment';
 
 import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
 import { useRouter } from 'vue-router';
-import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 
 import TitleBar from 'components/Shared/TitleBar.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
-import TextInput from 'components/Shared/Input/TextField.vue';
 import AdjustmentTable from 'components/Stock/Inventory/InventoryAdjustmentsContainer.vue';
 import StockService from 'src/services/api/stockService/StockService';
 import drugService from 'src/services/api/drugService/drugService';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 
 const { isMobile, isOnline } = useSystemUtils(); 
-
-
 const inventoryMethod = useInventory();
 const router = useRouter();
-
 const { closeLoading, showloading } = useLoading();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertSucess, alertWarningAction } = useSwal();
 
-const currClinic = inject('currClinic');
-const adjustments = ref([]);
 const title = ref('Detalhes do Inventário');
-let step = 'display';
 const processedAdjustments = [];
 const contentStyle = {
   backgroundColor: '#ffffff',
@@ -231,7 +226,9 @@ const thumbStyle = {
 
 const goBack = () => {
   router.go(-1);
-};
+}
+
+const drugs = ref([])
 
 const initInventoryClosure = () => {
   alertWarningAction(
@@ -304,7 +301,7 @@ const processAdjustment = (adjustment, inventory) => {
   const iv = Object.assign({}, inventory);
   iv.adjustments = [];
   //adjustment.inventory = iv;
-  adjustment.clinic = currClinic;
+  adjustment.clinic = clinicService.currClinic();
   adjustment.finalised = true;
   adjustment.adjustedStock = StockService.getStockById(
     adjustment.adjusted_stock_id
@@ -317,15 +314,13 @@ const processAdjustment = (adjustment, inventory) => {
 
 const retriveRelatedDrug = (adjustment, drugList) => {
   let isNewDrug = true;
-  console.log(adjustment);
   if (adjustment.adjustedStock === null) {
     adjustment.adjustedStock = StockService.getStockById(
       adjustment.adjusted_stock_id
     );
   }
   const drug = drugService.getDrugById(adjustment.adjustedStock.drug_id);
-
-  if (drugList.length <= 0) {
+  if (drugList.length <= 0 && StockService.getValidStockByDrug(drug)) {
     drugList.push(drug);
   } else {
     Object.keys(drugList).forEach(function (i) {
@@ -347,26 +342,28 @@ const currInventory = computed(() => {
   return inventory;
 });
 
-const drugs = computed(() => {
+ 
+onMounted(() =>{
+ // showloading()
   var isGeneric = JSON.parse(currInventory.value.generic)
+  const drugList = [];
   if (isGeneric) {
-    return drugService.getActiveDrugs();
+       drugs.value = drugService.getActiveDrugsInventory(drugService.getActiveDrugs())
   } else {
-    const drugList = [];
-    // console.log(currInventory);
+   
     Object.keys(currInventory.value.adjustments).forEach(
       function (i) {
         currInventory.value.adjustments[i].adjustedStock =
           StockService.getStockById(
             currInventory.value.adjustments[i].adjusted_stock_id
           );
-        // console.log(currInventory.value.adjustments[i]);
         retriveRelatedDrug(currInventory.value.adjustments[i], drugList);
       }.bind(this)
     );
-    return drugList;
+    drugs.value =  drugService.getActiveDrugsInventory(drugList);
   }
-});
+  closeLoading()
+})
 
 const inventoryType = computed(() => {
   return inventoryMethod.getInventoryType(currInventory.value);
