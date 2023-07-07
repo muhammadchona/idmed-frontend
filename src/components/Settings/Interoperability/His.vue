@@ -112,7 +112,6 @@
 import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, onMounted, computed, provide } from 'vue';
-import HealthInformationSystem from '../../../stores/models/healthInformationSystem/HealthInformationSystem';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 
 /*components import*/
