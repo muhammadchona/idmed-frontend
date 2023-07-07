@@ -63,6 +63,7 @@
           <q-td key="options" :props="props">
             <div class="col">
               <q-btn
+              :loading="submitting"
                 flat
                 round
                 color="amber-8"
@@ -91,7 +92,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 
-
+let submitting = ref(false);
 const inventoryMethod = useInventory();
 const { isMobile, isOnline } = useSystemUtils(); 
 const { showloading, closeLoading } = useLoading();
@@ -124,6 +125,7 @@ const router = useRouter();
 const filter = ref('');
 
 const openFile = (inventory) => {
+  submitting.value = true
   showloading()
   localStorage.setItem('currInventory', inventory.id);
   router.push('/stock/inventory');

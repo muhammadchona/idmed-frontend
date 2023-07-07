@@ -78,7 +78,6 @@ import InventoryService from 'src/services/api/inventoryService/InventoryService
 import clinicService from 'src/services/api/clinicService/clinicService';
 import drugService from 'src/services/api/drugService/drugService';
 
-const { closeLoading, showloading } = useLoading();
 const { alertError } = useSwal();
 
 const alert = ref({
@@ -108,20 +107,6 @@ const addEntrada = () => {
   //
 };
 
-const getAllStockOfClinic = () => {
-  const offset = 0;
-  doStockEntranceGet(clinic.value.id, offset);
-};
-
-const doStockEntranceGet = (clinicId, offset) => {
-  StockEntranceService.apiGetAllByClinicId(clinicId, offset)
-    .then((resp) => {
-      console.log(resp.response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-};
 const clinic = computed(() => {
   return clinicService.currClinic();
 });
