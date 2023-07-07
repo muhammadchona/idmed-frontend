@@ -125,11 +125,11 @@ const router = useRouter();
 const filter = ref('');
 
 const openFile = (inventory) => {
-  submitting.value = true
+  //submitting.value = true
   showloading()
   localStorage.setItem('currInventory', inventory.id);
   router.push('/stock/inventory');
-  closeLoading()
+
 };
 
 onMounted(() => {
