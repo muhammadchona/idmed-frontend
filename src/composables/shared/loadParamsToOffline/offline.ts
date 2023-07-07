@@ -36,6 +36,7 @@ import NanoStockCenterService from 'src/services/Synchronization/stockCenter/Nan
 import NanoStockOperationTypeService from 'src/services/Synchronization/stockOperationType/NanoStockOperationTypeService';
 import NanotherapeuticLineService from 'src/services/Synchronization/therapeuticLineService/NanotherapeuticLineService';
 import NanotherapeuticRegimenService from 'src/services/Synchronization/therapeuticRegimenService/NanotherapeuticRegimenService';
+import NanoGroupTypeService from 'src/services/Synchronization/groupType/NanoGroupTypeService';
 import episodeService from 'src/services/api/episode/episodeService';
 import patientService from 'src/services/api/patientService/patientService';
 
@@ -71,6 +72,7 @@ export function useOffline() {
     NanoclinicService.getFromBackEnd(0);
     NanoStockCenterService.getFromBackEnd(0);
     NanoStockOperationTypeService.getFromBackEnd(0);
+    NanoGroupTypeService.getFromBackEnd(0);
   }
 
   async function loadPatientDataToOffline() {

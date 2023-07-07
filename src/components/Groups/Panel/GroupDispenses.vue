@@ -126,7 +126,7 @@ const {
 } = useDateUtils();
 
 const { website, isDeskTop, isMobile } = useSystemUtils();
-const { alertSucess, alertError, alertInfo } = useSwal();
+const { alertSucess } = useSwal();
 const showDispensesData = ref(true);
 const grupPacks = ref([]);
 const showNewPackingForm = inject('showNewPackingForm');
@@ -142,17 +142,12 @@ const removePackHeader = (groupPackHeader) => {
   alertSucess('Operação efectuada com sucesso.');
 };
 
-const emit = defineEmits([
-  // 'getGroupMembers'
-]);
-
 const newPacking = () => {
   // emit('newPacking', headers.value[0])
   showloading();
   if (headers.value[0] !== null && headers.value[0] !== undefined)
     defaultPickUpDate.value = headers.value[0].nextPickUpDate;
   showNewPackingForm.value = true;
-  closeLoading();
 };
 
 const getDateDiff = (date1, date2) => {

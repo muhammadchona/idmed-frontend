@@ -82,7 +82,7 @@ export default {
   // Mobile
   async putMobile(params: string) {
     try {
-      await nSQL(prescription.use?.entity).query('upsert', params).exec();
+      await nSQL(Prescription.entity).query('upsert', params).exec();
       prescription.save(JSON.parse(params));
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error) {
@@ -92,7 +92,7 @@ export default {
   },
   async getMobile() {
     try {
-      const rows = await nSQL(prescription.use?.entity).query('select').exec();
+      const rows = await nSQL(Prescription.entity).query('select').exec();
       prescription.save(rows);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -101,7 +101,7 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(prescription.use?.entity)
+      await nSQL(Prescription.entity)
         .query('delete')
         .where(['id', '=', paramsId])
         .exec();
@@ -153,7 +153,7 @@ export default {
     return await api().get(`/prescription/identifier/${id}`);
   },
   async apiGetByPatientId(patientid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.get(0);
     } else {
       return await api()

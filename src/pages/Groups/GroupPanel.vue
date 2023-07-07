@@ -228,6 +228,7 @@ const loadMemberInfo = () => {
                       .apiFetchById(packHeader.id)
                       .then((resp) => {
                         console.log(resp);
+                        console.log(member);
                       });
                     closeLoading();
                   });
@@ -337,10 +338,10 @@ const getGroupMembers = (isPrescription) => {
   });
   allMembers.value = group.members;
   if (!useGroup().isDesintegrated(group)) {
-    members.value = group.members.filter((member) => {
-      return useGroupMember().isActive(member);
-    });
-    //  group.members = members.value
+    //  members.value = group.members.filter((member) => {
+    //    return useGroupMember().isActive(member);
+    //   });
+    group.members = members.value;
   } else {
     members.value = group.members;
   }
