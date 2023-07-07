@@ -168,7 +168,6 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 import episodeService from 'src/services/api/episode/episodeService';
 import { useLoading } from 'src/composables/shared/loading/loading';
-// import packService from 'src/services/api/pack/packService';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue';
 import drugService from 'src/services/api/drugService/drugService';
@@ -238,13 +237,11 @@ const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
 
 const clinic = inject('clinic');
-// let selectedGroup = reactive(ref(null));
 let selectedVisitDetails = reactive(ref(new PatientVisitDetails()));
 const showAddEditDrug = ref(false);
 const hasTherapeuticalRegimen = ref(false);
 const showDispensesData = ref(false);
 const selectedGroup = inject('group');
-console.log(selectedGroup);
 const membersDispenses = inject('membersDispenses');
 const curIdentifier = ref('');
 const curPrescriptionDetail = ref('');
@@ -276,7 +273,6 @@ const initDispenses = () => {
     patient: props.member.patient,
     clinic: props.member.patient.clinic,
   });
-  console.log(patientVisit);
   prescription.prescribedDrugs.forEach((prescD) => {
     const packDrug = new PackagedDrug();
     packDrug.id = uuidv4();
@@ -308,9 +304,7 @@ const initDispenses = () => {
 };
 
 const openAddPrescribedDrugForm = () => {
-  console.log(props.member);
   const pack = membersDispenses.value.get(props.member);
-  console.log(pack.patientVisitDetails[0].prescription.prescriptionDetails[0]);
   // props.member.patient.identifiers[0].service = clinicalServiceService.getClinicalServicePersonalizedById(props.member.patient.identifiers[0].service.id)[0]
   curIdentifier.value = patientServiceIdentifierService.curIdentifierById(
     props.member.patient.identifiers[0].id
@@ -320,8 +314,6 @@ const openAddPrescribedDrugForm = () => {
       pack.patientVisitDetails[0].prescription.prescriptionDetails[0].id
     );
   curVisitDetails.value = pack.patientVisitDetails[0];
-  console.log(curIdentifier.value);
-  console.log(curPrescriptionDetail.value);
 
   showAddEditDrug.value = true;
 };

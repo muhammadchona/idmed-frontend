@@ -192,8 +192,12 @@ export default {
   getAllFromStorage() {
     return patientServiceIdentifier.all();
   },
-  identifierCurr(id: string) {
-    return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
+  identifierCurr(id: string, serviceId: string) {
+    return patientServiceIdentifier
+      .withAllRecursive(2)
+      .where('id', id)
+      .where('service_id', serviceId)
+      .first();
   },
   getAllEpisodesByIdentifierId(id: string) {
     return patientServiceIdentifier

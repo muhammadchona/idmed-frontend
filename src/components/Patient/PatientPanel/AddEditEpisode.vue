@@ -579,6 +579,21 @@ const submitForm = () => {
     !startDateRef.value.hasError &&
     !clinicSerctorRef.value.hasError
   ) {
+    if (isNewEpisode.value) {
+      if (lastEpisode.value !== null) {
+        if (
+          getYYYYMMDDFromJSDate(
+            extractHyphenDateFromDMYConvertYMD(startDate.value)
+          ) <= getYYYYMMDDFromJSDate(lastEpisode.value.episodeDate)
+        ) {
+          alertError(
+            'A data indicada não pode ser menor ou igual que a data do último histórico clínico.'
+          );
+          submitting.value = false;
+        }
+      }
+    }
+
     if (!isValidDate(String(getDateFromHyphenDDMMYYYY(startDate.value)))) {
       alertError('A data de inicio é inválida.');
       submitting.value = false;
@@ -718,32 +733,35 @@ const doSave = async () => {
       closureEpisode.value.patientServiceIdentifier = curIdentifier.value;
     }
   }
-  try {
-    episodeService.apiSave(episode.value, isNewEpisode.value);
-    if (isCloseEpisode.value) {
-      try {
-        episodeService.apiSave(closureEpisode.value, true);
-        console.log('Histórico Clínico de fecho criado com sucesso');
-      } catch (error) {
-        console.log(error);
-        alertError(
-          'Aconteceu um erro ao durante a operacao de registo do Histórico Clínico de Fecho'
-        );
+  episodeService
+    .apiSave(episode.value, isNewEpisode.value)
+    .then(() => {
+      if (isCloseEpisode.value) {
+        episodeService
+          .apiSave(closureEpisode.value, true)
+          .then(() => {
+            console.log('Histórico Clínico de fecho criado com sucesso');
+          })
+          .catch((error) => {
+            console.log(error);
+            alertError(
+              'Aconteceu um erro ao durante a operacao de registo do Histórico Clínico de Fecho'
+            );
+          });
       }
-    }
-    alertSucess(
-      isNewEpisode.value
-        ? 'Histórico Clínico adicionado com sucesso.'
-        : 'Histórico Clínico actualizado com sucesso.'
-    );
-    closeEpisodeCreation();
-  } catch (error) {
-    console.log(error);
-    alertError('Aconteceu um erro ao gravar o episódio');
-    submitting.value = false;
-  }
+      alertSucess(
+        isNewEpisode.value
+          ? 'Histórico Clínico adicionado com sucesso.'
+          : 'Histórico Clínico actualizado com sucesso.'
+      );
+      closeEpisodeCreation();
+    })
+    .catch((error) => {
+      console.log(error);
+      alertError('Aconteceu um erro ao gravar o episódio');
+      submitting.value = false;
+    });
 };
-
 const identifierHasValidPrescription = (episode) => {
   const lastPatientVisitDetail =
     patientVisitDetailsService.getLastPatientVisitDetailsFromEpisode(

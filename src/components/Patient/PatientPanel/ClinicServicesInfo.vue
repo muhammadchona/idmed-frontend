@@ -15,6 +15,7 @@
           v-for="identifier in patient.identifiers"
           :key="identifier.id"
           :identifierId="identifier.id"
+          :serviceId="identifier.service.id"
         />
       </span>
     </div>
@@ -37,7 +38,7 @@ import { usePatient } from 'src/composables/patient/patientMethods';
 import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
 
 // Declaration
-const { preferedIdentifierValue } = usePatient();
+const { preferedIdentifier } = usePatient();
 const { canBeEdited } = usePatientServiceIdentifier();
 const emptyList = ref(false);
 const selectedIdentifier = ref(new PatientServiceIdentifier());
@@ -60,9 +61,14 @@ const patient = inject('patient');
 
 //Computed
 const currIdentifier = computed(() => {
-  return patientServiceIdentifierService.identifierCurr(
-    preferedIdentifierValue(patient.value)
-  );
+  if (preferedIdentifier(patient.value) !== null) {
+    return patientServiceIdentifierService.identifierCurr(
+      preferedIdentifier(patient.value).id,
+      preferedIdentifier(patient.value).service_id
+    );
+  } else {
+    return [];
+  }
 });
 
 //Method

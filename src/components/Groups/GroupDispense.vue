@@ -140,15 +140,10 @@
 <script setup>
 import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import { date } from 'quasar';
-import DispenseMode from '../../stores/models/dispenseMode/DispenseMode';
-import Duration from '../../stores/models/duration/Duration';
 import GroupPackHeader from '../../stores/models/group/GroupPackHeader';
-import Pack from '../../stores/models/packaging/Pack';
 import PackagedDrug from '../../stores/models/packagedDrug/PackagedDrug';
 import PackagedDrugStock from '../../stores/models/packagedDrug/PackagedDrugStock';
 import PatientVisitDetails from '../../stores/models/patientVisitDetails/PatientVisitDetails';
-import PatientVisit from '../../stores/models/patientVisit/PatientVisit';
-import Drug from '../../stores/models/drug/Drug';
 import moment from 'moment';
 import { useGroupMember } from 'src/composables/group/groupMemberMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
@@ -163,7 +158,6 @@ import durationService from 'src/services/api/duration/durationService';
 import dispenseModeService from 'src/services/api/dispenseMode/dispenseModeService';
 import episodeService from 'src/services/api/episode/episodeService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
-// import packService from 'src/services/api/pack/packService';
 import StockService from 'src/services/api/stockService/StockService';
 import drugService from 'src/services/api/drugService/drugService';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
@@ -187,11 +181,9 @@ const nextPDate = ref('');
 const pickupDate = ref('');
 const drugsDuration = ref('');
 const dispenseMode = ref('');
-//const getGroupMembers = inject('getGroupMembers');
 
 const clinic = inject('clinic');
 let curGroupPackHeader = reactive(ref(new GroupPackHeader({ id: uuidv4() })));
-// let selectedGroup = reactive(ref(null));
 let selectedVisitDetails = reactive(ref(new PatientVisitDetails()));
 const showAddEditDrug = ref(false);
 const hasTherapeuticalRegimen = ref(false);

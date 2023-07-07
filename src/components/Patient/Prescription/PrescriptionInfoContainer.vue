@@ -20,7 +20,6 @@
           }}
         </q-item-section>
       </template>
-
       <div v-show="infoVisible">
         <EmptyList v-if="prescription === null || prescription === undefined"
           >Nenhuma Prescrição Adicionada para o serviço
@@ -201,21 +200,14 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import PackInfo from 'components/Patient/Prescription/PackInfo.vue';
-import Pack from 'src/stores/models/packaging/Pack';
 import episodeService from 'src/services/api/episode/episodeService';
-import Prescription from 'src/stores/models/prescription/Prescription';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
-import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
-import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDrugService';
 import packService from 'src/services/api/pack/packService';
-import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
-import Episode from 'src/stores/models/episode/Episode';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 
 //Declaration
@@ -225,18 +217,12 @@ const { isCloseEpisode, isDCReferenceEpisode } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { remainigDuration } = usePrescription();
 const infoVisible = ref(true);
-const isPatientActive = ref(false);
-const selectedPack = ref(new Pack());
-const showAddEditEpisode = ref(false);
 
 //props
-const props = defineProps(['identifierId']);
+const props = defineProps(['identifierId', 'serviceId']);
 
 // Inject
-const patient = inject('patient');
 const editPrescriptionOption = inject('editPrescriptionOption');
-const showAddPrescription = inject('showAddPrescription');
-const isNewPrescription = inject('isNewPrescription');
 
 //Hook
 onMounted(() => {
@@ -248,15 +234,8 @@ const init = () => {
   closeLoading();
 };
 
-const checkPatientStatusOnService = () => {
-  if (this.curIdentifier.endDate !== '') {
-    this.isPatientActive = true;
-  }
-};
-
 const removePack = () => {
   let isPatientVisitRemoveble = true;
-
   if (
     patientVisit.value.tbScreenings.length > 0 ||
     patientVisit.value.pregnancyScreenings.length > 0 ||
@@ -267,7 +246,6 @@ const removePack = () => {
     isPatientVisitRemoveble = false;
   }
   alertWarningAction('Deseja remover a Dispensa?').then((result) => {
-    console.log(result);
     if (result) {
       if (
         isPatientVisitRemoveble &&
@@ -334,7 +312,6 @@ const removePrescription = () => {
     );
   } else {
     alertWarningAction('Deseja remover a Prescrição?').then((result) => {
-      console.log(result);
       if (result) {
         prescriptionService
           .delete(prescription.value.id)
@@ -362,7 +339,10 @@ const formatDate = (dateString) => {
 
 // Computed
 const curIdentifier = computed(() => {
-  return patientServiceIdentifierService.identifierCurr(props.identifierId);
+  return patientServiceIdentifierService.identifierCurr(
+    props.identifierId,
+    props.serviceId
+  );
 });
 
 const validadeColor = computed(() => {
@@ -391,19 +371,34 @@ const prescription = computed(() => {
   }
 });
 
-const lastPatientVisitDetails = computed(() => {
-  if (patientVisit.value !== null) {
-    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
-      patientVisit.value.id
-    );
+const patientVisit = computed(() => {
+  const listPatietVisitIds = [];
+  if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
+    const listPatietVisitDetails =
+      patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
+        lastStartEpisode.value.id
+      );
+
+    if (
+      listPatietVisitDetails !== null &&
+      listPatietVisitDetails !== undefined
+    ) {
+      listPatietVisitDetails.forEach((patientvisitdetails) => {
+        listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+      });
+    }
+    return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
   } else {
     return null;
   }
 });
 
-const patientVisit = computed(() => {
-  if (lastStartEpisode.value !== null) {
-    return patientVisitService.getLastFromEpisode(lastStartEpisode.value.id);
+const lastPatientVisitDetails = computed(() => {
+  if (patientVisit.value !== null && patientVisit.value !== undefined) {
+    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+      patientVisit.value.id,
+      lastStartEpisode.value.id
+    );
   } else {
     return null;
   }
@@ -423,7 +418,7 @@ const lastEpisode = computed(() => {
   if (curIdentifier.value !== null) {
     return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
   } else {
-    return null;
+    return [];
   }
 });
 const showEndDetails = computed(() => {
@@ -433,31 +428,10 @@ const showEndDetails = computed(() => {
     !isDCReferenceEpisode(lastEpisode.value)
   );
 });
-const headerColor = computed(() => {
-  if (!showEndDetails.value) {
-    return 'bg-grey-6';
-  } else {
-    return 'bg-red-7';
-  }
-});
+
 const isClosed = computed(() => {
   return showEndDetails.value;
 });
-
-// Methods
-
-const getPatientVisitDetails = (episodeId) => {
-  patientVisitDetailsService.apiGetAllByEpisodeId(episodeId, 0, 100);
-};
-const getPrescriptionDetails = (prescriptionId) => {
-  prescriptionDetailsService.apiGetAllByPrescriptionId(prescriptionId);
-};
-const getPrescribedDrugs = (prescriptionId) => {
-  prescribedDrugService.apiGetAllByPrescriptionId(prescriptionId);
-};
-const getPackageDrugs = (packId) => {
-  packagedDrugService.apiGetAllByPackId(packId);
-};
 
 //Provide
 provide('lastPackOnPrescription', lastPackOnPrescription);

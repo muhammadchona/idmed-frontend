@@ -117,6 +117,20 @@ export function usePatient() {
     return preferedId.value;
   }
 
+  function preferedIdentifierServiceId(patient: any) {
+    if (patient.identifiers.length <= 0) return 'Sem identificador';
+    let preferedServiceId = {};
+    Object.keys(patient.identifiers).forEach(
+      function (k: any) {
+        const id = patient.identifiers[k];
+        if (id.prefered) {
+          preferedServiceId = id;
+        }
+      }.bind(patient)
+    );
+    return preferedServiceId.service_id;
+  }
+
   function hasOneAndClosedIdentifier(patient: any) {
     if (patient.identifiers.length > 1 && hasEpisodes(patient)) return false;
     return (
@@ -145,6 +159,7 @@ export function usePatient() {
     preferedIdentifier,
     hasPreferedId,
     preferedIdentifierValue,
+    preferedIdentifierServiceId,
     hasOneAndClosedIdentifier,
     hasPatientVisitDetails,
     age,

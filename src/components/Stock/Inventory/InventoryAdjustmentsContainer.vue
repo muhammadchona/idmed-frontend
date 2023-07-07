@@ -142,8 +142,6 @@
 <script setup>
 import { InventoryStockAdjustment } from '../../../stores/models/stockadjustment/InventoryStockAdjustment';
 import { onMounted, ref, computed, reactive } from 'vue';
-import Drug from '../../../stores/models/drug/Drug';
-import Inventory from '../../../stores/models/stockinventory/Inventory';
 import { useMediaQuery } from '@vueuse/core';
 
 import Dialog from 'components/Shared/Dialog/Dialog.vue';
@@ -158,7 +156,9 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import StockService from 'src/services/api/stockService/StockService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
+const { isMobile, isOnline } = useSystemUtils();
 
 const props = defineProps(['drug', 'inventory']);
 const { alertSucess, alertError, alertWarningAction } = useSwal();
@@ -190,8 +190,7 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Notas', sortable: false },
 ];
 
-const isWebScreen = useMediaQuery('(min-width: 1024px)');
-const mobile = computed(() => (isWebScreen.value ? false : true));
+ 
 const inventoryStockAdjMethod = useInventoryStockAdjustment();
 const dateUtils = useDateUtils();
 
@@ -211,7 +210,7 @@ const expandLess = (value) => {
   infoContainerVisible = !value;
 };
 const init = () => {
-  if(mobile.value) {
+  if(!isOnline.value) {
   InventoryStockAdjustmentService.apiGetAllMobile()
 }
   
@@ -219,7 +218,7 @@ const init = () => {
 };
 
 const prepareInit = () => {
-  showloading()
+ 
   let i = 1;
   const stockList = getValidStocks(drug)
 
@@ -230,13 +229,16 @@ const prepareInit = () => {
         i = i + 1;
       }.bind(this)
     );
+    closeLoading()
   } else if(stockList.length === i) {
   closeLoading()
 }
+closeLoading()
 };
 
 
 const getValidStocks = (drug) =>{
+  closeLoading()
   return StockService.getValidStockByDrug(drug)
 }
 
@@ -263,6 +265,7 @@ const initNewAdjustment = (stock, drug, i) => {
 };
 
 const saveAdjustments = () => {
+  showloading()
   Object.keys(adjustments.value).forEach(
     function (k) {
       const adjustment = adjustments.value[k];
@@ -283,6 +286,7 @@ const saveAdjustments = () => {
       }
       adjustment.captureDate = new Date();
       adjustment.operation = operation;
+      adjustment.clinic = clinicService.currClinic()
       if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
         adjustment.adjustedValue = Number(
           adjustment.balance - adjustment.adjustedStock.stockMoviment
@@ -304,6 +308,7 @@ const doSave = (i) => {
       adjustments.value[i].balance.length <= 0 ||
       isNaN(adjustments.value[i].balance)
     ) {
+      closeLoading()
       alertError(
         'error',
         'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
@@ -313,13 +318,12 @@ const doSave = (i) => {
         InventoryStockAdjustmentService.apiFetchById(
           adjustments.value[i].id
         ).then((resp1) => {
-          if (resp1.length === 0) {
+          if (resp1.data.length=== 0) {
             InventoryStockAdjustmentService.post(adjustments.value[i]).then(
               (resp) => {
                 adjustments.value[i].id = resp.id;
                 i = i + 1;
                 setTimeout(doSave(i), 2);
-                alertSucess('Operação efectuada com sucesso.');
               }
             );
           } else {
@@ -329,10 +333,11 @@ const doSave = (i) => {
               (resp) => {
                 i = i + 1;
                 setTimeout(doSave(i), 2);
-                alertSucess('Operação efectuada com sucesso.');
               }
             );
           }
+          closeLoading()
+          alertSucess('Operação efectuada com sucesso.');
         });
    
     }
@@ -348,7 +353,7 @@ const changeStepToEdition = () => {
 onMounted(() => {
   showloading()
   init();
-  closeLoading()
+  
 });
 
 const isEditStep = computed(() => {

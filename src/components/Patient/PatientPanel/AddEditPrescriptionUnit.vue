@@ -426,15 +426,13 @@ const prescriptionDateRef = ref(null);
 // New Values
 const curPrescription = ref(new Prescription({ id: uuidv4() }));
 const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
-const curPatientVisitDetail = ref(new PatientVisitDetails());
+const curPatientVisitDetail = ref(new PatientVisitDetails({ id: uuidv4() }));
 const curPack = ref(new Pack());
 const validateDispense = ref(false);
 
 const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia']);
 const patientStatusOption = ref(['Inicio', 'Manutenção']);
-const patientTypes = ref(['Sim', 'Não']);
 const showServiceDrugsManagement = ref(false);
-const showDispenseMode = ref(false);
 const showAddEditDrug = ref(false);
 const prescribedDrugs = ref([]);
 const optionsspetialPrescriptionMotives = ref([]);
@@ -446,28 +444,7 @@ const optionsreasonsForUpdate = ref([]);
 const optionsdispenseTypes = ref([]);
 const optionspatientStatus = ref([]);
 const spetialPrescription = ref(false);
-const lastValidPrescription = ref(null);
-const originalPickUpDate = ref(null);
-const mustBeSpetial = ref(false);
 const msgObject = ref({});
-const visitClone = ref({});
-const isAlreadyEdited = ref(false);
-const prescriptionWithDuration = ref(false);
-const contentStyle = ref({
-  backgroundColor: '#ffffff',
-  color: '#555',
-});
-const contentActiveStyle = ref({
-  backgroundColor: '#eee',
-  color: 'black',
-});
-const thumbStyle = ref({
-  right: '2px',
-  borderRadius: '5px',
-  backgroundColor: '#0ba58b',
-  width: '5px',
-  opacity: 0.75,
-});
 
 const columns = [
   {
@@ -538,13 +515,7 @@ const hasTherapeuticalLine = computed(() => {
   );
   return result;
 });
-const hasPatientType = computed(() => {
-  const result = clinicalServiceAttributeService.checkWeatherAttExist(
-    props.identifier.service.id,
-    'PATIENT_TYPE'
-  );
-  return result;
-});
+
 const hasPrescriptionChangeMotive = computed(() => {
   const result = clinicalServiceAttributeService.checkWeatherAttExist(
     props.identifier.service.id,
@@ -575,8 +546,22 @@ const lastStartEpisode = computed(() => {
   return episodeService.getLastStartEpisodeByIdentifier(props.identifier.id);
 });
 const lastPatientVisit = computed(() => {
+  const listPatietVisitIds = [];
   if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
-    return patientVisitService.getLastFromEpisode(lastStartEpisode.value.id);
+    const listPatietVisitDetails =
+      patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
+        lastStartEpisode.value.id
+      );
+
+    if (
+      listPatietVisitDetails !== null &&
+      listPatietVisitDetails !== undefined
+    ) {
+      listPatietVisitDetails.forEach((patientvisitdetails) => {
+        listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+      });
+    }
+    return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
   } else {
     return null;
   }
@@ -584,8 +569,9 @@ const lastPatientVisit = computed(() => {
 
 const lastPatientVisitDetails = computed(() => {
   if (lastPatientVisit.value !== null && lastPatientVisit.value !== undefined) {
-    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
-      lastPatientVisit.value.id
+    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+      lastPatientVisit.value.id,
+      lastStartEpisode.value.id
     );
   } else {
     return null;
@@ -679,7 +665,6 @@ const validateDate = (identifier) => {
         validatePrescriptionDate,
         'DD-MM-YYYY'
       );
-
       if (momentNextPickUpDate.isAfter(momentPrescriptionDate)) {
         alertWarningAction(
           'O paciente ainda possui medicamentos ' +
@@ -1015,126 +1000,6 @@ const removePatientVisitDetail = () => {
   curPatientVisit.value.patientVisitDetails.splice(i, 1);
 };
 
-const setRelationIdentifiers = () => {
-  let packDateError = false;
-  this.patientVisit.clinic_id = this.patientVisit.clinic.id;
-  //  this.patientVisit.visitDate = this.patientVisit.patientVisitDetails[0].prescription.prescriptionDate
-  this.patientVisit.patient_id = this.patientVisit.patient.id;
-  if (this.mobile) {
-    if (this.patientVisit.syncStatus === 'S' && this.isEditPackStep) {
-      this.patientVisit.syncStatus = 'U';
-    } else {
-      this.patientVisit.syncStatus = 'R';
-    }
-  }
-  this.patientVisit.patientVisitDetails.forEach((tempPvd) => {
-    const pvd = new PatientVisitDetails(JSON.parse(JSON.stringify(tempPvd)));
-    if (pvd.episode.startStopReason === null)
-      pvd.episode.startStopReason = StartStopReason.find(
-        pvd.episode.startStopReason_id
-      );
-    if (pvd.episode.episodeType === null)
-      pvd.episode.episodeType = EpisodeType.find(pvd.episode.episodeType_id);
-    if (pvd.episode.clinicSector === null)
-      pvd.episode.clinicSector = ClinicSector.find(pvd.episode.clinicSector_id);
-    pvd.episode_id = pvd.episode.id;
-    pvd.clinic_id = pvd.clinic.id;
-    pvd.patient_visit_id = this.patientVisit.id;
-    pvd.prescription_id = pvd.prescription.id;
-    pvd.pack_id = pvd.pack.id;
-    //       pvd.pack.pickupDate = this.patientVisit.patientVisitDetails[0].prescription.prescriptionDate
-    //      pvd.pack.nextPickUpDate = this.patientVisit.patientVisitDetails[0].prescription.prescriptionDate
-    if (
-      pvd.prescription.syncStatus === '' ||
-      (pvd.prescription.syncStatus === 'R' && this.isEditPackStep)
-    ) {
-      pvd.prescription.syncStatus = 'R';
-    } else if (pvd.prescription.syncStatus === 'S' && this.isEditPackStep) {
-      pvd.prescription.syncStatus = 'U';
-    }
-    if (pvd.prescription.doctor.clinic === null) {
-      pvd.prescription.doctor.clinic = pvd.clinic;
-    }
-    pvd.prescription.doctor_id = pvd.prescription.doctor.id;
-    pvd.prescription.clinic_id = pvd.prescription.clinic.id;
-    pvd.prescription.duration_id = pvd.prescription.duration.id;
-    pvd.prescription.doctor = {};
-    pvd.prescription.doctor.id = pvd.prescription.doctor_id;
-    pvd.prescription.prescriptionDetails[0].prescription_id =
-      pvd.prescription.id;
-    pvd.prescription.prescriptionDetails[0].therapeutic_line_id =
-      pvd.prescription.prescriptionDetails[0].therapeuticLine.id;
-    if (pvd.prescription.prescriptionDetails[0].therapeuticRegimen !== null) {
-      pvd.prescription.prescriptionDetails[0].therapeutic_regimen_id =
-        pvd.prescription.prescriptionDetails[0].therapeuticRegimen.id;
-    }
-    pvd.prescription.prescriptionDetails[0].dispense_type_id =
-      pvd.prescription.prescriptionDetails[0].dispenseType.id;
-    if (
-      pvd.prescription.prescriptionDetails[0].spetialPrescriptionMotive !== null
-    ) {
-      pvd.prescription.prescriptionDetails[0].spetialPrescriptionMotive_id =
-        pvd.prescription.prescriptionDetails[0].spetialPrescriptionMotive.id;
-    }
-    pvd.prescription.prescribedDrugs.forEach((pDrug) => {
-      pDrug.prescription_id = pvd.prescription.id;
-      pDrug.drug_id = pDrug.drug.id;
-    });
-    pvd.pack.dispenseMode_id = pvd.pack.dispenseMode.id;
-    pvd.pack.clinic_id = pvd.pack.clinic.id;
-    pvd.pack.packagedDrugs.forEach((pDrug) => {
-      pDrug.pack_id = pvd.pack.id;
-      pDrug.drug_id = pDrug.drug.id;
-      pDrug.packagedDrugStocks.forEach((pDrugStock) => {
-        pDrugStock.pack_id = pvd.pack.id;
-        pDrugStock.drug_id = pDrugStock.drug.id;
-        pDrugStock.stock_id = pDrugStock.stock.id;
-        pDrugStock.packagedDrug_id = pDrug.id;
-      });
-    });
-    if (this.isNewPackStep) {
-      pvd.prescription.leftDuration = Number(
-        (Number(pvd.prescription.leftDuration * 4) -
-          Number(tempPvd.pack.weeksSupply)) /
-          4
-      );
-    } else {
-      pvd.prescription.leftDuration = Number(
-        (Number(pvd.prescription.duration.weeks) -
-          Number(tempPvd.pack.weeksSupply)) /
-          4
-      );
-    }
-    if (this.lastPackFull !== null && !this.isEditPackStep) {
-      const pickUpDiferrence = moment(this.lastPackFull.nextPickUpDate).diff(
-        moment(pvd.pack.pickupDate),
-        'days'
-      );
-      if (pickUpDiferrence > 0) {
-        packDateError = true;
-        this.msgObject.patientVDetails = pvd;
-        this.msgObject.patientVisit = this.patientVisit;
-        this.msgObject.nextPickUpDate = moment(
-          pvd.pack.nextPickUpDate,
-          'YYYY-MM-DD'
-        )
-          .add('d', pickUpDiferrence)
-          .toDate();
-        this.displayAlert(
-          'YesNo',
-          'O paciente ainda possui medicamentos em casa provenientes da ultima dispensa, O sistema pode ajustar a data do proximo levantamento desta dispensa tendo em conta os medicamentos citados?'
-        );
-      }
-    }
-    // tempPvd = pvd
-    const index = this.patientVisit.patientVisitDetails.findIndex(
-      (o) => o.pack.id === tempPvd.pack.id
-    );
-    this.patientVisit.patientVisitDetails.splice(index, 1, pvd);
-  });
-  return packDateError;
-};
-
 const addPrescribedDrug = (prescribedDrug) => {
   const prescribedDrugExists = curPrescription.value.prescribedDrugs.some(
     (item) => {
@@ -1424,6 +1289,7 @@ const filterFnpatientStatus = (val, update, abort) => {
 
 // Hook
 onMounted(() => {
+  // curPrescription = ref(new Prescription({ id: uuidv4() }));
   console.log(showServiceDrugsManagement.value);
   console.log(isNewPrescription.value);
   init();

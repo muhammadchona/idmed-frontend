@@ -214,15 +214,32 @@ export default {
       .first();
   },
 
+  getLastPatientVisitDetailFromPatientVisitAndEpisode(
+    patientVisitId: string,
+    episodeId: string
+  ) {
+    return patientVisitDetails
+      .withAllRecursive(2)
+      .has('prescription')
+      .where('patient_visit_id', patientVisitId)
+      .where('episode_id', episodeId)
+      .first();
+  },
+
+  getAllPatientVisitDetailsFromEpisode(episodeId: string) {
+    return patientVisitDetails
+      .has('pack')
+      .has('prescription')
+      .where('episode_id', episodeId)
+      .get();
+  },
+
   getLastPatientVisitDetailsFromEpisode(episodeId: string) {
     return patientVisitDetails
-      .withAllRecursive(1)
+      .withAllRecursive(2)
       .has('pack')
+      .has('prescription')
       .where('episode_id', episodeId)
-      .whereHas('pack', (query) => {
-        query.orderBy('pickupDate', 'desc');
-        query.first();
-      })
       .first();
   },
 

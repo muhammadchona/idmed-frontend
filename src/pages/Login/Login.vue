@@ -1,267 +1,279 @@
 <template>
-  <q-layout v-cloak>
-    <q-page-container>
-      <!-- <q-responsive :ratio="16/9" class="col"> -->
-      <q-page class="flex flex-center">
-        <div
-          id="particles-js"
-          :class="$q.dark.isActive ? 'dark_gradient' : 'normal_gradient'"
-        ></div>
-        <q-btn
-          color="white"
-          class="absolute-top-right"
-          flat
-          round
-          @click="$q.dark.toggle()"
-          :icon="$q.dark.isActive ? 'nights_stay' : 'wb_sunny'"
-        />
-        <transition
-          appear
-          enter-active-class="animated fadeIn"
-          leave-active-class="animated fadeOut"
-        >
-          <q-card
-            v-bind:style="
-              $q.screen.lt.sm
-                ? { width: '80%' }
-                : { width: '50%', height: '65%', 'border-radius': '50%' }
-            "
+  <q-responsive :ratio="16 / 9">
+    <q-layout v-cloak>
+      <q-page-container>
+        <!-- <q-responsive :ratio="16/9" class="col"> -->
+        <q-page class="flex flex-center">
+          <div
+            id="particles-js"
+            :class="$q.dark.isActive ? 'dark_gradient' : 'normal_gradient'"
+          ></div>
+          <q-btn
+            color="white"
+            class="absolute-top-right"
+            flat
+            round
+            @click="$q.dark.toggle()"
+            :icon="$q.dark.isActive ? 'nights_stay' : 'wb_sunny'"
+          />
+          <transition
+            appear
+            enter-active-class="animated fadeIn"
+            leave-active-class="animated fadeOut"
           >
-            <q-card-section>
-              <div
-                class="col-auto text-grey text-caption q-pt-sm row no-wrap items-center justify-center"
-              >
-                <q-avatar :size="Mobile ? '240px' : '100px'">
-                  <q-img src="~assets/LogoiDMED.png" />
-                </q-avatar>
-              </div>
-              <div class="row q-pa-sm text-center q-mt-md column">
-                <p
-                  style="font-family: 'line-awesome'"
-                  class="text-gray ellipsis text-weight-bold"
-                  :class="!isMobile ? 'text-h4' : 'text-h5'"
-                >
-                  Sistema Inteligente para Dispensa <br />
-                  de Medicamentos
-                </p>
-              </div>
-            </q-card-section>
-            <q-card-section align="center">
-              <q-form
-                class="q-gutter-md"
-                @submit.prevent="authUser"
-                v-if="configs !== null"
-              >
+            <q-card
+              v-bind:style="
+                $q.screen.lt.sm
+                  ? { width: '60%', height: '65%', 'border-radius': '50%' }
+                  : { width: '50%', height: '65%', 'border-radius': '50%' }
+              "
+            >
+              <q-card-section>
                 <div
-                  class="q-pa-sm text-center justify-center"
-                  style="max-width: 50%"
+                  class="col-auto text-grey text-caption q-pt-sm row no-wrap items-center justify-center"
                 >
-                  <div class="row q-mb-sm">
-                    <q-input
-                      class="col"
-                      ref="usernameRef"
-                      v-model="username"
-                      type="text"
-                      :rules="[
-                        (val) =>
-                          val.length >= 3 ||
-                          'O nome do utilizador deve ter um minimo de 4 caracteres',
-                      ]"
-                      lazy-rules
-                      label="Utilizador"
-                    >
-                      <template v-slot:append>
-                        <q-icon name="person" color="primary" />
-                      </template>
-                    </q-input>
-                  </div>
-                  <div class="row q-mb-sm">
-                    <q-input
-                      v-model="password"
-                      ref="passwordRef"
-                      class="col"
-                      label="Senha"
-                      :rules="[
-                        (val) =>
-                          val.length >= 4 ||
-                          'A senha deve ter um minimo de 4 caracteres',
-                      ]"
-                      :type="isPwd ? 'password' : 'text'"
-                    >
-                      <template v-slot:append>
-                        <q-icon
-                          :name="isPwd ? 'visibility_off' : 'visibility'"
-                          class="cursor-pointer"
-                          @click="isPwd = !isPwd"
-                          color="primary"
-                        />
-                      </template>
-                    </q-input>
-                  </div>
-                  <div class="row">
-                    <q-btn
-                      :loading="submitting"
-                      class="full-width q-py-sm"
-                      unelevated
-                      rounded
-                      color="primary"
-                      type="submit"
-                      label="Entrar"
-                    />
-                  </div>
+                  <q-avatar size="100px">
+                    <q-img src="~assets/LogoiDMED.png" />
+                  </q-avatar>
                 </div>
-              </q-form>
-              <q-form
-                class="q-gutter-md q-pa-none"
-                @submit.prevent="doSave"
-                v-if="configs === null"
-              >
-                <div class="text-center justify-center" style="max-width: 50%">
-                  <div class="q-pa-sm">
-                    <div class="q-gutter-sm q-pa-none">
-                      <q-radio
-                        v-model="instalation_type"
-                        val="PROVINCIAL"
-                        label="Provincial"
-                      />
-                      <q-radio
-                        v-model="instalation_type"
-                        val="LOCAL"
-                        label="Local"
+                <div class="row q-pa-sm text-center q-mt-md column">
+                  <p
+                    style="font-family: 'line-awesome'"
+                    class="text-gray text-h5 ellipsis text-weight-bold"
+                  >
+                    Sistema Inteligente para Dispensa <br />
+                    de Medicamentos
+                  </p>
+                </div>
+              </q-card-section>
+              <q-card-section align="center">
+                <q-form
+                  class="q-gutter-md"
+                  @submit.prevent="authUser"
+                  v-if="configs !== null"
+                >
+                  <div
+                    class="q-pa-sm text-center justify-center"
+                    style="max-width: 50%"
+                  >
+                    <div class="row q-mb-sm">
+                      <q-input
+                        class="col"
+                        ref="usernameRef"
+                        v-model="username"
+                        type="text"
+                        :rules="[
+                          (val) =>
+                            val.length >= 3 ||
+                            'O nome do utilizador deve ter um minimo de 4 caracteres',
+                        ]"
+                        lazy-rules
+                        label="Utilizador"
+                      >
+                        <template v-slot:append>
+                          <q-icon name="person" color="primary" />
+                        </template>
+                      </q-input>
+                    </div>
+                    <div class="row q-mb-sm">
+                      <q-input
+                        v-model="password"
+                        ref="passwordRef"
+                        class="col"
+                        label="Senha"
+                        :rules="[
+                          (val) =>
+                            val.length >= 4 ||
+                            'A senha deve ter um minimo de 4 caracteres',
+                        ]"
+                        :type="isPwd ? 'password' : 'text'"
+                      >
+                        <template v-slot:append>
+                          <q-icon
+                            :name="isPwd ? 'visibility_off' : 'visibility'"
+                            class="cursor-pointer"
+                            @click="isPwd = !isPwd"
+                            color="primary"
+                          />
+                        </template>
+                      </q-input>
+                    </div>
+                    <div class="row">
+                      <q-btn
+                        :loading="submitting"
+                        class="full-width q-py-sm"
+                        unelevated
+                        rounded
+                        color="primary"
+                        type="submit"
+                        label="Entrar"
                       />
                     </div>
                   </div>
-                  <div class="row q-mb-sm">
-                    <q-select
-                      dense
-                      outlined
-                      class="col"
-                      v-model="province"
-                      :options="provinces"
-                      transition-show="flip-up"
-                      transition-hide="flip-down"
-                      option-value="id"
-                      option-label="description"
-                      :rules="[
-                        (val) =>
-                          val != null || ' Por favor indique a província',
-                      ]"
-                      lazy-rules
-                      label="Província *"
-                    />
-                  </div>
-                  <div class="row q-mb-sm" v-if="instalation_type === 'LOCAL'">
-                    <q-select
-                      class="col"
-                      dense
-                      outlined
-                      transition-show="flip-up"
-                      transition-hide="flip-down"
-                      v-model="district"
-                      :options="districts"
-                      option-value="id"
-                      option-label="description"
-                      :rules="[
-                        (val) => val != null || ' Por favor indique o Distrito',
-                      ]"
-                      lazy-rules
-                      label="Distrito"
-                    />
-                  </div>
-                  <div class="row q-mb-sm" v-if="instalation_type === 'LOCAL'">
-                    <q-select
-                      dense
-                      outlined
-                      class="col"
-                      v-model="clinic"
-                      :options="clinics"
-                      transition-show="flip-up"
-                      transition-hide="flip-down"
-                      option-value="id"
-                      option-label="clinicName"
-                      :rules="[
-                        (val) => val != null || ' Por favor indique a clinica',
-                      ]"
-                      lazy-rules
-                      label="Clinica"
-                    />
-                  </div>
-                  <div class="row">
-                    <q-btn
-                      :loading="submitting"
-                      class="full-width q-py-sm"
-                      unelevated
-                      rounded
-                      color="primary"
-                      type="submit"
-                      label="Proximo"
-                    />
-                  </div>
-                </div>
-              </q-form>
-            </q-card-section>
-            <q-card-section align="center">
-              <div class="row justify-center q-pt-md q-gutter-xl">
-                <div class="justify-left q-pt-lg">
-                  <q-avatar
-                    round
-                    :size="!isMobile ? '130px' : '60px'"
-                    style="opacity: 40%"
+                </q-form>
+                <q-form
+                  class="q-gutter-md q-pa-none"
+                  @submit.prevent="doSave"
+                  v-if="configs === null"
+                >
+                  <div
+                    class="text-center justify-center"
+                    style="max-width: 50%"
                   >
-                    <q-img src="~assets/MoHLogo.png" />
-                  </q-avatar>
+                    <div class="q-pa-sm">
+                      <div class="q-gutter-sm q-pa-none">
+                        <q-radio
+                          v-model="instalation_type"
+                          val="PROVINCIAL"
+                          label="Provincial"
+                        />
+                        <q-radio
+                          v-model="instalation_type"
+                          val="LOCAL"
+                          label="Local"
+                        />
+                      </div>
+                    </div>
+                    <div class="row q-mb-sm">
+                      <q-select
+                        dense
+                        outlined
+                        class="col"
+                        v-model="province"
+                        :options="provinces"
+                        transition-show="flip-up"
+                        transition-hide="flip-down"
+                        option-value="id"
+                        option-label="description"
+                        :rules="[
+                          (val) =>
+                            val != null || ' Por favor indique a província',
+                        ]"
+                        lazy-rules
+                        label="Província *"
+                      />
+                    </div>
+                    <div
+                      class="row q-mb-sm"
+                      v-if="instalation_type === 'LOCAL'"
+                    >
+                      <q-select
+                        class="col"
+                        dense
+                        outlined
+                        transition-show="flip-up"
+                        transition-hide="flip-down"
+                        v-model="district"
+                        :options="districts"
+                        option-value="id"
+                        option-label="description"
+                        :rules="[
+                          (val) =>
+                            val != null || ' Por favor indique o Distrito',
+                        ]"
+                        lazy-rules
+                        label="Distrito"
+                      />
+                    </div>
+                    <div
+                      class="row q-mb-sm"
+                      v-if="instalation_type === 'LOCAL'"
+                    >
+                      <q-select
+                        dense
+                        outlined
+                        class="col"
+                        v-model="clinic"
+                        :options="clinics"
+                        transition-show="flip-up"
+                        transition-hide="flip-down"
+                        option-value="id"
+                        option-label="clinicName"
+                        :rules="[
+                          (val) =>
+                            val != null || ' Por favor indique a clinica',
+                        ]"
+                        lazy-rules
+                        label="Clinica"
+                      />
+                    </div>
+                    <div class="row">
+                      <q-btn
+                        :loading="submitting"
+                        class="full-width q-py-sm"
+                        unelevated
+                        rounded
+                        color="primary"
+                        type="submit"
+                        label="Proximo"
+                      />
+                    </div>
+                  </div>
+                </q-form>
+              </q-card-section>
+              <q-card-section align="center">
+                <div class="row justify-center q-pt-md q-gutter-xl">
+                  <div class="justify-left q-pt-lg">
+                    <q-avatar
+                      round
+                      :size="!isMobile ? '130px' : '60px'"
+                      style="opacity: 40%"
+                    >
+                      <q-img src="~assets/MoHLogo.png" />
+                    </q-avatar>
+                  </div>
+                  <div class="q-pb-lg">
+                    <q-avatar
+                      square
+                      :size="!isMobile ? '190px' : '90px'"
+                      style="opacity: 40%"
+                    >
+                      <q-img src="~assets/pepfar-new-logo.jpeg" />
+                    </q-avatar>
+                  </div>
                 </div>
-                <div class="q-pb-lg">
-                  <q-avatar
-                    square
-                    :size="!isMobile ? '190px' : '90px'"
-                    style="opacity: 40%"
-                  >
-                    <q-img src="~assets/pepfar-new-logo.jpeg" />
-                  </q-avatar>
+                <div class="row justify-center">Versão v.1.0.0 Beta</div>
+              </q-card-section>
+            </q-card>
+          </transition>
+          <q-dialog
+            persistent
+            v-model="notice"
+            transition-show="slide-up"
+            transition-hide="slide-down"
+          >
+            <q-card class="bg-white text-red">
+              <q-card-section>
+                <div class="text-h6 text-weight-bold">
+                  Aviso de Confidencialidade
                 </div>
-              </div>
-              <div class="row justify-center">Versão v.1.0.0 Beta</div>
-            </q-card-section>
-          </q-card>
-        </transition>
-        <q-dialog
-          persistent
-          v-model="notice"
-          transition-show="slide-up"
-          transition-hide="slide-down"
-        >
-          <q-card class="bg-white text-red">
-            <q-card-section>
-              <div class="text-h6 text-weight-bold">
-                Aviso de Confidencialidade
-              </div>
-              <q-separator />
-            </q-card-section>
-            <q-card-section class="q-pt-md">
-              <div class="row">
-                <div class="col-2">
-                  <q-icon name="warning" color="red" size="4.5rem" />
+                <q-separator />
+              </q-card-section>
+              <q-card-section class="q-pt-md">
+                <div class="row">
+                  <div class="col-2">
+                    <q-icon name="warning" color="red" size="4.5rem" />
+                  </div>
+                  <div class="col text-justify">
+                    Ao acessar este sistema, você está prestes a visualizar
+                    informações altamente confidenciais de utentes. É sua
+                    responsabilidade protegê-las adequadamente e usá-las somente
+                    para os fins autorizados. A Privacidade dos utentes é
+                    essencial para a nossa missão
+                  </div>
                 </div>
-                <div class="col text-justify">
-                  Ao acessar este sistema, você está prestes a visualizar
-                  informações altamente confidenciais de utentes. É sua
-                  responsabilidade protegê-las adequadamente e usá-las somente
-                  para os fins autorizados. A Privacidade dos utentes é
-                  essencial para a nossa missão
-                </div>
-              </div>
-            </q-card-section>
+              </q-card-section>
 
-            <q-card-actions align="right" class="text-primary">
-              <q-btn color="red" label="Fechar" v-close-popup />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
-      </q-page>
-      <!-- </q-responsive> -->
-    </q-page-container>
-  </q-layout>
+              <q-card-actions align="right" class="text-primary">
+                <q-btn color="red" label="Fechar" v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+        </q-page>
+        <!-- </q-responsive> -->
+      </q-page-container>
+    </q-layout>
+  </q-responsive>
 </template>
 
 <script setup>
@@ -298,7 +310,6 @@ const notice = ref(true);
 Hook
 */
 onMounted(() => {
-  console.log(isOnline.value);
   $q.loading.show({
     message: 'Carregando ...',
     spinnerColor: 'grey-4',
@@ -361,14 +372,11 @@ const authUser = async () => {
   const encodedStringBtoA = btoa(
     String(username.value).concat(':').concat(password.value)
   );
-  console.log({ username: username.value, password: password.value });
   usernameRef.value.validate();
   passwordRef.value.validate();
   if (!passwordRef.value.hasError && !usernameRef.value.hasError) {
     submitting.value = true;
-    console.log('111 >>>>>>>>', isOnline.value);
     if (isOnline.value) {
-      //  console.log('0000 >>>>>>>>', website.value);
       loginOnline(encodedStringBtoA);
     } else {
       const users = await UsersService.getMobile();
@@ -391,10 +399,6 @@ const loginOnline = (encodedStringBtoA) => {
       // userLogin.save(resp.data);
       if (response !== undefined && response.status === 200) {
         const localuser = UsersService.getUserByUserName(username.value);
-        console.log('Login >>>>>>>>', response);
-        console.log('Login >>>>>>>>', localuser);
-        //   console.log('Login >>>>>>>>', localuser.clinicSectorUsers);
-
         localStorage.setItem('id_token', localuser.access_token);
         localStorage.setItem('refresh_token', localuser.refresh_token);
         localStorage.setItem('username', localuser.username);
