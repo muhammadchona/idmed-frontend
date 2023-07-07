@@ -286,6 +286,7 @@ const saveAdjustments = () => {
       }
       adjustment.captureDate = new Date();
       adjustment.operation = operation;
+      adjustment.clinic = clinicService.currClinic()
       if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
         adjustment.adjustedValue = Number(
           adjustment.balance - adjustment.adjustedStock.stockMoviment
@@ -317,7 +318,7 @@ const doSave = (i) => {
         InventoryStockAdjustmentService.apiFetchById(
           adjustments.value[i].id
         ).then((resp1) => {
-          if (resp1.length === 0) {
+          if (resp1.data.length=== 0) {
             InventoryStockAdjustmentService.post(adjustments.value[i]).then(
               (resp) => {
                 adjustments.value[i].id = resp.id;
@@ -335,6 +336,7 @@ const doSave = (i) => {
               }
             );
           }
+          closeLoading()
           alertSucess('Operação efectuada com sucesso.');
         });
    

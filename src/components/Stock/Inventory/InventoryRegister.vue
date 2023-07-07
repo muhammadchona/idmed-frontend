@@ -172,13 +172,13 @@ const submitForm = () => {
         const inventory = inventoryService.getLastInventory();
        
         if (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)) {
+          closeLoading()
           alertError('A data de inicio do inventário não pode ser superior a data corrente.'
       );
         } else
         if (inventory !== null && (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0))) {
           const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate) 
-          console.log(new Date(currInventory.value.startDate))
-          console.log(new Date(inventory.endDate))
+          closeLoading()
           alertError(
         'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
           dateUtils.getDDMMYYYFromJSDate(endDateLast) +
@@ -189,6 +189,7 @@ const submitForm = () => {
           initInventory()
         } else {
           if (selected.value.length <= 0) {
+            closeLoading()
             alertError(
           'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
         );
