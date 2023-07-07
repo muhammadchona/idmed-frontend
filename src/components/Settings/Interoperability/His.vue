@@ -102,10 +102,6 @@
     </div>
     <q-dialog persistent v-model="showHISRegistrationScreen">
       <addHIS
-        :selectedHis="healthInformationSystem"
-        :stepp="step"
-        :createMode="createMode"
-        :editMode="editMode"
         @close="showHISRegistrationScreen = false"
       />
     </q-dialog>

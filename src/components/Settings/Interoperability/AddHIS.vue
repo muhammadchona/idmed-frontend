@@ -178,7 +178,6 @@ const healthInformationSystemList = computed(() => {
 onMounted(() => {
   if (isCreateStep.value) {
     his.value = healthInformationSystemService.newInstanceEntity();
-    console.log(his.value);
   }
   if (his.value != null) {
     his.value.interoperabilityAttributes.forEach((attribute) => {
@@ -211,11 +210,9 @@ const submitHis = () => {
     his.value.interoperabilityAttributes.push(attribute);
   });
 
-  his.value.active = true;
   //  if (mobile) {
   //     if (!isEditStep) {
   //       his.syncStatus = 'R'
-  //       console.log(his)
   //       HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)))
   //       HealthInformationSystem.insert({ data: his })
   //       closeDialog()
@@ -229,6 +226,7 @@ const submitHis = () => {
   //     }
   //  } else {
   if (isCreateStep.value) {
+    his.value.active = true;
     healthInformationSystemService
       .post(his.value)
       .then((resp) => {
@@ -291,9 +289,7 @@ const goToNextStep = () => {
         addAttributesOnHealthInformationSystem();
       }
       stepper.value.next();
-      console.log(healthInformationAttributeTypes.value);
     }
-    // console.log(healthInformationAttributeTypes)
   } else if (stepScreens.value === 2) {
     //  his.interoperabilityAttributes.push(healthInformationAttributeTypes)
     var control = 0;
