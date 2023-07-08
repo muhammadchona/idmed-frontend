@@ -51,7 +51,7 @@ export function useOnline(clinic: any) {
     episodeTypeService.get(0);
     facilityTypeService.get(0);
     startStopReasonService.get(0);
-    clinicalServiceAttributeService.get(0);
+    // clinicalServiceAttributeService.get(0);
     durationService.get(0);
     drugService.get(0);
     therapeuticalRegimenService.get(0);

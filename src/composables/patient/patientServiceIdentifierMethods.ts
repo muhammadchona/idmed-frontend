@@ -60,7 +60,7 @@ export function usePatientServiceIdentifier() {
       patientServiceIdentifier.service === null
     )
       return false;
-    const has = patientServiceIdentifier.service.attributes.some(
+    const has = patientServiceIdentifier.service.clinicalServiceAttributes.some(
       (attribute: any) => {
         return attribute.clinicalServiceAttributeType.code === attr;
       }

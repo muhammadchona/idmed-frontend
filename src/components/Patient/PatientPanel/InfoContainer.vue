@@ -121,6 +121,7 @@
                 v-for="episode in get3LastEpisodes"
                 :key="episode.id"
                 :episodeId="episode.id"
+                :isLast="episode.isLast"
               />
             </span>
           </div>

@@ -213,7 +213,10 @@ export default {
       .orderBy('episodeDate', 'desc')
       .limit(3)
       .get();
-    if (episodes.length > 0) {
+    if (episodes.length > 1) {
+      episodes[0].isLast = true;
+      episodes[1].isLast = false;
+    } else if (episodes.length > 0) {
       episodes[0].isLast = true;
     }
     return episodes;

@@ -92,35 +92,21 @@
     <q-dialog persistent v-model="showClinicSectorRegistrationScreen">
       <addClinicSector @close="showClinicSectorRegistrationScreen = false" />
     </q-dialog>
-
-    <!--
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog> -->
   </div>
 </template>
 <script setup>
 /*imports*/
-import { useQuasar } from 'quasar';
-import { ref, inject, provide, onMounted, computed, } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
-import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
-import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
 
 const { closeLoading, showloading } = useLoading();
 
-/*components import*/
-import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
-// import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
-
 /*Declarations*/
-const { alertWarningAction } = useSwal();
+const { alertWarningAction, alertSucess, alertError } = useSwal();
 const columns = [
   {
     name: 'code',
@@ -235,30 +221,27 @@ const visualizeClinicSector = (clinicSectorParam) => {
 };
 const promptToConfirm = (clinicSectorParam) => {
   const question = clinicSectorParam.active
-    ? 'Deseja Inactivar o Sector Clinico?'
-    : 'Deseja Activar o Sector Clinico?';
+    ? 'Deseja Inactivar o Sector Clínico?'
+    : 'Deseja Activar o Sector Clínico?';
   alertWarningAction(question).then((response) => {
     if (response) {
+      showloading();
       if (clinicSectorParam.active) {
         clinicSectorParam.active = false;
       } else {
         clinicSectorParam.active = true;
       }
-      // if (this.mobile) {
-      //   console.log('FrontEnd');
-      //   if (clinicSectorParam.syncStatus !== 'R') clinicSectorParam.syncStatus = 'U';
-      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(clinicSectorParam)));
-      //   ClinicSector.insertOrUpdate({ data: clinicSectorParam });
-      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-      // } else {
-      console.log('BackEnd');
       clinicSectorService
         .patch(clinicSectorParam.id, clinicSectorParam)
-        .then((resp) => {
-          //
+        .then(() => {
+          alertSucess('Sector Clínico actualizado com sucesso.');
+          closeLoading();
         })
-        .catch((error) => {
-          //
+        .catch(() => {
+          alertError(
+            'Aconteceu um erro inesperado ao actualizar o Sector Clínico.'
+          );
+          closeLoading();
         });
       // }
     }
