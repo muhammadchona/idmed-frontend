@@ -203,6 +203,7 @@ const inventoryMethod = useInventory();
 const router = useRouter();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertWarningAction } = useSwal();
+let step = 'display';
 
 const title = ref('Detalhes do Inventário');
 const processedAdjustments = [];
