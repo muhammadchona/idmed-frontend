@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import ClinicSector from '../clinicSector/ClinicSector';
+// import ClinicSector from '../clinicSector/ClinicSector';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class ClinicSectorType extends Model {
@@ -11,7 +11,7 @@ export default class ClinicSectorType extends Model {
       code: this.attr(''),
       description: this.attr(''),
       syncStatus: this.attr(''),
-      clinicSectorList: this.hasMany(ClinicSector, 'clinic_sector_type_id'),
+      // clinicSectorList: this.hasMany(ClinicSector, 'clinic_sector_type_id'),
     };
   }
   static piniaOptions = {

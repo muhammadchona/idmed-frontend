@@ -145,4 +145,8 @@ export default {
   getAllFromStorage() {
     return duration.all();
   },
+
+  getDurationByWeeks(weeksSuply: any) {
+    return duration.where('weeks', weeksSuply).first();
+  },
 };

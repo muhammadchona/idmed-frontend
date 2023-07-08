@@ -17,19 +17,19 @@ export function useDateUtils() {
   }
 
   function getDDMMYYYFromJSDate(jsDate: Date) {
-    return moment(jsDate).format('DD-MM-YYYY');
+    return moment(jsDate).local().format('DD-MM-YYYY');
   }
 
   function getYYYYMMDDFromJSDate(jsDate: Date) {
-    return moment(jsDate).format('YYYY-MM-DD');
+    return moment(jsDate).local().format('YYYY-MM-DD');
   }
 
   function getHyphenDDMMYYYYFromJSDate(jsDate: Date) {
-    return moment(jsDate).format('DD/MM/YYYY');
+    return moment(jsDate).local().format('DD/MM/YYYY');
   }
 
   function getHyphenYYYYMMDDFromJSDate(jsDate: Date) {
-    return moment(jsDate).format('YYYY/MM/DD');
+    return moment(jsDate).local().format('YYYY/MM/DD');
   }
 
   function getDateFromSlashDDMMYYYY(jsDate: string) {
@@ -84,7 +84,6 @@ export function useDateUtils() {
     }
   }
 
-
   return {
     isValidDate,
     formatDate,
@@ -105,6 +104,6 @@ export function useDateUtils() {
     getDateFormatYYYYMMDD,
     getDateFormatDDMMYYYYFromYYYYMMDD,
     getDateFormatDDMMYYYYDash,
-    idadeCalculator
+    idadeCalculator,
   };
 }

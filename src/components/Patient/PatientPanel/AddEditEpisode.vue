@@ -330,6 +330,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import episodeTypeService from 'src/services/api/episodeType/episodeTypeService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 
 //Declaration
 const {
@@ -764,13 +765,35 @@ const doSave = async () => {
 };
 const identifierHasValidPrescription = (episode) => {
   const lastPatientVisitDetail =
-    patientVisitDetailsService.getLastPatientVisitDetailsFromEpisode(
+    patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+      lastPatientVisita(episode).id,
       episode.id
     );
   if (lastPatientVisitDetail !== null && lastPatientVisitDetail !== undefined) {
     return remainigDurationInWeeks(lastPatientVisitDetail.prescription) > 0;
   }
   return false;
+};
+
+const lastPatientVisita = (lastStartEpisode) => {
+  const listPatietVisitIds = [];
+  if (lastStartEpisode !== null && lastStartEpisode !== undefined) {
+    const listPatietVisitDetails =
+      patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
+        lastStartEpisode.id
+      );
+    if (
+      listPatietVisitDetails !== null &&
+      listPatietVisitDetails !== undefined
+    ) {
+      listPatietVisitDetails.forEach((patientvisitdetails) => {
+        listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+      });
+    }
+    return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
+  } else {
+    return null;
+  }
 };
 </script>
 

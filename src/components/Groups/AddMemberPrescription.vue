@@ -171,7 +171,7 @@ const doValidationToDispense = () => {
   console.log(memberPrescription);
   memberPrescription.member.group.clinic = memberPrescription.member.clinic;
   memberPrescription.member.group.service.drugs = [];
-  memberPrescription.member.group.service.attributes = [];
+  memberPrescription.member.group.service.clinicalServiceAttributes = [];
   memberPrescription.member.patient.identifiers = [];
   memberPrescription.member.group.members = [];
   memberPrescription.member.patient.district =

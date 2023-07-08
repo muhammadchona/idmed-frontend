@@ -4,8 +4,6 @@
       Medicamentos
     </div>
     <div class="">
-      <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
-
       <q-table :rows="drugs" :columns="columns" :filter="filter">
         <template v-slot:top-right>
           <q-input
@@ -39,14 +37,6 @@
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
-                <!-- <q-btn flat round
-                    color="amber-8"
-                    icon="edit"
-                    v-if="props.row.active === true"
-                   @click="editDrug(props.row)">
-                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
-                  </q-btn> -->
-
                 <q-btn
                   flat
                   round
@@ -75,12 +65,6 @@
         </template>
       </q-table>
     </div>
-    <!-- <div v-if="false" class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <q-btn size="xl" fab icon="add" @click="addDrug" color="primary" />
-      </q-page-sticky>
-    </div>
-    -->
     <q-dialog persistent v-model="showDrugRegistrationScreen">
       <addDrug @close="showDrugRegistrationScreen = false" />
     </q-dialog>
@@ -92,7 +76,7 @@ import { useQuasar } from 'quasar';
 import Drug from '../../../stores/models/drug/Drug';
 import Form from '../../../stores/models/form/Form';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, provide, onMounted, computed, } from 'vue';
+import { ref, inject, provide, onMounted, computed } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import formService from 'src/services/api/formService/formService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -103,7 +87,7 @@ const { closeLoading, showloading } = useLoading();
 import addDrug from 'src/components/Settings/Drug/AddDrug.vue';
 
 /*Declarations*/
-const { alertWarningAction } = useSwal();
+const { alertWarningAction, alertSucess, alertError } = useSwal();
 const columns = [
   {
     name: 'name',
@@ -220,30 +204,32 @@ const visualizeDrug = (drugParam) => {
 };
 const promptToConfirm = (drugParam) => {
   const question = drugParam.active
-    ? 'Deseja Inactivar o medicamento?'
-    : 'Deseja Activar o medicamento?';
+    ? 'Deseja Inactivar o Medicamento?'
+    : 'Deseja Activar o Medicamento?';
   alertWarningAction(question).then((response) => {
     if (response) {
+      showloading();
       if (drugParam.active) {
         drugParam.active = false;
       } else {
         drugParam.active = true;
       }
-      // if (this.mobile) {
-      //             if (drug.syncStatus !== 'R') drug.syncStatus = 'U';
-      //             Drug.localDbAdd(JSON.parse(JSON.stringify(drug)));
-      //             Drug.insertOrUpdate({ data: drug });
-      //             this.displayAlert('info', msg);
-      //           } else {
+      drugParam.clinicalService = {};
+      drugParam.clinicalService.id = drugParam.clinical_service_id;
+      drugParam.form = {};
+      drugParam.form.id = drugParam.form_id;
       drugService
         .patch(drugParam.id, drugParam)
-        .then((resp) => {
-          //
+        .then(() => {
+          alertSucess('Medicamento actualizado com sucesso.');
+          closeLoading();
         })
-        .catch((error) => {
-          //
+        .catch(() => {
+          alertError(
+            'Aconteceu um erro inesperado ao actualizar o Medicamento.'
+          );
+          closeLoading();
         });
-      // }
     }
   });
 };

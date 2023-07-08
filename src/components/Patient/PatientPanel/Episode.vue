@@ -99,7 +99,7 @@
         <q-card-actions>
           <div
             class="col items-center"
-            v-if="isLastEpisode && !isCloseEpisode(currEpisode)"
+            v-if="props.isLast && isLastEpisode && !isCloseEpisode(currEpisode)"
           >
             <q-btn
               v-if="canEdit"
@@ -159,7 +159,7 @@ const {
 } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 //Props
-const props = defineProps(['episodeId']);
+const props = defineProps(['episodeId', 'isLast']);
 //Inject
 const showAddEditEpisode = inject('showAddEditEpisode');
 const isNewEpisode = inject('isNewEpisode');

@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md">
-    <div class="q-mt-lg" v-if="mobile">
+    <div class="q-mt-lg" v-if="!website">
       <!-- <TitleBar>Administração</TitleBar> -->
       <div class="text-left">
         <div class="q-my-md text-subtitle1 text-grey-14">
@@ -168,9 +168,11 @@ import interoperability from 'src/components/Settings/Interoperability/His.vue';
 import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 import users from 'src/components/Settings/User/Users.vue';
 import roles from 'src/components/Settings/User/Roles.vue';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 // import secUserRoleService from 'src/services/api/secUserRole/secUserRoleService.ts';
 
 /*Variables*/
+const { website } = useSystemUtils();
 const { showloading } = useLoading();
 const activeMenu = ref('Farmácias');
 const filter = ref('');
@@ -186,7 +188,6 @@ const clinicSector = ref();
 const isEditStep = ref(false);
 const isCreateStep = ref(false);
 const tabs = [
-  // { name: 'national_clinic', icon: 'local_convenience_store', label: 'Unidade Sanitaria' },
   {
     name: 'clinic',
     icon: 'local_hospital',
@@ -236,36 +237,36 @@ const currClinic = computed(() => {
 
 onMounted(() => {
   // secUserRoleService.get(0);
-  showloading();
-  identifierTypeService.get(0);
-  showloading();
-  clinicalServiceAttrTypeService.get(0);
-  showloading();
-  healthInformationSystemService.get(0);
-  showloading();
-  interoperabilityTypeService.get(0);
-  showloading();
-  roleService.get(0);
-  showloading();
-  userService.get(0);
-  showloading();
-  clinicSectorTypeService.get(0);
-  showloading();
-  formService.get(0);
-  showloading();
-  clinicalService.get(0);
-  showloading();
-  therapeuticalRegimenService.get(0);
-  showloading();
-  clinicServiceService.get(0);
-  showloading();
-  clinicSectorService.get(0);
-  showloading();
-  doctorService.get(0);
-  showloading();
-  drugService.get(0);
-  showloading();
-  formService.get(0);
+  // showloading();
+  // identifierTypeService.get(0);
+  // showloading();
+  // clinicalServiceAttrTypeService.get(0);
+  // showloading();
+  // healthInformationSystemService.get(0);
+  // showloading();
+  // interoperabilityTypeService.get(0);
+  // showloading();
+  // roleService.get(0);
+  // showloading();
+  // userService.get(0);
+  // showloading();
+  // clinicSectorTypeService.get(0);
+  // showloading();
+  // formService.get(0);
+  // showloading();
+  // clinicalService.get(0);
+  // showloading();
+  // therapeuticalRegimenService.get(0);
+  // showloading();
+  // clinicServiceService.get(0);
+  // showloading();
+  // clinicSectorService.get(0);
+  // showloading();
+  // doctorService.get(0);
+  // showloading();
+  // drugService.get(0);
+  // showloading();
+  // formService.get(0);
 });
 
 /*injects*/

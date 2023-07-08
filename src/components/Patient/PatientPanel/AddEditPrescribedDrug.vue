@@ -155,7 +155,6 @@ const getDrugs = computed(() => {
     validDrugs = drugService.getActiveDrugsByRegimen(
       curPrescriptionDetail.value.therapeuticRegimen.id
     );
-    console.log('Valid Drugs', validDrugs);
   } else {
     validDrugs = drugs.value;
   }

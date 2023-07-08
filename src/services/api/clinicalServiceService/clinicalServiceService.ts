@@ -5,19 +5,23 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import ClinicalServiceAttribute from 'src/stores/models/ClinicalServiceAttribute/ClinicalServiceAttribute';
+import ClinicalServiceSector from 'src/stores/models/ClinicalServiceClinicSector/ClinicalServiceSector';
 
 const clinicalService = useRepo(ClinicalService);
+const clinicalServiceAttribute = useRepo(ClinicalServiceAttribute);
+const clinicalServiceSector = useRepo(ClinicalServiceSector);
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
@@ -27,30 +31,29 @@ export default {
       this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uuid: string, params: string) {
+    clinicalServiceAttribute.where('clinical_service_id', uuid).delete();
+    clinicalServiceSector.where('clinical_service_id', uuid).delete();
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uuid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
   async postWeb(params: string) {
-    try {
-      const resp = await api().post('clinicalService', params);
-      clinicalService.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+    return api()
+      .post('clinicalService/', params)
+      .then((resp) => {
+        clinicalService.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -71,25 +74,19 @@ export default {
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('clinicalService/' + uuid, params);
-      clinicalService.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('clinicalService/' + uuid, params)
+      .then((resp) => {
+        clinicalService.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('clinicalService/' + uuid);
-      clinicalService.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('clinicalService/' + uuid)
+      .then(() => {
+        clinicalService.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {
@@ -151,15 +148,6 @@ export default {
       .withAllRecursive(2)
       .orderBy('code', 'desc')
       .get();
-    // .with('attributes', (query) => {
-    //   query.with('clinicalServiceAttributeType');
-    // })
-    // .with('clinicSectors', (query) => {
-    //   query.with('clinicSectorType');
-    //   query.with('clinic');
-    // })
-    // .with('identifierType')
-    // .get();
   },
 
   getbyIdWithSectors(clinicalServiceId: string) {
@@ -171,14 +159,7 @@ export default {
   },
 
   getAllClinicalServicesPersonalized() {
-    return clinicalService
-      .query()
-      .with('attributes', (query) => {
-        query.with('clinicalServiceAttributeType');
-      })
-      .with('clinicSectors')
-      .with('identifierType')
-      .get();
+    return clinicalService.query().withAllRecursive(2).get();
   },
 
   getClinicalServicePersonalizedById(clinicalServiceId: string) {
