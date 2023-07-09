@@ -263,6 +263,8 @@ const initNewAdjustment = (stock, drug, i) => {
     newAdjustment.adjustedStock.expireDate
   );
   newAdjustment.adjustedStock.drug = drug;
+  newAdjustment.adjustedStock.clinic = null
+  newAdjustment.adjustedStock.clinic_id = clinicService.currClinic().id
 
   adjustments.value.push(newAdjustment);
 };
@@ -303,7 +305,8 @@ const saveAdjustments = () => {
       }
     }.bind(this)
   );
-  doSave(0);
+  doSave(0)
+ 
 };
 const doSave = (i) => {
   if (adjustments.value[i] !== undefined) {
@@ -338,10 +341,13 @@ const doSave = (i) => {
               }
             );
           }
-          closeLoading()
+          if (i ===adjustments.value.length - 1) {
+            closeLoading()
           alertSucess('Operação efectuada com sucesso.');
+          }
+         
         });
-   
+  
     }
   } else {
     step.value = 'display';
