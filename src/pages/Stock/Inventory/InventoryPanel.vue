@@ -302,7 +302,7 @@ const processAdjustment = (adjustment, inventory) => {
   const iv = Object.assign({}, inventory);
   iv.adjustments = [];
   //adjustment.inventory = iv;
-  adjustment.clinic = clinicService.currClinic();
+  adjustment.clinic_id = clinicService.currClinic().id;
   adjustment.finalised = true;
   adjustment.adjustedStock = StockService.getStockById(
     adjustment.adjusted_stock_id

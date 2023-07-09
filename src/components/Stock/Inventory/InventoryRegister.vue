@@ -205,8 +205,8 @@ const initInventory = () => {
     doBeforeSave();
   }
   currInventory.value.id = uuidv4()
-  currInventory.value.clinic = currClinic;
-  currInventory.value.clinic_id = currClinic.id;
+ // currInventory.value.clinic = currClinic.value;
+  currInventory.value.clinic_id = currClinic.value.id;
   currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
     currInventory.value.startDate
   ));
@@ -235,17 +235,22 @@ const doBeforeSave = () => {
 const initNewAdjustment = (stock, drug) => {
   const newAdjustment = new InventoryStockAdjustment({
     adjustedStock: StockService.getStockById(stock.id),
-    clinic: currClinic,
+     clinic: currClinic.value,
     captureDate: new Date(),
     operation:
       StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO'),
   });
-  newAdjustment.adjustedStock.drug = drug;
+  newAdjustment.adjustedStock.drug = null;
   newAdjustment.inventory_id = currInventory.value.id;
   newAdjustment.adjusted_stock_id = newAdjustment.adjustedStock.id;
-  newAdjustment.clinic = currClinic
+  newAdjustment.clinic_id = currClinic.value.id
+  newAdjustment.adjustedStock.clinic_id = currClinic.value.id
+  newAdjustment.clinic = newAdjustment.adjustedStock.clinic
+  newAdjustment.clinic.province = currClinic.value.province
+  newAdjustment.clinic.district = currClinic.value.district
+  newAdjustment.clinic.province.clinics = []
+  newAdjustment.clinic.facilityType = currClinic.value.facilityType
   newAdjustment.id = uuidv4();
-
   currInventory.value.adjustments.push(newAdjustment);
 };
 
