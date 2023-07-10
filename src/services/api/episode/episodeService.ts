@@ -213,7 +213,10 @@ export default {
       .orderBy('episodeDate', 'desc')
       .limit(3)
       .get();
-    if (episodes.length > 0) {
+    if (episodes.length > 1) {
+      episodes[0].isLast = true;
+      episodes[1].isLast = false;
+    } else if (episodes.length > 0) {
       episodes[0].isLast = true;
     }
     return episodes;
@@ -328,7 +331,7 @@ export default {
               respDetails.data.prescription.id
             );
             pv.patientVisitDetails[0].prescription = respPre.data;
-            patientVisitService.putMobile(pv);
+            // patientVisitService.putMobile(pv);
 
             if (respDetails.data.pack !== null) {
               const respPack = await packService.apiFetchById(
@@ -338,6 +341,7 @@ export default {
               patientVisitService.putMobile(pv);
             }
           }
+          closeLoading();
         });
         // offset = offset + max
         // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)

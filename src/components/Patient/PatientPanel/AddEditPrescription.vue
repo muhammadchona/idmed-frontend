@@ -162,6 +162,8 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 
+import { v4 as uuidv4 } from 'uuid';
+
 // Declaration
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
   useDateUtils();

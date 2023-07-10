@@ -123,6 +123,7 @@ import moment from 'moment';
 import { date } from 'quasar';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import durationService from 'src/services/api/duration/durationService';
 // props
 const props = defineProps(['addVisible', 'mainContainer', 'bgColor']);
 
@@ -130,6 +131,7 @@ const props = defineProps(['addVisible', 'mainContainer', 'bgColor']);
 const {
   extractHyphenDateFromDMYConvertYMD,
   getDateFromHyphenDDMMYYYY,
+  getDateFormatDDMMYYYYFromYYYYMMDD,
   getJSDateFromDDMMYYY,
 } = useDateUtils();
 const { alertSucess, alertError, alertInfo } = useSwal();
@@ -143,13 +145,12 @@ const drugsDuration = ref();
 //Inject
 const curPatientVisit = inject('curPatientVisit');
 const curPrescription = inject('curPrescription');
-const curPrescriptionDetail = inject('curPrescriptionDetail');
-const curPatientVisitDetail = inject('curPatientVisitDetail');
 const curPack = inject('curPack');
 const isNewPrescription = inject('isNewPrescription');
 const durations = inject('durations');
 const showAddEditDrug = inject('showAddEditDrug');
 const validateDispense = inject('validateDispense');
+const lastPack = inject('lastPack');
 
 // Hook
 
@@ -164,14 +165,6 @@ const determineHeaderClass = () => {
     headerClass.value = 'list-header';
   } else {
     headerClass.value = '';
-  }
-};
-const tryToDetermineDefaultTakePeriod = () => {
-  if (curPrescription.value.duration !== null) {
-    determineNextPickUpDate(
-      pickupDate.value,
-      curPrescription.value.duration.weeks
-    );
   }
 };
 const expand = () => {
@@ -249,15 +242,30 @@ const init = () => {
     pickupDate.value = getDDMMYYYFromJSDate(
       curPrescription.value.prescriptionDate
     );
+    drugsDuration.value = curPrescription.value.duration;
   } else {
+    if (
+      lastPack.value.nextPickUpDate !== null &&
+      lastPack.value.nextPickUpDate !== undefined
+    ) {
+      curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+      curPack.value.weeksSupply = lastPack.value.weeksSupply;
+      drugsDuration.value = durationService.getDurationByWeeks(
+        curPack.value.weeksSupply
+      );
+    } else {
+      curPack.value.pickupDate = curPrescription.value.prescriptionDate;
+      curPack.value.weeksSupply = curPrescription.value.duration.weeks;
+      drugsDuration.value = curPrescription.value.duration;
+    }
     pickupDate.value = getDDMMYYYFromJSDate(curPack.value.pickupDate);
   }
-  drugsDuration.value = curPrescription.value.duration;
-  tryToDetermineDefaultTakePeriod();
+
+  determineNextPickUpDate(pickupDate.value, drugsDuration.value.weeks);
 };
 
 const getDDMMYYYFromJSDate = (jsDate) => {
-  return moment(jsDate).format('DD-MM-YYYY');
+  return moment(jsDate).local().format('DD-MM-YYYY');
 };
 
 // Provide

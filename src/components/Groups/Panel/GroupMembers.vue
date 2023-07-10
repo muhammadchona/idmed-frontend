@@ -101,7 +101,10 @@
                     flat
                     round
                     color="blue-8"
-                    :disable="useGroup().isDesintegrated(selectedGroup)"
+                    :disable="
+                      useGroup().isDesintegrated(selectedGroup) ||
+                      !useGroupMember().isActive(props.row)
+                    "
                     icon="post_add"
                     @click="
                       newPrescription(
@@ -116,7 +119,10 @@
                     flat
                     round
                     color="red-8"
-                    :disable="useGroup().isDesintegrated(selectedGroup)"
+                    :disable="
+                      useGroup().isDesintegrated(selectedGroup) ||
+                      !useGroupMember().isActive(props.row)
+                    "
                     icon="group_remove"
                     @click="removeMember(props.row)"
                   >
@@ -277,6 +283,8 @@ const doMemberRemotion = () => {
   const memberPatientId = member.patient.id;
   member.patient = {};
   member.patient.id = memberPatientId;
+  member.clinic = {};
+  member.clinic.id = clinic.value.id;
   console.log(member);
   groupMemberService.apiUpdate(member).then((resp) => {
     getGroupMembers();
@@ -292,11 +300,13 @@ const loadMembers = () => {
     members.value = allMembers.value;
   }
   console.log(members.value);
-  members.value = members.value.filter((member) => {
-    return useGroupMember().isActive(member);
-  });
+  // members.value = members.value.filter((member) => {
+  //  return useGroupMember().isActive(member);
+  // });
   console.log(members.value);
   members.value.forEach((member) => {
+    member.patient.identifiers[0].episodes[0] =
+      lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
     if (
       member.patient.identifiers[0].episodes[0] !== null &&
       useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack !==
@@ -334,6 +344,10 @@ const loadMembers = () => {
 
   console.log(members.value);
   return members.value;
+};
+
+const lastStartEpisodeWithPrescription = (identifierId) => {
+  return episodeService.getStartEpisodeByIdentifierId(identifierId);
 };
 
 onMounted(() => {

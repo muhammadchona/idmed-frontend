@@ -399,7 +399,6 @@ const props = defineProps(['identifier']);
 // Declaration
 const {
   isValidDate,
-  idadeCalculator,
   getDDMMYYYFromJSDate,
   getDateFromHyphenDDMMYYYY,
   getYYYYMMDDFromJSDate,
@@ -1021,11 +1020,19 @@ const addPrescribedDrug = (prescribedDrug) => {
           'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.'
         );
       } else {
+        prescribedDrug.qtyPrescribed = getQtyPrescribed(
+          prescribedDrug,
+          curPrescription.value.duration.weeks
+        );
         addMedication(prescribedDrug);
       }
     } else {
       alertInfo(
         'O medicamento seleccionado não possui stock suficiente para dispensar até a data da prescrição.'
+      );
+      prescribedDrug.qtyPrescribed = getQtyPrescribed(
+        prescribedDrug,
+        curPrescription.value.duration.weeks
       );
       addMedication(prescribedDrug);
     }
@@ -1289,9 +1296,6 @@ const filterFnpatientStatus = (val, update, abort) => {
 
 // Hook
 onMounted(() => {
-  // curPrescription = ref(new Prescription({ id: uuidv4() }));
-  console.log(showServiceDrugsManagement.value);
-  console.log(isNewPrescription.value);
   init();
 });
 
@@ -1301,6 +1305,7 @@ provide('curPrescription', curPrescription);
 provide('curPrescriptionDetail', curPrescriptionDetail);
 provide('curPatientVisitDetail', curPatientVisitDetail);
 provide('curPack', curPack);
+provide('lastPack', lastPack);
 provide('durations', durations);
 provide('hasTherapeuticalRegimen', hasTherapeuticalRegimen);
 provide('curIdentifier', props.identifier);

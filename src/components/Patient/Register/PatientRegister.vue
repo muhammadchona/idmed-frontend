@@ -585,6 +585,10 @@ const doSave = async () => {
         alertError('Ocorreu um problema ao executar a operação');
       });
   } else {
+    patientReg.value.clinic = {};
+    patientReg.value.identifiers = {};
+    patientReg.value.patientVisits = {};
+    patientReg.value.clinic.id = currClinic.value.id;
     patientService
       .patch(patientReg.value.id, patientReg.value)
       .then((resp) => {

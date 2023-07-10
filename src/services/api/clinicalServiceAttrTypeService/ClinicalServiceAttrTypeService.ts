@@ -142,6 +142,6 @@ export default {
 
   /*Pinia Methods*/
   getAllClinicalServiceAttrTypes() {
-    return clinicalServiceAttributeType.query().withAll().get();
+    return clinicalServiceAttributeType.query().all();
   },
 };

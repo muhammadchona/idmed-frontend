@@ -34,6 +34,7 @@ export default {
           .then((result) => {
             console.log('groups' + result);
             group.save(result);
+            closeLoading();
           });
       }
     }
@@ -199,6 +200,19 @@ export default {
         query.withAllRecursive(1);
       })
       .where('id', groupId)
+      .first();
+  },
+
+  getGroupByPatientAndService(patientid: string, serviceId: string) {
+    return group
+      .withAll()
+      .with('groupType')
+      .where('endDate', null)
+      .where('clinical_service_id', serviceId)
+      .whereHas('members', (query) => {
+        query.where('patient_id', patientid).where('endDate', null);
+      })
+      .orderBy('startDate', 'desc')
       .first();
   },
 };

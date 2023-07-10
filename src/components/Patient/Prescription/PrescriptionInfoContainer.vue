@@ -18,6 +18,16 @@
               ? 'Sem Info'
               : curIdentifier.service.code + ': ' + curIdentifier.value
           }}
+          {{
+            isPatientActiveGroupMember !== null &&
+            isPatientActiveGroupMember !== undefined
+              ? ' - [Paciente esta associado ao Grupo: ' +
+                isPatientActiveGroupMember.groupType.description +
+                ' - ' +
+                isPatientActiveGroupMember.name +
+                ']'
+              : ''
+          }}
         </q-item-section>
       </template>
       <div v-show="infoVisible">
@@ -209,13 +219,14 @@ import packService from 'src/services/api/pack/packService';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+import groupService from 'src/services/api/group/groupService';
 
 //Declaration
 const { website } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 const { isCloseEpisode, isDCReferenceEpisode } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
-const { remainigDuration } = usePrescription();
+const { remainigDuration, remainigDurationInWeeks } = usePrescription();
 const infoVisible = ref(true);
 
 //props
@@ -223,6 +234,7 @@ const props = defineProps(['identifierId', 'serviceId']);
 
 // Inject
 const editPrescriptionOption = inject('editPrescriptionOption');
+const patient = inject('patient');
 
 //Hook
 onMounted(() => {
@@ -431,6 +443,13 @@ const showEndDetails = computed(() => {
 
 const isClosed = computed(() => {
   return showEndDetails.value;
+});
+
+const isPatientActiveGroupMember = computed(() => {
+  return groupService.getGroupByPatientAndService(
+    patient.value.id,
+    props.serviceId
+  );
 });
 
 //Provide

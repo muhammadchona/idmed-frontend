@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="">
-      <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
       <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
         Clínicos
       </div>
@@ -95,18 +94,10 @@
     <q-dialog persistent v-model="showDoctorRegistrationScreen">
       <addDoctorComp @close="showDoctorRegistrationScreen = false" />
     </q-dialog>
-    <!-- <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog> -->
   </div>
 </template>
 <script setup>
 /*Imports*/
-import { useQuasar } from 'quasar';
-import Doctor from '../../../stores/models/doctor/Doctor';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
@@ -118,7 +109,7 @@ const { closeLoading, showloading } = useLoading();
 import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
 
 /*Declarations*/
-const { alertWarningAction } = useSwal();
+const { alertWarningAction, alertError, alertSucess } = useSwal();
 
 const showDoctorRegistrationScreen = ref(false);
 const doctor = ref(doctorService.newInstanceEntity());
@@ -247,26 +238,23 @@ const promptToConfirm = (doctorParam) => {
     : 'Deseja Activar o Clínico?';
   alertWarningAction(question).then((response) => {
     if (response) {
+      showloading();
       if (doctorParam.active) {
         doctorParam.active = false;
       } else {
         doctorParam.active = true;
       }
-      // if (this.mobile) {
-      //   if (doctorParam.syncStatus !== 'R') doctorParam.syncStatus = 'U';
-      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(doctorParam)));
-      //   ClinicSector.insertOrUpdate({ data: doctorParam });
-      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-      // } else {
+
       doctorService
         .patch(doctorParam.id, doctorParam)
-        .then((resp) => {
-          //
+        .then(() => {
+          alertSucess('Clínico actualizado com sucesso.');
+          closeLoading();
         })
-        .catch((error) => {
-          //
+        .catch(() => {
+          alertError('Aconteceu um erro inesperado ao actualizar o Clínico.');
+          closeLoading();
         });
-      // }
     }
   });
 };
