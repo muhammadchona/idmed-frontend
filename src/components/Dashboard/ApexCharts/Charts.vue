@@ -69,8 +69,10 @@ import LineBySex from 'src/components/Dashboard/ApexCharts/LineChartSex.vue';
 import DispenseTypeByAgeTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByAgeTable.vue';
 import StockAlert from 'src/components/Dashboard/ApexCharts/StockAlert.vue';
 import DispenseTypeByGenderTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
+const { isOnline } = useSystemUtils();
 const { closeLoading } = useLoading();
 const year = ref(new Date().getFullYear());
 const serviceCode = ref('TARV');
@@ -91,7 +93,11 @@ const getDashboardServiceButton = () => {
   reportService
     .getDashboardServiceButton(year.value, currClinic.value.id)
     .then((resp) => {
-      clinicalServiceReports.value = resp.data;
+      if(isOnline.value){
+        clinicalServiceReports.value = resp
+      } else {
+        clinicalServiceReports.value = resp.data;
+      }
       if (clinicalServiceReports.value.length > 0) {
         clinicalServiceReports.value.forEach((item) => {
           if (item.service === 'TARV') {

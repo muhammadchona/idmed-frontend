@@ -16,7 +16,6 @@ import Charts from 'src/components/Dashboard/ApexCharts/Charts.vue';
 
 /*Hooks*/
 onMounted(() => {
-  console.log(currClinic);
   dataLoaded.value = true;
 });
 const currClinic = computed(() => {
