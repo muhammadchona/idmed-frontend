@@ -4,7 +4,6 @@
       Regime Terapêutico
     </div>
     <div class="">
-      <!-- <nationalClinicsTable  :rows="getNationalClinicos" :columns="columns"  :showNationalClinicRegistrationScreen="showNationalClinicRegistrationScreen" /> -->
       <q-table
         :rows="therapeuticRegimens"
         :columns="columns"
@@ -45,13 +44,6 @@
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
-                <!-- <q-btn flat round
-                    color="amber-8"
-                    icon="edit"
-                    v-if="props.row.active === true"
-                   @click="editTherapeuticRegimen(props.row)">
-                    <q-tooltip class="bg-amber-5">Editar</q-tooltip>
-                  </q-btn> -->
                 <q-btn
                   flat
                   round
@@ -82,7 +74,6 @@
     </div>
     <div class="absolute-bottomg">
       <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <!-- <q-btn size="xl" fab icon="add" @click="addTherapeuticRegimen" color="primary" /> -->
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
@@ -94,11 +85,8 @@
 </template>
 <script setup>
 /*Imports*/
-import { useQuasar } from 'quasar';
-import TherapeuticRegimen from '../../../stores/models/therapeuticRegimen/TherapeuticRegimen';
 import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService.ts';
 import formService from 'src/services/api/formService/formService.ts';
-import clinicalService from 'src/services/api/clinicalServiceService/clinicalServiceService.ts';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import drugService from 'src/services/api/drugService/drugService.ts';
@@ -110,7 +98,7 @@ const { closeLoading, showloading } = useLoading();
 import AddTherapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue';
 
 /*Declarations*/
-const { alertWarningAction } = useSwal();
+const { alertWarningAction, alertError, alertSucess } = useSwal();
 const columns = [
   {
     name: 'regimenScheme',
@@ -166,12 +154,6 @@ const drugs = computed(() => {
   return drugService.getAllDrugs();
 });
 
-/*Provides*/
-provide('forms', forms);
-provide('drugs', drugs);
-provide('selectedTherapeuticRegimen', therapeuticRegimen);
-provide('therapeuticRegimens', therapeuticRegimens);
-
 onMounted(() => {
   isEditStep.value = false;
   isCreateStep.value = false;
@@ -225,31 +207,34 @@ const visualizeTherapeuticRegimen = (therapeuticRegimenParam) => {
 
 const promptToConfirm = (therapeuticRegimenParam) => {
   const question = therapeuticRegimenParam.active
-    ? 'Deseja Inactivar o Regime?'
-    : 'Deseja Activar o Regime?';
+    ? 'Deseja Inactivar o Regime Terapêutico?'
+    : 'Deseja Activar o Regime Terapêutico?';
   alertWarningAction(question).then((response) => {
     if (response) {
+      showloading();
       if (therapeuticRegimenParam.active) {
         therapeuticRegimenParam.active = false;
       } else {
         therapeuticRegimenParam.active = true;
       }
-      // if (this.mobile) {
-      //   if (therapeuticRegimenParam.syncStatus !== 'R') therapeuticRegimenParam.syncStatus = 'U';
-      //   ClinicSector.localDbAdd(JSON.parse(JSON.stringify(therapeuticRegimenParam)));
-      //   ClinicSector.insertOrUpdate({ data: therapeuticRegimenParam });
-      //   this.displayAlert('info', 'Sector Clinico actualizado com sucesso');
-      // } else {
       therapeuticalRegimenService
         .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
-        .then((resp) => {
-          //
+        .then(() => {
+          alertSucess('Regime Terapêutico actualizado com sucesso.');
+          closeLoading();
         })
-        .catch((error) => {
-          //
+        .catch(() => {
+          alertError(
+            'Aconteceu um erro inesperado ao actualizar o Regime Terapêutico.'
+          );
+          closeLoading();
         });
-      // }
     }
   });
 };
+/*Provides*/
+provide('forms', forms);
+provide('drugs', drugs);
+provide('selectedTherapeuticRegimen', therapeuticRegimen);
+provide('therapeuticRegimens', therapeuticRegimens);
 </script>

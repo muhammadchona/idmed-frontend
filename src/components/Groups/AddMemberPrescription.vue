@@ -121,7 +121,6 @@ const {
 const { preferedIdentifierValue, fullName } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const mds = ref('US_');
-const dispenseMode = ref();
 const selected_model = ref([]);
 const submitting = ref(false);
 const curPatientVisit = ref(new PatientVisit());
@@ -162,9 +161,6 @@ const executeGetGroupMembers = () => {
 
 const doValidationToDispense = () => {
   submitting.value = true;
-  console.log('Entra para criar a prescricao para o membro');
-  console.log(selectedMember);
-  console.log(curPatientVisit.value.patientVisitDetails[0].prescription);
 
   const memberPrescription = new GroupMemberPrescription({
     id: uuidv4(),
@@ -175,7 +171,7 @@ const doValidationToDispense = () => {
   console.log(memberPrescription);
   memberPrescription.member.group.clinic = memberPrescription.member.clinic;
   memberPrescription.member.group.service.drugs = [];
-  memberPrescription.member.group.service.attributes = [];
+  memberPrescription.member.group.service.clinicalServiceAttributes = [];
   memberPrescription.member.patient.identifiers = [];
   memberPrescription.member.group.members = [];
   memberPrescription.member.patient.district =
@@ -184,16 +180,7 @@ const doValidationToDispense = () => {
     pd.drug.therapeuticRegimenList = [];
     pd.drug.packaged_drugs = [];
   });
-  //  memberPrescription.member.patient = patient
-  //  memberPrescription.prescription.doctor = Doctor.query().with(['clinic.province', 'clinic.district.province', 'clinic.facilityType']).where('id', memberPrescription.prescription.doctor.id).first()
-  /*
-        memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen = TherapeuticRegimen.query()
-                                                                                                        .with('clinicalService.identifierType')
-                                                                                                        .has('code')
-                                                                                                        .where('active', true)
-                                                                                                        .where('id', memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id)
-                                                                                                        .first()
-                                                                                                        */
+
   if (!isOnline.value) {
     memberPrescription.prescription.doctor_id =
       memberPrescription.prescription.doctor.id;
@@ -220,36 +207,20 @@ const doValidationToDispense = () => {
       pDrug.prescription_id = memberPrescription.prescription.id;
       pDrug.drug_id = pDrug.drug.id;
     });
-    // memberPrescription.member_id = SessionStorage.getItem('selectedMember').id
-    // memberPrescription.prescription_id = this.curPatientVisitDetails[0].prescription.id
     memberPrescription.syncStatus = 'R';
   }
-  console.log(memberPrescription.prescription.leftDuration);
-  console.log(memberPrescription);
   groupMemberPrescriptionService
     .apiSave(memberPrescription)
     .then((resp1) => {
       executeGetGroupMembers();
-      alertSucess('Prescricao gravada com sucesso');
+      alertSucess('Prescrição gravada com sucesso');
       submitting.value = false;
       showAddPrescription.value = false;
       // this.$emit('getGroupMembers', true)
     })
     .catch((error) => {
       submitting.value = false;
-      const listErrors = [];
-      console.log(error);
-      if (error.request.response != null) {
-        const arrayErrors = JSON.parse(error.request.response);
-        if (arrayErrors.total == null) {
-          listErrors.push(arrayErrors.message);
-        } else {
-          arrayErrors._embedded.errors.forEach((element) => {
-            listErrors.push(element.message);
-          });
-        }
-      }
-      alertError('error', listErrors);
+      alertError('Ocorreu um erro ao gravar o prescrição do Membro');
     });
   //   }
 };

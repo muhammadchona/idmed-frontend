@@ -42,7 +42,8 @@
               {{ props.row.index }}
             </q-td>
             <q-td key="batchNumber" :props="props">
-              <TextInput
+              <q-input
+                outlined           
                 v-model="props.row.adjustedStock.batchNumber"
                 disable
                 label="Lote"
@@ -87,18 +88,20 @@
             </q-td>
             <q-td key="currQty" :props="props">
               <div class="row">
-                <TextInput
+                <q-input
+                dense
+                outlined
                   v-model="props.row.adjustedStock.stockMoviment"
                   disable
                   label="Quantidade"
-                  dense
                   class="col"
                 />
               </div>
             </q-td>
             <q-td key="balance" :props="props">
               <div class="row">
-                <TextInput
+                <q-input
+                outlined
                   v-model="props.row.balance"
                   :disable="!inventory.open"
                   @update:model-value="changeStepToEdition()"
@@ -106,7 +109,8 @@
                   dense
                   class="col"
                 />
-                <TextInput
+                <q-input
+                outlined
                   v-model="props.row.adjustedStock.drug.form.description"
                   disable
                   label="Foma"
@@ -116,7 +120,8 @@
               </div>
             </q-td>
             <q-td key="notes" :props="props">
-              <TextInput
+              <q-input
+              outlined
                 v-model="props.row.notes"
                 :disable="!inventory.open"
                 @update:model-value="changeStepToEdition()"
@@ -142,11 +147,9 @@
 <script setup>
 import { InventoryStockAdjustment } from '../../../stores/models/stockadjustment/InventoryStockAdjustment';
 import { onMounted, ref, computed, reactive } from 'vue';
-import { useMediaQuery } from '@vueuse/core';
 
 import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
-import TextInput from 'components/Shared/Input/TextField.vue';
 import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
 import stockService from 'src/services/api/stockService/StockService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
@@ -158,10 +161,10 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import StockService from 'src/services/api/stockService/StockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const { isMobile, isOnline } = useSystemUtils();
+const {  isOnline } = useSystemUtils();
 
 const props = defineProps(['drug', 'inventory']);
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertSucess, alertError } = useSwal();
 const { showloading, closeLoading } = useLoading();
 
 const columns = [
@@ -260,6 +263,8 @@ const initNewAdjustment = (stock, drug, i) => {
     newAdjustment.adjustedStock.expireDate
   );
   newAdjustment.adjustedStock.drug = drug;
+  newAdjustment.adjustedStock.clinic = null
+  newAdjustment.adjustedStock.clinic_id = clinicService.currClinic().id
 
   adjustments.value.push(newAdjustment);
 };
@@ -300,7 +305,8 @@ const saveAdjustments = () => {
       }
     }.bind(this)
   );
-  doSave(0);
+  doSave(0)
+ 
 };
 const doSave = (i) => {
   if (adjustments.value[i] !== undefined) {
@@ -314,7 +320,6 @@ const doSave = (i) => {
         'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
       );
     } else {
-      console.log(adjustments.value[i]); // devolver ajustes ao salvar
         InventoryStockAdjustmentService.apiFetchById(
           adjustments.value[i].id
         ).then((resp1) => {
@@ -336,10 +341,13 @@ const doSave = (i) => {
               }
             );
           }
-          closeLoading()
+          if (i ===adjustments.value.length - 1) {
+            closeLoading()
           alertSucess('Operação efectuada com sucesso.');
+          }
+         
         });
-   
+  
     }
   } else {
     step.value = 'display';

@@ -5,6 +5,8 @@ import ClinicSector from '../clinicSector/ClinicSector';
 import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServiceSector';
 import { v4 as uuidv4 } from 'uuid';
 import Drug from '../drug/Drug';
+import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen';
+import ClinicalServiceAttributeType from '../ClinicalServiceAttributeType/ClinicalServiceAttributeType';
 
 export default class ClinicalService extends Model {
   static entity = 'clinicalServices';
@@ -18,7 +20,16 @@ export default class ClinicalService extends Model {
       active: this.attr(''),
       syncStatus: this.attr(''),
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
-      attributes: this.hasMany(ClinicalServiceAttribute, 'service_id'),
+      clinicalServiceAttributes: this.belongsToMany(
+        ClinicalServiceAttributeType,
+        ClinicalServiceAttribute,
+        'clinical_service_id',
+        'service_attr_type_id'
+      ),
+      therapeuticRegimens: this.hasMany(
+        TherapeuticRegimen,
+        'clinical_service_id'
+      ),
       clinicSectors: this.belongsToMany(
         ClinicSector,
         ClinicalServiceSector,
@@ -26,7 +37,6 @@ export default class ClinicalService extends Model {
         'clinic_sector_id'
       ),
       drugs: this.hasMany(Drug, 'clinical_service_id'),
-      // patientServiceIdentifiers: this.hasMany(PatientServiceIdentifier, 'service_id')
     };
   }
 

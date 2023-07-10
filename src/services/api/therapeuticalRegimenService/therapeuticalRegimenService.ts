@@ -163,6 +163,10 @@ export default {
       .get();
   },
 
+  getActiveTherapeuticalRegimens() {
+    return therapeuticRegimen.query().where('active', true).get();
+  },
+
   getAllActiveTherapeuticalRegimensByclinicalService(clinicalServiceId: any) {
     return therapeuticRegimen
       .query()

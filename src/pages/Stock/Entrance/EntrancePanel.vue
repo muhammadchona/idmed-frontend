@@ -708,11 +708,6 @@ const filterFn = (val, update, abort) => {
   }
 };
 
-const stringContains = (stringToCheck, stringText) => {
-  if (stringText === '') return false;
-  return stringToCheck.toLowerCase().includes(stringText.toLowerCase());
-};
-
 const init = () => {
   dateReceived.value = dateUtils.getDDMMYYYFromJSDate(
     currStockEntrance.value.dateReceived

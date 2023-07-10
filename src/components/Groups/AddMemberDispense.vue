@@ -300,7 +300,9 @@ const initDispenses = () => {
   groupPack.pack = pack;
   curGroupPackHeader.value.groupPacks.push(groupPack);
   showDispensesData.value = true;
-  closeLoading();
+  setTimeout(() => {
+    closeLoading();
+  }, 2000);
 };
 
 const openAddPrescribedDrugForm = () => {
