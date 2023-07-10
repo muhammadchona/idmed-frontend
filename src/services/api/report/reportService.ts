@@ -1,16 +1,19 @@
-import { PatientVisitDetails } from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
-import { PrescriptionDetails } from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
+
 import api from '../apiService/apiService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 
-const { showloading, closeLoading } = useLoading();
+const { showloading } = useLoading();
 const { isOnline } = useSystemUtils();
 
 export default {
-  getDashboardServiceButton(year, clinicId) {
+  getDashboardServiceButton(year: any, clinicId: string) {
     if (isOnline.value) {
+      return api().get(
+        `/dashBoard/getDashboardServiceButton/${year}/${clinicId}`
+      )
+    } else {
       console.log('OFFLINE')
       const dateStr = year + '-12-20'
       const parts = dateStr.split('-')
@@ -44,10 +47,7 @@ export default {
           return acc
         }, [])
       })
-    } else {
-      return api().get(
-        `/dashBoard/getDashboardServiceButton/${year}/${clinicId}`
-      );}
+    };
     },
 
   getRegisteredPatientByDispenseType(year: any, clinicId: string, serviceCode: string) {

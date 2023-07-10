@@ -94,9 +94,9 @@ const getDashboardServiceButton = () => {
     .getDashboardServiceButton(year.value, currClinic.value.id)
     .then((resp) => {
       if(isOnline.value){
-        clinicalServiceReports.value = resp
+        clinicalServiceReports.value = resp.data
       } else {
-        clinicalServiceReports.value = resp.data;
+        clinicalServiceReports.value = resp;
       }
       if (clinicalServiceReports.value.length > 0) {
         clinicalServiceReports.value.forEach((item) => {
