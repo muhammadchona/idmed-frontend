@@ -254,4 +254,13 @@ export default {
       .orderBy('code', 'asc')
       .get();
   },
+  getById(id: string) {
+    return clinic
+      .query()
+      .where((clinic) => {
+        return (
+          clinic.id === id)
+      }).withAllRecursive(2)
+      .first();
+  }
 };

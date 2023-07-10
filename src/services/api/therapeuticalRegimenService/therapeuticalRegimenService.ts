@@ -226,4 +226,13 @@ export default {
       })
       .get();
   },
+  getById(id: string) {
+    return therapeuticRegimen
+      .query()
+      .where((therapeuticRegimen) => {
+        return (
+          therapeuticRegimen.id === id)
+      })
+      .get();
+  }
 };

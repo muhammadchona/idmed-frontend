@@ -131,6 +131,15 @@ export default {
         console.log(error);
       });
   },
+  getById(id: string) {
+    return therapeuticLine
+      .query()
+      .where((therapeuticRegimen) => {
+        return (
+          therapeuticRegimen.id === id)
+      })
+      .get();
+  },
 
   //PINIA
   getAllFromStorage() {

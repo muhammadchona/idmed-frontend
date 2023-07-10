@@ -1,6 +1,8 @@
-// import { Model } from 'pinia-orm'
 
-export default class StockUsedReport {
+import { v4 as uuidv4 } from 'uuid'
+import { Model } from 'pinia-orm';
+
+export default class StockUsedReport extends Model{
   static entity = 'stockUsedReports';
   static fields() {
     return {

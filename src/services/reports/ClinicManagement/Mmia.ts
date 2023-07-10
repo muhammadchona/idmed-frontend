@@ -6,6 +6,10 @@ import * as ExcelJS from 'exceljs'
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/services/api/report/ReportService'
 import moment from 'moment'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
+
+const {  isOnline } = useSystemUtils();
 
 const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS'
 const title = 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV'
@@ -42,18 +46,33 @@ export default {
       'Validade'
     ]
 
-      const mmiaReport = await Report.get('mmiaReport',id)
+      
+    let mmiaReport = {}
+    let mmiaData = []
+    let mmiaRegimenData = []
+    let mmiaStockData = []
+    if (isOnline.value) {
+       mmiaReport = await Report.get('mmiaReport',id)
       if(mmiaReport.status === 204) return mmiaReport.status
+       mmiaData = mmiaReport.data
+       mmiaStockData = mmiaData.mmiaStockSubReportItemList
+       mmiaRegimenData = mmiaData.mmiaRegimenSubReportList
+    } else {
+      mmiaStockData = await this.getDataLocalReportStock(id)
+      mmiaRegimenData = await this.getDataLocalReportRegimen(id)
+      mmiaData = await this.getDataLocalReportMmia(id)
+      if (mmiaData.length === 0) return 204
+    }
 
-      const mmiaData = mmiaReport.data
-      const stockdata = this.createArrayOfArrayRow(mmiaData.mmiaStockSubReportItemList)
-      const regimendata = this.createRegimenArrayOfArrayRow(mmiaData.mmiaRegimenSubReportList)
+    
+      const stockdata = this.createArrayOfArrayRow(mmiaStockData)
+      const regimendata = this.createRegimenArrayOfArrayRow(mmiaRegimenData)
       const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData)
       const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData)
       const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData)
-      const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'PDF')
-      const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaData.mmiaRegimenSubReportList, 'PDF')
-      const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'PDF')
+      const miaRegimenTotalData = this.createRegimenTotalArrayRow(isOnline.value? mmiaData.mmiaRegimenSubReportList: mmiaRegimenData, 'XLS')
+      const miaLinesSumaryData = this.createLinesSumaryArrayRow(isOnline.value? mmiaData.mmiaRegimenSubReportList: mmiaRegimenData, 'XLS')
+      const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(isOnline.value? mmiaData.mmiaRegimenSubReportList: mmiaRegimenData, 'XLS')
       const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData)
       const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData)
       const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData)
@@ -554,23 +573,39 @@ export default {
       return doc.save(fileName.concat('.pdf'))
   },
     async downloadExcel(id) {
-      const mmiaReport = await Report.get('mmiaReport',id)
-      if(mmiaReport.status === 204) return mmiaReport.status
+
+      let mmiaReport = {}
+      let mmiaData = []
+      let mmiaRegimenData = []
+      let mmiaStockData = []
+      if (isOnline.value) {
+         mmiaReport = await Report.get('mmiaReport',id)
+        if(mmiaReport.status === 204) return mmiaReport.status
+         mmiaData = mmiaReport.data
+         mmiaStockData = mmiaData.mmiaStockSubReportItemList
+         mmiaRegimenData = mmiaData.mmiaRegimenSubReportList
+      } else {
+        mmiaStockData = await this.getDataLocalReportStock(id)
+        mmiaRegimenData = await this.getDataLocalReportRegimen(id)
+        mmiaData = await this.getDataLocalReportMmia(id)
+        if (mmiaData.length === 0) return 204
+      }
+  
       
-      const mmiaData = mmiaReport.data
-      const stockdata = this.createArrayOfArrayRow(mmiaData.mmiaStockSubReportItemList)
-      const regimendata = this.createRegimenArrayOfArrayRow(mmiaData.mmiaRegimenSubReportList)
-      const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData)
-      const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData)
-      const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData)
-      const miaRegimenTotalData = this.createRegimenTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'XLS')
-      const miaLinesSumaryData = this.createLinesSumaryArrayRow(mmiaData.mmiaRegimenSubReportList, 'XLS')
-      const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaData.mmiaRegimenSubReportList, 'XLS')
-      const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData)
-      const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData)
-      const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData)
-      const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData)
-      const footer = this.createFotterTableRow()
+        const stockdata = this.createArrayOfArrayRow(mmiaStockData)
+        const regimendata = this.createRegimenArrayOfArrayRow(mmiaRegimenData)
+        const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData)
+        const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData)
+        const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData)
+        const miaRegimenTotalData = this.createRegimenTotalArrayRow(isOnline.value? mmiaData.mmiaRegimenSubReportList: mmiaRegimenData, 'XLS')
+        const miaLinesSumaryData = this.createLinesSumaryArrayRow(isOnline.value? mmiaData.mmiaRegimenSubReportList: mmiaRegimenData, 'XLS')
+        const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(isOnline.value? mmiaData.mmiaRegimenSubReportList: mmiaRegimenData, 'XLS')
+        const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData)
+        const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData)
+        const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData)
+        const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData)
+        const footer = this.createFotterTableRow()
+
 
       const workbook = new ExcelJS.Workbook();
       workbook.creator = 'FGH';
@@ -1453,4 +1488,30 @@ export default {
     getFormatDDMMYYYY(date) {
       return moment(date).format('DD-MM-YYYY');
     },
+
+     async getDataLocalReportStock (reportId) {
+      const reports = await MmiaMobileService.localDbGetAllByReportId(reportId)
+          const reportData = []
+          for (const report of reports ) {
+                   reportData.push(report)
+             }
+             
+             return reportData
+          
+    },
+    async getDataLocalReportRegimen (reportId) {
+      const reports = await MmiaMobileService.localDbGetAllByReportId(reportId)
+          const reportData = []
+          for (const report of reports ) {
+                   reportData.push(report)
+             }
+             
+             return reportData
+          
+    },
+    async getDataLocalReportMmia (reportId) {
+      const reportData = await MmiaMobileService.localDbGetAllByReportId(reportId)
+      return reportData
+          
+    }
   }
