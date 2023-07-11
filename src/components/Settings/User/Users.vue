@@ -17,6 +17,17 @@
               <q-icon name="search" />
             </template>
           </q-input>
+          <div class="q-pa-md q-gutter-sm">
+            <q-btn
+              v-if="!website"
+              color="primary"
+              label="Adicionar Novo"
+              no-caps
+              outline
+              rounded
+              @click="addUser()"
+            />
+          </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
@@ -79,7 +90,7 @@
       </q-table>
     </div>
     <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
+      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
         <q-btn
           size="xl"
           fab
@@ -104,10 +115,12 @@ import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsServi
 import SecUser from 'src/stores/models/userLogin/User';
 import addUserComp from 'src/components/Settings/User/AddUser.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
 const { closeLoading, showloading } = useLoading();
 const { alertWarningAction, alertSucess, alertError } = useSwal();
+const { website } = useSystemUtils();
 const columns = [
   {
     name: 'fullName',

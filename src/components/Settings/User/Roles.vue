@@ -17,6 +17,17 @@
               <q-icon name="search" />
             </template>
           </q-input>
+          <div class="q-pa-md q-gutter-sm">
+            <q-btn
+              v-if="!website"
+              color="primary"
+              label="Adicionar Novo"
+              no-caps
+              outline
+              rounded
+              @click="addRole()"
+            />
+          </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
@@ -75,8 +86,8 @@
         </template>
       </q-table>
     </div>
-    <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
+    <div class="absolute-bottom">
+      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
         <q-btn
           size="xl"
           fab
@@ -94,17 +105,17 @@
 </template>
 <script setup>
 /*Imports*/
-import { useQuasar } from 'quasar';
-import { ref, inject, provide, onMounted, computed } from 'vue';
+import { ref, inject, provide, computed } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import roleService from 'src/services/api/role/roleService.ts';
 
-/*Components import*/
 import addRoleComp from 'src/components/Settings/User/AddRole.vue';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
 const role = ref(roleService.newInstanceEntity());
 const { alertWarningAction } = useSwal();
+const { website } = useSystemUtils();
 const showRoleRegistrationScreen = ref(false);
 const columns = [
   {
@@ -130,7 +141,6 @@ const columns = [
 const submitting = ref(false);
 
 /*injects*/
-const step = inject('step');
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');

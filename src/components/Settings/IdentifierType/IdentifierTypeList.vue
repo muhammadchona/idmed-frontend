@@ -17,6 +17,17 @@
               <q-icon name="search" />
             </template>
           </q-input>
+          <div class="q-pa-md q-gutter-sm">
+            <q-btn
+              v-if="!website"
+              color="primary"
+              label="Adicionar Novo"
+              no-caps
+              outline
+              rounded
+              @click="addIdentifierType()"
+            />
+          </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
@@ -65,8 +76,8 @@
         </template>
       </q-table>
     </div>
-    <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
+    <div class="absolute-bottom">
+      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
         <q-btn
           size="xl"
           fab
@@ -83,19 +94,14 @@
 </template>
 <script setup>
 /*Imports*/
-import { useQuasar } from 'quasar';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
 
-const { closeLoading, showloading } = useLoading();
-
-/*Components Import*/
 import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
-const { alertWarningAction } = useSwal();
+const { website } = useSystemUtils();
 const columns = [
   {
     name: 'code',

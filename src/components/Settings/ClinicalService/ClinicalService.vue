@@ -17,6 +17,17 @@
               <q-icon name="search" />
             </template>
           </q-input>
+          <div class="q-pa-md q-gutter-sm">
+            <q-btn
+              v-if="!website"
+              color="primary"
+              label="Adicionar Novo"
+              no-caps
+              outline
+              rounded
+              @click="addClinicService()"
+            />
+          </div>
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
@@ -70,8 +81,8 @@
         </template>
       </q-table>
     </div>
-    <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
+    <div class="absolute-bottom">
+      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
         <q-btn
           size="xl"
           fab
@@ -96,14 +107,15 @@ import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttr
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 
-/*Components imports*/
 import addClinicalService from 'src/components/Settings/ClinicalService/AddClinicalService.vue';
 import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
 const { showloading, closeLoading } = useLoading();
+const { website } = useSystemUtils();
 const columns = [
   {
     name: 'code',
