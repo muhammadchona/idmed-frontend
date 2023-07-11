@@ -11,7 +11,7 @@
         <template v-slot:body="props">
           <q-tr v-bind="props">
             <q-td key="drug" v-bind="props">
-              {{ props.row.drug }}
+              {{ !isOnline ?  props.row.drug.name  : props.row.drug }}
             </q-td>
             <q-td key="avgConsuption" v-bind="props">
               {{ props.row.avgConsuption }}

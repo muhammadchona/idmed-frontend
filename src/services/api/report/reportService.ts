@@ -2,6 +2,7 @@
 import api from '../apiService/apiService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import stockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 import { nSQL } from 'nano-sql';
 
 const { showloading } = useLoading();
@@ -14,7 +15,6 @@ export default {
         `/dashBoard/getDashboardServiceButton/${year}/${clinicId}`
       )
     } else {
-      console.log('OFFLINE')
       const dateStr = year + '-12-20'
       const parts = dateStr.split('-')
       const endDateObject = new Date(parts[0], parts[1] - 1, parts[2])
@@ -30,7 +30,6 @@ export default {
       })
       .exec().then(rows => {
         // filtrar por datas
-        console.log(endDateObject)
         rows = rows.filter(function (value) {
             return new Date(value.startDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
         })
@@ -204,7 +203,6 @@ export default {
         .exec()
       .then(rows => {
         rows = this.removerDuplicados(rows)
-        console.log(rows)
         rows.forEach((item) => {
           const idade = this.calcularIdade(item.dateOfBirth)
           if (item.startDate !== null && item.startDate !== undefined) {
@@ -224,13 +222,9 @@ export default {
           }
         })
 
-        console.log('AAAAAA: ', rows)
-
         rows = rows.filter(function (value) {
             return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.visitDate) <= endDateObject // Apenas o true sera mantido, o resto sera removido
         })
-
-        console.log('BBBBB: ', rows)
 
         rows = rows.reduce((acc, obj) => {
           const key = obj.dispenseTypeCode + '-' + obj.month + '-' + obj.faixa
@@ -252,7 +246,6 @@ export default {
           }
           return acc
         }, [])
-        console.log('CCCCCC: ', rows)
 
         return rows
         })
@@ -456,8 +449,6 @@ export default {
         }
       })
       rows = this.agruparRegistrosPorDispenseTypeCodeMonthGender(rows)
-
-        console.log('ROOO: ', rows)
         return rows
       })
 
@@ -550,12 +541,10 @@ export default {
       .exec()
     .then(rows => {
 
-      console.log('ertyuihjkl: ', rows)
       rows = rows.filter(value => {
           return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.pickupDate) >= startDateObject && new Date(value.pickupDate) <= endDateObject && value.clinicID === clinicId // Apenas o true sera mantido, o resto sera removido
       })
 
-      console.log('ertyuihjkl: ', rows)
       rows.forEach((item) => {
         const idade = this.calcularIdade(item.dateOfBirth)
         if (idade >= 0) {
@@ -568,7 +557,6 @@ export default {
         }
       })
       rows = this.agruparRegistros(rows)
-      console.log('ertyuihjkl: ', rows)
      return rows
     })
     }
@@ -624,11 +612,11 @@ export default {
     return Object.values(agrupado)
   },
 
-  getStockAlert(clinicId, serviceCode) {
+  getStockAlert(clinicId: string, serviceCode: string) {
     if (isOnline.value) {
       return api().get(`/dashBoard/getStockAlert/${clinicId}/${serviceCode}`);
     } else {
-
+      return stockAlertService.apiGetStockAlertAll(clinicId);
     }
   },
 
@@ -700,13 +688,10 @@ export default {
           }])
         .exec()
       .then(rows => {
-        console.log('PPPPPA: ', rows)
         rows = rows.filter(value => {
             return value.service === serviceCD && new Date(value.startDate) >= startDateObject && new Date(value.startDate) <= endDateObject && new Date(value.pickupDate) >= startDateObject && new Date(value.pickupDate) <= endDateObject && value.clinicID === clinicId // Apenas o true sera mantido, o resto sera removido
         })
-        console.log('PPPPPA: ', rows)
         rows = this.agruparRegistrosMascFem(rows)
-        console.log('PPPPPA: ', rows)
         return rows
       })
     }
