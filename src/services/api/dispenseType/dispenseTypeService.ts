@@ -114,4 +114,13 @@ export default {
 
     return dispenseTypeList;
   },
+  getById(id: string) {
+    return dispenseType
+      .query()
+      .where((dispenseType) => {
+        return (
+          dispenseType.id === id)
+      })
+      .get();
+  }
 };

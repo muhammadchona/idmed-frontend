@@ -31,16 +31,18 @@ import Report from 'src/services/api/report/ReportService'
 import { ref } from 'vue'
 import { LocalStorage } from 'quasar'
 import mmiaReport from 'src/services/reports/ClinicManagement/Mmia.ts'
-import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 import ListHeader from 'components/Shared/ListHeader.vue'
-  import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+ import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
   import { useSwal } from 'src/composables/shared/dialog/dialog';  
 
-const { website } = useSystemUtils(); 
+  import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
+
+const {  isOnline } = useSystemUtils(); 
 const {  alertError } = useSwal();
 
-  const name = 'DrugStore'
+  const name = 'Mmia'
   const  props = defineProps([ 'selectedService','menuSelected', 'id'])
   const totalRecords= ref(0)
   const  qtyProcessed = ref(0)
@@ -53,24 +55,35 @@ const {  alertError } = useSwal();
           msg: ''
         })
 
-        const progress = ref(0)
-   
-   const   closeSection =() => {
+   const progress = ref(0)
+   const closeSection =() => {
         LocalStorage.remove(props.id)
         filterMmiaSection.value.remove()
       }
 
-     const initReportProcessing = (params) => {
-        console.log(params)
-        if (params.periodType === 'MONTH') {
-          Report.apiInitMmiaProcessing(params).then(resp => {
-            progress.value = resp.data.progress
-            setTimeout(getProcessingStatus(params), 2)
-          })
-        } else {
-          alert('O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
-        }
+    const initReportProcessing = async (params) => {
+
+      if (params.periodType !== 'MONTH') {
+        alertError('O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
+      } else {
+        if (isOnline.value) {
+            Report.apiInitMmiaProcessing(params).then(resp => {
+              progress.value = resp.data.progress
+              setTimeout(getProcessingStatus(params), 2)
+            })
+          } else {
+            const reportParams = await MmiaMobileService.getMmiaStockReport(params)
+            console.log(reportParams)
+            const listRegimenSubReport = await MmiaMobileService.getMmiaRegimenSubReport(reportParams)
+            const beta = await MmiaMobileService.getMmiaReport(reportParams, listRegimenSubReport)
+            console.log('MMia: ', beta)
+            progress.value = 100
+          params.progress = 100
+          }
+
       }
+    
+    }
 
       const getProcessingStatus =(params)=> {
         Report.getProcessingStatus('mmiaReport', params).then(resp => {
@@ -87,11 +100,11 @@ const {  alertError } = useSwal();
       const generateReport = (id, fileType) => {
         if (fileType === 'PDF') {
           mmiaReport.downloadPDF(id).then(resp => {
-            if (resp === 204) alert( 'Nao existem Dados para o periodo selecionado')
+            if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
           })
         } else {
           mmiaReport.downloadExcel(id).then(resp => {
-            if (resp === 204) alert( 'Nao existem Dados para o periodo selecionado')
+            if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
           })
         }
       }

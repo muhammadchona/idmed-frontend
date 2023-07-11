@@ -21,14 +21,14 @@
       />
     </q-tabs>
     <q-separator style="margin-top: -1px" />
-    <MenuMobile v-if="!website" @changeTab="changeTab"></MenuMobile>
+    <MenuMobile v-if="isMobile" @changeTab="changeTab"></MenuMobile>
     <q-tab-panels v-model="tab" animated>
       <q-tab-panel name="list">
         <div class="row">
           <div
             class="col-3 q-ml-sm q-mr-sm"
             style="max-width: 500px"
-            v-if="website"
+            v-if="!isMobile"
           >
             <q-bar dark class="bg-primary text-white">
               <div class="col text-center text-weight-bold">Listagens</div>
@@ -45,9 +45,9 @@
           <div
             class="col-3 q-ml-sm q-mr-sm panel"
             style="max-width: 500px"
-            v-if="website"
+            v-if="!isMobile"
           >
-            <ListReportMenu @changeTab="changeTab" v-if="website" />
+            <ListReportMenu @changeTab="changeTab" v-if="!isMobile" />
           </div>
           <div class="col q-mr-sm panel q-pa-sm">
             <q-scroll-area
@@ -129,7 +129,7 @@ const componentsList = {
   PatientHistory,
 };
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 const title = ref('Relatórios');
 const tab = ref('list');
 const model = ref(null);
@@ -168,9 +168,6 @@ onMounted(() => {
         clinicalServiceService.getClinicalServicePersonalizedById(
           item.clinicalService
         );
-      /* ClinicalService.query()
-                                        .where('id', item.clinicalService)
-                                        .first()*/
       changeTab(item.tabName, selectedService, item);
     }
   }
@@ -178,7 +175,6 @@ onMounted(() => {
 
 const changeTab = (tabName, selectedService, params) => {
   const uidValue = 'report' + uid();
-  console.log(uidValue);
   const comp = {
     id: params === undefined ? uidValue : params.id,
     name: tabName,

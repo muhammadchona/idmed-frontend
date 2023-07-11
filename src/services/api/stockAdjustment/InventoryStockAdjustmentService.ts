@@ -169,6 +169,13 @@ async apiGetAllMobile() {
     inventoryStockAdjustment.save( resp )
   }*/
     return resp
+},
+ async localDbGetAll () {
+  return nSQL('inventoryStockAdjustments').query('select').exec().then(result => {
+    console.log(result)
+    return result
+    })
 }
+
 
 };

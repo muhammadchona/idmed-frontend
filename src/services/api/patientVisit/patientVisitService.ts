@@ -5,6 +5,9 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import moment from 'moment';
+import dispenseTypeService from '../dispenseType/dispenseTypeService';
+
 
 const patientVisit = useRepo(PatientVisit);
 
@@ -252,4 +255,73 @@ export default {
       .orderBy('visitDate', 'desc')
       .get();
   },
+
+  // Reports
+
+
+async getPatientNSql () {
+  return nSQL(PatientVisit.entity).query('select').exec().then(result => {
+    console.log(result)
+    //  return result
+    })
+ },
+ 
+ async getPatientVIsitNSqlByPatient (patient: any) {
+  return nSQL(PatientVisit.entity).query('select').where(['patient[id]', '=', patient.id]).exec().then(result => {
+    console.log(result)
+    result[0].patientVisitDetails.forEach((pvd) => {
+     if (pvd.prescription !== undefined) Prescription.insertOrUpdate({ data: pvd.prescription })
+  if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack })
+ })
+    })
+ },
+ 
+ async getVisits () {
+ nSQL().onConnected(() => {
+   nSQL(PatientVisit.entity).query('select', ['JSON_EXTRACT(patientVisitDetails, "$[*].pack") as pack']).exec().then(result => {
+     console.log(result)
+   })
+  })
+ },
+ 
+  async localDbGetPacks () {
+ const packList = []
+ return nSQL('patientVisits').query('select', ['patientVisitDetails']).exec().then(result => {
+   for (const pvd of result) {
+      for (const pvdObj of pvd.patientVisitDetails) {
+       packList.push(pvdObj.pack)
+   }
+ }
+ return packList
+  })
+ },
+ 
+  async localDbGetAllPatientVisit () {
+   const patientVisitlList = []
+   return nSQL('patientVisits').query('select').exec().then(result => {
+     for (const pvd of result) {
+       patientVisitlList.push(pvd)
+   }
+   return patientVisitlList
+    })
+   },
+ 
+    async countPacksByDispenseTypeAndServiceOnPeriod (dispenseType: any, service: any, startDate: any, endDate: any) {
+     let counter = 0
+       return nSQL('patientVisits').query('select').exec().then(result => {
+         for (const pv of result) {
+           for (const pvd of pv.patientVisitDetails) {
+             if (pvd.pack !== undefined) {
+             const pickupDate = moment(pvd.pack.pickupDate)
+             const dispenseTypeId =  pvd.prescription.prescriptionDetails[0].dispenseType.identifierType
+             const codeDispenseType = dispenseTypeService.getById(dispenseTypeId)
+             if (pickupDate >= startDate && pickupDate <= endDate && pvd.episode.patientServiceIdentifier.service.id === service && codeDispenseType.code === dispenseType) {
+               counter++
+             }
+           }
+           }
+       }
+       return counter
+        })
+     }
 };
