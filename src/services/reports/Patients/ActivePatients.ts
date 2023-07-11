@@ -170,7 +170,7 @@ export default {
       console.log(doc)
       const pdfOutput = doc.output()
       console.log(pdfOutput)
-      this.downloadFile('PacientesActivos','pdf',pdfOutput)
+      this.downloadFile('PacientesActivos.','pdf',pdfOutput)
     }
     // params.value.loading.loading.hide()
    // return doc.save('HistoricoDeLevantamento.pdf')
