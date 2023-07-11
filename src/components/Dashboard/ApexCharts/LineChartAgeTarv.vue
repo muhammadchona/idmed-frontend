@@ -2,7 +2,7 @@
   <div class="relative-position">
     <apexchart
       style="max-width: 100%"
-      height="500"
+      height="600"
       type="line"
       :options="chartOptions"
       :series="series"
@@ -47,18 +47,17 @@ const chartOptions = {
     id: 'vue-chart-line',
     toolbar: {
       show: true,
-      offsetY: 7,
+      offsetY: 15,
     },
   },
   colors: ['#6a0dad', '#AAFF00'],
   title: {
     text: `Total de Pacientes no Serviço ${serviceCode.value}\n que iniciaram o levantamento`,
-    size: 10,
     align: 'center',
-    offsetY: -3,
+    offsetY: 12,
     style: {
       color: '#000000',
-      fontSize: '13px',
+      fontSize: '0.5vw',
     },
   },
   animations: {

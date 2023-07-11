@@ -3,6 +3,7 @@
     <div v-if="loaded">
       <apexchart
         style="max-width: 100%"
+        height="612"
         type="donut"
         :options="chartOptions"
         :series="series"
@@ -15,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, computed, watchEffect, inject } from 'vue';
+import { ref, watch, onMounted, computed, inject } from 'vue';
 import apexchart from 'vue3-apexcharts';
 import reportService from 'src/services/api/report/reportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -40,9 +41,10 @@ const chartOptions = {
   title: {
     text: 'Percentual de Pacientes activos no Serviço ' + serviceCode.value,
     align: 'center',
+    offsetY: 12,
     style: {
       color: '#000000',
-      fontSize: '13px',
+      fontSize: '0.5vw',
     },
   },
   plotOptions: {
