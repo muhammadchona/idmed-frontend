@@ -1,3 +1,4 @@
+import packService from 'src/services/api/pack/packService';
 import { date } from 'quasar';
 import { nSQL } from 'nano-sql';
 import { v4 as uuidv4 } from 'uuid';
@@ -25,8 +26,8 @@ export function useStock () {
   function  getClassName() {
     return 'stock';
   }
-    
-    
+
+
 // Drug File
 
 
@@ -35,7 +36,6 @@ export function useStock () {
  function localDbGetStockBalanceByDrug (drug: any) {
   let balance = 0
   return nSQL('stocks').query('select').where(['drug_id', '=', drug.id]).exec().then(result => {
-   console.log(result)
    for (const item of result) {
     balance +=Number( item.stockMoviment)
    // Stock.insert({ data: result })
@@ -43,7 +43,7 @@ export function useStock () {
    return balance
   })
   }
-  
+
    function localDbGetQuantitySuppliedByDrug (drug: any) {
   let drugQuantitySupplied = 0
   return nSQL('patientVisits').query('select', ['patientVisitDetails']).
@@ -52,7 +52,8 @@ export function useStock () {
      for (const pvdObj of pvd.patientVisitDetails) {
     // if (pvd.pack.pickupDate > new Date()) {
       if (pvdObj.pack !== undefined) {
-      for (const pcd of pvdObj.pack.packagedDrugs) {
+        const packObj = packService.getPackWithsByID(pvdObj.pack.id)
+      for (const pcd of packObj?.packagedDrugs) {
           if (pcd.drug_id === drug.id) {
             drugQuantitySupplied += Number(pcd.quantitySupplied)
           }
@@ -65,7 +66,7 @@ export function useStock () {
   })
   }
   // Resumo por drug
-  
+
    function getDestructionsDrugFile (drug: any) {
           const recordFileList = []
           return nSQL('destroyedStocks').query('select')
@@ -96,7 +97,7 @@ export function useStock () {
           return recordFileList
           })
   }
-  
+
    function getAdjustmentsDrugFile (drug: any) {
           const recordFileList = []
           return nSQL('referedStockMoviments').query('select')
@@ -127,7 +128,7 @@ export function useStock () {
           return recordFileList
           })
   }
-  
+
    function getInventoryAdjustmentsDrugFile (drug: any) {
           const recordFileList = []
           return nSQL('inventoryStockAdjustments').query('select')
@@ -156,7 +157,7 @@ export function useStock () {
           return recordFileList
           })
   }
-  
+
    function getEntrancesDrugFile (drug: any) {
           const recordFileList = []
           return nSQL('stocks').query('select', ['SUM(stocks.unitsReceived) AS stockEntrances.incomes', 'stockEntrances.dateReceived', 'stockEntrances.orderNumber']).where(['drug_id', '=', drug.id])
@@ -181,7 +182,7 @@ export function useStock () {
           recordFile.code = 'ENTRADA'
           recordFile.stockId = ''
           recordFile.notes = ''
-  
+
           recordFileList.push(recordFile)
           /*
           */
@@ -189,7 +190,7 @@ export function useStock () {
           return recordFileList
           })
   }
-  
+
    function getPacksDrugFile (drug: any) {
           const recordFileList = []
           let drugQuantitySupplied = 0
@@ -224,9 +225,9 @@ export function useStock () {
           return recordFileList
           })
   }
-  
+
   // Resumo por Stock
-  
+
    function getDestructionsDrugFileBatch ( stockId: any) {
           const recordFileList = []
           return nSQL('destroyedStocks').query('select')
@@ -257,7 +258,7 @@ export function useStock () {
           return recordFileList
           })
           }
-  
+
     function getAdjustmentsDrugFileBatch (stockId: any) {
           const recordFileList = []
           return nSQL('referedStockMoviments').query('select')
@@ -288,7 +289,7 @@ export function useStock () {
           return recordFileList
           })
           }
-  
+
           function getInventoryAdjustmentsDrugFileBatch (stockId: any) {
           const recordFileList = []
           return nSQL('inventoryStockAdjustments').query('select')
@@ -322,11 +323,10 @@ export function useStock () {
           return recordFileList
           })
           }
-  
+
     function getEntrancesDrugFileBatch (stockId: string) {
-      console.log('STOCKID: ', stockId)
           const recordFileList = []
-  
+
           return nSQL('stocks').query('select',  ['SUM(stocks.unitsReceived) AS incomes', 'stocks.id', 'stockEntrances.dateReceived', 'stockEntrances.orderNumber'])
           .where(['id', 'LIKE', stockId])
           .join({
@@ -351,7 +351,7 @@ export function useStock () {
             recordFile.code = 'ENTRADA'
             recordFile.stockId = item['stocks.id']
             recordFile.notes = ''
-  
+
             recordFileList.push(recordFile)
             /*
             */
@@ -360,7 +360,7 @@ export function useStock () {
           return recordFileList
           })
   }
-  
+
    function getPacksDrugFileBatch (stockId: any) {
             const recordFileList = []
             let drugQuantitySupplied = 0
@@ -399,7 +399,7 @@ export function useStock () {
             return recordFileList
             })
   }
- 
+
   return {
     isInUse,
     getFormatedExpireDate,

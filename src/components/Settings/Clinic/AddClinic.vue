@@ -106,7 +106,7 @@
             />
           </div>
         </q-card-section>
-        <q-scroll-observer @scroll="scrollHandler" />
+        <q-scroll-observer />
       </q-scroll-area>
       <q-card-actions align="right" class="q-mb-md">
         <q-btn label="Cancelar" color="red" @click="$emit('close')" />
@@ -118,12 +118,6 @@
           v-if="!onlyView"
         />
       </q-card-actions>
-      <q-dialog v-model="alert.visible" persistent>
-        <Dialog :type="alert.type" @closeDialog="closeDialog">
-          <template v-slot:title> Informação</template>
-          <template v-slot:msg> {{ alert.msg }} </template>
-        </Dialog>
-      </q-dialog>
     </form>
   </q-card>
 </template>
@@ -140,25 +134,18 @@ import districtService from 'src/services/api/districtService/districtService.ts
 import nameInput from 'src/components/Shared/NameInput.vue';
 import codeInput from 'src/components/Shared/CodeInput.vue';
 import PhoneField from 'src/components/Shared/Input/PhoneField.vue';
-import Dialog from 'src/components/Shared/Dialog/Dialog.vue';
 
 /*Declarations*/
 const databaseCodes = ref([]);
 const submitting = ref(false);
 const clinic = inject('clinic');
 const selectedClinic = inject('clinic');
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
 
 /*injects*/
 const viewMode = inject('viewMode');
 
 /*Hooks*/
 onMounted(() => {
-  console.log('ABC');
   extractDatabaseCodes();
 });
 
@@ -179,7 +166,6 @@ const facilityTypes = computed(() => {
 });
 
 const districts = computed(() => {
-  console.log(clinic.value.province);
   if (clinic.value.province !== null) {
     return districtService.getAllDistrictByProvinceId(clinic.value.province.id);
   } else {

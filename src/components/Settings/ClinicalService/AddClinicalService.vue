@@ -57,37 +57,40 @@
                 />
               </div>
               <div class="row">
-                <div class="col-4 col-md-6">
+                <div class="col-4 col-md-6 q-mb-sm">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Atributos Para a Prescrição"
-                    :rows="clinicalServiceAttributeList"
+                    :rows="clinicalService.clinicalServiceAttributes"
                     :columns="columnAttributes"
                     row-key="code"
                     v-if="onlyView"
                     class="my-sticky-header-table"
+                    dense
                   />
                 </div>
-                <div class="col-4 col-md-6">
+                <div class="col-4 col-md-6 q-mb-sm">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Regimes Terapeuticos"
-                    :rows="therapeuticRegimenList"
+                    :rows="clinicalService.therapeuticRegimens"
                     :columns="columnsRegimen"
                     row-key="code"
                     v-if="onlyView && therapeuticRegimenList.length > 0"
                     class="my-sticky-header-table"
+                    dense
                   />
                 </div>
                 <div class="col-4 col-md-6 pa-md">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Sectores Clinicos"
-                    :rows="clinicSectorList"
+                    :rows="clinicalService.clinicSectors"
                     :columns="columnsSectors"
                     row-key="code"
                     v-if="onlyView"
                     class="my-sticky-header-table"
+                    dense
                   />
                 </div>
               </div>
@@ -107,6 +110,7 @@
                   v-model:selected="clinicalService.clinicalServiceAttributes"
                   class="my-sticky-header-table"
                   v-if="!onlyView"
+                  dense
                 >
                   <template v-slot:top-right>
                     <q-input
@@ -138,6 +142,7 @@
                   selection="multiple"
                   v-model:selected="clinicalService.clinicSectors"
                   class="my-sticky-header-table"
+                  dense
                 >
                   <template v-slot:top-right>
                     <q-input
@@ -173,6 +178,7 @@
                   selection="multiple"
                   v-model:selected="clinicalService.therapeuticRegimens"
                   class="my-sticky-header-table"
+                  dense
                 >
                   <template v-slot:top-right>
                     <q-input

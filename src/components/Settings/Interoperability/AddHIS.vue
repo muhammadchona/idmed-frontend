@@ -72,7 +72,7 @@
             </div>
           </q-step>
         </q-stepper>
-        <q-scroll-observer @scroll="scrollHandler" />
+        <q-scroll-observer />
       </q-scroll-area>
       <q-card-actions align="right" class="q-mb-md">
         <q-stepper-navigation>
@@ -162,10 +162,6 @@ const isEditStep = inject('isEditStep');
 const showHISRegistrationScreen = inject('showHISRegistrationScreen');
 const viewMode = inject('viewMode');
 
-/*Provide*/
-provide('rows', healthInformationAttributeTypes);
-provide('columns', columnsSelectedAttributes);
-
 /*Hooks*/
 const interoperabilityAttributes = computed(() => {
   return interoperabilityTypeService.getAll();
@@ -209,33 +205,21 @@ const submitHis = () => {
     }
     his.value.interoperabilityAttributes.push(attribute);
   });
-
-  //  if (mobile) {
-  //     if (!isEditStep) {
-  //       his.syncStatus = 'R'
-  //       HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)))
-  //       HealthInformationSystem.insert({ data: his })
-  //       closeDialog()
-  //       displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-  //     } else {
-  //       if (his.syncStatus !== 'R') his.syncStatus = 'U'
-  //       const hisUpdate = new HealthInformationSystem(JSON.parse(JSON.stringify((his))))
-  //       HealthInformationSystem.localDbUpdate(hisUpdate)
-  //       closeDialog()
-  //       displayAlert('info', !isEditStep ? 'Sistema De Informação de Saúde gravado com sucesso.' : 'Sistema De Informação de Saúde actualizado com sucesso.')
-  //     }
-  //  } else {
   if (isCreateStep.value) {
     his.value.active = true;
     healthInformationSystemService
       .post(his.value)
-      .then((resp) => {
-        alertSucess('O Registo foi efectuado com sucesso');
+      .then(() => {
+        alertSucess('Sistema para Interoperabilidade registado com sucesso');
         submitting.value = false;
         viewMode.value = true;
         showHISRegistrationScreen.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao registar o Sistema para Interoperabilidade.'
+        );
         submitting.value = false;
         viewMode.value = true;
         showHISRegistrationScreen.value = false;
@@ -243,12 +227,17 @@ const submitHis = () => {
   } else {
     healthInformationSystemService
       .patch(his.value.id, his.value)
-      .then((resp) => {
+      .then(() => {
+        alertSucess('Sistema para Interoperabilidade actualizado com sucesso');
         submitting.value = false;
         viewMode.value = true;
         showHISRegistrationScreen.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao registar o Sistema para Interoperabilidade.'
+        );
         submitting.value = false;
         viewMode.value = true;
         showHISRegistrationScreen.value = false;
@@ -263,7 +252,7 @@ const goToNextStep = () => {
     codeRef.value.validate();
     if (selectedAttributes.value.length <= 0) {
       alertError(
-        'Por Favor seleccione pelo menos um atributo para a Interoperabilidade'
+        'Por favor seleccione pelo menos um atributo para a Interoperabilidade'
       );
     } else if (!nomeRef.value.hasError && !codeRef.value.hasError) {
       if (isCreateStep.value) {
@@ -291,7 +280,6 @@ const goToNextStep = () => {
       stepper.value.next();
     }
   } else if (stepScreens.value === 2) {
-    //  his.interoperabilityAttributes.push(healthInformationAttributeTypes)
     var control = 0;
     healthInformationAttributeTypes.value.forEach((attribute) => {
       if (attribute.value === '') {
@@ -299,7 +287,9 @@ const goToNextStep = () => {
       }
     });
     if (control > 0) {
-      // displayAlert('error', 'Por Favor preencha o valor dos atributos seleccionados para a Interoperabilidade')
+      alertError(
+        'Por favor preencha o valor dos atributos seleccionados para a Interoperabilidade'
+      );
     } else {
       submitHis();
     }
@@ -340,6 +330,9 @@ const addAttributesOnHealthInformationSystem = () => {
     }
   });
 };
+/*Provide*/
+provide('rows', healthInformationAttributeTypes);
+provide('columns', columnsSelectedAttributes);
 </script>
 <style lang="sass">
 .my-sticky-header-table

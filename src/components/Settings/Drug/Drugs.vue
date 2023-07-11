@@ -72,9 +72,6 @@
 </template>
 <script setup>
 /*Imports*/
-import { useQuasar } from 'quasar';
-import Drug from '../../../stores/models/drug/Drug';
-import Form from '../../../stores/models/form/Form';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
@@ -154,7 +151,7 @@ const forms = computed(() => {
 });
 
 const drugs = computed(() => {
-  return drugService.getAllDrugs();
+  return drugService.getAllForAllDrugs();
 });
 
 onMounted(() => {
@@ -164,11 +161,6 @@ onMounted(() => {
   editMode.value = false;
   viewMode.value = false;
 });
-
-/*Provides*/
-provide('selectedDrug', drug);
-provide('forms', forms);
-provide('drugs', drugs);
 
 /*Methods*/
 const getIconActive = (drug) => {
@@ -233,4 +225,8 @@ const promptToConfirm = (drugParam) => {
     }
   });
 };
+/*Provides*/
+provide('selectedDrug', drug);
+provide('forms', forms);
+provide('drugs', drugs);
 </script>

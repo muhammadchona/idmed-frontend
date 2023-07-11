@@ -104,7 +104,6 @@ const patternRef = ref(null);
 
 /*injects*/
 const identifierType = inject('selectedIdentifierType');
-const stepp = inject('stepp');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const currClinic = inject('currClinic');
@@ -151,36 +150,33 @@ const validateClinicSector = () => {
 };
 
 const doSave = () => {
-  // if (this.mobile) {
-  //   if (!this.isEditStep) {
-  //     this.identifierType.syncStatus = 'R'
-  //     IdentifierType.localDbAdd(JSON.parse(JSON.stringify(this.identifierType)))
-  //     IdentifierType.insert({ data: this.identifierType })
-  //     this.displayAlert('info', !this.isEditStep ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
-  //   } else {
-  //       if (this.identifierType.syncStatus !== 'R') this.identifierType.syncStatus = 'U'
-  //       const identifierTypeUpdate = new IdentifierType(JSON.parse(JSON.stringify((this.identifierType))))
-  //       IdentifierType.localDbUpdate(identifierTypeUpdate)
-  //       this.displayAlert('info', !this.isEditStep ? 'Identificador adicionado com sucesso.' : 'Identificador actualizado com sucesso.')
-  //   }
-  // } else {
+
   if (isCreateStep.value) {
     identifierTypeService
       .post(identifierType.value)
-      .then((resp) => {
-        alertSucess('O Registo foi efectuado com sucesso');
+      .then(() => {
+        alertSucess('Tipo de Identificador registado com sucesso');
         showAddEditIdentifierType.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao registar o Sector Clínico.'
+        );
         showAddEditIdentifierType.value = false;
       });
   } else {
     identifierTypeService
       .patch(identifierType.value.id, identifierType.value)
-      .then((resp) => {
+      .then(() => {
+        alertSucess('Tipo de Identificador actualizado com sucesso');
         showAddEditIdentifierType.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao actualizar o Sector Clínico.'
+        );
         showAddEditIdentifierType.value = false;
       });
   }

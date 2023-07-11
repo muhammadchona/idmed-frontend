@@ -57,7 +57,9 @@
             ref="clinicSectorRef"
             option-value="id"
             option-label="description"
-            :rules="[(val) => val != null || ' Por favor indique o tipo de Sector']"
+            :rules="[
+              (val) => val != null || ' Por favor indique o tipo de Sector',
+            ]"
             lazy-rules
             label="Tipo de Sector Clinico"
           />
@@ -98,16 +100,14 @@
 
 <script setup>
 /*imports*/
-import { ref, inject, onMounted, computed } from "vue";
-import clinicSectorService from "src/services/api/clinicSectorService/clinicSectorService.ts";
-import clinicService from "src/services/api/clinicService/clinicService.ts";
-import clinicSectorTypeService from "src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts";
-import { v4 as uuidv4 } from "uuid";
-import { useSwal } from "src/composables/shared/dialog/dialog";
+import { ref, inject, onMounted, computed } from 'vue';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
+import clinicService from 'src/services/api/clinicService/clinicService.ts';
+import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
+import { v4 as uuidv4 } from 'uuid';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 const { alertSucess, alertError } = useSwal();
-
-/*components import*/
 
 /*Declarations*/
 const databaseCodes = ref([]);
@@ -118,12 +118,13 @@ const clinicSectorRef = ref(null);
 const clinicRef = ref(null);
 
 /*injects*/
-const clinicSector = inject("selectedClinicSector");
-const viewMode = inject("viewMode");
-const currClinic = inject("currClinic");
-const isEditStep = inject("isEditStep");
-const isCreateStep = inject("isCreateStep");
-const showClinicSectorRegistrationScreen = inject("showClinicSectorRegistrationScreen");
+const clinicSector = inject('selectedClinicSector');
+const viewMode = inject('viewMode');
+const currClinic = inject('currClinic');
+const isNewClinicSector = inject('isNewClinicSector');
+const showClinicSectorRegistrationScreen = inject(
+  'showClinicSectorRegistrationScreen'
+);
 
 /*Hooks*/
 // const clinicSector = computed(() => {
@@ -169,71 +170,50 @@ const validateClinicSector = () => {
     !clinicSectorRef.value.hasError
   ) {
     submitClinicSector();
+  } else {
+    submitting.value = false;
   }
 };
 
 const submitClinicSector = () => {
-  // if (mobile) {
-  //   clinicSector.clinic_id = currClinic.id;
-  //   clinicSector.clinic_sector_type_id =
-  //     clinicSector.clinicSectorType.id;
-  //   if (!isEditStep) {
-  //     clinicSector.syncStatus = 'R';
-  //     ClinicSector.localDbAdd(
-  //       JSON.parse(JSON.stringify(clinicSector))
-  //     ).then((item) => {
-  //       ClinicSector.insert({ data: clinicSector });
-  //     });
-  //   } else {
-  //     if (clinicSector.syncStatus !== 'R')
-  //       clinicSector.syncStatus = 'U';
-  //     const clinicSecUpdate = new ClinicSector(
-  //       JSON.parse(JSON.stringify(clinicSector))
-  //     );
-  //     ClinicSector.localDbUpdate(clinicSecUpdate).then((groupRes) => {
-  //       ClinicSector.update({ data: clinicSecUpdate });
-  //     });
-  //   }
-  //   this.displayAlert(
-  //     'info',
-  //     !this.isEditStep
-  //       ? 'Sector Clínico adicionado com sucesso.'
-  //       : 'Sector Clínico actualizado com sucesso.'
-  //   );
-  // } else {
-  if (isCreateStep.value) {
+  if (isNewClinicSector.value) {
     clinicSector.value.active = true;
     clinicSector.value.uuid = uuidv4();
-    clinicSector.value.syncStatus = "P";
+    clinicSector.value.syncStatus = 'P';
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }
     clinicSectorService
       .post(clinicSector.value)
-      .then((resp) => {
-        console.log(resp);
-        alertSucess("O Registo foi efectuado com sucesso");
+      .then(() => {
+        alertSucess('Sector Clínico registado com sucesso.');
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
       })
       .catch((error) => {
-        alertError("Aconteceu um erro inesperado nesta operação.");
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao registar o Sector Clínico.'
+        );
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
       });
-  }
-  if (isEditStep.value) {
+  } else {
     if (clinicSector.value.clinic !== null) {
       clinicSector.value.clinic_id = clinicSector.value.clinic.id;
     }
-
     clinicSectorService
       .patch(clinicSector.value.id, clinicSector.value)
-      .then((resp) => {
+      .then(() => {
+        alertSucess('Sector Clínico actualizado com sucesso.');
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao actualizar o Sector Clínico.'
+        );
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
       });
@@ -242,15 +222,16 @@ const submitClinicSector = () => {
 };
 
 const codeRules = (val) => {
-  if (clinicSector.value.code === "") {
-    return "o Código é obrigatorio";
+  if (clinicSector.value.code === '') {
+    return 'o Código é obrigatorio';
   } else if (
-    (databaseCodes.value.includes(val) && !isEditStep.value) ||
+    (databaseCodes.value.includes(val) && isNewClinicSector.value) ||
     (databaseCodes.value.includes(val) &&
-      clinicSectors.value.filter((x) => x.code === val)[0].id !== clinicSector.value.id &&
-      isEditStep.value)
+      clinicSectors.value.filter((x) => x.code === val)[0].id !==
+        clinicSector.value.id &&
+      !isNewClinicSector.value)
   ) {
-    return !databaseCodes.value.includes(val) || "o Código indicado já existe";
+    return !databaseCodes.value.includes(val) || 'o Código indicado já existe';
   }
 };
 </script>

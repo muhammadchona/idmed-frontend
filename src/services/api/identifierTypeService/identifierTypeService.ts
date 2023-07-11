@@ -13,11 +13,11 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
@@ -27,11 +27,11 @@ export default {
       this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uuid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
@@ -42,15 +42,12 @@ export default {
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('identifierType', params);
-      identifierType.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  postWeb(params: string) {
+    return api()
+      .post('identifierType', params)
+      .then((resp) => {
+        identifierType.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -71,25 +68,19 @@ export default {
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('identifierType/' + uuid, params);
-      identifierType.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('identifierType/' + uuid, params)
+      .then((resp) => {
+        identifierType.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('identifierType/' + uuid);
-      identifierType.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('identifierType/' + uuid)
+      .then(() => {
+        identifierType.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {

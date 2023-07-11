@@ -3,31 +3,37 @@
     <q-card-section>
       <div class="text-h6">Regime Terapêutico</div>
     </q-card-section>
-    <form @submit.prevent="validateTherapeuticRegimen">
+    <form @submit.prevent="">
       <q-card-section class="q-px-md">
         <div class="q-mt-md">
           <div class="row">
-            <nameInput
-              v-model="therapeuticRegimen.regimenScheme"
-              :disable="onlyView"
-              label="Esquema do Regime*"
-              ref="esquema"
-            />
+            <div class="col">
+              <codeInput
+                v-model="therapeuticRegimen.code"
+                :disable="onlyView"
+                ref="code"
+                :rules="[(val) => codeRules(val)]"
+                lazy-rules
+              />
+            </div>
+            <div class="col q-ml-md">
+              <nameInput
+                v-model="therapeuticRegimen.regimenScheme"
+                :disable="onlyView"
+                label="Esquema do Regime*"
+                ref="esquema"
+              />
+            </div>
           </div>
-          <div class="row q-mt-md">
-            <nameInput
+          <div class="row">
+            <q-input
+              outlined
+              label="Descrição*"
+              dense
+              class="col"
               v-model="therapeuticRegimen.description"
               :disable="onlyView"
               ref="nome"
-            />
-          </div>
-          <div class="row q-mt-md">
-            <codeInput
-              v-model="therapeuticRegimen.code"
-              :disable="onlyView"
-              ref="code"
-              :rules="[(val) => codeRules(val)]"
-              lazy-rules
             />
           </div>
           <div class="row q-mt-md">

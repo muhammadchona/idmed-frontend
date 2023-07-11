@@ -15,11 +15,11 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile && !isOnline) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
@@ -29,29 +29,27 @@ export default {
       this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uuid: string, params: string) {
     if (isMobile && !isOnline) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uuid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile && !isOnline) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('healthInformationSystem', params);
-      healthInformationSystem.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-    }
+  postWeb(params: string) {
+    return api()
+      .post('healthInformationSystem', params)
+      .then((resp) => {
+        healthInformationSystem.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -67,30 +65,23 @@ export default {
           }
         })
         .catch((error) => {
-          alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('healthInformationSystem/' + uuid, params);
-      interoperabilityAttributeRepo
-        .where('healthInformationSystem_id', resp.data.id)
-        .delete();
-      healthInformationSystem.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('healthInformationSystem/' + uuid, params)
+      .then((resp) => {
+        healthInformationSystem.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('healthInformationSystem/' + uuid);
-      healthInformationSystem.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      alertError('Aconteceu um erro inesperado nesta operação.');
-     }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('healthInformationSystem/' + uuid)
+      .then(() => {
+        healthInformationSystem.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {

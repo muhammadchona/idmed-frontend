@@ -64,8 +64,7 @@
       </div>
     </div>
 
-    <!-- <q-splitter v-if="website" v-model="splitterModel"> -->
-    <q-splitter v-model="splitterModel">
+    <q-splitter v-model="splitterModel" v-if="website">
       <template v-slot:before>
         <q-tabs v-model="selectedTab" vertical class="text-teal">
           <q-tab v-for="tab in tabs" :key="tab.name" v-bind="tab" />
@@ -85,12 +84,6 @@
             <div class="text-h4 q-mb-md"></div>
             <clinics> </clinics>
           </q-tab-panel>
-
-          <!--q-tab-panel name="national_clinic">
-            <div class="text-h4 q-mb-md"></div>
-            <nationalClinic> </nationalClinic>
-          </q-tab-panel-->
-
           <q-tab-panel name="clinic_sector">
             <div class="text-h4 q-mb-md"></div>
             <clinicSectors> </clinicSectors>
@@ -142,21 +135,8 @@
 /*Imports*/
 import { ref, provide, computed, onMounted } from 'vue';
 import clinicServiceService from 'src/services/api/clinicService/clinicService.ts';
-import clinicalServiceAttrTypeService from 'src/services/api/clinicalServiceAttrTypeService/ClinicalServiceAttrTypeService.ts';
-import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
-import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
-import userService from 'src/services/api/user/userService.ts';
-import roleService from 'src/services/api/role/roleService.ts';
-import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import therapeuticalRegimenService from 'src/services/api/therapeuticalRegimenService/therapeuticalRegimenService.ts';
-import formService from 'src/services/api/formService/formService.ts';
-import clinicalService from 'src/services/api/clinicalServiceService/clinicalServiceService.ts';
-import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
-import doctorService from 'src/services/api/doctorService/doctorService.ts';
-import drugService from 'src/services/api/drugService/drugService.ts';
 
-/*components import*/
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
 import clinicSectors from 'src/components/Settings/ClinicSector/ClinicSectors.vue';
 import doctor from 'src/components/Settings/Doctor/Doctors.vue';
@@ -165,11 +145,9 @@ import therapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/Thera
 import clinicalServices from 'src/components/Settings/ClinicalService/ClinicalService.vue';
 import identifierType from 'src/components/Settings/IdentifierType/IdentifierTypeList.vue';
 import interoperability from 'src/components/Settings/Interoperability/His.vue';
-import interoperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService.ts';
 import users from 'src/components/Settings/User/Users.vue';
 import roles from 'src/components/Settings/User/Roles.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-// import secUserRoleService from 'src/services/api/secUserRole/secUserRoleService.ts';
 
 /*Variables*/
 const { website } = useSystemUtils();
@@ -236,37 +214,7 @@ const currClinic = computed(() => {
 });
 
 onMounted(() => {
-  // secUserRoleService.get(0);
-  // showloading();
-  // identifierTypeService.get(0);
-  // showloading();
-  // clinicalServiceAttrTypeService.get(0);
-  // showloading();
-  // healthInformationSystemService.get(0);
-  // showloading();
-  // interoperabilityTypeService.get(0);
-  // showloading();
-  // roleService.get(0);
-  // showloading();
-  // userService.get(0);
-  // showloading();
-  // clinicSectorTypeService.get(0);
-  // showloading();
-  // formService.get(0);
-  // showloading();
-  // clinicalService.get(0);
-  // showloading();
-  // therapeuticalRegimenService.get(0);
-  // showloading();
-  // clinicServiceService.get(0);
-  // showloading();
-  // clinicSectorService.get(0);
-  // showloading();
-  // doctorService.get(0);
-  // showloading();
-  // drugService.get(0);
-  // showloading();
-  // formService.get(0);
+  console.log();
 });
 
 /*injects*/

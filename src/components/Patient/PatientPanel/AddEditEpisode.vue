@@ -157,7 +157,7 @@
           </q-input>
           <div class="col q-ml-md" />
         </div>
-        <span v-if="isCloseEpisode">
+        <span v-if="isCloseEpisode && hasVisits(episode)">
           <div class="q-mt-md">
             <div class="row items-center q-mb-sm">
               <span class="text-subtitle2"
@@ -269,6 +269,7 @@
               option-value="id"
               option-label="description"
               label="Tipo de Sector de Dispensa"
+              @update:model-value="selectedClinicSector = null"
             />
             <q-select
               class="col q-ml-md"
@@ -422,7 +423,10 @@ const clinicSectorTypes = computed(() => {
 
 const referealClinicSectors = computed(() => {
   if (selectedClinicSectorType.value === null) return [];
-  return selectedClinicSectorType.value.clinicSectorList;
+  return clinicSectorService.getClinicSectorsByClinicIdSectorTypeId(
+    currClinic.value.id,
+    selectedClinicSectorType.value.id
+  );
 });
 
 const districts = computed(() => {

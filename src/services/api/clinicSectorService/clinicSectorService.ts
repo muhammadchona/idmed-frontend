@@ -45,12 +45,9 @@ export default {
   },
   // WEB
   postWeb(params: string) {
-    params.id = uuidv4();
-
     return api()
       .post('clinicSector', params)
       .then((resp) => {
-        console.log(resp);
         clinicSector.save(resp.data);
       });
   },
@@ -74,24 +71,18 @@ export default {
     }
   },
   async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('clinicSector/' + uuid, params);
-      clinicSector.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+    return api()
+      .patch('clinicSector/' + uuid, params)
+      .then((resp) => {
+        clinicSector.save(resp.data);
+      });
   },
   async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('clinicSector/' + uuid);
-      clinicSector.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+    return api()
+      .delete('clinicSector/' + uuid)
+      .then(() => {
+        clinicSector.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {
@@ -150,6 +141,17 @@ export default {
 
   getClinicSectorsByClinicId(clinicId: string) {
     return clinicSector.query().where('clinic_id', clinicId).get();
+  },
+
+  getClinicSectorsByClinicIdSectorTypeId(
+    clinicId: string,
+    sectorTypeId: string
+  ) {
+    return clinicSector
+      .query()
+      .where('clinic_id', clinicId)
+      .where('clinic_sector_type_id', sectorTypeId)
+      .get();
   },
 
   getActivebyClinicId(clinicId: string) {
