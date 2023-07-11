@@ -143,6 +143,17 @@ export default {
     return clinicSector.query().where('clinic_id', clinicId).get();
   },
 
+  getClinicSectorsByClinicIdSectorTypeId(
+    clinicId: string,
+    sectorTypeId: string
+  ) {
+    return clinicSector
+      .query()
+      .where('clinic_id', clinicId)
+      .where('clinic_sector_type_id', sectorTypeId)
+      .get();
+  },
+
   getActivebyClinicId(clinicId: string) {
     return clinicSector
       .query()

@@ -347,45 +347,28 @@ const openMRSSerach = (his) => {
     currPatient.value.clinic = clinic;
     patientServiceIdentifier.value.value = patientId.value;
     currPatient.value.identifiers.push(patientServiceIdentifier.value);
+
     patientService
-      .apiSearch(currPatient.value)
-      .then((resp) => {
-        if (resp === undefined || resp === null || resp.length === 0) {
-          resp.data = [];
-        }
-        if (resp.data.length >= 1) {
-          alertInfo(
-            'Paciente existente',
-            'Ja Existe um Paciente com o NID:[ ' +
-              nid +
-              ' ] no IDMED. Use A pesquisa do Idmed'
-          );
+      .apiSearchPatientOnOpenMRS(
+        his.id,
+        nid,
+        localStorage.getItem('encodeBase64')
+      )
+      .then((response) => {
+        patientService.deleteAllFromStorage();
+        if (response.data.results.length > 0) {
+          response.data.results.forEach((pacienteOpenMRS) => {
+            const localpatient = ref(new Patient());
+            patientService.savePatientStorage(
+              buildLocalPatientFromOpenMRS(localpatient, pacienteOpenMRS)
+            );
+          });
           closeLoading();
         } else {
-          patientService
-            .apiSearchPatientOnOpenMRS(
-              his.id,
-              nid,
-              localStorage.getItem('encodeBase64')
-            )
-            .then((response) => {
-              patientService.deleteAllFromStorage();
-              if (response.data.results.length > 0) {
-                response.data.results.forEach((pacienteOpenMRS) => {
-                  const localpatient = ref(new Patient());
-                  patientService.savePatientStorage(
-                    buildLocalPatientFromOpenMRS(localpatient, pacienteOpenMRS)
-                  );
-                });
-                closeLoading();
-              } else {
-                closeLoading();
-                alertInfo(
-                  'Resultado da Pesquisa',
-                  'Nenhum resultado encontrado para o identificador ' + nid + ''
-                );
-              }
-            });
+          closeLoading();
+          alertInfo(
+            'Nenhum resultado encontrado para o identificador ' + nid + ''
+          );
         }
       })
       .catch((error) => {
@@ -459,10 +442,33 @@ const editPatient = (patient) => {
   newPatient.value = false;
 };
 const saveOpenMRSPatient = (patient) => {
-  currPatient.value = patient;
-  showPatientRegister.value = true;
-  newPatient.value = true;
-  openMrsPatient.value = true;
+  showloading();
+  patientService
+    .apiSearch(patient)
+    .then((resp) => {
+      if (resp === undefined || resp === null || resp.length === 0) {
+        resp.data = [];
+      }
+      if (resp.data.length >= 1) {
+        alertInfo(
+          'Já existe um Paciente com o NID:[ ' +
+            patient.identifiers[0].value +
+            ' ] no IDMED. Use A pesquisa do Idmed'
+        );
+        patientService.deleteAllFromStorage();
+        closeLoading();
+      } else {
+        closeLoading();
+        currPatient.value = patient;
+        showPatientRegister.value = true;
+        newPatient.value = true;
+        openMrsPatient.value = true;
+      }
+    })
+    .catch((error) => {
+      closeLoading();
+      console.log(error);
+    });
 };
 
 const closePatient = () => {
@@ -521,7 +527,6 @@ const stringContains = (stringToCheck, stringText) => {
 };
 
 const loadHISDataSource = () => {
-  // patients.value = [];
   patientService.deleteAllFromStorage();
   showloading();
   if (selectedDataSources.value.id.length > 4) {
