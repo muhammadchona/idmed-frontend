@@ -36,10 +36,10 @@
           import { useSwal } from 'src/composables/shared/dialog/dialog';
           import ListHeader from 'components/Shared/ListHeader.vue'
           import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
-          import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
           import activeInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
           import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
-        
+          import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
           const { isMobile, isOnline } = useSystemUtils();
           const { alertError } = useSwal();
           const props= defineProps(['selectedService', 'menuSelected', 'id'])
@@ -61,9 +61,11 @@
            // Pack.api().post('/receivedStockReport/initReportProcess' params)
           } else {
             const reportParams = reportDatesParams.determineStartEndDate(params)
-             activeInDrugStoreMobileService.getDataLocalDb(reportParams) 
-            progress.value = 100
+             activeInDrugStoreMobileService.getDataLocalDb(reportParams).then(resp => {
+              progress.value = 100
             params.progress = 100
+             })
+            
           }
         }
   

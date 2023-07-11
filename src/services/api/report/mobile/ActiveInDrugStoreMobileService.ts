@@ -6,6 +6,10 @@ import ActiveInDrugStore from 'src/stores/models/report/patient/ActiveInDrugStor
 import StartStopReason from 'src/stores/models/startStopReason/StartStopReason';
 import moment from 'moment';
 import clinicService from '../../clinicService/clinicService';
+import startStopReasonService from '../../startStopReasonService/startStopReasonService';
+import patientService from '../../patientService/patientService';
+import therapeuticalRegimenService from '../../therapeuticalRegimenService/therapeuticalRegimenService';
+import therapeuticLineService from '../../therapeuticLineService/therapeuticLineService';
 
 // const activeInDrugStore = useRepo(ActiveInDrugStore);
 
@@ -13,22 +17,23 @@ import clinicService from '../../clinicService/clinicService';
 
 export default {
 
-     getDataLocalDb(params: any) {      
+    async getDataLocalDb(params: any) {      
         
         const reportParams = ReportDatesParams.determineStartEndDate(params)
         const clinic = clinicService.getById(reportParams.clinicId)
           const patientVisitDetails = []
-          patientVisitService.localDbGetAllPatientVisit().then(patientVisits => {
-            patientVisits.forEach(pvisit => {
-              pvisit.patientVisitDetails.forEach(pVisitDetail => {
+         const patientVisits = await patientVisitService.localDbGetAllPatientVisit()
+
+            for (const pvisit of patientVisits) {
+              for (const pVisitDetail of   pvisit.patientVisitDetails ) {
+                pVisitDetail.patientVisit = pvisit
                 patientVisitDetails.push(pVisitDetail)
-              })
-              pvisit.patientVisitDetails[0].patientVisit = pvisit
-            })
-            return this.groupedPatientVisits(patientVisitDetails, reportParams)
-          }).then(reportDatas => {
-              reportDatas.forEach(reportData => {
-                
+              }
+
+            }
+            const reportDatas =   this.groupedPatientVisits(patientVisitDetails, reportParams)
+
+           for (const reportData of reportDatas) {
               const activePatient = new ActiveInDrugStore()
               activePatient.reportId = reportParams.id
               activePatient.year = reportParams.year
@@ -36,46 +41,48 @@ export default {
               activePatient.endDate = reportParams.endDate
               activePatient.province = clinic.province.description
 
-                const identifier = reportData[0].episode.patientServiceIdentifier
-                const startStopReasonType = reportData[0].episode.startStopReason
+              const reportResp = reportData[1] 
+                const identifier = reportResp[0].episode.patientServiceIdentifier
+                const startStopReasonType = reportResp[0].episode.startStopReason
                 if (identifier.service.id === reportParams.clinicalService && startStopReasonType.isStartReason) {
-                  const pack = reportData[0].pack
+                  const pack = reportResp[0].pack
                   const clinicObj = clinic
-                  const patient = reportData[0].patientVisit.patient
-                  const prescription = reportData[0].prescription
-                  const therapeuticRegimen = prescription.prescriptionDetails[0].therapeuticRegimen
-                  const therapeuticLine = prescription.prescriptionDetails[0].therapeuticLine
+                  const idPatient =reportResp[0].patientVisit.patient.id
+                  const patient = await  patientService.getPatientByIdMobile( idPatient)
+                  const prescription = reportResp[0].prescription
+                  const therapeuticRegimen =therapeuticalRegimenService.getById( prescription.prescriptionDetails[0].therapeuticRegimen.id)
+                  const therapeuticLine =  therapeuticLineService.getById( prescription.prescriptionDetails[0].therapeuticLine.id)
                     activePatient.clinic = clinicObj.clinicName
                     activePatient.district = clinicObj.district.description
                     activePatient.nid = identifier.value
-                    activePatient.firstNames = patient.firstNames
-                    activePatient.middleNames = patient.middleNames
-                    activePatient.lastNames = patient.lastNames
-                    activePatient.cellphone = patient.cellphone
+                    activePatient.firstNames = patient[0].firstNames
+                    activePatient.middleNames = patient[0].middleNames
+                    activePatient.lastNames = patient[0].lastNames
+                    activePatient.cellphone = patient[0].cellphone
                     activePatient.patientType = prescription.patientType
                     activePatient.pickupDate = pack.pickupDate
                     activePatient.nextPickUpDate = pack.nextPickUpDate
                     activePatient.therapeuticRegimen = therapeuticRegimen.description
                     activePatient.therapeuticLine = therapeuticLine.description
-                    activePatient.age = this.idadeCalculator(patient.dateOfBirth)
+                    activePatient.age = this.idadeCalculator(patient[0].dateOfBirth)
                     activePatient.id = uuidv4()
                     console.log('activePatient: ', activePatient)
                    this.localDbAddOrUpdate(activePatient)
                 }
-            })
-          })
+            }
     },
-    async groupedPatientVisits (patientVisitDetails: any, reportParams: any) {
-        const result = patientVisitDetails.filter(patientVisitDetail => patientVisitDetail.pack!== undefined &&  moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').format() >= reportParams.endDate)
+     groupedPatientVisits (patientVisitDetails: any, reportParams: any) {
+      // &&  moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').isAfter( moment(reportParams.endDate)
+        const result = patientVisitDetails.filter(patientVisitDetail => patientVisitDetail.pack!== undefined  )
         console.log('RESULT: ', result)
         console.log('RESULT: ', result)
-        const sortedArray = await result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
+        const sortedArray =  result.sort((a, b) => { return a.patientVisit.visitDate - b.patientVisit.visitDate })
         console.log('SORTEDARRAY: ', sortedArray)
         const resultGroupedPatientVisits = this.groupedMapChild(sortedArray)
         return resultGroupedPatientVisits
       }, 
-        getStartStopReasonTypeById  (id: any) {
-        return StartStopReason.where('id', id).first()
+      getStartStopReasonTypeById  (id: any) {
+        return startStopReasonService.getById( id)
       },
 
 
@@ -110,20 +117,13 @@ export default {
             return null
         })
         },
-     async getDataLocalReport (reportId: any) {
+     async getDataLocalReport (reportId: string) {
           
-          const reports = await  this.localDbGetAllByReportId(reportId)
-         
-            const reportData = []
-              if (reports !== null) {
-                reports.forEach(report => {
-                  if (report.reportId === reportId) {
-                    reportData.push(report)
-                  }
-                })
-              }
+      return nSQL(ActiveInDrugStore.entity).query('select').where(['reportId', '=', reportId]).exec().then( result => {
+        return result
+    })
           
-            return reportData
+           
         }
 
 }

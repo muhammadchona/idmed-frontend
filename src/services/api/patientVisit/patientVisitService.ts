@@ -87,6 +87,13 @@ export default {
     try {
       await nSQL(PatientVisit.entity).query('upsert', params).exec();
       // patientVisit.save(JSON.parse(params));
+      params.patientVisitDetails.forEach((rowDetails) => {
+        // rowDetails.episode = null;
+        // rowDetails.pack = null;
+        // rowDetails.prescription = null;
+        // rowDetails.clinic = null;
+        rowDetails.patientVisit = null;
+      });
       patientVisit.save(params);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -297,12 +304,9 @@ async getPatientNSql () {
  },
  
   async localDbGetAllPatientVisit () {
-   const patientVisitlList = []
    return nSQL('patientVisits').query('select').exec().then(result => {
-     for (const pvd of result) {
-       patientVisitlList.push(pvd)
-   }
-   return patientVisitlList
+    console.log('PATIENTVISIT: ', result)
+     return result 
     })
    },
  

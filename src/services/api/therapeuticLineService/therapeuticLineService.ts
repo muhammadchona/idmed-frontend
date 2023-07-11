@@ -138,7 +138,7 @@ export default {
         return (
           therapeuticRegimen.id === id)
       })
-      .get();
+      .first();
   },
 
   //PINIA
