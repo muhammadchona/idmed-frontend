@@ -140,7 +140,7 @@ export default {
   },
 
   // Pinia LocalBase
-  async apiGetAllWithDistricts() {
+  apiGetAllWithDistricts() {
     // return province.query().with('districts').has('code').get();
     return province.query().with('districts').get();
   },

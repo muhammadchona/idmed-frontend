@@ -289,8 +289,10 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import bcrypt from 'bcryptjs';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { isMobile, isOnline } = useSystemUtils();
+const { closeLoading, showloading } = useLoading();
 const $q = useQuasar();
 const router = useRouter();
 const instalation_type = ref(null);
@@ -349,7 +351,7 @@ const clinics = computed(() => {
 Methods
 */
 const doSave = () => {
-  systemConfigs.value = instalation_type.value;
+  systemConfigs.value.value = instalation_type.value;
   systemConfigs.value.key = 'INSTALATION_TYPE';
   systemConfigs.value.description =
     instalation_type.value === 'LOCAL'

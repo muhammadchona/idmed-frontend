@@ -156,6 +156,7 @@ export default {
       .get('/clinic/district/' + districtId)
       .then((resp) => {
         clinic.save(resp.data);
+        // closeLoading();
       })
       .catch((error) => {
         console.log(error);
@@ -174,18 +175,17 @@ export default {
       .with('nationalClinic')
       .with('province')
       .with('district')
-      .with('district.province')
       .where('district_id', districtid)
       .get();
   },
 
   /*PINIA*/
   currClinic() {
-    return  clinic.withAllRecursive(2).where('mainClinic', true).first();
+    return clinic.withAllRecursive(2).where('mainClinic', true).first();
   },
 
   savePinia(clin: any) {
-    clinic.save(clin)
+    clinic.save(clin);
   },
   getAllClinics() {
     return clinic
