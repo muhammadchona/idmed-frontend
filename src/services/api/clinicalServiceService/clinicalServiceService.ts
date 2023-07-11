@@ -165,9 +165,6 @@ export default {
   getClinicalServicePersonalizedById(clinicalServiceId: string) {
     return clinicalService
       .query()
-      .with('attributes', (query) => {
-        query.with('clinicalServiceAttributeType');
-      })
       .with('clinicSectors')
       .with('identifierType')
       .whereId(clinicalServiceId)
