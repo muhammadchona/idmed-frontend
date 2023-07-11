@@ -119,7 +119,7 @@ const columns = [
   {
     name: 'description',
     required: true,
-    label: 'Descricao',
+    label: 'Descrição',
     align: 'left',
     field: (row) => row.description,
     format: (val) => `${val}`,

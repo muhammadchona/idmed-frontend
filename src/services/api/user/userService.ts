@@ -17,11 +17,11 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
-  async post(params: string) {
+  post(params: string) {
     if (isMobile && !isOnline) {
       this.putMobile(params);
     } else {
-      this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
@@ -31,30 +31,27 @@ export default {
       this.getWeb(offset);
     }
   },
-  async patch(uuid: string, params: string) {
+  patch(uuid: string, params: string) {
     if (isMobile && !isOnline) {
       this.putMobile(params);
     } else {
-      this.patchWeb(uuid, params);
+      return this.patchWeb(uuid, params);
     }
   },
-  async delete(uuid: string) {
+  delete(uuid: string) {
     if (isMobile && !isOnline) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      return this.deleteWeb(uuid);
     }
   },
   // WEB
-  async postWeb(params: string) {
-    try {
-      const resp = await api().post('secUser', params);
-      secUserRepo.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  postWeb(params: string) {
+    return api()
+      .post('secUser', params)
+      .then((resp) => {
+        secUserRepo.save(resp.data);
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -75,29 +72,23 @@ export default {
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
-    try {
-      const resp = await api().patch('secUser/' + uuid, params);
-      if (resp.data) {
-        clinicSectorUsersRepo.where('user_id', resp.data.id).delete();
-        secUserRoleRepo.where('user_id', resp.data.id).delete();
-      }
-      secUserRepo.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  patchWeb(uuid: string, params: string) {
+    return api()
+      .patch('secUser/' + uuid, params)
+      .then((resp) => {
+        // if (resp.data) {
+        //   clinicSectorUsersRepo.where('user_id', resp.data.id).delete();
+        //   secUserRoleRepo.where('user_id', resp.data.id).delete();
+        // }
+        secUserRepo.save(resp.data);
+      });
   },
-  async deleteWeb(uuid: string) {
-    try {
-      const resp = await api().delete('secUser/' + uuid);
-      secUserRepo.destroy(uuid);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  deleteWeb(uuid: string) {
+    return api()
+      .delete('secUser/' + uuid)
+      .then(() => {
+        secUserRepo.destroy(uuid);
+      });
   },
   // Mobile
   putMobile(params: string) {

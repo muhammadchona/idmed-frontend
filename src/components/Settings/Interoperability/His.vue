@@ -9,7 +9,6 @@
         :columns="columns"
         :filter="filter"
         row-key="abbreviation"
-        v-model:pagination="pagination"
       >
         <template v-slot:no-data="{ icon, filter }">
           <div
@@ -81,7 +80,6 @@
             <q-td colspan="100%">
               <selectedAttributesTable
                 :rows="props.row.interoperabilityAttributes"
-                :columns="columnsSelectedAttributes"
                 :viewMode="props.expand"
               />
             </q-td>
@@ -101,20 +99,16 @@
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showHISRegistrationScreen">
-      <addHIS
-        @close="showHISRegistrationScreen = false"
-      />
+      <addHIS @close="showHISRegistrationScreen = false" />
     </q-dialog>
   </div>
 </template>
 <script setup>
 /*imports*/
-import { useQuasar } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, onMounted, computed, provide } from 'vue';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 
-/*components import*/
 import addHIS from 'src/components/Settings/Interoperability/AddHIS.vue';
 import selectedAttributesTable from 'src/components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue';
 
@@ -134,7 +128,7 @@ const columns = [
   {
     name: 'description',
     required: true,
-    label: 'Descricao',
+    label: 'Descrição',
     align: 'left',
     field: (row) => row.description,
     format: (val) => `${val}`,
@@ -155,26 +149,6 @@ const columnInteroperabilityTypes = [
   },
 ];
 
-const columnsSelectedAttributes = [
-  {
-    name: 'interoperabilityType',
-    required: true,
-    label: 'Nome',
-    align: 'left',
-    field: (row) => row.interoperabilityType.description,
-    format: (val) => `${val}`,
-    sortable: true,
-  },
-  {
-    name: 'value',
-    required: true,
-    label: 'Valor',
-    align: 'left',
-    field: (row) => row.value,
-    format: (val) => `${val}`,
-    sortable: true,
-  },
-];
 const healthInformationSystem = ref(
   healthInformationSystemService.newInstanceEntity()
 );
@@ -189,11 +163,6 @@ const editMode = inject('editMode');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 const viewMode = inject('viewMode');
-
-/*provides*/
-provide('showHISRegistrationScreen', showHISRegistrationScreen);
-provide('healthInformationSystem', healthInformationSystem);
-provide('selectedHis', healthInformationSystem);
 
 /*Hooks*/
 const getHis = computed(() => {
@@ -259,16 +228,6 @@ const promptToConfirm = (his) => {
       } else {
         his.active = true;
       }
-
-      // if (this.mobile) {
-      //         if (his.syncStatus !== 'R') his.syncStatus = 'U';
-      //         HealthInformationSystem.localDbAdd(JSON.parse(JSON.stringify(his)));
-      //         HealthInformationSystem.insertOrUpdate({ data: his });
-      //         this.displayAlert(
-      //           'info',
-      //           'Tipo de identificador actualizado com sucesso'
-      //         );
-      //       } else {
       step.value = 'edit';
       filter.value = '';
       editMode.value = true;
@@ -292,4 +251,9 @@ const promptToConfirm = (his) => {
     }
   });
 };
+
+/*provides*/
+provide('showHISRegistrationScreen', showHISRegistrationScreen);
+provide('healthInformationSystem', healthInformationSystem);
+provide('selectedHis', healthInformationSystem);
 </script>

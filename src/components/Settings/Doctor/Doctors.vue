@@ -244,7 +244,6 @@ const promptToConfirm = (doctorParam) => {
       } else {
         doctorParam.active = true;
       }
-
       doctorService
         .patch(doctorParam.id, doctorParam)
         .then(() => {

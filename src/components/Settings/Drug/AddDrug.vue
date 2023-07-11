@@ -74,7 +74,6 @@
               option-value="id"
               option-label="description"
               label="Forma Farmacêutica *"
-              @filter="filterForm"
               :disable="onlyView"
               :rules="[
                 (val) =>
@@ -100,7 +99,6 @@
 
 <script setup>
 /*imports*/
-import Drug from '../../../stores/models/drug/Drug';
 import { ref, inject, onMounted, computed } from 'vue';
 import Form from '../../../stores/models/form/Form';
 
@@ -110,7 +108,6 @@ import codeInput from 'src/components/Shared/CodeInput.vue';
 import numberField from 'src/components/Shared/Input/NumberField.vue';
 
 /*Declarations*/
-const stringOptions = ['Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'];
 const submitting = ref(false);
 const databaseCodes = ref([]);
 const periodsTime = ref(['Ano', 'Mes', 'Semana', 'Dia']);

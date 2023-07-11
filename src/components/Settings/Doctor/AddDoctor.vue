@@ -109,11 +109,7 @@
             :disable="onlyView"
             label="Email"
             ref="emailRef"
-            type="email"
-            :rules="[
-              (val) => !!val || 'Por Favor Indique o Email',
-              isValidEmail,
-            ]"
+            :rules="[(val) => isValidEmail(val)]"
           />
         </div>
       </q-card-section>
@@ -172,7 +168,9 @@ const clinics = computed(() => {
 const isValidEmail = (val) => {
   const emailPattern =
     /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
-  return emailPattern.test(val) || 'Email Invalido';
+  if (val !== null && val !== undefined) {
+    if (!emailPattern.test(val)) return 'Email Invalido';
+  }
 };
 
 const validateDoctor = () => {
@@ -197,41 +195,32 @@ const validateDoctor = () => {
 };
 
 const codeRules = (val) => {
-  if (val.length < 9) {
-    return 'O  contacto  deve ter no mínimo 3 caracteres';
+  if (val !== null && val !== undefined) {
+    if (val.length < 9) {
+      return 'O  contacto  deve ter no mínimo 3 caracteres';
+    }
   }
 };
 
 const submitDoctor = () => {
   submitting.value = true;
   doctor.value.active = true;
-  // if (this.mobile) {
-  //   if (!this.isEditStep) {
-  //     this.doctor.syncStatus = 'R'
-  //     Doctor.localDbAdd(JSON.parse(JSON.stringify(this.doctor)))
-  //     Doctor.insert({ data: this.doctor })
-  //     this.closeDialog()
-  //     this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
-  //   } else {
-  //       if (this.doctor.syncStatus !== 'R') this.doctor.syncStatus = 'U'
-  //       const doctorUpdate = new Doctor(JSON.parse(JSON.stringify((this.doctor))))
-  //       Doctor.localDbUpdate(doctorUpdate)
-  //       this.closeDialog()
-  //       this.displayAlert('info', !this.isEditStep ? 'Clínico adicionado com sucesso.' : 'Clínico actualizado com sucesso.')
-  //   }
-  // } else {
   if (isCreateStep.value) {
     if (doctor.value.clinic !== null) {
       doctor.value.clinic_id = doctor.value.clinic.id;
     }
     doctorService
       .post(doctor.value)
-      .then((resp) => {
-        alertSucess('O Registo foi efectuado com sucesso');
+      .then(() => {
+        alertSucess('Clínico registado com sucesso');
         submitting.value = false;
         showDoctorRegistrationScreen.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao registar o Sector Clínico.'
+        );
         submitting.value = false;
         showDoctorRegistrationScreen.value = false;
       });
@@ -243,11 +232,14 @@ const submitDoctor = () => {
 
     doctorService
       .patch(doctor.value.id, doctor.value)
-      .then((resp) => {
+      .then(() => {
+        alertSucess('Clínico actualizado com sucesso.');
         submitting.value = false;
         showDoctorRegistrationScreen.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError('Aconteceu um erro inesperado ao actualizar o Clínico.');
         submitting.value = false;
         showDoctorRegistrationScreen.value = false;
       });

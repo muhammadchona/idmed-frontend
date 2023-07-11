@@ -51,6 +51,7 @@
               class="my-sticky-header-table"
               v-if="!onlyView"
               rows-per-page-options="8"
+              dense
             >
             </q-table>
             <q-table
@@ -60,6 +61,7 @@
               :columns="columns1"
               row-key="code"
               v-if="onlyView"
+              dense
             />
           </div>
         </q-card-section>
@@ -94,7 +96,7 @@ const { alertSucess, alertError } = useSwal();
 const step = ref(1);
 const columns = [
   {
-    name: 'descricao',
+    name: 'descrição',
     required: true,
     label: 'Seleccionar Todas',
     align: 'left',
@@ -106,9 +108,9 @@ const columns = [
 
 const columns1 = [
   {
-    name: 'descricao',
+    name: 'descrição',
     required: true,
-    label: 'Descricão',
+    label: 'Descrição',
     align: 'left',
     field: (row) => row.description,
     format: (val) => `${val}`,
@@ -216,7 +218,7 @@ const descriptionRules = (val) => {
   if (val.length < 3) {
     console.log(val);
     console.log(databaseDescriptions.value);
-    return 'A descricao indicada deve ter no mínimo 3 caracteres';
+    return 'A descrição indicada deve ter no mínimo 3 caracteres';
   } else if (
     (databaseDescriptions.value.includes(val) &&
       selectedRole.value.id === role.value.id &&
@@ -228,7 +230,7 @@ const descriptionRules = (val) => {
   ) {
     return (
       !databaseDescriptions.value.includes(val) ||
-      'A descricao indicada já existe'
+      'A descrição indicada já existe'
     );
   }
 };

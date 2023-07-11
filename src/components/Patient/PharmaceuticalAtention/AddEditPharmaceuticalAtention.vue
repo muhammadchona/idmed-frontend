@@ -138,7 +138,7 @@
                   v-model="imcDescription"
                   class="col q-ml-md"
                   filled
-                  label="IMC-Descricao"
+                  label="IMC-Descrição"
                   disable
                 />
               </div>

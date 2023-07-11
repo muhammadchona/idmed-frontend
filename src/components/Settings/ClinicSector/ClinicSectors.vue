@@ -138,16 +138,15 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 const showClinicSectorRegistrationScreen = ref(false);
+const isNewClinicSector = ref(false);
+
 const filter = ref('');
 const clinicSector = ref(clinicSectorService.newInstanceEntity());
 
 /*injects*/
-const step = inject('step');
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');
-const isEditStep = inject('isEditStep');
-const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const clinicSectors = computed(() => {
@@ -155,20 +154,10 @@ const clinicSectors = computed(() => {
 });
 
 onMounted(() => {
-  isEditStep.value = false;
-  isCreateStep.value = false;
-  step.value = '';
   editMode.value = false;
   viewMode.value = false;
 });
 
-/*provides*/
-provide('selectedClinicSector', clinicSector);
-provide(
-  'showClinicSectorRegistrationScreen',
-  showClinicSectorRegistrationScreen
-);
-provide('stepp', step);
 
 /*Methods*/
 const getIconActive = (clinicSector) => {
@@ -193,27 +182,22 @@ const getTooltipClass = (clinicSector) => {
   }
 };
 const editClinicSector = (clinicSectorParam) => {
-  isCreateStep.value = false;
-  isEditStep.value = true;
+  isNewClinicSector.value = false;
   clinicSector.value = clinicSectorParam;
-  step.value = 'edit';
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = true;
   viewMode.value = false;
 };
 const addClinicSectorr = () => {
-  isEditStep.value = false;
-  isCreateStep.value = true;
+  isNewClinicSector.value = true;
   clinicSector.value = new ClinicSector();
   clinicSector.value.clinic = currClinic.value;
-  step.value = 'create';
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = false;
   viewMode.value = false;
 };
 const visualizeClinicSector = (clinicSectorParam) => {
-  isCreateStep.value = false;
-  isEditStep.value = false;
+  isNewClinicSector.value = false;
   clinicSector.value = clinicSectorParam;
   viewMode.value = true;
   showClinicSectorRegistrationScreen.value = true;
@@ -247,4 +231,12 @@ const promptToConfirm = (clinicSectorParam) => {
     }
   });
 };
+
+/*provides*/
+provide('selectedClinicSector', clinicSector);
+provide(
+  'showClinicSectorRegistrationScreen',
+  showClinicSectorRegistrationScreen
+);
+provide('isNewClinicSector', isNewClinicSector);
 </script>
