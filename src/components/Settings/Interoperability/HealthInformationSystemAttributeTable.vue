@@ -34,15 +34,30 @@
 /*imports*/
 import { inject } from 'vue';
 
-/*components import*/
-
-/*Variables*/
-
 /*injects*/
 const filter = inject('filter');
-const rows = inject('rows');
-const columns = inject('columns');
-const viewMode = inject('viewMode');
+const props = defineProps(['rows', 'viewMode']);
+
+const columns = [
+  {
+    name: 'interoperabilityType',
+    required: true,
+    label: 'Nome',
+    align: 'left',
+    field: (row) => row.interoperabilityType.description,
+    format: (val) => `${val}`,
+    sortable: true,
+  },
+  {
+    name: 'value',
+    required: true,
+    label: 'Valor',
+    align: 'left',
+    field: (row) => row.value,
+    format: (val) => `${val}`,
+    sortable: true,
+  },
+];
 
 /*Hooks*/
 </script>

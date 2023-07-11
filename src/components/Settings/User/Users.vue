@@ -102,12 +102,12 @@ import { ref, inject, computed, provide } from 'vue';
 import userService from 'src/services/api/user/userService.ts';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import SecUser from 'src/stores/models/userLogin/User';
-
-/*Components import*/
 import addUserComp from 'src/components/Settings/User/AddUser.vue';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 /*Variables*/
-const { alertWarningAction } = useSwal();
+const { closeLoading, showloading } = useLoading();
+const { alertWarningAction, alertSucess, alertError } = useSwal();
 const columns = [
   {
     name: 'fullName',
@@ -161,22 +161,8 @@ const configs = computed(() => {
   return sysConfigsService.getInstallationType();
 });
 
-/*Provides*/
-provide('selectedUser', user);
-provide('configs', configs);
-provide('showUserRegistrationScreen', showUserRegistrationScreen);
-
 /*Methods*/
-// const getAllClinicsByProvinceCode = async (provinceCode) => {
-//       await Clinic.api()
-//         .get('/clinic/province/' + provinceCode)
-//         .then((resp) => {
-//           this.hideLoading();
-//         })
-//         .catch((error) => {
-//           console.log(error);
-//         });
-//     },
+
 const getIconActive = (user) => {
   if (user.accountLocked) {
     return 'play_circle';
@@ -228,6 +214,7 @@ const promptToConfirm = (user) => {
 
   alertWarningAction(question).then((response) => {
     if (response) {
+      showloading();
       if (user.accountLocked) {
         user.accountLocked = false;
       } else {
@@ -235,72 +222,23 @@ const promptToConfirm = (user) => {
       }
       userService
         .patch(user.id, user)
-        .then((resp) => {
+        .then(() => {
           submitting.value = false;
-          showUserRegistrationScreen.value = false;
+          alertSucess('Utilizador actualizado com sucesso.');
+          closeLoading();
         })
-        .catch((error) => {
+        .catch(() => {
+          alertError(
+            'Aconteceu um erro inesperado ao actualizar o Utilizador.'
+          );
+          closeLoading();
           submitting.value = false;
-          showUserRegistrationScreen.value = false;
         });
-      // }
     }
   });
 };
-// getRolesToVuex() {
-//   Role.localDbGetAll().then((roles) => {
-//     Role.insert({ data: roles });
-//   });
-// },
-// getSecUserToVuex() {
-//   UserLogin.localDbGetAll().then((users) => {
-//     UserLogin.insert({ data: users });
-//   });
-// },
-// getSystemConfigsToVue() {
-//   SystemConfigs.localDbGetAll().then((systemConfigs) => {
-//     SystemConfigs.insert({ data: systemConfigs });
-//   });
-// },
-// getClinicSectorTypeToVue() {
-//   ClinicSectorType.localDbGetAll().then((clinicSectorTypes) => {
-//     ClinicSectorType.insert({ data: clinicSectorTypes });
-//   });
-// },
-
-// computed: {
-//   users() {
-//     return UserLogin.query()
-//       .with('clinic.province')
-//       .with('clinic.district.province')
-//       .with('clinic.facilityType')
-//       .with('clinicSectors.clinic.province')
-//       .with('clinicSectors.clinic.district.province')
-//       .with('clinicSectors.clinic.facilityType')
-//       .with('clinicSectors.clinicSectorType')
-//       .get();
-//   },
-//   configs() {
-//     return SystemConfigs.query().where('key', 'INSTALATION_TYPE').first();
-//   },
-// },
-
-// mounted() {
-//   this.showloading();
-//   if (this.website) {
-//     // UserLogin.apiGetAll(0, 100);
-//     // Role.apiGetAll().then((item) => {
-//     //   this.hideLoading();
-//     // });
-//     if (this.configs.value === 'PROVINCIAL') {
-//       this.getAllClinicsByProvinceCode(this.configs.description);
-//     }
-//   } else {
-//     this.getRolesToVuex();
-//     this.getSecUserToVuex();
-//     this.getSystemConfigsToVue();
-//     this.getClinicSectorTypeToVue();
-//   }
-//   // this.hideLoading()
-// }
+/*Provides*/
+provide('selectedUser', user);
+provide('configs', configs);
+provide('showUserRegistrationScreen', showUserRegistrationScreen);
 </script>

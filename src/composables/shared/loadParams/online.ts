@@ -1,3 +1,4 @@
+import { SecUser } from 'src/stores/models/userLogin/User';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
 import InteroperabilityAttributeService from 'src/services/api/InteroperabilityAttribute/InteroperabilityAttributeService';
 import InteroperabilityTypeService from 'src/services/api/InteroperabilityType/InteroperabilityTypeService';
@@ -41,6 +42,10 @@ import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDru
 import patientAttributeService from 'src/services/api/patientAttribute/patientAttributeService';
 import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
+import roleService from 'src/services/api/role/roleService';
+import menuService from 'src/services/api/menu/menuService';
+import roleMenuService from 'src/services/api/roleMenu/roleMenuService';
+import userService from 'src/services/api/user/userService';
 
 export function useOnline(clinic: any) {
   function loadSettingParams() {
@@ -69,13 +74,17 @@ export function useOnline(clinic: any) {
     provincialServerService.get(0);
     doctorService.get(0);
     dispenseModeService.get(0);
-    groupTypeService.get(0);
+    groupTypeService.get();
     provinceService.get(0);
     districtService.get(0);
     clinicService.get(0);
     stockService.get(0);
     StockEntranceService.get(0);
     StockCenterService.get(0);
+    roleService.get(0);
+    menuService.get(0);
+    userService.get(0);
+    // roleMenuService.get(0);
     // patientService.get(0);
     // episodeService.get(0);
     StockOperationTypeService.get(0);

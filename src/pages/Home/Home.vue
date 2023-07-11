@@ -117,7 +117,7 @@ import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, onMounted, provide } from 'vue';
+import { computed, onMounted } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
 
@@ -134,17 +134,6 @@ const clinic = computed(() => {
 
 const init = () => {
   showloading();
-  // if (website.value) {
-  //   loadSettingParams;
-  //   // this.loadWebRegimensToVueX();
-  //   // this.loadWebDrugsToVueX();
-  //   // this.loadWebStockToVueX();
-  //   // this.showloading();
-  //   // this.loadWebParamsToVueX();
-  // } else {
-  //   loadSettingParams();
-  //   loadPatientData();
-  // }
 };
 
 const menusVisible = (name) => {
@@ -159,39 +148,18 @@ const menusVisible = (name) => {
 
 onMounted(() => {
   if (website.value || (isMobile.value && isOnline.value)) {
-    console.log('IS WEB APP OR MOBILE ONLONE APP ' + website.value);
     showloading();
     loadSettingParams();
   } else {
-    // loadPatientData();
-    console.log('IS MOBILE APP ' + website.value);
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
       loadSettingParamsToOffline();
       setTimeout(() => {
         loadPatientDataToOffline();
       }, 5000);
-      //  const r = new Promise(r => setTimeout(r, 2000));
     }
-    /*if (patientService.getAllFromStorage().length <= 0) {
-      loadSettingParamsToOffline();
-      loadPatientDataToOffline();
-    }*/
   }
-  // loadSettingParams();
-  // loadPatientData();
-  // SynchronizationService.doGetDrugFileMobile(this.currClinic.id, 0, 100)
-  // SynchronizationService.doGetAllStockAlert(this.currClinic.id, 0, 100)
-  // init();
   setTimeout(() => {
-    // if (website.value) {
-    //      console.log(this.isAppSyncDone);
-    //   if (!this.isAppSyncDone) {
-    //     SynchronizationService.start(this.$q, this.currClinic.id);
-    //   } else {
-    //     hideLoading();
-    //   }
-    // }
     closeLoading();
   }, 3000);
 });

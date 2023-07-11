@@ -82,6 +82,10 @@ export default {
     return drug.withAllRecursive(1).orderBy('name').get();
   },
 
+  getAllForAllDrugs() {
+    return drug.orderBy('name').get();
+  },
+
   savePinia(drugs: any) {
     drug.save(drugs)
   },
@@ -94,7 +98,7 @@ export default {
        return result
        })
    },
- 
+
     async hasStock (drug: any) {
      return nSQL('stocks').query('select').where(['drug_id', '=', drug.id])
    .exec().then(result => {
