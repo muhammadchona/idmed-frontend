@@ -156,6 +156,7 @@ export default {
         .exec()
         .then((rows) => {
           patientServiceIdentifier.save(rows);
+          return rows
         });
     } else {
       return await api()

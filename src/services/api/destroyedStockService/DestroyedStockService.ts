@@ -4,6 +4,7 @@ import destroyedStock from 'src/stores/models/stockdestruction/DestroyedStock';
 
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import DestroyedStock from 'src/stores/models/stockdestruction/DestroyedStock';
 
 const { isMobile, isOnline } = useSystemUtils();
 const destroyedStockRepo = useRepo(destroyedStock)
@@ -110,6 +111,14 @@ const resp = await  nSQL('destroyedStocks').query('delete').where(['id', '=', id
 destroyedStockRepo.destroy(id)
 return resp
 },
+
+async localDbGetAll () {
+  return nSQL(this.entity).query('select').exec().then(result => {
+    console.log(result)
+   // DestroyedStock.insertOrUpdate({ data: result })
+    return result
+    })
+}
 
  
   

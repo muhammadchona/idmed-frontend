@@ -47,7 +47,11 @@ export default {
     .where('code', code)
     .first()
   },
-
+  getStockOperatinTypeById(Id: string) {
+    return stockOperationRepo.query()
+    .where('id', Id)
+    .first()
+  },
   //Pinia
 
   savePinia(st: any) {
