@@ -13,12 +13,10 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@nano-sql/adapter-sqlite-cordova": "^2.1.2",
-    "adapter-sqlite-cordova": "^2.1.201",
-    "cordova-android": "^10.1.0",
+    "cordova-android": "^12.0.0",
     "cordova-plugin-device": "^2.1.0",
     "cordova-plugin-splashscreen": "^6.0.1",
-    "cordova-sqlite-storage": "^3.2.0"
+    "cordova-sqlite-storage": "^6.1.0"
   },
   "cordova": {
     "platforms": [
@@ -26,7 +24,6 @@
     ],
     "plugins": {
       "cordova-plugin-nano-sqlite": {},
-      "adapter-sqlite-cordova": {},
       "cordova-plugin-splashscreen": {}
     }
   }

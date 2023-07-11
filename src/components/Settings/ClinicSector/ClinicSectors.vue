@@ -17,6 +17,17 @@
               <q-icon name="search" />
             </template>
           </q-input>
+          <div class="q-pa-md q-gutter-sm">
+            <q-btn
+              v-if="!website"
+              color="primary"
+              label="Adicionar Novo"
+              no-caps
+              outline
+              rounded
+              @click="addClinicSectorr()"
+            />
+          </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
@@ -77,18 +88,19 @@
           </q-tr>
         </template>
       </q-table>
+      <div class="absolute-bottom" v-if="website">
+        <q-page-sticky position="bottom-right" :offset="[18, 18]">
+          <q-btn
+            size="xl"
+            fab
+            icon="add"
+            @click="addClinicSectorr()"
+            color="primary"
+          />
+        </q-page-sticky>
+      </div>
     </div>
-    <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <q-btn
-          size="xl"
-          fab
-          icon="add"
-          @click="addClinicSectorr()"
-          color="primary"
-        />
-      </q-page-sticky>
-    </div>
+
     <q-dialog persistent v-model="showClinicSectorRegistrationScreen">
       <addClinicSector @close="showClinicSectorRegistrationScreen = false" />
     </q-dialog>
@@ -102,10 +114,11 @@ import clinicSectorService from 'src/services/api/clinicSectorService/clinicSect
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
-
-const { closeLoading, showloading } = useLoading();
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
+const { closeLoading, showloading } = useLoading();
+const { website } = useSystemUtils();
 const { alertWarningAction, alertSucess, alertError } = useSwal();
 const columns = [
   {
@@ -157,7 +170,6 @@ onMounted(() => {
   editMode.value = false;
   viewMode.value = false;
 });
-
 
 /*Methods*/
 const getIconActive = (clinicSector) => {
