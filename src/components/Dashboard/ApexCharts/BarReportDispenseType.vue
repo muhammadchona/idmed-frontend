@@ -68,8 +68,10 @@ const chartOptions = ref({
   title: {
     text: 'Total de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
     align: 'center',
+    offsetY: 12,
     style: {
       color: '#000000',
+      fontSize: '14px',
     },
   },
   plotOptions: {
