@@ -46,14 +46,14 @@ export default {
       },
 
   apiFetchById(id: string) {
-    if (!isOnline ) {
+    if (!isOnline.value ) {
      return this.apiFetchByIdMobile(id);
     } else {
       return this.apiFetchByIdWeb(id);
     }
   },
    async apiGetAllByClinicId (clinicId: string, offset: number, max: number) {
-    if (!isOnline) {
+    if (!isOnline.value) {
       this.apiGetAllByClinicIdMobile(clinicId);
     } else {
       this.apiGetAllByClinicIdWeb(clinicId, offset,max);

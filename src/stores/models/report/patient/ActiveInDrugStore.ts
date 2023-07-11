@@ -1,4 +1,6 @@
-export default class ActiveInDrugStore {
+import { Model } from 'pinia-orm';
+
+export default class ActiveInDrugStore extends Model {
   static entity = 'activeInDrugStores';
   static fields() {
     return {
@@ -27,24 +29,5 @@ export default class ActiveInDrugStore {
     };
   }
 
-  static localDbAdd(activeInDrugStore) {
-    return db.newDb().collection('activeInDrugStores').add(activeInDrugStore);
-  }
 
-  static localDbGetAll() {
-    //
-    return db.newDb().collection('activeInDrugStores').get();
-  }
-
-  static localDbUpdateAll(activeInDrugStore) {
-    return db.newDb().collection('activeInDrugStores').set(activeInDrugStore);
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('activeInDrugStores').delete();
-  }
-
-  static localDbDeleteById(id) {
-    return db.newDb().collection('activeInDrugStores').doc({ id: id }).delete();
-  }
 }

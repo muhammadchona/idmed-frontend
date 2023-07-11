@@ -94,6 +94,16 @@ import StockAlert from './models/stockAlert/StockAlert';
 // import MmiaRegimenSubReport from './models/report/pharmacyManagement/MmiaRegimenSubReport';
 //import ArvDailyRegisterTempReport from './models/report/monitoring/ArvDailyRegisterTempReport';
 import AuditSyncronization from './models/auditSyncronization/AuditSyncronization';
+import StockReceivedReport from './models/report/stock/StockReceivedReport';
+import StockUsedReport from './models/report/stock/StockUsedReport';
+import patientHistoryReport from './models/report/pharmacyManagement/PatientHistoryReport';
+import AbsentPatientReport from './models/report/pharmacyManagement/AbsentPatientReport';
+import MmiaReport from './models/report/pharmacyManagement/MmiaReport';
+import MmiaStockReport from './models/report/pharmacyManagement/MmiaStockReport';
+import MmiaRegimenSubReport from './models/report/pharmacyManagement/MmiaRegimenSubReport';
+import ArvDailyRegisterTempReport from './models/report/monitoring/ArvDailyRegisterTempReport';
+import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
+import ActiveInDrugStore from './models/report/patient/ActiveInDrugStore';
 //import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils';
 // import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore';
 
@@ -185,16 +195,16 @@ export default {
     entitiesList.push(DrugStockFileEvent);
     entitiesList.push(DrugFile);
     entitiesList.push(StockAlert);
-    // entitiesList.push(StockReceivedReport);
-    //  entitiesList.push(StockUsedReport);
-    //  entitiesList.push(PatientHistoryReport);
+    entitiesList.push(StockReceivedReport);
+    entitiesList.push(StockUsedReport);
+    entitiesList.push(patientHistoryReport);
     entitiesList.push(AuditSyncronization);
-    //  entitiesList.push(AbsentPatientReport);
-    // entitiesList.push(MmiaReport)
-    // entitiesList.push(MmiaStockReport)
-    // entitiesList.push(MmiaRegimenSubReport)
-    //  entitiesList.push(ArvDailyRegisterTempReport);
-    // entitiesList.push(ActiveInDrugStore)
+    entitiesList.push(AbsentPatientReport);
+    entitiesList.push(MmiaReport)
+    entitiesList.push(MmiaStockReport)
+    entitiesList.push(MmiaRegimenSubReport)
+    entitiesList.push(ArvDailyRegisterTempReport);
+   entitiesList.push(ActiveInDrugStore)
     return entitiesList;
   },
 };
