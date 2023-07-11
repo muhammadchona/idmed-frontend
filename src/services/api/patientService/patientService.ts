@@ -116,7 +116,7 @@ export default {
       console.log(error);
     }
   },
-  async apiFetchById(id: string) {
+   apiFetchById(id: string) {
     if (isMobile.value && !isOnline.value) {
       return nSQL(Patient.entity)
         .query('select')
@@ -124,6 +124,8 @@ export default {
         .exec()
         .then((rows) => {
           patient.save(rows);
+          return rows
+          
         });
     } else {
       return api()
@@ -358,4 +360,26 @@ export default {
       ])
       .exec();
   },
+
+  getById(id: string) {
+    return patient
+      .query()
+      .where((patient) => {
+        return (
+          patient.id === id)
+      })
+      .first();
+  },
+
+ async getPatientByIdMobile(id: string) {
+      return nSQL(Patient.entity)
+        .query('select')
+        .where(['id', '=', id])
+        .exec()
+        .then((rows) => {
+          console.log('PACIENTES: ', rows)
+          return rows
+          
+        });
+  }
 };

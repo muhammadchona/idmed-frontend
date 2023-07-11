@@ -145,4 +145,13 @@ export default {
       .orderBy('reason', 'asc')
       .get();
   },
+  getById(id: string) {
+    return startStopReason
+      .query()
+      .where((startStopReason) => {
+        return (
+          startStopReason.id === id)
+      })
+      .get();
+  },
 };
