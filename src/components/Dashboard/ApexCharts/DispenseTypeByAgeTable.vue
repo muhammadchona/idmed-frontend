@@ -28,46 +28,53 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted, inject, watch } from "vue";
-import reportService from "src/services/api/report/reportService.ts";
+import { ref, watchEffect, onMounted, inject, watch } from 'vue';
+import reportService from 'src/services/api/report/reportService.ts';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isOnline } = useSystemUtils();
 
 const columnsGender = [
   {
-    name: "dispenseType",
+    name: 'dispenseType',
     required: true,
-    label: "Tipo de Dispensa",
-    align: "left",
+    label: 'Tipo de Dispensa',
+    align: 'left',
     field: (row) => row.dispenseType,
     format: (val) => `${val}`,
   },
   {
-    name: "adulto",
+    name: 'adulto',
     required: true,
-    label: "Adulto",
-    align: "left",
+    label: 'Adulto',
+    align: 'left',
     field: (row) => row.adulto,
     format: (val) => `${val}`,
   },
   {
-    name: "menor",
+    name: 'menor',
     required: true,
-    label: "Criança",
-    align: "left",
+    label: 'Criança',
+    align: 'left',
     field: (row) => row.menor,
     format: (val) => `${val}`,
   },
 ];
 
-const serviceCode = inject("serviceCode");
-const year = inject("year");
-const clinic = inject("currClinic");
+const serviceCode = inject('serviceCode');
+const year = inject('year');
+const clinic = inject('currClinic');
 const rowData = ref([]);
 
 function getDispenseByAge() {
   reportService
     .getDispenseByAge(year.value, clinic.value.id, serviceCode.value)
     .then((resp) => {
-      rowData.value = resp.data;
+      if (isOnline.value) {
+        rowData.value = resp.data
+      } else {
+        rowData.value = resp
+      }
     });
 }
 

@@ -35,39 +35,42 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject, watch } from "vue";
-import reportService from "src/services/api/report/reportService.ts";
+import { ref, computed, onMounted, inject, watch } from 'vue';
+import reportService from 'src/services/api/report/reportService.ts';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isOnline } = useSystemUtils();
 
 const columnsGender = [
   {
-    name: "drug",
+    name: 'drug',
     required: true,
-    label: "Medicamento",
-    align: "left",
+    label: 'Medicamento',
+    align: 'left',
     field: (row) => row.drug,
     format: (val) => `${val}`,
   },
   {
-    name: "avgConsuption",
+    name: 'avgConsuption',
     required: true,
-    label: "Média de Consumo Mensal",
-    align: "left",
+    label: 'Média de Consumo Mensal',
+    align: 'left',
     field: (row) => row.avgConsuption,
     format: (val) => `${val}`,
   },
   {
-    name: "balance",
+    name: 'balance',
     required: true,
-    label: "Saldo atual",
-    align: "left",
+    label: 'Saldo atual',
+    align: 'left',
     field: (row) => row.balance,
     format: (val) => `${val}`,
   },
   {
-    name: "state",
+    name: 'state',
     required: true,
-    label: "Estado",
-    align: "left",
+    label: 'Estado',
+    align: 'left',
     field: (row) => row.state,
     format: (val) => `${val}`,
   },
@@ -75,25 +78,29 @@ const columnsGender = [
 
 const rowData = ref([]);
 
-const currClinic = inject("currClinic");
-const serviceCode = inject("serviceCode");
-const year = inject("year");
+const currClinic = inject('currClinic');
+const serviceCode = inject('serviceCode');
+const year = inject('year');
 
 const getStockAlert = () => {
   reportService.getStockAlert(currClinic.value.id, serviceCode.value).then((resp) => {
-    rowData.value = resp.data;
+      if (isOnline.value) {
+        rowData.value = resp.data
+      } else {
+        rowData.value = resp
+      }
   });
 };
 
 const getConsuptionRelatedColor = (state) => {
-  if (state === "Sem Consumo") {
-    return "blue";
-  } else if (state === "Ruptura de Stock") {
-    return "red";
-  } else if (state === "Acima do Consumo Máximo") {
-    return "info";
+  if (state === 'Sem Consumo') {
+    return 'blue';
+  } else if (state === 'Ruptura de Stock') {
+    return 'red';
+  } else if (state === 'Acima do Consumo Máximo') {
+    return 'info';
   } else {
-    return "primary";
+    return 'primary';
   }
 };
 

@@ -28,46 +28,53 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, inject } from "vue";
-import reportService from "src/services/api/report/reportService.ts";
+import { ref, computed, onMounted, watch, inject } from 'vue';
+import reportService from 'src/services/api/report/reportService.ts';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isOnline } = useSystemUtils();
 
 const columnsGender = [
   {
-    name: "dispenseType",
+    name: 'dispenseType',
     required: true,
-    label: "Tipo de Dispensa",
-    align: "left",
+    label: 'Tipo de Dispensa',
+    align: 'left',
     field: (row) => row.dispenseType,
     format: (val) => `${val}`,
   },
   {
-    name: "masculino",
+    name: 'masculino',
     required: true,
-    label: "Masculino",
-    align: "left",
+    label: 'Masculino',
+    align: 'left',
     field: (row) => row.masculino,
     format: (val) => `${val}`,
   },
   {
-    name: "femenino",
+    name: 'femenino',
     required: true,
-    label: "Feminino",
-    align: "left",
+    label: 'Feminino',
+    align: 'left',
     field: (row) => row.femenino,
     format: (val) => `${val}`,
   },
 ];
 
 const rowData = ref([]);
-const serviceCode = inject("serviceCode");
-const year = inject("year");
-const currClinic = inject("currClinic");
+const serviceCode = inject('serviceCode');
+const year = inject('year');
+const currClinic = inject('currClinic');
 
 const getDispensesByGender = () => {
   reportService
     .getDispensesByGender(year.value, currClinic.value.id, serviceCode.value)
     .then((resp) => {
-      rowData.value = resp.data;
+      if (isOnline.value) {
+        rowData.value = resp.data
+      } else {
+        rowData.value = resp
+      }
     });
 };
 

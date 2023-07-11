@@ -33,7 +33,6 @@ export default {
     if (isMobile && !isOnline) {
       this.putMobile(params);
     } else {
-      console.log(uuid, ' ** ', params);
       this.patchWeb(uuid, params);
     }
   },
@@ -52,7 +51,6 @@ export default {
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
     }
   },
   getWeb(offset: number) {
@@ -70,14 +68,12 @@ export default {
         })
         .catch((error) => {
           alertError('Aconteceu um erro inesperado nesta operação.');
-          console.log(error);
         });
     }
   },
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('healthInformationSystem/' + uuid, params);
-      console.log(resp.data);
       interoperabilityAttributeRepo
         .where('healthInformationSystem_id', resp.data.id)
         .delete();
@@ -85,7 +81,6 @@ export default {
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
     }
   },
   async deleteWeb(uuid: string) {
@@ -95,8 +90,7 @@ export default {
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
       alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+     }
   },
   // Mobile
   putMobile(params: string) {
@@ -109,7 +103,6 @@ export default {
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
       });
   },
   getMobile() {
@@ -121,7 +114,6 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
@@ -135,7 +127,6 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
       });
   },
   async apiFetchById(id: string) {
