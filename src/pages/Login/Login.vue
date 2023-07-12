@@ -405,7 +405,7 @@ const loginOnline = (encodedStringBtoA) => {
         localStorage.setItem('refresh_token', localuser.refresh_token);
         localStorage.setItem('username', localuser.username);
         localStorage.setItem('user', localuser.username);
-        localStorage.setItem('encodeBase64', encodedStringBtoA);
+        localStorage.setItem('Btoa', encodedStringBtoA);
         localStorage.setItem('role_menus', localuser.menus);
         localStorage.setItem(
           'clinic_sector_users',
@@ -439,7 +439,7 @@ const loginOffline = (encodedStringBtoA) => {
   ) {
     localStorage.setItem('username', userLoged.username);
     localStorage.setItem('user', userLoged.username);
-    localStorage.setItem('encodeBase64', encodedStringBtoA);
+    localStorage.setItem('Btoa', encodedStringBtoA);
     // localStorage.setItem('sync_pass', encryption.encryptPlainText('user.sync'));
     router.push({ path: '/' });
   } else {

@@ -349,11 +349,7 @@ const openMRSSerach = (his) => {
     currPatient.value.identifiers.push(patientServiceIdentifier.value);
 
     patientService
-      .apiSearchPatientOnOpenMRS(
-        his.id,
-        nid,
-        localStorage.getItem('encodeBase64')
-      )
+      .apiSearchPatientOnOpenMRS(his.id, nid, localStorage.getItem('Btoa'))
       .then((response) => {
         patientService.deleteAllFromStorage();
         if (response.data.results.length > 0) {
@@ -562,7 +558,7 @@ const localSearch = () => {
 
 const checkOpenMRS = (his) => {
   patientService
-    .apiCheckOpenmRSisOn(his.id, localStorage.getItem('encodeBase64'))
+    .apiCheckOpenmRSisOn(his.id, localStorage.getItem('Btoa'))
     .then((response) => {
       if (
         response.data.authenticated === false ||
