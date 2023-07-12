@@ -36,7 +36,7 @@
 
 <script setup>
 import { ref, computed, onMounted, inject, watch } from 'vue';
-import reportService from 'src/services/api/report/reportService.ts';
+import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isOnline } = useSystemUtils();
