@@ -169,18 +169,45 @@ const doValidationToDispense = () => {
     used: false,
   });
   console.log(memberPrescription);
-  memberPrescription.member.group.clinic = memberPrescription.member.clinic;
-  memberPrescription.member.group.service.drugs = [];
-  memberPrescription.member.group.service.clinicalServiceAttributes = [];
-  memberPrescription.member.patient.identifiers = [];
-  memberPrescription.member.group.members = [];
-  memberPrescription.member.patient.district =
-    memberPrescription.member.clinic.district;
+  const groupId = memberPrescription.member.group.id;
+  const patientId = memberPrescription.member.patient.id;
+  // memberPrescription.member.group.clinic = memberPrescription.member.clinic;
+  memberPrescription.member.group = {};
+  memberPrescription.member.group.id = groupId;
+  memberPrescription.member.group_id = groupId;
+  memberPrescription.member.clinic = {};
+  memberPrescription.member.clinic.id = patient.value.clinic.id;
+  memberPrescription.member.clinic_id = patient.value.clinic.id;
+  memberPrescription.member.patient = {};
+  memberPrescription.member.patient.id = patientId;
+
+  const doctorId = memberPrescription.prescription.doctor.id;
+  memberPrescription.prescription.doctor = {};
+  memberPrescription.prescription.doctor.id = doctorId;
+  memberPrescription.prescription.doctor_id = doctorId;
+  memberPrescription.prescription.clinic = {};
+  memberPrescription.prescription.clinic.id =
+    memberPrescription.member.clinic.id;
+  memberPrescription.prescription.clinic_id =
+    memberPrescription.member.clinic.id;
+  const durationId = memberPrescription.prescription.duration.id;
+  memberPrescription.prescription.duration = {};
+  memberPrescription.prescription.duration.id = durationId;
+  memberPrescription.prescription.duration_id = durationId;
   memberPrescription.prescription.prescribedDrugs.forEach((pd) => {
+    const drugId = pd.drug.id;
+    pd.drug = {};
+    pd.drug.id = drugId;
     pd.drug.therapeuticRegimenList = [];
     pd.drug.packaged_drugs = [];
   });
-
+  const therapeuticalRegimenId =
+    memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen
+      .id;
+  memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen =
+    {};
+  memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id =
+    therapeuticalRegimenId;
   if (!isOnline.value) {
     memberPrescription.prescription.doctor_id =
       memberPrescription.prescription.doctor.id;
@@ -193,7 +220,7 @@ const doValidationToDispense = () => {
     memberPrescription.prescription.prescriptionDetails[0].therapeutic_line_id =
       memberPrescription.prescription.prescriptionDetails[0].therapeuticLine.id;
     memberPrescription.prescription.prescriptionDetails[0].therapeutic_regimen_id =
-      memberPrescription.prescription.prescriptionDetails[0].therapeuticRegimen.id;
+      therapeuticalRegimenId;
     memberPrescription.prescription.prescriptionDetails[0].dispense_type_id =
       memberPrescription.prescription.prescriptionDetails[0].dispenseType.id;
     if (
@@ -209,6 +236,7 @@ const doValidationToDispense = () => {
     });
     memberPrescription.syncStatus = 'R';
   }
+
   groupMemberPrescriptionService
     .apiSave(memberPrescription)
     .then((resp1) => {
