@@ -116,7 +116,7 @@ export default {
       console.log(error);
     }
   },
-   apiFetchById(id: string) {
+  apiFetchById(id: string) {
     if (isMobile.value && !isOnline.value) {
       return nSQL(Patient.entity)
         .query('select')
@@ -124,8 +124,7 @@ export default {
         .exec()
         .then((rows) => {
           patient.save(rows);
-          return rows
-          
+          return rows;
         });
     } else {
       return api()
@@ -176,30 +175,20 @@ export default {
       });
   },
 
-  async apiopenmrsProgramSearch(
-    hisId: string,
-    nid: string,
-    encodeBase64: string
-  ) {
+  async apiopenmrsProgramSearch(hisId: string, nid: string, Btoa: string) {
     return await api().get(
-      '/patient/openmrsProgramSearch/' + hisId + '/' + nid + '/' + encodeBase64
+      '/patient/openmrsProgramSearch/' + hisId + '/' + nid + '/' + Btoa
     );
   },
 
-  async apiSearchPatientOnOpenMRS(
-    hisId: string,
-    nid: string,
-    encodeBase64: string
-  ) {
+  async apiSearchPatientOnOpenMRS(hisId: string, nid: string, Btoa: string) {
     return await api().get(
-      '/patient/openmrsSearch/' + hisId + '/' + nid + '/' + encodeBase64
+      '/patient/openmrsSearch/' + hisId + '/' + nid + '/' + Btoa
     );
   },
 
-  async apiCheckOpenmRSisOn(hisId: string, encodeBase64: string) {
-    return await api().get(
-      '/patient/openmrsSession/' + hisId + '/' + encodeBase64
-    );
+  async apiCheckOpenmRSisOn(hisId: string, Btoa: string) {
+    return await api().get('/patient/openmrsSession/' + hisId + '/' + Btoa);
   },
 
   async apiSave(patient: any, isNew: boolean) {
@@ -225,14 +214,13 @@ export default {
   async doPatientsBySectorGet() {
     const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
       localStorage.getItem('clinic_sector_users')
-
     );
     if (clinicSectorUser === null || clinicSectorUser === undefined) {
       alertError(
         'O Utilizador logado nao pertence a nenhum sector clinico , não terá informação carregada do Servidor'
       );
     }
-    
+
     console.log('sector' + clinicSectorUser);
     console.log('sectorId' + clinicSectorUser.id);
     const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
@@ -365,21 +353,19 @@ export default {
     return patient
       .query()
       .where((patient) => {
-        return (
-          patient.id === id)
+        return patient.id === id;
       })
       .first();
   },
 
- async getPatientByIdMobile(id: string) {
-      return nSQL(Patient.entity)
-        .query('select')
-        .where(['id', '=', id])
-        .exec()
-        .then((rows) => {
-          console.log('PACIENTES: ', rows)
-          return rows
-          
-        });
-  }
+  async getPatientByIdMobile(id: string) {
+    return nSQL(Patient.entity)
+      .query('select')
+      .where(['id', '=', id])
+      .exec()
+      .then((rows) => {
+        console.log('PACIENTES: ', rows);
+        return rows;
+      });
+  },
 };

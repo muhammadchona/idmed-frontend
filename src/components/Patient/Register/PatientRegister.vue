@@ -520,7 +520,7 @@ const savePatient = async () => {
       .apiopenmrsProgramSearch(
         patientReg.value.his.id,
         uuid,
-        localStorage.getItem('encodeBase64')
+        localStorage.getItem('Btoa')
       )
       .then((response) => {
         closeLoading();

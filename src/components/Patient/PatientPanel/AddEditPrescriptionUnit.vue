@@ -808,6 +808,10 @@ const allGoodvalidatedForm = () => {
   curPrescription.value.prescriptionDate = getDateFromHyphenDDMMYYYY(
     prescriptionDate.value
   );
+  curPrescription.value.doctor.clinic = {};
+  curPrescription.value.doctor.clinic.id =
+    curPrescription.value.doctor.clinic_id;
+
   curPrescription.value.prescribedDrugs.forEach((prescribedDrug) => {
     prescribedDrug.prescription = null;
     prescribedDrug.prescription_id = null;
@@ -826,7 +830,8 @@ const allGoodvalidatedForm = () => {
 
   curPack.value.clinic = patient.value.clinic;
   curPack.value.clinic_id = patient.value.clinic_id;
-  curPack.value.syncStatus = 'N';
+  curPack.value.providerUuid = localStorage.getItem('Btoa');
+  curPack.value.syncStatus = 'R';
   curPack.value.packagedDrugs = [];
 
   curPatientVisitDetail.value.patient_visit_id = curPatientVisit.value.id;
