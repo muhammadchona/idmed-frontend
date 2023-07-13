@@ -238,6 +238,8 @@ const doValidationToDispense = () => {
       patientVisitDetail.pack.clinic.id = patient.value.clinic_id;
       patientVisitDetail.pack.dispenseMode = {};
       patientVisitDetail.pack.dispenseMode.id = dispenseMode.value.id;
+      patientVisitDetail.pack.syncStatus = 'R';
+      patientVisitDetail.pack.providerUuid = localStorage.getItem('Btoa');
       patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug) => {
         packagedDrug.drug = {};
         packagedDrug.drug.id = packagedDrug.drug_id;

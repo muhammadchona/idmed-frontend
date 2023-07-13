@@ -528,6 +528,7 @@ const loadHISDataSource = () => {
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
       // TransferenceService.checkProvincialServer();
+      closeLoading();
     } else {
       checkOpenMRS(selectedDataSources.value);
     }
@@ -570,11 +571,10 @@ const checkOpenMRS = (his) => {
             username +
             '] não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.'
         );
+        closeLoading();
       } else {
-        alertSucess(
-          'Pesquisa OpenMRS',
-          'Pesquisa de Pacientes no OpenMRS em funcionamento'
-        );
+        alertSucess('Pesquisa de Pacientes no OpenMRS em funcionamento');
+        closeLoading();
       }
     })
     .catch((error) => {
@@ -582,14 +582,13 @@ const checkOpenMRS = (his) => {
         alertError(
           'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão'
         );
+        closeLoading();
       } else {
         console.log(error);
         alertError('Falha inexperada, por favor contacte o adminitrador.');
+        closeLoading();
       }
     });
-  setTimeout(() => {
-    closeLoading();
-  }, 400);
 };
 
 provide('title', title);
