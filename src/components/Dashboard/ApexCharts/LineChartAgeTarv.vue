@@ -16,7 +16,7 @@
 <script setup>
 import apexchart from 'vue3-apexcharts';
 import { ref, watch, onMounted, inject, computed } from 'vue';
-import reportService from 'src/services/api/report/reportService.ts';
+import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isOnline } = useSystemUtils();

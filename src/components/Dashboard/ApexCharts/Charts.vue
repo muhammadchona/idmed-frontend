@@ -75,7 +75,7 @@
 
 <script setup>
   import { ref, inject, watch, onMounted, provide, computed } from 'vue';
-  import reportService from 'src/services/api/report/reportService.ts';
+  import reportService from 'src/services/api/report/ReportService.ts';
   import { useLoading } from 'src/composables/shared/loading/loading';
 
   /*Components*/
