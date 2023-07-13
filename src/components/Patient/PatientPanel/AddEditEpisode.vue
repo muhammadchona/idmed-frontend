@@ -721,9 +721,6 @@ const doSave = async () => {
     );
 
     if (isCloseEpisode.value) {
-      episode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
-        stopDate.value
-      );
       episode.value.isLast = false;
       closureEpisode.value.clinicSector = episode.value.clinicSector;
       closureEpisode.value.isLast = true;
@@ -735,7 +732,8 @@ const doSave = async () => {
         stopDate.value
       );
       closureEpisode.value.creationDate = moment();
-      closureEpisode.value.patientServiceIdentifier = curIdentifier.value;
+      closureEpisode.value.patientServiceIdentifier = {}
+      closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
     }
   }
   episodeService

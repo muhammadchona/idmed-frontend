@@ -91,7 +91,7 @@
               dense
               outlined
               mask="##"
-              :rules="[(val) => !!val || 'Por favor indicar a idade']"
+              :rules="[(val) => val >= 0 || 'Por favor indicar a idade']"
             />
             <q-select
               class="col q-ml-md"

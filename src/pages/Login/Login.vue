@@ -371,6 +371,8 @@ const loadMenusFromLocalToVuex = async () => {
 };
 
 const authUser = async () => {
+  console.log('WEB', isOnline.value);
+  console.log('Mobile', isMobile.value);
   const encodedStringBtoA = btoa(
     String(username.value).concat(':').concat(password.value)
   );

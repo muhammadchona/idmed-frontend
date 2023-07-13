@@ -2,14 +2,31 @@
   <div>
     <q-expansion-item
       dense
-      header-class="bg-grey-6 text-white text-bold vertical-middle q-pl-md"
+      :header-class="
+        isStartEpisode(currEpisode)
+          ? 'bg-grey-6 text-white text-bold vertical-middle q-pl-md'
+          : 'bg-red text-white text-bold vertical-middle q-pl-md blink'
+      "
       expand-icon-class="text-white"
     >
       <template v-slot:header>
         <q-item-section avatar>
           <q-icon color="white" name="medical_information" />
         </q-item-section>
-        <q-item-section>
+
+        <q-item-section v-if="!isStartEpisode(currEpisode)">
+          <span>
+            Data de
+            {{ isStartEpisode(currEpisode) ? 'Início:' : 'Fim:' }}
+            {{ formatDate(currEpisode.episodeDate) }}
+            [{{
+              currEpisode.startStopReason !== null
+                ? currEpisode.startStopReason.reason
+                : ''
+            }}]
+          </span>
+        </q-item-section>
+        <q-item-section v-else>
           Data de
           {{ isStartEpisode(currEpisode) ? 'Início:' : 'Fim:' }}
           {{ formatDate(currEpisode.episodeDate) }}
@@ -255,5 +272,25 @@ provide('lastPack', lastPack);
 provide('isCloseEpisode', isCloseEpisode);
 provide('curEpisodeIdentifier', currIdentifier);
 </script>
-
-<style></style>
+<style scoped>
+.blink {
+  text-align: center;
+  line-height: 50px;
+}
+span {
+  font-weight: bold;
+  color: rgb(255, 255, 255);
+  animation: blink 1s linear infinite;
+}
+@keyframes blink {
+  0% {
+    opacity: 0.1;
+  }
+  0% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+</style>

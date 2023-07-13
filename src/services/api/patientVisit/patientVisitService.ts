@@ -18,7 +18,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+     return this.putMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -32,7 +32,7 @@ export default {
   },
   patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.patchWeb(uid, params);
     }
@@ -83,22 +83,13 @@ export default {
       });
   },
   // Mobile
-  async putMobile(params: string) {
-    try {
-      await nSQL(PatientVisit.entity).query('upsert', params).exec();
-      // patientVisit.save(JSON.parse(params));
-      params.patientVisitDetails.forEach((rowDetails) => {
-        // rowDetails.episode = null;
-        // rowDetails.pack = null;
-        // rowDetails.prescription = null;
-        // rowDetails.clinic = null;
-        rowDetails.patientVisit = null;
+  putMobile(params: string) {
+    return nSQL(PatientVisit.entity)
+      .query('upsert', params)
+      .exec()
+      .then((resp) => {
+        patientVisit.save(resp[0].affectedRows);
       });
-      patientVisit.save(params);
-    } catch (error) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
   },
   async getMobile() {
     try {
@@ -272,7 +263,7 @@ async getPatientNSql () {
     //  return result
     })
  },
- 
+
  async getPatientVIsitNSqlByPatient (patient: any) {
   return nSQL(PatientVisit.entity).query('select').where(['patient[id]', '=', patient.id]).exec().then(result => {
     console.log(result)
@@ -282,7 +273,7 @@ async getPatientNSql () {
  })
     })
  },
- 
+
  async getVisits () {
  nSQL().onConnected(() => {
    nSQL(PatientVisit.entity).query('select', ['JSON_EXTRACT(patientVisitDetails, "$[*].pack") as pack']).exec().then(result => {
@@ -290,7 +281,7 @@ async getPatientNSql () {
    })
   })
  },
- 
+
   async localDbGetPacks () {
  const packList = []
  return nSQL('patientVisits').query('select', ['patientVisitDetails']).exec().then(result => {
@@ -302,14 +293,14 @@ async getPatientNSql () {
  return packList
   })
  },
- 
+
   async localDbGetAllPatientVisit () {
    return nSQL('patientVisits').query('select').exec().then(result => {
     console.log('PATIENTVISIT: ', result)
-     return result 
+     return result
     })
    },
- 
+
     async countPacksByDispenseTypeAndServiceOnPeriod (dispenseType: any, service: any, startDate: any, endDate: any) {
      let counter = 0
        return nSQL('patientVisits').query('select').exec().then(result => {

@@ -15,7 +15,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -29,7 +29,7 @@ export default {
   },
   patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.patchWeb(uid, params);
     }
@@ -80,15 +80,13 @@ export default {
       });
   },
   // Mobile
-  async putMobile(params: string) {
-    try {
-      await nSQL(PatientVisitDetails.entity).query('upsert', params).exec();
-      patientVisitDetails.save(JSON.parse(params));
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  putMobile(params: string) {
+    return nSQL(PatientVisitDetails.entity)
+      .query('upsert', params)
+      .exec()
+      .then((resp) => {
+        patientVisitDetails.save(resp[0].affectedRows);
+      });
   },
   async getMobile() {
     try {
