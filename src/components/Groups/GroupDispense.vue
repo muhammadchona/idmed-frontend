@@ -500,6 +500,10 @@ const validatePack = (pack) => {
             i = i + 1;
           }
         }
+        const clinicalServiceId = packagedDrug.drug.clinicalService.id;
+        packagedDrug.drug.clinicalService = {};
+        packagedDrug.drug.clinicalService.id = clinicalServiceId;
+        packagedDrug.drug.therapeuticRegimenList = [];
         packagedDrug.packagedDrugStocks = packagedDrugStocks;
         pack.patientVisitDetails[0].patientVisit.visitDate =
           curGroupPackHeader.value.packDate;
