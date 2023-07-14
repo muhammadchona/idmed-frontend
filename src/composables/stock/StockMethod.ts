@@ -51,9 +51,8 @@ export function useStock () {
   for (const pvd of result) {
      for (const pvdObj of pvd.patientVisitDetails) {
     // if (pvd.pack.pickupDate > new Date()) {
-      if (pvdObj.pack !== undefined) {
-        const packObj = packService.getPackWithsByID(pvdObj.pack.id)
-      for (const pcd of packObj?.packagedDrugs) {
+      if (pvdObj.pack !== undefined) {     
+      for (const pcd of pvdObj.pack .packagedDrugs) {
           if (pcd.drug_id === drug.id) {
             drugQuantitySupplied += Number(pcd.quantitySupplied)
           }
