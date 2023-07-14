@@ -107,16 +107,25 @@ const closeSection = () => {
             })
         } else {
           PatientHistoryMobileService.localDbGetAllByReportId(id).then(reports => {
-        
-             const firstReg = reports[0]
+            const firstReg = reports[0]
+            if (fileType === 'PDF') {            
             patientHistoryTS.downloadPDF(
                    '',
                     moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
                   moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
                   reports)
-        })
-        }
+             } else {
+              patientHistoryTS.downloadExcel(
+                   '',
+                    moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+                  reports)
       }
+        })
+      } 
+        
+        }
+      
 
 </script>
 
