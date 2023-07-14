@@ -116,6 +116,11 @@ export default {
         console.log(error);
       });
   },
+   async localDbGetById (id) {
+    return nSQL(DispenseMode.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       return result[0]
+     })
+ },
   deleteMobile(paramsId: string) {
     return nSQL(DispenseMode.entity)
       .query('delete')

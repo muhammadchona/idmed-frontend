@@ -558,6 +558,7 @@ const init = async () => {
     episode.value = new Episode();
     startDate.value = getDDMMYYYFromJSDate(moment());
   } else {
+    closureEpisode.value = new Episode();
     if (curEpisode !== null && curEpisode !== undefined) {
       episode.value = curEpisode.value;
       startDate.value = getDDMMYYYFromJSDate(episode.value.episodeDate);
@@ -722,7 +723,10 @@ const doSave = async () => {
 
     if (isCloseEpisode.value) {
       episode.value.isLast = false;
-      closureEpisode.value.clinicSector = episode.value.clinicSector;
+      closureEpisode.value.clinicSector =
+        selectedClinicSector.value !== null
+          ? selectedClinicSector.value
+          : episode.value.clinicSector;
       closureEpisode.value.isLast = true;
       closureEpisode.value.episodeType =
         episodeTypeService.getEpisodeTypeByCode('FIM');
@@ -732,7 +736,7 @@ const doSave = async () => {
         stopDate.value
       );
       closureEpisode.value.creationDate = moment();
-      closureEpisode.value.patientServiceIdentifier = {}
+      closureEpisode.value.patientServiceIdentifier = {};
       closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
     }
   }
