@@ -1,10 +1,11 @@
+import { v4 as uuidv4 } from 'uuid'
+import { Model } from 'pinia-orm';
 
-
-export default class patientHistoryReport {
+export default class patientHistoryReport extends Model {
   static entity = 'patientHistorys';
   static fields() {
     return {
-      id: this.attr(null),
+      id: this.string(() => uuidv4()),
       reportId: this.attr(''),
       periodType: this.attr(''),
       period: this.attr(''),

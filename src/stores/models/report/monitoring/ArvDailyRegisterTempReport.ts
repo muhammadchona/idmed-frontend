@@ -2,6 +2,7 @@
 // import DrugQuantityTemp from './DrugQuantityTemp'
 
 import { Model } from 'pinia-orm';
+import DrugQuantityTemp from './DrugQuantityTemp';
 
 export default class ArvDailyRegisterTempReport extends Model {
   static entity = 'arvDailyRegisterTempReports';
@@ -37,7 +38,7 @@ export default class ArvDailyRegisterTempReport extends Model {
       startReason: this.attr(''),
       prep: this.attr(''),
       ppe: this.attr(''),
-      drugQuantityTemps: this.attr(''),
+      drugQuantityTemps: this.hasMany(ArvDailyRegisterTempReport, 'id')
     };
   }
 

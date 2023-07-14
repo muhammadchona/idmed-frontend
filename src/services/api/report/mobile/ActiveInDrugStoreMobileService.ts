@@ -49,6 +49,7 @@ export default {
                   const clinicObj = clinic
                   const idPatient =reportResp[0].patientVisit.patient.id
                   const patient = await  patientService.getPatientByIdMobile( idPatient)
+                  console.log('PATIENTOBJ: ', patient)
                   const prescription = reportResp[0].prescription
                   const therapeuticRegimen =therapeuticalRegimenService.getById( prescription.prescriptionDetails[0].therapeuticRegimen.id)
                   const therapeuticLine =  therapeuticLineService.getById( prescription.prescriptionDetails[0].therapeuticLine.id)

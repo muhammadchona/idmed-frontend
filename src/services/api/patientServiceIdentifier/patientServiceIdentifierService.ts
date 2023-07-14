@@ -226,4 +226,9 @@ export default {
   curIdentifierById(id: string) {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
   },
+  localDbGetById (id: string) {
+    return nSQL(PatientServiceIdentifier.entity).query('select').where(['id', '=', id]).exec().then(result => {
+      return result
+    })
+   }
 };

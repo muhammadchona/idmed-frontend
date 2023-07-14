@@ -4,7 +4,12 @@ import { saveAs } from 'file-saver'
 import * as ExcelJS from 'exceljs'
 // import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/services/api/report/ReportService'
+import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobileService.'
+
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService'
+
+ const {  isOnline } = useSystemUtils(); 
 
 // const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Stock Usado'
@@ -33,15 +38,22 @@ export default {
       'Ajustes',
       'Stock Actual'
     ]
-    const clinic = clinicService.currClinic()
-    const rowsAux = await Report.printReport('usedStockReportTemp', id,fileType) 
-    if (rowsAux.status === 204) return rowsAux.status
-    const firstReg = rowsAux.data[0]
+const clinic = clinicService.getById(params.clinicId)
+    let data = []
+if (isOnline.value) {
+  const rowsAux = await Report.printReport('usedStockReportTemp', id,fileType) 
+    if (rowsAux.response.status === 204) return rowsAux.response.status
+    const firstReg = rowsAux.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
- 
-
-    const data = this.createArrayOfArrayRow(rowsAux.data)
+     data = this.createArrayOfArrayRow(rowsAux.response.data)
+} else {
+    const  dataAux = await UsedStockMobileService.localDbGetAllByReportId(id)
+if (dataAux.length === 0) return 204
+params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate)
+   params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate)
+   data = this.createArrayOfArrayRow(dataAux)
+}
     autoTable(doc, {
       margin: { top: 55 },
       bodyStyles: {
@@ -66,8 +78,8 @@ export default {
           )
         doc.setFontSize(10)
         doc.text('Unidade Sanitaria: ' + clinic.clinicName, data.settings.margin.left + 2, 32)
-        doc.text('Província: ' + (params.province === null ? clinic.province.description : params.province.description), data.settings.margin.left + 2, 40)
-        doc.text('Distrito: ' + (params.district === null ? clinic.district.description : params.district.description), data.settings.margin.left + 2, 48)
+        doc.text('Província: ' + (params.province !== null ? params.clinic.province.description : clinic.province.description), data.settings.margin.left + 2, 40)
+        doc.text('Distrito: ' + (params.district !== null ? params.clinic.district.description : clinic.district.description), data.settings.margin.left + 2, 48)
         doc.text('Data Início: ' + params.startDateParam, width / 2 + 95, 32)
         doc.text('Data Fim: ' + params.endDateParam, width / 2 + 95, 40)
 
@@ -87,18 +99,31 @@ export default {
       body: data
     })
 
-    return doc.save(fileName.concat('.pdf'))
+    if(isOnline.value) {
+      return  doc.save(fileName.concat('.pdf'))
+    } else {
+      console.log(doc)
+      const pdfOutput = doc.output()
+      console.log(pdfOutput)
+      this.downloadFile(fileName,'pdf',pdfOutput)
+    }
   },
 
   async downloadExcel (id, fileType2, params) {
-    const rows = await await Report.printReport('usedStockReportTemp', id,fileType2) 
-    if (rows.status === 204) return rows.status
-    const firstReg = rows.data[0]
+    const clinic = clinicService.getById(params.clinicId)
+    let data = []
+    if (isOnline.value) {
+    const rows =  await Report.printReport('usedStockReportTemp', id,fileType2) 
+    if (rows.response.status === 204) return rows.response.status
+    const firstReg = rows.response.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-    const clinic = clinicService.currClinic()
- 
-      const data = this.createArrayOfArrayRow(rows.data)
+    data = this.createArrayOfArrayRow(rows.response.data)
+    } else {
+      data = await this.getDataLocalReport(id)
+      if (data.length === 0) return 204
+    }
+
       const workbook = new ExcelJS.Workbook()
       workbook.creator = 'FGH'
       workbook.lastModifiedBy = 'FGH'
@@ -178,7 +203,7 @@ export default {
       // Assign Value to Cell
     //  cellRepublica.value = logoTitle
        cellTitle.value = title
-      cellPharmParamValue.value = params.clinic !== null ? params.clinic.clinicName : ''
+      cellPharmParamValue.value = params.clinic !== null ? params.clinic.clinicName :clinic.clinicName
       cellProvinceParamValue.value = params.province !== null ? params.province.description : clinic.province.description
       cellDistrictParamValue.value = params.district !== null ? params.district.description : clinic.district.description
       cellStartDateParamValue.value = params.startDateParam
@@ -314,14 +339,79 @@ export default {
       const fileExtension = '.xlsx'
       const blob = new Blob([buffer], { type: fileType })
       saveAs(blob, fileName + fileExtension)
+
+      if (isOnline.value) {
+        //   var blob = new Blob(materialEducativo.blop)
+        //  const bytes = new Uint8Array(materialEducativo.blop)
+       // var UTF8_STR = new Uint8Array(pdfOutput)
+       //   var BINARY_ARR = UTF8_STR.buffer
+       const titleFile = 'ListaDeStockUsado.xlsx'
+       console.log('result' + titleFile)
+        saveBlob2File(titleFile, blob)
+        function saveBlob2File (fileName, blob) {
+           const folder = cordova.file.externalRootDirectory + 'Download'
+          //  var folder = 'Download'
+           window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+             console.log('file system open: ' + dirEntry.name)
+              console.log('file system open11111: ' + blob)
+             createFile(dirEntry, fileName, blob)
+            // $q.loading.hide()
+           }, onErrorLoadFs)
+         }
+            function createFile (dirEntry, fileName, blob) {
+           // Creates a new file
+           dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+             writeFile(fileEntry, blob)
+           }, onErrorCreateFile)
+         }
+    
+         function writeFile (fileEntry, dataObj) {
+           // Create a FileWriter object for our FileEntry
+           fileEntry.createWriter(function (fileWriter) {
+             fileWriter.onwriteend = function () {
+               console.log('Successful file write...')
+                openFile()
+             }
+    
+             fileWriter.onerror = function (error) {
+               console.log('Failed file write: ' + error)
+             }
+             fileWriter.write(dataObj)
+           })
+         }
+         function onErrorLoadFs (error) {
+           console.log(error)
+         }
+    
+         function onErrorCreateFile (error) {
+           console.log('errorr: ' + error.toString())
+         }
+       function openFile () {
+           const strTitle = titleFile
+             console.log('file system 44444: ' + strTitle)
+            const folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+              console.log('file system 2222: ' + folder)
+              const documentURL = decodeURIComponent(folder)
+       cordova.plugins.fileOpener2.open(
+         documentURL,
+           'application/vnd.ms-excel', {
+               error: function (e) {
+                   console.log('file system open3333366: ' + e + documentURL)
+               },
+               success: function () {
+    
+               }
+           })
+       }
+      }
     },
      createArrayOfArrayRow (rows) {
       const data = []
        for (const row in rows) {
           const createRow = []
           createRow.push(rows[row].drugName)
-          createRow.push(rows[row].fnName)
-          createRow.push(rows[row].actualStock + rows[row].stockIssued - rows[row].adjustment)
+          createRow.push(rows[row].fnmCode)
+          createRow.push(Number(rows[row].actualStock) + Number(rows[row].stockIssued) - Number(rows[row].adjustment))
           createRow.push(rows[row].receivedStock)
           createRow.push(rows[row].stockIssued)
           createRow.push(rows[row].adjustment)
@@ -329,5 +419,90 @@ export default {
           data.push(createRow)
       }
       return data
-    }
+    },
+    async getDataLocalReport (reportId) {
+      let data = []
+      await StockUsedReport.localDbGetAllByReportId(reportId).then(reports => {
+          const reportData = []
+          reports.forEach(report => {
+                  if (report.reportId === reportId) {
+                   reportData.push(report)
+                  }
+             })
+             // if(reportData.length === 0) return '204'
+              data = this.createArrayOfArrayRow(reportData)
+             console.log(data)
+             return data
+         })
+         return data
+    },
+    downloadFile(fileName , fileType, blop) {
+      // console.log(blop)
+      // var pdfOutput = blop.output()
+     //  console.log(pdfOutput)
+     //  if (typeof cordova !== 'undefined') {
+        //   var blob = new Blob(materialEducativo.blop)
+        //  const bytes = new Uint8Array(materialEducativo.blop)
+       // var UTF8_STR = new Uint8Array(pdfOutput)
+       //   var BINARY_ARR = UTF8_STR.buffer
+          const titleFile = fileName + fileType
+          console.log('result' + titleFile)
+           saveBlob2File(titleFile, blop)
+           function saveBlob2File (fileName, blob) {
+              const folder = cordova.file.externalRootDirectory + 'Download'
+             //  var folder = 'Download'
+              window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+                console.log('file system open: ' + dirEntry.name)
+                 console.log('file system open11111: ' + blob)
+                createFile(dirEntry, fileName, blob)
+               // $q.loading.hide()
+              }, onErrorLoadFs)
+            }
+               function createFile (dirEntry, fileName, blob) {
+              // Creates a new file
+              dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+                writeFile(fileEntry, blob)
+              }, onErrorCreateFile)
+            }
+      
+            function writeFile (fileEntry, dataObj) {
+              // Create a FileWriter object for our FileEntry
+              fileEntry.createWriter(function (fileWriter) {
+                fileWriter.onwriteend = function () {
+                  console.log('Successful file write...')
+                   openFile()
+                }
+      
+                fileWriter.onerror = function (error) {
+                  console.log('Failed file write: ' + error)
+                }
+                fileWriter.write(dataObj)
+              })
+            }
+            function onErrorLoadFs (error) {
+              console.log(error)
+            }
+      
+            function onErrorCreateFile (error) {
+              console.log('errorr: ' + error.toString())
+            }
+          function openFile () {
+              const strTitle = titleFile
+                console.log('file system 44444: ' + strTitle)
+               const folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+                 console.log('file system 2222: ' + folder)
+                 const documentURL = decodeURIComponent(folder)
+          cordova.plugins.fileOpener2.open(
+            documentURL,
+              'application/pdf', {
+                  error: function (e) {
+                      console.log('file system open3333366: ' + e + documentURL)
+                  },
+                  success: function () {
+      
+                  }
+              })
+          }
+       // }
+  }
   }

@@ -188,12 +188,12 @@ async deleteMobile (id: any) {
 
  localDbGetAll () {
   return nSQL('stocks').query('select').exec().then(result => {
-    console.log(result)
+    return result 
     })
 },
 
   localDbGetUsedStock (reportParams: any) {
-  return nSQL('stocks').query('select').where(['drug.clinical_service_id', '=', reportParams.clinicalService]).exec().then(result => {
+  return nSQL('stocks').query('select').where(['drug.clinicalService.id', '=', reportParams.clinicalService]).exec().then(result => {
      console.log(result)
      return result
    })
