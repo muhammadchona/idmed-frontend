@@ -8,7 +8,6 @@
     <content src="index.html" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-    <allow-navigation href="about:*" />
     <preference name="SplashMaintainAspectRatio" value="true" />
     <platform name="android">
         <icon density="ldpi" src="res/android/ldpi.png" />
@@ -17,18 +16,18 @@
         <icon density="xhdpi" src="res/android/xhdpi.png" />
         <icon density="xxhdpi" src="res/android/xxhdpi.png" />
         <icon density="xxxhdpi" src="res/android/xxxhdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-ldpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-ldpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-mdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-mdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-hdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-hdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-xhdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xhdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-xxhdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xxhdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-xxxhdpi.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xxxhdpi.png" />
+        <splash density="land-ldpi" src="res/screen/android/splash-land-ldpi.png" />
+        <splash density="port-ldpi" src="res/screen/android/splash-port-ldpi.png" />
+        <splash density="land-mdpi" src="res/screen/android/splash-land-mdpi.png" />
+        <splash density="port-mdpi" src="res/screen/android/splash-port-mdpi.png" />
+        <splash density="land-hdpi" src="res/screen/android/splash-land-hdpi.png" />
+        <splash density="port-hdpi" src="res/screen/android/splash-port-hdpi.png" />
+        <splash density="land-xhdpi" src="res/screen/android/splash-land-xhdpi.png" />
+        <splash density="port-xhdpi" src="res/screen/android/splash-port-xhdpi.png" />
+        <splash density="land-xxhdpi" src="res/screen/android/splash-land-xxhdpi.png" />
+        <splash density="port-xxhdpi" src="res/screen/android/splash-port-xxhdpi.png" />
+        <splash density="land-xxxhdpi" src="res/screen/android/splash-land-xxxhdpi.png" />
+        <splash density="port-xxxhdpi" src="res/screen/android/splash-port-xxxhdpi.png" />
     </platform>
     <platform name="ios">
         <icon height="57" src="res/ios/icon.png" width="57" />
@@ -65,4 +64,5 @@
         <splash src="res/screen/ios/Default@2x~ipad~anyany.png" />
         <splash src="res/screen/ios/Default@2x~ipad~comany.png" />
     </platform>
+    <allow-navigation href="about:*" />
 </widget>

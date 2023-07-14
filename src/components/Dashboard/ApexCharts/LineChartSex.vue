@@ -1,11 +1,10 @@
 <template>
   <div
-    style="width: 850px; min-height: 200px; linear-gradient( 135deg, #343E59 10%, #2B2D3E 40%)"
     class="relative-position"
   >
     <apexchart
       style="max-width: 100%"
-      height="500"
+      height="600"
       type="area"
       :options="chartOptions"
       :series="series"
@@ -60,7 +59,7 @@ const chartOptions = {
     id: 'vue-chart-line',
     toolbar: {
       show: true,
-      offsetY: 7,
+      offsetY: 15,
     },
   },
   colors: ['#0096FF', '#FF1493'],
@@ -70,9 +69,10 @@ const chartOptions = {
       serviceCode.value +
       ' que iniciaram o levantamento',
     align: 'center',
+    offsetY: 12,
     style: {
       color: '#000000',
-      fontSize: '13px',
+      fontSize: '0.5vw',
     },
   },
   animations: {

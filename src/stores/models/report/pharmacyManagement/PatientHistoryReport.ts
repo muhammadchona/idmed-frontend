@@ -34,5 +34,4 @@ export default class patientHistoryReport extends Model {
       patientType: this.attr(''),
     };
   }
-
 }

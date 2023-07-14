@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 900px; max-width: 90vw">
+  <q-card style="width: 1000px; max-width: 90vw">
     <q-card-section class="q-pa-none bg-green-2">
       <div class="q-pa-md">
         <div class="row items-center">
@@ -122,8 +122,8 @@
                   label="Email"
                 />
               </div>
-              <div class="row">
-                <div class="col-4 col-md-6 pa-md">
+              <div class="row q-gutter-sm">
+                <div class="q-mb-sm">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Perfis"
@@ -132,9 +132,10 @@
                     row-key="authority"
                     v-if="onlyView"
                     class="my-sticky-header-table"
+                    dense
                   />
                 </div>
-                <div class="col-4 col-md-6 pa-md">
+                <div class="q-mb-sm">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Farmacias"
@@ -143,9 +144,10 @@
                     row-key="code"
                     v-if="onlyView"
                     class="my-sticky-header-table"
+                    dense
                   />
                 </div>
-                <div class="col-4 col-md-6 pa-md">
+                <div class="cpa-md">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Sectores Clinicos"
@@ -154,6 +156,7 @@
                     row-key="code"
                     v-if="onlyView"
                     class="my-sticky-header-table"
+                    dense
                   />
                 </div>
               </div>
@@ -170,6 +173,7 @@
                 v-model:selected="selectedRoles"
                 class="my-sticky-header-table"
                 rows-per-page-options="7"
+                dense
               >
               </q-table>
             </div>
@@ -185,6 +189,7 @@
                 v-model:selected="selectedClinics"
                 class="my-sticky-header-table"
                 rows-per-page-options="7"
+                dense
               >
               </q-table>
             </div>
@@ -209,6 +214,7 @@
                 v-model:selected="selectedClinicSectors"
                 class="my-sticky-header-table"
                 rows-per-page-options="7"
+                dense
               >
               </q-table>
             </div>
@@ -368,13 +374,6 @@ const loadUserRelations = () => {
 
 const goToNextStep = () => {
   if (step.value === 1) {
-    // $refs.nome.$refs.ref.validate()
-    // $refs.password.validate()
-    //  $refs.username.$refs.ref.validate()
-    //  $refs.contact.$refs.ref.validate()
-    // if (!$refs.nome.$refs.ref.hasError &&
-    //     !$refs.password.hasError && !$refs.username.$refs.ref.hasError &&
-    //      !$refs.contact.$refs.ref.hasError) {
     stepper.value.next();
     // }
   } else if (step.value === 2) {
@@ -393,18 +392,6 @@ const goToNextStep = () => {
     }
   }
 };
-// const validateUser = () => {
-//     $refs.role.validate()
-//     $refs.nome.$refs.ref.validate()
-//     $refs.password.validate()
-//      $refs.username.$refs.ref.validate()
-//      $refs.contact.$refs.ref.validate()
-//     if (!$refs.nome.$refs.ref.hasError &&
-//         !$refs.password.hasError && !$refs.username.$refs.ref.hasError &&
-//         !$refs.role.hasError && !$refs.contact.ref.hasError) {
-//         submitUser()
-//     }
-//     };
 const submitUser = () => {
   submitting.value = true;
   selectedRoles.value = JSON.parse(JSON.stringify(selectedRoles.value));
@@ -419,35 +406,41 @@ const submitUser = () => {
   user.value.clinicSectors = selectedClinicSectors.value;
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
-  // user.value.clinics[0] = user.value.clinicSectors[0].clinic;
-  /* selectedClinicSectors.forEach(item => {
-          item.clinic = selectedClinics[0]
-        }) */
-  // if (website) {
+
+  if (user.value.contact === null || user.value.contact === undefined) {
+    user.value.contact = '-';
+  }
+
   if (isCreateStep.value) {
     userService
       .post(user.value)
-      .then((resp) => {
-        alertSucess('O Registo foi efectuado com sucesso');
+      .then(() => {
+        alertSucess('Utilizador registado com sucesso');
         submitting.value = false;
         rolesForView.value = user.value.authorities;
-        console.log(rolesForView.value);
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError(
+          'Aconteceu um erro inesperado ao registar o Sector Clínico.'
+        );
         submitting.value = false;
         showUserRegistrationScreen.value = false;
       });
   } else {
     userService
       .patch(user.value.id, user.value)
-      .then((resp) => {
+      .then(() => {
+        alertSucess('Utilizador actualizado com sucesso.');
         submitting.value = false;
         rolesForView.value = user.value.authorities;
         console.log(rolesForView.value);
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {
+        console.log(error);
+        alertError('Aconteceu um erro inesperado ao actualizar o Utilizador.');
         submitting.value = false;
         showUserRegistrationScreen.value = false;
       });

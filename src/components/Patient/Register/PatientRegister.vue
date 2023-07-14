@@ -297,7 +297,6 @@ import prescriptionService from 'src/services/api/prescription/prescriptionServi
 import packService from 'src/services/api/pack/packService';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRouter } from 'vue-router';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import Localidade from 'src/stores/models/Localidade/Localidade';
@@ -306,8 +305,7 @@ import Localidade from 'src/stores/models/Localidade/Localidade';
 const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
 const { hasIdentifiers, getOldestIdentifier } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
-const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { closeLoading } = useLoading();
 const router = useRouter();
 const dateOfBirth = ref('');
 const ageCalculated = ref('');
@@ -549,18 +547,26 @@ const savePatient = async () => {
   }
 };
 const doSave = async () => {
-  patientReg.value.clinic = currClinic.value;
+  patientReg.value.clinic = {};
+  patientReg.value.clinic.id = currClinic.value.id;
+
+  patientReg.value.identifiers.forEach((identifier) => {
+    identifier.clinic = {};
+    identifier.clinic.id = identifier.clinic_id;
+    identifier.service = {};
+    identifier.service.id = identifier.service_id;
+  });
+
   if (newPatient.value) {
     patientService
       .post(patientReg.value)
-      .then((resp) => {
+      .then(() => {
         // if (
         //   transferencePatientData !== undefined &&
         //   transferencePatientData.length > 0
         // ) {
         //   doPatientTranference(resp);
         // } else {
-        console.log(resp);
         alertSucess('Dados do paciente gravados com sucesso.');
         submitLoading.value = false;
         showPatientRegister.value = false;
@@ -582,16 +588,14 @@ const doSave = async () => {
           }
         }
         console.error(error);
-        alertError('Ocorreu um problema ao executar a operação');
+        alertError('Ocorreu um problema ao gravar o paciente');
       });
   } else {
-    patientReg.value.clinic = {};
     patientReg.value.identifiers = {};
     patientReg.value.patientVisits = {};
-    patientReg.value.clinic.id = currClinic.value.id;
     patientService
       .patch(patientReg.value.id, patientReg.value)
-      .then((resp) => {
+      .then(() => {
         // if (
         //   transferencePatientData !== undefined &&
         //   transferencePatientData.length > 0
@@ -619,7 +623,7 @@ const doSave = async () => {
           }
         }
         console.error(error, listErrors);
-        alertError('Ocorreu um problema ao executar a operação');
+        alertError('Ocorreu um problema ao actualizar o paciente');
       });
   }
 };

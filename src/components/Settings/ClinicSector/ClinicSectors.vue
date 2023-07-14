@@ -17,6 +17,17 @@
               <q-icon name="search" />
             </template>
           </q-input>
+          <div class="q-pa-md q-gutter-sm">
+            <q-btn
+              v-if="!website"
+              color="primary"
+              label="Adicionar Novo"
+              no-caps
+              outline
+              rounded
+              @click="addClinicSectorr()"
+            />
+          </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
@@ -77,18 +88,19 @@
           </q-tr>
         </template>
       </q-table>
+      <div class="absolute-bottom" v-if="website">
+        <q-page-sticky position="bottom-right" :offset="[18, 18]">
+          <q-btn
+            size="xl"
+            fab
+            icon="add"
+            @click="addClinicSectorr()"
+            color="primary"
+          />
+        </q-page-sticky>
+      </div>
     </div>
-    <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <q-btn
-          size="xl"
-          fab
-          icon="add"
-          @click="addClinicSectorr()"
-          color="primary"
-        />
-      </q-page-sticky>
-    </div>
+
     <q-dialog persistent v-model="showClinicSectorRegistrationScreen">
       <addClinicSector @close="showClinicSectorRegistrationScreen = false" />
     </q-dialog>
@@ -102,10 +114,11 @@ import clinicSectorService from 'src/services/api/clinicSectorService/clinicSect
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
-
-const { closeLoading, showloading } = useLoading();
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
+const { closeLoading, showloading } = useLoading();
+const { website } = useSystemUtils();
 const { alertWarningAction, alertSucess, alertError } = useSwal();
 const columns = [
   {
@@ -138,16 +151,15 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 const showClinicSectorRegistrationScreen = ref(false);
+const isNewClinicSector = ref(false);
+
 const filter = ref('');
 const clinicSector = ref(clinicSectorService.newInstanceEntity());
 
 /*injects*/
-const step = inject('step');
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');
-const isEditStep = inject('isEditStep');
-const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const clinicSectors = computed(() => {
@@ -155,20 +167,9 @@ const clinicSectors = computed(() => {
 });
 
 onMounted(() => {
-  isEditStep.value = false;
-  isCreateStep.value = false;
-  step.value = '';
   editMode.value = false;
   viewMode.value = false;
 });
-
-/*provides*/
-provide('selectedClinicSector', clinicSector);
-provide(
-  'showClinicSectorRegistrationScreen',
-  showClinicSectorRegistrationScreen
-);
-provide('stepp', step);
 
 /*Methods*/
 const getIconActive = (clinicSector) => {
@@ -193,27 +194,22 @@ const getTooltipClass = (clinicSector) => {
   }
 };
 const editClinicSector = (clinicSectorParam) => {
-  isCreateStep.value = false;
-  isEditStep.value = true;
+  isNewClinicSector.value = false;
   clinicSector.value = clinicSectorParam;
-  step.value = 'edit';
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = true;
   viewMode.value = false;
 };
 const addClinicSectorr = () => {
-  isEditStep.value = false;
-  isCreateStep.value = true;
+  isNewClinicSector.value = true;
   clinicSector.value = new ClinicSector();
   clinicSector.value.clinic = currClinic.value;
-  step.value = 'create';
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = false;
   viewMode.value = false;
 };
 const visualizeClinicSector = (clinicSectorParam) => {
-  isCreateStep.value = false;
-  isEditStep.value = false;
+  isNewClinicSector.value = false;
   clinicSector.value = clinicSectorParam;
   viewMode.value = true;
   showClinicSectorRegistrationScreen.value = true;
@@ -247,4 +243,12 @@ const promptToConfirm = (clinicSectorParam) => {
     }
   });
 };
+
+/*provides*/
+provide('selectedClinicSector', clinicSector);
+provide(
+  'showClinicSectorRegistrationScreen',
+  showClinicSectorRegistrationScreen
+);
+provide('isNewClinicSector', isNewClinicSector);
 </script>

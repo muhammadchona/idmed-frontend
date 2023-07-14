@@ -22,6 +22,17 @@
               <q-icon name="search" />
             </template>
           </q-input>
+          <div class="q-pa-md q-gutter-sm">
+            <q-btn
+              v-if="!website"
+              color="primary"
+              label="Adicionar Novo"
+              no-caps
+              outline
+              rounded
+              @click="addDoctor()"
+            />
+          </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
@@ -86,8 +97,8 @@
         </template>
       </q-table>
     </div>
-    <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
+    <div class="absolute-bottom">
+      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
         <q-btn size="xl" fab icon="add" @click="addDoctor()" color="primary" />
       </q-page-sticky>
     </div>
@@ -103,14 +114,13 @@ import { ref, inject, provide, onMounted, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
-const { closeLoading, showloading } = useLoading();
-
-/*Components Import*/
 import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
+const { closeLoading, showloading } = useLoading();
 const { alertWarningAction, alertError, alertSucess } = useSwal();
-
+const { website } = useSystemUtils();
 const showDoctorRegistrationScreen = ref(false);
 const doctor = ref(doctorService.newInstanceEntity());
 const filter = ref('');
@@ -244,7 +254,6 @@ const promptToConfirm = (doctorParam) => {
       } else {
         doctorParam.active = true;
       }
-
       doctorService
         .patch(doctorParam.id, doctorParam)
         .then(() => {
