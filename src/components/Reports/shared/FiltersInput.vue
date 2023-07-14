@@ -381,10 +381,10 @@ $emit('updateProgressBar', progress1.value)
 
 const saveParams= ()=> {
 reportParams.value.tabName = props.tabName
-const jsonPar = JSON.parse(JSON.stringify(reportParams.value))
 reportParams.value.clinic = null
-
+const jsonPar = JSON.parse(JSON.stringify(reportParams.value))
 LocalStorage.set(reportParams.value.id,jsonPar)
+reportParams.value.clinic = currClinic.value
 }
 
 const generateReport= (fileType)=> {
