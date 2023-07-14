@@ -1,5 +1,5 @@
+import { v4 as uuidv4 } from 'uuid'
 import { Model } from 'pinia-orm';
-import { v4 as uuidv4 } from 'uuid';
 
 export default class patientHistoryReport extends Model {
   static entity = 'patientHistorys';

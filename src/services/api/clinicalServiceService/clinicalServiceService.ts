@@ -128,6 +128,12 @@ export default {
         console.log(error);
       });
   },
+   async localDbGetById (id: any) {
+    return nSQL(ClinicalService.entity).query('select').where(['id', '=', id]).exec().then(result => {
+       console.log(result)
+       return result[0]
+     })
+ },
   getByIdentifierTypeCode(identifierTypeCode: string) {
     return clinicalService
       .query()

@@ -349,6 +349,33 @@ export default {
     // Stock.insert({ data: result })
     return result[0]
   })
-}
+},
+
+
+async getDataLocalReportStock (reportId: any) {
+  return nSQL('mmiaStockReports').query('select').where(['reportId', '=', reportId]).exec().then(result => {
+    console.log(result)
+    // Stock.insert({ data: result })
+    return result
+  })
+      
+},
+async getDataLocalReportRegimen (reportId: any) {
+  return nSQL('mmiaRegimenSubReport').query('select').where(['reportId', '=', reportId]).exec().then(result => {
+    console.log(result)
+    // Stock.insert({ data: result })
+    return result
+  })
+      
+},
+async getDataLocalReportMmia (reportId) {
+  return nSQL('mmiaReports').query('select').where(['reportId', '=', reportId]).exec().then(result => {
+    console.log(result)
+    // Stock.insert({ data: result })
+    return result[0]
+  })
+      
+},
+
 
 }
