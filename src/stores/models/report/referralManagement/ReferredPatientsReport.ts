@@ -29,6 +29,7 @@ export default class ReferredPatientsReport extends Model {
       dispenseType: this.attr(''),
       referrenceDate: this.attr(''),
       referralPharmacy: this.attr(''),
+      notes: this.attr(''),
     };
   }
 }

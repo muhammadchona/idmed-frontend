@@ -1,5 +1,3 @@
-import { PatientVisitDetails } from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
-
 import api from '../apiService/apiService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -967,7 +965,7 @@ export default {
     return nSQL('patientVisits')
       .query('select', ['patientVisits.patientVisitDetails[0].prescription.id AS prescriptionId', 'patientVisits.visitDate AS visitDate', 'patientVisits.clinic.id AS clinicID', 'packs.pickupDate AS pickupDate', 'patientVisits.patient.id AS patientId', 'episodes.episodeDate AS episodeDate',
       'identifiers.startDate AS startDate', 'startStopReasons.code AS code', 'clinicalServices.code AS service', 'identifiers.value AS nid', 'patientVisits.patient.firstNames AS firstNames', 'patientVisits.patient.middleNames AS middleNames','packs.nextPickUpDate AS nextPickUpDate',
-       'patientVisits.patient.lastNames AS lastNames', 'patientVisits.patient.dateOfBirth AS dateOfBirth', 'packs.dateReceived AS referenceDate', 'episodes.referralClinic AS referralClinic'])
+       'patientVisits.patient.lastNames AS lastNames', 'patientVisits.patient.dateOfBirth AS dateOfBirth', 'packs.dateReceived AS referenceDate', 'episodes.referralClinic AS referralClinic', 'episodes.notes AS notes'])
       .join([
         {
           type: 'inner',

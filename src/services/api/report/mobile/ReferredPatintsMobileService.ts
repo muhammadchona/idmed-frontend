@@ -40,11 +40,9 @@ export default {
 
       referredPatient.referralPharmacy = reportData.referralClinic?.clinicName
 
-
       referredPatient.lastPrescriptionDate = prescriptionService.getLastPrescriptionFromPatientVisitDetails(reportData.prescriptionId)?.prescriptionDate
+      referredPatient.notes = reportData.notes
       referredPatientsFinalList.push(referredPatient)
-
-      console.log(referredPatient)
 
       this.localDbAddOrUpdate(referredPatient)
     }
