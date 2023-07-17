@@ -245,5 +245,6 @@ const sync = async () => {
   });
   */
   getGroupsToSend();
+  getPatientsToSend()
 };
 </script>

@@ -15,7 +15,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -29,7 +29,7 @@ export default {
   },
   patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.patchWeb(uid, params);
     }
@@ -80,18 +80,13 @@ export default {
       });
   },
   // Mobile
-  async putMobile(params: string) {
-    try {
-      await nSQL(PatientServiceIdentifier.entity)
-        .query('upsert', params)
-        .exec();
-      // patientServiceIdentifier.save(JSON.parse(params));
-      patientServiceIdentifier.save(params);
-      // alertSucess('O Registo foi efectuado com sucesso');
-    } catch (error) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+  putMobile(params: string) {
+    return nSQL(PatientServiceIdentifier.entity)
+      .query('upsert', params)
+      .exec()
+      .then((resp) => {
+        patientServiceIdentifier.save(resp[0].affectedRows);
+      });
   },
   async getMobile() {
     try {
@@ -226,4 +221,9 @@ export default {
   curIdentifierById(id: string) {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
   },
+  localDbGetById (id: string) {
+    return nSQL(PatientServiceIdentifier.entity).query('select').where(['id', '=', id]).exec().then(result => {
+      return result
+    })
+   }
 };

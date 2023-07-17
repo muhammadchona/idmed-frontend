@@ -3,6 +3,9 @@ import autoTable from 'jspdf-autotable'
 import moment from 'moment'
 import saveAs from 'file-saver'
 import * as ExcelJS from 'exceljs'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const {  isOnline } = useSystemUtils(); 
 
 const reportName = 'HistoricoDeLevantamento'
 // const logoTitle =
@@ -164,13 +167,13 @@ export default {
       head: [cols],
       body: data
     })
-    if(typeof cordova === 'undefined') {
+    if(isOnline.value) {
       return doc.save('HistoricoDeLevantamento.pdf')
     } else {
       console.log(doc)
       const pdfOutput = doc.output()
       console.log(pdfOutput)
-      this.downloadFile('HistoricoLevan','pdf',pdfOutput)
+      this.downloadFile(fileName,'pdf',pdfOutput)
     }
     // params.value.loading.loading.hide()
    // return doc.save('HistoricoDeLevantamento.pdf')
@@ -429,13 +432,10 @@ export default {
 
     const blob = new Blob([buffer], { type: fileType })
 
-    saveAs(blob, fileName + fileExtension)
+    if (isOnline.value) {
+      saveAs(blob, fileName + fileExtension)
+    } else {
 
-      if (typeof cordova !== 'undefined') {
-    //   var blob = new Blob(materialEducativo.blop)
-    //  const bytes = new Uint8Array(materialEducativo.blop)
-   // var UTF8_STR = new Uint8Array(pdfOutput)
-   //   var BINARY_ARR = UTF8_STR.buffer
    const titleFile = 'HistoricoDeLevantamento.xlsx'
    console.log('result' + titleFile)
     saveBlob2File(titleFile, blob)

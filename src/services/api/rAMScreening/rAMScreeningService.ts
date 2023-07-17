@@ -9,12 +9,12 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 const rAMScreening = useRepo(RAMScreening);
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
-const { isMobile.value, isOnline.value } = useSystemUtils();
+const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -28,7 +28,7 @@ export default {
   },
   patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.patchWeb(uid, params);
     }
@@ -83,13 +83,8 @@ export default {
     return nSQL(RAMScreening.entity)
       .query('upsert', params)
       .exec()
-      .then(() => {
-        rAMScreening.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
+      .then((resp) => {
+        rAMScreening.save(resp[0].affectedRows);
       });
   },
   getMobile() {

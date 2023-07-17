@@ -105,6 +105,7 @@ import MmiaRegimenSubReport from './models/report/pharmacyManagement/MmiaRegimen
 import ArvDailyRegisterTempReport from './models/report/monitoring/ArvDailyRegisterTempReport';
 import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
 import ActiveInDrugStore from './models/report/patient/ActiveInDrugStore';
+import DrugQuantityTemp from './models/report/monitoring/DrugQuantityTemp';
 //import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils';
 // import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore';
 
@@ -205,8 +206,9 @@ export default {
     entitiesList.push(MmiaStockReport)
     entitiesList.push(MmiaRegimenSubReport)
     entitiesList.push(ArvDailyRegisterTempReport);
-    entitiesList.push(ActiveInDrugStore)
-    entitiesList.push(ReferredPatientsReport)
+    entitiesList.push(DrugQuantityTemp);
+   entitiesList.push(ActiveInDrugStore);
+   entitiesList.push(ReferredPatientsReport)
     return entitiesList;
   },
 };

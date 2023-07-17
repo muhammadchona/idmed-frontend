@@ -91,7 +91,7 @@
               dense
               outlined
               mask="##"
-              :rules="[(val) => !!val || 'Por favor indicar a idade']"
+              :rules="[(val) => val >= 0 || 'Por favor indicar a idade']"
             />
             <q-select
               class="col q-ml-md"
@@ -558,6 +558,7 @@ const doSave = async () => {
   });
 
   if (newPatient.value) {
+    patientReg.value.syncStatus = 'R';
     patientService
       .post(patientReg.value)
       .then(() => {
@@ -591,6 +592,7 @@ const doSave = async () => {
         alertError('Ocorreu um problema ao gravar o paciente');
       });
   } else {
+    patientReg.value.syncStatus = 'U';
     patientReg.value.identifiers = {};
     patientReg.value.patientVisits = {};
     patientService

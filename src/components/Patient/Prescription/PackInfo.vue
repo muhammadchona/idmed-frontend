@@ -122,31 +122,15 @@ const bgColor = ref('bg-grey-6');
 
 //Inject
 const pack = inject('lastPackOnPrescription');
-const isClosed = inject('isClosed');
 const removePack = inject('removePack');
-
-// onMounted(() => {
-//   console.log('O pack', pack.value);
-// });
 
 // Methods
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
-const editPack = () => {
-  this.$emit('editPack');
-};
 
-// provide('title', title);
 provide('bgColor', bgColor);
-// provide('expandLess', expandLess);
-// provide('addVisible', showAddButton);
-// provide('titleEmptyList', titleEmptyList);
 
-// :addVisible="false"
-//       :isClosed="isClosed"
-//       @removePack="removePack"
-//       @editPack="editPack"
 </script>
 
 <style></style>

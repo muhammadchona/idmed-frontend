@@ -8,6 +8,7 @@ import Report from 'src/services/api/report/ReportService'
 import moment from 'moment'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
+import clinicService from 'src/services/api/clinicService/clinicService'
 
 const {  isOnline } = useSystemUtils();
 
@@ -46,7 +47,7 @@ export default {
       'Validade'
     ]
 
-      
+     const clinic = clinicService.currClinic()
     let mmiaReport = {}
     let mmiaData = []
     let mmiaRegimenData = []
@@ -58,10 +59,11 @@ export default {
        mmiaStockData = mmiaData.mmiaStockSubReportItemList
        mmiaRegimenData = mmiaData.mmiaRegimenSubReportList
     } else {
-      mmiaStockData = await this.getDataLocalReportStock(id)
-      mmiaRegimenData = await this.getDataLocalReportRegimen(id)
-      mmiaData = await this.getDataLocalReportMmia(id)
-      if (mmiaData.length === 0) return 204
+      mmiaData = await MmiaMobileService.getDataLocalReportMmia(id)
+      if (mmiaData === undefined || mmiaData.length === 0) return 204
+      mmiaStockData = await MmiaMobileService.getDataLocalReportStock(id)
+      mmiaRegimenData = await MmiaMobileService.getDataLocalReportRegimen(id)
+     
     }
 
     
@@ -107,18 +109,18 @@ export default {
       })
 
       row2.push({
-        content: 'Unidade Sanitária: ' + mmiaData.clinic.clinicName,
+        content: 'Unidade Sanitária: ' + clinic.clinicName,
         colSpan: 3,
         styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
       })
 
       row3.push({
         colSpan: 2,
-        content: 'Distrito: ' + mmiaData.clinic.district.description,
+        content: 'Distrito: ' + clinic.district.description,
         styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
       })
       row3.push({
-        content: 'Província: ' + mmiaData.clinic.province.description,
+        content: 'Província: ' + clinic.province.description,
         styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
       })
       row2.push({
@@ -570,10 +572,17 @@ export default {
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
       doc.text(str, 15, pageHeight - 10)
       // params.value.loading.loading.hide()
-      return doc.save(fileName.concat('.pdf'))
+      if(isOnline.value) {
+        return  doc.save(fileName.concat('.pdf'))
+      } else {
+        console.log(doc)
+        var pdfOutput = doc.output()
+        console.log(pdfOutput)
+        this.downloadFile(fileName,'pdf',pdfOutput)
+      }
   },
     async downloadExcel(id) {
-
+      const clinic = clinicService.currClinic()
       let mmiaReport = {}
       let mmiaData = []
       let mmiaRegimenData = []
@@ -585,10 +594,11 @@ export default {
          mmiaStockData = mmiaData.mmiaStockSubReportItemList
          mmiaRegimenData = mmiaData.mmiaRegimenSubReportList
       } else {
-        mmiaStockData = await this.getDataLocalReportStock(id)
-        mmiaRegimenData = await this.getDataLocalReportRegimen(id)
-        mmiaData = await this.getDataLocalReportMmia(id)
-        if (mmiaData.length === 0) return 204
+        mmiaData = await MmiaMobileService.getDataLocalReportMmia(id)
+        if (mmiaData === undefined || mmiaData.length === 0) return 204
+        mmiaStockData = await MmiaMobileService.getDataLocalReportStock(id)
+        mmiaRegimenData = await MmiaMobileService.getDataLocalReportRegimen(id)
+       
       }
   
       
@@ -686,9 +696,9 @@ export default {
       cellTitle.value = title;
       cellPeriodo.value = 'Mês: ' + months[new Date(mmiaData.endDate).getMonth()];
       cellYear.value = 'Ano: ' + mmiaData.year
-      cellPharm.value = 'Unidade Sanitária: ' + mmiaData.clinic.clinicName
-      cellDistrict.value = 'Distrito: ' + mmiaData.clinic.district.description
-      cellProvince.value = 'Província: ' + mmiaData.clinic.province.description
+      cellPharm.value = 'Unidade Sanitária: ' + clinic.clinicName
+      cellDistrict.value = 'Distrito: ' + clinic.district.description
+      cellProvince.value = 'Província: ' +clinic.province.description
 
       // merge a range of cells
       worksheet.mergeCells('A1:A7');
@@ -1156,7 +1166,66 @@ export default {
 
       const blob = new Blob([buffer], { type: fileType });
 
-      saveAs(blob, fileName + fileExtension);
+      if (isOnline.value) {
+        saveAs(blob, fileName + fileExtension)
+      } else {
+       const titleFile = 'Mmia.xlsx'
+        saveBlob2File(titleFile, blob)
+          function saveBlob2File (fileName, blob) {
+            const folder = cordova.file.externalRootDirectory + 'Download'
+           //  var folder = 'Download'
+            window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+              console.log('file system open: ' + dirEntry.name)
+               console.log('file system open11111: ' + blob)
+              createFile(dirEntry, fileName, blob)
+             // $q.loading.hide()
+            }, onErrorLoadFs)
+          }
+             function createFile (dirEntry, fileName, blob) {
+            // Creates a new file
+            dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+              writeFile(fileEntry, blob)
+            }, onErrorCreateFile)
+          }
+     
+          function writeFile (fileEntry, dataObj) {
+            // Create a FileWriter object for our FileEntry
+            fileEntry.createWriter(function (fileWriter) {
+              fileWriter.onwriteend = function () {
+                console.log('Successful file write...')
+                 openFile()
+              }
+     
+              fileWriter.onerror = function (error) {
+                console.log('Failed file write: ' + error)
+              }
+              fileWriter.write(dataObj)
+            })
+          }
+          function onErrorLoadFs (error) {
+            console.log(error)
+          }
+     
+          function onErrorCreateFile (error) {
+            console.log('errorr: ' + error.toString())
+          }
+        function openFile () {
+            const strTitle = titleFile
+              console.log('file system 44444: ' + strTitle)
+             const folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+               console.log('file system 2222: ' + folder)
+               const documentURL = decodeURIComponent(folder)
+        cordova.plugins.fileOpener2.open(
+          documentURL,
+            'application/vnd.ms-excel', {
+                error: function (e) {
+                    console.log('file system open3333366: ' + e + documentURL)
+                },
+                success: function () {
+     
+                }
+            })
+        }}
     },
 
     createArrayOfArrayRow (rows) {
@@ -1489,29 +1558,73 @@ export default {
       return moment(date).format('DD-MM-YYYY');
     },
 
-     async getDataLocalReportStock (reportId) {
-      const reports = await MmiaMobileService.localDbGetAllByReportId(reportId)
-          const reportData = []
-          for (const report of reports ) {
-                   reportData.push(report)
-             }
-             
-             return reportData
-          
-    },
-    async getDataLocalReportRegimen (reportId) {
-      const reports = await MmiaMobileService.localDbGetAllByReportId(reportId)
-          const reportData = []
-          for (const report of reports ) {
-                   reportData.push(report)
-             }
-             
-             return reportData
-          
-    },
-    async getDataLocalReportMmia (reportId) {
-      const reportData = await MmiaMobileService.localDbGetAllByReportId(reportId)
-      return reportData
-          
-    }
+    downloadFile(fileName , fileType, blop) {
+      // console.log(blop)
+      // var pdfOutput = blop.output()
+     //  console.log(pdfOutput)
+     //  if (typeof cordova !== 'undefined') {
+        //   var blob = new Blob(materialEducativo.blop)
+        //  const bytes = new Uint8Array(materialEducativo.blop)
+       // var UTF8_STR = new Uint8Array(pdfOutput)
+       //   var BINARY_ARR = UTF8_STR.buffer
+          var titleFile = fileName + fileType
+          console.log('result' + titleFile)
+           saveBlob2File(titleFile, blop)
+           function saveBlob2File (fileName, blob) {
+              var folder = cordova.file.externalRootDirectory + 'Download'
+             //  var folder = 'Download'
+              window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+                console.log('file system open: ' + dirEntry.name)
+                 console.log('file system open11111: ' + blob)
+                createFile(dirEntry, fileName, blob)
+               // $q.loading.hide()
+              }, onErrorLoadFs)
+            }
+               function createFile (dirEntry, fileName, blob) {
+              // Creates a new file
+              dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+                writeFile(fileEntry, blob)
+              }, onErrorCreateFile)
+            }
+      
+            function writeFile (fileEntry, dataObj) {
+              // Create a FileWriter object for our FileEntry
+              fileEntry.createWriter(function (fileWriter) {
+                fileWriter.onwriteend = function () {
+                  console.log('Successful file write...')
+                   openFile()
+                }
+      
+                fileWriter.onerror = function (error) {
+                  console.log('Failed file write: ' + error)
+                }
+                fileWriter.write(dataObj)
+              })
+            }
+            function onErrorLoadFs (error) {
+              console.log(error)
+            }
+      
+            function onErrorCreateFile (error) {
+              console.log('errorr: ' + error.toString())
+            }
+          function openFile () {
+              var strTitle = titleFile
+                console.log('file system 44444: ' + strTitle)
+               var folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+                 console.log('file system 2222: ' + folder)
+                 var documentURL = decodeURIComponent(folder)
+          cordova.plugins.fileOpener2.open(
+            documentURL,
+              'application/pdf', {
+                  error: function (e) {
+                      console.log('file system open3333366: ' + e + documentURL)
+                  },
+                  success: function () {
+      
+                  }
+              })
+          }
+       // }
+  }
   }

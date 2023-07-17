@@ -1,7 +1,7 @@
-// import { Model } from 'pinia-orm'
+ import { Model } from 'pinia-orm'
 import ArvDailyRegisterTempReport from './ArvDailyRegisterTempReport';
 
-export default class DrugQuantityTemp {
+export default class DrugQuantityTemp extends Model{
   static entity = 'drugQuantityTemps';
   static fields() {
     return {

@@ -577,6 +577,11 @@ const goToNextStep = async () => {
       if (patientVisit.value.ramScreenings.length > 1)
         patientVisit.value.ramScreenings.pop();
 
+      patientVisit.value.clinic = {};
+      patientVisit.value.clinic.id = patient.value.clinic_id;
+      patientVisit.value.patient = {};
+      patientVisit.value.patient.id = patient.value.id;
+
       saveORUpdatePatientVisit(!editMode.value);
     }
   }

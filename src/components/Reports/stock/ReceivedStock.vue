@@ -31,17 +31,14 @@ import Report from 'src/services/api/report/ReportService'
 import ReceivedStockReport from 'src/services/reports/stock/ReceivedStockReport.ts'
 import { LocalStorage } from 'quasar'
 import { ref } from 'vue'
-import Stock from 'src/stores/models/stock/Stock'
-import { v4 as uuidv4 } from 'uuid'
 import reportDatesParams from 'src/services/reports/ReportDatesParams'
-import StockReceivedReport from 'src/stores/models/report/stock/StockReceivedReport'
-
 import ListHeader from 'components/Shared/ListHeader.vue'
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';  
+import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedStockMobileService.'
 
-const { website, isDeskTop, isMobile } = useSystemUtils(); 
+const {  isOnline } = useSystemUtils(); 
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 
    const name = 'ReceivedStock'
@@ -58,7 +55,7 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
       }
 
      const  initReportProcessing = (params) => {
-        if (params.localOrOnline === 'online') {
+        if (isOnline.value) {
           Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
             console.log(resp.data.progress)
             progress.value = resp.data.progress
@@ -67,7 +64,9 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
         } else {
           reportDatesParams.determineStartEndDate(params)
           console.log(params)
-          getDataLocalDb(params)
+         ReceivedStockMobileService.getDataLocalDb(params)
+         progress.value = 100
+         params.progress = 100
         }
       }
 
@@ -95,37 +94,7 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
                })
         }
       }
-      const getDataLocalDb =  (params) =>{
-        const reportParams = reportDatesParams.determineStartEndDate(params)
-        console.log(reportParams)
-       Stock.localDbGetAll().then(stocks => {
-          console.log(stocks)
-       const result = stocks.filter(stock => (stock.entrance.dateReceived >= reportParams.startDate && stock.entrance.dateReceived <= reportParams.endDate) && stock.drug.clinicalService.id === reportParams.clinicalService)
-          console.log(result)
-          return result
-        }).then(reportDatas => {
-          reportDatas.forEach(reportData => {
-            const stockReceived = new StockReceivedReport()
-            stockReceived.reportId = reportParams.id
-          // patientHistory.period = reportParams.periodTypeView
-          stockReceived.year = reportParams.year
-          stockReceived.startDate = reportParams.startDate
-          stockReceived.endDate = reportParams.endDate
-          stockReceived.orderNumber = reportData.entrance.orderNumber
-          stockReceived.drugName = reportData.drug.name
-          stockReceived.expiryDate = reportData.expireDate
-          stockReceived.dateReceived = reportData.entrance.dateReceived
-          stockReceived.unitsReceived = reportData.unitsReceived
-          stockReceived.manufacture = reportData.manufacture
-          stockReceived.batchNumber = reportData.batchNumber
-          stockReceived.id = uuidv4()
-          StockReceivedReport.localDbAdd(stockReceived)
-         console.log(stockReceived)
-        })
-          })
-          progress.value = 100
-          params.progress = 100
-      }
+
 </script>
 
 <style lang="scss" scoped>

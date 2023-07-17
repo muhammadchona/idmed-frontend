@@ -6,6 +6,13 @@ import * as ExcelJS from 'exceljs'
 import Report from 'src/services/api/report/ReportService'
 import StockReceivedReport from 'src/stores/models/report/stock/StockReceivedReport'
 import clinicService from 'src/services/api/clinicService/clinicService'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { nSQL } from 'nano-sql'
+import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedStockMobileService.'
+
+const { isMobile, isOnline } = useSystemUtils();
+
+
 // const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Stock Recebido'
 const reportName = 'ListaDeStockRecebido'
@@ -35,13 +42,10 @@ export default {
     ]
     const clinic = clinicService.currClinic()
       
-    let data = ''
-    if (params.localOrOnline === 'online') {
+    let data = []
+    if (isOnline.value) {
       data = await Report.printReportOther('stockReportTemp', id) 
-      console.log(data)
       if (data.status === 204) return data.status
-      console.log(data)
-   //   data = data.data
       data = this.createArrayOfArrayRow(data.data)
     } else {
        data = await this.getDataLocalReport(id)
@@ -97,17 +101,38 @@ export default {
       body: data
     })
 
-    return doc.save(fileName.concat('.pdf'))
+    if(isOnline.value) {
+      return  doc.save(fileName.concat('.pdf'))
+    } else {
+      console.log(doc)
+      const pdfOutput = doc.output()
+      console.log(pdfOutput)
+      this.downloadFile(fileName,'pdf',pdfOutput)
+    }
   },
 
   async downloadExcel (id, fileType2, params) {
-  const rows = await Report.printReportOther('stockReportTemp', id)  
-    if (rows.status === 204) return rows.status
-    const firstReg = rows.data[0]
-    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
-    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
- 
-      const data = this.createArrayOfArrayRow(rows.data)
+        let data = []
+      if (params.isOnline) {
+        const rows = await Report.printReportOther('stockReportTemp', id)  
+      if (rows.response.status === 204) return rows.response.status
+      const firstReg = rows.response.data[0]
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
+      data = this.createArrayOfArrayRow(rows.response.data)
+      } else {
+      const dataAux = await this.getDataLocalReport(id)
+      if (dataAux === undefined || dataAux.length === 0) return 204
+      data = this.createArrayOfArrayRow(dataAux)
+      params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate)
+     params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate)
+     
+      }
+
+      
+
+
+
       const workbook = new ExcelJS.Workbook()
       workbook.creator = 'FGH'
       workbook.lastModifiedBy = 'FGH'
@@ -326,7 +351,74 @@ export default {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       const fileExtension = '.xlsx'
       const blob = new Blob([buffer], { type: fileType })
-      saveAs(blob, fileName + fileExtension)
+      
+      if (isOnline.value) {
+
+        saveAs(blob, fileName + fileExtension)
+        } else  {
+          //   var blob = new Blob(materialEducativo.blop)
+          //  const bytes = new Uint8Array(materialEducativo.blop)
+         // var UTF8_STR = new Uint8Array(pdfOutput)
+         //   var BINARY_ARR = UTF8_STR.buffer
+         const titleFile = 'StockRecebido.xlsx'
+         console.log('result' + titleFile)
+          saveBlob2File(titleFile, blob)
+          function saveBlob2File (fileName, blob) {
+          
+              const folder = cordova.file.externalRootDirectory + 'Download'
+             //  var folder = 'Download'
+              window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+                console.log('file system open: ' + dirEntry.name)
+                 console.log('file system open11111: ' + blob)
+                createFile(dirEntry, fileName, blob)
+               // $q.loading.hide()
+              }, onErrorLoadFs)
+            }
+               function createFile (dirEntry, fileName, blob) {
+              // Creates a new file
+              dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+                writeFile(fileEntry, blob)
+              }, onErrorCreateFile)
+            }
+       
+            function writeFile (fileEntry, dataObj) {
+              // Create a FileWriter object for our FileEntry
+              fileEntry.createWriter(function (fileWriter) {
+                fileWriter.onwriteend = function () {
+                  console.log('Successful file write...')
+                   openFile()
+                }
+       
+                fileWriter.onerror = function (error) {
+                  console.log('Failed file write: ' + error)
+                }
+                fileWriter.write(dataObj)
+              })
+            }
+            function onErrorLoadFs (error) {
+              console.log(error)
+            }
+       
+            function onErrorCreateFile (error) {
+              console.log('errorr: ' + error.toString())
+            }
+          function openFile () {
+              const strTitle = titleFile
+                console.log('file system 44444: ' + strTitle)
+               const folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+                 console.log('file system 2222: ' + folder)
+                 const documentURL = decodeURIComponent(folder)
+          cordova.plugins.fileOpener2.open(
+            documentURL,
+              'application/vnd.ms-excel', {
+                  error: function (e) {
+                      console.log('file system open3333366: ' + e + documentURL)
+                  },
+                  success: function () {
+       
+                  }
+              })
+          } }
     },
      createArrayOfArrayRow (rows) {
       const data = []
@@ -344,20 +436,81 @@ export default {
       }
       return data
     },
-   async getDataLocalReport(reportId) {
-      let data = []
-      await StockReceivedReport.localDbGetAll().then(reports => {
-          const reportData = []
-          reports.forEach(report => {
-                  if (report.reportId === reportId) {
-                   reportData.push(report)
+
+    downloadFile(fileName , fileType, blop) {
+      // console.log(blop)
+      // var pdfOutput = blop.output()
+     //  console.log(pdfOutput)
+     //  if (typeof cordova !== 'undefined') {
+        //   var blob = new Blob(materialEducativo.blop)
+        //  const bytes = new Uint8Array(materialEducativo.blop)
+       // var UTF8_STR = new Uint8Array(pdfOutput)
+       //   var BINARY_ARR = UTF8_STR.buffer
+          const titleFile = fileName + fileType
+          console.log('result' + titleFile)
+           saveBlob2File(titleFile, blop)
+           function saveBlob2File (fileName, blob) {
+              const folder = cordova.file.externalRootDirectory + 'Download'
+             //  var folder = 'Download'
+              window.resolveLocalFileSystemURL(folder, function (dirEntry) {
+                console.log('file system open: ' + dirEntry.name)
+                 console.log('file system open11111: ' + blob)
+                createFile(dirEntry, fileName, blob)
+               // $q.loading.hide()
+              }, onErrorLoadFs)
+            }
+               function createFile (dirEntry, fileName, blob) {
+              // Creates a new file
+              dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
+                writeFile(fileEntry, blob)
+              }, onErrorCreateFile)
+            }
+      
+            function writeFile (fileEntry, dataObj) {
+              // Create a FileWriter object for our FileEntry
+              fileEntry.createWriter(function (fileWriter) {
+                fileWriter.onwriteend = function () {
+                  console.log('Successful file write...')
+                   openFile()
+                }
+      
+                fileWriter.onerror = function (error) {
+                  console.log('Failed file write: ' + error)
+                }
+                fileWriter.write(dataObj)
+              })
+            }
+            function onErrorLoadFs (error) {
+              console.log(error)
+            }
+      
+            function onErrorCreateFile (error) {
+              console.log('errorr: ' + error.toString())
+            }
+          function openFile () {
+              const strTitle = titleFile
+                console.log('file system 44444: ' + strTitle)
+               const folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
+                 console.log('file system 2222: ' + folder)
+                 const documentURL = decodeURIComponent(folder)
+          cordova.plugins.fileOpener2.open(
+            documentURL,
+              'application/pdf', {
+                  error: function (e) {
+                      console.log('file system open3333366: ' + e + documentURL)
+                  },
+                  success: function () {
+      
                   }
-             })
-             // if(reportData.length === 0) return '204'
-              data = this.createArrayOfArrayRow(reportData)
-             console.log(data)
-             return data
-         })
-         return data
-    }
+              })
+          }
+        },
+
+        async getDataLocalReport (reportId) {
+          let data = []
+         const reportData =  await ReceivedStockMobileService.localDbGetAllByReportId(reportId)
+         data = this.createArrayOfArrayRow(reportData)
+          return data
+        },
+
   }

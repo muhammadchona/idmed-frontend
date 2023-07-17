@@ -15,7 +15,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -29,7 +29,7 @@ export default {
   },
   patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.patchWeb(uid, params);
     }
@@ -84,13 +84,8 @@ export default {
     return nSQL(VitalSignsScreening.entity)
       .query('upsert', params)
       .exec()
-      .then(() => {
-        vitalSignsScreening.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
+      .then((resp) => {
+        vitalSignsScreening.save(resp[0].affectedRows);
       });
   },
   getMobile() {
