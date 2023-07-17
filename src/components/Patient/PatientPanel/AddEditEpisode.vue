@@ -106,6 +106,7 @@
         </div>
         <div class="row q-mt-md">
           <q-select
+            v-if="isOnline"
             class="col"
             dense
             outlined
@@ -118,6 +119,24 @@
             ]"
             v-model="episode.clinicSector"
             :options="clinicSerctors"
+            option-value="id"
+            option-label="description"
+            label="Sector Clinico *"
+          />
+          <q-select
+            v-if="!isOnline"
+            class="col"
+            dense
+            outlined
+            disable
+            ref="clinicSerctorRef"
+            :rules="[
+              (val) =>
+                !!val ||
+                'Por favor indicar o sector onde vai ocorrer o atendimento',
+            ]"
+            v-model="episode.clinicSector"
+            :options="mobileClinicSector"
             option-value="id"
             option-label="description"
             label="Sector Clinico *"
@@ -332,6 +351,7 @@ import episodeTypeService from 'src/services/api/episodeType/episodeTypeService'
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 //Declaration
 const {
@@ -345,6 +365,7 @@ const { alertSucess, alertError } = useSwal();
 const { fullName, age } = usePatient();
 const { isReferenceOrTransferenceEpisode, hasVisits } = useEpisode();
 const { remainigDurationInWeeks } = usePrescription();
+const { isOnline } = useSystemUtils();
 
 const submitting = ref(false);
 const closureEpisode = ref(new Episode());
@@ -373,7 +394,6 @@ const referealClinicSectorRef = ref(null);
 const endNotesRef = ref(null);
 
 // Injection
-const episodeToEdit = inject('episodeToEdit');
 const curIdentifier = inject('curIdentifier');
 const curEpisode = inject('curEpisode');
 const lastPack = inject('lastPack');
@@ -382,7 +402,6 @@ const isEditStep = inject('isEditStep');
 const isNewEpisode = inject('isNewEpisode');
 const isCloseEpisode = inject('isCloseEpisode');
 const closeEpisodeCreation = inject('closeEpisodeCreation');
-const editEpisodeCreation = inject('editEpisodeCreation');
 
 //Hooks
 onMounted(() => {
@@ -486,6 +505,11 @@ const clinicSerctors = computed(() => {
   );
 });
 
+const mobileClinicSector = computed(() => {
+  const clinicSectorCode = localStorage.getItem('clinic_sector_users');
+  return clinicSectorService.getClinicSectorByCode(clinicSectorCode);
+});
+
 const referralClinics = computed(() => {
   if (selectedDistrict.value !== null) {
     if (isReferenceEpisode.value) {
@@ -556,9 +580,15 @@ const init = async () => {
   );
   if (isNewEpisode.value) {
     episode.value = new Episode();
+    episode.value.syncStatus = 'R';
     startDate.value = getDDMMYYYFromJSDate(moment());
+    if (!isOnline.value) {
+      episode.value.clinicSector = mobileClinicSector.value;
+    }
   } else {
     closureEpisode.value = new Episode();
+    closureEpisode.value.syncStatus = 'R';
+    episode.value.syncStatus = 'U';
     if (curEpisode !== null && curEpisode !== undefined) {
       episode.value = curEpisode.value;
       startDate.value = getDDMMYYYFromJSDate(episode.value.episodeDate);
