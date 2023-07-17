@@ -219,6 +219,7 @@ const doValidationToDispense = () => {
   curPatientVisit.value.clinic.id = patient.value.clinic_id;
   curPatientVisit.value.patient = {};
   curPatientVisit.value.patient.id = patient.value.id;
+  curPatientVisit.value.syncStatus = 'R';
   submitting.value = true;
   if (
     dispenseMode.value === null ||
