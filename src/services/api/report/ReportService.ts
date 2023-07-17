@@ -1,3 +1,4 @@
+import { PatientVisitDetails } from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
 
 import api from '../apiService/apiService';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -17,6 +18,7 @@ export default {
   async apiPrintMmiaReport(reportId: string, fileType: string) {
     return await api().get(`/mmiaReport/printReport/${reportId}/${fileType}`);
   },
+
   async apiGetMmiaReport(reportId: string) {
     return await api().get(`/mmiaReport/${reportId}`);
   },
@@ -59,6 +61,10 @@ export default {
 
   async apiInitActiveInDrugStoreProcessing(params: any) {
     return await api().post('/activePatientReport/initReportProcess', params);
+  },
+
+  async apiInitReferredPatientsProcessing(params: any) {
+    return await api().post('/referredPatientsReport/initReportProcess', params);
   },
 
   async apiActivePatientReport(reportId: string, fileType: any) {
@@ -840,7 +846,7 @@ export default {
         'episodes.episodeDate AS lastEpisode', '0 AS month', 'patientVisits.clinic.id AS clinicID',
         'dispenseTypes.code AS dispenseTypeCode',
         'dispenseTypes.description AS dispenseTypeDescription',
-        'patientVisits.patient.gender AS gender'])
+        'patientVisits.patient.gender AS gender', 'patientVisits.id AS patientVisitId'])
         .join(
           [{
             type: 'inner',
@@ -897,5 +903,113 @@ export default {
       })
     }
   },
+
+  referredPatientsMobileOffline(startDateParam: any, endDateParam: any, clinicIdParam: string) {
+
+  const startDate = new Date(startDateParam);
+  const endDate = new Date(endDateParam);
+  const clinicId = clinicIdParam;
+
+  return nSQL('patientVisits')
+    .query('select', ['patientVisits.patientVisitDetails[0].prescription.id AS prescriptionId', 'patientVisits.visitDate AS visitDate', 'patientVisits.clinic.id AS clinicID', 'packs.pickupDate AS pickupDate', 'patientVisits.patient.id AS patientId', 'episodes.episodeDate AS episodeDate',
+    'identifiers.startDate AS startDate', 'startStopReasons.code AS code', 'clinicalServices.code AS service', 'identifiers.value AS nid', 'patientVisits.patient.firstNames AS firstNames', 'patientVisits.patient.middleNames AS middleNames','packs.nextPickUpDate AS nextPickUpDate',
+     'patientVisits.patient.lastNames AS lastNames', 'patientVisits.patient.dateOfBirth AS dateOfBirth', 'packs.dateReceived AS referenceDate', 'episodes.referralClinic AS referralClinic'])
+    .join([
+      {
+        type: 'inner',
+        table: 'patientVisitDetails',
+        where: ['patientVisits.id', '=', 'patientVisitDetails.patientVisit.id']
+      },
+      {
+        type: 'inner',
+        table: 'episodes',
+        where: ['episodes.id', '=', 'patientVisitDetails.episode.id']
+      },
+      {
+        type: 'inner',
+        table: 'packs',
+        where: ['packs.id', '=', 'patientVisitDetails.pack.id']
+      },
+      {
+        type: 'inner',
+        table: 'identifiers',
+        where: ['identifiers.patient.id', '=', 'patientVisits.patient.id']
+      },
+      {
+        type: 'inner',
+        table: 'startStopReasons',
+        where: ['startStopReasons.id', '=', 'episodes.startStopReason.id']
+      },
+      {
+        type: 'inner',
+        table: 'clinicalServices',
+        where: ['clinicalServices.id', '=', 'identifiers.service.id']
+      }
+    ])
+    .exec()
+    .then((rows) => {
+      rows = this.removerDuplicados(rows)
+      return rows.filter(value => {
+        return value.service === 'TARV' && value.code === 'REFERIDO_PARA' && new Date(value.episodeDate) >= startDate && new Date(value.episodeDate) <= endDate && value.clinicID === clinicId
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  },
+
+  referredBackPatientsMobileOffline(startDateParam: any, endDateParam: any, clinicIdParam: string) {
+
+    const startDate = new Date(startDateParam);
+    const endDate = new Date(endDateParam);
+    const clinicId = clinicIdParam;
+
+    return nSQL('patientVisits')
+      .query('select', ['patientVisits.patientVisitDetails[0].prescription.id AS prescriptionId', 'patientVisits.visitDate AS visitDate', 'patientVisits.clinic.id AS clinicID', 'packs.pickupDate AS pickupDate', 'patientVisits.patient.id AS patientId', 'episodes.episodeDate AS episodeDate',
+      'identifiers.startDate AS startDate', 'startStopReasons.code AS code', 'clinicalServices.code AS service', 'identifiers.value AS nid', 'patientVisits.patient.firstNames AS firstNames', 'patientVisits.patient.middleNames AS middleNames','packs.nextPickUpDate AS nextPickUpDate',
+       'patientVisits.patient.lastNames AS lastNames', 'patientVisits.patient.dateOfBirth AS dateOfBirth', 'packs.dateReceived AS referenceDate', 'episodes.referralClinic AS referralClinic'])
+      .join([
+        {
+          type: 'inner',
+          table: 'patientVisitDetails',
+          where: ['patientVisits.id', '=', 'patientVisitDetails.patientVisit.id']
+        },
+        {
+          type: 'inner',
+          table: 'episodes',
+          where: ['episodes.id', '=', 'patientVisitDetails.episode.id']
+        },
+        {
+          type: 'inner',
+          table: 'packs',
+          where: ['packs.id', '=', 'patientVisitDetails.pack.id']
+        },
+        {
+          type: 'inner',
+          table: 'identifiers',
+          where: ['identifiers.patient.id', '=', 'patientVisits.patient.id']
+        },
+        {
+          type: 'inner',
+          table: 'startStopReasons',
+          where: ['startStopReasons.id', '=', 'episodes.startStopReason.id']
+        },
+        {
+          type: 'inner',
+          table: 'clinicalServices',
+          where: ['clinicalServices.id', '=', 'identifiers.service.id']
+        }
+      ])
+      .exec()
+      .then((rows) => {
+        rows = this.removerDuplicados(rows)
+        return rows.filter(value => {
+          return value.service === 'TARV' && value.code === 'VOLTOU_REFERENCIA' && new Date(value.episodeDate) >= startDate && new Date(value.episodeDate) <= endDate && value.clinicID === clinicId
+        })
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    },
 };
 

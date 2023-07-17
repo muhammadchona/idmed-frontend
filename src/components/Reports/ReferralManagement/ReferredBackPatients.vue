@@ -35,14 +35,16 @@ import Report from 'src/services/api/report/ReportService'
 import { LocalStorage } from 'quasar'
 import { ref, onMounted } from 'vue'
 import referredBackPatients from 'src/services/reports/ReferralManagement/ReferredBackPatients.ts'
-   
-  import ListHeader from 'components/Shared/ListHeader.vue'
-  import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+import referredPatintsMobileService from 'src/services/api/report/mobile/ReferredPatintsMobileService.ts'
+import reportDatesParams from 'src/services/reports/ReportDatesParams'
+import ListHeader from 'components/Shared/ListHeader.vue'
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+import clinicService from 'src/services/api/clinicService/clinicService.ts';
 
   import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-  import { useSwal } from 'src/composables/shared/dialog/dialog';  
+  import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-  const { website, isDeskTop, isMobile } = useSystemUtils(); 
+  const { isOnline } = useSystemUtils();
   const { alertSucess, alertError, alertWarningAction } = useSwal();
 
 
@@ -64,12 +66,30 @@ import referredBackPatients from 'src/services/reports/ReferralManagement/Referr
         LocalStorage.remove(props.id)
       }
 
-      const initReportProcessing =(params) => {
-         Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
-        // reset your component inputs like textInput to null
-        // or your custom route redirect with vue-router
-         setTimeout(getProcessingStatus(params), 2)
-      })
+      // const initReportProcessing =(params) => {
+      //    Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
+      //   // reset your component inputs like textInput to null
+      //   // or your custom route redirect with vue-router
+      //    setTimeout(getProcessingStatus(params), 2)
+      // })
+      // }
+
+      const initReportProcessing = (params) => {
+        if (isOnline.value) {
+          Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
+            progress.value = response.data.progress
+            setTimeout(getProcessingStatus(params), 2)
+          })
+        } else {
+          const reportParams = reportDatesParams.determineStartEndDate(params)
+            Report.referredBackPatientsMobileOffline(reportParams.startDate, reportParams.endDate, reportParams.clinicId).then(respReferredPatients => {
+              const clinic = clinicService.getById(reportParams.clinicId)
+              referredPatintsMobileService.saveReferredPatientsOnNano(respReferredPatients, reportParams, clinic)
+              progress.value = 100
+              params.progress = 100
+            })
+
+        }
       }
 
       const  getProcessingStatus= (params)=>{
@@ -86,17 +106,44 @@ import referredBackPatients from 'src/services/reports/ReferralManagement/Referr
         })
       }
 
-      const  generateReport= (id, fileType, params)=> {
-             if (fileType === 'PDF') {
-               referredBackPatients.downloadPDF(params).then(resp => {
-                  if (resp === 204)  alertError( 'Nao existem Dados para o periodo selecionado')
+      // const  generateReport= (id, fileType, params)=> {
+      //        if (fileType === 'PDF') {
+      //          referredBackPatients.downloadPDF(params).then(resp => {
+      //             if (resp === 204)  alertError( 'Nao existem Dados para o periodo selecionado')
+      //          })
+      //       } else {
+      //          referredBackPatients.downloadExcel(params).then(resp => {
+      //             if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+      //          })
+      //       }
+      // }
+
+      const generateReport =  async (id, fileType, params) => {
+          if (isOnline.value) {
+            if (fileType === 'PDF') {
+               referredBackPatients.downloadPDF(null, params).then(resp => {
+                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
                })
             } else {
-               referredBackPatients.downloadExcel(params).then(resp => {
-                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+               referredBackPatients.downloadExcel(null, params).then(resp => {
+                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
                })
             }
-      } 
+          } else {
+            referredPatintsMobileService.getDataLocalReport(id).then(resp => {
+              if (resp <= 0) {
+                alertError('Nao existem Dados para o periodo selecionado')
+              } else {
+                console.log(params)
+                if (fileType === 'PDF') {
+                  referredBackPatients.downloadPDF(resp, params)
+                } else {
+                  referredBackPatients.downloadExcel(resp, params)
+                }
+              }
+            })
+          }
+        }
 </script>
 
 <style lang="scss" scoped>
