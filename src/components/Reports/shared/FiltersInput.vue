@@ -431,7 +431,7 @@ const onPeriodoChange = (val) => {
   reportParams.value.year = new Date().getFullYear();
   reportParams.value.period = null;
   reportParams.value.periodTypeView = val;
-  if (isMobile.value) periodTypeSelect = val;
+  periodTypeSelect = val;
   reportParams.value.progress = 0;
 };
 
