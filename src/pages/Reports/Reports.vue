@@ -108,6 +108,7 @@ import UsedStock from 'components/Reports/stock/UsedStock.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
 import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.vue';
+import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPack.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 
@@ -127,6 +128,7 @@ const componentsList = {
   UsedStock,
   ArvDailyRegister,
   PatientHistory,
+  NotSynchronizedPack,
 };
 
 const { isOnline, isMobile } = useSystemUtils();
