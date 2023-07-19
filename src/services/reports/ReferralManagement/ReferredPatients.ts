@@ -1,3 +1,5 @@
+import clinicService from 'src/services/api/clinicService/clinicService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
 /* eslint-disable */
 import JsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -5,15 +7,17 @@ import { saveAs } from 'file-saver'
 import * as ExcelJS from 'exceljs'
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/services/api/report/ReportService'
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import moment from 'moment'
 
+const { isOnline } = useSystemUtils();
  const logoTitle ='REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Pacientes Referidos para outra Farmácia'
 const reportName = 'ReferredPatients'
  const fileName = reportName.concat('_' + moment(new Date()).format('DD-MM-YYYY'));
 
 export default {
-    async downloadPDF (params) {
+    async downloadPDF (regs:any, params:any) {
       const doc = new JsPDF({
         orientation: 'l',
         unit: 'mm',
@@ -27,6 +31,10 @@ export default {
       /*
         Fill Table
       */
+
+      let rows = []
+      const clinic = clinicService.getById(params.clinicId)
+
       const cols = [
         'NID',
         'Nome',
@@ -38,11 +46,16 @@ export default {
         'Data de Referência',
         'Farmacia da Referência'
       ]
-      const rows = await Report.printReportOther('referredPatientsReport', params.id)
-      if(rows.status === 204) return rows.status
-      params.startDateParam =  moment(rows.data[0].startDate).format('DD-MM-YYYY')
-      params.endDateParam = moment(rows.data[0].endDate).format('DD-MM-YYYY')
-      const data = this.createArrayOfArrayRow(rows.data)
+      let data = []
+      if(isOnline.value){
+        rows = await Report.printReportOther('referredPatientsReport', params.id)
+        if(rows.status === 204) return rows.status
+        data = this.createArrayOfArrayRow(rows.data)
+      }else {
+        rows = regs
+        console.log(rows)
+        data = this.createArrayOfArrayRow(rows)
+      }
 
       autoTable(doc, {
         margin: { top: 60 },
@@ -70,9 +83,9 @@ export default {
             }
           )
           doc.setFontSize(10)
-          doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, width / 15, 57)
-         // doc.text('Data Início: ' + params.startDateParam, width / 2 + 98, 49)
-         // doc.text('Data Fim: ' + params.endDateParam, width / 2 + 98, 57)
+        doc.text('Unidade Sanitaria: ' + clinic?.clinicName, width / 15, 57)
+        //  doc.text('Data Início: ' + params.startDateParam, width / 2 + 98, 49)
+        //  doc.text('Data Fim: ' + params.endDateParam, width / 2 + 98, 57)
          doc.text('Periodo: ' + params.startDateParam +' à '+  params.endDateParam, width / 2 + 90, 57)
         // doc.line(0, 35, 400, 50);
         },
@@ -83,13 +96,27 @@ export default {
      // params.value.loading.loading.hide()
       return doc.save(reportName + '.pdf')
     },
-    async downloadExcel(params) {
+    async downloadExcel(regs:any, params:any) {
 
-      const rows = await Report.printReportOther('referredPatientsReport', params.id)
-      if(rows.status === 204) return rows.status
-      params.startDateParam =  moment(rows.data[0].startDate).format('DD-MM-YYYY')
-      params.endDateParam = moment(rows.data[0].endDate).format('DD-MM-YYYY')
-      const data =  this.createArrayOfArrayRow(rows.data)
+      let rows = []
+      const clinic = clinicService.getById(params.clinicId)
+      let data = []
+
+      if(isOnline.value){
+        rows = await Report.printReportOther('referredPatientsReport', params.id)
+        if(rows.status === 204) return rows.status
+        data = this.createArrayOfArrayRow(rows.data)
+      }else {
+        rows = regs
+        console.log(rows)
+        data = this.createArrayOfArrayRow(rows)
+      }
+
+      // const rows = await Report.printReportOther('referredPatientsReport', params.id)
+      // if(rows.status === 204) return rows.status
+      // params.startDateParam =  moment(rows.data[0].startDate).format('DD-MM-YYYY')
+      // params.endDateParam = moment(rows.data[0].endDate).format('DD-MM-YYYY')
+      // const data =  this.createArrayOfArrayRow(rows.data)
 
       const workbook = new ExcelJS.Workbook();
       workbook.creator = 'FGH';
@@ -338,7 +365,7 @@ export default {
         createRow.push(rows[row].name)
         createRow.push(rows[row].age)
         createRow.push(this.getFormatDDMMYYYY(rows[row].lastPrescriptionDate))
-        createRow.push(rows[row].therapeuticalRegimen)
+        createRow.push(rows[row].therapeuticRegimen)
         createRow.push(rows[row].dispenseType)
         createRow.push(this.getFormatDDMMYYYY(rows[row].nextPickUpDate))
         createRow.push(this.getFormatDDMMYYYY(rows[row].referrenceDate))

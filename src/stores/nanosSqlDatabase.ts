@@ -1,3 +1,4 @@
+import ReferredPatientsReport from 'src/stores/models/report/referralManagement/ReferredPatientsReport';
 import Country from './models/country/Country';
 import Province from './models/province/Province';
 import District from './models/district/District';
@@ -205,8 +206,9 @@ export default {
     entitiesList.push(MmiaStockReport)
     entitiesList.push(MmiaRegimenSubReport)
     entitiesList.push(ArvDailyRegisterTempReport);
-    entitiesList.push(DrugQuantityTemp);    
-   entitiesList.push(ActiveInDrugStore)
+    entitiesList.push(DrugQuantityTemp);
+   entitiesList.push(ActiveInDrugStore);
+   entitiesList.push(ReferredPatientsReport)
     return entitiesList;
   },
 };
