@@ -261,12 +261,12 @@ const { alertSucess, alertError } = useSwal();
 const { age, fullName, hasIdentifiers, getOldestIdentifier, isMale } =
   usePatient();
 const { getDDMMYYYFromJSDate, getJSDateFromDDMMYYY } = useDateUtils();
-const patientVisit = ref(new PatientVisit());
-const vitalSignsScreening = ref(new VitalSignsScreening());
-const tBScreening = ref(new TBScreening());
-const pregnancyScreening = ref(new PregnancyScreening());
-const adherenceScreening = ref(new AdherenceScreening());
-const rAMScreening = ref(new RAMScreening());
+const patientVisit = ref(new PatientVisit({ id: uuidv4() }));
+const vitalSignsScreening = ref(new VitalSignsScreening({ id: uuidv4() }));
+const tBScreening = ref(new TBScreening({ id: uuidv4() }));
+const pregnancyScreening = ref(new PregnancyScreening({ id: uuidv4() }));
+const adherenceScreening = ref(new AdherenceScreening({ id: uuidv4() }));
+const rAMScreening = ref(new RAMScreening({ id: uuidv4() }));
 const screeningStep = ref(ref(1));
 const visitDate = ref('');
 const stepper = ref();
@@ -309,23 +309,23 @@ onMounted(() => {
     editPatientVisit.value.vitalSignsScreenings.length > 0
       ? (vitalSignsScreening.value =
           editPatientVisit.value.vitalSignsScreenings[0])
-      : (vitalSignsScreening.value = new VitalSignsScreening());
+      : (vitalSignsScreening.value = new VitalSignsScreening({ id: uuidv4() }));
     editPatientVisit.value.tbScreenings.length > 0
       ? (tBScreening.value = editPatientVisit.value.tbScreenings[0])
-      : (tBScreening.value = new TBScreening());
+      : (tBScreening.value = new TBScreening({ id: uuidv4() }));
     pregnancyScreening.value = !isMale(patient.value)
       ? editPatientVisit.value.pregnancyScreenings.length > 0
         ? editPatientVisit.value.pregnancyScreenings[0]
-        : new PregnancyScreening()
+        : new PregnancyScreening({ id: uuidv4() })
       : [];
     adherenceScreening.value =
       editPatientVisit.value.adherenceScreenings.length > 0
         ? editPatientVisit.value.adherenceScreenings[0]
-        : new AdherenceScreening();
+        : new AdherenceScreening({ id: uuidv4() });
     rAMScreening.value =
       editPatientVisit.value.ramScreenings.length > 0
         ? editPatientVisit.value.ramScreenings[0]
-        : new RAMScreening();
+        : new RAMScreening({ id: uuidv4() });
     vitalSignsScreening.value.visit = null;
     tBScreening.value.visit = null;
     pregnancyScreening.value.visit = null;

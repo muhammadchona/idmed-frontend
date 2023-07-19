@@ -27,6 +27,7 @@ import { SessionStorage } from 'quasar';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
 import DispenseMode from 'src/stores/models/dispenseMode/DispenseMode';
+import { v4 as uuidv4 } from 'uuid';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 export default {
@@ -82,6 +83,7 @@ export default {
           patients = [];
           if (response.data !== null) {
             const localpatient = new Patient({
+              id: uuidv4(),
               identifiers: [],
             });
             patients.push(
@@ -124,7 +126,7 @@ export default {
     return localpatient;
   },
   buildPatientIdentifierFromIdmed(idmedPatientTransfered) {
-    const psi = new PatientServiceIdentifier();
+    const psi = new PatientServiceIdentifier({ id: uuidv4() });
     psi.startDate = idmedPatientTransfered.startDate;
     psi.value = idmedPatientTransfered.patientNid + '9989';
     psi.state = 'Activo';
@@ -146,7 +148,7 @@ export default {
     return psi;
   },
   buildEpisodeFromIdmed(idmedPatientTransfered) {
-    const episode = new Episode();
+    const episode = new Episode({ id: uuidv4() });
     episode.episodeDate = idmedPatientTransfered.episodeDate;
     episode.startStopReason = StartStopReason.query()
       .where('code', 'TRANSFERIDO_DE')
@@ -170,7 +172,7 @@ export default {
     return episode;
   },
   buildPrescriptionFromIdmed(idmedPatientTransfered) {
-    const prescription = new Prescription();
+    const prescription = new Prescription({ id: uuidv4() });
     prescription.prescriptionDate = idmedPatientTransfered.prescriptionDate;
     prescription.expiryDate = idmedPatientTransfered.expiryDate;
     prescription.prescriptionSeq = idmedPatientTransfered.prescriptionSeq;
@@ -219,7 +221,7 @@ export default {
     return prescription;
   },
   buildPackFromIdmed(idmedPatientTransfered) {
-    const pack = new Pack();
+    const pack = new Pack({ id: uuidv4() });
     pack.dateLeft = idmedPatientTransfered.dateLeft;
     pack.dateReceived = idmedPatientTransfered.dateReceived;
     pack.modified = idmedPatientTransfered.modified;
@@ -244,7 +246,7 @@ export default {
     const packDrugsLocal = [];
     const obj = idmedPatientTransfered.jsonPackagedDrug;
     obj.forEach((obj1) => {
-      const packageDrug = new PackagedDrug();
+      const packageDrug = new PackagedDrug({ id: uuidv4() });
       packageDrug.drug = Drug.query()
         .with('form')
         .where('fnmCode', obj1.drugCode)
@@ -260,7 +262,7 @@ export default {
     return pack;
   },
   buildPatientVisitFromIdmed(idmedPatientTransfered) {
-    const patientVisit = new PatientVisit();
+    const patientVisit = new PatientVisit({ id: uuidv4() });
     patientVisit.visitDate = idmedPatientTransfered.patientVisitDate;
     patientVisit.clinic = Clinic.query()
       .with('province')
@@ -269,7 +271,7 @@ export default {
       .where('uuid', idmedPatientTransfered.originClinicUuid)
       .first();
 
-    const patientVisitDetails = new PatientVisitDetails();
+    const patientVisitDetails = new PatientVisitDetails({ id: uuidv4() });
     patientVisitDetails.clinic = Clinic.query()
       .with('province')
       .with('district.province')
@@ -287,7 +289,7 @@ export default {
     return patientVisit;
   },
   buildPatientVisitDetailsFromIdmed(idmedPatientTransfered) {
-    const patientVisit = new PatientVisit();
+    const patientVisit = new PatientVisit({ id: uuidv4() });
     patientVisit.visitDate = idmedPatientTransfered.patientVisitDate;
     patientVisit.clinic = Clinic.query()
       .with('province')
@@ -296,7 +298,7 @@ export default {
       .where('uuid', idmedPatientTransfered.originClinicUuid)
       .first();
 
-    const patientVisitDetails = new PatientVisitDetails();
+    const patientVisitDetails = new PatientVisitDetails({ id: uuidv4() });
     patientVisitDetails.clinic = Clinic.query()
       .with('province')
       .with('district.province')

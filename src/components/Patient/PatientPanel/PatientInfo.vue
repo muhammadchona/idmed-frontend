@@ -41,13 +41,21 @@
     <div class="row q-mb-sm">
       <div class="col-5 text-grey-9">Província</div>
       <div class="col text-grey-10">
-        {{ patient.province.description }}
+        {{
+          patient.province !== null && patient.province !== undefined
+            ? patient.province.description
+            : ''
+        }}
       </div>
     </div>
     <div class="row q-mb-sm">
       <div class="col-5 text-grey-9">Distrito</div>
       <div class="col text-grey-10">
-        {{ patient.district.description }}
+        {{
+          patient.district !== null && patient.district !== undefined
+            ? patient.district.description
+            : ''
+        }}
       </div>
     </div>
     <div class="row q-mb-sm">

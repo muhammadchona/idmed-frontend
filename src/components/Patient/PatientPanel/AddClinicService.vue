@@ -419,6 +419,7 @@ import episodeTypeService from 'src/services/api/episodeType/episodeTypeService'
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import { usePatientVisitDetail } from 'src/composables/patient/patientVisitDetailsMethods';
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import { v4 as uuidv4 } from 'uuid';
 
 // Declaration
 const { hasPreferedId } = usePatient();
@@ -438,8 +439,8 @@ const { lastPack } = usePatientVisitDetail();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
 const submitting = ref(false);
 const identifierstartDate = ref('');
-const identifier = ref(new PatientServiceIdentifier());
-const closureEpisode = ref(new Episode());
+const identifier = ref(new PatientServiceIdentifier({id: uuidv4()}));
+const closureEpisode = ref(new Episode({id: uuidv4()}));
 const estados = ref(['Activo', 'Inactivo']);
 const estado = ref(['Activo']);
 const endDate = ref('');
@@ -779,6 +780,7 @@ const doSave = async () => {
     identifier.value.state = 'Activo';
   }
   if (isCloseStep.value || isReOpenStep.value) {
+    closureEpisode.value.id = uuidv4();
     closureEpisode.value.creationDate = moment();
     closureEpisode.value.clinic = currClinic.value;
     closureEpisode.value.clinic_id = currClinic.value.id;
@@ -803,6 +805,7 @@ const doSave = async () => {
     identifier.value.episodes.push(closureEpisode.value);
   }
   if (isCreateStep.value) {
+    identifier.value.id = uuidv4();
     identifier.value.clinic = {};
     identifier.value.clinic.id = currClinic.value.id;
     identifier.value.startDate = getYYYYMMDDFromJSDate(

@@ -11,9 +11,10 @@ import search from 'components/Patient/Search.vue';
 import Patient from 'src/stores/models/patient/Patient';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { v4 as uuidv4 } from 'uuid';
 
 const { showloading, closeLoading } = useLoading();
-const currPatient = ref(new Patient());
+const currPatient = ref(new Patient({ id: uuidv4() }));
 
 onMounted(() => {
   showloading();
