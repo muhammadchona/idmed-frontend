@@ -3,6 +3,10 @@ import api from '../apiService/apiService';
 import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
+
 
 
 const { isMobile, isOnline } = useSystemUtils();
@@ -92,6 +96,8 @@ getWeb(offset: number) {
         offset = offset + 100;
         if (resp.data.length > 0) {
           this.get(offset);
+        } else {
+          closeLoading()
         }
       })
   }

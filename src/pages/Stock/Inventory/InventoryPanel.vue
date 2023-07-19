@@ -349,7 +349,7 @@ onMounted(() =>{
   var isGeneric = JSON.parse(currInventory.value.generic)
   const drugList = [];
   if (isGeneric) {
-       drugs.value = drugService.getActiveDrugsInventory(drugService.getActiveDrugs())
+       drugs.value = drugService.getActiveDrugs()
   } else {
    
     Object.keys(currInventory.value.adjustments).forEach(
@@ -361,7 +361,7 @@ onMounted(() =>{
         retriveRelatedDrug(currInventory.value.adjustments[i], drugList);
       }.bind(this)
     );
-    drugs.value =  drugService.getActiveDrugsInventory(drugList);
+    drugs.value =  drugList;
   }
   closeLoading()
 })

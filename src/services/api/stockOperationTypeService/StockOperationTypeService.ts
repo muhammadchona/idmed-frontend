@@ -4,6 +4,10 @@ import stockOperationType from 'src/stores/models/stockoperation/StockOperationT
 import { useRepo } from 'pinia-orm';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
+
 
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -32,6 +36,8 @@ export default {
             if (resp.data.length > 0) {
               this.get(offset);
               setTimeout(this.get, 2);
+            } else {
+              closeLoading()
             }
           });
       }

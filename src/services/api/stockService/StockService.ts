@@ -4,6 +4,10 @@ import api from '../apiService/apiService';
 import moment from 'moment';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
+
 
 
 
@@ -131,6 +135,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading()
           }
         })
     }

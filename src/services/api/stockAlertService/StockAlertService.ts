@@ -2,16 +2,17 @@ import { useRepo } from 'pinia-orm';
 import StockAlert from 'src/stores/models/stockAlert/StockAlert';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-const { alertSucess, alertError, alertWarning } = useSwal();
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import drugService from '../drugService/drugService';
-import StockService from '../stockService/StockService';
-import { v4 as uuidv4 } from 'uuid';
 import { useStock } from 'src/composables/stock/StockMethod';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+
+const { showloading, closeLoading } = useLoading();
 
 const stockMethod = useStock()
-const { isMobile, isOnline } = useSystemUtils();
+const {  isOnline } = useSystemUtils();
 const stockAlert = useRepo(StockAlert);
 
 export default {
@@ -32,6 +33,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading()
           }
         })
     }
@@ -68,9 +71,12 @@ export default {
       return response
 
     } else {
-      const resp =   await api().get(`/dashBoard/getStockAlertAll/${clinicId}`)
+       api().get(`/dashBoard/getStockAlertAll/${clinicId}`).then((resp) => {
         stockAlert.save(resp.data);
-        return resp
+        closeLoading()
+        return resp.data
+       })
+       
     }
     
   },
@@ -80,9 +86,11 @@ export default {
       `/dashBoard/getStockAlert/${clinicId}/${serviceCode}`
     )
   },
-  getStockAlertsByClinic() {
-    return stockAlert.withAllRecursive(2)
-      .get();
+   getStockAlertsByClinic() {
+   const items =  stockAlert.withAllRecursive(2)
+      .get()
+      closeLoading()
+      return items
   },
   saveStockAlert(param: any) {
     stockAlert.save(param)

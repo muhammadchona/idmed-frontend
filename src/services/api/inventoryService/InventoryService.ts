@@ -3,6 +3,9 @@ import api from '../apiService/apiService';
 import Inventory from 'src/stores/models/stockinventory/Inventory';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 const inventory = useRepo(Inventory);
 const { isMobile, isOnline } = useSystemUtils();
@@ -144,6 +147,8 @@ getWeb(offset: number) {
         offset = offset + 100;
         if (resp.data.length > 0) {
           this.get(offset);
+        } else {
+          closeLoading()
         }
       })
   }

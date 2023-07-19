@@ -94,12 +94,10 @@
 <script setup >
 import { ref, computed, inject, provide, reactive, onMounted } from 'vue';
 
-import stockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 import drugService from 'src/services/api/drugService/drugService';
 import { useRouter } from 'vue-router';
 import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isMobile, isOnline } = useSystemUtils();
@@ -175,12 +173,7 @@ const getStyleIfCharts = () => {
     return '';
   }
 };
-const getStockAlert = async () => {
-    showloading();
-    const clinica = clinicService.currClinic()
-     await stockAlertService.apiGetStockAlertAll(clinica.id)
-    closeLoading();
-};
+
 
 const getConsuptionRelatedColor = (state) => {
   if (state === 'Sem Consumo') {
@@ -194,12 +187,13 @@ const getConsuptionRelatedColor = (state) => {
   }
 };
 
-onMounted(() => {
-    getStockAlert();
-});
+onMounted (() => {
+  showloading()
+})
 const rows = computed(() => {
-  return StockAlertService.getStockAlertsByClinic();
-});
+ return  StockAlertService.getStockAlertsByClinic();
+ });
+
 </script>
 <style lang="sass" scoped>
 .my-sticky-header-table

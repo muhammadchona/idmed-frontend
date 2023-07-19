@@ -3,7 +3,7 @@ import JsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import * as ExcelJS from 'exceljs';
-import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
+import { MOHIMAGELOG } from '../../../assets/imageBytes.ts';
 import Report from 'src/services/api/report/ReportService';
 
 import clinicService from 'src/services/api/clinicService/clinicService';
@@ -11,7 +11,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDailyRegisterMobileService';
 
 const img = new Image();
-img.src = 'src/assets/MoHLogo.png';
+img.src = '../../../assets/MoHLogo.png';
 
 const { isOnline } = useSystemUtils();
 
@@ -28,12 +28,12 @@ const clinic = clinicService.currClinic()
     let data = [];
     let firstReg = {}
     if(isOnline.value) {
-    rowsAux = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType}`)
-   if (rowsAux.response.status === 204) return rowsAux.response.status
-    firstReg = rowsAux.response.data[0]
+    rowsAux = await Report.printReport('arvDailyRegisterReportTemp',id, fileType)
+   if (rowsAux.status === 204) return rowsAux.status
+    firstReg = rowsAux.data[0]
    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-    data = this.createArrayOfArrayRow(rowsAux.response.data)
+    data = this.createArrayOfArrayRow(rowsAux.data)
     } else  {
        rowsAux = await this.getDataLocalReport(id)       
       if(rowsAux.length === 0) return 204
@@ -178,7 +178,6 @@ const clinic = clinicService.currClinic()
         overflowColumns: 'linebreak',
         minCellHeight: 35,
       },
-      startY: doc.lastAutoTable.finalY,
       headStyles: {
         valign: 'bottom',
         halign: 'center',
@@ -206,7 +205,7 @@ const clinic = clinicService.currClinic()
       didDrawCell: function (data) {
         if (data.row.section === 'body' && data.column.dataKey === 10) {
           console.log(rowsAux)
-          const dataRow = isOnline.value ? rowsAux.response.data[data.row.index] : rowsAux[0]
+          const dataRow = isOnline.value ? rowsAux.data[data.row.index] : rowsAux[0]
           if (dataRow !== undefined) {
             const dataAux2 = (dataRow.drugQuantityTemps) //  cell.row.index
             const datax = []
@@ -216,7 +215,7 @@ const clinic = clinicService.currClinic()
               createRow.push(dataAux2[row].quantity)
               datax.push(createRow)
               }
-            doc.autoTable({
+              autoTable(doc, {
               startY: data.cell.y + 2,
               startX: data.cell.x + 211,
               margin: { left: data.cell.x + 2 },
@@ -258,12 +257,12 @@ const clinic = clinicService.currClinic()
     let data = [];
     let firstReg = {}
     if(isOnline.value) {
-    rowsAux = await Report.api().get(`/arvDailyRegisterReportTemp/printReport/${id}/${fileType}`)
-   if (rowsAux.response.status === 204) return rowsAux.response.status
-    firstReg = rowsAux.response.data[0]
+    rowsAux = await Report.printReport('arvDailyRegisterReportTemp', id, fileType2)
+   if (rowsAux.status === 204) return rowsAux.status
+    firstReg = rowsAux.data[0]
    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-    data = this.createArrayOfArrayRow(rowsAux.response.data)
+    data = this.createArrayOfArrayRow(rowsAux.data)
     } else  {
        rowsAux = await this.getDataLocalReport(id)
        firstReg = rowsAux[0]
@@ -673,7 +672,7 @@ const clinic = clinicService.currClinic()
 
 
     if (params.isOnline) {
-     dataAux = rows.response.data
+     dataAux = rows.data
    } else {
      dataAux = rowsAux
    }
@@ -681,7 +680,7 @@ const clinic = clinicService.currClinic()
     // const row = worksheet.getRow(i)
      // Now loop through every row's cell and finally set alignment
       const reportData = (dataAux)[j]
-     //  console.log('ReportDataLenght: ', (rows.response.data).length)
+     //  console.log('ReportDataLenght: ', (rows.0data).length)
       if (reportData !== undefined) {
     // const subReport = this.createArraySubReport(reportData.drugQuantityTemps)
          let drugDetails = ''
