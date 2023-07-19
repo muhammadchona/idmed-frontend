@@ -244,6 +244,7 @@ import packService from 'src/services/api/pack/packService';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import districtService from 'src/services/api/districtService/districtService';
+import { v4 as uuidv4 } from 'uuid';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -256,8 +257,10 @@ const { preferedIdentifierValue, fullName } = usePatient();
 const router = useRouter();
 const filter = ref('');
 const showPatientRegister = ref(false);
-const currPatient = ref(new Patient());
-const patientServiceIdentifier = ref(new PatientServiceIdentifier());
+const currPatient = ref(new Patient({ id: uuidv4() }));
+const patientServiceIdentifier = ref(
+  new PatientServiceIdentifier({ id: uuidv4() })
+);
 const selectedDataSources = ref({
   id: 0,
   abbreviation: 'iDMED',
@@ -298,7 +301,7 @@ const clinic = inject('clinic');
 // Hooks
 onMounted(() => {
   showloading();
-  currPatient.value = new Patient();
+  currPatient.value = new Patient({ id: uuidv4() });
   patientService.deleteAllFromStorage();
   patientServiceIdentifier.value.value = patientId.value;
   currPatient.value.identifiers.push(patientServiceIdentifier.value);
@@ -316,7 +319,7 @@ const canClear = computed(() => {
 
 // Methods
 const clearSearchParams = () => {
-  currPatient.value = new Patient();
+  currPatient.value = new Patient({ id: uuidv4() });
   currPatient.value.clinic = clinic.value;
   patientService.deleteAllFromStorage();
   // patients.value = [];
@@ -354,7 +357,7 @@ const openMRSSerach = (his) => {
         patientService.deleteAllFromStorage();
         if (response.data.results.length > 0) {
           response.data.results.forEach((pacienteOpenMRS) => {
-            const localpatient = ref(new Patient());
+            const localpatient = ref(new Patient({ id: uuidv4() }));
             patientService.savePatientStorage(
               buildLocalPatientFromOpenMRS(localpatient, pacienteOpenMRS)
             );
@@ -414,7 +417,7 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
   return localpatient.value;
 };
 const buildPatientIdentifierFromOpenMRS = (identifier) => {
-  const psi = ref(new PatientServiceIdentifier());
+  const psi = ref(new PatientServiceIdentifier({ id: uuidv4() }));
   psi.value.startDate = new Date();
   psi.value.value = identifier;
   psi.value.state = 'Activo';

@@ -426,7 +426,7 @@ const prescriptionDateRef = ref(null);
 const curPrescription = ref(new Prescription({ id: uuidv4() }));
 const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
 const curPatientVisitDetail = ref(new PatientVisitDetails({ id: uuidv4() }));
-const curPack = ref(new Pack());
+const curPack = ref(new Pack({id: uuidv4()}));
 const validateDispense = ref(false);
 
 const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia']);
