@@ -151,7 +151,7 @@ export default {
         .exec()
         .then((rows) => {
           patientServiceIdentifier.save(rows);
-          return rows
+          return rows;
         });
     } else {
       return await api()
@@ -221,9 +221,23 @@ export default {
   curIdentifierById(id: string) {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
   },
-  localDbGetById (id: string) {
-    return nSQL(PatientServiceIdentifier.entity).query('select').where(['id', '=', id]).exec().then(result => {
-      return result
-    })
-   }
+  localDbGetById(id: string) {
+    return nSQL(PatientServiceIdentifier.entity)
+      .query('select')
+      .where(['id', '=', id])
+      .exec()
+      .then((result) => {
+        return result;
+      });
+  },
+  getLatestIdentifierSlimByPatientId(patientId: string) {
+    return patientServiceIdentifier
+      .withAll()
+      .where((patientService) => {
+        console.log(patientService);
+        return patientService.patient_id === patientId;
+      })
+      .orderBy('startDate', 'desc')
+      .first();
+  },
 };

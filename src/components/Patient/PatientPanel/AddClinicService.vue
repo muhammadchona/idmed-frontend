@@ -114,7 +114,12 @@
 
           <div class="row q-mb-md">
             <div
-              v-if="isCreateStep && patient.identifiers.length > 0"
+              v-if="
+                isCreateStep &&
+                patient.identifiers.length > 0 &&
+                identifier.service !== null &&
+                identifier.service.code !== 'TARV'
+              "
               class="col"
               tabindex="0"
             >
@@ -439,8 +444,8 @@ const { lastPack } = usePatientVisitDetail();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
 const submitting = ref(false);
 const identifierstartDate = ref('');
-const identifier = ref(new PatientServiceIdentifier({id: uuidv4()}));
-const closureEpisode = ref(new Episode({id: uuidv4()}));
+const identifier = ref(new PatientServiceIdentifier({ id: uuidv4() }));
+const closureEpisode = ref(new Episode({ id: uuidv4() }));
 const estados = ref(['Activo', 'Inactivo']);
 const estado = ref(['Activo']);
 const endDate = ref('');
@@ -643,7 +648,7 @@ const submitForm = () => {
       identifierRef.value.validate();
     } else {
       identifier.value.prefered = false;
-      identifier.value = '';
+      identifier.value.value = '';
     }
     if (
       !clinicalServiceRef.value.hasError &&
@@ -658,7 +663,7 @@ const submitForm = () => {
         alertError('A data de admissão é inválida.');
         submitting.value = false;
       } else if (
-        identifier.value === '' ||
+        (identifier.value === '' && !usePreferedId.value) ||
         stringContains(identifier.value.value, '#')
       ) {
         alertError('Por favor indicar um identificador dentro do padrão.');
@@ -823,6 +828,17 @@ const doSave = async () => {
   identifier.value.patient.id = patient.value.id;
   identifier.value.service = {};
   identifier.value.service.id = clinical_service_id;
+  if (usePreferedId.value) {
+    console.log(
+      patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(
+        patient.value.id
+      )
+    );
+    identifier.value.value =
+      patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(
+        patient.value.id
+      ).value;
+  }
 
   await patientServiceIdentifierService
     .apiSave(identifier.value, isCreateStep.value)
