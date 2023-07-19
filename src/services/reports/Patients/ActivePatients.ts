@@ -158,7 +158,6 @@ export default {
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
       doc.text(str, data.settings.margin.left, pageHeight - 10)
       },
-      startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
       body: data

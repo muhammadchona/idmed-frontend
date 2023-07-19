@@ -4,7 +4,10 @@ import destroyedStock from 'src/stores/models/stockdestruction/DestroyedStock';
 
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import DestroyedStock from 'src/stores/models/stockdestruction/DestroyedStock';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
+
 
 const { isMobile, isOnline } = useSystemUtils();
 const destroyedStockRepo = useRepo(destroyedStock)
@@ -62,6 +65,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading()
           }
         })
     }

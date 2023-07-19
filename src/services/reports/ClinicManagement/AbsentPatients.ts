@@ -33,7 +33,7 @@ export default {
     })
     const image = new Image()
     // image.src = '/src/assets/MoHLogo.png'
-    image.src = 'src/assets/MoHLogo.png'
+    image.src = '../assets/MoHLogo.png'
     const width = doc.internal.pageSize.getWidth()
     /*
       Fill Table
@@ -103,8 +103,8 @@ export default {
       doc.setFontSize(10)
       doc.text('US: ' + clinic.clinicName, width / 20, 57)
       // doc.text('US: ' + clinic, width / 2 + 80, 49)
-      doc.text('Data Início:  ' + params.startDate, width / 2 + 97, 49)
-      doc.text('Data Fim:    ' + params.endDate, width / 2 + 97, 57)
+      doc.text('Data Início:  ' + params.startDateParam, width / 2 + 97, 49)
+      doc.text('Data Fim:    ' + params.endDateParam, width / 2 + 97, 57)
 
         // Footer
         const str = 'Pagina ' + doc.internal.getNumberOfPages()
@@ -147,7 +147,7 @@ export default {
       const firstReg = rowsAux.data[0]
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-       data = this.createArrayOfArrayRow(rowsAux.response.data)
+       data = this.createArrayOfArrayRow(rowsAux.data)
     } else {
       rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id)
       if(rowsAux.length === 0) return 204

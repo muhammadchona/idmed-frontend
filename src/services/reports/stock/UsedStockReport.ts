@@ -42,17 +42,17 @@ const clinic = clinicService.getById(params.clinicId)
     let data = []
 if (isOnline.value) {
   const rowsAux = await Report.printReport('usedStockReportTemp', id,fileType) 
-    if (rowsAux.response.status === 204) return rowsAux.response.status
-    const firstReg = rowsAux.response.data[0]
+    if (rowsAux.status === 204) return rowsAux.status
+    const firstReg = rowsAux.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-     data = this.createArrayOfArrayRow(rowsAux.response.data)
+     data = this.createArrayOfArrayRow(rowsAux.data)
 } else {
     const  dataAux = await UsedStockMobileService.localDbGetAllByReportId(id)
-if (dataAux.length === 0) return 204
-params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate)
-   params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate)
-   data = this.createArrayOfArrayRow(dataAux)
+    if (dataAux.length === 0) return 204
+    params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate)
+      params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate)
+      data = this.createArrayOfArrayRow(dataAux)
 }
     autoTable(doc, {
       margin: { top: 55 },
@@ -102,9 +102,7 @@ params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate)
     if(isOnline.value) {
       return  doc.save(fileName.concat('.pdf'))
     } else {
-      console.log(doc)
       const pdfOutput = doc.output()
-      console.log(pdfOutput)
       this.downloadFile(fileName,'pdf',pdfOutput)
     }
   },
@@ -113,17 +111,16 @@ params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate)
     const clinic = clinicService.getById(params.clinicId)
     let data = []
     if (isOnline.value) {
-    const rows =  await Rep
-    letort.printReport('usedStockReportTemp', id,fileType2) 
-    if (rows.response.status === 204) return rows.response.status
-    const firstReg = rows.response.data[0]
-    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
-    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-    data = this.createArrayOfArrayRow(rows.response.data)
+        const rows =  await Report.printReport('usedStockReportTemp', id,fileType2) 
+        if (rows.status === 204) return rows.status
+        const firstReg = rows.data[0]
+        params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
+        params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
+        data = this.createArrayOfArrayRow(rows.data)
     } else {
-     const dataAux = await UsedStockMobileService.localDbGetAllByReportId(id)
-     if (dataAux=== undefined || dataAux.length === 0) return 204
-     data = this.createArrayOfArrayRow(dataAux)
+        const dataAux = await UsedStockMobileService.localDbGetAllByReportId(id)
+        if (dataAux=== undefined || dataAux.length === 0) return 204
+        data = this.createArrayOfArrayRow(dataAux)
     }
 
       const workbook = new ExcelJS.Workbook()
@@ -349,15 +346,12 @@ params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate)
          // var UTF8_STR = new Uint8Array(pdfOutput)
          //   var BINARY_ARR = UTF8_STR.buffer
          const titleFile = 'STockUsado.xlsx'
-         console.log('result' + titleFile)
           saveBlob2File(titleFile, blob)
           function saveBlob2File (fileName, blob) {
           
               const folder = cordova.file.externalRootDirectory + 'Download'
              //  var folder = 'Download'
               window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-                console.log('file system open: ' + dirEntry.name)
-                 console.log('file system open11111: ' + blob)
                 createFile(dirEntry, fileName, blob)
                // $q.loading.hide()
               }, onErrorLoadFs)
@@ -373,7 +367,6 @@ params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate)
               // Create a FileWriter object for our FileEntry
               fileEntry.createWriter(function (fileWriter) {
                 fileWriter.onwriteend = function () {
-                  console.log('Successful file write...')
                    openFile()
                 }
        

@@ -31,7 +31,7 @@ export default {
     })
     doc.setFontSize(10)
     const image = new Image()
-    image.src = 'src/assets/MoHLogo.png'
+    image.src = '../assets/MoHLogo.png'
     /*
       Fill Table
     */
@@ -226,7 +226,7 @@ export default {
           maxCellHeight: 4
         },
         body: miaRegimenTotalData,
-        startY: doc.lastAutoTable.finalY,
+       // startY: doc.lastAutoTable.finalY,
         margin: { right: 90.1 }
       })
 
@@ -259,7 +259,7 @@ export default {
           maxCellHeight: 4
         },
         body: miaLinesSumaryData,
-        startY: doc.lastAutoTable.finalY,
+        // startY: doc.lastAutoTable.finalY,
         margin: { right: 90.1 }
       })
 
@@ -282,7 +282,7 @@ export default {
           maxCellHeight: 4
         },
         body: miaLinesSumaryTotalData,
-        startY: doc.lastAutoTable.finalY,
+       // startY: doc.lastAutoTable.finalY,
         margin: { right: 90.1 }
       })
      // const regimenTableY = doc.lastAutoTable.finalY
@@ -347,7 +347,7 @@ export default {
           maxCellHeight: 4
         },
         body: miaFaixaEtariaData,
-        startY: doc.lastAutoTable.finalY,
+        // startY: doc.lastAutoTable.finalY,
         margin: { left: 122 }
       })
       autoTable(doc, {

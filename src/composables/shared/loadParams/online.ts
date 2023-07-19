@@ -47,7 +47,16 @@ import menuService from 'src/services/api/menu/menuService';
 import roleMenuService from 'src/services/api/roleMenu/roleMenuService';
 import userService from 'src/services/api/user/userService';
 
-export function useOnline(clinic: any) {
+import StockService from 'src/services/api/stockService/StockService';
+
+import ReferedStockMovimentService from 'src/services/api/referedStockMovimentService/ReferedStockMovimentService';
+import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
+
+import InventoryService from 'src/services/api/inventoryService/InventoryService';
+import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
+import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
+
+export function useOnline() {
   function loadSettingParams() {
     clinicalServiceService.get(0);
     clinicSectorService.get(0);
@@ -80,7 +89,6 @@ export function useOnline(clinic: any) {
     clinicService.get(0);
     stockService.get(0);
     StockEntranceService.get(0);
-    StockCenterService.get(0);
     roleService.get(0);
     menuService.get(0);
     userService.get(0);
@@ -88,13 +96,22 @@ export function useOnline(clinic: any) {
     // patientService.get(0);
     // episodeService.get(0);
     StockOperationTypeService.get(0);
-    StockCenterService.get(0);
     //  patientVisitService.get(0);
     //   patientVisitDetailsService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
     //   packService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
     //   prescriptionService.apiGetAllLastOfClinic(clinic.value.id, 0, 1000);
     // prescribedDrugService.get(0);
     // packagedDrugService.get(0);
+
+    StockService.get(0);
+    ReferedStockMovimentService.get(0);
+    DestroyedStockService.get(0);
+    StockEntranceService.get(0)
+    InventoryStockAdjustmentService.get(0);
+    InventoryService.get(0);
+    StockEntranceService.get(0);
+
+
   }
 
   function loadPatientData() {

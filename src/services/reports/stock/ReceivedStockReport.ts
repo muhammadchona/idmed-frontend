@@ -113,13 +113,13 @@ export default {
 
   async downloadExcel (id, fileType2, params) {
         let data = []
-      if (params.isOnline) {
+      if (isOnline.value) {
         const rows = await Report.printReportOther('stockReportTemp', id)  
-      if (rows.response.status === 204) return rows.response.status
-      const firstReg = rows.response.data[0]
+      if (rows.status === 204) return rows.status
+      const firstReg = rows.data[0]
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-      data = this.createArrayOfArrayRow(rows.response.data)
+      data = this.createArrayOfArrayRow(rows.data)
       } else {
       const dataAux = await this.getDataLocalReport(id)
       if (dataAux === undefined || dataAux.length === 0) return 204
