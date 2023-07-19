@@ -352,6 +352,7 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { v4 as uuidv4 } from 'uuid';
 
 //Declaration
 const {
@@ -368,8 +369,8 @@ const { remainigDurationInWeeks } = usePrescription();
 const { isOnline } = useSystemUtils();
 
 const submitting = ref(false);
-const closureEpisode = ref(new Episode());
-const episode = ref(new Episode());
+const closureEpisode = ref(new Episode({ id: uuidv4() }));
+const episode = ref(new Episode({ id: uuidv4() }));
 const startDate = ref('');
 const stopDate = ref('');
 const selectedProvince = ref(null);
@@ -580,6 +581,7 @@ const init = async () => {
   );
   if (isNewEpisode.value) {
     episode.value = new Episode();
+    episode.value.id = uuidv4();
     episode.value.syncStatus = 'R';
     startDate.value = getDDMMYYYFromJSDate(moment());
     if (!isOnline.value) {
@@ -587,6 +589,7 @@ const init = async () => {
     }
   } else {
     closureEpisode.value = new Episode();
+    closureEpisode.value.id = uuidv4();
     closureEpisode.value.syncStatus = 'R';
     episode.value.syncStatus = 'U';
     if (curEpisode !== null && curEpisode !== undefined) {

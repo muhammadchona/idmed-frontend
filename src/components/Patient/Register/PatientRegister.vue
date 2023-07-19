@@ -300,6 +300,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useRouter } from 'vue-router';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import Localidade from 'src/stores/models/Localidade/Localidade';
+import { v4 as uuidv4 } from 'uuid';
 
 // Declaration
 const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
@@ -311,7 +312,7 @@ const dateOfBirth = ref('');
 const ageCalculated = ref('');
 const genders = ref(['Masculino', 'Feminino']);
 const submitLoading = ref(false);
-const patientReg = ref(new Patient());
+const patientReg = ref(new Patient({ id: uuidv4() }));
 const filterRedDistricts = ref([]);
 const filterRedPostos = ref([]);
 const filterRedBairros = ref([]);
@@ -345,7 +346,7 @@ const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
 };
 const onChangeProvincia = () => {
-  patientReg.value = new Patient();
+  patientReg.value = new Patient({ id: uuidv4() });
   if (patientReg.value.province !== null) {
     if (patientReg.value.province.description !== patientReg.value.province) {
       patientReg.value.district = null;
@@ -365,6 +366,7 @@ const onChangeDistrito = () => {
 const createBairro = (val, done) => {
   if (val.length > 0) {
     const bairro = new Localidade({
+      id: uuidv4(),
       code: val.toUpperCase(),
       description: val,
       postoAdministrativo: patientReg.value.postoAdministrativo,
@@ -712,7 +714,7 @@ const initPatient = () => {
         'years'
       );
     } else {
-      patientReg.value = new Patient();
+      patientReg.value = new Patient({ id: uuidv4() });
     }
     patientReg.value.clinic = currClinic.value;
     patientReg.value.province = currClinic.value.province;
