@@ -10,7 +10,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
 import clinicService from 'src/services/api/clinicService/clinicService'
 
-const {  isOnline } = useSystemUtils();
+const {isMobile,  isOnline } = useSystemUtils();
 
 const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS'
 const title = 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV'
@@ -54,7 +54,7 @@ export default {
     let mmiaStockData = []
     if (isOnline.value) {
        mmiaReport = await Report.get('mmiaReport',id)
-      if(mmiaReport.status === 204) return mmiaReport.status
+      if(mmiaReport.status === 204 || mmiaReport.data.length === 0) return 204
        mmiaData = mmiaReport.data
        mmiaStockData = mmiaData.mmiaStockSubReportItemList
        mmiaRegimenData = mmiaData.mmiaRegimenSubReportList
@@ -572,7 +572,7 @@ export default {
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
       doc.text(str, 15, pageHeight - 10)
       // params.value.loading.loading.hide()
-      if(isOnline.value) {
+      if(isOnline.value && !isMobile.value) {
         return  doc.save(fileName.concat('.pdf'))
       } else {
         console.log(doc)
@@ -589,7 +589,7 @@ export default {
       let mmiaStockData = []
       if (isOnline.value) {
          mmiaReport = await Report.get('mmiaReport',id)
-        if(mmiaReport.status === 204) return mmiaReport.status
+        if(mmiaReport.status === 204 || mmiaReport.data.length === 0) return 204
          mmiaData = mmiaReport.data
          mmiaStockData = mmiaData.mmiaStockSubReportItemList
          mmiaRegimenData = mmiaData.mmiaRegimenSubReportList
@@ -1166,7 +1166,7 @@ export default {
 
       const blob = new Blob([buffer], { type: fileType });
 
-      if (isOnline.value) {
+      if (isOnline.value && !isMobile.value) {
         saveAs(blob, fileName + fileExtension)
       } else {
        const titleFile = 'Mmia.xlsx'

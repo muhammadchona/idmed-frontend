@@ -5,7 +5,7 @@ import saveAs from 'file-saver'
 import * as ExcelJS from 'exceljs'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const {  isOnline } = useSystemUtils(); 
+const {  isMobile, isOnline } = useSystemUtils(); 
 
 const reportName = 'HistoricoDeLevantamento'
 // const logoTitle =
@@ -167,7 +167,7 @@ export default {
       head: [cols],
       body: data
     })
-    if(isOnline.value) {
+    if(isOnline.value && !isMobile.value) {
       return doc.save('HistoricoDeLevantamento.pdf')
     } else {
       console.log(doc)
@@ -432,7 +432,7 @@ export default {
 
     const blob = new Blob([buffer], { type: fileType })
 
-    if (isOnline.value) {
+    if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension)
     } else {
 
