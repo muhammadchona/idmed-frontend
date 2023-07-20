@@ -9,7 +9,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import AbsentPatientMobileService from 'src/services/api/report/mobile/AbsentPatientMobileService'
 import clinicService from 'src/services/api/clinicService/clinicService'
 
-const {  isOnline } = useSystemUtils();
+const {isMobile,  isOnline } = useSystemUtils();
 
 
 const reportName = 'PacientesFaltosos'
@@ -52,7 +52,7 @@ export default {
     let firstReg = {}
     if (isOnline.value) {
       const rowsAux = await Report.printReportOther('absentPatientsReport', id)
-      if (rowsAux.status === 204) return rowsAux.status
+      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204
       const firstReg = rowsAux.data[0]
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
@@ -125,7 +125,7 @@ export default {
       body: data
     })
     // params.value.loading.loading.hide()
-    if(isOnline.value) {
+    if(isOnline.value && !isMobile.value) {
       return  doc.save('PacientesFaltosos.pdf')
     } else {
       console.log(doc)
@@ -143,7 +143,7 @@ export default {
     let firstReg = {}
     if (isOnline.value) {
       const rowsAux = await  Report.printReportOther('absentPatientsReport', id)
-      if (rowsAux.status === 204) return rowsAux.status
+      if (rowsAux.status === 204 || rowsAux.data.length === 0 ) return 204
       const firstReg = rowsAux.data[0]
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
@@ -357,7 +357,7 @@ export default {
 
     const blob = new Blob([buffer], { type: fileTypePa })
 
-    if (isOnline.value) {
+    if (isOnline.value && !isMobile.value) {
 
     saveAs(blob, fileName + fileExtension)
     } else  {

@@ -45,7 +45,7 @@ export default {
     let data = []
     if (isOnline.value) {
       data = await Report.printReportOther('stockReportTemp', id) 
-      if (data.status === 204) return data.status
+      if (data.status === 204  || data.length === 0) return 204
       data = this.createArrayOfArrayRow(data.data)
     } else {
        data = await this.getDataLocalReport(id)
@@ -101,7 +101,7 @@ export default {
       body: data
     })
 
-    if(isOnline.value) {
+    if(isOnline.value && !isMobile.value) {
       return  doc.save(fileName.concat('.pdf'))
     } else {
       console.log(doc)
@@ -115,7 +115,7 @@ export default {
         let data = []
       if (isOnline.value) {
         const rows = await Report.printReportOther('stockReportTemp', id)  
-      if (rows.status === 204) return rows.status
+      if (rows.status === 204 || rows.data.length === 0 ) return 204
       const firstReg = rows.data[0]
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
@@ -352,7 +352,7 @@ export default {
       const fileExtension = '.xlsx'
       const blob = new Blob([buffer], { type: fileType })
       
-      if (isOnline.value) {
+      if (isOnline.value && !isMobile.value) {
 
         saveAs(blob, fileName + fileExtension)
         } else  {

@@ -13,7 +13,7 @@ import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDai
 const img = new Image();
 img.src = '../../../assets/MoHLogo.png';
 
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
@@ -29,7 +29,7 @@ const clinic = clinicService.currClinic()
     let firstReg = {}
     if(isOnline.value) {
     rowsAux = await Report.printReport('arvDailyRegisterReportTemp',id, fileType)
-   if (rowsAux.status === 204) return rowsAux.status
+   if (rowsAux.status === 204  || rowsAux.data.length === 0) return 204
     firstReg = rowsAux.data[0]
    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
@@ -238,7 +238,7 @@ const clinic = clinicService.currClinic()
       body: data,
     });
 
-    if(isOnline.value) {
+    if(isOnline.value && !isMobile.value) {
       return  doc.save(fileName.concat('.pdf'))
     } else {
       console.log(doc)
@@ -258,7 +258,7 @@ const clinic = clinicService.currClinic()
     let firstReg = {}
     if(isOnline.value) {
     rowsAux = await Report.printReport('arvDailyRegisterReportTemp', id, fileType2)
-   if (rowsAux.status === 204) return rowsAux.status
+   if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204
     firstReg = rowsAux.data[0]
    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
@@ -701,7 +701,7 @@ const clinic = clinicService.currClinic()
     const fileExtension = '.xlsx';
     const blob = new Blob([buffer], { type: fileType });
 
-    if (isOnline.value) {
+    if (isOnline.value && !isMobile.value) {
     saveAs(blob, fileName + fileExtension);
   } else {
      const titleFile = 'LivroDiarioDeArvs.xlsx'
