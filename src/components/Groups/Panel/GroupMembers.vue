@@ -40,8 +40,9 @@
               <q-td key="lasPrescriptionDate" :props="props">
                 {{
                   getDDMMYYYFromJSDate(
-                    props.row.groupMemberPrescription !== null
-                      ? props.row.groupMemberPrescription.prescription
+                    props.row.groupMemberPrescriptions[0] !== undefined &&
+                      props.row.groupMemberPrescriptions[0] !== null
+                      ? props.row.groupMemberPrescriptions[0].prescription
                           .prescriptionDate
                       : useEpisode().lastVisit(
                           props.row.patient.identifiers[0].episodes[0]
@@ -51,9 +52,10 @@
               </q-td>
               <q-td key="remainingTime" :props="props">
                 {{
-                  props.row.groupMemberPrescription !== null
+                  props.row.groupMemberPrescriptions[0] !== undefined &&
+                  props.row.groupMemberPrescriptions[0] !== null
                     ? usePrescription().remainigDuration(
-                        props.row.groupMemberPrescription.prescription
+                        props.row.groupMemberPrescriptions[0].prescription
                       )
                     : useEpisode().lastVisit(
                         props.row.patient.identifiers[0].episodes[0]
@@ -299,31 +301,35 @@ const loadMembers = () => {
   if (useGroup().isDesintegrated(selectedGroup)) {
     members.value = allMembers.value;
   }
-  console.log(members.value);
   // members.value = members.value.filter((member) => {
   //  return useGroupMember().isActive(member);
   // });
-  console.log(members.value);
   members.value.forEach((member) => {
-    member.patient.identifiers[0].episodes[0] =
-      lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
-    if (
-      member.patient.identifiers[0].episodes[0] !== null &&
-      useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack !==
-        null
-    ) {
-      useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack =
-        packService.getPackWithsByID(
-          useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack
-            .id
-        );
+    /*
+    if (member.patient.identifiers === undefined) {
+      member.patient = patientService.getPatienWithstByID(member.patient.id);
     }
-    if (
-      member.patient.identifiers[0].episodes[0] !== null &&
-      useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
-        .prescription !== null
-    ) {
-      /*
+    */
+    if (member.patient.identifiers !== undefined) {
+      member.patient.identifiers[0].episodes[0] =
+        lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
+      if (
+        member.patient.identifiers[0].episodes[0] !== null &&
+        useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
+          .pack !== null
+      ) {
+        useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).pack =
+          packService.getPackWithsByID(
+            useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
+              .pack.id
+          );
+      }
+      if (
+        member.patient.identifiers[0].episodes[0] !== null &&
+        useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
+          .prescription !== null
+      ) {
+        /*
             const prescription = Prescription.query()
                                           .with('prescriptionDetails')
                                           .with('duration')
@@ -335,14 +341,13 @@ const loadMembers = () => {
           prescription.patientVisitDetails = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
           member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
           */
-      console.log(
-        useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
-          .prescription
-      );
+        console.log(
+          useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
+            .prescription
+        );
+      }
     }
   });
-
-  console.log(members.value);
   return members.value;
 };
 

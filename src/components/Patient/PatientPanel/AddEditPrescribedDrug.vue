@@ -161,7 +161,10 @@ const getDrugs = computed(() => {
   validDrugs = validDrugs.filter((drug) => {
     return (
       drug.clinicalService !== null &&
-      drug.clinicalService.code === curIdentifier.service.code &&
+      drug.clinicalService.code ===
+        (curIdentifier.service !== undefined
+          ? curIdentifier.service.code
+          : curIdentifier.value.service.code) &&
       drug.active === true
       // && hasStock(drug)
     );

@@ -18,9 +18,10 @@
       hide-bottom
       v-if="showDispensesData"
       :rows="
-        member.groupMemberPrescription !== null
-          ? member.groupMemberPrescription.prescription !== undefined
-            ? member.groupMemberPrescription.prescription.prescribedDrugs
+        member.groupMemberPrescriptions[0] !== undefined &&
+        member.groupMemberPrescriptions[0] !== null
+          ? member.groupMemberPrescriptions[0].prescription !== undefined
+            ? member.groupMemberPrescriptions[0].prescription.prescribedDrugs
             : []
           : useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
               .prescription.prescribedDrugs
@@ -52,16 +53,19 @@
             {{
               usePrescribedDrug().getQtyPrescribed(
                 props.row,
-                member.groupMemberPrescription !== null
-                  ? member.groupMemberPrescription.prescription.duration.weeks
+                member.groupMemberPrescriptions[0] !== undefined &&
+                  member.groupMemberPrescriptions[0] !== null
+                  ? member.groupMemberPrescriptions[0].prescription.duration
+                      .weeks
                   : useEpisode().lastVisit(
                       member.patient.identifiers[0].episodes[0]
                     ).prescription.duration.weeks
               ) > 0
                 ? usePrescribedDrug().getQtyPrescribed(
                     props.row,
-                    member.groupMemberPrescription !== null
-                      ? member.groupMemberPrescription.prescription.duration
+                    member.groupMemberPrescriptions[0] !== undefined &&
+                      member.groupMemberPrescriptions[0] !== null
+                      ? member.groupMemberPrescriptions[0].prescription.duration
                           .weeks
                       : useEpisode().lastVisit(
                           member.patient.identifiers[0].episodes[0]
@@ -256,8 +260,8 @@ const expand = (valueUpdated) => {
 
 const initDispenses = () => {
   let prescription;
-  if (props.member.groupMemberPrescription != null) {
-    prescription = props.member.groupMemberPrescription.prescription;
+  if (props.member.groupMemberPrescriptions[0] != null) {
+    prescription = props.member.groupMemberPrescriptions[0].prescription;
   } else {
     prescription = useEpisode().lastVisit(
       props.member.patient.identifiers[0].episodes[0]
@@ -346,7 +350,7 @@ const addPrescribedDrug = (prescribedDrug, visitDetails) => {
   if (psdrugExists) {
     alertError(
       'O medicamento seleccionado não pode ser adicionado, pois já existe na lista a dispensar para o membro [' +
-        usePatient().fullName(member.patient) +
+        usePatient().fullName(props.member.patient) +
         ']'
     );
   } else {

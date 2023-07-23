@@ -163,6 +163,7 @@ import drugService from 'src/services/api/drugService/drugService';
 import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHeaderService';
 import addMemberDispense from 'src/components/Groups/AddMemberDispense.vue';
 import { v4 as uuidv4 } from 'uuid';
+import { useGroupMemberPrescription } from 'src/composables/group/groupMemberPrescriptionMethods';
 // import isOnline from 'is-online';
 
 const {
@@ -245,10 +246,51 @@ const checkMembersPrescriptions = () => {
   let error = 'Os seguintes pacientes possuem prescrições inválidas [';
   let invalidPrescription = '';
   selectedGroup.value.members.forEach((member) => {
+    console.log(member.groupMemberPrescriptions[0]);
+    let remainingDuration = 0;
+    if (member.groupMemberPrescriptions[0] !== null) {
+      remainingDuration = usePrescription().remainigDuration(
+        member.groupMemberPrescriptions[0].prescription
+      );
+      console.log(remainingDuration);
+    }
     if (
-      useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
+      (useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
         .prescription.leftDuration <= 0 &&
-      member.groupMemberPrescription === null
+        member.groupMemberPrescriptions[0] === null) ||
+      remainingDuration <= 0
+    ) {
+      invalidPrescription +=
+        invalidPrescription === ''
+          ? usePatient().fullName(member.patient)
+          : ', ' + usePatient().fullName(member.patient);
+    }
+  });
+  if (invalidPrescription !== '') {
+    error += invalidPrescription + ']';
+    return error;
+  } else {
+    return null;
+  }
+};
+
+const checkMembersPrescriptionsDuration = () => {
+  let error =
+    'A duração das prescrições é menor em relação a duração que pretende dispensar para os seguintes pacientes:quas [';
+  let invalidPrescription = '';
+  selectedGroup.value.members.forEach((member) => {
+    console.log(member.groupMemberPrescriptions[0]);
+    let remainingDuration = 0;
+    if (member.groupMemberPrescriptions[0] !== null) {
+      remainingDuration = usePrescription().remainigDurationInWeeks(
+        member.groupMemberPrescriptions[0].prescription
+      );
+      console.log(remainingDuration);
+    }
+    console.log(durationService.getDurationById(drugsDuration.value.id).weeks);
+    if (
+      remainingDuration <
+      durationService.getDurationById(drugsDuration.value.id).weeks
     ) {
       invalidPrescription +=
         invalidPrescription === ''
@@ -270,7 +312,8 @@ const doFormValidation = () => {
   const momentPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(pickupDate);
   const nextPickUpDate = getDateFormatYYYYMMDDFromDDMMYYYY(getNextPickUpDate());
   const momentNextPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(nextPDate);
-  const prescriptionError = checkMembersPrescriptions();
+  let prescriptionError = checkMembersPrescriptions();
+  prescriptionError = checkMembersPrescriptionsDuration();
   if (prescriptionError !== null) {
     alertError(prescriptionError);
     submitting.value = false;
@@ -324,9 +367,9 @@ const checkMembersPrescriptionsDate = (pickupDate) => {
   let invalidPrescription = '';
   selectedGroup.value.members.forEach((member) => {
     let memberPrescriptionDate = '';
-    if (member.groupMemberPrescription !== null) {
+    if (member.groupMemberPrescriptions[0] !== null) {
       memberPrescriptionDate = moment(
-        member.groupMemberPrescription.prescription.prescriptionDate
+        member.groupMemberPrescriptions[0].prescription.prescriptionDate
       ).format('YYYY-MM-DD');
     } else {
       memberPrescriptionDate = useEpisode().lastVisit(
@@ -362,9 +405,9 @@ const addPrescribedDrug = (prescribedDrug, visitDetails) => {
   //  prescribedDrug.prescription_id = visitDetails.prescription.id
   selectedGroup.value.members.forEach((member) => {
     let prescribedDrugs;
-    if (member.groupMemberPrescription != null) {
+    if (member.groupMemberPrescriptions[0] != null) {
       prescribedDrugs =
-        member.groupMemberPrescription.prescription.prescribedDrugs;
+        member.groupMemberPrescriptions[0].prescription.prescribedDrugs;
     } else {
       prescribedDrugs = useEpisode().lastVisit(
         member.patient.identifiers[0].episodes[0]
@@ -384,18 +427,19 @@ const addPrescribedDrug = (prescribedDrug, visitDetails) => {
       );
     } else {
       if (
-        member.groupMemberPrescription != null &&
+        member.groupMemberPrescriptions[0] != null &&
         member.patient.id === curIdentifier.value.patient_id
       ) {
         prescribedDrug.prescription_id =
-          member.groupMemberPrescription.prescription.id;
-        // member.groupMemberPrescription.prescription.prescribedDrugs.push(prescribedDrug)
+          member.groupMemberPrescriptions[0].prescription.id;
+        // member.groupMemberPrescriptions[0].prescription.prescribedDrugs.push(prescribedDrug)
         const pack = membersDispenses.value.get(member);
         pack.packagedDrugs.push(new PackagedDrug(prescribedDrug));
       } else {
         if (
           useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
-            .prescription.id === member.groupMemberPrescription.prescription.id
+            .prescription.id ===
+          member.groupMemberPrescriptions[0].prescription.id
         ) {
           // useEpisode().lastVisit(member.patient.identifiers[0].episodes[0]).prescription.prescribedDrugs.push(prescribedDrug)
         }
@@ -524,7 +568,9 @@ const generatepacks = () => {
     groupPack.pack.packDate = curGroupPackHeader.value.packDate;
     groupPack.pack.pickupDate = curGroupPackHeader.value.packDate;
     groupPack.pack.nextPickUpDate = curGroupPackHeader.value.nextPickUpDate;
-    groupPack.pack.weeksSupply = curGroupPackHeader.value.duration.weeks;
+    groupPack.pack.weeksSupply = durationService.getDurationById(
+      curGroupPackHeader.value.duration.id
+    ).weeks;
     // groupPack.pack.dispenseMode = dispenseMode.value;
     groupPack.pack.dispenseMode = {};
     groupPack.pack.dispenseMode.id = dispenseMode.value.id;
@@ -541,6 +587,7 @@ const generatepacks = () => {
     console.log(errorMsg);
     alertError(errorMsg);
     submitting.value = false;
+    closeLoading();
   } else {
     const i = 0;
     savePatientVisitDetails(curGroupPackHeader.value.groupPacks, i);
@@ -726,7 +773,7 @@ const loadGroup = () => {
     return useGroupMember().isActive(member);
   });
   selectedGroup.value.members.forEach((member) => {
-    member.groupMemberPrescription =
+    member.groupMemberPrescriptions[0] =
       groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(
         member.id
       );

@@ -139,7 +139,7 @@ const loadSpecificStatus = () => {
 
 const migrationStarted = (started) => {
   closeLoading();
-  MigrationStage.apiGetAll(0, 5);
+  migrationService.apiGetAll();
   getMigrationPregress();
 };
 

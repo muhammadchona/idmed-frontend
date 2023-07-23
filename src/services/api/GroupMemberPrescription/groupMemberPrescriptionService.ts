@@ -4,6 +4,7 @@ import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescrip
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import { useGroupMemberPrescription } from 'src/composables/group/groupMemberPrescriptionMethods';
 
 const { isOnline, isMobile } = useSystemUtils();
 
@@ -108,14 +109,22 @@ export default {
   getAllFromStorage() {
     return groupMemberPrescription.all();
   },
+  deleteFromStorageById(id: string) {
+    return groupMemberPrescription.destroy(id);
+  },
 
   getGroupMemberPrescriptionByMemberId(memberId: string) {
-    return groupMemberPrescription
+    const groupMemberPrescriptions = groupMemberPrescription
       .query()
       .with('prescription', (query) => {
         query.withAllRecursive(2);
       })
       .where('member_id', memberId)
-      .first();
+      .get();
+    const groupMemberPrescriptionObj =
+      useGroupMemberPrescription().lastGroupMemberPrescription(
+        groupMemberPrescriptions
+      );
+    return groupMemberPrescriptionObj;
   },
 };

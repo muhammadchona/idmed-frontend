@@ -353,6 +353,7 @@ const curGroupCodeRef = ref(null);
 const curGroupNameRef = ref(null);
 const curGroupGroupTypeRef = ref(null);
 const creationDateRef = ref(null);
+const getGroupMembers = inject('getGroupMembers');
 
 const isMemberOfGroupOnService = (patient, serviceCode) => {
   let res = false;
@@ -645,10 +646,12 @@ const doSave = async () => {
         });
     } else {
       console.log(groupToSend);
+      groupToSend.packHeaders = [];
       groupService
         .apiUpdate(groupToSend)
         .then((resp) => {
           submitting.value = false;
+          getGroupMembers();
           loadMembersData();
           alertSucess('Operação efectuada com sucesso.');
           emit('close');

@@ -21,7 +21,7 @@ export default class GroupMember extends Model {
       group: this.belongsTo(Group, 'group_id'),
       patient: this.belongsTo(Patient, 'patient_id'),
       clinic: this.belongsTo(Clinic, 'clinic_id'),
-      groupMemberPrescription: this.hasMany(
+      groupMemberPrescriptions: this.hasMany(
         GroupMemberPrescription,
         'member_id'
       ),

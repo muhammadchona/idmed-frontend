@@ -1,3 +1,4 @@
+import packService from 'src/services/api/pack/packService';
 export function usePrescription() {
   function calculateLeftDuration(prescription: any, weeksSupply: string) {
     if (prescription.leftDuration === 0) {
@@ -18,7 +19,11 @@ export function usePrescription() {
         : 0;
     let packagedWeeks = 0;
     prescription.patientVisitDetails.forEach((pvd: any) => {
-      if (pvd.pack !== null) {
+      if (
+        (pvd.pack !== null && pvd.pack !== undefined) ||
+        pvd.pack_id !== null
+      ) {
+        pvd.pack = packService.getPackWithsByID(pvd.pack_id);
         packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply);
       }
     });
