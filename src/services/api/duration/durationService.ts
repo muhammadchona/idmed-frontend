@@ -149,4 +149,8 @@ export default {
   getDurationByWeeks(weeksSuply: any) {
     return duration.where('weeks', weeksSuply).first();
   },
+
+  getDurationById(id: any) {
+    return duration.where('id', id).first();
+  },
 };

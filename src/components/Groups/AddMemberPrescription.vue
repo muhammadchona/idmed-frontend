@@ -123,7 +123,11 @@ const { alertSucess, alertError, alertInfo } = useSwal();
 const mds = ref('US_');
 const selected_model = ref([]);
 const submitting = ref(false);
-const curPatientVisit = ref(new PatientVisit());
+const curPatientVisit = ref(
+  new PatientVisit({
+    id: uuidv4(),
+  })
+);
 const { isOnline } = useSystemUtils();
 
 //Inject
@@ -161,13 +165,19 @@ const executeGetGroupMembers = () => {
 
 const doValidationToDispense = () => {
   submitting.value = true;
-
+  selectedMember.value.groupMemberPrescriptions = [];
   const memberPrescription = new GroupMemberPrescription({
     id: uuidv4(),
     prescription: curPatientVisit.value.patientVisitDetails[0].prescription,
     member: selectedMember.value,
     used: false,
   });
+  console.log(memberPrescription);
+  // memberPrescription.id = uuidv4();
+  // memberPrescription.prescription =
+  //   curPatientVisit.value.patientVisitDetails[0].prescription;
+  // memberPrescription.member = selectedMember.value;
+
   console.log(memberPrescription);
   const groupId = memberPrescription.member.group.id;
   const patientId = memberPrescription.member.patient.id;
@@ -236,10 +246,12 @@ const doValidationToDispense = () => {
     });
     memberPrescription.syncStatus = 'R';
   }
-
+  selectedMember.value.groupMemberPrescriptions[0] = memberPrescription;
   groupMemberPrescriptionService
     .apiSave(memberPrescription)
     .then((resp1) => {
+      selectedMember.value.groupMemberPrescriptions[0] = memberPrescription;
+      console.log(selectedMember.value.groupMemberPrescription);
       executeGetGroupMembers();
       alertSucess('Prescrição gravada com sucesso');
       submitting.value = false;
@@ -247,6 +259,7 @@ const doValidationToDispense = () => {
       // this.$emit('getGroupMembers', true)
     })
     .catch((error) => {
+      selectedMember.value.groupMemberPrescriptions[0] = null;
       submitting.value = false;
       alertError('Ocorreu um erro ao gravar o prescrição do Membro');
     });

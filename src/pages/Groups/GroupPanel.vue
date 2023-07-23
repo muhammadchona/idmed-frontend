@@ -170,6 +170,58 @@ const showGroupDetails = () => {
   showGroupInfo.value = !showGroupInfo.value;
 };
 
+const loadMemberInfoByMember = async (member) => {
+  return new Promise((resolve, reject) => {
+    groupMemberPrescriptionService
+      .apiFetchByMemberId(member.id)
+      .then((respd) => {
+        if (respd.status === 200) {
+          prescriptionService.apiFetchById(respd.data.prescription.id);
+        }
+      });
+    patientService.apiFetchById(member.patient_id).then((res0) => {
+      member.patient = res0.data;
+      member.patient.identifiers.forEach((identifier) => {
+        identifier = patientServiceIdentifierService.curIdentifierById(
+          identifier.id
+        );
+        if (identifier.service.code === group.value.service.code) {
+          episodeService.apiGetAllByIdentifierId(identifier.id).then((resp) => {
+            if (resp.data.length > 0) {
+              identifier.episodes = resp.data;
+              identifier.episodes.forEach((episode) => {
+                patientVisitDetailsService
+                  .apiGetLastByEpisodeId(episode.id)
+                  .then((resp) => {
+                    if (resp.data) {
+                      episode.patientVisitDetails = [];
+                      episode.patientVisitDetails[0] = resp.data;
+                      patientVisitDetailsService.apiGetAllofPrecription(
+                        episode.patientVisitDetails[0].prescription.id
+                      );
+                      loadVisitDetailsInfo(episode.patientVisitDetails, 0);
+                      resolve(true);
+                    }
+                  });
+              });
+              group.value.packHeaders.forEach((packHeader) => {
+                groupPackHeaderService
+                  .apiFetchById(packHeader.id)
+                  .then((resp) => {
+                    console.log(resp);
+                    console.log(member);
+                    closeLoading();
+                  });
+                closeLoading();
+              });
+            }
+          });
+        }
+      });
+    });
+  });
+};
+
 const loadMemberInfo = () => {
   // showloading();
   if (!isOnline.value) {
@@ -190,53 +242,7 @@ const loadMemberInfo = () => {
   } else {
     dispenseModeService.apiGetAll();
     group.value.members.forEach((member) => {
-      groupMemberPrescriptionService
-        .apiFetchByMemberId(member.id)
-        .then((respd) => {
-          if (respd.status === 200) {
-            prescriptionService.apiFetchById(respd.data.prescription.id);
-          }
-        });
-      patientService.apiFetchById(member.patient_id).then((res0) => {
-        member.patient = res0.data;
-        member.patient.identifiers.forEach((identifier) => {
-          identifier = patientServiceIdentifierService.curIdentifierById(
-            identifier.id
-          );
-          if (identifier.service.code === group.value.service.code) {
-            episodeService
-              .apiGetAllByIdentifierId(identifier.id)
-              .then((resp) => {
-                if (resp.data.length > 0) {
-                  identifier.episodes = resp.data;
-                  identifier.episodes.forEach((episode) => {
-                    patientVisitDetailsService
-                      .apiGetLastByEpisodeId(episode.id)
-                      .then((resp) => {
-                        if (resp.data) {
-                          episode.patientVisitDetails = [];
-                          episode.patientVisitDetails[0] = resp.data;
-                          patientVisitDetailsService.apiGetAllofPrecription(
-                            episode.patientVisitDetails[0].prescription.id
-                          );
-                          loadVisitDetailsInfo(episode.patientVisitDetails, 0);
-                        }
-                      });
-                  });
-                  group.value.packHeaders.forEach((packHeader) => {
-                    groupPackHeaderService
-                      .apiFetchById(packHeader.id)
-                      .then((resp) => {
-                        console.log(resp);
-                        console.log(member);
-                      });
-                    closeLoading();
-                  });
-                }
-              });
-          }
-        });
-      });
+      loadMemberInfoByMember(member);
     });
   }
 };
@@ -297,12 +303,12 @@ watch(
   }
 );
 
-const getGroupMembers = (isPrescription) => {
+const getGroupMembers = async (isPrescription) => {
   const group = groupService.getGroupById(
     SessionStorage.getItem('selectedGroupId')
   );
-  group.members.forEach((member) => {
-    member.groupMemberPrescription =
+  for (const member of group.members) {
+    member.groupMemberPrescriptions[0] =
       groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(
         member.id
       );
@@ -315,17 +321,25 @@ const getGroupMembers = (isPrescription) => {
       }
     );
     if (
-      member.groupMemberPrescription !== null &&
-      member.groupMemberPrescription !== undefined &&
-      isPrescription
+      member.groupMemberPrescriptions[0] !== null &&
+      member.groupMemberPrescriptions[0] !== undefined
     ) {
-      member.groupMemberPrescription.prescription.leftDuration =
-        calculateRemainingTime(member.groupMemberPrescription);
+      member.groupMemberPrescriptions[0].prescription.leftDuration =
+        calculateRemainingTime(member.groupMemberPrescriptions[0]);
     }
 
     //   member.patient.identifiers[0].episodes = []
     member.patient.identifiers[0].episodes[0] =
       lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
+
+    if (member.patient.identifiers[0].episodes[0] === null) {
+      showloading();
+      const loadedMemberInfo = await loadMemberInfoByMember(member);
+      if (loadedMemberInfo) {
+        member.patient.identifiers[0].episodes[0] =
+          lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
+      }
+    }
     if (
       member.patient.identifiers[0].episodes.length > 0 &&
       member.patient.identifiers[0].episodes[0] !== null
@@ -335,7 +349,7 @@ const getGroupMembers = (isPrescription) => {
         member
       );
     }
-  });
+  }
   allMembers.value = group.members;
   if (!useGroup().isDesintegrated(group)) {
     //  members.value = group.members.filter((member) => {
@@ -348,7 +362,8 @@ const getGroupMembers = (isPrescription) => {
 };
 
 const lastStartEpisodeWithPrescription = (identifierId) => {
-  return episodeService.getStartEpisodeByIdentifierId(identifierId);
+  const episode = episodeService.getStartEpisodeByIdentifierId(identifierId);
+  return episode;
 };
 
 const calculateRemainingTime = (memberPrescription) => {
@@ -368,9 +383,9 @@ const fecthMemberPrescriptionData = (visitDetails, member) => {
   } else {
     if (visitDetails.pack !== null)
       packService.apiFetchById(visitDetails.pack.id);
-    if (member.groupMemberPrescription !== null) {
+    if (member.groupMemberPrescriptions[0] !== null) {
       prescriptionService
-        .apiFetchById(member.groupMemberPrescription.prescription.id)
+        .apiFetchById(member.groupMemberPrescriptions[0].prescription.id)
         .then((resp) => {
           fecthedMemberData.value = fecthedMemberData.value + 1;
         });

@@ -1,5 +1,5 @@
 <template>
-  <div ref="filterArvDailyRegisterSection">
+  <div ref="filterDrugStoreSection">
     <ListHeader
       :addVisible="false"
       :mainContainer="true"
@@ -51,7 +51,7 @@ const props = defineProps(['selectedService', 'menuSelected', 'id']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const progress = ref(0);
-
+const filterDrugStoreSection = ref('');
 onMounted(() => {
   if (props.params) {
     getProcessingStatus(props.params);
@@ -60,7 +60,7 @@ onMounted(() => {
 
 const closeSection = () => {
   LocalStorage.remove(props.id);
-  // filterDrugStoreSection.value.remove();
+  filterDrugStoreSection.value.remove();
 };
 
 const initReportProcessing = (params) => {

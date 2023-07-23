@@ -196,7 +196,12 @@ export default {
   },
 
   getPackWithsByID(Id: string) {
-    return pack.query().with('dispenseMode').with('packagedDrugs').whereId(Id);
+    return pack
+      .query()
+      .with('dispenseMode')
+      .with('packagedDrugs')
+      .whereId(Id)
+      .first();
   },
 
   getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
