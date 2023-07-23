@@ -163,7 +163,7 @@ export default {
       body: data
     })
 
-    if(isOnline.value) {
+    if(isOnline.value && !isMobile.value) {
       return doc.save('PacientesActivos.pdf')
     } else {
       console.log(doc)
@@ -424,7 +424,7 @@ export default {
 
    
 
-    if (isOnline.value) {
+    if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension)
     } else {
      const titleFile = 'PacientesActivos.xlsx'

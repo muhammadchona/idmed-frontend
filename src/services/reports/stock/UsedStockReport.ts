@@ -9,7 +9,7 @@ import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobi
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService'
 
- const {  isOnline } = useSystemUtils(); 
+ const {  isOnline, isMobile } = useSystemUtils(); 
 
 // const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Stock Usado'
@@ -42,7 +42,7 @@ const clinic = clinicService.getById(params.clinicId)
     let data = []
 if (isOnline.value) {
   const rowsAux = await Report.printReport('usedStockReportTemp', id,fileType) 
-    if (rowsAux.status === 204) return rowsAux.status
+    if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204
     const firstReg = rowsAux.data[0]
     params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
     params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
@@ -99,7 +99,7 @@ if (isOnline.value) {
       body: data
     })
 
-    if(isOnline.value) {
+    if(isOnline.value && !isMobile.value) {
       return  doc.save(fileName.concat('.pdf'))
     } else {
       const pdfOutput = doc.output()
@@ -112,7 +112,7 @@ if (isOnline.value) {
     let data = []
     if (isOnline.value) {
         const rows =  await Report.printReport('usedStockReportTemp', id,fileType2) 
-        if (rows.status === 204) return rows.status
+        if (rows.status === 204 || rows.data.length === 0) return 204
         const firstReg = rows.data[0]
         params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
         params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
@@ -338,7 +338,7 @@ if (isOnline.value) {
       const fileExtension = '.xlsx'
       const blob = new Blob([buffer], { type: fileType })
 
-      if (isOnline.value) {
+      if (isOnline.value && !isMobile.value) {
         saveAs(blob, fileName + fileExtension)
         } else  {
           //   var blob = new Blob(materialEducativo.blop)
