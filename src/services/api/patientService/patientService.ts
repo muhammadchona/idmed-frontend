@@ -158,6 +158,18 @@ export default {
     }
   },
 
+  async apiSearchExist(patienParam: any) {
+    try {
+      const resp = await api().post('/patient/search', patienParam);
+      closeLoading();
+      return resp.data.length > 0;
+    } catch (error) {
+      console.log(error);
+      closeLoading();
+      return false;
+    }
+  },
+
   async apisearchByParam(searchParam: string, clinicId: string) {
     const replacedString = searchParam.replace(/\//g, '-');
     console.log(replacedString);
