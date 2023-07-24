@@ -99,6 +99,13 @@
               icon="branding_watermark"
               label="Migração"
             />
+            <q-route-tab
+              exact
+              :to="'/loadfiledc'"
+              name="migration"
+              icon="connect_without_contact"
+              label="DC pelo Provedor"
+            />
           </q-tabs>
           <q-btn-dropdown
             unelevated
@@ -245,6 +252,6 @@ const sync = async () => {
   });
   */
   getGroupsToSend();
-  getPatientsToSend()
+  getPatientsToSend();
 };
 </script>

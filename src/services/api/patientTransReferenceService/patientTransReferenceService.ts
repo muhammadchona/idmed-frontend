@@ -123,6 +123,10 @@ export default {
     );
   },
 
+  apiSendLostFolowUp(loadedPatient: any) {
+    return api().post('/patientTransReference/folowup', loadedPatient);
+  },
+
   async apiSave(transReference: any) {
     return await api().post('/patientTransReference', transReference);
   },

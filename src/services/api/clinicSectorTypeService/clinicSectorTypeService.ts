@@ -138,4 +138,11 @@ export default {
       .orderBy('code', 'asc')
       .first();
   },
+  getClinicSectorTypesByCode(codeParam: string) {
+    return clinicSectorType
+      .withAll()
+      .where('code', codeParam)
+      .orderBy('code', 'asc')
+      .get();
+  },
 };
