@@ -508,7 +508,6 @@ const validatePack = (pack) => {
             );
             stocksToMoviment.push(validStock[i]);
             quantitySupplied = 0;
-            // const pkstock = initPackageStock(validStock[i], prescribedDrug.drug, prescribedDrug.qtyPrescribed)
             const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
             /*
             packagedDrugStock.drug = drugService.getDrugById(
@@ -810,7 +809,6 @@ const determineNextPickUpDate = () => {
     nextPDate.value = getDDMMYYYFromJSDate(
       date.addToDate(newDate, { days: daysToAdd })
     );
-    // $emit('updateQtyPrescribed', drugsDuration, pickupDate, nextPDate)
   }
 };
 

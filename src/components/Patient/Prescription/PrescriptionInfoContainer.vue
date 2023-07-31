@@ -75,7 +75,7 @@
                   }}
                 </div>
               </div>
-              <div v-if="prescription !== null" class="row">
+              <div v-if="prescription.prescriptionDetails !== null" class="row">
                 <div
                   v-if="
                     prescription.prescriptionDetails[0].therapeuticLine !== null

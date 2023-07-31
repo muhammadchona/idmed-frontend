@@ -746,14 +746,25 @@ const doSave = async () => {
       startDate.value
     );
     episode.value.creationDate = moment().format('YYYY-MM-DD');
+    episode.value.patientVisitDetails = [];
+    episode.value.patientServiceIdentifier = {};
+    episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
   } else {
     episode.value.clinicSector_id = episode.value.clinicSector.id;
+    const clinicSectorId = episode.value.clinicSector.id;
+    episode.value.clinicSector = {};
+    episode.value.clinicSector.id = clinicSectorId;
     episode.value.clinic = {};
     episode.value.clinic.id = currClinic.value.id;
     episode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
       startDate.value
     );
-
+    episode.value.patientVisitDetails = [];
+    closureEpisode.value.patientServiceIdentifier = {};
+    closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
+    episode.value.patientVisitDetails = [];
+    episode.value.patientServiceIdentifier = {};
+    episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
     if (isCloseEpisode.value) {
       episode.value.isLast = false;
       closureEpisode.value.clinicSector =
@@ -771,6 +782,7 @@ const doSave = async () => {
       closureEpisode.value.creationDate = moment();
       closureEpisode.value.patientServiceIdentifier = {};
       closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
+      closureEpisode.value.patientVisitDetails = [];
     }
   }
   episodeService

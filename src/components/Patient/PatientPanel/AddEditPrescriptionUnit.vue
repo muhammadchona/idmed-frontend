@@ -426,7 +426,7 @@ const prescriptionDateRef = ref(null);
 const curPrescription = ref(new Prescription({ id: uuidv4() }));
 const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
 const curPatientVisitDetail = ref(new PatientVisitDetails({ id: uuidv4() }));
-const curPack = ref(new Pack({id: uuidv4()}));
+const curPack = ref(new Pack({ id: uuidv4() }));
 const validateDispense = ref(false);
 
 const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia']);
@@ -632,6 +632,7 @@ const getLastPrescriptionData = () => {
       lastPrescription.value.prescribedDrugs;
 
     curPrescription.value.prescribedDrugs.forEach((prescribedDrug) => {
+      prescribedDrug.id = uuidv4();
       prescribedDrug.prescription = null;
       prescribedDrug.prescription_id = null;
     });
@@ -854,7 +855,7 @@ const allGoodvalidatedForm = () => {
 
 const addPackagedDrugs = () => {
   curPrescription.value.prescribedDrugs.forEach((prescribedDrug) => {
-    let packagedDrug = new PackagedDrug();
+    let packagedDrug = new PackagedDrug({ id: uuidv4() });
     packagedDrug.drug = prescribedDrug.drug;
     packagedDrug.drug_id = prescribedDrug.drug.id;
     packagedDrug.amtPerTime = prescribedDrug.amtPerTime;
@@ -876,7 +877,7 @@ const generatePacks = (packagedDrug) => {
 
   let i = 0;
   while (quantitySupplied > 0) {
-    const packagedDrugStock = new PackagedDrugStock();
+    const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
 
     if (stocks[i].stockMoviment >= quantitySupplied) {
       quantitySupplied = 0;
@@ -1025,7 +1026,7 @@ const addPrescribedDrug = (prescribedDrug) => {
           'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.'
         );
       } else {
-        prescribedDrug.qtyPrescribed = getQtyPrescribed(
+        prescribedDrug.prescribedQty = getQtyPrescribed(
           prescribedDrug,
           curPrescription.value.duration.weeks
         );
@@ -1035,7 +1036,7 @@ const addPrescribedDrug = (prescribedDrug) => {
       alertInfo(
         'O medicamento seleccionado não possui stock suficiente para dispensar até a data da prescrição.'
       );
-      prescribedDrug.qtyPrescribed = getQtyPrescribed(
+      prescribedDrug.prescribedQty = getQtyPrescribed(
         prescribedDrug,
         curPrescription.value.duration.weeks
       );
