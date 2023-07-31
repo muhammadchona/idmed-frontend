@@ -12,7 +12,7 @@ export default class PrescribedDrug extends Model {
       amtPerTime: this.attr(''),
       timesPerDay: this.attr(''),
       modified: this.boolean(false),
-      qtyPrescribed: this.attr(''),
+      prescribedQty: this.attr(''),
       nextPickUpDate: this.attr(''),
       toContinue: this.boolean(true),
       prescription_id: this.attr(''),

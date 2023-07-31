@@ -284,7 +284,7 @@ const initDispenses = () => {
     packDrug.timesPerDay = prescD.timesPerDay;
     packDrug.form = prescD.form;
     packDrug.drug = drugService.getDrugById(prescD.drug.id);
-    packDrug.quantitySupplied = prescD.qtyPrescribed;
+    packDrug.quantitySupplied = prescD.prescribedQty;
     // packDrug.toContinue = prescD.toContinue
     packDrug.creationDate = new Date();
     pack.packagedDrugs.push(packDrug);

@@ -48,7 +48,7 @@ export function usePrescribedDrug() {
       }
     }
 
-    prescribedDrug.qtyPrescribed = qty;
+    // prescribedDrug.qtyPrescribed = qty;
     return qty;
   }
 

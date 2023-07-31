@@ -162,7 +162,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import drugService from 'src/services/api/drugService/drugService';
-
+import { v4 as uuidv4 } from 'uuid';
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertSucess, alertError, alertInfo } = useSwal();
@@ -229,7 +229,7 @@ const deleteRow = (row) => {
 };
 
 const addPackagedDrug = (prescribedDrug) => {
-  const packagedDrug = new PackagedDrug();
+  const packagedDrug = new PackagedDrug({ id: uuidv4() });
 
   packagedDrug.amtPerTime = prescribedDrug.amtPerTime;
   packagedDrug.timesPerDay = prescribedDrug.timesPerDay;

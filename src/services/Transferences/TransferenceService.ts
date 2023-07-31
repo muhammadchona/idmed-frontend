@@ -212,7 +212,7 @@ export default {
         .first();
       prescribedDrug.amtPerTime = obj1.amtPerTime;
       prescribedDrug.timesPerDay = obj1.timesPerDay;
-      prescribedDrug.qtyPrescribed = 0;
+      prescribedDrug.prescribedQty = 0;
       prescribedDrug.form = obj1.form;
       // prescribedDrug.prescription = prescription
       prescribedDrugsLocal.push(prescribedDrug);

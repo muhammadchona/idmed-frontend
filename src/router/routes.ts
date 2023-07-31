@@ -151,13 +151,6 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'loadfiledc',
         component: () => import('pages/DCProvedor/loadFile.vue'),
-        beforeEnter(to, from, next) {
-          if (!AccessControlUtils.menusVisible('DCProvedor')) {
-            next('/:catchAll(.*)*');
-          } else {
-            next();
-          }
-        },
       },
       {
         path: 'home',

@@ -249,12 +249,16 @@ const doValidationToDispense = () => {
       patientVisitDetail.prescription.clinic.id = patient.value.clinic_id;
       patientVisitDetail.prescription.prescribedDrugs.forEach(
         (prescribedDrug) => {
+          console.log(prescribedDrug);
           let drugID = prescribedDrug.drug.id;
           prescribedDrug.drug = {};
           prescribedDrug.drug.id = drugID;
+          // prescribedDrug.prescribedQty = 1;
+          console.log(curPatientVisit.value);
         }
       );
     });
+    console.log(curPatientVisit.value);
     patientVisitService
       .post(curPatientVisit.value)
       .then((resp) => {

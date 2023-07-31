@@ -358,7 +358,7 @@ const excelExport = (event) => {
 const sendList = () => {
   submitSend.value = true;
   submitStatus.value = true;
-  countPatients.value = selectedList.value.length;
+  //  countPatients.value = selectedList.value.length;
   selectedList.value.forEach((loadedPatient) => {
     if (loadedPatient.existInIDMED) {
       patientTransReferenceService

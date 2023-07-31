@@ -1,4 +1,3 @@
-
 import JsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
@@ -11,7 +10,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDailyRegisterMobileService';
 
 const img = new Image();
-img.src = '../../../assets/MoHLogo.png';
+img.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 const { isOnline, isMobile } = useSystemUtils();
 
@@ -23,26 +22,29 @@ const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 export default {
   async downloadPDF(id, fileType, params) {
-const clinic = clinicService.currClinic()
+    const clinic = clinicService.currClinic();
     let rowsAux = [];
     let data = [];
-    let firstReg = {}
-    if(isOnline.value) {
-    rowsAux = await Report.printReport('arvDailyRegisterReportTemp',id, fileType)
-   if (rowsAux.status === 204  || rowsAux.data.length === 0) return 204
-    firstReg = rowsAux.data[0]
-   params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
-   params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-    data = this.createArrayOfArrayRow(rowsAux.data)
-    } else  {
-       rowsAux = await this.getDataLocalReport(id)       
-      if(rowsAux.length === 0) return 204
-      firstReg = rowsAux[0]
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-      data = this.createArrayOfArrayRow(rowsAux)
+    let firstReg = {};
+    if (isOnline.value) {
+      rowsAux = await Report.printReport(
+        'arvDailyRegisterReportTemp',
+        id,
+        fileType
+      );
+      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
+      firstReg = rowsAux.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux.data);
+    } else {
+      rowsAux = await this.getDataLocalReport(id);
+      if (rowsAux.length === 0) return 204;
+      firstReg = rowsAux[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux);
     }
-
 
     const doc = new JsPDF({
       orientation: 'l',
@@ -204,72 +206,75 @@ const clinic = clinicService.currClinic()
       },
       didDrawCell: function (data) {
         if (data.row.section === 'body' && data.column.dataKey === 10) {
-          console.log(rowsAux)
-          const dataRow = isOnline.value ? rowsAux.data[data.row.index] : rowsAux[0]
+          console.log(rowsAux);
+          const dataRow = isOnline.value
+            ? rowsAux.data[data.row.index]
+            : rowsAux[0];
           if (dataRow !== undefined) {
-            const dataAux2 = (dataRow.drugQuantityTemps) //  cell.row.index
-            const datax = []
+            const dataAux2 = dataRow.drugQuantityTemps; //  cell.row.index
+            const datax = [];
             for (const row in dataAux2) {
-              const createRow = []
-              createRow.push(dataAux2[row].drugName)
-              createRow.push(dataAux2[row].quantity)
-              datax.push(createRow)
-              }
-              autoTable(doc, {
+              const createRow = [];
+              createRow.push(dataAux2[row].drugName);
+              createRow.push(dataAux2[row].quantity);
+              datax.push(createRow);
+            }
+            autoTable(doc, {
               startY: data.cell.y + 2,
               startX: data.cell.x + 211,
               margin: { left: data.cell.x + 2 },
               tableWidth: 45, // data.cell.width,
               bodyStyles: {
-                fontSize: 8
-            },
+                fontSize: 8,
+              },
               // tableHeight: data.cell.height,
               // startY: doc.lastAutoTable.finalY + 15,
               rowPageBreak: 'auto',
               showHead: false,
               // theme: 'plain'
-              body: datax
-            })
+              body: datax,
+            });
           }
-    }
+        }
       },
       theme: 'grid',
       head: desiredDefinition,
       body: data,
     });
 
-    if(isOnline.value && !isMobile.value) {
-      return  doc.save(fileName.concat('.pdf'))
+    if (isOnline.value && !isMobile.value) {
+      return doc.save(fileName.concat('.pdf'));
     } else {
-      console.log(doc)
-      const pdfOutput = doc.output()
-      console.log(pdfOutput)
-      this.downloadFile(fileName,'pdf',pdfOutput)
+      console.log(doc);
+      const pdfOutput = doc.output();
+      console.log(pdfOutput);
+      this.downloadFile(fileName, 'pdf', pdfOutput);
     }
-
-
   },
 
   async downloadExcel(id, fileType2, params) {
-   
-    const clinic = clinicService.currClinic()
+    const clinic = clinicService.currClinic();
     let rowsAux = [];
     let data = [];
-    let firstReg = {}
-    if(isOnline.value) {
-    rowsAux = await Report.printReport('arvDailyRegisterReportTemp', id, fileType2)
-   if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204
-    firstReg = rowsAux.data[0]
-   params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
-   params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-    data = this.createArrayOfArrayRow(rowsAux.data)
-    } else  {
-       rowsAux = await this.getDataLocalReport(id)
-       firstReg = rowsAux[0]
-      if(rowsAux.length === 0) return 204
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate)
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate)
-      data = this.createArrayOfArrayRow(rowsAux)
+    let firstReg = {};
+    if (isOnline.value) {
+      rowsAux = await Report.printReport(
+        'arvDailyRegisterReportTemp',
+        id,
+        fileType2
+      );
+      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
+      firstReg = rowsAux.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux.data);
+    } else {
+      rowsAux = await this.getDataLocalReport(id);
+      firstReg = rowsAux[0];
+      if (rowsAux.length === 0) return 204;
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux);
     }
 
     console.log('DADOS: ', data);
@@ -387,9 +392,9 @@ const clinic = clinicService.currClinic()
     // Assign Value to Cell
     cellRepublica.value = logoTitle;
     cellTitle.value = title;
-    cellPharmParamValue.value = clinic.clinicName ;
+    cellPharmParamValue.value = clinic.clinicName;
     cellProvinceParamValue.value = clinic.province.description;
-    cellDistrictParamValue.value =  clinic.district.description;
+    cellDistrictParamValue.value = clinic.district.description;
     cellStartDateParamValue.value = params.startDateParam;
     cellEndDateParamValue.value = params.endDateParam;
     cellPharm.value = 'Farmácia';
@@ -667,34 +672,38 @@ const clinic = clinicService.currClinic()
       });
     }
     let p = 15;
-   
-    let dataAux = {}
 
+    let dataAux = {};
 
     if (params.isOnline) {
-     dataAux = rows.data
-   } else {
-     dataAux = rowsAux
-   }
-    for (let j = 0; j <= (dataAux).length; j++) {
-    // const row = worksheet.getRow(i)
-     // Now loop through every row's cell and finally set alignment
-      const reportData = (dataAux)[j]
-     //  console.log('ReportDataLenght: ', (rows.0data).length)
+      dataAux = rows.data;
+    } else {
+      dataAux = rowsAux;
+    }
+    for (let j = 0; j <= dataAux.length; j++) {
+      // const row = worksheet.getRow(i)
+      // Now loop through every row's cell and finally set alignment
+      const reportData = dataAux[j];
+      //  console.log('ReportDataLenght: ', (rows.0data).length)
       if (reportData !== undefined) {
-    // const subReport = this.createArraySubReport(reportData.drugQuantityTemps)
-         let drugDetails = ''
-         for (const row in reportData.drugQuantityTemps) {
-               // console.log('ROW: ', row)
-               // console.log('P: ', p)
-               drugDetails = drugDetails + (reportData.drugQuantityTemps[row].drugName + ' - (' + reportData.drugQuantityTemps[row].quantity + ');                                       ')
-           }
+        // const subReport = this.createArraySubReport(reportData.drugQuantityTemps)
+        let drugDetails = '';
+        for (const row in reportData.drugQuantityTemps) {
+          // console.log('ROW: ', row)
+          // console.log('P: ', p)
+          drugDetails =
+            drugDetails +
+            (reportData.drugQuantityTemps[row].drugName +
+              ' - (' +
+              reportData.drugQuantityTemps[row].quantity +
+              ');                                       ');
+        }
 
-           const cell = worksheet.getCell('K' + p)
-           cell.value = drugDetails
-           p++
-             }
- }
+        const cell = worksheet.getCell('K' + p);
+        cell.value = drugDetails;
+        p++;
+      }
+    }
     const buffer = await workbook.xlsx.writeBuffer();
     const fileType =
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -702,168 +711,185 @@ const clinic = clinicService.currClinic()
     const blob = new Blob([buffer], { type: fileType });
 
     if (isOnline.value && !isMobile.value) {
-    saveAs(blob, fileName + fileExtension);
-  } else {
-     const titleFile = 'LivroDiarioDeArvs.xlsx'
-     console.log('result' + titleFile)
-      saveBlob2File(titleFile, blob)
-      function saveBlob2File (fileName, blob) {
-         const folder = cordova.file.externalRootDirectory + 'Download'
+      saveAs(blob, fileName + fileExtension);
+    } else {
+      const titleFile = 'LivroDiarioDeArvs.xlsx';
+      console.log('result' + titleFile);
+      saveBlob2File(titleFile, blob);
+      function saveBlob2File(fileName, blob) {
+        const folder = cordova.file.externalRootDirectory + 'Download';
         //  var folder = 'Download'
-         window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-           console.log('file system open: ' + dirEntry.name)
-            console.log('file system open11111: ' + blob)
-           createFile(dirEntry, fileName, blob)
-          // $q.loading.hide()
-         }, onErrorLoadFs)
-       }
-          function createFile (dirEntry, fileName, blob) {
-         // Creates a new file
-         dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
-           writeFile(fileEntry, blob)
-         }, onErrorCreateFile)
-       }
-  
-       function writeFile (fileEntry, dataObj) {
-         // Create a FileWriter object for our FileEntry
-         fileEntry.createWriter(function (fileWriter) {
-           fileWriter.onwriteend = function () {
-             console.log('Successful file write...')
-              openFile()
-           }
-  
-           fileWriter.onerror = function (error) {
-             console.log('Failed file write: ' + error)
-           }
-           fileWriter.write(dataObj)
-         })
-       }
-       function onErrorLoadFs (error) {
-         console.log(error)
-       }
-  
-       function onErrorCreateFile (error) {
-         console.log('errorr: ' + error.toString())
-       }
-     function openFile () {
-         const strTitle = titleFile
-           console.log('file system 44444: ' + strTitle)
-          const folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
-            console.log('file system 2222: ' + folder)
-            const documentURL = decodeURIComponent(folder)
-     cordova.plugins.fileOpener2.open(
-       documentURL,
-         'application/vnd.ms-excel', {
-             error: function (e) {
-                 console.log('file system open3333366: ' + e + documentURL)
-             },
-             success: function () {
-  
-             }
-         })
-     }
+        window.resolveLocalFileSystemURL(
+          folder,
+          function (dirEntry) {
+            console.log('file system open: ' + dirEntry.name);
+            console.log('file system open11111: ' + blob);
+            createFile(dirEntry, fileName, blob);
+            // $q.loading.hide()
+          },
+          onErrorLoadFs
+        );
+      }
+      function createFile(dirEntry, fileName, blob) {
+        // Creates a new file
+        dirEntry.getFile(
+          fileName,
+          { create: true, exclusive: false },
+          function (fileEntry) {
+            writeFile(fileEntry, blob);
+          },
+          onErrorCreateFile
+        );
+      }
+
+      function writeFile(fileEntry, dataObj) {
+        // Create a FileWriter object for our FileEntry
+        fileEntry.createWriter(function (fileWriter) {
+          fileWriter.onwriteend = function () {
+            console.log('Successful file write...');
+            openFile();
+          };
+
+          fileWriter.onerror = function (error) {
+            console.log('Failed file write: ' + error);
+          };
+          fileWriter.write(dataObj);
+        });
+      }
+      function onErrorLoadFs(error) {
+        console.log(error);
+      }
+
+      function onErrorCreateFile(error) {
+        console.log('errorr: ' + error.toString());
+      }
+      function openFile() {
+        const strTitle = titleFile;
+        console.log('file system 44444: ' + strTitle);
+        const folder =
+          cordova.file.externalRootDirectory + 'Download/' + strTitle;
+        console.log('file system 2222: ' + folder);
+        const documentURL = decodeURIComponent(folder);
+        cordova.plugins.fileOpener2.open(
+          documentURL,
+          'application/vnd.ms-excel',
+          {
+            error: function (e) {
+              console.log('file system open3333366: ' + e + documentURL);
+            },
+            success: function () {},
+          }
+        );
+      }
     }
   },
-  createArrayOfArrayRow (rows) {
-    const data = []
-     for (const row in rows) {
-        const createRow = []
-        createRow.push(rows[row].orderNumber)
-        createRow.push(rows[row].nid)
-        createRow.push(rows[row].patientName)
-        createRow.push(rows[row].startReason)
-        createRow.push(rows[row].ageGroup_0_4)
-        createRow.push(rows[row].ageGroup_5_9)
-        createRow.push(rows[row].ageGroup_10_14)
-        createRow.push(rows[row].ageGroup_Greater_than_15)
-        createRow.push(rows[row].patientType)
-        createRow.push(rows[row].regime)
-        createRow.push('')
-        createRow.push(rows[row].dispensationType)
-        createRow.push(rows[row].therapeuticLine)
-        createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate))
-        createRow.push(Report.getFormatDDMMYYYY(rows[row].nextPickupDate))
-        createRow.push(rows[row].ppe)
-        createRow.push(rows[row].prep)
-        createRow.push('')
-        data.push(createRow)
+  createArrayOfArrayRow(rows) {
+    const data = [];
+    for (const row in rows) {
+      const createRow = [];
+      createRow.push(rows[row].orderNumber);
+      createRow.push(rows[row].nid);
+      createRow.push(rows[row].patientName);
+      createRow.push(rows[row].startReason);
+      createRow.push(rows[row].ageGroup_0_4);
+      createRow.push(rows[row].ageGroup_5_9);
+      createRow.push(rows[row].ageGroup_10_14);
+      createRow.push(rows[row].ageGroup_Greater_than_15);
+      createRow.push(rows[row].patientType);
+      createRow.push(rows[row].regime);
+      createRow.push('');
+      createRow.push(rows[row].dispensationType);
+      createRow.push(rows[row].therapeuticLine);
+      createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate));
+      createRow.push(Report.getFormatDDMMYYYY(rows[row].nextPickupDate));
+      createRow.push(rows[row].ppe);
+      createRow.push(rows[row].prep);
+      createRow.push('');
+      data.push(createRow);
     }
-    return data
+    return data;
   },
 
   async getDataLocalReport(reportId) {
-   const reportData =  await ArvDailyRegisterMobileService.localDbGetAllByReportId(reportId) 
-         
-      //console.log(data)
-    if (reportData===null || reportData.length === 0) return '204';
+    const reportData =
+      await ArvDailyRegisterMobileService.localDbGetAllByReportId(reportId);
+
+    //console.log(data)
+    if (reportData === null || reportData.length === 0) return '204';
     return reportData;
   },
 
-  downloadFile(fileName , fileType, blop) {
+  downloadFile(fileName, fileType, blop) {
     // console.log(blop)
     // var pdfOutput = blop.output()
-   //  console.log(pdfOutput)
-   //  if (typeof cordova !== 'undefined') {
-      //   var blob = new Blob(materialEducativo.blop)
-      //  const bytes = new Uint8Array(materialEducativo.blop)
-     // var UTF8_STR = new Uint8Array(pdfOutput)
-     //   var BINARY_ARR = UTF8_STR.buffer
-        const titleFile = fileName + fileType
-        console.log('result' + titleFile)
-         saveBlob2File(titleFile, blop)
-         function saveBlob2File (fileName, blob) {
-            const folder = cordova.file.externalRootDirectory + 'Download'
-           //  var folder = 'Download'
-            window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-              createFile(dirEntry, fileName, blob)
-             // $q.loading.hide()
-            }, onErrorLoadFs)
-          }
-             function createFile (dirEntry, fileName, blob) {
-            // Creates a new file
-            dirEntry.getFile(fileName, { create: true, exclusive: false }, function (fileEntry) {
-              writeFile(fileEntry, blob)
-            }, onErrorCreateFile)
-          }
-    
-          function writeFile (fileEntry, dataObj) {
-            // Create a FileWriter object for our FileEntry
-            fileEntry.createWriter(function (fileWriter) {
-              fileWriter.onwriteend = function () {
-                console.log('Successful file write...')
-                 openFile()
-              }
-    
-              fileWriter.onerror = function (error) {
-                console.log('Failed file write: ' + error)
-              }
-              fileWriter.write(dataObj)
-            })
-          }
-          function onErrorLoadFs (error) {
-            console.log(error)
-          }
-    
-          function onErrorCreateFile (error) {
-            console.log('errorr: ' + error.toString())
-          }
-        function openFile () {
-            const strTitle = titleFile
-              console.log('file system 44444: ' + strTitle)
-             const folder = cordova.file.externalRootDirectory + 'Download/' + strTitle
-               console.log('file system 2222: ' + folder)
-               const documentURL = decodeURIComponent(folder)
-        cordova.plugins.fileOpener2.open(
-          documentURL,
-            'application/pdf', {
-                error: function (e) {
-                    console.log('file system open3333366: ' + e + documentURL)
-                },
-                success: function () {
-    
-                }
-            })
-        }
-     // }
-}
+    //  console.log(pdfOutput)
+    //  if (typeof cordova !== 'undefined') {
+    //   var blob = new Blob(materialEducativo.blop)
+    //  const bytes = new Uint8Array(materialEducativo.blop)
+    // var UTF8_STR = new Uint8Array(pdfOutput)
+    //   var BINARY_ARR = UTF8_STR.buffer
+    const titleFile = fileName + fileType;
+    console.log('result' + titleFile);
+    saveBlob2File(titleFile, blop);
+    function saveBlob2File(fileName, blob) {
+      const folder = cordova.file.externalRootDirectory + 'Download';
+      //  var folder = 'Download'
+      window.resolveLocalFileSystemURL(
+        folder,
+        function (dirEntry) {
+          createFile(dirEntry, fileName, blob);
+          // $q.loading.hide()
+        },
+        onErrorLoadFs
+      );
+    }
+    function createFile(dirEntry, fileName, blob) {
+      // Creates a new file
+      dirEntry.getFile(
+        fileName,
+        { create: true, exclusive: false },
+        function (fileEntry) {
+          writeFile(fileEntry, blob);
+        },
+        onErrorCreateFile
+      );
+    }
+
+    function writeFile(fileEntry, dataObj) {
+      // Create a FileWriter object for our FileEntry
+      fileEntry.createWriter(function (fileWriter) {
+        fileWriter.onwriteend = function () {
+          console.log('Successful file write...');
+          openFile();
+        };
+
+        fileWriter.onerror = function (error) {
+          console.log('Failed file write: ' + error);
+        };
+        fileWriter.write(dataObj);
+      });
+    }
+    function onErrorLoadFs(error) {
+      console.log(error);
+    }
+
+    function onErrorCreateFile(error) {
+      console.log('errorr: ' + error.toString());
+    }
+    function openFile() {
+      const strTitle = titleFile;
+      console.log('file system 44444: ' + strTitle);
+      const folder =
+        cordova.file.externalRootDirectory + 'Download/' + strTitle;
+      console.log('file system 2222: ' + folder);
+      const documentURL = decodeURIComponent(folder);
+      cordova.plugins.fileOpener2.open(documentURL, 'application/pdf', {
+        error: function (e) {
+          console.log('file system open3333366: ' + e + documentURL);
+        },
+        success: function () {},
+      });
+    }
+    // }
+  },
 };
