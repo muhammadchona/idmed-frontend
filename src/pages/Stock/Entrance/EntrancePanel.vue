@@ -29,6 +29,18 @@
             v-model="dateReceived"
             label="Data de Criação"
           >
+
+          <q-input
+              outlined
+              v-model="notes"
+              label="Notas"
+              ref="notesRef"
+              :disable="!isGuiaEditionStep"
+              dense
+              class="col"
+              type="textarea" />
+
+
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy
@@ -329,6 +341,8 @@
               v-model="dateReceived"
               label="Data de Criação"
             >
+            
+
               <template v-slot:append>
                 <q-icon name="event" class="cursor-pointer">
                   <q-popup-proxy
@@ -350,6 +364,15 @@
                 </q-icon>
               </template>
             </q-input>
+            <q-input
+              outlined
+              v-model="notes"
+              label="Notas"
+              ref="notesRef"
+              :disable="!isGuiaEditionStep"
+              dense
+              class="col q-ma-sm"
+              type="textarea" />
             <q-separator class="q-mx-sm" />
             <div class="row q-pa-sm" v-if="isGuiaDisplayStep">
               <q-btn
@@ -666,6 +689,7 @@ const columns = [
 let submitting = false;
 const dateReceived = ref('');
 const orderNumber = ref('');
+const notes = ref('')
 
 const step = ref('display');
 const guiaStep = ref('display');
@@ -674,6 +698,7 @@ const drugs = ref([]);
 const stockList = ref([]);
 let stock = '';
 const orderNumberRef = ref('');
+const notesRef = ref('')
 
 const goBack = () => {
   router.go(-1);
@@ -713,6 +738,7 @@ const init = () => {
     currStockEntrance.value.dateReceived
   );
   orderNumber.value = currStockEntrance.value.orderNumber;
+  notes.value = currStockEntrance.value.notes;
  };
 
 const cancelOperation = () => {
@@ -726,6 +752,7 @@ const doSaveGuia = () => {
   ); // getJSDateFromDDMMYYY()
   currStockEntrance.value.orderNumber = orderNumber.value;
   currStockEntrance.value.clinic = currClinic.value;
+  currStockEntrance.value.notes = notes.value
 
   orderNumberRef.value.validate();
   if (dateReceived.value === '') {
