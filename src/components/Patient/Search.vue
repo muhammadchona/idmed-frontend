@@ -22,6 +22,7 @@
         </div>
         <div class="row">
           <q-input
+           @keyup.enter="search"
             outlined
             label="Nr. Identificador"
             dense
@@ -48,7 +49,8 @@
             </template>
           </q-input>
           <q-input
-            outlined
+           @keyup.enter="search"
+             outlined
             ref="firstNamesRef"
             v-model="currPatient.firstNames"
             type="text"
@@ -76,6 +78,7 @@
             </template>
           </q-input>
           <q-input
+          @keyup.enter="search"
             outlined
             ref="lastNamesRef"
             v-model="currPatient.lastNames"
@@ -476,19 +479,19 @@ const closePatient = () => {
   openMrsPatient.value = false;
 };
 
-const goToPatientPanel = (patient) => {
+const goToPatientPanel = async (patient) => {
   showloading();
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
-  patientService.getPatientByID(currPatient.value.id);
+  await patientService.getPatientByID(currPatient.value.id);
   // Rest Calls
-  patientServiceIdentifierService.apiGetAllByPatientId(currPatient.value.id);
-  patientVisitService.apiGetAllByPatientId(currPatient.value.id);
-  patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
+  await patientServiceIdentifierService.apiGetAllByPatientId(currPatient.value.id);
+  await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
+  await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
     currPatient.value.id
   );
-  prescriptionService.apiGetByPatientId(currPatient.value.id);
-  packService.apiGetByPatientId(currPatient.value.id);
+  await prescriptionService.apiGetByPatientId(currPatient.value.id);
+  await packService.apiGetByPatientId(currPatient.value.id);
   router.push('/patientpanel/');
 };
 
