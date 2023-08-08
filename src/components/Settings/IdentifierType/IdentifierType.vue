@@ -90,8 +90,10 @@ import { ref, inject, onMounted, computed, provide } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { alertSucess, alertError } = useSwal();
+const { showloading, closeLoading } = useLoading();
 
 /*Components import*/
 
@@ -150,11 +152,12 @@ const validateClinicSector = () => {
 };
 
 const doSave = () => {
-
+  showloading()
   if (isCreateStep.value) {
     identifierTypeService
       .post(identifierType.value)
       .then(() => {
+        closeLoading()
         alertSucess('Tipo de Identificador registado com sucesso');
         showAddEditIdentifierType.value = false;
       })
@@ -169,6 +172,7 @@ const doSave = () => {
     identifierTypeService
       .patch(identifierType.value.id, identifierType.value)
       .then(() => {
+        closeLoading()
         alertSucess('Tipo de Identificador actualizado com sucesso');
         showAddEditIdentifierType.value = false;
       })
@@ -199,5 +203,4 @@ const codeRules = (val) => {
   }
 };
 </script>
-
 <style></style>

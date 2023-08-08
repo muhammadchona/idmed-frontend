@@ -104,9 +104,11 @@ import interoperabilityTypeService from 'src/services/api/InteroperabilityType/I
 import interoperabilityAttributeService from 'src/services/api/InteroperabilityAttribute/InteroperabilityAttributeService.ts';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
 import { v4 as uuidv4 } from 'uuid';
 
 const { alertSucess, alertError } = useSwal();
+const { showloading, closeLoading } = useLoading();
 
 /*Components import*/
 import selectedAttributesTable from 'src/components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue';
@@ -197,6 +199,7 @@ const validateHis = () => {
   }
 };
 const submitHis = () => {
+  showloading();
   submitting.value = true;
   his.value.interoperabilityAttributes = [];
   healthInformationAttributeTypes.value.forEach((attribute) => {
@@ -210,6 +213,7 @@ const submitHis = () => {
     healthInformationSystemService
       .post(his.value)
       .then(() => {
+        closeLoading();
         alertSucess('Sistema para Interoperabilidade registado com sucesso');
         submitting.value = false;
         viewMode.value = true;
@@ -228,6 +232,7 @@ const submitHis = () => {
     healthInformationSystemService
       .patch(his.value.id, his.value)
       .then(() => {
+        closeLoading();
         alertSucess('Sistema para Interoperabilidade actualizado com sucesso');
         submitting.value = false;
         viewMode.value = true;

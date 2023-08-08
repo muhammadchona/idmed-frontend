@@ -4,7 +4,7 @@
       Sector Clínico
     </div>
     <div class="">
-      <q-table :rows="clinicSectors" :columns="columns" :filter="filter">
+      <q-table :rows="clinicSectors" :columns="columns" :filter="filter" :loading="loading">
         <template v-slot:top-right>
           <q-input
             outlined
@@ -163,10 +163,14 @@ const currClinic = inject('currClinic');
 
 /*Hooks*/
 const clinicSectors = computed(() => {
-  return clinicSectorService.getAllClinicSectors();
+  const clinicSecs = clinicSectorService.getAllClinicSectors();
+  if(clinicSecs !== null)
+  closeLoading()
+  return clinicSecs
 });
 
 onMounted(() => {
+  showloading()
   editMode.value = false;
   viewMode.value = false;
 });
@@ -221,7 +225,7 @@ const promptToConfirm = (clinicSectorParam) => {
     : 'Deseja Activar o Sector Clínico?';
   alertWarningAction(question).then((response) => {
     if (response) {
-      showloading();
+      showloading()
       if (clinicSectorParam.active) {
         clinicSectorParam.active = false;
       } else {
@@ -230,14 +234,14 @@ const promptToConfirm = (clinicSectorParam) => {
       clinicSectorService
         .patch(clinicSectorParam.id, clinicSectorParam)
         .then(() => {
+          // closeLoading();
           alertSucess('Sector Clínico actualizado com sucesso.');
-          closeLoading();
         })
         .catch(() => {
+          // closeLoading();
           alertError(
             'Aconteceu um erro inesperado ao actualizar o Sector Clínico.'
           );
-          closeLoading();
         });
       // }
     }

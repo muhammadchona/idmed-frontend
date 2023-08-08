@@ -106,8 +106,10 @@ import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { alertSucess, alertError } = useSwal();
+const { closeLoading, showloading } = useLoading();
 
 /*Declarations*/
 const databaseCodes = ref([]);
@@ -176,6 +178,7 @@ const validateClinicSector = () => {
 };
 
 const submitClinicSector = () => {
+  showloading();
   if (isNewClinicSector.value) {
     clinicSector.value.active = true;
     clinicSector.value.uuid = uuidv4();
@@ -186,6 +189,7 @@ const submitClinicSector = () => {
     clinicSectorService
       .post(clinicSector.value)
       .then(() => {
+        closeLoading();
         alertSucess('Sector Clínico registado com sucesso.');
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
@@ -205,6 +209,7 @@ const submitClinicSector = () => {
     clinicSectorService
       .patch(clinicSector.value.id, clinicSector.value)
       .then(() => {
+        closeLoading();
         alertSucess('Sector Clínico actualizado com sucesso.');
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;

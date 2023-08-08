@@ -253,8 +253,10 @@ import userService from 'src/services/api/user/userService.ts';
 import roleService from 'src/services/api/role/roleService.ts';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { alertSucess, alertError } = useSwal();
+const { closeLoading, showloading } = useLoading();
 
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
@@ -392,7 +394,8 @@ const goToNextStep = () => {
     }
   }
 };
-const submitUser = () => {
+const submitUser = () => {  
+  showloading()
   submitting.value = true;
   selectedRoles.value = JSON.parse(JSON.stringify(selectedRoles.value));
   const roless = [];
@@ -415,6 +418,7 @@ const submitUser = () => {
     userService
       .post(user.value)
       .then(() => {
+        closeLoading();
         alertSucess('Utilizador registado com sucesso');
         submitting.value = false;
         rolesForView.value = user.value.authorities;
@@ -432,6 +436,7 @@ const submitUser = () => {
     userService
       .patch(user.value.id, user.value)
       .then(() => {
+        closeLoading();
         alertSucess('Utilizador actualizado com sucesso.');
         submitting.value = false;
         rolesForView.value = user.value.authorities;

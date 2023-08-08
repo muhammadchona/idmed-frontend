@@ -113,7 +113,6 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import { useLoading } from 'src/composables/shared/loading/loading';
-
 import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
@@ -174,10 +173,14 @@ const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const doctors = computed(() => {
-  return doctorService.getAlldoctors();
+  const doctorsRes = doctorService.getAlldoctors();
+  if(doctorsRes !== null) closeLoading()
+
+  return doctorsRes
 });
 
 onMounted(() => {
+  showloading()
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';

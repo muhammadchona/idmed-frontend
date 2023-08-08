@@ -135,10 +135,12 @@ import { ref, inject, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { alertSucess, alertError } = useSwal();
 
 /*Declarations*/
+const { closeLoading, showloading } = useLoading();
 const submitting = ref(false);
 const genders = ref(['Masculino', 'Feminino']);
 const nomeRef = ref(null);
@@ -203,6 +205,7 @@ const codeRules = (val) => {
 };
 
 const submitDoctor = () => {
+  showloading();
   submitting.value = true;
   doctor.value.active = true;
   if (isCreateStep.value) {
@@ -212,6 +215,7 @@ const submitDoctor = () => {
     doctorService
       .post(doctor.value)
       .then(() => {
+        closeLoading();
         alertSucess('Clínico registado com sucesso');
         submitting.value = false;
         showDoctorRegistrationScreen.value = false;
@@ -233,6 +237,7 @@ const submitDoctor = () => {
     doctorService
       .patch(doctor.value.id, doctor.value)
       .then(() => {
+        closeLoading();
         alertSucess('Clínico actualizado com sucesso.');
         submitting.value = false;
         showDoctorRegistrationScreen.value = false;

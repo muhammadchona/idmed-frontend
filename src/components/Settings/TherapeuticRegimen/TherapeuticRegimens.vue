@@ -143,7 +143,9 @@ const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const therapeuticRegimens = computed(() => {
-  return therapeuticalRegimenService.getAllTherapeuticalRegimens();
+  const therapeuticRegimensRes = therapeuticalRegimenService.getAllTherapeuticalRegimens();
+  if(therapeuticRegimensRes !== null) closeLoading();
+  return therapeuticRegimensRes
 });
 
 const forms = computed(() => {
@@ -155,6 +157,7 @@ const drugs = computed(() => {
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
@@ -220,8 +223,8 @@ const promptToConfirm = (therapeuticRegimenParam) => {
       therapeuticalRegimenService
         .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
         .then(() => {
-          alertSucess('Regime Terapêutico actualizado com sucesso.');
           closeLoading();
+          alertSucess('Regime Terapêutico actualizado com sucesso.');
         })
         .catch(() => {
           alertError(

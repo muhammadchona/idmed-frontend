@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const clinicSector = useRepo(ClinicSector);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -44,11 +44,13 @@ export default {
     }
   },
   // WEB
-  postWeb(params: string) {
+  postWeb(params: string) {      
+    showloading();
     return api()
       .post('clinicSector', params)
       .then((resp) => {
-        clinicSector.save(resp.data);
+        clinicSector.save(resp.data);        
+        closeLoading();
       });
   },
   getWeb(offset: number) {
@@ -70,11 +72,13 @@ export default {
         });
     }
   },
-  async patchWeb(uuid: string, params: string) {
+  patchWeb(uuid: string, params: string) {   
+    showloading();
     return api()
       .patch('clinicSector/' + uuid, params)
       .then((resp) => {
         clinicSector.save(resp.data);
+        closeLoading();
       });
   },
   async deleteWeb(uuid: string) {
@@ -86,12 +90,14 @@ export default {
   },
   // Mobile
   putMobile(params: string) {
+    showloading();
     return nSQL(clinicSector.use?.entity)
       .query('upsert', params)
       .exec()
       .then(() => {
         clinicSector.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
+        closeLoading();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -99,11 +105,13 @@ export default {
       });
   },
   getMobile() {
+    showloading();
     return nSQL(clinicSector.use?.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
         clinicSector.save(rows);
+        closeLoading();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -132,6 +140,7 @@ export default {
 
   /*Pinia Methods*/
   getAllClinicSectors() {
+    showloading();
     return clinicSector.withAll().get();
   },
 

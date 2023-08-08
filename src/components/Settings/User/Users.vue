@@ -109,7 +109,7 @@
 <script setup>
 /*imports*/
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, computed, provide } from 'vue';
+import { ref, inject, computed, provide, onMounted } from 'vue';
 import userService from 'src/services/api/user/userService.ts';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import SecUser from 'src/stores/models/userLogin/User';
@@ -167,11 +167,17 @@ const currClinic = inject('currClinic');
 
 /*Hooks*/
 const users = computed(() => {
-  return userService.getAllUsers();
+  const users = userService.getAllUsers();
+  if(users !== null) closeLoading()
+  return users
 });
 
 const configs = computed(() => {
   return sysConfigsService.getInstallationType();
+});
+
+onMounted(() => {
+  showloading();
 });
 
 /*Methods*/

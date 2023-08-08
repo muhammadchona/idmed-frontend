@@ -96,12 +96,13 @@
 /*Imports*/
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
-
+import { useLoading } from 'src/composables/shared/loading/loading';
 import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
 const { website } = useSystemUtils();
+const { showloading, closeLoading } = useLoading();
 const columns = [
   {
     name: 'code',
@@ -145,10 +146,13 @@ const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const identifierTypes = computed(() => {
-  return identifierTypeService.getAllIdentifierTypes();
+  const identifierTypes = identifierTypeService.getAllIdentifierTypes();
+  if(identifierTypes !== null) closeLoading()
+  return identifierTypes
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
