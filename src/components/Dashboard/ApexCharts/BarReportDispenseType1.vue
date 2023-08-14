@@ -250,7 +250,7 @@ export default {
       const str = item.toString()
       const monthWeek = parseInt(str.substring(0, str.indexOf(' ')))
       if (month === monthWeek) {
-       weeksMonth.push(item)
+        weeksMonth.push(item)
       }
    }
      const weeksMonthss = weeksMonth.reduce((a, b) => {

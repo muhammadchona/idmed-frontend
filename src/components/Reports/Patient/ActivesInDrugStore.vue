@@ -49,8 +49,8 @@
        
   
       const  closeSection =  () => {
-          filterDrugStoreSection.value.remove()
-        }
+        filterDrugStoreSection.value.remove()
+      }
   
         const initReportProcessing = (params) => {
           progress.value = 0.001
