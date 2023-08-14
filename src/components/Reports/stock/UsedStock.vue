@@ -47,13 +47,14 @@ import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobi
     const totalRecords = ref(0)
     const qtyProcessed = ref(0)
 
-    const progress = ref(0)
+    const progress = ref(0.00)
 
     const  closeSection = () => {
         filterUsedStockSection.value.remove()
       }
 
       const initReportProcessing = (params) => {
+        progress.value = 0.001
         if (isOnline.value) {
           Report.apiInitReportProcess('usedStockReportTemp', params).then(resp => {
             progress.value = resp.data.progress

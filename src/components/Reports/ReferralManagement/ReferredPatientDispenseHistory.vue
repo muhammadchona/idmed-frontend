@@ -51,7 +51,7 @@
         const totalRecords =  ref(0)
         const qtyProcessed = ref(0)
         const report =  'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS'
-        const progress =  ref(0)
+        const progress =  ref(0.00)
         const filterDrugStoreSection = ref('')
         onMounted (() => {
         if (props.params) {
@@ -65,6 +65,7 @@
       }
 
      const  initReportProcessing = (params) => {
+      progress.value = 0.001
           Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
         // reset your component inputs like textInput to null
         // or your custom route redirect with vue-router
@@ -74,9 +75,7 @@
 
      const  getProcessingStatus = (params) => {
         Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
-          console.log(resp.data.progress)
           progress.value = resp.data.progress
-          console.log(progress)
           if (progress.value < 100) {
             setTimeout(getProcessingStatus(params), 2)
           } else {

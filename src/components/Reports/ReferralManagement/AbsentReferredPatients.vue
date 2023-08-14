@@ -50,7 +50,7 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const report = 'REFERIDOS_FALTOSOS_AO_LEVANTAMENTO';
-const progress = ref(0);
+const progress = ref(0.00);
 const filterDrugStoreSection = ref('');
 onMounted(() => {
   if (props.params) {
@@ -64,6 +64,7 @@ const closeSection = () => {
 };
 
 const initReportProcessing = (params) => {
+  progress.value = 0.001
   Report.apiInitReportProcess('referredPatientsReport', params).then(
     (response) => {
       setTimeout(getProcessingStatus(params), 2);

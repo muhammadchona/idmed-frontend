@@ -105,14 +105,15 @@
 </template>
 <script setup>
 /*Imports*/
-import { ref, inject, provide, computed } from 'vue';
+import { ref, inject, provide, computed, onMounted } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import roleService from 'src/services/api/role/roleService.ts';
-
+import { useLoading } from 'src/composables/shared/loading/loading';
 import addRoleComp from 'src/components/Settings/User/AddRole.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
+const { closeLoading, showloading } = useLoading();
 const role = ref(roleService.newInstanceEntity());
 const { alertWarningAction } = useSwal();
 const { website } = useSystemUtils();
@@ -155,7 +156,13 @@ provide('showRoleRegistrationScreen', showRoleRegistrationScreen);
 
 /*Hooks*/
 const userRoles = computed(() => {
-  return roleService.getAllWithMenus();
+  const userRoles = roleService.getAllWithMenus();
+  if(userRoles !== null) closeLoading()
+  return userRoles
+});
+
+onMounted(() => {
+  showloading();
 });
 
 /*Methods*/

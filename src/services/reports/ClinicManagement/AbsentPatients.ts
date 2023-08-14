@@ -428,7 +428,7 @@ export default {
     for (const row in rows) {
       const createRow = [];
       createRow.push(rows[row].nid);
-      createRow.push(rows[row].firstNames);
+      createRow.push(rows[row].name);
       createRow.push(
         moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY')
       );

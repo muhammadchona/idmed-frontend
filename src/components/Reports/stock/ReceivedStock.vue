@@ -46,7 +46,7 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
     const totalRecords = ref(0)
     const qtyProcessed=ref(0)
 
-   const progress= ref(0)
+   const progress= ref(0.00)
    const filterReceivedStockSection = ref('')
 
      const  closeSection = ()  =>{
@@ -55,15 +55,14 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
       }
 
      const  initReportProcessing = (params) => {
+      progress.value = 0.001
         if (isOnline.value) {
           Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
-            console.log(resp.data.progress)
             progress.value = resp.data.progress
             setTimeout(getProcessingStatus(params), 2)
           })
         } else {
           reportDatesParams.determineStartEndDate(params)
-          console.log(params)
          ReceivedStockMobileService.getDataLocalDb(params)
          progress.value = 100
          params.progress = 100

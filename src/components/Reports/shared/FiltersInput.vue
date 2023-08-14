@@ -195,14 +195,14 @@
             size="25px"
             stripe
             rounded
-            :value="progress"
-            color="red"
+            :value="progressStatus.barVal"
+            color="secondary"
           >
             <div class="absolute-full flex flex-center">
               <q-badge
                 color="white"
                 text-color="accent"
-                :label="progressLabel1"
+                :label="progressStatus.percentVal"
               />
             </div>
           </q-linear-progress>
@@ -249,6 +249,7 @@ import { onMounted, ref, computed, inject } from 'vue';
 import { LocalStorage, SessionStorage, date } from 'quasar';
 import moment from 'moment';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useProgress } from 'src/composables/shared/progressBarParams/progressBarParams';
 
 import SemesterPeriod from 'components/Reports/shared/SemesterPeriod.vue';
 import MonthlyPeriod from 'components/Reports/shared/MonthlyPeriod.vue';
@@ -256,6 +257,7 @@ import QuarterlyPeriod from 'components/Reports/shared/QuarterlyPeriod.vue';
 import AnnualPeriod from 'components/Reports/shared/AnnualPeriod.vue';
 
 const { website, isDeskTop, isMobile } = useSystemUtils();
+const { barAndPercentProgressVal } = useProgress();
 const props = defineProps([
   'clinicalService',
   'menuSelected',
@@ -273,6 +275,7 @@ const $emit = defineEmits([
   'generateReport',
 ]);
 
+const reportProcessing =  ref(false)
 const currClinic = inject('currClinic');
 const progress1 = ref(0);
 const period = ref('');
@@ -319,6 +322,7 @@ const errorCountAux = 0;
 let periodTypeSelect = reportParams.value.periodTypeView;
 onMounted(() => {
   //  init()
+  reportProcessing.value = initProcessing.value
   initParams();
   if (props.params) {
     reportParams.value = props.params;
@@ -329,8 +333,8 @@ const processingTerminated = computed(() => {
   return props.progress >= 100;
 });
 
-const progressLabel1 = computed(() => {
-  return props.progress + '%';
+const progressStatus = computed(() => {
+  return barAndPercentProgressVal(props.progress);
 });
 
 const provinces = computed(() => {

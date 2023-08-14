@@ -42,28 +42,28 @@
 
           const { isMobile, isOnline } = useSystemUtils();
           const { alertError } = useSwal();
-          const props= defineProps(['selectedService', 'menuSelected', 'id'])
-          const   progress= ref(0)
+          const props = defineProps(['selectedService', 'menuSelected', 'id'])
+          const   progress= ref(0.00)
           const filterDrugStoreSection = ref('')
   
        
   
-      const  closeSection =  () =>{
-          filterDrugStoreSection.value.remove()
-        }
+      const  closeSection =  () => {
+        filterDrugStoreSection.value.remove()
+      }
   
         const initReportProcessing = (params) => {
+          progress.value = 0.001
           if (isOnline.value) {
             Report.apiInitActiveInDrugStoreProcessing(params).then(resp => {
-              progress.value = resp.data.progress
-              setTimeout(getProcessingStatus(params), 2)
+              getProcessingStatus(params)
             })
            // Pack.api().post('/receivedStockReport/initReportProcess' params)
           } else {
             const reportParams = reportDatesParams.determineStartEndDate(params)
              activeInDrugStoreMobileService.getDataLocalDb(reportParams).then(resp => {
               progress.value = 100
-            params.progress = 100
+              params.progress = 100
              })
             
           }
@@ -71,12 +71,17 @@
   
         const getProcessingStatus  = (params) => {
           Report.getProcessingStatus('activePatientReport', params).then(resp => {
-            progress.value = resp.data.progress
-            if (progress.value < 100) {
-              setTimeout(getProcessingStatus(params), 2)
+            if (resp.data.progress > 0) {
+              progress.value = resp.data.progress
+              if (progress.value < 100) {
+                setTimeout(getProcessingStatus(params), 2)
+              } else {
+                progress.value = 100
+                params.progress = 100
+                LocalStorage.set(params.id, params)
+              }
             } else {
-              params.progress = 100
-              LocalStorage.set(params.id, params)
+              setTimeout(getProcessingStatus(params), 2)
             }
           })
         }

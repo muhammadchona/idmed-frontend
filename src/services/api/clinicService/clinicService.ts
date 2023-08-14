@@ -49,7 +49,6 @@ export default {
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
     }
   },
   getWeb(offset: number) {
@@ -75,10 +74,10 @@ export default {
     try {
       const resp = await api().patch('clinic/' + uuid, params);
       clinic.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
+      closeLoading();
+      // alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
     }
   },
   async deleteWeb(uuid: string) {
@@ -88,7 +87,6 @@ export default {
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
     }
   },
   // Mobile
@@ -99,10 +97,10 @@ export default {
       .then(() => {
         clinic.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
+        closeLoading();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
       });
   },
   getMobile() {
@@ -114,7 +112,6 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
@@ -128,7 +125,6 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
       });
   },
   // Methods
@@ -188,6 +184,7 @@ export default {
     clinic.save(clin);
   },
   getAllClinics() {
+    showloading();
     return clinic
       .query()
       .with('nationalClinic')

@@ -151,10 +151,13 @@ const forms = computed(() => {
 });
 
 const drugs = computed(() => {
-  return drugService.getAllForAllDrugs();
+  const drugsRes = drugService.getAllForAllDrugs();
+  if(drugsRes !== null) closeLoading();
+  return drugsRes
 });
 
 onMounted(() => {
+  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
@@ -213,8 +216,8 @@ const promptToConfirm = (drugParam) => {
       drugService
         .patch(drugParam.id, drugParam)
         .then(() => {
-          alertSucess('Medicamento actualizado com sucesso.');
           closeLoading();
+          alertSucess('Medicamento actualizado com sucesso.');
         })
         .catch(() => {
           alertError(

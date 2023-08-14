@@ -158,10 +158,13 @@ const currClinic = inject('currClinic');
 
 /*Hooks*/
 const clinicalServices = computed(() => {
-  return clinicalServiceService.getAllClinicalServices();
+  const clinicalServicesRes = clinicalServiceService.getAllClinicalServices();
+  if(clinicalServicesRes !== null) closeLoading()
+  return clinicalServicesRes
 });
 
 onMounted(() => {
+  showloading();
   editMode.value = false;
   viewMode.value = false;
 });
@@ -237,6 +240,7 @@ const submitClinicalService = () => {
     clinicalServiceService
       .post(clinicalService.value)
       .then(() => {
+        closeLoading()
         alertSucess('Serviço Clínico adicionado com sucesso.');
         close();
       })
@@ -249,6 +253,7 @@ const submitClinicalService = () => {
     clinicalServiceService
       .patch(clinicalService.value.id, clinicalService.value)
       .then(() => {
+        closeLoading()
         alertSucess('Serviço Clínico actualizado com sucesso.');
         close();
       })

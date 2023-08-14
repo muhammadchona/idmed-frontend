@@ -9,6 +9,7 @@
         :rows="clinics"
         :columns="columns"
         :filter="filter"
+        :loading="loading"
         rowsPerPage="5"
         row-key="id"
         :rows-per-page-options="[5, 10]"
@@ -107,6 +108,10 @@
 import { inject, ref, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+
+const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
@@ -199,12 +204,17 @@ const nonOrderedClinics = computed(() => {
 });
 
 const clinics = computed(() => {
-  return clinicService.getAllClinicsOrdered(
+  const orderedClinics = clinicService.getAllClinicsOrdered(
     allProvinces.value,
     nonOrderedClinics.value
   );
+  if(orderedClinics !== null)
+  closeLoading();
+  return orderedClinics
 });
+
 onMounted(() => {
+  showloading();
   step.value = '';
   editMode.value = false;
   viewMode.value = false;
