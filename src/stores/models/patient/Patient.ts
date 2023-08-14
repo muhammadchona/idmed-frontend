@@ -38,6 +38,8 @@ export default class Patient extends Model {
       bairro_id: this.string(''),
       clinic_id: this.string(''),
       syncStatus: this.string(''),
+      hisSyncStatus:  this.string(''),
+      hisProvider: this.string(''),
 
       // Relationships
       province: this.belongsTo(Province, 'province_id'),
