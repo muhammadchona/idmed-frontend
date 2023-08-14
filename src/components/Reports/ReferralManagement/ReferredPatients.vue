@@ -53,7 +53,7 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
     const qtyProcessed= ref(0)
     const report = 'REFERIDO_PARA'
     const  progressValue= ref(0)
-    const  progress = ref(0)
+    const  progress = ref(0.00)
     const filterDrugStoreSection = ref('')
 
     onMounted (() => {
@@ -77,6 +77,7 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
       // }
 
       const initReportProcessing = (params) => {
+        progress.value = 0.001
         console.log(params)
         if (isOnline.value) {
           Report.apiInitReferredPatientsProcessing(params).then(resp => {

@@ -47,7 +47,7 @@
   const totalRecords = ref(0)
   const qtyProcessed = ref(0)
   const report = 'FALTOSOS_AO_LEVANTAMENTO'
-  const progress = ref(0)
+  const progress = ref(0.00)
   const filterDrugStoreSection = ref('')
   
 
@@ -57,6 +57,7 @@
         }
   
   const initReportProcessing = async (params) => {
+    progress.value = 0.001
           if (isOnline.value) {
             Report.apiInitReportProcess('absentPatientsReport',params).then((response) => {
            setTimeout(getProcessingStatus(params), 2)

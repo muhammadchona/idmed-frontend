@@ -195,8 +195,8 @@
             size="25px"
             stripe
             rounded
-            :value="progress"
-            color="red"
+            :value="progress/100"
+            color="secondary"
           >
             <div class="absolute-full flex flex-center">
               <q-badge
@@ -273,6 +273,7 @@ const $emit = defineEmits([
   'generateReport',
 ]);
 
+const reportProcessing =  ref(false)
 const currClinic = inject('currClinic');
 const progress1 = ref(0);
 const period = ref('');
@@ -319,6 +320,7 @@ const errorCountAux = 0;
 let periodTypeSelect = reportParams.value.periodTypeView;
 onMounted(() => {
   //  init()
+  reportProcessing.value = initProcessing.value
   initParams();
   if (props.params) {
     reportParams.value = props.params;
@@ -330,7 +332,7 @@ const processingTerminated = computed(() => {
 });
 
 const progressLabel1 = computed(() => {
-  return props.progress + '%';
+  return (props.progress).toFixed(0) + '%';
 });
 
 const provinces = computed(() => {

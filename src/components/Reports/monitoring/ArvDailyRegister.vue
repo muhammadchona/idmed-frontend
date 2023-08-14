@@ -52,7 +52,7 @@ const filterArvDailyRegisterSection = ref('')
     const props = defineProps(['selectedService', 'menuSelected', 'id'])
     const totalRecords= ref(0)
     const qtyProcessed = ref(0)
-     const progress = ref(0)
+     const progress = ref(0.00)
 
     onMounted(() => {
      // getStartStopReasonsToVuex()
@@ -62,6 +62,7 @@ const filterArvDailyRegisterSection = ref('')
         filterArvDailyRegisterSection.value.remove()
       }
    const  initReportProcessing = (params) => {
+      progress.value = 0.001
         if (isOnline.value) {
           Report.apiInitReportProcess('arvDailyRegisterReportTemp', params).then(resp => {
             progress.value = resp.data.progress

@@ -48,7 +48,7 @@ const name =  'PatientHistory'
 const props = defineProps(['selectedService', 'menuSelected', 'id'])
 const totalRecords =  ref(0)
 const qtyProcessed = ref(0)
- const progress = ref(0)
+ const progress = ref(0.001)
  const filterDPatientHistorySection = ref('')
 
 const closeSection = () => {
