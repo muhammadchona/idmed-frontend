@@ -48,6 +48,20 @@
                 </q-icon>
               </template>
             </q-input>
+            
+           
+          </div>
+          <div class="row">
+
+            <q-input
+              outlined
+              v-model="stockEntrance.notes"
+              label="Notas"
+              ref="notesRef"
+              dense
+              class="col"
+              type="textarea" />
+
           </div>
         </div>
       </q-card-section>
@@ -78,6 +92,7 @@ const { showloading, closeLoading } = useLoading();
 let stockEntrance = reactive(new StockEntrance({ dateReceived: new Date() }));
 const dateReceived = ref(dateUtils.getDDMMYYYFromJSDate(new Date()));
 const orderNumberRef = ref(null);
+const notesRef = ref(null)
 const router = useRouter();
 const { alertError } = useSwal();
 

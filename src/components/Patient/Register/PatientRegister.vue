@@ -10,6 +10,23 @@
       </q-card-section>
       <q-separator />
       <q-card-section>
+        <div class="row">
+
+          <q-space />
+
+           <q-select
+            class="col-4 q-mt-md"
+            dense
+            outlined
+            v-model="selectedDataSources"
+            option-value="id"
+            option-label="description"
+            ref="dataSourceRef"
+            :options="dataSources"
+            label="Fonte de dados"
+          />
+        </div>
+
         <div class="q-mt-lg">
           <div class="row items-center q-mb-md">
             <q-icon name="person_outline" size="sm" />
@@ -18,6 +35,7 @@
           <q-separator color="grey-13" size="1px" />
         </div>
         <div class="q-mt-md">
+    
           <div class="row">
             <q-input
               label="Nome *"
@@ -306,7 +324,7 @@ import { v4 as uuidv4 } from 'uuid';
 const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
 const { hasIdentifiers, getOldestIdentifier } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
-const { closeLoading } = useLoading();
+const { closeLoading, showloading} = useLoading();
 const router = useRouter();
 const dateOfBirth = ref('');
 const ageCalculated = ref('');
@@ -326,6 +344,13 @@ const genderRef = ref(null);
 const provinceRef = ref(null);
 const districtRef = ref(null);
 const idadeRef = ref(null);
+const dataSourceRef = ref('')
+const selectedDataSources = ref({
+  id: -1,
+  description: 'iDMED',
+});
+
+const dataSources = inject('dataSources');
 
 // Inject
 const patient = inject('patient');
@@ -342,6 +367,7 @@ onMounted(() => {
 });
 
 // Methods
+
 const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
 };
@@ -490,13 +516,14 @@ const submitForm = () => {
       );
       submitLoading.value = false;
     } else {
-      savePatient();
+         savePatient();
     }
   } else {
     submitLoading.value = false;
   }
 };
 const savePatient = async () => {
+
   if (newPatient.value && !openMrsPatient.value) {
     patientReg.value.identifiers = [];
   }
@@ -549,6 +576,16 @@ const savePatient = async () => {
   }
 };
 const doSave = async () => {
+    
+    patientReg.value.hisProvider = localStorage.getItem('Btoa');
+  if (selectedDataSources.value.abbreviation  === 'OpenMRS') {
+    patientReg.value.hisUuid = selectedDataSources.value.id
+    patientReg.value.hisSyncStatus = 'P'
+  } else {
+    patientReg.value.hisUuid = ""
+    patientReg.value.hisSyncStatus = ''
+  }
+  
   patientReg.value.clinic = {};
   patientReg.value.clinic.id = currClinic.value.id;
 
