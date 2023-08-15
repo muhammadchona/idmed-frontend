@@ -9,7 +9,6 @@
         :rows="clinics"
         :columns="columns"
         :filter="filter"
-        :loading="loading"
         rowsPerPage="5"
         row-key="id"
         :rows-per-page-options="[5, 10]"

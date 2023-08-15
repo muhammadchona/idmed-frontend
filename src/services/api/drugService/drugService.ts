@@ -7,7 +7,6 @@ import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
 
-
 const { isMobile, isOnline } = useSystemUtils();
 
 const { closeLoading, showloading } = useLoading();
@@ -24,6 +23,21 @@ export default {
     if (offset >= 0) {
       return api()
         .get('drug?offset=' + offset + '&max=100')
+        .then((resp) => {
+          drug.save(resp.data);
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.get(offset);
+          } else {
+            closeLoading();
+          }
+        });
+    }
+  },
+  getFromProvincial(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('drugFromProvicnial?offset=' + offset + '&max=100')
         .then((resp) => {
           drug.save(resp.data);
           offset = offset + 100;
@@ -67,10 +81,8 @@ export default {
       .where('id', id)
       .first();
   },
-    getCleanDrugById(id: string) {
-    return drug
-      .where('id', id)
-      .first();
+  getCleanDrugById(id: string) {
+    return drug.where('id', id).first();
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -87,25 +99,31 @@ export default {
   },
 
   savePinia(drugs: any) {
-    drug.save(drugs)
+    drug.save(drugs);
   },
 
   // Mobile
 
-  async getAllActiveDrugsMobile () {
-    return nSQL('drugs').query('select').exec().then(result => {
-       drug.save( result )
-       return result
-       })
-   },
+  async getAllActiveDrugsMobile() {
+    return nSQL('drugs')
+      .query('select')
+      .exec()
+      .then((result) => {
+        drug.save(result);
+        return result;
+      });
+  },
 
-    async hasStock (drug: any) {
-     return nSQL('stocks').query('select').where(['drug_id', '=', drug.id])
-   .exec().then(result => {
-     if (result.length > 0) {
-       console.log('ssd', result)
-     }
-     return result.length > 0
-   })
- }
+  async hasStock(drug: any) {
+    return nSQL('stocks')
+      .query('select')
+      .where(['drug_id', '=', drug.id])
+      .exec()
+      .then((result) => {
+        if (result.length > 0) {
+          console.log('ssd', result);
+        }
+        return result.length > 0;
+      });
+  },
 };

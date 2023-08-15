@@ -6,17 +6,27 @@
     <div class="">
       <q-table :rows="drugs" :columns="columns" :filter="filter">
         <template v-slot:top-right>
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Procurar"
-          >
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+          <div class="row q-gutter-sm">
+            <q-input
+              outlined
+              dense
+              debounce="300"
+              v-model="filter"
+              placeholder="Procurar"
+            >
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+
+            <q-btn
+              color="primary"
+              icon-right="refresh"
+              label="Actualizar Lista"
+              no-caps
+              @click="getDrugsFromProvincialServer"
+            />
+          </div>
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
@@ -152,8 +162,8 @@ const forms = computed(() => {
 
 const drugs = computed(() => {
   const drugsRes = drugService.getAllForAllDrugs();
-  if(drugsRes !== null) closeLoading();
-  return drugsRes
+  if (drugsRes !== null) closeLoading();
+  return drugsRes;
 });
 
 onMounted(() => {
@@ -197,6 +207,19 @@ const visualizeDrug = (drugParam) => {
   showDrugRegistrationScreen.value = true;
   editMode.value = false;
 };
+
+const getDrugsFromProvincialServer = () => {
+  drugService
+    .getFromProvincial(0)
+    .then(() => {
+      alertSucess('Lista actualizada com sucesso');
+    })
+    .catch((error) => {
+      alertError('Erro na comunicação com o Servidor Central.');
+      console.log('Erro', error);
+    });
+};
+
 const promptToConfirm = (drugParam) => {
   const question = drugParam.active
     ? 'Deseja Inactivar o Medicamento?'
