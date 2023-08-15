@@ -76,6 +76,22 @@ export function useDateUtils() {
     return moment(date, 'DD-MM-YYYY').format('DD/MM/YYYY');
   }
 
+  function getDateFromHyphenDDMMYYYYWithTime(jsDate: string) {
+    const selectedDateMoment = moment(jsDate, 'DD-MM-YYYY');
+    const currentTimeMoment = moment();
+    selectedDateMoment.set({
+      hour: currentTimeMoment.hour(),
+      minute: currentTimeMoment.minute(),
+      second: currentTimeMoment.second(),
+    });
+    //const formattedDateTime = selectedDateMoment.format('DD-MM-YYYY HH:mm:ss');
+    const formattedDateTime1 = moment(
+      selectedDateMoment,
+      'DD-MM-YYYY HH:mm:ss'
+    );
+    return formattedDateTime1.toDate();
+  }
+
   function idadeCalculator(dateOfBirth: Date) {
     if (dateOfBirth !== undefined && dateOfBirth !== null) {
       return moment().diff(moment(dateOfBirth, 'DD-MM-YYYY'), 'years');
@@ -83,6 +99,17 @@ export function useDateUtils() {
       return null;
     }
   }
+
+  /*
+  function formatDateWithTimeZone(date: date) {
+    const formattedDate = moment(date).tz('Africa/Maputo');
+    console.log(date);
+    console.log(formattedDate);
+    const formattedDateTime1 = moment(formattedDate, 'DD-MM-YYYY HH:mm:ss');
+    console.log(formattedDateTime1.toDate());
+    return formattedDateTime1.toDate();
+  }
+*/
 
   return {
     isValidDate,
@@ -105,5 +132,6 @@ export function useDateUtils() {
     getDateFormatDDMMYYYYFromYYYYMMDD,
     getDateFormatDDMMYYYYDash,
     idadeCalculator,
+    getDateFromHyphenDDMMYYYYWithTime,
   };
 }
