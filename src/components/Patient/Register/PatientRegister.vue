@@ -582,8 +582,8 @@ const doSave = async () => {
     patientReg.value.hisUuid = selectedDataSources.value.id
     patientReg.value.hisSyncStatus = 'P'
   } else {
-    patientReg.value.hisUuid = ""
-    patientReg.value.hisSyncStatus = ''
+    patientReg.value.hisUuid = ''
+    patientReg.value.hisSyncStatus = 'N'
   }
   
   patientReg.value.clinic = {};
