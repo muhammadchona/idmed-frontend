@@ -84,7 +84,6 @@ export function useDateUtils() {
       minute: currentTimeMoment.minute(),
       second: currentTimeMoment.second(),
     });
-    //const formattedDateTime = selectedDateMoment.format('DD-MM-YYYY HH:mm:ss');
     const formattedDateTime1 = moment(
       selectedDateMoment,
       'DD-MM-YYYY HH:mm:ss'
@@ -99,17 +98,6 @@ export function useDateUtils() {
       return null;
     }
   }
-
-  /*
-  function formatDateWithTimeZone(date: date) {
-    const formattedDate = moment(date).tz('Africa/Maputo');
-    console.log(date);
-    console.log(formattedDate);
-    const formattedDateTime1 = moment(formattedDate, 'DD-MM-YYYY HH:mm:ss');
-    console.log(formattedDateTime1.toDate());
-    return formattedDateTime1.toDate();
-  }
-*/
 
   return {
     isValidDate,
