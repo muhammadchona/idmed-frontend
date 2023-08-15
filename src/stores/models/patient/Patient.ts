@@ -38,7 +38,7 @@ export default class Patient extends Model {
       bairro_id: this.string(''),
       clinic_id: this.string(''),
       syncStatus: this.string(''),
-      hisSyncStatus:  this.string(''),
+      hisSyncStatus:  this.attr(''),
       hisProvider: this.string(''),
 
       // Relationships

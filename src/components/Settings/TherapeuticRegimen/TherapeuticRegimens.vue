@@ -19,17 +19,25 @@
           </div>
         </template>
         <template v-slot:top-right>
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Procurar"
-          >
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+          <div class="row q-gutter-sm">
+            <q-input
+              outlined
+              dense
+              debounce="300"
+              v-model="filter"
+              placeholder="Procurar"
+            >
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-btn
+              color="primary"
+              icon-right="refresh"
+              label="Actualizar Lista"
+              no-caps
+            />
+          </div>
         </template>
         <template v-slot:body="props">
           <q-tr :props="props">
@@ -143,9 +151,10 @@ const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const therapeuticRegimens = computed(() => {
-  const therapeuticRegimensRes = therapeuticalRegimenService.getAllTherapeuticalRegimens();
-  if(therapeuticRegimensRes !== null) closeLoading();
-  return therapeuticRegimensRes
+  const therapeuticRegimensRes =
+    therapeuticalRegimenService.getAllTherapeuticalRegimens();
+  if (therapeuticRegimensRes !== null) closeLoading();
+  return therapeuticRegimensRes;
 });
 
 const forms = computed(() => {

@@ -4,7 +4,7 @@
       Sector Clínico
     </div>
     <div class="">
-      <q-table :rows="clinicSectors" :columns="columns" :filter="filter" :loading="loading">
+      <q-table :rows="clinicSectors" :columns="columns" :filter="filter">
         <template v-slot:top-right>
           <q-input
             outlined
