@@ -583,7 +583,7 @@ const doSave = async () => {
     patientReg.value.hisSyncStatus = 'P'
   } else {
     patientReg.value.hisUuid = ""
-    patientReg.value.hisSyncStatus = ''
+    patientReg.value.hisSyncStatus = 'N'
   }
   
   patientReg.value.clinic = {};
