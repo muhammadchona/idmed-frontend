@@ -170,7 +170,8 @@ const validateRole = () => {
 const submitUser = () => {
   submitting.value = true;
   role.value.active = true;
-  role.value.authority = 'ROLE_' + role.value.name;
+  if (role.value.authority === null || role.value.authority === undefined)
+    role.value.authority = 'ROLE_' + role.value.name;
   // if (website) {
   if (isCreateStep.value) {
     roleService

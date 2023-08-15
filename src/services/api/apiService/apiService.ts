@@ -1,10 +1,15 @@
 import axios, { Axios } from 'axios';
 import UsersService from 'src/services/UsersService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { LocalStorage } from 'quasar';
+
+const { website } = useSystemUtils();
 
 const instance = axios.create({
-  baseURL: process.env.API_URL,
+  baseURL: website.value
+    ? process.env.API_URL
+    : LocalStorage.getItem('backend_url'),
 });
-
 let numTries = 0;
 // Request interceptor for API calls
 instance.interceptors.request.use(
@@ -71,7 +76,6 @@ instance.interceptors.request.use(
 axios.interceptors.response.use(
   (response) => {
     console.log('Utilizador 4', userloged);
-
     return response;
   },
   async function (error) {

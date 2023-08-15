@@ -28,8 +28,8 @@
         <q-separator />
       </q-card-section>
       <div class="text-center text-h6 q-mt-sm">
-        <span v-if="!isNewEpisode && !isCloseEpisode">Actualizar</span>
-        <span v-else-if="!isNewEpisode && isCloseEpisode">Fechar</span>
+        <span v-if="!isNewEpisode && !isClosingEpisode">Actualizar</span>
+        <span v-else-if="!isNewEpisode && isClosingEpisode">Fechar</span>
         <span v-else>Adicionar</span>
         Histórico Clínico
       </div>
@@ -95,7 +95,7 @@
             dense
             outlined
             v-model="episode.startStopReason"
-            :disable="!canEditEpisode || isCloseEpisode"
+            :disable="!canEditEpisode || isClosingEpisode"
             :options="startReasons"
             ref="startReasonRef"
             :rules="[(val) => !!val || 'Por favor indicar a nota de início']"
@@ -110,7 +110,7 @@
             class="col"
             dense
             outlined
-            :disable="!canEditEpisode || isCloseEpisode"
+            :disable="!canEditEpisode || isClosingEpisode"
             ref="clinicSerctorRef"
             :rules="[
               (val) =>
@@ -144,7 +144,7 @@
           <q-input
             dense
             outlined
-            :disable="!canEditEpisode || isCloseEpisode"
+            :disable="!canEditEpisode || isClosingEpisode"
             class="col q-ml-md"
             v-model="startDate"
             ref="startDateRef"
@@ -176,7 +176,7 @@
           </q-input>
           <div class="col q-ml-md" />
         </div>
-        <span v-if="isCloseEpisode && hasVisits(episode)">
+        <span v-if="isClosingEpisode && hasVisits(episode)">
           <div class="q-mt-md">
             <div class="row items-center q-mb-sm">
               <span class="text-subtitle2"
@@ -361,6 +361,7 @@ const {
   getDateFromHyphenDDMMYYYY,
   getYYYYMMDDFromJSDate,
   extractHyphenDateFromDMYConvertYMD,
+  getDateFromHyphenDDMMYYYYWithTime,
 } = useDateUtils();
 const { alertSucess, alertError } = useSwal();
 const { fullName, age } = usePatient();
@@ -401,7 +402,7 @@ const lastPack = inject('lastPack');
 const patient = inject('patient');
 const isEditStep = inject('isEditStep');
 const isNewEpisode = inject('isNewEpisode');
-const isCloseEpisode = inject('isCloseEpisode');
+const isClosingEpisode = inject('isClosingEpisode');
 const closeEpisodeCreation = inject('closeEpisodeCreation');
 
 //Hooks
@@ -593,8 +594,11 @@ const init = async () => {
     closureEpisode.value.syncStatus = 'R';
     episode.value.syncStatus = 'U';
     if (curEpisode !== null && curEpisode !== undefined) {
-      episode.value = curEpisode.value;
+      episode.value = episodeService.lastEpisodeByIdentifier(
+        curIdentifier.value.id
+      );
       startDate.value = getDDMMYYYFromJSDate(episode.value.episodeDate);
+      // startDate.value = episode.value.episodeDate;
       // episode.value.patientServiceIdentifier.episodes = [];
       // if (
       //   lastEpisodeIdentifier(curIdentifier.value) !== null &&
@@ -620,15 +624,18 @@ const submitForm = () => {
   ) {
     if (isNewEpisode.value) {
       if (lastEpisode.value !== null) {
+        console.log(lastEpisode.value.episodeDate);
+        console.log(moment(lastEpisode.value.episodeDate));
         if (
           getYYYYMMDDFromJSDate(
             extractHyphenDateFromDMYConvertYMD(startDate.value)
-          ) <= getYYYYMMDDFromJSDate(lastEpisode.value.episodeDate)
+          ) < getYYYYMMDDFromJSDate(lastEpisode.value.episodeDate)
         ) {
           alertError(
-            'A data indicada não pode ser menor ou igual que a data do último histórico clínico.'
+            'A data indicada não pode ser menor que a data do último histórico clínico.'
           );
           submitting.value = false;
+          return;
         }
       }
     }
@@ -652,7 +659,7 @@ const submitForm = () => {
         'A data de inicio indicada é menor que a data de admissão ao serviço clínico.'
       );
       submitting.value = false;
-    } else if (!isNewEpisode.value && !isCloseEpisode.value) {
+    } else if (!isNewEpisode.value && !isClosingEpisode.value) {
       if (
         hasVisits(episode.value) &&
         getYYYYMMDDFromJSDate(
@@ -669,7 +676,7 @@ const submitForm = () => {
       } else {
         doSave();
       }
-    } else if (!isNewEpisode.value && isCloseEpisode.value) {
+    } else if (!isNewEpisode.value && isClosingEpisode.value) {
       stopDateRef.value.validate();
       stopReasonRef.value.validate();
       endNotesRef.value.validate();
@@ -742,10 +749,10 @@ const doSave = async () => {
     episode.value.clinic = {};
     episode.value.clinic.id = currClinic.value.id;
     episode.value.patientServiceIdentifier = curIdentifier.value;
-    episode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
+    episode.value.episodeDate = getDateFromHyphenDDMMYYYYWithTime(
       startDate.value
     );
-    episode.value.creationDate = moment().format('YYYY-MM-DD');
+    episode.value.creationDate = moment();
     episode.value.patientVisitDetails = [];
     episode.value.patientServiceIdentifier = {};
     episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
@@ -756,16 +763,16 @@ const doSave = async () => {
     episode.value.clinicSector.id = clinicSectorId;
     episode.value.clinic = {};
     episode.value.clinic.id = currClinic.value.id;
-    episode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
-      startDate.value
-    );
+    episode.value.episodeDate = isClosingEpisode.value
+      ? episode.value.episodeDate
+      : getDateFromHyphenDDMMYYYYWithTime(startDate.value);
     episode.value.patientVisitDetails = [];
     closureEpisode.value.patientServiceIdentifier = {};
     closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
     episode.value.patientVisitDetails = [];
     episode.value.patientServiceIdentifier = {};
     episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
-    if (isCloseEpisode.value) {
+    if (isClosingEpisode.value) {
       episode.value.isLast = false;
       closureEpisode.value.clinicSector =
         selectedClinicSector.value !== null
@@ -776,7 +783,7 @@ const doSave = async () => {
         episodeTypeService.getEpisodeTypeByCode('FIM');
       closureEpisode.value.clinic = {};
       closureEpisode.value.clinic.id = currClinic.value.id;
-      closureEpisode.value.episodeDate = extractHyphenDateFromDMYConvertYMD(
+      closureEpisode.value.episodeDate = getDateFromHyphenDDMMYYYYWithTime(
         stopDate.value
       );
       closureEpisode.value.creationDate = moment();
@@ -788,7 +795,7 @@ const doSave = async () => {
   episodeService
     .apiSave(episode.value, isNewEpisode.value)
     .then(() => {
-      if (isCloseEpisode.value) {
+      if (isClosingEpisode.value) {
         episodeService
           .apiSave(closureEpisode.value, true)
           .then(() => {
