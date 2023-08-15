@@ -315,6 +315,21 @@
         />
       </div>
 
+      <div class="row">
+        <div class="col">
+        </div> 
+        <div class="col">
+          <q-input
+          v-if="reasonOutroSelected && 
+            String(curPrescription.patientType).includes('Alterar')"
+          dense
+          label="Descricão Outro Motivo"
+          v-model="curPrescriptionDetail.reasonForUpdateDesc"
+          outlined
+        ></q-input>
+        </div>       
+      </div>
+
       <div class="row reverse q-mb-sm q-mt-sm q-gutter-sm">
         <q-btn
           v-if="!showServiceDrugsManagement"
@@ -429,7 +444,7 @@ const curPatientVisitDetail = ref(new PatientVisitDetails({ id: uuidv4() }));
 const curPack = ref(new Pack({ id: uuidv4() }));
 const validateDispense = ref(false);
 
-const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia']);
+const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia', 'Outro']);
 const patientStatusOption = ref(['Inicio', 'Manutenção']);
 const showServiceDrugsManagement = ref(false);
 const showAddEditDrug = ref(false);
@@ -514,6 +529,10 @@ const hasTherapeuticalLine = computed(() => {
   );
   return result;
 });
+
+const reasonOutroSelected = computed(() => {
+  return curPrescriptionDetail.value.reasonForUpdate === 'Outro'
+})
 
 const hasPrescriptionChangeMotive = computed(() => {
   const result = clinicalServiceAttributeService.checkWeatherAttExist(
@@ -726,6 +745,9 @@ const init = () => {
 };
 
 const validateForm = () => {
+  if (!reasonOutroSelected.value) {
+    curPrescriptionDetail.value.reasonForUpdateDesc = '';
+  }
   let lastPack4daysAdd = date.addToDate(
     getDateFromHyphenDDMMYYYY(prescriptionDate.value, 'YYYY-MM-DD'),
     {
