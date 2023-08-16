@@ -9,17 +9,23 @@
       </q-tabs>
       <q-separator color="grey-13" size="1px" />
       <div class="q-mt-md">
+   
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="stock">
+            <KeepAlive>
             <StockTable  />
+          </KeepAlive>
           </q-tab-panel>
           <q-tab-panel name="entrance">
-            <EntranceTable />
+            <KeepAlive>  <EntranceTable /></KeepAlive>
           </q-tab-panel>
           <q-tab-panel name="inventory">
+            <KeepAlive> 
             <InventoryTable />
+            </KeepAlive>
           </q-tab-panel>
         </q-tab-panels>
+
       </div>
     </div>
     <q-page-sticky
