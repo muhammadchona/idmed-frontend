@@ -180,6 +180,7 @@ const props = defineProps(['episodeId', 'isLast']);
 //Inject
 const showAddEditEpisode = inject('showAddEditEpisode');
 const isNewEpisode = inject('isNewEpisode');
+const isClosingEpisode = inject('isClosingEpisode');
 //Computed
 const currEpisode = computed(() => {
   return episodeService.getEpisodeById(props.episodeId);
@@ -207,7 +208,7 @@ const canBeEdited = () => {
   return !hasVisits(currEpisode.value);
 };
 const editEpisode = () => {
-  isCloseEpisode.value = false;
+  isClosingEpisode.value = true;
   const eps = currEpisode.value;
   if (hasVisits(eps)) {
     alertError(
@@ -220,13 +221,13 @@ const editEpisode = () => {
 };
 
 const closeEpisode = () => {
-  isCloseEpisode.value = true;
+  isClosingEpisode.value = true;
   showAddEditEpisode.value = true;
   isNewEpisode.value = false;
 };
 
 const removeEpisode = () => {
-  isCloseEpisode.value = false;
+  isClosingEpisode.value = false;
   const eps = currEpisode.value;
   if (hasVisits(eps)) {
     alertInfo(
@@ -269,7 +270,7 @@ const isLastEpisode = computed(() => {
 
 provide('curEpisode', currEpisode);
 provide('lastPack', lastPack);
-provide('isCloseEpisode', isCloseEpisode);
+// provide('isCloseEpisode', isCloseEpisode);
 provide('curEpisodeIdentifier', currIdentifier);
 </script>
 <style scoped>

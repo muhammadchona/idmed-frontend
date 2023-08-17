@@ -168,7 +168,8 @@ const { website, isDeskTop, isMobile } = useSystemUtils();
 const { formatDate } = useDateUtils();
 const isPatientActive = ref(false);
 const isNewEpisode = ref(false);
-const isCloseEpisoded = ref(false);
+// const isCloseEpisoded = ref(false);
+const isClosingEpisode = ref(false);
 const selectedEpisode = ref(new Episode());
 const showAddEditEpisode = ref(false);
 const serviceInfoVisible = ref(true);
@@ -182,6 +183,7 @@ const isCreateStep = inject('isCreateStep');
 const isCloseStep = inject('isCloseStep');
 const isReOpenStep = inject('isReOpenStep');
 
+const addServiceLabel = ref('Adicionar Historico');
 // Hook
 
 // Computed
@@ -196,6 +198,7 @@ const openEpisodeCreation = () => {
   selectedEpisode.value = new Episode();
   showAddEditEpisode.value = true;
   isNewEpisode.value = true;
+  isClosingEpisode.value = false;
 };
 const closeEpisodeCreation = () => {
   showAddEditEpisode.value = false;
@@ -312,8 +315,9 @@ provide('curIdentifier', curIdentifier);
 provide('isNewEpisode', isNewEpisode);
 provide('closeEpisodeCreation', closeEpisodeCreation);
 provide('editEpisodeCreation', editEpisodeCreation);
-provide('isCloseEpisode', isCloseEpisoded);
+// provide('isCloseEpisode', isCloseEpisoded);
 provide('close', close);
+provide('isClosingEpisode', isClosingEpisode);
 </script>
 
 <style>
