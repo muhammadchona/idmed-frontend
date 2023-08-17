@@ -241,6 +241,7 @@
             v-model="notice"
             transition-show="slide-up"
             transition-hide="slide-down"
+            v-if="LocalStorage.getItem('backend_url') !== null"
           >
             <q-card class="bg-white text-red">
               <q-card-section>
@@ -269,6 +270,14 @@
               </q-card-actions>
             </q-card>
           </q-dialog>
+          <q-dialog
+            persistent
+            transition-show="slide-up"
+            transition-hide="slide-down"
+            v-model="popUpUrlMobile"
+          >
+            <UrlChanger />
+          </q-dialog>
         </q-page>
         <!-- </q-responsive> -->
       </q-page-container>
@@ -290,7 +299,11 @@ import { useRouter } from 'vue-router';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import bcrypt from 'bcryptjs';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { LocalStorage } from 'quasar';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import UrlChanger from 'src/components/Shared/UrlChanger.vue';
 
+const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 const $q = useQuasar();
@@ -307,11 +320,16 @@ const passwordRef = ref(null);
 const isPwd = ref(true);
 const submitting = ref(false);
 const notice = ref(true);
+const popUpUrlMobile = ref(false);
+const urlBackend = ref('');
 
 /*
 Hook
 */
 onMounted(() => {
+  if (isMobile.value && localStorage.getItem('backend_url') === null) {
+    popUpUrlMobile.value = true;
+  }
   $q.loading.show({
     message: 'Carregando ...',
     spinnerColor: 'grey-4',

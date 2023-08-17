@@ -92,7 +92,7 @@
               label="Administração"
             />
             <q-route-tab
-              v-if="activateMigration && website"
+              v-if="menusVisible('Migração') && activateMigration && website"
               exact
               :to="'/migration'"
               name="migration"
@@ -100,6 +100,7 @@
               label="Migração"
             />
             <q-route-tab
+              v-if="menusVisible('DCProvedor')"
               exact
               :to="'/loadfiledc'"
               name="migration"
