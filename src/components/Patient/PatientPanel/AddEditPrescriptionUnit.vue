@@ -254,11 +254,13 @@
             />
           </div>
         </div>
+        <div>
         <q-select
           v-if="
             hasPrescriptionChangeMotive &&
             String(curPrescription.patientType).includes('Alterar')
           "
+          :hint="reasonOutroSelected ? reasonPlaceholder : ''"
           class="col q-mr-sm"
           use-input
           hide-selected
@@ -274,7 +276,51 @@
           option-label="description"
           @filter="filterFnreasonsForUpdate"
           label="Motivo Alteração"
-        />
+        >
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps" v-if="scope.opt === 'Outro'">
+              
+              <q-item-section>
+                <q-item-label>{{ scope.opt }}
+                </q-item-label>
+              </q-item-section>
+
+              <q-item-section avatar>
+                  <q-icon name="edit" >
+                  </q-icon>
+                </q-item-section>
+              
+            </q-item>
+
+            <q-item v-bind="scope.itemProps" v-else>
+              <q-item-section>
+                <q-item-label>{{ scope.opt }}
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>       
+        </q-select>
+        <div class="cursor-pointer"  v-if="reasonOutroSelected && String(curPrescription.patientType).includes('Alterar')">
+          <q-btn class="glossy" size="sm" color="primary"  label="Indicar Motivo">
+            <q-popup-edit
+              transition-show="flip-up" transition-hide="flip-down"
+              class="shadow-up-21 shadow-24"
+              v-model="curPrescriptionDetail.reasonForUpdateDesc" 
+              :cover="false"   
+              fit
+              buttons
+              label-set="OK" label-cancel="Cancelar"
+              :offset="[0, -130]" 
+              v-slot="scope">
+              <q-input color="primary" v-model="scope.value" label="Descricão Outro Motivo" dense autofocus  @keyup.enter="scope.set">
+                <template v-slot:prepend>
+                  <q-icon name="edit" color="primary"></q-icon>
+                </template>
+              </q-input>
+            </q-popup-edit>
+          </q-btn>
+            </div>
+            </div>
         <q-select
           class="col q-mr-sm"
           use-input
@@ -314,6 +360,12 @@
           label="Situacao do paciente (em relação aos modelos)"
         />
       </div>
+
+      <!-- <div class="row">
+        <div class="col">
+        </div> 
+            
+      </div> -->
 
       <div class="row reverse q-mb-sm q-mt-sm q-gutter-sm">
         <q-btn
@@ -421,7 +473,7 @@ const reasonForUpdateRef = ref(null);
 const dispenseTypeRef = ref(null);
 const patientStatusRef = ref(null);
 const prescriptionDateRef = ref(null);
-
+const label = ref('Click me')
 // New Values
 const curPrescription = ref(new Prescription({ id: uuidv4() }));
 const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
@@ -429,7 +481,7 @@ const curPatientVisitDetail = ref(new PatientVisitDetails({ id: uuidv4() }));
 const curPack = ref(new Pack({ id: uuidv4() }));
 const validateDispense = ref(false);
 
-const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia']);
+const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia', 'Outro']);
 const patientStatusOption = ref(['Inicio', 'Manutenção']);
 const showServiceDrugsManagement = ref(false);
 const showAddEditDrug = ref(false);
@@ -444,7 +496,7 @@ const optionsdispenseTypes = ref([]);
 const optionspatientStatus = ref([]);
 const spetialPrescription = ref(false);
 const msgObject = ref({});
-
+const other = ref(false);
 const columns = [
   {
     name: 'drug',
@@ -495,6 +547,11 @@ const patient = inject('patient');
 const curPatientVisit = inject('curPatientVisit');
 const selectedMember = inject('selectedMember');
 
+const showEdit = () => {
+ reasonOutroSelected.value = true
+    }
+
+
 // Computed
 const spetialPrescriptionMotives = computed(() => {
   return spetialPrescriptionMotiveService.getAllFromStorage();
@@ -514,6 +571,14 @@ const hasTherapeuticalLine = computed(() => {
   );
   return result;
 });
+
+const reasonOutroSelected = computed(() => {
+  return curPrescriptionDetail.value.reasonForUpdate === 'Outro'
+})
+
+const reasonPlaceholder = computed(() => {
+  return curPrescriptionDetail.value.reasonForUpdateDesc
+})
 
 const hasPrescriptionChangeMotive = computed(() => {
   const result = clinicalServiceAttributeService.checkWeatherAttExist(
@@ -726,6 +791,9 @@ const init = () => {
 };
 
 const validateForm = () => {
+  if (!reasonOutroSelected.value) {
+    curPrescriptionDetail.value.reasonForUpdateDesc = '';
+  }
   let lastPack4daysAdd = date.addToDate(
     getDateFromHyphenDDMMYYYY(prescriptionDate.value, 'YYYY-MM-DD'),
     {

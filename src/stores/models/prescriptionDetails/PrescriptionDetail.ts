@@ -13,6 +13,7 @@ export default class PrescriptionDetail extends Model {
     return {
       id: this.string(() => uuidv4()),
       reasonForUpdate: this.attr(''),
+      reasonForUpdateDesc: this.attr(''),
       prescription_id: this.attr(''),
       therapeutic_line_id: this.attr(''),
       therapeutic_regimen_id: this.attr(''),
