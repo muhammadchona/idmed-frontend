@@ -37,13 +37,13 @@ export default {
   getFromProvincial(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('drugFromProvicnial?offset=' + offset + '&max=100')
+        .get('drug/drugFromProvicnial/' + offset)
         .then((resp) => {
-          drug.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.get(offset);
+            this.getFromProvincial(offset);
           } else {
+            this.get(0);
             closeLoading();
           }
         });

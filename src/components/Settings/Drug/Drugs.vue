@@ -209,6 +209,7 @@ const visualizeDrug = (drugParam) => {
 };
 
 const getDrugsFromProvincialServer = () => {
+  showloading();
   drugService
     .getFromProvincial(0)
     .then(() => {
