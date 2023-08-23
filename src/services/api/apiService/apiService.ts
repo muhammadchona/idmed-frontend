@@ -2,8 +2,10 @@ import axios, { Axios } from 'axios';
 import UsersService from 'src/services/UsersService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { LocalStorage } from 'quasar';
+import { Notify } from 'quasar';
 
 const { website } = useSystemUtils();
+
 
 const instance = axios.create({
   baseURL: website.value
@@ -11,8 +13,6 @@ const instance = axios.create({
     : LocalStorage.getItem('backend_url'),
 });
 let numTries = 0;
-
-const timerInterval = 0; // Variável para controlar o intervalo de atualização do temporizador
 
 // Função para fazer o logout
 function logout() {
@@ -55,6 +55,19 @@ instance.interceptors.request.use(
         fixNextTokenExpirationTime();
       } else {
         // O token expirou, fazer o logout
+
+        Notify.create({
+          icon: 'announcement',
+          message: 'Sessão expirada',
+          type: 'negative',
+          progress: true,
+          timeout: 3000,
+          position: 'top',
+          color: 'negative',
+          textColor: 'white',
+          classes: 'glossy',
+        });
+
         logout();
         return; // Interromper a solicitação
       }
