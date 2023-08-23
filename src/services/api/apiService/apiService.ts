@@ -11,6 +11,25 @@ const instance = axios.create({
     : LocalStorage.getItem('backend_url'),
 });
 let numTries = 0;
+
+const timerInterval = 0; // Variável para controlar o intervalo de atualização do temporizador
+
+// Função para fazer o logout
+function logout() {
+  localStorage.removeItem('authUser');
+  localStorage.removeItem('user');
+  localStorage.removeItem('username');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('password');
+  localStorage.removeItem('tokenExpiration');
+  window.location.reload();
+}
+
+// Função para iniciar o temporizador
+function fixNextTokenExpirationTime() {
+  localStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10 minutos sem request
+}
+
 // Request interceptor for API calls
 instance.interceptors.request.use(
   (request) => {
@@ -28,6 +47,17 @@ instance.interceptors.request.use(
     ) {
       delete request.headers.Authorization;
     } else if (userloged != null && userloged != 'null') {
+      const tokenExpiration = localStorage.getItem('tokenExpiration');
+      const currentTime = Date.now();
+
+      if (tokenExpiration && currentTime < Number(tokenExpiration)) {
+        // O token ainda é válido, reiniciar o temporizador
+        fixNextTokenExpirationTime();
+      } else {
+        // O token expirou, fazer o logout
+        logout();
+        return; // Interromper a solicitação
+      }
       const localuser = UsersService.getUserByUserName(String(userloged));
       request.headers['X-Auth-Token'] = ['', localuser.access_token].join(' ');
     } else {
@@ -73,12 +103,11 @@ instance.interceptors.request.use(
 // );
 
 // Response interceptor for API calls
-axios.interceptors.response.use(
-  (response) => {
-    console.log('Utilizador 4', userloged);
+  instance.interceptors.response.use(
+  function (response) {
     return response;
-  },
-  async function (error) {
+  }, function (error) {
+    const userloged = localStorage.getItem('user');
     console.log('Utilizador 5', userloged);
 
     const originalRequest = error.config;
@@ -91,11 +120,12 @@ axios.interceptors.response.use(
       ) {
         originalRequest._retry = true;
         console.log(
-          'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+          'http://localhost:8080/oauth/access_token?grant_type=refresh_token&refresh_token=' +
             rToken
         );
         numTries++;
-        if (numTries > 5) {
+        console.log(numTries)
+        if (numTries > 2) {
           localStorage.removeItem('authUser');
           localStorage.removeItem('user');
           localStorage.removeItem('username');
@@ -105,7 +135,7 @@ axios.interceptors.response.use(
         }
         return axios
           .post(
-            'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+            'http://localhost:8080/oauth/access_token?grant_type=refresh_token&refresh_token=' +
               rToken
           )
           .then(({ data }) => {

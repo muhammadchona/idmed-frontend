@@ -327,6 +327,7 @@ const urlBackend = ref('');
 Hook
 */
 onMounted(() => {
+  localStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 15 segundos
   if (isMobile.value && localStorage.getItem('backend_url') === null) {
     popUpUrlMobile.value = true;
   }

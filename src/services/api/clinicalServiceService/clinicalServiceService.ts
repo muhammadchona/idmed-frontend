@@ -70,7 +70,7 @@ export default {
         })
         .catch((error) => {
           // alertError('Aconteceu um erro inesperado nesta operação.');
-          console.log(error);
+          // console.log(error);
         });
     }
   },
@@ -99,7 +99,7 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
+        // console.log(error);
       });
   },
   getMobile() {
@@ -111,7 +111,7 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
+        // console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
@@ -125,12 +125,12 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
+        // console.log(error);
       });
   },
    async localDbGetById (id: any) {
     return nSQL(ClinicalService.entity).query('select').where(['id', '=', id]).exec().then(result => {
-       console.log(result)
+      //  console.log(result)
        return result[0]
      })
  },
