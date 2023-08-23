@@ -228,7 +228,7 @@ const deleteRow = (row) => {
   curPack.value.packagedDrugs.splice(i, 1);
 };
 
-const addPackagedDrug = (prescribedDrug) => {
+const addPackagedDrug = async (prescribedDrug) => {
   const packagedDrug = new PackagedDrug({ id: uuidv4() });
 
   packagedDrug.amtPerTime = prescribedDrug.amtPerTime;
@@ -242,7 +242,7 @@ const addPackagedDrug = (prescribedDrug) => {
   });
 
   if (!packagedDruggExists) {
-    const hasStock = checkStock(packagedDrug);
+    const hasStock =await checkStock(packagedDrug);
 
     if (hasStock) {
       if (
@@ -281,30 +281,18 @@ const qtySupplied = (packagedDrug) => {
     return -1;
   }
 };
-const checkStock = (packagedDrug) => {
-  let qtyInStock = 0;
+const checkStock = async (packagedDrug) => {
+
+  //verificar esse.
   packagedDrug.drug = getDrugById(packagedDrug.drug.id);
   const qtytoDispense = getQtyPrescribed(
     packagedDrug,
     curPack.value.weeksSupply
   );
   packagedDrug.quantitySupplied = qtytoDispense;
-  const stocks = StockService.getStockByDrug(packagedDrug.drug.id);
-  const validStock = stocks.filter((item) => {
-    return moment(item.expireDate) >= moment(curPack.value.pickupDate);
-  });
-  if (validStock.length <= 0) {
-    return false;
-  } else {
-    validStock.forEach((item) => {
-      qtyInStock = Number(qtyInStock + item.stockMoviment);
-    });
-    if (qtyInStock < qtytoDispense) {
-      return false;
-    } else {
-      return true;
-    }
-  }
+  const resp = await  StockService.checkStockStatus( packagedDrug.drug.id,curPack.value.pickupDate, qtytoDispense )
+  return resp.data
+
 };
 
 // Computed

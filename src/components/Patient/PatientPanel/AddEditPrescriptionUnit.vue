@@ -1073,7 +1073,7 @@ const removePatientVisitDetail = () => {
   curPatientVisit.value.patientVisitDetails.splice(i, 1);
 };
 
-const addPrescribedDrug = (prescribedDrug) => {
+const addPrescribedDrug =async (prescribedDrug) => {
   const prescribedDrugExists = curPrescription.value.prescribedDrugs.some(
     (item) => {
       return item.drug.id === prescribedDrug.drug.id;
@@ -1081,8 +1081,7 @@ const addPrescribedDrug = (prescribedDrug) => {
   );
 
   if (!prescribedDrugExists) {
-    const hasStock = checkStock(prescribedDrug);
-
+    const hasStock =  await checkStock(prescribedDrug);
     if (hasStock) {
       if (
         getQtyPrescribed(
@@ -1128,30 +1127,18 @@ const addMedication = (prescribedDrug) => {
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
-const checkStock = (prescribedDrug) => {
-  let qtyInStock = 0;
+const checkStock = async ( prescribedDrug) => {
+
   const qtyPrescribed = getQtyPrescribed(
     prescribedDrug,
     curPack.value.weeksSupply
   );
 
-  const validStock = StockService.getValidStockByDrugAndPickUpDate(
-    prescribedDrug.drug.id,
-    getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(prescriptionDate.value))
-  );
+  const prescrDate =getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(prescriptionDate.value))
 
-  if (validStock.length <= 0) {
-    return false;
-  } else {
-    validStock.forEach((item) => {
-      qtyInStock = Number(qtyInStock + item.stockMoviment);
-    });
-    if (qtyInStock < qtyPrescribed) {
-      return false;
-    } else {
-      return true;
-    }
-  }
+  const resp = await  StockService.checkStockStatus( prescribedDrug.drug.id,prescrDate,qtyPrescribed)
+  return resp.data
+ 
 };
 
 const deleteRow = (row) => {
