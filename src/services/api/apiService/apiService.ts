@@ -12,7 +12,7 @@ const instance = axios.create({
     ? process.env.API_URL
     : LocalStorage.getItem('backend_url'),
 });
-let numTries = 0;
+const numTries = 0;
 
 // Função para fazer o logout
 function logout() {
@@ -120,8 +120,6 @@ instance.interceptors.request.use(
   function (response) {
     return response;
   }, function (error) {
-    const userloged = localStorage.getItem('user');
-    console.log('Utilizador 5', userloged);
 
     const originalRequest = error.config;
     // const rToken = localStorage.getItem('id_token')
@@ -136,16 +134,7 @@ instance.interceptors.request.use(
           'http://localhost:8080/oauth/access_token?grant_type=refresh_token&refresh_token=' +
             rToken
         );
-        numTries++;
-        console.log(numTries)
-        if (numTries > 2) {
-          localStorage.removeItem('authUser');
-          localStorage.removeItem('user');
-          localStorage.removeItem('username');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('password');
-          window.location.reload();
-        }
+        
         return axios
           .post(
             'http://localhost:8080/oauth/access_token?grant_type=refresh_token&refresh_token=' +
