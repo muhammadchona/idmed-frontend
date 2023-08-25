@@ -309,7 +309,7 @@
           <div class="row">
             <q-input
               v-model="closureEpisode.notes"
-              label="Outras notas do episódio"
+              label="Outras notas do Histórico Clínico"
               :disable="episode.id !== null && isEditStep"
               ref="endNotesRef"
               :rules="[(val) => !!val || 'Por favor indicar a nota de fim']"
