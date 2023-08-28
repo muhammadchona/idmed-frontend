@@ -1,6 +1,6 @@
 export function useGroupMemberPrescription() {
   function lastGroupMemberPrescription(groupMemberPrescriptions: any) {
-    let lastPrescription = '';
+    let lastPrescription = null;
     groupMemberPrescriptions.forEach((groupMemberPrescription: any) => {
       if (lastPrescription === null || lastPrescription === '') {
         lastPrescription = groupMemberPrescription;
