@@ -131,13 +131,13 @@ instance.interceptors.request.use(
       ) {
         originalRequest._retry = true;
         console.log(
-          'http://localhost:8080/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+          'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
             rToken
         );
         
         return axios
           .post(
-            'http://localhost:8080/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+            'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
               rToken
           )
           .then(({ data }) => {
