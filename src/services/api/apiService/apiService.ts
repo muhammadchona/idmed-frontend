@@ -2,15 +2,34 @@ import axios, { Axios } from 'axios';
 import UsersService from 'src/services/UsersService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { LocalStorage } from 'quasar';
+import { Notify } from 'quasar';
 
 const { website } = useSystemUtils();
+
 
 const instance = axios.create({
   baseURL: website.value
     ? process.env.API_URL
     : LocalStorage.getItem('backend_url'),
 });
-let numTries = 0;
+const numTries = 0;
+
+// Função para fazer o logout
+function logout() {
+  localStorage.removeItem('authUser');
+  localStorage.removeItem('user');
+  localStorage.removeItem('username');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('password');
+  localStorage.removeItem('tokenExpiration');
+  window.location.reload();
+}
+
+// Função para iniciar o temporizador
+function fixNextTokenExpirationTime() {
+  localStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10 minutos sem request
+}
+
 // Request interceptor for API calls
 instance.interceptors.request.use(
   (request) => {
@@ -28,6 +47,30 @@ instance.interceptors.request.use(
     ) {
       delete request.headers.Authorization;
     } else if (userloged != null && userloged != 'null') {
+      const tokenExpiration = localStorage.getItem('tokenExpiration');
+      const currentTime = Date.now();
+
+      if (tokenExpiration && currentTime < Number(tokenExpiration)) {
+        // O token ainda é válido, reiniciar o temporizador
+        fixNextTokenExpirationTime();
+      } else {
+        // O token expirou, fazer o logout
+
+        Notify.create({
+          icon: 'announcement',
+          message: 'Sessão expirada',
+          type: 'negative',
+          progress: true,
+          timeout: 3000,
+          position: 'top',
+          color: 'negative',
+          textColor: 'white',
+          classes: 'glossy',
+        });
+
+        logout();
+        return; // Interromper a solicitação
+      }
       const localuser = UsersService.getUserByUserName(String(userloged));
       request.headers['X-Auth-Token'] = ['', localuser.access_token].join(' ');
     } else {
@@ -73,13 +116,10 @@ instance.interceptors.request.use(
 // );
 
 // Response interceptor for API calls
-axios.interceptors.response.use(
-  (response) => {
-    console.log('Utilizador 4', userloged);
+  instance.interceptors.response.use(
+  function (response) {
     return response;
-  },
-  async function (error) {
-    console.log('Utilizador 5', userloged);
+  }, function (error) {
 
     const originalRequest = error.config;
     // const rToken = localStorage.getItem('id_token')
@@ -94,15 +134,7 @@ axios.interceptors.response.use(
           'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
             rToken
         );
-        numTries++;
-        if (numTries > 5) {
-          localStorage.removeItem('authUser');
-          localStorage.removeItem('user');
-          localStorage.removeItem('username');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('password');
-          window.location.reload();
-        }
+        
         return axios
           .post(
             'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +

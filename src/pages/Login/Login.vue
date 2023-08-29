@@ -416,7 +416,8 @@ const loginOnline = (encodedStringBtoA) => {
     username: username.value,
     password: password.value,
   })
-    .then((response) => {
+    .then((response) => {      
+      localStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10min
       submitting.value = false;
       // userLogin.save(resp.data);
       if (response !== undefined && response.status === 200) {
