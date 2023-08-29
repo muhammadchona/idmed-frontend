@@ -142,14 +142,17 @@ export default {
     }
   },
   async checkStockStatus(idPrescribedDrug: any, prescriptionDate: any, qtyPrescribed: any) {
-      return api()
+    if (prescriptionDate!== "") {
+        return api()
         .get('stock/checkStockStatus/' + idPrescribedDrug + '/'+prescriptionDate+'/'+qtyPrescribed)
         .then((resp) => {
-          console.log(resp)
           closeLoading()
-          return resp
+          return resp.data
         })
-  },
+      } else {
+        return false
+      }
+      },
   apiUpdateWeb(id: any, params: any) {
     return api()
       .patch('stock/' + id, params)

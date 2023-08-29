@@ -1067,9 +1067,8 @@ const checkStock = async ( prescribedDrug) => {
   );
 
   const prescrDate =getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(prescriptionDate.value))
-
   const resp = await  StockService.checkStockStatus( prescribedDrug.drug.id,prescrDate,qtyPrescribed)
-  return resp.data
+  return resp
  
 };
 
