@@ -291,7 +291,10 @@ const saveAdjustments = () => {
       }
       adjustment.captureDate = new Date();
       adjustment.operation = operation;
-      adjustment.clinic = clinicService.currClinic()
+      adjustment.clinic = {}
+      adjustment.clinic.id =  clinicService.currClinic().id
+      adjustment.adjustedStock.clinic = {}
+      adjustment.adjustedStock.clinic.id = clinicService.currClinic().id
       if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
         adjustment.adjustedValue = Number(
           adjustment.balance - adjustment.adjustedStock.stockMoviment

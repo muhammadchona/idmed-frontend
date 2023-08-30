@@ -243,13 +243,10 @@ const initNewAdjustment = (stock, drug) => {
   newAdjustment.adjustedStock.drug = null;
   newAdjustment.inventory_id = currInventory.value.id;
   newAdjustment.adjusted_stock_id = newAdjustment.adjustedStock.id;
-  newAdjustment.clinic_id = currClinic.value.id
-  newAdjustment.adjustedStock.clinic_id = currClinic.value.id
-  newAdjustment.clinic = newAdjustment.adjustedStock.clinic
-  newAdjustment.clinic.province = currClinic.value.province
-  newAdjustment.clinic.district = currClinic.value.district
-  newAdjustment.clinic.province.clinics = []
-  newAdjustment.clinic.facilityType = currClinic.value.facilityType
+  newAdjustment.adjustedStock.clinic = {}
+  newAdjustment.adjustedStock.clinic.id = currClinic.value.id
+  newAdjustment.clinic = {}
+  newAdjustment.clinic.id =currClinic.value.id
   newAdjustment.id = uuidv4();
   currInventory.value.adjustments.push(newAdjustment);
 };
