@@ -164,6 +164,7 @@ import groupPackHeaderService from 'src/services/api/groupPackHeader/groupPackHe
 import addMemberDispense from 'src/components/Groups/AddMemberDispense.vue';
 import { v4 as uuidv4 } from 'uuid';
 import { useGroupMemberPrescription } from 'src/composables/group/groupMemberPrescriptionMethods';
+import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
 // import isOnline from 'is-online';
 
 const {
@@ -177,6 +178,8 @@ const {
 const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { isOnline } = useSystemUtils();
+
+const { getQtyPrescribed } = usePrescribedDrug();
 
 const nextPDate = ref('');
 const pickupDate = ref('');
@@ -449,24 +452,33 @@ const addPrescribedDrug = (prescribedDrug, visitDetails) => {
   showAddEditDrug.value = false;
 };
 
+const checkStock = async (prescribedDrug) => {
+  const qtyPrescribed = getQtyPrescribed(
+    prescribedDrug,
+    curPack.value.weeksSupply
+  );
+
+  const prescrDate = getYYYYMMDDFromJSDate(
+    getDateFromHyphenDDMMYYYY(prescriptionDate.value)
+  );
+  const resp = await StockService.checkStockStatus(
+    prescribedDrug.drug.id,
+    prescrDate,
+    qtyPrescribed
+  );
+  return resp;
+};
+
 const validatePack = (pack) => {
   let prescription;
   let drugErrors = '';
   //     prescription = pack.patientVisitDetails[0].prescription
   //  const patient = prescription.patientVisitDetails[0].patientVisit.patient
   //   console.log(patient)
-  pack.packagedDrugs.forEach((pcdDrugs) => {
-    const stocks = StockService.getStockByDrug(pcdDrugs.drug.id);
-    const validStock = stocks.filter((item) => {
-      return new Date(item.expireDate) > new Date() && item.stockMoviment > 0;
-    });
-
+  pack.packagedDrugs.forEach(async (pcdDrugs) => {
+    const hasStock = await checkStock(pcdDrugs);
     let allAvalibleValidStock;
-    if (
-      validStock !== undefined &&
-      validStock !== null &&
-      validStock.length > 0
-    ) {
+    if (hasStock) {
       validStock.forEach((stock) => {
         allAvalibleValidStock += stock.stockMoviment;
       });
@@ -487,62 +499,7 @@ const validatePack = (pack) => {
         const packagedDrugStocks = [];
         const stocksToMoviment = [];
         const packagedDrug = pack.packagedDrugs[k];
-        let quantitySupplied = packagedDrug.quantitySupplied;
-        // const packDrug = new PackagedDrug()
-        const stocks = StockService.getValidStockByDrugAndPickUpDate(
-          packagedDrug.drug.id,
-          getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(pickupDate.value))
-        );
-        const validStock = stocks.filter((item) => {
-          return (
-            new Date(item.expireDate) > new Date() && item.stockMoviment > 0
-          );
-        });
-        let i = 0;
-        while (quantitySupplied > 0) {
-          console.log(i);
-          console.log(validStock);
-          if (validStock[i].stockMoviment >= quantitySupplied) {
-            validStock[i].stockMoviment = Number(
-              validStock[i].stockMoviment - quantitySupplied
-            );
-            stocksToMoviment.push(validStock[i]);
-            quantitySupplied = 0;
-            const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
-            /*
-            packagedDrugStock.drug = drugService.getDrugById(
-              packagedDrug.drug.id
-            );
-            */
-            packagedDrugStock.drug = {};
-            packagedDrugStock.drug.id = packagedDrug.drug.id;
-            //   packagedDrugStock.stock = validStock[i];
-            packagedDrugStock.stock = {};
-            packagedDrugStock.stock.id = validStock[i].id;
-            packagedDrugStock.quantitySupplied = packagedDrug.quantitySupplied;
-            packagedDrugStock.creationDate = new Date();
-            packagedDrugStocks.push(packagedDrugStock);
-          } else {
-            const availableBalance = validStock[i].stockMoviment;
-            qtyPrescribed = Number(qtyPrescribed - validStock[i].stockMoviment);
-            validStock[i].stockMoviment = 0;
-            stocksToMoviment.push(validStock[i]);
-            const packagedDrugStock = new PackagedDrugStock();
-            /*
-            packagedDrugStock.drug = drugService.getDrugById(
-              packagedDrug.drug.id
-            );
-            */
-            packagedDrugStock.drug = {};
-            packagedDrugStock.drug.id = packagedDrug.drug.id;
-            //   packagedDrugStock.stock = validStock[i];
-            packagedDrugStock.stock = {};
-            packagedDrugStock.stock.id = validStock[i].id;
-            packagedDrugStock.quantitySupplied = availableBalance;
-            packagedDrugStock.creationDate = new Date();
-            i = i + 1;
-          }
-        }
+
         const clinicalServiceId = packagedDrug.drug.clinicalService.id;
         packagedDrug.drug.clinicalService = {};
         packagedDrug.drug.clinicalService.id = clinicalServiceId;

@@ -81,6 +81,9 @@ export default {
       .where('id', id)
       .first();
   },
+  getDrugWith1ById(id: string) {
+    return drug.query().withAllRecursive(1).where('id', id).first();
+  },
   getCleanDrugById(id: string) {
     return drug.where('id', id).first();
   },
