@@ -263,8 +263,8 @@ const initNewAdjustment = (stock, drug, i) => {
     newAdjustment.adjustedStock.expireDate
   );
   newAdjustment.adjustedStock.drug = drug;
-  newAdjustment.adjustedStock.clinic = null
-  newAdjustment.adjustedStock.clinic_id = clinicService.currClinic().id
+  newAdjustment.adjustedStock.clinic = {}
+  adjustment.adjustedStock.clinic.id = clinicService.currClinic().id
 
   adjustments.value.push(newAdjustment);
 };
