@@ -49,7 +49,7 @@
             </q-td>
             <q-td
               :style="
-                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
+                qtySuppliedFlag === -1 ? 'color: red' : ' color: black'
               "
               key="dosage"
               :props="props"
@@ -68,7 +68,8 @@
             </q-td>
             <q-td
               :style="
-                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
+             
+                qtySuppliedFlag === -1 ? 'color: red' : ' color: black'
               "
               v-if="!curPatientVisitDetail.createPackLater"
               auto-width
@@ -79,7 +80,7 @@
             </q-td>
             <q-td
               :style="
-                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
+                qtySuppliedFlag=== -1 ? 'color: red' : ' color: black'
               "
               v-if="!curPatientVisitDetail.createPackLater"
               key="nextPickUpDate"
@@ -88,7 +89,7 @@
               <div class="row">
                 <q-toggle
                   v-model="props.row.toContinue"
-                  :disable="qtySupplied(props.row) === -1 || validateDispense"
+                  :disable="qtySuppliedFlag=== -1 || validateDispense"
                   label="Continua"
                 />
               </div>
@@ -103,7 +104,7 @@
                 @click="deleteRow(props.row)"
               />
               <q-btn
-                v-if="qtySupplied(props.row) === -1"
+                v-if="qtySuppliedFlag === -1"
                 flat
                 round
                 :disable="validateDispense"
@@ -208,6 +209,7 @@ const nums = ref(
     .map((x, i) => i + 1)
 );
 const drugsDuration = ref('');
+var qtySuppliedFlag = 0
 
 // Injection
 const curPatientVisit = inject('curPatientVisit');
@@ -276,10 +278,11 @@ const getDrugById = (drugID) => {
 
 const qtySupplied = (packagedDrug) => {
   if (checkStock(packagedDrug)) {
-    return packagedDrug.quantitySupplied;
+    qtySuppliedFlag =  packagedDrug.quantitySupplied
   } else {
-    return -1;
+    qtySuppliedFlag = -1
   }
+  return qtySuppliedFlag
 };
 const checkStock = async (packagedDrug) => {
 
@@ -291,7 +294,7 @@ const checkStock = async (packagedDrug) => {
   );
   packagedDrug.quantitySupplied = qtytoDispense;
   const resp = await  StockService.checkStockStatus( packagedDrug.drug.id,curPack.value.pickupDate, qtytoDispense )
-  return resp.data
+  return resp
 
 };
 
