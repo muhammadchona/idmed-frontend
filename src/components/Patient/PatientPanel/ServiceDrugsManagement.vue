@@ -33,9 +33,10 @@
         </template>
         <template #body="props">
           <q-tr no-hover :props="props">
+          <div class="hidden" >{{  qtySupplied(props.row) }} </div> 
             <q-td
               :style="
-                qtySupplied(props.row) === -1 ? 'color: red' : ' color: black'
+               qtySuppliedFlag=== -1 ? 'color: red' : ' color: black'
               "
               key="drug"
               :props="props"
@@ -209,15 +210,12 @@ const nums = ref(
     .map((x, i) => i + 1)
 );
 const drugsDuration = ref('');
-var qtySuppliedFlag = 0
+const qtySuppliedFlag = ref(0)
 
 // Injection
-const curPatientVisit = inject('curPatientVisit');
 const curPrescription = inject('curPrescription');
-const curPrescriptionDetail = inject('curPrescriptionDetail');
 const curPatientVisitDetail = inject('curPatientVisitDetail');
 const curPack = inject('curPack');
-const isNewPrescription = inject('isNewPrescription');
 const validateDispense = inject('validateDispense');
 const addPatientVisitDetail = inject('addPatientVisitDetail');
 const removePatientVisitDetail = inject('removePatientVisitDetail');
@@ -276,13 +274,14 @@ const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
 
-const qtySupplied = (packagedDrug) => {
-  if (checkStock(packagedDrug)) {
-    qtySuppliedFlag =  packagedDrug.quantitySupplied
+const qtySupplied = async (packagedDrug) => {
+ const item =  await checkStock(packagedDrug)
+    if(item) {
+    qtySuppliedFlag.value =  packagedDrug.quantitySupplied
   } else {
-    qtySuppliedFlag = -1
+    qtySuppliedFlag.value = -1
   }
-  return qtySuppliedFlag
+  return qtySuppliedFlag.value
 };
 const checkStock = async (packagedDrug) => {
 
@@ -295,7 +294,6 @@ const checkStock = async (packagedDrug) => {
   packagedDrug.quantitySupplied = qtytoDispense;
   const resp = await  StockService.checkStockStatus( packagedDrug.drug.id,curPack.value.pickupDate, qtytoDispense )
   return resp
-
 };
 
 // Computed

@@ -234,9 +234,15 @@ return nSQL('stocks').query('select').where(['stocks[entrance_id]', '=', stockEn
 return nSQL('stocks').query('select').where(['drug_id', '=', drug.id]).exec().then(result => {
  return result
 })
+},
+
+getValidStockByDrugAndPickUpDateOnline(drugId: string, pickupDate: any) {
+  return api()
+    .get('stock/getValidStocks/' + drugId + '/' + pickupDate)
+    .then((resp) => {
+      closeLoading();
+      stock.save(resp.data);
+      return resp.data;
+    });
 }
-
-
-
-
 };
