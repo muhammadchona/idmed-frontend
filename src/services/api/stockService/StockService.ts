@@ -244,9 +244,5 @@ getValidStockByDrugAndPickUpDateOnline(drugId: string, pickupDate: any) {
       stock.save(resp.data);
       return resp.data;
     });
-},
-
-
-
-
+}
 };
