@@ -933,14 +933,14 @@ const addPackagedDrugs = () => {
     curPack.value.packagedDrugs.push(packagedDrug);
   });
 };
-const generatePacks = (packagedDrug) => {
+const generatePacks = async (packagedDrug) => {
   const packagedDrugStocks = [];
 
   let quantitySupplied = packagedDrug.quantitySupplied;
-
-  const stocks = StockService.getValidStockByDrugAndPickUpDate(
-    packagedDrug.drug.id,
-    getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(curPack.value.pickupDate))
+  //getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(
+const pickupDate=curPack.value.pickupDate
+  const stocks = await StockService.getValidStockByDrugAndPickUpDateOnline(
+    packagedDrug.drug.id,pickupDate
   );
 
   let i = 0;
@@ -966,33 +966,37 @@ const generatePacks = (packagedDrug) => {
   packagedDrug.packagedDrugStocks = packagedDrugStocks;
 };
 
-const addPatientVisitDetail = () => {
+const getItemsRemoved = async () => {
   let indexToRemove = [];
+  const packagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
+
+  for (const packageDrug of packagedDrugs) {
+    const item = await checkStock(packageDrug, curPatientVisitDetail.value.pack.weeksSupply);
+    if (!item || Number(packageDrug.quantitySupplied) <= 0) {
+      const i = packagedDrugs.indexOf(packageDrug);
+      indexToRemove.push(i);
+    } else {
+      console.log(packageDrug.quantitySupplied);
+      generatePacks(packageDrug);
+    }
+  }
+
+  return indexToRemove;
+};
+
+const addPatientVisitDetail = async () => {
+  
   let pickupDate4daysAdd = date.addToDate(
     curPatientVisitDetail.value.pack.pickupDate,
     {
       days: 4,
     }
   );
-  curPatientVisitDetail.value.pack.packagedDrugs.forEach((packageDrug) => {
-    if (
-      !checkStock(packageDrug, curPatientVisitDetail.value.pack.weeksSupply)
-    ) {
-      const i = curPatientVisitDetail.value.pack.packagedDrugs.indexOf(
-        packageDrug.id
-      );
-      indexToRemove.push(i);
-    } else {
-      console.log(packageDrug.quantitySupplied);
-      if (Number(packageDrug.quantitySupplied) <= 0) {
-        indexToRemove.push(packageDrug);
-      } else {
-        generatePacks(packageDrug);
-      }
-    }
-  });
 
-  if (indexToRemove.length > 0) {
+  
+    const itemsToRemove = await  getItemsRemoved()
+
+  if (itemsToRemove.length > 0) {
     alertError(
       ' Exitem medicamentos sem stock ou sem quantidade por dispensar na lista. Por favor, remova'
     );
@@ -1050,6 +1054,9 @@ const addPatientVisitDetail = () => {
   } else {
     allGoodValidatatedDispense();
   }
+  
+
+ 
 };
 const allGoodValidatatedDispense = () => {
   validateDispense.value = true;
@@ -1127,11 +1134,11 @@ const addMedication = (prescribedDrug) => {
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
-const checkStock = async ( prescribedDrug) => {
+const checkStock = async ( prescribedDrug, weeksSupply) => {
 
   const qtyPrescribed = getQtyPrescribed(
     prescribedDrug,
-    curPack.value.weeksSupply
+    weeksSupply
   );
 
   const prescrDate =getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(prescriptionDate.value))
