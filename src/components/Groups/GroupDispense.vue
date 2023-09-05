@@ -498,90 +498,6 @@ const validateStockPacks = async (pack) => {
   }
 };
 
-const validatePack = async (pack) => {
-  let prescription;
-  validateStockPacks(pack).then((drugErrors) => {
-    if (drugErrors !== '') {
-      return drugErrors;
-    } else {
-      Object.keys(pack.packagedDrugs).forEach(
-        function (k) {
-          const packagedDrugStocks = [];
-          const stocksToMoviment = [];
-          const packagedDrug = pack.packagedDrugs[k];
-          let quantitySupplied = packagedDrug.quantitySupplied;
-          // const packDrug = new PackagedDrug()
-          const stocks = StockService.getValidStockByDrugAndPickUpDate(
-            packagedDrug.drug.id,
-            getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(pickupDate.value))
-          );
-          const validStock = stocks.filter((item) => {
-            return (
-              new Date(item.expireDate) > new Date() && item.stockMoviment > 0
-            );
-          });
-          let i = 0;
-          while (quantitySupplied > 0) {
-            if (validStock[i].stockMoviment >= quantitySupplied) {
-              validStock[i].stockMoviment = Number(
-                validStock[i].stockMoviment - quantitySupplied
-              );
-              stocksToMoviment.push(validStock[i]);
-              quantitySupplied = 0;
-              const packagedDrugStock = new PackagedDrugStock({
-                id: uuidv4(),
-              });
-              /*
-            packagedDrugStock.drug = drugService.getDrugById(
-              packagedDrug.drug.id
-            );
-            */
-              packagedDrugStock.drug = {};
-              packagedDrugStock.drug.id = packagedDrug.drug.id;
-              //   packagedDrugStock.stock = validStock[i];
-              packagedDrugStock.stock = {};
-              packagedDrugStock.stock.id = validStock[i].id;
-              packagedDrugStock.quantitySupplied =
-                packagedDrug.quantitySupplied;
-              packagedDrugStock.creationDate = new Date();
-              packagedDrugStocks.push(packagedDrugStock);
-            } else {
-              const availableBalance = validStock[i].stockMoviment;
-              qtyPrescribed = Number(
-                qtyPrescribed - validStock[i].stockMoviment
-              );
-              validStock[i].stockMoviment = 0;
-              stocksToMoviment.push(validStock[i]);
-              const packagedDrugStock = new PackagedDrugStock();
-              /*
-            packagedDrugStock.drug = drugService.getDrugById(
-              packagedDrug.drug.id
-            );
-            */
-              packagedDrugStock.drug = {};
-              packagedDrugStock.drug.id = packagedDrug.drug.id;
-              //   packagedDrugStock.stock = validStock[i];
-              packagedDrugStock.stock = {};
-              packagedDrugStock.stock.id = validStock[i].id;
-              packagedDrugStock.quantitySupplied = availableBalance;
-              packagedDrugStock.creationDate = new Date();
-              i = i + 1;
-            }
-          }
-          const clinicalServiceId = packagedDrug.drug.clinicalService.id;
-          packagedDrug.drug.clinicalService = {};
-          packagedDrug.drug.clinicalService.id = clinicalServiceId;
-          packagedDrug.drug.therapeuticRegimenList = [];
-          packagedDrug.packagedDrugStocks = packagedDrugStocks;
-          pack.patientVisitDetails[0].patientVisit.visitDate =
-            curGroupPackHeader.value.packDate;
-        }.bind(this)
-      );
-      return drugErrors;
-    }
-  });
-};
-
 const generateCurrGroupPackHeader = async () => {
   let drugErrors = '';
   for (const groupPack of curGroupPackHeader.value.groupPacks) {
@@ -597,7 +513,6 @@ const generateCurrGroupPackHeader = async () => {
     // groupPack.pack.clinic = clinic.value;
     groupPack.pack.clinic = {};
     groupPack.pack.clinic.id = clinic.value.id;
-    // const drugerror = await validatePack(groupPack.pack);
     // if (drugerror !== undefined) error += drugerror;
     // return drugerror;
     for (const pcdDrugs of groupPack.pack.packagedDrugs) {
