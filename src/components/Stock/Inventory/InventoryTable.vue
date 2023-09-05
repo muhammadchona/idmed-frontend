@@ -7,6 +7,7 @@
       :columns="columns"
       :filter="filter"
       row-key="id"
+      :loading="loading"
     >
       <template v-slot:top-right>
         <q-input
@@ -78,6 +79,10 @@
           </q-td>
         </q-tr>
       </template>
+
+      <template v-slot:loading>
+        <q-inner-loading showing color="primary" />
+      </template>
     </q-table>
   </div>
 </template>
@@ -96,6 +101,7 @@ let submitting = ref(false);
 const inventoryMethod = useInventory();
 const { isMobile, isOnline } = useSystemUtils(); 
 const { showloading, closeLoading } = useLoading();
+const loading = ref(true)
 
 const columns = [
   {
@@ -139,7 +145,11 @@ onMounted(() => {
 });
 
 const inventories = computed(() => {
-  return InventoryService.getInventories();
+  const list = InventoryService.getInventories();
+  if (list.length>0) {
+    loading.value = false
+  }
+  return list
 });
 </script>
 

@@ -1,6 +1,7 @@
 <template>
   <div>
     <q-table
+    :loading="loading"
       :class="headerClass"
       dense
       :rows="rows"
@@ -87,12 +88,18 @@
           </q-td>
         </q-tr>
       </template>
+
+      <template v-slot:loading>
+        <q-inner-loading showing color="primary" />
+      </template>
     </q-table>
+
+
   </div>
 </template>
 
 <script setup >
-import { ref, computed, inject, provide, reactive, onMounted } from 'vue';
+import { ref, computed, inject, provide, reactive, onMounted, onBeforeMount } from 'vue';
 
 import drugService from 'src/services/api/drugService/drugService';
 import { useRouter } from 'vue-router';
@@ -103,9 +110,10 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 const { isMobile, isOnline } = useSystemUtils();
 
 
+
 const router = useRouter();
 const { showloading, closeLoading } = useLoading();
-
+const loading= ref(true)
 const columns = [
   {
     name: 'order',
@@ -187,11 +195,13 @@ const getConsuptionRelatedColor = (state) => {
   }
 };
 
-onMounted (() => {
-  showloading()
-})
+
 const rows = computed(() => {
- return  StockAlertService.getStockAlertsByClinic();
+ const list =   StockAlertService.getStockAlertsByClinic();
+ if (list.length>0) {
+  loading.value = false
+ }
+ return list
  });
 
 </script>

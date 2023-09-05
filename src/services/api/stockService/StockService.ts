@@ -127,7 +127,7 @@ export default {
   },
   
   getWeb(offset: number) {
-    if (offset >= 0) {
+        if (offset >= 0) {
       return api()
         .get('stock?offset=' + offset + '&max=100')
         .then((resp) => {
@@ -137,14 +137,16 @@ export default {
             this.get(offset);
           } else {
             closeLoading()
-          }
+                      }
         })
     }
-  },
-  async checkStockStatus(idPrescribedDrug: any, prescriptionDate: any, qtyPrescribed: any) {
-    if (prescriptionDate!== "") {
+      },
+  async checkStockStatus(idPrescribedDrug: any, date: any, qtyPrescribed: any) {
+
+    if (isOnline) {
+    if (date!== "") {
         return api()
-        .get('stock/checkStockStatus/' + idPrescribedDrug + '/'+prescriptionDate+'/'+qtyPrescribed)
+        .get('stock/checkStockStatus/' + idPrescribedDrug + '/'+date+'/'+qtyPrescribed)
         .then((resp) => {
           closeLoading()
           return resp.data
@@ -152,6 +154,27 @@ export default {
       } else {
         return false
       }
+
+    }
+    else {
+      var qtyInStock = 0
+      const stocks = this.getStockByDrug(idPrescribedDrug);
+      const validStock = stocks.filter((item) => {
+        return moment(item.expireDate) >= moment(date);
+      });
+      if (validStock.length <= 0) {
+        return false;
+      } else {
+        validStock.forEach((item) => {
+          qtyInStock = Number(qtyInStock + item.stockMoviment);
+        });
+        if (qtyInStock < qtyPrescribed) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+    }
       },
   apiUpdateWeb(id: any, params: any) {
     return api()

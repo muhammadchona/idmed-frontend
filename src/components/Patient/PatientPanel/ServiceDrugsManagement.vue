@@ -285,14 +285,13 @@ const qtySupplied = async (packagedDrug) => {
 };
 const checkStock = async (packagedDrug) => {
 
-  //verificar esse.
   packagedDrug.drug = getDrugById(packagedDrug.drug.id);
   const qtytoDispense = getQtyPrescribed(
     packagedDrug,
     curPack.value.weeksSupply
   );
   packagedDrug.quantitySupplied = qtytoDispense;
-  const resp = await  StockService.checkStockStatus( packagedDrug.drug.id,curPack.value.pickupDate, qtytoDispense )
+  const resp = await  StockService.checkStockStatus( packagedDrug.drug.id,curPack.value.pickupDate, qtytoDispense)
   return resp
 };
 
