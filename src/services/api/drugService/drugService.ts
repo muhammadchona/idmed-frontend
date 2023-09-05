@@ -120,10 +120,7 @@ export default {
       .where(['drug_id', '=', drug.id])
       .exec()
       .then((result) => {
-        if (result.length > 0) {
-          console.log('ssd', result);
-        }
-        return result.length > 0;
+          return result.length > 0;
       });
   },
 };

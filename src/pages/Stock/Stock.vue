@@ -21,11 +21,6 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
-import { useLoading } from 'src/composables/shared/loading/loading';
-
-
-const { closeLoading, showloading } = useLoading();
-
 
 
 onMounted(() => {
@@ -34,10 +29,9 @@ onMounted(() => {
 });
 
 onBeforeMount(() => {
-  showloading()
-    StockService.get(0);
+   StockService.get(0);
     ReferedStockMovimentService.get(0);
-    DestroyedStockService.get(0);
+     DestroyedStockService.get(0);
     StockEntranceService.get(0)
     InventoryStockAdjustmentService.get(0);
     InventoryService.get(0);

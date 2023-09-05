@@ -7,6 +7,7 @@
       :columns="columns"
       :filter="filter"
       row-key="id"
+      :loading="loading"
     >
       <template v-slot:top-right>
         <q-input
@@ -62,6 +63,9 @@
           </q-td>
         </q-tr>
       </template>
+      <template v-slot:loading>
+        <q-inner-loading showing color="primary" />
+      </template>
     </q-table>
   </div>
 </template>
@@ -97,6 +101,7 @@ const columns = [
 ];
 const filter = ref('');
 const router = useRouter();
+const loading= ref(true)
 
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
@@ -108,6 +113,10 @@ const editStockEntrance = (entrance) => {
 };
 
 const stockEntrances = computed(() => {
-  return StockEntranceService.getStockEntrances();
+  const list = StockEntranceService.getStockEntrances();
+  if (list.length > 0) {
+    loading.value = false
+  }
+  return list
 });
 </script>

@@ -73,7 +73,7 @@ export default {
     } else {
        api().get(`/dashBoard/getStockAlertAll/${clinicId}`).then((resp) => {
         stockAlert.save(resp.data);
-        closeLoading()
+       closeLoading()
         return resp.data
        })
        
@@ -89,7 +89,7 @@ export default {
    getStockAlertsByClinic() {
    const items =  stockAlert.withAllRecursive(2)
       .get()
-      closeLoading()
+     closeLoading()
       return items
   },
   saveStockAlert(param: any) {
