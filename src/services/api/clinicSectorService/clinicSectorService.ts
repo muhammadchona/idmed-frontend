@@ -140,7 +140,6 @@ export default {
 
   /*Pinia Methods*/
   getAllClinicSectors() {
-    showloading();
     return clinicSector.withAll().get();
   },
 

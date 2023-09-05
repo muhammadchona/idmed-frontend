@@ -4,7 +4,10 @@
       Utilizadores
     </div>
     <div class="">
-      <q-table :rows="users" :columns="columns" :filter="filter">
+      <q-table :loading="loading" :rows="users" :columns="columns" :filter="filter">
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <q-input
             outlined
@@ -154,6 +157,7 @@ const columns = [
 const submitting = ref(false);
 const showUserRegistrationScreen = ref(false);
 const user = ref(userService.newInstanceEntity());
+const loading = ref(true);
 
 /*Injects*/
 const step = inject('step');
@@ -168,16 +172,16 @@ const currClinic = inject('currClinic');
 /*Hooks*/
 const users = computed(() => {
   const users = userService.getAllUsers();
-  if(users !== null) closeLoading()
+  if(users.length > 0) stopLoading()
   return users
 });
 
+const stopLoading = () => {
+  loading.value = false
+};
+
 const configs = computed(() => {
   return sysConfigsService.getInstallationType();
-});
-
-onMounted(() => {
-  showloading();
 });
 
 /*Methods*/
@@ -233,7 +237,6 @@ const promptToConfirm = (user) => {
 
   alertWarningAction(question).then((response) => {
     if (response) {
-      showloading();
       if (user.accountLocked) {
         user.accountLocked = false;
       } else {

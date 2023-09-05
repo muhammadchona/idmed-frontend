@@ -7,9 +7,13 @@
       <q-table
         :rows="doctors"
         :columns="columns"
+        :loading="loading"
         :filter="filter"
         virtual-scroll
       >
+      <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <q-input
             outlined
@@ -123,6 +127,7 @@ const { website } = useSystemUtils();
 const showDoctorRegistrationScreen = ref(false);
 const doctor = ref(doctorService.newInstanceEntity());
 const filter = ref('');
+const loading = ref(true);
 const columns = [
   {
     name: 'firstnames',
@@ -174,13 +179,16 @@ const isCreateStep = inject('isCreateStep');
 /*Hooks*/
 const doctors = computed(() => {
   const doctorsRes = doctorService.getAlldoctors();
-  if(doctorsRes !== null) closeLoading()
+  if(doctorsRes.length > 0) stopLoading()
 
   return doctorsRes
 });
 
+const stopLoading = () => {
+  loading.value = false
+}
+
 onMounted(() => {
-  showloading()
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
@@ -251,7 +259,6 @@ const promptToConfirm = (doctorParam) => {
     : 'Deseja Activar o Clínico?';
   alertWarningAction(question).then((response) => {
     if (response) {
-      showloading();
       if (doctorParam.active) {
         doctorParam.active = false;
       } else {
@@ -261,11 +268,9 @@ const promptToConfirm = (doctorParam) => {
         .patch(doctorParam.id, doctorParam)
         .then(() => {
           alertSucess('Clínico actualizado com sucesso.');
-          closeLoading();
         })
         .catch(() => {
           alertError('Aconteceu um erro inesperado ao actualizar o Clínico.');
-          closeLoading();
         });
     }
   });

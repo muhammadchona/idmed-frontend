@@ -178,7 +178,6 @@ const validateClinicSector = () => {
 };
 
 const submitClinicSector = () => {
-  showloading();
   if (isNewClinicSector.value) {
     clinicSector.value.active = true;
     clinicSector.value.uuid = uuidv4();
@@ -189,7 +188,6 @@ const submitClinicSector = () => {
     clinicSectorService
       .post(clinicSector.value)
       .then(() => {
-        closeLoading();
         alertSucess('Sector Clínico registado com sucesso.');
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;
@@ -209,7 +207,6 @@ const submitClinicSector = () => {
     clinicSectorService
       .patch(clinicSector.value.id, clinicSector.value)
       .then(() => {
-        closeLoading();
         alertSucess('Sector Clínico actualizado com sucesso.');
         submitting.value = false;
         showClinicSectorRegistrationScreen.value = false;

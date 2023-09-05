@@ -184,7 +184,6 @@ export default {
     clinic.save(clin);
   },
   getAllClinics() {
-    showloading();
     return clinic
       .query()
       .with('nationalClinic')
