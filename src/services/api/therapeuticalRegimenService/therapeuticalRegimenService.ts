@@ -209,6 +209,7 @@ export default {
         });
       })
       .where('clinical_service_id', clinicalServiceId)
+      .where('active', true)
       .get();
   },
   getAllActiveTherapeuticalHasNoClinicalService() {
@@ -230,9 +231,8 @@ export default {
     return therapeuticRegimen
       .query()
       .where((therapeuticRegimen) => {
-        return (
-          therapeuticRegimen.id === id)
+        return therapeuticRegimen.id === id;
       })
       .first();
-  }
+  },
 };

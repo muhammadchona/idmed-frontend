@@ -142,7 +142,6 @@ export default {
       .get(`/prescription/${id}`)
       .then((resp) => {
         prescription.save(resp.data);
-        console.log(resp.data);
         return resp;
       });
   },
