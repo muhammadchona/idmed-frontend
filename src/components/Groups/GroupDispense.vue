@@ -195,7 +195,6 @@ const patientVisitDetailsToAdd = ref([]);
 const showDispensesData = ref(true);
 const step = 'display';
 const selectedGroup = inject('group');
-console.log(selectedGroup);
 const loadedData = ref(false);
 const defaultPickUpDate = inject('defaultPickUpDate');
 const membersDispenses = ref(new Map());
@@ -231,7 +230,6 @@ const getNextPickUpDate = () => {
     });
   } else {
     selectedGroup.value.members.forEach((member) => {
-      console.log();
       dates.push(
         new Date(
           usePrescription().lastPackOnPrescription(
@@ -249,13 +247,11 @@ const checkMembersPrescriptions = () => {
   let error = 'Os seguintes pacientes possuem prescrições inválidas [';
   let invalidPrescription = '';
   selectedGroup.value.members.forEach((member) => {
-    console.log(member.groupMemberPrescriptions[0]);
     let remainingDuration = 0;
     if (member.groupMemberPrescriptions[0] !== null) {
       remainingDuration = usePrescription().remainigDuration(
         member.groupMemberPrescriptions[0].prescription
       );
-      console.log(remainingDuration);
     }
     if (
       (useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
@@ -282,15 +278,12 @@ const checkMembersPrescriptionsDuration = () => {
     'A duração das prescrições é menor em relação a duração que pretende dispensar para os seguintes pacientes:quas [';
   let invalidPrescription = '';
   selectedGroup.value.members.forEach((member) => {
-    console.log(member.groupMemberPrescriptions[0]);
     let remainingDuration = 0;
     if (member.groupMemberPrescriptions[0] !== null) {
       remainingDuration = usePrescription().remainigDurationInWeeks(
         member.groupMemberPrescriptions[0].prescription
       );
-      console.log(remainingDuration);
     }
-    console.log(durationService.getDurationById(drugsDuration.value.id).weeks);
     if (
       remainingDuration <
       durationService.getDurationById(drugsDuration.value.id).weeks
@@ -311,7 +304,6 @@ const checkMembersPrescriptionsDuration = () => {
 
 const doFormValidation = () => {
   submitting.value = true;
-  console.log(curGroupPackHeader);
   const momentPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(pickupDate);
   const nextPickUpDate = getDateFormatYYYYMMDDFromDDMMYYYY(getNextPickUpDate());
   const momentNextPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(nextPDate);
@@ -402,9 +394,7 @@ const expandLess = (value) => {
 };
 
 const addPrescribedDrug = (prescribedDrug, visitDetails) => {
-  console.log(visitDetails);
   visitDetails = curVisitDetails;
-  console.log(visitDetails);
   //  prescribedDrug.prescription_id = visitDetails.prescription.id
   selectedGroup.value.members.forEach((member) => {
     let prescribedDrugs;
@@ -452,14 +442,11 @@ const addPrescribedDrug = (prescribedDrug, visitDetails) => {
   showAddEditDrug.value = false;
 };
 
-const checkStock = async (prescribedDrug) => {
-  const qtyPrescribed = getQtyPrescribed(
-    prescribedDrug,
-    curPack.value.weeksSupply
-  );
+const checkStock = async (curPack, prescribedDrug) => {
+  const qtyPrescribed = getQtyPrescribed(prescribedDrug, curPack.weeksSupply);
 
   const prescrDate = getYYYYMMDDFromJSDate(
-    getDateFromHyphenDDMMYYYY(prescriptionDate.value)
+    getDateFromHyphenDDMMYYYY(pickupDate.value)
   );
   const resp = await StockService.checkStockStatus(
     prescribedDrug.drug.id,
@@ -469,16 +456,33 @@ const checkStock = async (prescribedDrug) => {
   return resp;
 };
 
-const validatePack = (pack) => {
-  let prescription;
+const getValidStockOnline = async (packDate, prescribedDrug) => {
+  const packDatee = getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(packDate));
+  const resp = await StockService.getValidStockByDrugAndPickUpDateOnline(
+    prescribedDrug.drug.id,
+    packDatee
+  );
+  return resp;
+};
+
+const validateStockPacks = async (pack) => {
   let drugErrors = '';
-  //     prescription = pack.patientVisitDetails[0].prescription
-  //  const patient = prescription.patientVisitDetails[0].patientVisit.patient
-  //   console.log(patient)
-  pack.packagedDrugs.forEach(async (pcdDrugs) => {
-    const hasStock = await checkStock(pcdDrugs);
+  for (const pcdDrugs of pack.packagedDrugs) {
+    const hasStock = await checkStock(pack, pcdDrugs);
+    const stocksO = await StockService.getValidStockByDrugAndPickUpDateOnline(
+      pcdDrugs.drug.id,
+      pack.pickupDate
+    );
     let allAvalibleValidStock;
     if (hasStock) {
+      const stocks = StockService.getValidStockByDrugAndPickUpDate(
+        pcdDrugs.drug.id,
+        getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(pickupDate.value))
+      );
+      const validStock = stocks.filter((item) => {
+        return new Date(item.expireDate) > new Date() && item.stockMoviment > 0;
+      });
+      let i = 0;
       validStock.forEach((stock) => {
         allAvalibleValidStock += stock.stockMoviment;
       });
@@ -490,37 +494,97 @@ const validatePack = (pack) => {
       drugErrors +=
         drugErrors === '' ? pcdDrugs.drug.name : ', ' + pcdDrugs.drug.name;
     }
-  });
-  if (drugErrors !== '') {
     return drugErrors;
-  } else {
-    Object.keys(pack.packagedDrugs).forEach(
-      function (k) {
-        const packagedDrugStocks = [];
-        const stocksToMoviment = [];
-        const packagedDrug = pack.packagedDrugs[k];
-
-        const clinicalServiceId = packagedDrug.drug.clinicalService.id;
-        packagedDrug.drug.clinicalService = {};
-        packagedDrug.drug.clinicalService.id = clinicalServiceId;
-        packagedDrug.drug.therapeuticRegimenList = [];
-        packagedDrug.packagedDrugStocks = packagedDrugStocks;
-        pack.patientVisitDetails[0].patientVisit.visitDate =
-          curGroupPackHeader.value.packDate;
-        console.log(pack);
-      }.bind(this)
-    );
   }
 };
 
-const generatepacks = () => {
-  console.log('generatepacks');
-  showloading();
-  let errorMsg = 'Não existe stock suficiente do medicamento [';
-  let error = '';
-  initGroupPackHeader();
-  console.log(selectedGroup.value.members);
-  curGroupPackHeader.value.groupPacks.forEach((groupPack) => {
+const validatePack = async (pack) => {
+  let prescription;
+  validateStockPacks(pack).then((drugErrors) => {
+    if (drugErrors !== '') {
+      return drugErrors;
+    } else {
+      Object.keys(pack.packagedDrugs).forEach(
+        function (k) {
+          const packagedDrugStocks = [];
+          const stocksToMoviment = [];
+          const packagedDrug = pack.packagedDrugs[k];
+          let quantitySupplied = packagedDrug.quantitySupplied;
+          // const packDrug = new PackagedDrug()
+          const stocks = StockService.getValidStockByDrugAndPickUpDate(
+            packagedDrug.drug.id,
+            getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(pickupDate.value))
+          );
+          const validStock = stocks.filter((item) => {
+            return (
+              new Date(item.expireDate) > new Date() && item.stockMoviment > 0
+            );
+          });
+          let i = 0;
+          while (quantitySupplied > 0) {
+            if (validStock[i].stockMoviment >= quantitySupplied) {
+              validStock[i].stockMoviment = Number(
+                validStock[i].stockMoviment - quantitySupplied
+              );
+              stocksToMoviment.push(validStock[i]);
+              quantitySupplied = 0;
+              const packagedDrugStock = new PackagedDrugStock({
+                id: uuidv4(),
+              });
+              /*
+            packagedDrugStock.drug = drugService.getDrugById(
+              packagedDrug.drug.id
+            );
+            */
+              packagedDrugStock.drug = {};
+              packagedDrugStock.drug.id = packagedDrug.drug.id;
+              //   packagedDrugStock.stock = validStock[i];
+              packagedDrugStock.stock = {};
+              packagedDrugStock.stock.id = validStock[i].id;
+              packagedDrugStock.quantitySupplied =
+                packagedDrug.quantitySupplied;
+              packagedDrugStock.creationDate = new Date();
+              packagedDrugStocks.push(packagedDrugStock);
+            } else {
+              const availableBalance = validStock[i].stockMoviment;
+              qtyPrescribed = Number(
+                qtyPrescribed - validStock[i].stockMoviment
+              );
+              validStock[i].stockMoviment = 0;
+              stocksToMoviment.push(validStock[i]);
+              const packagedDrugStock = new PackagedDrugStock();
+              /*
+            packagedDrugStock.drug = drugService.getDrugById(
+              packagedDrug.drug.id
+            );
+            */
+              packagedDrugStock.drug = {};
+              packagedDrugStock.drug.id = packagedDrug.drug.id;
+              //   packagedDrugStock.stock = validStock[i];
+              packagedDrugStock.stock = {};
+              packagedDrugStock.stock.id = validStock[i].id;
+              packagedDrugStock.quantitySupplied = availableBalance;
+              packagedDrugStock.creationDate = new Date();
+              i = i + 1;
+            }
+          }
+          const clinicalServiceId = packagedDrug.drug.clinicalService.id;
+          packagedDrug.drug.clinicalService = {};
+          packagedDrug.drug.clinicalService.id = clinicalServiceId;
+          packagedDrug.drug.therapeuticRegimenList = [];
+          packagedDrug.packagedDrugStocks = packagedDrugStocks;
+          pack.patientVisitDetails[0].patientVisit.visitDate =
+            curGroupPackHeader.value.packDate;
+        }.bind(this)
+      );
+      return drugErrors;
+    }
+  });
+};
+
+const generateCurrGroupPackHeader = async () => {
+  let drugErrors = '';
+  for (const groupPack of curGroupPackHeader.value.groupPacks) {
     groupPack.pack.packDate = curGroupPackHeader.value.packDate;
     groupPack.pack.pickupDate = curGroupPackHeader.value.packDate;
     groupPack.pack.nextPickUpDate = curGroupPackHeader.value.nextPickUpDate;
@@ -533,21 +597,143 @@ const generatepacks = () => {
     // groupPack.pack.clinic = clinic.value;
     groupPack.pack.clinic = {};
     groupPack.pack.clinic.id = clinic.value.id;
-    const drugerror = validatePack(groupPack.pack);
-    if (drugerror !== undefined) error += drugerror;
-    console.log(error);
-  });
+    // const drugerror = await validatePack(groupPack.pack);
+    // if (drugerror !== undefined) error += drugerror;
+    // return drugerror;
+    for (const pcdDrugs of groupPack.pack.packagedDrugs) {
+      const hasStock = await checkStock(groupPack.pack, pcdDrugs);
+      const stocksO = await StockService.getValidStockByDrugAndPickUpDateOnline(
+        pcdDrugs.drug.id,
+        groupPack.pack.pickupDate
+      );
+      let allAvalibleValidStock;
+      if (hasStock) {
+        const stocks = StockService.getValidStockByDrugAndPickUpDate(
+          pcdDrugs.drug.id,
+          getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(pickupDate.value))
+        );
+        const validStock = stocks.filter((item) => {
+          return (
+            new Date(item.expireDate) > new Date() && item.stockMoviment > 0
+          );
+        });
+        let i = 0;
+        validStock.forEach((stock) => {
+          allAvalibleValidStock += stock.stockMoviment;
+        });
+        if (allAvalibleValidStock < pcdDrugs.quantitySupplied) {
+          drugErrors +=
+            drugErrors === '' ? pcdDrugs.drug.name : ', ' + pcdDrugs.drug.name;
+        }
+      } else {
+        drugErrors +=
+          drugErrors === '' ? pcdDrugs.drug.name : ', ' + pcdDrugs.drug.name;
+      }
+      //return drugErrors;
+    }
+    if (drugErrors !== '') {
+      return drugErrors;
+    } else {
+      Object.keys(groupPack.pack.packagedDrugs).forEach(
+        function (k) {
+          const packagedDrugStocks = [];
+          const stocksToMoviment = [];
+          const packagedDrug = groupPack.pack.packagedDrugs[k];
+          let quantitySupplied = packagedDrug.quantitySupplied;
+          // const packDrug = new PackagedDrug()
+          const stocks = StockService.getValidStockByDrugAndPickUpDate(
+            packagedDrug.drug.id,
+            getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(pickupDate.value))
+          );
 
-  if (error !== undefined && error !== null && error.length > 0) {
-    errorMsg += error + ']';
-    console.log(errorMsg);
-    alertError(errorMsg);
-    submitting.value = false;
-    closeLoading();
-  } else {
-    const i = 0;
-    savePatientVisitDetails(curGroupPackHeader.value.groupPacks, i);
+          const validStock = stocks.filter((item) => {
+            return (
+              new Date(item.expireDate) > new Date() && item.stockMoviment > 0
+            );
+          });
+
+          let i = 0;
+          while (quantitySupplied > 0) {
+            if (validStock[i].stockMoviment >= quantitySupplied) {
+              validStock[i].stockMoviment = Number(
+                validStock[i].stockMoviment - quantitySupplied
+              );
+              stocksToMoviment.push(validStock[i]);
+              quantitySupplied = 0;
+              const packagedDrugStock = new PackagedDrugStock({
+                id: uuidv4(),
+              });
+              /*
+            packagedDrugStock.drug = drugService.getDrugById(
+              packagedDrug.drug.id
+            );
+            */
+              packagedDrugStock.drug = {};
+              packagedDrugStock.drug.id = packagedDrug.drug.id;
+              //   packagedDrugStock.stock = validStock[i];
+              packagedDrugStock.stock = {};
+              packagedDrugStock.stock.id = validStock[i].id;
+              packagedDrugStock.quantitySupplied =
+                packagedDrug.quantitySupplied;
+              packagedDrugStock.creationDate = new Date();
+              packagedDrugStocks.push(packagedDrugStock);
+            } else {
+              const availableBalance = validStock[i].stockMoviment;
+              qtyPrescribed = Number(
+                qtyPrescribed - validStock[i].stockMoviment
+              );
+              validStock[i].stockMoviment = 0;
+              stocksToMoviment.push(validStock[i]);
+              const packagedDrugStock = new PackagedDrugStock();
+              /*
+            packagedDrugStock.drug = drugService.getDrugById(
+              packagedDrug.drug.id
+            );
+            */
+              packagedDrugStock.drug = {};
+              packagedDrugStock.drug.id = packagedDrug.drug.id;
+              //   packagedDrugStock.stock = validStock[i];
+              packagedDrugStock.stock = {};
+              packagedDrugStock.stock.id = validStock[i].id;
+              packagedDrugStock.quantitySupplied = availableBalance;
+              packagedDrugStock.creationDate = new Date();
+              i = i + 1;
+            }
+          }
+          const clinicalServiceId = packagedDrug.drug.clinicalService.id;
+          packagedDrug.drug.clinicalService = {};
+          packagedDrug.drug.clinicalService.id = clinicalServiceId;
+          packagedDrug.drug.therapeuticRegimenList = [];
+          packagedDrug.packagedDrugStocks = packagedDrugStocks;
+          groupPack.pack.patientVisitDetails[0].patientVisit.visitDate =
+            curGroupPackHeader.value.packDate;
+        }.bind(this)
+      );
+    }
   }
+  return drugErrors;
+};
+
+const generatepacks = async () => {
+  showloading();
+  let errorMsg = 'Não existe stock suficiente do medicamento [';
+  initGroupPackHeader();
+  console.log(selectedGroup.value.members);
+  generateCurrGroupPackHeader().then((drugErrors) => {
+    if (
+      drugErrors !== undefined &&
+      drugErrors !== null &&
+      drugErrors.length > 0
+    ) {
+      errorMsg += drugErrors + ']';
+      alertError(drugErrors);
+      submitting.value = false;
+      closeLoading();
+    } else {
+      const i = 0;
+      savePatientVisitDetails(curGroupPackHeader.value.groupPacks, i);
+    }
+  });
 };
 
 const savePatientVisitDetails = (groupPacks, i) => {
@@ -556,7 +742,6 @@ const savePatientVisitDetails = (groupPacks, i) => {
       const patientVisit =
         groupPacks[i].pack.patientVisitDetails[0].patientVisit;
 
-      console.log(patientVisit);
       patientVisit.patientVisitDetails.push(
         groupPacks[i].pack.patientVisitDetails[0]
       );
@@ -608,10 +793,8 @@ const savePatientVisitDetails = (groupPacks, i) => {
         curGroupPackHeader.value.duration.id;
       curGroupPackHeader.value.group_id = selectedGroup.value.id;
       curGroupPackHeader.value.group = null;
-      console.log(curGroupPackHeader.value);
 
       groupPackHeaderService.apiSave(curGroupPackHeader.value).then((resp) => {
-        console.log(resp);
         alertSucess('Operação efectuada com sucesso.');
         submitting.value = false;
         showNewPackingForm.value = false;
@@ -652,8 +835,6 @@ const savePatientVisitDetails = (groupPacks, i) => {
         }
       );
 
-      console.log(patientVisit);
-      console.log(patientVisit.patientVisitDetails);
       const patientId = patientVisit.patient.id;
       patientVisit.patient = {};
       patientVisit.patient.id = patientId;
@@ -673,11 +854,9 @@ const savePatientVisitDetails = (groupPacks, i) => {
         groupPack.pack.patientVisitDetails = [];
         groupPack.pack_id = groupPack.pack.id;
       });
-      console.log(curGroupPackHeader.value);
       groupPackHeaderService
         .apiSave(curGroupPackHeader.value)
         .then((resp) => {
-          console.log(resp);
           groupPackHeaderService.apiFetchById(curGroupPackHeader.value.id);
           closeLoading();
           submitting.value = false;
@@ -720,7 +899,6 @@ const initGroupPackHeader = () => {
   curGroupPackHeader.value.nextPickUpDate = getJSDateFromDDMMYYY(
     nextPDate.value
   );
-  console.log(curGroupPackHeader);
 };
 
 const loadGroup = () => {
@@ -744,7 +922,6 @@ const loadGroup = () => {
     member.patient.identifiers[0].episodes[0] =
       lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
   });
-  console.log(selectedGroup);
   loadedData.value = true;
   //  selectedGroup = group
   return selectedGroup;
@@ -778,11 +955,9 @@ const dispenseModes = computed(() => {
 });
 
 onMounted(() => {
-  console.log('Dispense Component: onMounted');
   loadGroup();
   loadDetails();
   //  initDispenses()
-  console.log(selectedGroup.value.members);
 });
 
 provide('curIdentifier', curIdentifier);

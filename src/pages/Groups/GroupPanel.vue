@@ -208,11 +208,9 @@ const loadMemberInfoByMember = async (member) => {
                 groupPackHeaderService
                   .apiFetchById(packHeader.id)
                   .then((resp) => {
-                    console.log(resp);
-                    console.log(member);
-                    closeLoading();
+                    //  closeLoading();
                   });
-                closeLoading();
+                // closeLoading();
               });
             }
           });
@@ -223,7 +221,7 @@ const loadMemberInfoByMember = async (member) => {
 };
 
 const loadMemberInfo = () => {
-  // showloading();
+  showloading();
   if (!isOnline.value) {
     group.value.members.forEach((member) => {
       groupMemberPrescriptionService.apiFetchByMemberId(member.id);
@@ -298,7 +296,7 @@ watch(
   (oldp, newp) => {
     if (oldp !== newp) {
       fecthMembersData();
-      closeLoading();
+      // closeLoading();
     }
   }
 );

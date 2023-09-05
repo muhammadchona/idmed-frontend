@@ -368,9 +368,16 @@ const sendList = () => {
           loadedPatient.sync = true;
         })
         .catch((error) => {
-          loadedPatient.sync = false;
-          loadedPatient.processed = true;
-          loadedPatient.status = 'Histórico Cliníco Iválido.';
+          if (error.response.status === 409) {
+            console.log(error);
+            loadedPatient.sync = false;
+            loadedPatient.processed = true;
+            loadedPatient.status = 'O paciente ja foi carregado para o iDMED.';
+          } else {
+            loadedPatient.sync = false;
+            loadedPatient.processed = true;
+            loadedPatient.status = 'Histórico Cliníco Inválido.';
+          }
         });
     } else {
       loadedPatient.sync = false;

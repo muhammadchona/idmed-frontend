@@ -225,14 +225,12 @@ const isNewPrescription = ref();
 const selectedGroup = inject('group');
 const desintagrateGroup = inject('desintagrateGroup');
 const getGroupMembers = inject('getGroupMembers');
-console.log(selectedGroup);
+
 watch(
   () => membersInfoLoaded.value,
   (oldp, newp) => {
     if (oldp !== newp) {
-      console.log(loadedMembers.value);
-      console.log(dataFechComplete.value);
-      closeLoading();
+      //   closeLoading();
     }
   }
 );
@@ -287,7 +285,6 @@ const doMemberRemotion = () => {
   member.patient.id = memberPatientId;
   member.clinic = {};
   member.clinic.id = clinic.value.id;
-  console.log(member);
   groupMemberService.apiUpdate(member).then((resp) => {
     getGroupMembers();
     alertSucess('Operação efectuada com sucesso.');
@@ -324,12 +321,13 @@ const loadMembers = () => {
               .pack.id
           );
       }
+      /*
       if (
         member.patient.identifiers[0].episodes[0] !== null &&
         useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
           .prescription !== null
       ) {
-        /*
+        
             const prescription = Prescription.query()
                                           .with('prescriptionDetails')
                                           .with('duration')
@@ -340,12 +338,13 @@ const loadMembers = () => {
                                           .first()
           prescription.patientVisitDetails = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
           member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
-          */
+          
         console.log(
           useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
             .prescription
         );
       }
+      */
     }
   });
   return members.value;
@@ -358,7 +357,7 @@ const lastStartEpisodeWithPrescription = (identifierId) => {
 onMounted(() => {
   showloading();
   getGroupMembers();
-  closeLoading();
+  // closeLoading();
 });
 
 const dataFechComplete = computed(() => {
@@ -401,7 +400,6 @@ const newPrescription = (member, identifier) => {
   closeLoading();
 };
 
-console.log(loadedMembers);
 provide('patient', patient);
 // provide('getGroupMembers', getGroupMembers)
 provide('isNewPrescription', isNewPrescription);
