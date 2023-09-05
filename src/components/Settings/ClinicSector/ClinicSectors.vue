@@ -4,7 +4,10 @@
       Sector Clínico
     </div>
     <div class="">
-      <q-table :rows="clinicSectors" :columns="columns" :filter="filter">
+      <q-table :loading="loading" :rows="clinicSectors" :columns="columns" :filter="filter">
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <q-input
             outlined
@@ -152,6 +155,7 @@ const columns = [
 ];
 const showClinicSectorRegistrationScreen = ref(false);
 const isNewClinicSector = ref(false);
+const loading = ref(true);
 
 const filter = ref('');
 const clinicSector = ref(clinicSectorService.newInstanceEntity());
@@ -164,13 +168,15 @@ const currClinic = inject('currClinic');
 /*Hooks*/
 const clinicSectors = computed(() => {
   const clinicSecs = clinicSectorService.getAllClinicSectors();
-  if(clinicSecs !== null)
-  closeLoading()
+  if ( clinicSecs.length > 0) stopLoading()
   return clinicSecs
 });
 
+const stopLoading = () => {
+  loading.value = false
+}
+
 onMounted(() => {
-  showloading()
   editMode.value = false;
   viewMode.value = false;
 });
@@ -225,7 +231,6 @@ const promptToConfirm = (clinicSectorParam) => {
     : 'Deseja Activar o Sector Clínico?';
   alertWarningAction(question).then((response) => {
     if (response) {
-      showloading()
       if (clinicSectorParam.active) {
         clinicSectorParam.active = false;
       } else {
@@ -234,11 +239,9 @@ const promptToConfirm = (clinicSectorParam) => {
       clinicSectorService
         .patch(clinicSectorParam.id, clinicSectorParam)
         .then(() => {
-          // closeLoading();
           alertSucess('Sector Clínico actualizado com sucesso.');
         })
         .catch(() => {
-          // closeLoading();
           alertError(
             'Aconteceu um erro inesperado ao actualizar o Sector Clínico.'
           );

@@ -4,7 +4,10 @@
       Perfis
     </div>
     <div class="">
-      <q-table :rows="userRoles" :columns="columns" :filter="filter">
+      <q-table :loading="loading" :rows="userRoles" :columns="columns" :filter="filter">
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <q-input
             outlined
@@ -140,6 +143,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 const submitting = ref(false);
+const loading = ref(true);
 
 /*injects*/
 const editMode = inject('editMode');
@@ -157,13 +161,13 @@ provide('showRoleRegistrationScreen', showRoleRegistrationScreen);
 /*Hooks*/
 const userRoles = computed(() => {
   const userRoles = roleService.getAllWithMenus();
-  if(userRoles !== null) closeLoading()
+  if(userRoles.length > 0) stopLoading()
   return userRoles
 });
 
-onMounted(() => {
-  showloading();
-});
+const stopLoading = () => {
+  loading.value = false
+};
 
 /*Methods*/
 const getIconActive = (role) => {

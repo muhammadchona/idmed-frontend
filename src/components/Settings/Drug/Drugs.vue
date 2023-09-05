@@ -4,7 +4,10 @@
       Medicamentos
     </div>
     <div class="">
-      <q-table :rows="drugs" :columns="columns" :filter="filter">
+      <q-table :loading="loading" :rows="drugs" :columns="columns" :filter="filter">
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <div class="row q-gutter-sm">
             <q-input
@@ -154,6 +157,7 @@ const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
+const loading = ref(true);
 
 /*Hooks*/
 const forms = computed(() => {
@@ -162,12 +166,15 @@ const forms = computed(() => {
 
 const drugs = computed(() => {
   const drugsRes = drugService.getAllForAllDrugs();
-  if (drugsRes !== null) closeLoading();
+  if (drugsRes.length > 0) stopLoading();
   return drugsRes;
 });
 
+const stopLoading = () => {
+  loading.value = false
+}
+
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
@@ -209,7 +216,6 @@ const visualizeDrug = (drugParam) => {
 };
 
 const getDrugsFromProvincialServer = () => {
-  showloading();
   drugService
     .getFromProvincial(0)
     .then(() => {
@@ -227,7 +233,6 @@ const promptToConfirm = (drugParam) => {
     : 'Deseja Activar o Medicamento?';
   alertWarningAction(question).then((response) => {
     if (response) {
-      showloading();
       if (drugParam.active) {
         drugParam.active = false;
       } else {
@@ -240,14 +245,12 @@ const promptToConfirm = (drugParam) => {
       drugService
         .patch(drugParam.id, drugParam)
         .then(() => {
-          closeLoading();
           alertSucess('Medicamento actualizado com sucesso.');
         })
         .catch(() => {
           alertError(
             'Aconteceu um erro inesperado ao actualizar o Medicamento.'
           );
-          closeLoading();
         });
     }
   });

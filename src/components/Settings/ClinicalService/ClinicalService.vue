@@ -4,7 +4,10 @@
       Serviço Clínico
     </div>
     <div class="">
-      <q-table :rows="clinicalServices" :columns="columns" :filter="filter">
+      <q-table :loading="loading" :rows="clinicalServices" :columns="columns" :filter="filter">
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <q-input
             outlined
@@ -116,6 +119,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 const { alertWarningAction, alertError, alertSucess } = useSwal();
 const { showloading, closeLoading } = useLoading();
 const { website } = useSystemUtils();
+const loading = ref(true);
 const columns = [
   {
     name: 'code',
@@ -159,12 +163,15 @@ const currClinic = inject('currClinic');
 /*Hooks*/
 const clinicalServices = computed(() => {
   const clinicalServicesRes = clinicalServiceService.getAllClinicalServices();
-  if(clinicalServicesRes !== null) closeLoading()
+  if(clinicalServicesRes.length > 0) stopLoading();
   return clinicalServicesRes
 });
 
+const stopLoading = () => {
+  loading.value = false
+}
+
 onMounted(() => {
-  showloading();
   editMode.value = false;
   viewMode.value = false;
 });
@@ -222,7 +229,6 @@ const close = () => {
 
 /*methods*/
 const submitClinicalService = () => {
-  showloading();
   clinicalService.value.active = true;
   clinicalService.value.clinicSectors.forEach((clinicSector) => {
     clinicSector.clinicSectorType = {};
@@ -285,7 +291,6 @@ const promptToConfirm = (clinicalServiceParam) => {
 
   alertWarningAction(question).then((response) => {
     if (response) {
-      showloading();
       if (clinicalServiceParam.active) {
         clinicalServiceParam.active = false;
       } else {
@@ -295,13 +300,11 @@ const promptToConfirm = (clinicalServiceParam) => {
         .patch(clinicalServiceParam.id, clinicalServiceParam)
         .then(() => {
           alertSucess('Serviço Clínico actualizado com sucesso.');
-          closeLoading();
         })
         .catch(() => {
           alertError(
             'Aconteceu um erro inesperado ao actualizar o Serviço Clínico.'
           );
-          closeLoading();
         });
       // }
     }

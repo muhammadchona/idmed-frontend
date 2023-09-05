@@ -9,10 +9,14 @@
         :rows="clinics"
         :columns="columns"
         :filter="filter"
+        :loading="loading"
         rowsPerPage="5"
         row-key="id"
         :rows-per-page-options="[5, 10]"
       >
+      <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <q-input
             outlined
@@ -124,6 +128,7 @@ const clinic = inject('clinic');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const filter = ref('');
+const loading = ref(true);
 const columns = [
   {
     name: 'clinicName',
@@ -207,13 +212,16 @@ const clinics = computed(() => {
     allProvinces.value,
     nonOrderedClinics.value
   );
-  if(orderedClinics !== null)
-  closeLoading();
+  if(orderedClinics.length > 0)
+  stopLoading();
   return orderedClinics
 });
 
+const stopLoading = () => {
+  loading.value = false
+}
+
 onMounted(() => {
-  showloading();
   step.value = '';
   editMode.value = false;
   viewMode.value = false;

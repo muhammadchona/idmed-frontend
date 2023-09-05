@@ -5,11 +5,15 @@
     </div>
     <div class="">
       <q-table
+        :loading="loading"
         :rows="getHis"
         :columns="columns"
         :filter="filter"
         row-key="abbreviation"
       >
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
             class="full-width row flex-center text-primary q-gutter-sm text-body2"
@@ -163,6 +167,8 @@ const columnInteroperabilityTypes = [
   },
 ];
 
+const loading = ref(true);
+
 const healthInformationSystem = ref(
   healthInformationSystemService.newInstanceEntity()
 );
@@ -181,12 +187,15 @@ const viewMode = inject('viewMode');
 /*Hooks*/
 const getHis = computed(() => {
   const hisList = healthInformationSystemService.getAllHis();
-  if(hisList !== null) closeLoading();
+  if(hisList.length > 0) stopLoading()
   return hisList
 });
 
+const stopLoading = () => {
+  loading.value = false
+}
+
 onMounted(() => {
-  showloading();
   viewMode.value = true;
 });
 

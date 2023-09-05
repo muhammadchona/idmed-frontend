@@ -4,7 +4,10 @@
       Tipo de Identificador
     </div>
     <div class="">
-      <q-table :rows="identifierTypes" :columns="columns" :filter="filter">
+      <q-table :loading="loading" :rows="identifierTypes" :columns="columns" :filter="filter">
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:top-right>
           <q-input
             outlined
@@ -136,6 +139,7 @@ const columns = [
 const showAddEditIdentifierType = ref(false);
 const identifierType = ref(identifierTypeService.newInstanceEntity());
 const filter = ref('');
+const loading = ref(true);
 
 /*injects*/
 const step = inject('step');
@@ -147,12 +151,15 @@ const isCreateStep = inject('isCreateStep');
 /*Hooks*/
 const identifierTypes = computed(() => {
   const identifierTypes = identifierTypeService.getAllIdentifierTypes();
-  if(identifierTypes !== null) closeLoading()
+  if(identifierTypes.length > 0) stopLoading()
   return identifierTypes
 });
 
+const stopLoading = () => {
+  loading.value = false
+}
+
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';

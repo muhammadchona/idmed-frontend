@@ -5,11 +5,15 @@
     </div>
     <div class="">
       <q-table
+        :loading="loading"
         :rows="therapeuticRegimens"
         :columns="columns"
         :filter="filter"
         row-key="regimenScheme"
       >
+      <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
         <template v-slot:no-data="{ icon, filter }">
           <div
             class="full-width row flex-center text-primary q-gutter-sm text-body2"
@@ -107,6 +111,7 @@ import AddTherapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/Ad
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
+const loading = ref(true);
 const columns = [
   {
     name: 'regimenScheme',
@@ -153,9 +158,13 @@ const isCreateStep = inject('isCreateStep');
 const therapeuticRegimens = computed(() => {
   const therapeuticRegimensRes =
     therapeuticalRegimenService.getAllTherapeuticalRegimens();
-  if (therapeuticRegimensRes !== null) closeLoading();
+  if (therapeuticRegimensRes.length > 0) stopLoading();
   return therapeuticRegimensRes;
 });
+
+const stopLoading = () => {
+  loading.value = false
+}
 
 const forms = computed(() => {
   return formService.getAllForms();
@@ -166,7 +175,6 @@ const drugs = computed(() => {
 });
 
 onMounted(() => {
-  showloading();
   isEditStep.value = false;
   isCreateStep.value = false;
   step.value = '';
@@ -223,7 +231,6 @@ const promptToConfirm = (therapeuticRegimenParam) => {
     : 'Deseja Activar o Regime Terapêutico?';
   alertWarningAction(question).then((response) => {
     if (response) {
-      showloading();
       if (therapeuticRegimenParam.active) {
         therapeuticRegimenParam.active = false;
       } else {
@@ -232,14 +239,12 @@ const promptToConfirm = (therapeuticRegimenParam) => {
       therapeuticalRegimenService
         .patch(therapeuticRegimenParam.id, therapeuticRegimenParam)
         .then(() => {
-          closeLoading();
           alertSucess('Regime Terapêutico actualizado com sucesso.');
         })
         .catch(() => {
           alertError(
             'Aconteceu um erro inesperado ao actualizar o Regime Terapêutico.'
           );
-          closeLoading();
         });
     }
   });
