@@ -579,10 +579,10 @@ const doSave = async () => {
     
     patientReg.value.hisProvider = localStorage.getItem('Btoa');
   if (selectedDataSources.value.abbreviation  === 'OpenMRS') {
-    patientReg.value.hisUuid = selectedDataSources.value.id
+    patientReg.value.his = {} 
+    patientReg.value.his.id =  selectedDataSources.value.id
     patientReg.value.hisSyncStatus = 'P'
   } else {
-    patientReg.value.hisUuid = ''
     patientReg.value.hisSyncStatus = 'N'
   }
   
