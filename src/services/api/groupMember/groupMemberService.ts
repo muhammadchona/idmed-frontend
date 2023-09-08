@@ -90,4 +90,7 @@ export default {
   getAllFromStorage() {
     return groupMember.withAll().all();
   },
+  deleteAllFromStorage() {
+    groupMember.flush();
+  },
 };

@@ -130,6 +130,9 @@ export default {
   getAllFromStorage() {
     return prescribedDrug.all();
   },
+  deleteAllFromStorage() {
+    prescribedDrug.flush();
+  },
   getLastByPrescriprionId(prescriptionId: string) {
     return prescribedDrug.where('prescription_id', prescriptionId).first();
   },

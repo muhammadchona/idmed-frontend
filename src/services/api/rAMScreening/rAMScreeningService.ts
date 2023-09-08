@@ -123,4 +123,7 @@ export default {
   getAllFromStorage() {
     return rAMScreening.all();
   },
+  deleteAllFromStorage() {
+    rAMScreening.flush();
+  },
 };

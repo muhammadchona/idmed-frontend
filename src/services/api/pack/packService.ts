@@ -186,7 +186,9 @@ export default {
   getAllFromStorage() {
     return pack.all();
   },
-
+  deleteAllFromStorage() {
+    pack.flush();
+  },
   removeFromStorage(id: string) {
     return pack.destroy(id);
   },

@@ -22,7 +22,7 @@
         </div>
         <div class="row">
           <q-input
-           @keyup.enter="search"
+            @keyup.enter="search"
             outlined
             label="Nr. Identificador"
             dense
@@ -49,8 +49,8 @@
             </template>
           </q-input>
           <q-input
-           @keyup.enter="search"
-             outlined
+            @keyup.enter="search"
+            outlined
             ref="firstNamesRef"
             v-model="currPatient.firstNames"
             type="text"
@@ -78,7 +78,7 @@
             </template>
           </q-input>
           <q-input
-          @keyup.enter="search"
+            @keyup.enter="search"
             outlined
             ref="lastNamesRef"
             v-model="currPatient.lastNames"
@@ -248,12 +248,14 @@ import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import districtService from 'src/services/api/districtService/districtService';
 import { v4 as uuidv4 } from 'uuid';
+import { useOnline } from 'src/composables/shared/loadParams/online';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
 const { website, isOnline, isDeskTop, isMobile } = useSystemUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
+const { deleteStorageWithoutPatientInfo } = useOnline();
 
 //Declaration
 
@@ -481,11 +483,16 @@ const closePatient = () => {
 
 const goToPatientPanel = async (patient) => {
   showloading();
+  // Delete all Except this patient
+  deleteStorageWithoutPatientInfo();
+  await patientService.deleteAllExceptIdFromStorage(patient.id);
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
   await patientService.getPatientByID(currPatient.value.id);
   // Rest Calls
-  await patientServiceIdentifierService.apiGetAllByPatientId(currPatient.value.id);
+  await patientServiceIdentifierService.apiGetAllByPatientId(
+    currPatient.value.id
+  );
   await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
   await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
     currPatient.value.id

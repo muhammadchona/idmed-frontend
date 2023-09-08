@@ -6,25 +6,17 @@ import { useRepo } from 'pinia-orm';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import encryption from 'src/services/Encryption';
+import { useOnline } from 'src/composables/shared/loadParams/online';
+import patientService from './api/patientService/patientService';
 
 const userLogin = useRepo(UserLogin);
 const userRoles = useRepo(UserRole);
 const { isMobile, isOnline } = useSystemUtils();
+const { deleteStorageInfo } = useOnline();
 
 export default {
   logout() {
-    return api()
-      .get('logout')
-      .catch((error) => {
-        if (error.response) {
-          console.log(JSON.stringify(error.response));
-          alert(JSON.stringify(error.response.data));
-        } else if (error.request) {
-          console.log(error.request);
-        } else {
-          console.log('Error', error.message);
-        }
-      });
+    deleteStorageInfo();
   },
   fetchUsers() {
     return api()

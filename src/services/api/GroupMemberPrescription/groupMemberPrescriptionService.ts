@@ -112,7 +112,9 @@ export default {
   deleteFromStorageById(id: string) {
     return groupMemberPrescription.destroy(id);
   },
-
+  deleteAllFromStorage() {
+    groupMemberPrescription.flush();
+  },
   getGroupMemberPrescriptionByMemberId(memberId: string) {
     const groupMemberPrescriptions = groupMemberPrescription
       .query()

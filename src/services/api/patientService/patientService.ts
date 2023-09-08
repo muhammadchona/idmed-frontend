@@ -270,6 +270,13 @@ export default {
   getPatientByID(id: string) {
     return patient.withAllRecursive(2).whereId(id).first();
   },
+  async deleteAllExceptIdFromStorage(id: string) {
+    patient
+      .where((patient) => {
+        return patient.id !== id;
+      })
+      .delete();
+  },
   deleteAllFromStorage() {
     patient.flush();
   },

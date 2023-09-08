@@ -116,6 +116,9 @@ export default {
   newInstanceEntity() {
     return appointment.getModel().$newInstance();
   },
+  deleteAllFromStorage() {
+    appointment.flush();
+  },
   getAllFromStorage() {
     return appointment.all();
   },

@@ -194,6 +194,9 @@ export default {
   getAllFromStorage() {
     return episode.all();
   },
+  deleteAllFromStorage() {
+    episode.flush();
+  },
   getEntity() {
     return episode.getModel();
   },

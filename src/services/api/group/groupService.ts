@@ -183,7 +183,9 @@ export default {
   getAllFromStorage() {
     return group.all();
   },
-
+  deleteAllFromStorage() {
+    group.flush();
+  },
   getGroupWithsById(groupId: string) {
     return group
       .with('members', (query) => {

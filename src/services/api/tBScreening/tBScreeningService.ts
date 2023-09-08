@@ -124,4 +124,7 @@ export default {
   getAllFromStorage() {
     return tBScreening.all();
   },
+  deleteAllFromStorage() {
+    tBScreening.flush();
+  },
 };
