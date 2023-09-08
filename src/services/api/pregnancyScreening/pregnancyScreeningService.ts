@@ -139,4 +139,7 @@ export default {
   getAllFromStorage() {
     return pregnancyScreening.all();
   },
+  deleteAllFromStorage() {
+    pregnancyScreening.flush();
+  },
 };

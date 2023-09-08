@@ -119,4 +119,7 @@ export default {
   getAllFromStorage() {
     return adherenceScreening.all();
   },
+  deleteAllFromStorage() {
+    adherenceScreening.flush();
+  },
 };

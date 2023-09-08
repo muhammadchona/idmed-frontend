@@ -39,6 +39,23 @@ import NanotherapeuticRegimenService from 'src/services/Synchronization/therapeu
 import NanoGroupTypeService from 'src/services/Synchronization/groupType/NanoGroupTypeService';
 import episodeService from 'src/services/api/episode/episodeService';
 import patientService from 'src/services/api/patientService/patientService';
+import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
+import adherenceScreeningService from 'src/services/api/adherenceScreening/adherenceScreeningService';
+import appointmentService from 'src/services/api/appointment/appointmentService';
+import groupService from 'src/services/api/group/groupService';
+import groupMemberService from 'src/services/api/groupMember/groupMemberService';
+import packService from 'src/services/api/pack/packService';
+import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+import pregnancyScreeningService from 'src/services/api/pregnancyScreening/pregnancyScreeningService';
+import prescribedDrugService from 'src/services/api/prescribedDrug/prescribedDrugService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import prescriptionDetailsService from 'src/services/api/prescriptionDetails/prescriptionDetailsService';
+import rAMScreeningService from 'src/services/api/rAMScreening/rAMScreeningService';
+import tBScreeningService from 'src/services/api/tBScreening/tBScreeningService';
+import vitalSignsScreeningService from 'src/services/api/vitalSignsScreening/vitalSignsScreeningService';
 
 export function useOffline() {
   async function loadSettingParamsToOffline() {
@@ -95,5 +112,55 @@ export function useOffline() {
     await episodeService.doEpisodesBySectorGet();
   }
 
-  return { loadSettingParamsToOffline, loadPatientDataToOffline };
+  function deleteStorageInfo() {
+    patientVisitDetailsService.deleteAllFromStorage();
+    prescriptionDetailsService.deleteAllFromStorage();
+    prescribedDrugService.deleteAllFromStorage();
+    groupMemberPrescriptionService.deleteAllFromStorage();
+    prescriptionService.deleteAllFromStorage();
+    patientVisitService.deleteAllFromStorage();
+    rAMScreeningService.deleteAllFromStorage();
+    adherenceScreeningService.deleteAllFromStorage();
+    pregnancyScreeningService.deleteAllFromStorage();
+    tBScreeningService.deleteAllFromStorage();
+    vitalSignsScreeningService.deleteAllFromStorage();
+    episodeService.deleteAllFromStorage();
+    packagedDrugService.deleteAllFromStorage();
+    packService.deleteAllFromStorage();
+    appointmentService.deleteAllFromStorage();
+    groupMemberService.deleteAllFromStorage();
+    groupService.deleteAllFromStorage();
+    patientServiceIdentifierService.deleteAllFromStorage();
+    patientServiceIdentifierService.deleteAllFromStorage();
+    // reportsService.deleteAllFromStorage();
+  }
+
+  function deleteStorageWithoutPatientInfo() {
+    patientVisitDetailsService.deleteAllFromStorage();
+    prescriptionDetailsService.deleteAllFromStorage();
+    prescribedDrugService.deleteAllFromStorage();
+    groupMemberPrescriptionService.deleteAllFromStorage();
+    prescriptionService.deleteAllFromStorage();
+    patientVisitService.deleteAllFromStorage();
+    rAMScreeningService.deleteAllFromStorage();
+    adherenceScreeningService.deleteAllFromStorage();
+    pregnancyScreeningService.deleteAllFromStorage();
+    tBScreeningService.deleteAllFromStorage();
+    vitalSignsScreeningService.deleteAllFromStorage();
+    episodeService.deleteAllFromStorage();
+    packagedDrugService.deleteAllFromStorage();
+    packService.deleteAllFromStorage();
+    appointmentService.deleteAllFromStorage();
+    groupMemberService.deleteAllFromStorage();
+    groupService.deleteAllFromStorage();
+    patientServiceIdentifierService.deleteAllFromStorage();
+    // reportsService.deleteAllFromStorage();
+  }
+
+  return {
+    loadSettingParamsToOffline,
+    loadPatientDataToOffline,
+    deleteStorageInfo,
+    deleteStorageWithoutPatientInfo,
+  };
 }

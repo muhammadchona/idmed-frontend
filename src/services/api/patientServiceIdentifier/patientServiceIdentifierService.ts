@@ -188,6 +188,9 @@ export default {
   getAllFromStorage() {
     return patientServiceIdentifier.all();
   },
+  deleteAllFromStorage() {
+    patientServiceIdentifier.flush();
+  },
   identifierCurr(id: string, serviceId: string) {
     return patientServiceIdentifier
       .withAllRecursive(2)

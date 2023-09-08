@@ -3,13 +3,14 @@
 </template>
 <script>
 import { SessionStorage } from 'quasar'
+import UsersService from 'src/services/UsersService'
 
 export default {
   data () {
     return {}
   },
   created: function () {
-  //  UsersService.logout()
+   UsersService.logout()
   //  localStorage.setItem('id_token', null)
   SessionStorage.clear()
    localStorage.setItem('user', null)

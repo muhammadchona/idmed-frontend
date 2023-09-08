@@ -46,7 +46,15 @@ import roleService from 'src/services/api/role/roleService';
 import menuService from 'src/services/api/menu/menuService';
 import roleMenuService from 'src/services/api/roleMenu/roleMenuService';
 import userService from 'src/services/api/user/userService';
-
+import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
+import adherenceScreeningService from 'src/services/api/adherenceScreening/adherenceScreeningService';
+import appointmentService from 'src/services/api/appointment/appointmentService';
+import groupService from 'src/services/api/group/groupService';
+import groupMemberService from 'src/services/api/groupMember/groupMemberService';
+import pregnancyScreeningService from 'src/services/api/pregnancyScreening/pregnancyScreeningService';
+import rAMScreeningService from 'src/services/api/rAMScreening/rAMScreeningService';
+import tBScreeningService from 'src/services/api/tBScreening/tBScreeningService';
+import vitalSignsScreeningService from 'src/services/api/vitalSignsScreening/vitalSignsScreeningService';
 
 export function useOnline() {
   function loadSettingParams() {
@@ -83,15 +91,62 @@ export function useOnline() {
     menuService.get(0);
     userService.get(0);
     StockOperationTypeService.get(0);
-  
-
-
-
   }
 
   function loadPatientData() {
     patientService.doPatientsBySectorGet();
     episodeService.doEpisodesBySectorGet();
   }
-  return { loadSettingParams, loadPatientData };
+
+  function deleteStorageInfo() {
+    patientVisitDetailsService.deleteAllFromStorage();
+    prescriptionDetailsService.deleteAllFromStorage();
+    prescribedDrugService.deleteAllFromStorage();
+    groupMemberPrescriptionService.deleteAllFromStorage();
+    prescriptionService.deleteAllFromStorage();
+    patientVisitService.deleteAllFromStorage();
+    rAMScreeningService.deleteAllFromStorage();
+    adherenceScreeningService.deleteAllFromStorage();
+    pregnancyScreeningService.deleteAllFromStorage();
+    tBScreeningService.deleteAllFromStorage();
+    vitalSignsScreeningService.deleteAllFromStorage();
+    episodeService.deleteAllFromStorage();
+    packagedDrugService.deleteAllFromStorage();
+    packService.deleteAllFromStorage();
+    appointmentService.deleteAllFromStorage();
+    groupMemberService.deleteAllFromStorage();
+    groupService.deleteAllFromStorage();
+    patientServiceIdentifierService.deleteAllFromStorage();
+    patientService.deleteAllFromStorage();
+    // reportsService.deleteAllFromStorage();
+  }
+
+  function deleteStorageWithoutPatientInfo() {
+    patientVisitDetailsService.deleteAllFromStorage();
+    prescriptionDetailsService.deleteAllFromStorage();
+    prescribedDrugService.deleteAllFromStorage();
+    groupMemberPrescriptionService.deleteAllFromStorage();
+    prescriptionService.deleteAllFromStorage();
+    patientVisitService.deleteAllFromStorage();
+    rAMScreeningService.deleteAllFromStorage();
+    adherenceScreeningService.deleteAllFromStorage();
+    pregnancyScreeningService.deleteAllFromStorage();
+    tBScreeningService.deleteAllFromStorage();
+    vitalSignsScreeningService.deleteAllFromStorage();
+    episodeService.deleteAllFromStorage();
+    packagedDrugService.deleteAllFromStorage();
+    packService.deleteAllFromStorage();
+    appointmentService.deleteAllFromStorage();
+    groupMemberService.deleteAllFromStorage();
+    groupService.deleteAllFromStorage();
+    patientServiceIdentifierService.deleteAllFromStorage();
+    // reportsService.deleteAllFromStorage();
+  }
+
+  return {
+    loadSettingParams,
+    loadPatientData,
+    deleteStorageInfo,
+    deleteStorageWithoutPatientInfo,
+  };
 }

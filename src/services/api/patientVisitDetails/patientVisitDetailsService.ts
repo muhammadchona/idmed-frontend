@@ -203,7 +203,9 @@ export default {
   getAllFromStorage() {
     return patientVisitDetails.all();
   },
-
+  deleteAllFromStorage() {
+    patientVisitDetails.flush();
+  },
   getLastPatientVisitDetailFromPatientVisit(patientVisitId: string) {
     return patientVisitDetails
       .withAllRecursive(2)

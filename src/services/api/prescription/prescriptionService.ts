@@ -180,7 +180,9 @@ export default {
   getAllFromStorage() {
     return prescription.all();
   },
-
+  deleteAllFromStorage() {
+    prescription.flush();
+  },
   getPrescriptionByID(Id: string) {
     return prescription
       .query()

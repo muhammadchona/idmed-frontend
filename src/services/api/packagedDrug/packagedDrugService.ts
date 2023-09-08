@@ -152,4 +152,7 @@ export default {
   getAllFromStorage() {
     return packagedDrug.all();
   },
+  deleteAllFromStorage() {
+    packagedDrug.flush();
+  },
 };

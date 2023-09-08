@@ -126,4 +126,7 @@ export default {
   getAllFromStorage() {
     return vitalSignsScreening.all();
   },
+  deleteAllFromStorage() {
+    vitalSignsScreening.flush();
+  },
 };
