@@ -264,7 +264,7 @@ const initNewAdjustment = (stock, drug, i) => {
   );
   newAdjustment.adjustedStock.drug = drug;
   newAdjustment.adjustedStock.clinic = {}
-  adjustment.adjustedStock.clinic.id = clinicService.currClinic().id
+  newAdjustment.adjustedStock.clinic.id = clinicService.currClinic().id
 
   adjustments.value.push(newAdjustment);
 };
