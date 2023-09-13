@@ -949,7 +949,7 @@ const validateStock = (stock) => {
 
 const doSave = (stock) => {
   showloading();
-  stock.id = uuidv4();
+
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic_id = clinicService.currClinic().id;
   stock.drug_id = stock.drug.id;
@@ -962,6 +962,7 @@ const doSave = (stock) => {
   stock.entrance_id = currStockEntrance.value.id;
   // stock.entrance = entrance
     if (isCreationStep.value) {
+      stock.id = uuidv4();
       StockService.post(stock)
         .then((resp) => {
           // stock.id = resp.response.data.id
