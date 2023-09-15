@@ -302,7 +302,10 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { LocalStorage } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import UrlChanger from 'src/components/Shared/UrlChanger.vue';
+import useNotify from 'src/composables/shared/notify/UseNotify';
 
+
+const { notifyError } = useNotify()
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
@@ -323,10 +326,17 @@ const notice = ref(true);
 const popUpUrlMobile = ref(false);
 const urlBackend = ref('');
 
+
 /*
 Hook
 */
 onMounted(() => {
+  const tokenExpiration = localStorage.getItem('tokenExpiration')
+  console.log(tokenExpiration)
+  if(tokenExpiration && tokenExpiration === '0') {
+    notifyError('Sessão Expirada'); 
+    localStorage.setItem('tokenExpiration', 1);
+  }
   if (isMobile.value && localStorage.getItem('backend_url') === null) {
     popUpUrlMobile.value = true;
   }

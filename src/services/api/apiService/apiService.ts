@@ -2,9 +2,11 @@ import axios, { Axios } from 'axios';
 import UsersService from 'src/services/UsersService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { LocalStorage } from 'quasar';
-import { Notify } from 'quasar';
+import useNotify from 'src/composables/shared/notify/UseNotify';
+// import { Notify } from 'quasar';
 
 const { website } = useSystemUtils();
+const { notifyError } = useNotify()
 
 
 const instance = axios.create({
@@ -21,13 +23,13 @@ function logout() {
   localStorage.removeItem('username');
   localStorage.removeItem('refresh_token');
   localStorage.removeItem('password');
-  localStorage.removeItem('tokenExpiration');
+  // localStorage.removeItem('tokenExpiration');
   window.location.reload();
 }
 
 // Função para iniciar o temporizador
 function fixNextTokenExpirationTime() {
-  localStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10 minutos sem request
+  localStorage.setItem('tokenExpiration', String(Date.now() + 1200000)); // 10 minutos sem request
 }
 
 // Request interceptor for API calls
@@ -55,19 +57,7 @@ instance.interceptors.request.use(
         fixNextTokenExpirationTime();
       } else {
         // O token expirou, fazer o logout
-
-        Notify.create({
-          icon: 'announcement',
-          message: 'Sessão expirada',
-          type: 'negative',
-          progress: true,
-          timeout: 3000,
-          position: 'top',
-          color: 'negative',
-          textColor: 'white',
-          classes: 'glossy',
-        });
-
+        localStorage.setItem('tokenExpiration', 0);
         logout();
         return; // Interromper a solicitação
       }
@@ -121,42 +111,42 @@ instance.interceptors.request.use(
     return response;
   }, function (error) {
 
-    const originalRequest = error.config;
-    // const rToken = localStorage.getItem('id_token')
-    const rToken = localStorage.getItem('refresh_token');
-    if (rToken != null && rToken.length > 10) {
-      if (
-        (error.response.status === 403 || error.response.status === 401) &&
-        !originalRequest._retry
-      ) {
-        originalRequest._retry = true;
-        console.log(
-          'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
-            rToken
-        );
+    // const originalRequest = error.config;
+    // // const rToken = localStorage.getItem('id_token')
+    // const rToken = localStorage.getItem('refresh_token');
+    // if (rToken != null && rToken.length > 10) {
+    //   if (
+    //     (error.response.status === 403 || error.response.status === 401) &&
+    //     !originalRequest._retry
+    //   ) {
+    //     originalRequest._retry = true;
+    //     console.log(
+    //       'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+    //         rToken
+    //     );
         
-        return axios
-          .post(
-            'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
-              rToken
-          )
-          .then(({ data }) => {
-            console.log(
-              '==got the following token back: ' +
-                data.access_token +
-                '___________________________________________'
-            );
-            localStorage.setItem('id_token', data.access_token);
-            localStorage.setItem('refresh_token', data.access_token);
-            //  axios.defaults.headers.common['X-Auth-Token'] = data.access_token
-            originalRequest.headers['X-Auth-Token'] = [
-              '',
-              localStorage.getItem('id_token'),
-            ].join(' ');
-            return axios(originalRequest);
-          });
-      }
-    }
+    //     return axios
+    //       .post(
+    //         'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+    //           rToken
+    //       )
+    //       .then(({ data }) => {
+    //         console.log(
+    //           '==got the following token back: ' +
+    //             data.access_token +
+    //             '___________________________________________'
+    //         );
+    //         localStorage.setItem('id_token', data.access_token);
+    //         localStorage.setItem('refresh_token', data.access_token);
+    //         //  axios.defaults.headers.common['X-Auth-Token'] = data.access_token
+    //         originalRequest.headers['X-Auth-Token'] = [
+    //           '',
+    //           localStorage.getItem('id_token'),
+    //         ].join(' ');
+    //         return axios(originalRequest);
+    //       });
+    //   }
+    // }
     return Promise.reject(error);
   }
 );
