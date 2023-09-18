@@ -112,7 +112,7 @@
 <script setup>
 /*imports*/
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { ref, inject, computed, provide, onMounted } from 'vue';
+import { ref, inject, computed, provide } from 'vue';
 import userService from 'src/services/api/user/userService.ts';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import SecUser from 'src/stores/models/userLogin/User';
@@ -121,7 +121,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
-const { closeLoading, showloading } = useLoading();
+const { closeLoading } = useLoading();
 const { alertWarningAction, alertSucess, alertError } = useSwal();
 const { website } = useSystemUtils();
 const columns = [
@@ -160,20 +160,18 @@ const user = ref(userService.newInstanceEntity());
 const loading = ref(true);
 
 /*Injects*/
-const step = inject('step');
 const filter = inject('filter');
-const createMode = inject('createMode');
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
-const currClinic = inject('currClinic');
 
 /*Hooks*/
 const users = computed(() => {
-  const users = userService.getAllUsers();
-  if(users.length > 0) stopLoading()
-  return users
+  const users = ref(null)
+  users.value = userService.getAllUsers();
+  if(users.value && users.value.length >= 0) stopLoading()
+  return users.value
 });
 
 const stopLoading = () => {

@@ -117,7 +117,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
-const { showloading, closeLoading } = useLoading();
+const { closeLoading } = useLoading();
 const { website } = useSystemUtils();
 const loading = ref(true);
 const columns = [
@@ -155,6 +155,7 @@ const filter = ref('');
 const clinicalService = reactive(ref(new ClinicalService()));
 const clinicalServiceAttributeTypesObjectList = reactive(ref([]));
 const isNewClinicalService = ref(false);
+
 /*injects*/
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
@@ -162,9 +163,10 @@ const currClinic = inject('currClinic');
 
 /*Hooks*/
 const clinicalServices = computed(() => {
-  const clinicalServicesRes = clinicalServiceService.getAllClinicalServices();
-  if(clinicalServicesRes.length > 0) stopLoading();
-  return clinicalServicesRes
+  const clinicalServicesRes = ref(null)
+  clinicalServicesRes.value = clinicalServiceService.getAllClinicalServices();
+  if(clinicalServicesRes.value && clinicalServicesRes.value.length >= 0) stopLoading();
+  return clinicalServicesRes.value
 });
 
 const stopLoading = () => {

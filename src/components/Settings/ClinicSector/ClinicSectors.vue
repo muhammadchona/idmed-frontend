@@ -115,12 +115,10 @@ import { ref, inject, provide, onMounted, computed } from 'vue';
 import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
-const { closeLoading, showloading } = useLoading();
 const { website } = useSystemUtils();
 const { alertWarningAction, alertSucess, alertError } = useSwal();
 const columns = [
@@ -167,9 +165,10 @@ const currClinic = inject('currClinic');
 
 /*Hooks*/
 const clinicSectors = computed(() => {
-  const clinicSecs = clinicSectorService.getAllClinicSectors();
-  if ( clinicSecs.length > 0) stopLoading()
-  return clinicSecs
+  const clinicSecs = ref(null)
+  clinicSecs.value = clinicSectorService.getAllClinicSectors();
+  if ( clinicSecs.value && clinicSecs.value.length >= 0) stopLoading()
+  return clinicSecs.value
 });
 
 const stopLoading = () => {

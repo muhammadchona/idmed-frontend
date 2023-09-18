@@ -108,15 +108,13 @@
 </template>
 <script setup>
 /*Imports*/
-import { ref, inject, provide, computed, onMounted } from 'vue';
+import { ref, inject, provide, computed } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import roleService from 'src/services/api/role/roleService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import addRoleComp from 'src/components/Settings/User/AddRole.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
-const { closeLoading, showloading } = useLoading();
 const role = ref(roleService.newInstanceEntity());
 const { alertWarningAction } = useSwal();
 const { website } = useSystemUtils();
@@ -148,7 +146,6 @@ const loading = ref(true);
 /*injects*/
 const editMode = inject('editMode');
 const viewMode = inject('viewMode');
-const currClinic = inject('currClinic');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 const filter = inject('filter');
@@ -160,9 +157,10 @@ provide('showRoleRegistrationScreen', showRoleRegistrationScreen);
 
 /*Hooks*/
 const userRoles = computed(() => {
-  const userRoles = roleService.getAllWithMenus();
-  if(userRoles.length > 0) stopLoading()
-  return userRoles
+  const userRoles = ref(null)
+  userRoles.value = roleService.getAllWithMenus();
+  if(userRoles.value && userRoles.value.length >= 0) stopLoading()
+  return userRoles.value
 });
 
 const stopLoading = () => {

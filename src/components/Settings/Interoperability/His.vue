@@ -123,14 +123,12 @@
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, onMounted, computed, provide } from 'vue';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import addHIS from 'src/components/Settings/Interoperability/AddHIS.vue';
 import selectedAttributesTable from 'src/components/Settings/Interoperability/HealthInformationSystemAttributeTable.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
 const { alertWarningAction } = useSwal();
-const { showloading, closeLoading } = useLoading();
 const { website } = useSystemUtils();
 const columns = [
   { name: '', required: true, label: '' },
@@ -186,9 +184,10 @@ const viewMode = inject('viewMode');
 
 /*Hooks*/
 const getHis = computed(() => {
-  const hisList = healthInformationSystemService.getAllHis();
-  if(hisList.length > 0) stopLoading()
-  return hisList
+  const hisList = ref(null)
+  hisList.value = healthInformationSystemService.getAllHis();
+  if(hisList.value && hisList.value.length >= 0) stopLoading()
+  return hisList.value
 });
 
 const stopLoading = () => {
