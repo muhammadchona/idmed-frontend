@@ -324,7 +324,6 @@ const isPwd = ref(true);
 const submitting = ref(false);
 const notice = ref(true);
 const popUpUrlMobile = ref(false);
-const urlBackend = ref('');
 
 
 /*
@@ -332,7 +331,6 @@ Hook
 */
 onMounted(() => {
   const tokenExpiration = localStorage.getItem('tokenExpiration')
-  console.log(tokenExpiration)
   if(tokenExpiration && tokenExpiration === '0') {
     notifyError('Sessão Expirada'); 
     localStorage.setItem('tokenExpiration', 1);
