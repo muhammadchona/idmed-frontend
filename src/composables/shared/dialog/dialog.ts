@@ -44,6 +44,8 @@ export function useSwal() {
       icon: 'warning',
       buttons: ['Não', 'Sim'],
       dangerMode: true,
+      closeOnClickOutside: false,
+      closeOnEsc: false,
     });
   }
 

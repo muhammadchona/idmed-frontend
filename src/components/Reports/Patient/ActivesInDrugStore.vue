@@ -40,7 +40,7 @@
           import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
           import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-          const { isMobile, isOnline } = useSystemUtils();
+          const { isOnline } = useSystemUtils();
           const { alertError } = useSwal();
           const props = defineProps(['selectedService', 'menuSelected', 'id'])
           const   progress= ref(0.00)

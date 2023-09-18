@@ -83,17 +83,13 @@
 
 <script setup>
 /*Imports*/
-import { ref, inject, provide, onMounted, computed } from 'vue';
+import { ref, inject, onMounted, computed } from 'vue';
 import roleService from 'src/services/api/role/roleService.ts';
 import menuService from 'src/services/api/menu/menuService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-/*Components import*/
-import nameInput from 'src/components/Shared/NameInput.vue';
-
 /*Variables*/
 const { alertSucess, alertError } = useSwal();
-const step = ref(1);
 const columns = [
   {
     name: 'descrição',
