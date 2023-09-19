@@ -33,17 +33,15 @@
 <script setup>
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import absentReferredPatients from 'src/services/reports/ReferralManagement/AbsentReferredPatients.ts';
 
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 
-import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
 const name = 'AbsentReferredPatients';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
@@ -52,6 +50,7 @@ const qtyProcessed = ref(0);
 const report = 'REFERIDOS_FALTOSOS_AO_LEVANTAMENTO';
 const progress = ref(0.00);
 const filterDrugStoreSection = ref('');
+
 onMounted(() => {
   if (props.params) {
     getProcessingStatus(props.params);
@@ -74,15 +73,26 @@ const initReportProcessing = (params) => {
 
 const getProcessingStatus = (params) => {
   Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {
-    console.log(resp.data.progress);
-    progress.value = resp.data.progress;
-    console.log(progress);
-    if (progress.value < 100) {
-      setTimeout(getProcessingStatus(params), 2);
-    } else {
-      params.progress = 100;
-      LocalStorage.set(params.id, params);
-    }
+
+    
+      if (progress.value < 100) {        
+        alert(resp.data.progress)
+      progress.value = resp.data.progress
+        setTimeout(getProcessingStatus(params), 2)
+      } else {
+        progress.value = 100
+        params.progress = 100
+        LocalStorage.set(params.id, params)
+      }
+  
+
+    // progress.value = resp.data.progress;    
+    // if (progress.value < 100) {
+    //   setTimeout(getProcessingStatus(params), 2);
+    // } else {
+    //   params.progress = 100;
+    //   LocalStorage.set(params.id, params);
+    // }
   });
 };
 

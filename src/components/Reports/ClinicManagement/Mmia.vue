@@ -55,7 +55,7 @@ const {  alertError } = useSwal();
           msg: ''
         })
 
-   const progress = ref(0)
+   const progress = ref(0.00)
    const closeSection =() => {
         LocalStorage.remove(props.id)
         filterMmiaSection.value.remove()
@@ -66,6 +66,7 @@ const {  alertError } = useSwal();
       if (params.periodType !== 'MONTH') {
         alertError('O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]')
       } else {
+        progress.value = 0.001
         if (isOnline.value) {
             Report.apiInitMmiaProcessing(params).then(resp => {
               progress.value = resp.data.progress

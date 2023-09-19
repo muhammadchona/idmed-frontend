@@ -164,7 +164,6 @@ onMounted(() => {
   for (let index = 0; index < array.length; index++) {
     // check if is uuid
     if (array[index].substring(0, 6) === 'report') {
-      console.log(LocalStorage.getItem(index));
       const item = LocalStorage.getItem(array[index]);
       selectedService.value =
         clinicalServiceService.getClinicalServicePersonalizedById(

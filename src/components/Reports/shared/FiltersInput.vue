@@ -195,14 +195,14 @@
             size="25px"
             stripe
             rounded
-            :value="progressStatus.barVal"
+            :value="processingInitiated ? 0.02 : progressStatus.barVal"
             color="secondary"
           >
             <div class="absolute-full flex flex-center">
               <q-badge
                 color="white"
                 text-color="accent"
-                :label="progressStatus.percentVal"
+                :label="processingInitiated ? 'Processamento iniciado...' : progressStatus.percentVal"
               />
             </div>
           </q-linear-progress>
@@ -211,6 +211,13 @@
 
       <div class="row q-ml-md">
         <div class="col">
+          <q-spinner-ios
+            class="row gt-xs"
+            dense
+            color="primary"
+            size="2em"
+            v-if="downloadingXls"
+          ></q-spinner-ios>
           <q-btn
             :color="processingTerminated ? 'green-6' : 'grey-6'"
             class="row gt-xs"
@@ -218,11 +225,19 @@
             dense
             icon="article"
             :disable="!processingTerminated"
+            v-if="!downloadingXls"
             @click.stop="generateReport('XLS')"
           >
             <q-tooltip class="bg-primary">Imprimir Excel</q-tooltip>
             .Xls
           </q-btn>
+          <q-spinner-ios
+          class="gt-xs"
+            dense
+            color="primary"
+            size="2em"
+            v-if="downloadingPdf"
+          ></q-spinner-ios>
           <q-btn
             :color="processingTerminated ? 'green-6' : 'grey-6'"
             class="gt-xs"
@@ -230,6 +245,7 @@
             dense
             @click.stop="generateReport('PDF')"
             :disable="!processingTerminated"
+            v-if="!downloadingPdf"
             icon="article"
             title=".pdf"
           >
@@ -286,6 +302,8 @@ const quarterlyPeriod = ref('');
 const semesterPeriod = ref('');
 const annualPeriod = ref('');
 const submitForm = ref('');
+const downloadingXls = ref(false)
+const downloadingPdf = ref(false)
 
 const reportParams = ref({
   id: null,
@@ -331,6 +349,10 @@ onMounted(() => {
 
 const processingTerminated = computed(() => {
   return props.progress >= 100;
+});
+
+const processingInitiated = computed(() => {
+  return props.progress == 0.001;
 });
 
 const progressStatus = computed(() => {
@@ -388,7 +410,6 @@ if (   applicablePeriods !== null) {
 
 const errorCount = (value) => {
   errorCountAux = value;
-  console.log(value);
 };
 
 const validateFilersReport = () => {
@@ -447,7 +468,6 @@ const initParams = () => {
     reportParams.value.provinceId = currClinic.value.province.id;
     reportParams.value.province = currClinic.value.province;
   }
-  console.log(reportParams);
 };
 
 const setSelectedYear = (year) => {
@@ -472,7 +492,6 @@ const processReport = () => {
   }
 
   saveParams();
-  console.log(reportParams.value);
   initProcessing.value = true;
   $emit('initReportProcessing', reportParams.value);
   $emit('updateProgressBar', progress1.value);
@@ -486,7 +505,24 @@ const saveParams = () => {
   reportParams.value.clinic = currClinic.value;
 };
 
+const generatingXlsReportLoading = (fileType) => {
+    if(fileType === 'XLS'){
+      downloadingXls.value = true;
+    } else {
+      downloadingPdf.value = true;
+    }
+    
+    setTimeout(() => {
+      if(fileType === 'XLS'){
+        downloadingXls.value = false;
+      } else {
+        downloadingPdf.value = false;
+      }
+    }, 2000);
+};
+
 const generateReport = (fileType) => {
+  generatingXlsReportLoading(fileType);
   $emit('generateReport', props.id, fileType, reportParams.value);
 };
 
