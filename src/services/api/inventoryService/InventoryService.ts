@@ -37,7 +37,7 @@ export default {
      return  this.apiUpdateWeb(id, params);
     }
   },
- async  delete(id: number) {
+ async  delete(id: any) {
     if (!isOnline.value ) {
       return this.deleteMobile(id);
      } else {

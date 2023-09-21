@@ -3,9 +3,9 @@
     <TitleBar />
     <div class="q-px-xl q-mx-xl q-mt-md">
       <q-tabs v-model="tab" align="left" dense inline-label class="">
-        <q-tab name="stock" label="Stock" />
-        <q-tab name="entrance" label="Entrada" />
-        <q-tab name="inventory" label="Inventário" />
+        <q-tab name="stock" label="Stock" @click ="selectTab('stock')" />
+        <q-tab name="entrance" label="Entrada"  @click ="selectTab('entrance')"  />
+        <q-tab name="inventory" label="Inventário"  @click ="selectTab('inventory')"  />
       </q-tabs>
       <q-separator color="grey-13" size="1px" />
       <div class="q-mt-md">
@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, provide, computed } from 'vue';
+import { ref, provide, computed, onMounted} from 'vue';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 // import StockEntranceMethod from 'src/methods/stockEntrance/StockEntranceMethod';
 
@@ -98,7 +98,6 @@ const title = ref('Gestão de Stock');
 
 const addEntrada = () => {
   if (tab.value === 'entrance') {
-    console.log('entradass')
     createEntrance.value = true;
   } else {
     const inventory = InventoryService.getOpenInventory();
@@ -119,6 +118,21 @@ const clinic = computed(() => {
 const activeDrugs = computed(() => {
   return drugService.getActiveDrugs();
 });
+
+
+onMounted(() => {
+  const activeTabStock = localStorage.getItem('activeTabStock')
+  if (activeTabStock==="" ) {
+    tab.value = 'stock'  
+} else {
+  tab.value = activeTabStock
+}
+  });
+
+const selectTab = (tabName) => {
+  localStorage.setItem('activeTabStock', tabName)
+  tab.value = tabName
+}
 provide('currClinic', clinic);
 provide('activeDrugs', activeDrugs);
 provide('isCharts', false);

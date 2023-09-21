@@ -223,7 +223,8 @@ const doBeforeSave = () => {
   Object.keys(selected.value).forEach(
     function (k) {
       const drug = selected.value[k];
-      Object.keys(drug.stocks).forEach(
+     const validStocks = StockService.getValidStockByDrug(drug)
+      Object.keys(validStocks).forEach(
         function (i) {
           initNewAdjustment(drug.stocks[i], drug);
         }.bind(this)

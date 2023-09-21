@@ -146,9 +146,9 @@ onMounted(() => {
 
 const inventories = computed(() => {
   const list = InventoryService.getInventories();
-  if (list.length>0) {
+  if (list.length>=0 ) {
     loading.value = false
-  }
+  } 
   return list
 });
 </script>

@@ -828,14 +828,14 @@ const removeGuia = () => {
       'Não pode remover esta guia, pois ja existem registos de lotes associados.'
     );
   } else {
-    guiaStep.value = 'delete';
-
+    
     alertWarningAction(
       'Deseja remover a presente guia de entrada de stock?',
       'Não',
       'Sim'
     ).then((result) => {
       if (result) {
+        guiaStep.value = 'delete';
         doRemoveGuia(stock);
       }
     });

@@ -15,7 +15,7 @@ const referedStockMoviment = useRepo(ReferedStockMoviment);
 export default {
   // Axios API call
   post(params: any) {
-    if (isOnline.value) {
+    if (!isOnline.value) {
      return this.putMobile(params);
     } else {
      return this.postWeb(params);
@@ -23,14 +23,14 @@ export default {
   },
   get(offset: number) {
 
-    if (isOnline.value) {
+    if (!isOnline.value) {
      return this.getMobile();
     } else {
       return this.getWeb(offset);
     }
    },
   patch(id: string, params: any) {
-    if (isOnline.value) {
+    if (!isOnline.value) {
       return this.putMobile(params);
     } else {
       return this.patchWeb(id, params);
@@ -38,7 +38,7 @@ export default {
      },
 
   async delete(id: string) {
-    if (isOnline.value ) {
+    if (!isOnline.value ) {
       return this.deleteMobile(id);
     } else {
      return  this.deleteWeb(id);

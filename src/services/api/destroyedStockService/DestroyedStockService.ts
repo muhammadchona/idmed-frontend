@@ -17,7 +17,7 @@ export default {
   // Axios API call
 
   post(params: any) {
-    if (isOnline.value) {
+    if (!isOnline.value) {
      return this.putMobile(params);
     } else {
      return this.postWeb(params);
@@ -25,14 +25,14 @@ export default {
   },
   get(offset: number) {
 
-    if (isOnline.value) {
+    if (!isOnline.value) {
      return this.getMobile();
     } else {
       return this.getWeb(offset);
     }
    },
   patch( params: any) {
-    if (isOnline.value) {
+    if (!isOnline.value) {
       return this.putMobile(params);
     } else {
       return this.apiUpdateWeb( params);

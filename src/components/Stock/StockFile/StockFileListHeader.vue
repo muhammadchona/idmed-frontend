@@ -37,6 +37,7 @@
         icon="add"
         class="float-right"
       >
+      
         <q-menu anchor="center middle" self="center middle">
           <q-list style="min-width: 150px">
             <q-item clickable v-close-popup>
@@ -57,6 +58,16 @@
           </q-list>
         </q-menu>
       </q-btn>
+      <q-btn
+        dense
+        v-if="showCancel"
+        flat
+        round
+        color="red-8"
+        icon="clear"
+        class="float-right"
+        @click="cancelAdjustment"
+      />
       <!-- <q-btn
         dense
         v-if="!addVisible"
@@ -82,6 +93,9 @@ const createAdjustment = inject('addNewAdjustment');
 const expandLess = inject('expandLess');
 const saveAjustment = inject('saveAjustment');
 const showAddButton = inject('showAddButton')
+const cancelAdjustment = inject('cancelAdjustment')
+const showCancel = inject('showCancel')
+
 
 const headerClass = ref('');
 const expanded = ref(false);
