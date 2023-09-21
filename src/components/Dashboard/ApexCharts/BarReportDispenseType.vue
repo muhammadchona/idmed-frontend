@@ -1,12 +1,14 @@
 <template>
   <div class="relative-position">
-    <apexchart
-      style="max-width: 100%"
-      height="500"
-      type="bar"
-      :options="chartOptions"
-      :series="series"
-    ></apexchart>
+    <div v-if="loaded">
+      <apexchart
+        style="max-width: 100%"
+        height="500"
+        type="bar"
+        :options="chartOptions"
+        :series="series"
+      ></apexchart>
+    </div>
     <div v-if="!loaded" class="absolute-center">
       <q-spinner-ball color="primary" size="xl" />
     </div>
@@ -15,7 +17,7 @@
 
 <script setup>
 import apexchart from 'vue3-apexcharts';
-import { ref, watch, onMounted, inject, computed, reactive } from 'vue';
+import { ref, watch, onMounted, inject, computed } from 'vue';
 import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
@@ -55,55 +57,56 @@ const monthsEng = [
 ];
 
 const loading = ref(false);
-const chartOptions = ref({
-  chart: {
-    id: 'vue-chart-bar',
-  },
-  colors: ['#F44336', '#13c185', '#13a6c1'],
-  animations: {
-    enabled: true,
-    easing: 'easeinout',
-    speed: 1000,
-  },
-  title: {
-    text: 'Total de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
-    align: 'center',
-    offsetY: 12,
-    style: {
-      color: '#000000',
-      fontSize: '14px',
+
+  const chartOptions = {
+    chart: {
+      id: 'vue-chart-bar',
     },
-  },
-  plotOptions: {
-    bar: {
-      borderRadius: 10,
+    colors: ['#F44336', '#13c185', '#13a6c1'],
+    animations: {
+      enabled: true,
+      easing: 'easeinout',
+      speed: 1000,
     },
-  },
-  stroke: {
-    show: true,
-    curve: 'smooth',
-    lineCap: 'butt',
-    colors: undefined,
-    width: 2,
-    dashArray: 0,
-  },
-  fill: {
-    opacity: 2,
-  },
-  tooltip: {
-    y: {
-      formatter: function (val) {
-        return val;
+    title: {
+      text: 'Total de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
+      align: 'center',
+      offsetY: 12,
+      style: {
+        color: '#000000',
+        fontSize: '14px',
       },
     },
-  },
-  dataLabels: {
-    enabled: true,
-  },
-  xaxis: {
-    categories: [...monthsX],
-  },
-});
+    plotOptions: {
+      bar: {
+        borderRadius: 10,
+      },
+    },
+    stroke: {
+      show: true,
+      curve: 'smooth',
+      lineCap: 'butt',
+      colors: undefined,
+      width: 2,
+      dashArray: 0,
+    },
+    fill: {
+      opacity: 2,
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val;
+        },
+      },
+    },
+    dataLabels: {
+      enabled: true,
+    },
+    xaxis: {
+      categories: [...monthsX],
+    },
+  };
 
 const series = ref([
   {
@@ -150,6 +153,7 @@ const getRegisteredPatientByDispenseType = () => {
           if (item.dispense_type === 'DM' && item.month === i) {
             dms.data[i - 1] = item.quantity;
           } else if (item.dispense_type === 'DT' && item.month === i) {
+            console.log(item.month, ' - ', i - 1, ' - ', item.quantity)
             dts.data[i - 1] = item.quantity;
           } else if (item.dispense_type === 'DS' && item.month === i) {
             dss.data[i - 1] = item.quantity;
@@ -165,8 +169,20 @@ onMounted(() => {
   getRegisteredPatientByDispenseType();
 });
 
-watch(year, (newVal, oldVal) => {
+watch([year,serviceCode], () => {
   getRegisteredPatientByDispenseType();
+  chartOptions.title = {
+    ...chartOptions.title,
+    ...{
+      text: 'Total de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
+      align: 'center',
+      offsetY: 12,
+      style: {
+        color: '#000000',
+        fontSize: '14px',
+      },
+    },
+  };
 });
 
 // watch([() => serviceCode.value, () => year], () => {

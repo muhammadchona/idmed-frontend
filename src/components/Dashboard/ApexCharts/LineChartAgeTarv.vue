@@ -1,5 +1,6 @@
 <template>
   <div class="relative-position">
+    <div v-if="loaded">
     <apexchart
       style="max-width: 100%"
       height="600"
@@ -7,6 +8,7 @@
       :options="chartOptions"
       :series="series"
     ></apexchart>
+  </div>
     <div v-if="!loaded" class="absolute-center">
       <q-spinner-ball color="primary" size="xl" />
     </div>
@@ -134,5 +136,17 @@ onMounted(() => {
 
 watch([serviceCode, year], () => {
   getPatientsFirstDispenseByAge();
+  chartOptions.title = {
+    ...chartOptions.title,
+    ...{
+      text: `Total de Pacientes no Serviço ${serviceCode.value}\n que iniciaram o levantamento`,
+      align: 'center',
+      offsetY: 12,
+      style: {
+        color: '#000000',
+        fontSize: '0.5vw',
+      },
+    },
+  };
 });
 </script>

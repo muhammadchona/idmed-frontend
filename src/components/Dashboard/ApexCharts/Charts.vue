@@ -1,12 +1,12 @@
 <template>
   <div>
-      <div class="row q-mt-lg">
-        <div class="col-10 q-mb-sm">
+      <div class="row q-gutter-xss q-mt-sm">
+        <div class="col-10">
           <div class="row justify-center">
             <div class="q-pa-sm" v-for="item in clinicalServiceReports" :key="item.id">
               <q-btn
                 :color="item.colour"
-                @click="setServiceCode(item.service)"
+                @click="changeSevice(item.service, item.colour)"
                 :style="item.style"
               >
                 <q-icon left size="6em" :name="item.icon" />
@@ -33,21 +33,54 @@
       </div>
 
 
-      <div class=" row q-mt-lg justify-center">
-        <div class="col-12">
+      <div class=" row q-gutter-xss justify-center ">
+        <div class="col-12 ">
+          
           <p align="center">
-            <strong>Serviço {{ serviceCode }} </strong>
+            <q-knob
+            show-value
+            font-size="17px"
+            :class="'text-'+colour+' q-ma-sm'"
+            v-model="value"
+            size="80px"
+            :thickness="0.04"
+            :color="colour"
+            track-color="grey-3"
+            v-if="clinicalServiceReports.length > 0 && serviceLoaded"
+          >            
+          Serviço <strong>{{ serviceCode }} </strong>
+          </q-knob>
+            <q-knob
+            show-value
+            font-size="17px"
+            :class="'text-red q-ma-sm'"
+            v-model="value"
+            size="80px"
+            :thickness="0.04"
+            color="red"
+            track-color="grey-3"
+            v-if="clinicalServiceReports.length == 0 && serviceLoaded"
+          >            
+          <strong> Sem Dados </strong>
+          </q-knob>
+          <q-spinner-facebook
+          class="gt-xs"
+            dense
+            color="primary"
+            size="2em"
+            v-if="!serviceLoaded"
+          ></q-spinner-facebook>
           </p>
         </div>
       </div>
 
-      <div class="row q-mt-lg justify-center">
+      <div class="row q-gutter-xss justify-center">
         <div class="col-12">
           <BarByDispenseType class="graph-conainer" />
         </div>
       </div>
 
-      <div class="row q-mt-lg justify-center" key="allCharts">
+      <div class="row q-gutter-xss justify-center" key="allCharts">
         <div class="col-4">
           <LineByAge class="graph-conainer"> </LineByAge>
         </div>
@@ -59,15 +92,15 @@
         </div>
       </div>
 
-      <div class="row q-mt-lg justify-center">
+      <div class="row q-gutter-xss justify-center">
         <div class="col-4">
-          <DispenseTypeByAgeTable class="q-ml-md" />
+          <DispenseTypeByAgeTable class="q-mx-md" />
         </div>
         <div class="col-4">
           <StockAlert class="q-mx-md" />
         </div>
         <div class="col-4">
-          <DispenseTypeByGenderTable class="q-mr-md" />
+          <DispenseTypeByGenderTable class="q-mx-md" />
         </div>
       </div>
   </div>
@@ -90,12 +123,15 @@
   import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
   /*Variables*/
+  const value = ref(100)
   const { isOnline } = useSystemUtils();
-  const { closeLoading } = useLoading();
+  const { closeLoading, showloading } = useLoading();
   const year = ref(new Date().getFullYear());
   const serviceCode = ref('TARV');
+  const colour = ref('green')
   const clinicalServiceReports = ref([]);
   const currClinic = inject('currClinic');
+  const serviceLoaded = ref(false)
 
 
   /*methods:*/
@@ -104,13 +140,18 @@
     closeLoading();
   };
 
-  const setServiceCode = (code) => {
-    serviceCode.value = code;
+  const changeSevice = (service, colourParam) => {
+    serviceCode.value = service
+    colour.value = colourParam 
   };
+
   const getDashboardServiceButton = () => {
+    serviceLoaded.value = false
     reportService
       .getDashboardServiceButton(year.value, currClinic.value.id)
       .then((resp) => {
+        serviceLoaded.value = true
+        console.log(serviceLoaded.value)
         if(isOnline.value){
           clinicalServiceReports.value = resp.data
         } else {
@@ -152,6 +193,7 @@
   provide('currClinic', currClinic);
 
   onMounted(() => {
+    showloading()
     getDashboardServiceButton();
     closeLoading();
   });

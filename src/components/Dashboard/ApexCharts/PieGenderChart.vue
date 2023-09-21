@@ -118,8 +118,10 @@ watch([serviceCode, year], () => {
     ...{
       text: 'Percentual de Pacientes activos no Serviço ' + serviceCode.value,
       align: 'center',
+      offsetY: 12,
       style: {
         color: '#000000',
+        fontSize: '0.5vw',
       },
     },
   };
