@@ -81,7 +81,6 @@ export default {
       return doc.save(reportName + '.pdf')
     },
     async downloadExcel(params) {
-
       const rows = await Report.printReportOther('referredPatientsReport',params.id)
       if(rows.status === 204) return rows.status
       const data =  this.createArrayOfArrayRow(rows.data)
@@ -111,8 +110,8 @@ export default {
       const cellPharmParamValue = worksheet.getCell('B11');
       const cellDistrictParamValue = worksheet.getCell('B12');
       const cellProvinceParamValue = worksheet.getCell('E12');
-      const cellStartDateParamValue = worksheet.getCell('H11');
-      const cellEndDateParamValue = worksheet.getCell('H12');
+      const cellStartDateParamValue = worksheet.getCell('F11');
+      const cellEndDateParamValue = worksheet.getCell('F12');
 
       // Get Rows
       const headerRow = worksheet.getRow(14);
@@ -184,11 +183,11 @@ export default {
 
       // merge a range of cells
       worksheet.mergeCells('A1:A7');
-      worksheet.mergeCells('A9:H10');
-      worksheet.mergeCells('B11:F11');
+      worksheet.mergeCells('A9:F10');
+      worksheet.mergeCells('B11:D11');
       worksheet.mergeCells('B12:C12');
       worksheet.mergeCells('E12:F12');
-      worksheet.mergeCells('A13:H13');
+      worksheet.mergeCells('A13:F13');
 
       // add width size to Columns
       // add height size to Rows

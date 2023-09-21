@@ -27,25 +27,24 @@
   </template>
   
   <script setup>
-          import moment from 'moment'
-          import Report from 'src/services/api/report/ReportService'
-          import { LocalStorage } from 'quasar'
-          import activePatients from 'src/services/reports/Patients/ActivePatients.ts'
-          import { ref } from 'vue'
-          import reportDatesParams from 'src/services/reports/ReportDatesParams'
-          import { useSwal } from 'src/composables/shared/dialog/dialog';
-          import ListHeader from 'components/Shared/ListHeader.vue'
-          import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
-          import activeInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
-          import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
-          import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+    import moment from 'moment'
+    import Report from 'src/services/api/report/ReportService'
+    import { LocalStorage } from 'quasar'
+    import activePatients from 'src/services/reports/Patients/ActivePatients.ts'
+    import { ref } from 'vue'
+    import reportDatesParams from 'src/services/reports/ReportDatesParams'
+    import { useSwal } from 'src/composables/shared/dialog/dialog';
+    import ListHeader from 'components/Shared/ListHeader.vue'
+    import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+    import activeInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
+    import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
+    import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-          const { isMobile, isOnline } = useSystemUtils();
-          const { alertError } = useSwal();
-          const props = defineProps(['selectedService', 'menuSelected', 'id'])
-          const   progress= ref(0.00)
-          const filterDrugStoreSection = ref('')
-  
+    const { isOnline } = useSystemUtils();
+    const { alertError } = useSwal();
+    const props = defineProps(['selectedService', 'menuSelected', 'id'])
+    const   progress= ref(0.00)
+    const filterDrugStoreSection = ref('')
        
   
       const  closeSection =  () => {
@@ -71,7 +70,7 @@
   
         const getProcessingStatus  = (params) => {
           Report.getProcessingStatus('activePatientReport', params).then(resp => {
-            if (resp.data.progress > 0) {
+            if (resp.data.progress > 0.001) {
               progress.value = resp.data.progress
               if (progress.value < 100) {
                 setTimeout(getProcessingStatus(params), 2)

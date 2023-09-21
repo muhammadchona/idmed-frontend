@@ -48,7 +48,7 @@ const name =  'PatientHistory'
 const props = defineProps(['selectedService', 'menuSelected', 'id'])
 const totalRecords =  ref(0)
 const qtyProcessed = ref(0)
- const progress = ref(0.001)
+ const progress = ref(0.00)
  const filterDPatientHistorySection = ref('')
 
 const closeSection = () => {
@@ -56,15 +56,15 @@ const closeSection = () => {
        // LocalStorage.remove(id)
       }
    const  initReportProcessing = (params) => {
+        progress.value = 0.001
         if (isOnline.value) {
             Report.apiInitReportProcess('historicoLevantamentoReport',params).then(resp => {
-            progress.value = resp.data.progress
             setTimeout(getProcessingStatus(params), 2)
           })
           } else {
-          PatientHistoryMobileService.getDataLocalDb(params)
-          progress.value = 100
-         params.progress = 100
+            PatientHistoryMobileService.getDataLocalDb(params)
+            progress.value = 100
+            params.progress = 100
           }
         }
 
@@ -81,7 +81,7 @@ const closeSection = () => {
       }
 
      const generateReport =  (id, fileType) => {
-         //  UID da tab corrente
+       //  UID da tab corrente
         if (isOnline.value) {
           Report.printReport('historicoLevantamentoReport',id, fileType).then(resp => {
            if (!resp.data[0]) {

@@ -7,7 +7,7 @@
       <q-table
         :rows="doctors"
         :columns="columns"
-        :loading="loading"
+        :loading="loadingOnTable"
         :filter="filter"
         virtual-scroll
       >
@@ -116,18 +116,16 @@
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
 import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
-const { closeLoading, showloading } = useLoading();
 const { alertWarningAction, alertError, alertSucess } = useSwal();
 const { website } = useSystemUtils();
 const showDoctorRegistrationScreen = ref(false);
 const doctor = ref(doctorService.newInstanceEntity());
 const filter = ref('');
-const loading = ref(true);
+// const loading = ref(true);
 const columns = [
   {
     name: 'firstnames',
@@ -175,17 +173,20 @@ const viewMode = inject('viewMode');
 const currClinic = inject('currClinic');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
+const loadingOnTable = ref(true);
 
 /*Hooks*/
 const doctors = computed(() => {
-  const doctorsRes = doctorService.getAlldoctors();
-  if(doctorsRes.length > 0) stopLoading()
+  const doctorsRes = ref(null);
+  doctorsRes.value = doctorService.getAlldoctors();
+  if(doctorsRes.value && doctorsRes.value.length >= 0) stopLoading()
 
-  return doctorsRes
+  return doctorsRes.value
 });
 
+
 const stopLoading = () => {
-  loading.value = false
+  loadingOnTable.value = false
 }
 
 onMounted(() => {

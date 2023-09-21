@@ -380,14 +380,14 @@ const goToNextStep = () => {
     // }
   } else if (step.value === 2) {
     if (selectedRoles.value.length <= 0) {
-      alertError('Por Favor seleccione pelo menos um Menu para dar Acesso');
+      alertError('Por Favor, seleccione pelo menos um Menu para dar Acesso.');
     } else {
       stepper.value.next();
     }
   } else if (step.value === 3) {
     if (selectedClinicSectors.value.length <= 0) {
       alertError(
-        'Por Favor seleccione pelo menos uma Farmácia para dar Acesso'
+        'Por Favor, seleccione pelo menos uma Farmácia para dar Acesso.'
       );
     } else {
       submitUser();
@@ -427,7 +427,7 @@ const submitUser = () => {
       .catch((error) => {
         console.log(error);
         alertError(
-          'Aconteceu um erro inesperado ao registar o Sector Clínico.'
+          'Aconteceu um erro inesperado ao registar o Utilizador.'
         );
         submitting.value = false;
         showUserRegistrationScreen.value = false;

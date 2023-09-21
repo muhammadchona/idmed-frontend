@@ -12,7 +12,7 @@
         :loading="loading"
         rowsPerPage="5"
         row-key="id"
-        :rows-per-page-options="[5, 10]"
+        :rows-per-page-options="[5, 10, 15, 20]"
       >
       <template v-slot:loading>
           <q-inner-loading showing color="primary" />
@@ -111,10 +111,7 @@
 import { inject, ref, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
 
-
-const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
@@ -208,13 +205,14 @@ const nonOrderedClinics = computed(() => {
 });
 
 const clinics = computed(() => {
-  const orderedClinics = clinicService.getAllClinicsOrdered(
+  const orderedClinics = ref(null)
+  orderedClinics.value = clinicService.getAllClinicsOrdered(
     allProvinces.value,
     nonOrderedClinics.value
   );
-  if(orderedClinics.length > 0)
+  if(orderedClinics.value && orderedClinics.value.length >= 0)
   stopLoading();
-  return orderedClinics
+  return orderedClinics.value
 });
 
 const stopLoading = () => {

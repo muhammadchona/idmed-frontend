@@ -118,9 +118,7 @@ export default {
     if (isOnline.value && !isMobile.value) {
       return doc.save('PacientesFaltosos.pdf');
     } else {
-      console.log(doc);
       const pdfOutput = doc.output();
-      console.log(pdfOutput);
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
   },
@@ -217,10 +215,10 @@ export default {
 
     // Assign Value to Cell
     cellRepublica.value = logoTitle;
-    cellTitle.value = title;
-    cellPharmParamValue.value = clinic.clinicName;
-    cellStartDateParamValue.value = params.startDate;
-    cellEndDateParamValue.value = params.endDate;
+    cellTitle.value = title
+    cellPharmParamValue.value = clinic?.clinicName;
+    cellStartDateParamValue.value = params.startDateParam;
+    cellEndDateParamValue.value = params.endDateParam;
     cellPharm.value = 'Unidade Sanitária';
     cellStartDate.value = 'Data Início';
     cellEndDate.value = 'Data Fim';
@@ -353,7 +351,6 @@ export default {
       // var UTF8_STR = new Uint8Array(pdfOutput)
       //   var BINARY_ARR = UTF8_STR.buffer
       const titleFile = 'PacientesFaltosos.xlsx';
-      console.log('result' + titleFile);
       saveBlob2File(titleFile, blob);
       function saveBlob2File(fileName, blob) {
         const folder = cordova.file.externalRootDirectory + 'Download';
@@ -361,8 +358,6 @@ export default {
         window.resolveLocalFileSystemURL(
           folder,
           function (dirEntry) {
-            console.log('file system open: ' + dirEntry.name);
-            console.log('file system open11111: ' + blob);
             createFile(dirEntry, fileName, blob);
             // $q.loading.hide()
           },
@@ -385,7 +380,6 @@ export default {
         // Create a FileWriter object for our FileEntry
         fileEntry.createWriter(function (fileWriter) {
           fileWriter.onwriteend = function () {
-            console.log('Successful file write...');
             openFile();
           };
 
@@ -404,10 +398,8 @@ export default {
       }
       function openFile() {
         const strTitle = titleFile;
-        console.log('file system 44444: ' + strTitle);
         const folder =
           cordova.file.externalRootDirectory + 'Download/' + strTitle;
-        console.log('file system 2222: ' + folder);
         const documentURL = decodeURIComponent(folder);
         cordova.plugins.fileOpener2.open(
           documentURL,
@@ -463,7 +455,6 @@ export default {
     // var UTF8_STR = new Uint8Array(pdfOutput)
     //   var BINARY_ARR = UTF8_STR.buffer
     const titleFile = fileName + fileType;
-    console.log('result' + titleFile);
     saveBlob2File(titleFile, blop);
     function saveBlob2File(fileName, blob) {
       const folder = cordova.file.externalRootDirectory + 'Download';
@@ -471,8 +462,6 @@ export default {
       window.resolveLocalFileSystemURL(
         folder,
         function (dirEntry) {
-          console.log('file system open: ' + dirEntry.name);
-          console.log('file system open11111: ' + blob);
           createFile(dirEntry, fileName, blob);
           // $q.loading.hide()
         },
@@ -495,7 +484,6 @@ export default {
       // Create a FileWriter object for our FileEntry
       fileEntry.createWriter(function (fileWriter) {
         fileWriter.onwriteend = function () {
-          console.log('Successful file write...');
           openFile();
         };
 
@@ -514,10 +502,8 @@ export default {
     }
     function openFile() {
       const strTitle = titleFile;
-      console.log('file system 44444: ' + strTitle);
       const folder =
         cordova.file.externalRootDirectory + 'Download/' + strTitle;
-      console.log('file system 2222: ' + folder);
       const documentURL = decodeURIComponent(folder);
       cordova.plugins.fileOpener2.open(documentURL, 'application/pdf', {
         error: function (e) {

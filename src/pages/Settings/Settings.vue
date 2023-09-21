@@ -135,7 +135,6 @@
 /*Imports*/
 import { ref, provide, computed, onMounted } from 'vue';
 import clinicServiceService from 'src/services/api/clinicService/clinicService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
 
 import clinics from 'src/components/Settings/Clinic/Clinics.vue';
 import clinicSectors from 'src/components/Settings/ClinicSector/ClinicSectors.vue';
@@ -151,7 +150,6 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
 const { website } = useSystemUtils();
-const { showloading } = useLoading();
 const activeMenu = ref('Farmácias');
 const filter = ref('');
 const selectedTab = ref('clinic');
@@ -237,4 +235,10 @@ const changeMenu = (label) => {
   drawer.value = false;
 };
 </script>
-<style></style>
+<style scoped>
+  .q-tab--active {
+  background-color: #9e9e9e2e; /* Defina a cor de fundo desejada para destacar o item ativo */
+  color: #000000; /* Defina a cor do texto desejada para destacar o item ativo */
+  /* Outros estilos desejados */
+}
+</style>

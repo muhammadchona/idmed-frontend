@@ -1,3 +1,4 @@
+
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -127,7 +128,7 @@ export default {
   },
 
   /*Pinia Methods*/
-  getAlldoctors() {
+   getAlldoctors () {
     return doctor
       .with('clinic', (query) => {
         query.with('province');
@@ -136,5 +137,6 @@ export default {
       })
       .orderBy('firstnames')
       .get();
-  },
+      
+    },
 };

@@ -89,9 +89,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import formService from 'src/services/api/formService/formService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
 
-const { closeLoading, showloading } = useLoading();
 
 /*Components Import*/
 import addDrug from 'src/components/Settings/Drug/AddDrug.vue';
@@ -152,7 +150,6 @@ const filter = ref('');
 
 /*injects*/
 const step = inject('step');
-const clinic = inject('clinic');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const isEditStep = inject('isEditStep');
@@ -165,9 +162,10 @@ const forms = computed(() => {
 });
 
 const drugs = computed(() => {
-  const drugsRes = drugService.getAllForAllDrugs();
-  if (drugsRes.length > 0) stopLoading();
-  return drugsRes;
+  const drugsRes = ref(null)
+  drugsRes.value = drugService.getAllForAllDrugs();
+  if (drugsRes.value && drugsRes.value.length >= 0) stopLoading();
+  return drugsRes.value;
 });
 
 const stopLoading = () => {

@@ -102,9 +102,6 @@ import formService from 'src/services/api/formService/formService.ts';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import drugService from 'src/services/api/drugService/drugService.ts';
-import { useLoading } from 'src/composables/shared/loading/loading';
-
-const { closeLoading, showloading } = useLoading();
 
 /*Components import*/
 import AddTherapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue';
@@ -148,7 +145,6 @@ const therapeuticRegimen = ref(therapeuticalRegimenService.newInstanceEntity());
 
 /*injects*/
 const step = inject('step');
-const clinic = inject('clinic');
 const viewMode = inject('viewMode');
 const editMode = inject('editMode');
 const isEditStep = inject('isEditStep');
@@ -156,10 +152,11 @@ const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const therapeuticRegimens = computed(() => {
-  const therapeuticRegimensRes =
+  const therapeuticRegimensRes = ref(null)
+  therapeuticRegimensRes.value =
     therapeuticalRegimenService.getAllTherapeuticalRegimens();
-  if (therapeuticRegimensRes.length > 0) stopLoading();
-  return therapeuticRegimensRes;
+  if (therapeuticRegimensRes.value && therapeuticRegimensRes.value.length >= 0) stopLoading();
+  return therapeuticRegimensRes.value;
 });
 
 const stopLoading = () => {
