@@ -125,7 +125,22 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api().get(`/patientServiceIdentifier/${id}`);
+    return await api()
+      .get(`/patientServiceIdentifier/${id}`)
+      .then((resp) => {
+        patientServiceIdentifier.save(resp.data);
+        return resp;
+      });
+  },
+
+  async apiFetchByNidValue(nidValue: string) {
+    const replacedString = nidValue.replace(/\//g, '-');
+    return await api()
+      .get(`/patientServiceIdentifier/value/${replacedString}`)
+      .then((resp) => {
+        if (resp.data !== '') patientServiceIdentifier.save(resp.data);
+        return resp.data;
+      });
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
@@ -239,6 +254,20 @@ export default {
       .where((patientService) => {
         console.log(patientService);
         return patientService.patient_id === patientId;
+      })
+      .orderBy('startDate', 'desc')
+      .first();
+  },
+
+  getPreferredIdentifierByPatientId(patientId: string) {
+    return patientServiceIdentifier
+      .withAll()
+      .where((patientService) => {
+        console.log(patientService);
+        return (
+          patientService.patient_id === patientId &&
+          patientService.prefered === true
+        );
       })
       .orderBy('startDate', 'desc')
       .first();

@@ -79,7 +79,7 @@
               label="Cancelar"
               color="red"
               class="all-pointer-events"
-              @click="showAddPrescription = false"
+              @click="loadedPrescriptionInfo = false"
             />
             <q-btn
               :label="dispenseLabel"
@@ -134,9 +134,10 @@ const { isOnline } = useSystemUtils();
 const patient = inject('patient');
 const isNewPrescription = inject('isNewPrescription');
 const showAddPrescription = inject('showAddPrescription');
-const getGroupMembers = inject('getGroupMembers');
+const loadMemberInfoToShowByGroupId = inject('loadMemberInfoToShowByGroupId');
 const selectedMember = inject('selectedMember');
-
+const loadedPrescriptionInfo = inject('loadedPrescriptionInfo');
+const getGroupMembers = inject('getGroupMembers');
 //Hook
 onMounted(() => {
   console.log(isNewPrescription.value);
@@ -160,7 +161,11 @@ const init = () => {
 };
 
 const executeGetGroupMembers = () => {
-  getGroupMembers(true);
+  if (!isOnline.value) {
+    getGroupMembers(true);
+  } else {
+    loadMemberInfoToShowByGroupId();
+  }
 };
 
 const doValidationToDispense = () => {
@@ -255,7 +260,7 @@ const doValidationToDispense = () => {
       executeGetGroupMembers();
       alertSucess('Prescrição gravada com sucesso');
       submitting.value = false;
-      showAddPrescription.value = false;
+      loadedPrescriptionInfo.value = false;
       // this.$emit('getGroupMembers', true)
     })
     .catch((error) => {

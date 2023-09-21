@@ -1,6 +1,7 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import GroupMember from 'src/stores/models/groupMember/GroupMember';
+import GroupMemberInfo from 'src/stores/models/groupMember/GroupMemberInfo';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
@@ -9,6 +10,7 @@ import groupService from '../group/groupService';
 
 const { isOnline, isMobile } = useSystemUtils();
 const groupMember = useRepo(GroupMember);
+const groupMemberInfo = useRepo(GroupMemberInfo);
 
 export default {
   // Axios API call
@@ -44,6 +46,16 @@ export default {
       .delete('groupMember/' + id)
       .then(() => {
         groupMember.destroy(id);
+      });
+  },
+
+  // WEB
+  async apiGetGroupMemberInfo(groupId: string) {
+    return await api()
+      .get(`/groupMember/groupMemberInfo/${groupId}`)
+      .then((resp) => {
+        groupMemberInfo.save(resp.data);
+        return resp.data;
       });
   },
   async apiUpdate(member: any) {
@@ -92,5 +104,16 @@ export default {
   },
   deleteAllFromStorage() {
     groupMember.flush();
+  },
+  getMemberByPatientIdAndGroupId(patientId: string, groupId: string) {
+    return groupMember
+      .withAllRecursive(2)
+      .where('patient_id', patientId)
+      .where('group_id', groupId)
+      .first();
+  },
+
+  getMemberById(id: string) {
+    return groupMember.withAllRecursive(2).where('id', id).first();
   },
 };

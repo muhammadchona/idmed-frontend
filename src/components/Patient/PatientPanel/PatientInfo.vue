@@ -108,12 +108,15 @@
         unelevated
         color="primary"
         label="Unir Duplicados"
-        disable
         class="col"
+        @click="mergeDuplicatePatient"
       />
     </div>
     <q-dialog persistent v-model="showPatientRegister">
       <patientRegister />
+    </q-dialog>
+    <q-dialog persistent v-model="showMergeDuplicates">
+      <mergeDuplicates />
     </q-dialog>
     <span></span>
   </div>
@@ -124,6 +127,7 @@ import { usePatient } from 'src/composables/patient/patientMethods';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import patientRegister from 'src/components/Patient/Register/PatientRegister.vue';
+import mergeDuplicates from 'src/components/Patient/PatientPanel/MergeDuplicatePatients.vue';
 import { inject, onMounted, provide, ref } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
 
@@ -132,6 +136,7 @@ const { postoAdministrativoName, bairroName, fullName } = usePatient();
 const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const showPatientRegister = ref(false);
+const showMergeDuplicates = ref(false);
 const newPatient = ref(false);
 const openMrsPatient = ref(false);
 
@@ -163,11 +168,26 @@ const closePatient = () => {
   newPatient.value = false;
 };
 
+const closeDuplicates = () => {
+  showMergeDuplicates.value = false;
+};
+
+const mergeDuplicatePatient = () => {
+  showMergeDuplicates.value = true;
+};
+
+const closeMergePatient = () => {
+  showMergeDuplicates.value = false;
+  newPatient.value = false;
+};
+
 provide('newPatient', newPatient);
 provide('closePatient', closePatient);
+provide('closeDuplicates', closeDuplicates);
 provide('patient', patient);
 provide('openMrsPatient', openMrsPatient);
 provide('showPatientRegister', showPatientRegister);
+provide('closeMergePatient', closeMergePatient);
 </script>
 
 <style lang="scss">

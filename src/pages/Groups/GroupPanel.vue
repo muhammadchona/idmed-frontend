@@ -66,9 +66,12 @@
       </div>
     </span>
     <q-dialog persistent v-model="showRegisterRegister">
-      <groupRegister
-        @getGroupMembers="getGroupMembers"
-        @close="showRegisterRegister = false"
+      <groupRegister @close="showRegisterRegister = false" />
+    </q-dialog>
+    <q-dialog persistent v-model="loadedPrescriptionInfo">
+      <addEditPrescription
+        v-if="loadedPrescriptionInfo"
+        @close="loadedPrescriptionInfo = false"
       />
     </q-dialog>
   </div>
@@ -104,6 +107,12 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import { useGroup } from 'src/composables/group/groupMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+import groupMemberService from 'src/services/api/groupMember/groupMemberService';
+import PatientVisitDetails from '../../stores/models/patientVisitDetails/PatientVisitDetails';
+import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
+import Prescription from '../../stores/models/prescription/Prescription';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+import addEditPrescription from 'components/Groups/AddMemberPrescription.vue';
 // import isOnline from 'is-online';
 
 const { alertSucess } = useSwal();
@@ -122,9 +131,13 @@ const patient = ref(null);
 const allMembers = ref([]);
 const fecthedMemberData = ref(0);
 const members = ref([]);
+const groupMembersNew = ref([]);
+const loadedPrescriptionInfo = ref(false);
+const patientVisitDetails = ref();
 // const isNewPrescription = ref(false);
+const isNewPrescription = ref(false);
 
-const title = ref('Procurar ou adicionar Grupo');
+const title = ref('Painel do Grupo');
 const contentStyle = {
   backgroundColor: 'rgba(0,0,0,0.02)',
   color: '#555',
@@ -162,6 +175,7 @@ const loadVisitDetailsInfo = (visitDetails, i) => {
       packService.apiFetchById(visitDetails[i].pack.id).then((resp) => {
         visitDetails[i].pack = resp.data;
         membersInfoLoaded.value = true;
+        closeLoading();
       });
     });
 };
@@ -170,54 +184,85 @@ const showGroupDetails = () => {
   showGroupInfo.value = !showGroupInfo.value;
 };
 
-const loadMemberInfoByMember = async (member) => {
-  return new Promise((resolve, reject) => {
-    groupMemberPrescriptionService
-      .apiFetchByMemberId(member.id)
-      .then((respd) => {
-        if (respd.status === 200) {
-          prescriptionService.apiFetchById(respd.data.prescription.id);
-        }
-      });
-    patientService.apiFetchById(member.patient_id).then((res0) => {
-      member.patient = res0.data;
-      member.patient.identifiers.forEach((identifier) => {
-        identifier = patientServiceIdentifierService.curIdentifierById(
-          identifier.id
+const loadMemberInfoToShowByGroupId = async () => {
+  groupMembersNew.value = await groupMemberService.apiGetGroupMemberInfo(
+    SessionStorage.getItem('selectedGroupId')
+  );
+  console.log(groupMembersNew.value);
+  membersInfoLoaded.value = true;
+  return groupMembersNew;
+};
+
+const loadAllMembersInfoByMember2 = async () => {
+  const promises = groupMembersNew.value.map(async (gm) => {
+    const patient = await patientService.apiFetchById(gm.patientId);
+    const respIdent = await patientServiceIdentifierService.apiFetchById(
+      gm.patientServiceId
+    );
+    const identifier = respIdent.data;
+    const resp = await episodeService.apiFetchById(gm.episodeId);
+    const respGroupMemberPres =
+      await groupMemberPrescriptionService.apiFetchByMemberId(gm.groupMemberId);
+
+    if (resp.data) {
+      identifier.episodes[0] = resp.data;
+
+      //  for (const episode of identifier.episodes) {
+      const episode = identifier.episodes[0];
+      const respVisit = await patientVisitDetailsService.apiGetLastByEpisodeId(
+        episode.id
+      );
+
+      if (respVisit.data) {
+        episode.patientVisitDetails = [];
+        episode.patientVisitDetails[0] = respVisit.data;
+
+        const prescriptionResp = await prescriptionService.apiFetchById(
+          episode.patientVisitDetails[0].prescription.id
         );
-        if (identifier.service.code === group.value.service.code) {
-          episodeService.apiGetAllByIdentifierId(identifier.id).then((resp) => {
-            if (resp.data.length > 0) {
-              identifier.episodes = resp.data;
-              identifier.episodes.forEach((episode) => {
-                patientVisitDetailsService
-                  .apiGetLastByEpisodeId(episode.id)
-                  .then((resp) => {
-                    if (resp.data) {
-                      episode.patientVisitDetails = [];
-                      episode.patientVisitDetails[0] = resp.data;
-                      patientVisitDetailsService.apiGetAllofPrecription(
-                        episode.patientVisitDetails[0].prescription.id
-                      );
-                      loadVisitDetailsInfo(episode.patientVisitDetails, 0);
-                      resolve(true);
-                    }
-                  });
-              });
-              group.value.packHeaders.forEach((packHeader) => {
-                groupPackHeaderService
-                  .apiFetchById(packHeader.id)
-                  .then((resp) => {
-                    //  closeLoading();
-                  });
-                // closeLoading();
-              });
-            }
-          });
+        episode.patientVisitDetails[0].prescription = prescriptionResp.data;
+        if (respGroupMemberPres.status === 200) {
+          await prescriptionService.apiFetchById(
+            respGroupMemberPres.data.prescription.id
+          );
         }
-      });
-    });
+      }
+      //  }
+    }
   });
+  await Promise.all(promises);
+};
+
+const loadMemberInfoByMember2 = async (member, patientServiceId, episodeId) => {
+  const patient = await patientService.apiFetchById(member.patient_id);
+  const respIdent = await patientServiceIdentifierService.apiFetchById(
+    patientServiceId
+  );
+
+  const identifier = respIdent.data;
+  const resp = await episodeService.apiFetchById(episodeId);
+  if (resp.data) {
+    identifier.episodes[0] = resp.data;
+
+    //  for (const episode of identifier.episodes) {
+    const episode = identifier.episodes[0];
+    const respVisit = await patientVisitDetailsService.apiGetLastByEpisodeId(
+      episode.id
+    );
+
+    if (respVisit.data) {
+      episode.patientVisitDetails = [];
+      episode.patientVisitDetails[0] = respVisit.data;
+
+      const prescriptionResp = await prescriptionService.apiFetchById(
+        episode.patientVisitDetails[0].prescription.id
+      );
+      episode.patientVisitDetails[0].prescription = prescriptionResp.data;
+
+      closeLoading();
+    }
+    //  }
+  }
 };
 
 const loadMemberInfo = () => {
@@ -239,13 +284,17 @@ const loadMemberInfo = () => {
     closeLoading();
   } else {
     dispenseModeService.apiGetAll();
-    group.value.members.forEach((member) => {
-      loadMemberInfoByMember(member);
-    });
+    //  group.value.members.forEach((member) => {
+    //    loadMemberInfoByMember(member);
+    //  });
+    loadMemberInfoToShowByGroupId();
   }
 };
 onMounted(() => {
   loadMemberInfo();
+  setTimeout(() => {
+    closeLoading();
+  }, 2000);
 });
 
 const addMember = () => {
@@ -286,7 +335,8 @@ const desintagrateGroup = () => {
   group.value.endDate = new Date();
   group.value.packHeaders = [];
   groupService.apiUpdate(group.value).then((resp) => {
-    groupService.apiFetchById(group.value.id);
+    // groupService.apiFetchById(group.value.id);
+    loadMemberInfoToShowByGroupId();
     alertSucess('Operação efectuada com sucesso.');
   });
 };
@@ -295,7 +345,7 @@ watch(
   () => membersInfoLoaded.value,
   (oldp, newp) => {
     if (oldp !== newp) {
-      fecthMembersData();
+      // fecthMembersData();
       // closeLoading();
     }
   }
@@ -331,12 +381,12 @@ const getGroupMembers = async (isPrescription) => {
       lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
 
     if (member.patient.identifiers[0].episodes[0] === null) {
-      showloading();
-      const loadedMemberInfo = await loadMemberInfoByMember(member);
-      if (loadedMemberInfo) {
-        member.patient.identifiers[0].episodes[0] =
-          lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
-      }
+      // showloading();
+      //  const loadedMemberInfo = await loadMemberInfoByMember(member);
+      //  if (loadedMemberInfo) {
+      member.patient.identifiers[0].episodes[0] =
+        lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
+      // }
     }
     if (
       member.patient.identifiers[0].episodes.length > 0 &&
@@ -357,6 +407,7 @@ const getGroupMembers = async (isPrescription) => {
   } else {
     members.value = group.members;
   }
+  // closeLoading();
 };
 
 const lastStartEpisodeWithPrescription = (identifierId) => {
@@ -400,6 +451,54 @@ const clinic = computed(() => {
   return clinicService.currClinic();
 });
 
+const newPrescription = async (member, patientServiceId, episodeId) => {
+  showloading();
+
+  selectedMember.value = groupMemberService.getMemberById(member);
+  //  selectedMember.value = groupMemberService.getMemberById(member); membersInfoLoaded.value = false;
+  await loadMemberInfoByMember2(
+    selectedMember.value,
+    patientServiceId,
+    episodeId
+  );
+  // const identifier = patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(patientId)
+  patient.value = selectedMember.value.patient;
+  // await patientServiceIdentifierService.apiGetAllByPatientId(
+  //   selectedMember.value.patient.id
+  // );
+  const identifier =
+    patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(
+      selectedMember.value.patient.id
+    );
+  // isNewPrescription.value = true;
+  //   patient.identifiers[0].episodes[0].lastVisit().prescription.prescriptionDetails[0] = prescriptionDetailsService.getPrescriptionDetailByPrescriptionID(patient.identifiers[0].episodes[0].lastVisit().prescription.id)
+  const pvd = new PatientVisitDetails({
+    patientVisit: new PatientVisit({
+      visitDate: new Date(),
+      patient: patientService.getPatientByID(patient.value.id),
+      clinic: group.value.clinic,
+    }),
+    clinic: group.value.clinic,
+    createPackLater: true,
+    //prescription: patient.identifiers[0].episodes[0].lastVisit().prescription,
+    prescription: new Prescription(),
+    episode: episodeService.getEpisodeById(identifier.episodes[0].id),
+  });
+  patientVisitDetails.value = pvd;
+  group.value.service =
+    clinicalServiceService.getClinicalServicePersonalizedById(
+      group.value.service.id
+    );
+  // SessionStorage.set('selectedPatient', patient);
+  // SessionStorage.set('selectedMember', member);
+  // if (loadedPrescriptionInfo.value === true) {
+  //   showAddPrescription.value = true;
+  // }\
+  isNewPrescription.value = true;
+  loadedPrescriptionInfo.value = true;
+  // closeLoading();
+};
+
 provide('title', title);
 provide('step', groupAddEditStep);
 provide('group', group);
@@ -410,9 +509,17 @@ provide('showAddPrescription', showAddPrescription);
 provide('showNewPackingForm', showNewPackingForm);
 provide('desintagrateGroup', desintagrateGroup);
 provide('dataFetchDone', dataFetchDone);
-provide('getGroupMembers', getGroupMembers);
+provide('loadMemberInfoToShowByGroupId', loadMemberInfoToShowByGroupId);
 provide('allMembers', allMembers);
 provide('members', members);
+provide('groupMembersNew', groupMembersNew);
+provide('groupMembersNew', groupMembersNew);
+provide('loadMemberInfoByMember2', loadMemberInfoByMember2);
+provide('membersInfoLoaded', membersInfoLoaded);
+provide('newPrescription', newPrescription);
+provide('loadedPrescriptionInfo', loadedPrescriptionInfo);
+provide('isNewPrescription', isNewPrescription);
+provide('loadAllMembersInfoByMember2', loadAllMembersInfoByMember2);
 </script>
 
 <style lang="scss">
