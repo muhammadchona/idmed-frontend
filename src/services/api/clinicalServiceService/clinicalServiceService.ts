@@ -128,12 +128,16 @@ export default {
         // console.log(error);
       });
   },
-   async localDbGetById (id: any) {
-    return nSQL(ClinicalService.entity).query('select').where(['id', '=', id]).exec().then(result => {
-      //  console.log(result)
-       return result[0]
-     })
- },
+  async localDbGetById(id: any) {
+    return nSQL(ClinicalService.entity)
+      .query('select')
+      .where(['id', '=', id])
+      .exec()
+      .then((result) => {
+        //  console.log(result)
+        return result[0];
+      });
+  },
   getByIdentifierTypeCode(identifierTypeCode: string) {
     return clinicalService
       .query()
@@ -175,5 +179,9 @@ export default {
       .with('identifierType')
       .whereId(clinicalServiceId)
       .get();
+  },
+
+  getClinicalServiceByCode(code: string) {
+    return clinicalService.query().where('code', code).first();
   },
 };

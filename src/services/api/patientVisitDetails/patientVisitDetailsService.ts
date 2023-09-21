@@ -5,6 +5,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import clinicalServiceService from '../clinicalServiceService/clinicalServiceService';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
 
@@ -196,6 +197,15 @@ export default {
       });
   },
 
+  async apiGetAllPatientVisitDetailsByPatientId(patientId: string) {
+    return await api()
+      .get('/patientVisitDetails/getAllByPatient/' + patientId)
+      .then((resp) => {
+        console.log(resp.data);
+        patientVisitDetails.save(resp.data);
+        return resp;
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisitDetails.getModel().$newInstance();
@@ -260,5 +270,22 @@ export default {
       .withAll()
       .where('prescription_id', prescriptionId)
       .first();
+  },
+  getAllWithAllRecursiveFromPatientAndClinicService(
+    patientId: string,
+    clinicalServiceId: string
+  ) {
+    return patientVisitDetails
+      .query()
+      .withAllRecursive(2)
+      .whereHas('patientVisit', (query) => {
+        query.where('patient_id', patientId);
+      })
+      .whereHas('episode', (query) => {
+        query.whereHas('patientServiceIdentifier', (query) => {
+          query.where('service_id', clinicalServiceId);
+        });
+      })
+      .get();
   },
 };

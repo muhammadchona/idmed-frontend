@@ -83,6 +83,11 @@ export default {
         patient.destroy(uuid);
       });
   },
+  async mergePatients(patientToHoldId: string, patientToDeleteId: string) {
+    return await api().post(
+      `patient/mergeUnitePatients/${patientToHoldId}/${patientToDeleteId}`
+    );
+  },
   // Mobile
   putMobile(params: string) {
     return nSQL(Patient.entity)

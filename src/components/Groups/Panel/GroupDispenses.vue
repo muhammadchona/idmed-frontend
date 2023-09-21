@@ -87,7 +87,8 @@ import ListHeader from 'src/components/Shared/ListHeader.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-
+import patientService from 'src/services/api/patientService/patientService';
+import { usePatient } from 'src/composables/patient/patientMethods';
 const columns = [
   {
     name: 'lastDispenseDate',
@@ -125,8 +126,9 @@ const {
   extractHyphenDateFromDMYConvertYMD,
 } = useDateUtils();
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
-const { alertSucess } = useSwal();
+const { isOnline } = useSystemUtils();
+const { alertSucess, alertError } = useSwal();
+const { fullName } = usePatient();
 const showDispensesData = ref(true);
 const grupPacks = ref([]);
 const showNewPackingForm = inject('showNewPackingForm');
@@ -134,20 +136,49 @@ const dataFetchDone = inject('dataFetchDone');
 const { closeLoading, showloading } = useLoading();
 const getGroupMembers = inject('getGroupMembers');
 const defaultPickUpDate = ref(null);
-
+const loadAllMembersInfoByMember2 = inject('loadAllMembersInfoByMember2');
+const groupMembersNew = inject('groupMembersNew');
+const loadMemberInfoToShowByGroupId = inject('loadMemberInfoToShowByGroupId');
 const removePackHeader = (groupPackHeader) => {
   groupPackHeaderService.apiDelete(groupPackHeader);
   // groupPackHeaderService.delete(groupPackHeader.id)
-  getGroupMembers();
+  if (!isOnline.value) {
+    getGroupMembers();
+  } else {
+    loadMemberInfoToShowByGroupId();
+  }
+
   alertSucess('Operação efectuada com sucesso.');
 };
 
-const newPacking = () => {
-  // emit('newPacking', headers.value[0])
-  showloading();
-  if (headers.value[0] !== null && headers.value[0] !== undefined)
-    defaultPickUpDate.value = headers.value[0].nextPickUpDate;
-  showNewPackingForm.value = true;
+const newPacking = async () => {
+  if (isOnline.value) {
+    let error = 'Os Pacientes do Grupo não possuem prescrições validas: ';
+    let invalidPrescription = '';
+    // emit('newPacking', headers.value[0])
+    groupMembersNew.value.forEach((gMember) => {
+      if (gMember.validade === 0 && gMember.validadeNova === 0) {
+        invalidPrescription +=
+          invalidPrescription === ''
+            ? fullName(patientService.getById(gMember.patientId))
+            : ', ' + fullName(patientService.getById(gMember.patientId));
+      }
+    });
+    if (invalidPrescription !== '') {
+      error += invalidPrescription;
+      alertError(error);
+    } else {
+      showloading();
+      await loadAllMembersInfoByMember2();
+      if (headers.value[0] !== null && headers.value[0] !== undefined)
+        defaultPickUpDate.value = headers.value[0].nextPickUpDate;
+      showNewPackingForm.value = true;
+    }
+  } else {
+    if (headers.value[0] !== null && headers.value[0] !== undefined)
+      defaultPickUpDate.value = headers.value[0].nextPickUpDate;
+    showNewPackingForm.value = true;
+  }
 };
 
 const getDateDiff = (date1, date2) => {

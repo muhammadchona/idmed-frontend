@@ -110,22 +110,43 @@
       </template>
       <template #body="props">
         <q-tr :props="props">
+          <div class="hidden">{{ qtySupplied(props.row) }}</div>
           <q-td key="order" :props="props"> </q-td>
-          <q-td key="drug" :props="props">
+          <q-td
+            key="drug"
+            :props="props"
+            :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
+          >
             {{ props.row.drug.name }}
           </q-td>
-          <q-td key="packSize" :props="props">
+          <q-td
+            key="packSize"
+            :props="props"
+            :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
+          >
             {{ props.row.drug.packSize }}
           </q-td>
-          <q-td key="form" :props="props">
+          <q-td
+            key="form"
+            :props="props"
+            :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
+          >
             {{ props.row.drug.form.description }}
           </q-td>
-          <q-td key="takeInstrucions" :props="props">
+          <q-td
+            key="takeInstrucions"
+            :props="props"
+            :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
+          >
             {{ props.row.drug.defaultTreatment }} -
             {{ props.row.drug.defaultTimes }}X por
             {{ props.row.drug.defaultPeriodTreatment }}
           </q-td>
-          <q-td key="packs" :props="props">
+          <q-td
+            key="packs"
+            :props="props"
+            :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
+          >
             {{
               usePrescribedDrug().getQtyPrescribed(
                 props.row,
@@ -143,6 +164,22 @@
                 @click="removePrescribedDrug(props.row)"
               >
                 <q-tooltip class="bg-red-5">Remover</q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="qtySuppliedFlag === -1"
+                flat
+                round
+                color="red"
+                icon="info"
+              >
+                <q-tooltip
+                  class="bg-red"
+                  :offset="[10, 10]"
+                  transition-show="flip-right"
+                  transition-hide="flip-left"
+                >
+                  <strong><em> Medicamento sem stock </em></strong>
+                </q-tooltip>
               </q-btn>
             </div>
           </q-td>
@@ -177,7 +214,10 @@ import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescr
 import drugService from 'src/services/api/drugService/drugService';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import formService from 'src/services/api/formService/formService';
+
 import { v4 as uuidv4 } from 'uuid';
+import StockService from 'src/services/api/stockService/StockService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -239,7 +279,6 @@ const props = defineProps(['member']);
 
 const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
-
 const clinic = inject('clinic');
 let selectedVisitDetails = reactive(ref(new PatientVisitDetails()));
 const showAddEditDrug = ref(false);
@@ -251,11 +290,45 @@ const curIdentifier = ref('');
 const curPrescriptionDetail = ref('');
 const curVisitDetails = ref('');
 const drugsDuration = inject('drugsDuration');
+const pickupDate = inject('pickupDate');
 const infoVisible = ref(true);
 const curGroupPackHeader = inject('curGroupPackHeader');
-
+const qtySuppliedFlag = ref(0);
 const expand = (valueUpdated) => {
   infoVisible.value = valueUpdated;
+};
+const drugQuantities = inject('drugQuantities');
+const stockIndicator = inject('stockIndicator');
+
+const qtySupplied = async (packagedDrug) => {
+  const item = await checkStock(packagedDrug);
+  if (item) {
+    qtySuppliedFlag.value = packagedDrug.quantitySupplied;
+  } else {
+    qtySuppliedFlag.value = -1;
+    stockIndicator.value = false;
+  }
+  return qtySuppliedFlag.value;
+};
+const checkStock = async (packagedDrug) => {
+  let resp = true;
+  const quantitySupplied = drugQuantities.get(packagedDrug.drug.id);
+  console.log(quantitySupplied);
+  if (drugsDuration.value !== '') {
+    // packagedDrug.drug = drugService.getDrugWith1ById(packagedDrug.drug.id);
+    const qtytoDispense = usePrescribedDrug().getQtyPrescribed(
+      packagedDrug,
+      drugsDuration.weeks
+    );
+    packagedDrug.quantitySupplied = qtytoDispense;
+    resp = await StockService.checkStockStatus(
+      packagedDrug.drug.id,
+      pickupDate.value,
+      quantitySupplied
+    );
+  }
+
+  return resp;
 };
 
 const initDispenses = () => {
@@ -287,6 +360,11 @@ const initDispenses = () => {
     packDrug.quantitySupplied = prescD.prescribedQty;
     // packDrug.toContinue = prescD.toContinue
     packDrug.creationDate = new Date();
+    if (!drugQuantities.has(prescD.drug.id)) {
+      drugQuantities.set(prescD.drug.id, 0);
+    }
+    const currentQuantity = drugQuantities.get(prescD.drug.id);
+    drugQuantities.set(prescD.drug.id, currentQuantity + prescD.prescribedQty);
     pack.packagedDrugs.push(packDrug);
   });
   patientVisitDetails.prescription = prescription;
@@ -306,7 +384,7 @@ const initDispenses = () => {
   showDispensesData.value = true;
   setTimeout(() => {
     closeLoading();
-  }, 2000);
+  }, 1000);
 };
 
 const openAddPrescribedDrugForm = () => {

@@ -146,7 +146,12 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api().get(`/episode/${id}`);
+    return await api()
+      .get(`/episode/${id}`)
+      .then((resp) => {
+        episode.save(resp.data);
+        return resp;
+      });
   },
 
   async apiGetAllByIdentifierId(

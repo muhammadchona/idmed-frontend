@@ -129,6 +129,7 @@
         />
         <q-btn
           type="submit"
+          :disable="!stockIndicator"
           :loading="submitting"
           label="Dispensar"
           color="primary"
@@ -165,6 +166,7 @@ import addMemberDispense from 'src/components/Groups/AddMemberDispense.vue';
 import { v4 as uuidv4 } from 'uuid';
 import { useGroupMemberPrescription } from 'src/composables/group/groupMemberPrescriptionMethods';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
+import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 // import isOnline from 'is-online';
 
 const {
@@ -203,9 +205,13 @@ const curIdentifier = ref('');
 const curPrescriptionDetail = ref('');
 const curVisitDetails = ref('');
 const submitting = ref(false);
+const loadMemberInfoToShowByGroupId = inject('loadMemberInfoToShowByGroupId');
 const getGroupMembers = inject('getGroupMembers');
-
 const showNewPackingForm = inject('showNewPackingForm');
+const groupMembersNew = inject('groupMembersNew');
+
+const drugQuantities = new Map();
+const stockIndicator = ref(true);
 
 const loadDetails = () => {
   if (defaultPickUpDate !== undefined && defaultPickUpDate.value !== null) {
@@ -275,8 +281,9 @@ const checkMembersPrescriptions = () => {
 
 const checkMembersPrescriptionsDuration = () => {
   let error =
-    'A duração das prescrições é menor em relação a duração que pretende dispensar para os seguintes pacientes:quas [';
+    'A duração das prescrições é menor em relação a duração que pretende dispensar para os seguintes pacientes: [';
   let invalidPrescription = '';
+
   selectedGroup.value.members.forEach((member) => {
     let remainingDuration = 0;
     if (member.groupMemberPrescriptions[0] !== null) {
@@ -294,6 +301,25 @@ const checkMembersPrescriptionsDuration = () => {
           : ', ' + usePatient().fullName(member.patient);
     }
   });
+
+  /*
+  groupMembersNew.value.forEach((gm) => {
+    const member = groupMemberService.getMemberById(gm.groupMemberId);
+    const validityInWeeks =
+      gm.lastPrescriptionDateMember === null
+        ? Number(gm.validade * 4)
+        : Number(gm.validadeNova * 4);
+    if (
+      validityInWeeks <
+      durationService.getDurationById(drugsDuration.value.id).weeks
+    ) {
+      invalidPrescription +=
+        invalidPrescription === ''
+          ? usePatient().fullName(member.patient)
+          : ', ' + usePatient().fullName(member.patient);
+    }
+  });
+*/
   if (invalidPrescription !== '') {
     error += invalidPrescription + ']';
     return error;
@@ -353,7 +379,11 @@ const doFormValidation = () => {
 };
 
 const executeGetGroupMembers = () => {
-  getGroupMembers(true);
+  if (!isOnline.value) {
+    getGroupMembers(true);
+  } else {
+    loadMemberInfoToShowByGroupId();
+  }
 };
 
 const checkMembersPrescriptionsDate = (pickupDate) => {
@@ -646,6 +676,7 @@ const generatepacks = async () => {
       closeLoading();
     } else {
       const i = 0;
+      showloading();
       savePatientVisitDetails(curGroupPackHeader.value.groupPacks, i);
     }
   });
@@ -708,7 +739,6 @@ const savePatientVisitDetails = (groupPacks, i) => {
         curGroupPackHeader.value.duration.id;
       curGroupPackHeader.value.group_id = selectedGroup.value.id;
       curGroupPackHeader.value.group = null;
-
       groupPackHeaderService.apiSave(curGroupPackHeader.value).then((resp) => {
         alertSucess('Operação efectuada com sucesso.');
         submitting.value = false;
@@ -779,8 +809,6 @@ const savePatientVisitDetails = (groupPacks, i) => {
           loadedData.value = false;
           executeGetGroupMembers();
           alertSucess('Operação efectuada com sucesso.');
-          // $emit('getGroupMembers', false)
-          //  emit('getGroupMembers');
         })
         .catch((error) => {
           submitting.value = false;
@@ -883,5 +911,8 @@ provide('generatepacks', generatepacks);
 provide('loadGroup', loadGroup);
 provide('membersDispenses', membersDispenses);
 provide('curGroupPackHeader', curGroupPackHeader);
+provide('pickupDate', pickupDate);
+provide('stockIndicator', stockIndicator);
+provide('drugQuantities', drugQuantities);
 </script>
 <style></style>
