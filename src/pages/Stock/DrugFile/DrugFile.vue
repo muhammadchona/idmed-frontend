@@ -36,6 +36,7 @@
             :rows="drugEventList"
             :columns="columns"
             row-key="id"
+            :loading="loading"
           >
             <template v-slot:no-data="{ icon, filter }">
               <div
@@ -60,20 +61,20 @@
                 <q-th style="width: 190px">{{ columns[6].label }}</q-th>
                 <q-th style="width: 190px">{{ columns[7].label }}</q-th>
                 <q-th style="width: 190px">{{ columns[8].label }}</q-th>
-                <q-th class="col">{{ columns[9].label }}</q-th>
               </q-tr>
             </template>
             <template #body="props">
               <q-tr :props="props">
-                <q-td key="eventDate" :props="props">
-                  {{ dateUtils.formatDate(props.row.eventDate) }}
+                <q-td key="year" :props="props">
+                  {{ props.row.year }}
+                </q-td>
+                <q-td key="month" :props="props">
+                  {{ props.row.month }}
                 </q-td>
                 <q-td key="moviment" :props="props">
                   {{ props.row.moviment }}
                 </q-td>
-                <q-td key="orderNumber" :props="props">
-                  {{ props.row.orderNumber }}
-                </q-td>
+
                 <q-td key="incomes" :props="props">
                   {{ props.row.incomes }}
                 </q-td>
@@ -92,11 +93,12 @@
                 <q-td key="balance" :props="props">
                   {{ props.row.balance }}
                 </q-td>
-                <q-td key="notes" :props="props">
-                  {{ props.row.notes }}
-                </q-td>
+               
               </q-tr>
             </template>
+            <template v-slot:loading>
+        <q-inner-loading showing color="primary" />
+      </template>
           </q-table>
         </div>
         <div>
@@ -142,17 +144,27 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isOnline } = useSystemUtils();
 
+const loading = ref(true)
+
 const columns = [
   {
-    name: 'eventDate',
+    name: 'year',
     required: true,
-    label: 'Data Movimento',
-    field: 'eventDate',
+    label: 'Ano',
+    field: 'year',
+    align: 'center',
+    sortable: true,
+  },
+
+  {
+    name: 'month',
+    required: true,
+    label: 'Mes',
+    field: 'month',
     align: 'center',
     sortable: true,
   },
   { name: 'moviment', align: 'center', label: 'Movimento', sortable: true },
-  { name: 'orderNumber', align: 'center', label: 'Nr. Guia', sortable: false },
   { name: 'incomes', align: 'center', label: 'Entradas', sortable: true },
   { name: 'outcomes', align: 'center', label: 'Saídas', sortable: true },
   {
@@ -169,12 +181,7 @@ const columns = [
   },
   { name: 'loses', align: 'center', label: 'Perdas', sortable: true },
   { name: 'balance', align: 'center', label: 'Saldo', sortable: true },
-  {
-    name: 'notes',
-    align: 'center',
-    label: 'Resumo das Notas',
-    sortable: false,
-  },
+
 ];
 
 const dateUtils = useDateUtils();
@@ -211,6 +218,7 @@ const generateDrugEventSummary = async () => {
   if (!isOnline.value) {
     showloading();
     drugEventList.value = await drugFileService.getDrugFileSummary(drug.value);
+    loading.value=false
     closeLoading();
   } else {
     showloading();
@@ -218,6 +226,7 @@ const generateDrugEventSummary = async () => {
       console.log(resp.data);
       const t = resp.data;
       drugEventList.value = t;
+      loading.value=false
       closeLoading();
     });
   }

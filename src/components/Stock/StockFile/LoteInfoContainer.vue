@@ -6,8 +6,9 @@
       :mainContainer="false"
       expandLess="expandLess"
       addNewAdjustment="addNewAdjustment"
+      cancelAdjustment="cancelAdjustment"
       saveAjustment="saveAjustment"
-      cancel="cancel"
+      :showCancel="showCancel"
       :bgColor="headerColor"
       ><span class="text-blue-grey-8"
         >Nr. do Lote: {{ stock.batchNumber }} - [Saldo Actual:
@@ -25,6 +26,7 @@
       :columns="columns"
       row-key="id"
       v-show="serviceInfoVisible"
+      :loading = "loading"
     >
       <template v-slot:no-data="{ icon, filter }">
         <div
@@ -48,8 +50,6 @@
           <q-th style="width: 120px">{{ columns[5].label }}</q-th>
           <q-th style="width: 120px">{{ columns[6].label }}</q-th>
           <q-th style="width: 120px">{{ columns[7].label }}</q-th>
-          <q-th style="width: 100px">{{ columns[8].label }}</q-th>
-          <q-th class="col" style="width: 400px">{{ columns[9].label }}</q-th>
         </q-tr>
       </template>
       <template #body="props">
@@ -100,19 +100,7 @@
             </span>
             <span v-else>{{ props.row.moviment }}</span>
           </q-td>
-          <q-td key="orderNumber" :props="props">
-            <span v-if="props.row.id === null && !isDisplayStep">
-              <TextInput
-                v-model="props.row.orderNumber"
-                :disable="isLossAdjustment"
-                label="Número da Guia"
-                dense
-                class="col"
-              />
-            </span>
-            <span v-else>{{ props.row.orderNumber }}</span>
-          </q-td>
-          <q-td key="incomes" :props="props">
+           <q-td key="incomes" :props="props">
             <span v-if="props.row.id === null && !isDisplayStep">
               <TextInput
                 v-model="props.row.incomes"
@@ -184,18 +172,11 @@
             </span>
             <span v-else>{{ props.row.balance }}</span>
           </q-td>
-          <q-td key="notes" :props="props">
-            <span v-if="props.row.id === null && !isDisplayStep">
-              <TextInput
-                v-model="props.row.notes"
-                label="Notas"
-                dense
-                class="col"
-              />
-            </span>
-            <span v-else>{{ props.row.notes }}</span>
-          </q-td>
+       
         </q-tr>
+      </template>
+      <template v-slot:loading>
+        <q-inner-loading showing color="primary" />
       </template>
     </q-table>
   </div>
@@ -222,9 +203,11 @@ import StockOperationTypeService from 'src/services/api/stockOperationTypeServic
 import ReferedStockMovimentService from 'src/services/api/referedStockMovimentService/ReferedStockMovimentService';
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { v4 as uuidv4 } from 'uuid';
 
 const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError } = useSwal();
+const loading = ref(true)
 
 const columns = [
   {
@@ -241,7 +224,6 @@ const columns = [
     label: 'Origem/Destino',
     sortable: true,
   },
-  { name: 'orderNumber', align: 'center', label: 'Nr. Guia', sortable: false },
   { name: 'incomes', align: 'center', label: 'Entrada', sortable: true },
   { name: 'outcomes', align: 'center', label: 'Saídas', sortable: true },
   {
@@ -258,7 +240,6 @@ const columns = [
   },
   { name: 'loses', align: 'center', label: 'Perdas', sortable: true },
   { name: 'balance', align: 'center', label: 'Saldo', sortable: true },
-  { name: 'notes', align: 'center', label: 'Notas', sortable: false },
 ];
 const props = defineProps(['stockInfo', 'batchS']);
 const dateUtils = useDateUtils();
@@ -271,20 +252,24 @@ const serviceInfoVisible = ref(true);
 const curEvent = ref({});
 const bgColor = ref({});
 const mainContainer = ref({});
+const previousBalance = ref(0)
+const showCancel = ref(false)
 
 const expandLess = (value) => {
   serviceInfoVisible.value = !value;
 };
 
 const saveAjustment = () => {
+  showCancel.value=false
   const clinic = clinicService.currClinic();
   clinic.sectors = [];
   let adjustment = null;
   let reference = null;
   let destruction = null;
   if (isLossAdjustment.value) {
+   
     destruction = new DestroyedStock({
-      notes: curEvent.value.moviment,
+      id : uuidv4(),
       date: new Date(curEvent.value.eventDate),
       clinic: clinic,
     });
@@ -296,12 +281,13 @@ const saveAjustment = () => {
     destruction.adjustments.push(adjustment);
   } else if (isPosetiveAdjustment.value || isNegativeAdjustment.value) {
     reference = new ReferedStockMoviment({
+      id : uuidv4(),
       origin: curEvent.value.moviment,
       date: new Date(curEvent.value.eventDate),
       quantity: isPosetiveAdjustment.value
         ? Number(curEvent.value.posetiveAdjustment)
         : Number(curEvent.value.negativeAdjustment),
-      orderNumber: curEvent.value.orderNumber,
+     orderNumber: 'Ordem_ajuste',
       clinic: clinic,
     });
     adjustment = new StockReferenceAdjustment({
@@ -316,6 +302,16 @@ const saveAjustment = () => {
   }
 
   adjustment.adjustedStock = StockService.getStockById(stock.value.id);
+
+    if (
+     curEvent.value.eventDate.trim() ===""
+  ) {
+    alertError(
+      'Por favor indicar a  data de movimento correcta.'
+    );
+    return 
+  }
+  else
   if (
     new Date(curEvent.value.eventDate) <
     new Date(adjustment.adjustedStock.entrance.dateReceived)
@@ -325,10 +321,10 @@ const saveAjustment = () => {
     );
   } else if (new Date(curEvent.value.eventDate) > new Date()) {
     alertError('A data do movimento não pode ser maior que a data corrente.');
-  } else if (curEvent.value.moviment === '') {
-    alertError('error', 'Por favor indicar a Origem/Destino.');
+  } else if (curEvent.value.moviment.trim() === '') {
+    alertError( 'Por favor indicar a Origem/Destino.');
   } else if (Number(adjustment.adjustedValue) <= 0) {
-    alertError('error', 'Por favor indicar uma quantidade válida.');
+    alertError('Por favor indicar uma quantidade válida.');
   } else if (
     (isLossAdjustment.value || isNegativeAdjustment.value) &&
     adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue < 0
@@ -337,18 +333,18 @@ const saveAjustment = () => {
       'A quantidade que pretende retitar é maior que a quantidade em stock no momento, impossível prosseguir!'
     );
   } else {
+    previousBalance.value =  drugEventList.value[1  ].balance
     adjustment.clinic = clinic;
-    adjustment.notes = curEvent.value.notes;
     adjustment.captureDate = new Date(curEvent.value.eventDate);
     adjustment.finalised = true;
     adjustment.adjustedStock.clinic = clinic;
     if (isPosetiveAdjustment.value) {
       adjustment.adjustedStock.stockMoviment = Number(
-        adjustment.adjustedStock.stockMoviment) + Number(adjustment.adjustedValue
+        previousBalance.value) + Number(adjustment.adjustedValue
       );
     } else {
       adjustment.adjustedStock.stockMoviment = Number(
-        adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue
+        previousBalance.value - adjustment.adjustedValue
       );
     }
     adjustment.balance = adjustment.adjustedStock.stockMoviment;
@@ -364,7 +360,8 @@ const doSave = (reference, destruction) => {
       updateRelatedStock(reference.adjustments[0].adjustedStock);
     });
   } else {
-    DestroyedStockService.post(destruction).then((resp) => {
+    destruction.notes = ' - '
+    DestroyedStockService.post(destruction).then((resp) => {      
       curEvent.value.id = destruction.adjustments[0].id;
       updateRelatedStock(destruction.adjustments[0].adjustedStock);
     });
@@ -388,24 +385,41 @@ const cancel = () => {
   step.value = 'display';
 };
 
+const cancelAdjustment = () => {
+  drugEventList.value.shift()
+  step.value = 'display';
+  showCancel.value=false
+}
 const addNewAdjustment = (adjustmentType) => {
+  
+  const hasCreateRow = drugEventList.value.some(obj => obj.id === null);
+
+  
+  if (!hasCreateRow){
+    showCancel.value=true
+    addVisible.value = false
   adjustmentTypeRef.value = adjustmentType;
   const event = {
     id: null,
     eventDate: ' ',
     moviment: ' ',
-    orderNumber: adjustmentType === 'POSETIVE' ? ' ' : '-',
+    orderNumber: adjustmentType === 'POSETIVE' ? ' ' : '',
     incomes: '-',
     outcomes: '-',
-    posetiveAdjustment: adjustmentType === 'POSETIVE' ? ' ' : '-',
-    negativeAdjustment: adjustmentType === 'NEGATIVE' ? ' ' : '-',
+    posetiveAdjustment: adjustmentType === 'POSETIVE' ? ' ' : '',
+    negativeAdjustment: adjustmentType === 'NEGATIVE' ? ' ' : '',
     loses: adjustmentType === 'LOSS' ? ' ' : '-',
     balance: ' ',
-    notes: '',
   };
   curEvent.value = event;
   drugEventList.value.unshift(event);
-  step.value = 'create';
+  step.value = 'create'; 
+} else {
+  alertError(
+      'Ja existe uma operacao de ajuste em curso.'
+    );
+}
+
 };
 
 const determineValidade = () => {
@@ -432,6 +446,7 @@ const clinic =   clinicService.currClinic()
   if (!isOnline.value) {
     drugFileService.getDrugFileSummaryBatch(stock.value.id).then(resp => {
         drugEventList.value = resp
+        loading.value = false
       })
   
     } else {
@@ -444,6 +459,7 @@ const clinic =   clinicService.currClinic()
           return d2 - d1
         }) */
         drugEventList.value = t
+        loading.value = false
       })
      
     }
@@ -466,7 +482,7 @@ const getValidadeLabelColor = computed(() => {
 });
 
 const doneVisible = computed(() => {
-  return step.value === 'eidt' || step.value === 'create';
+  return step.value === 'edit' || step.value === 'create';
 });
 
 const isDisplayStep = computed(() => {
@@ -475,8 +491,9 @@ const isDisplayStep = computed(() => {
 
 
 const addVisible = computed(() => {
-  return stockExpiteStatus.value !== 'Expired' 
+  return stockExpiteStatus.value !== 'Expired' || step.value !== 'edit' 
 })
+
 
 const isPosetiveAdjustment = computed(() => {
   return adjustmentTypeRef.value === 'POSETIVE';
@@ -510,6 +527,8 @@ provide('addVisible', addVisible);
 provide('doneVisible', doneVisible);
 provide('mainContainer', mainContainer);
 provide('saveAjustment', saveAjustment);
+provide('showCancel', showCancel);
+provide('cancelAdjustment', cancelAdjustment);
 </script>
 
 <style></style>

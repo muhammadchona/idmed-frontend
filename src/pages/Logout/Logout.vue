@@ -14,6 +14,7 @@ export default {
   SessionStorage.clear()
    localStorage.setItem('user', null)
   this.$router.push({ path: '/Login' })
+  localStorage.setItem('activeTabStock', "")
   }
 }
 </script>

@@ -65,10 +65,19 @@
               <q-btn
                 v-if="currInventory.open"
                 unelevated
-                color="red"
+                color="orange"
                 class="q-ml-md col"
                 @click="initInventoryClosure()"
                 label="Fechar Inventário"
+              />
+
+              <q-btn
+                v-if="currInventory.open"
+                unelevated
+                color="red"
+                class="q-ml-md col"
+                @click="deleteInventory()"
+                label="Remover"
               />
             </div>
           </div>
@@ -243,6 +252,27 @@ const initInventoryClosure = () => {
   });
 };
 
+
+const deleteInventory = () => {
+  alertWarningAction(
+    'Nota: Deseja apagar o inventário?',
+    'Não',
+    'Sim'
+  ).then((result) => {
+    if (result) {
+      removeInventory();
+    }
+  });
+};
+
+const removeInventory = () => {
+  inventoryMethod
+    InventoryService.delete(currInventory.value.id).then(async (resp) => {     
+      alertSucess('Operação efectuada com sucesso.');
+      router.go(-1);
+    });
+};
+
 const closeInventory = () => {
   showloading();
     InventoryService.apiFetchById(currInventory.value.id).then(async (resp) => {
@@ -334,7 +364,7 @@ const retriveRelatedDrug = (adjustment, drugList) => {
 };
 
 const startDate = computed(() => {
-  return moment.utc(currInventory.value.startDate).local().format('DD-MM-YYYY');
+  return currInventory.value!==null? moment.utc(currInventory.value.startDate).local().format('DD-MM-YYYY'): "";
 });
 
 const currInventory = computed(() => {
@@ -367,7 +397,7 @@ onMounted(() =>{
 })
 
 const inventoryType = computed(() => {
-  return inventoryMethod.getInventoryType(currInventory.value);
+  return currInventory.value!==null?inventoryMethod.getInventoryType(currInventory.value): "";
 });
 
 

@@ -78,7 +78,7 @@ export default {
     return stock
       .where('drug_id', drug.id)
       .where((stock) => {
-        return  moment(stock.expireDate , 'YYYY-MM-DD').isAfter( moment().format('YYYY-MM-DD')) && stock.stockMoviment > 0 ;
+        return  moment(stock.expireDate , 'YYYY-MM-DD').isAfter( moment().format('YYYY-MM-DD'));
       })
       .orderBy('expireDate', 'desc')
       .get();
