@@ -81,6 +81,7 @@
                 icon="description"
                 v-if="!isCharts"
                 @click="openDrugFile(props.row)"
+                :loading="loadingDrugFile"
               >
                 <q-tooltip class="bg-primary">Visualizar Ficha</q-tooltip>
               </q-btn>
@@ -108,7 +109,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isMobile, isOnline } = useSystemUtils();
-
+const loadingDrugFile = ref(false)
 
 
 const router = useRouter();
@@ -169,9 +170,12 @@ provide('drug', drug);
 const clinic = inject('currClinic');
 
 const openDrugFile = (drugInfo) => {
+  loadingDrugFile.value = true
   drug.value = drugService.getDrugById(drugInfo.id);
   localStorage.setItem('selectedDrug', drug.value.id);
+  
   router.push('/stock/drugFile');
+ // loadingDrugFile.value = false
 };
 
 const getStyleIfCharts = () => {
