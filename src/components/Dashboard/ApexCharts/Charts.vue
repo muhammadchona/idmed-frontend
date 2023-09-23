@@ -151,7 +151,6 @@
       .getDashboardServiceButton(year.value, currClinic.value.id)
       .then((resp) => {
         serviceLoaded.value = true
-        console.log(serviceLoaded.value)
         if(isOnline.value){
           clinicalServiceReports.value = resp.data
         } else {

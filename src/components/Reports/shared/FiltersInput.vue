@@ -202,6 +202,8 @@
               <q-badge
                 color="white"
                 text-color="accent"
+                animation-speed="1200"
+                dark
                 :label="processingInitiated ? 'Processamento iniciado...' : progressStatus.percentVal"
               />
             </div>

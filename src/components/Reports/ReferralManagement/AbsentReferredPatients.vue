@@ -35,13 +35,13 @@ import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
 import { ref, onMounted, inject } from 'vue';
 import absentReferredPatients from 'src/services/reports/ReferralManagement/AbsentReferredPatients.ts';
-
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
-
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 const { alertError } = useSwal();
+const { isOnline } = useSystemUtils();
 
 const name = 'AbsentReferredPatients';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
@@ -64,35 +64,31 @@ const closeSection = () => {
 
 const initReportProcessing = (params) => {
   progress.value = 0.001
-  Report.apiInitReportProcess('referredPatientsReport', params).then(
-    (response) => {
-      setTimeout(getProcessingStatus(params), 2);
+    if (isOnline.value) {
+      Report.apiInitReportProcess('referredPatientsReport', params).then(
+        (response) => {
+          setTimeout(getProcessingStatus(params), 2);
+        }
+      )
+    } else {
+      // Mobile to be implemented            
     }
-  );
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {
-
-    
-      if (progress.value < 100) {        
-        alert(resp.data.progress)
-      progress.value = resp.data.progress
-        setTimeout(getProcessingStatus(params), 2)
-      } else {
-        progress.value = 100
-        params.progress = 100
-        LocalStorage.set(params.id, params)
-      }
-  
-
-    // progress.value = resp.data.progress;    
-    // if (progress.value < 100) {
-    //   setTimeout(getProcessingStatus(params), 2);
-    // } else {
-    //   params.progress = 100;
-    //   LocalStorage.set(params.id, params);
-    // }
+  Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {    
+      if (resp.data.progress > 0.001) {
+              progress.value = resp.data.progress
+              if (progress.value < 100) {
+                setTimeout(getProcessingStatus(params), 2)
+              } else {
+                progress.value = 100
+                params.progress = 100
+                LocalStorage.set(params.id, params)
+              }
+            } else {
+              setTimeout(getProcessingStatus(params), 2)
+            }
   });
 };
 
