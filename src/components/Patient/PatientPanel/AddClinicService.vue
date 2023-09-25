@@ -580,9 +580,7 @@ const submitForm = () => {
         localEpisode !== null &&
         hasVisits(localEpisode) &&
         getDateFromHyphenDDMMYYYY(endDate.value) <
-          getDateFromHyphenYYYYMMDD(
-            lastPack(lastVisit(localEpisode)).pickupDate
-          )
+          getDateFromHyphenYYYYMMDD(lastVisit(localEpisode).pack.pickupDate)
       ) {
         alertError(
           'A data de fim indicada é menor que a data da ultima visita efectuada pelo paciente.'
