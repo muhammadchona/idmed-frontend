@@ -10,6 +10,7 @@
       saveAjustment="saveAjustment"
       :showCancel="showCancel"
       :bgColor="headerColor"
+      :loadingSave="loadingSave"
       ><span class="text-blue-grey-8"
         >Nr. do Lote: {{ stock.batchNumber }} - [Saldo Actual:
         {{ stock.stockMoviment }}] - [Validade:
@@ -208,6 +209,7 @@ import { v4 as uuidv4 } from 'uuid';
 const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError } = useSwal();
 const loading = ref(true)
+const loadingSave =ref(false)
 
 const columns = [
   {
@@ -260,6 +262,7 @@ const expandLess = (value) => {
 };
 
 const saveAjustment = () => {
+  loadingSave.value = true
   showCancel.value=false
   const clinic = clinicService.currClinic();
   clinic.sectors = [];
@@ -373,6 +376,7 @@ const updateRelatedStock = (stock) => {
     step.value = 'display';
     adjustmentTypeRef.value = '';
     alertSucess('Operação efectuada com sucesso.');
+    loadingSave.value = false
   });
 };
 
@@ -451,7 +455,6 @@ const clinic =   clinicService.currClinic()
   
     } else {
       drugFileService.apiGetDrugBatchSummary(clinic.id, stock.value.id).then(resp => {
-        console.log(resp.data)
         const t = resp.data
         /* t.sort((a, b) => {
           const d1 = new Date(a.eventDate)
@@ -529,6 +532,7 @@ provide('mainContainer', mainContainer);
 provide('saveAjustment', saveAjustment);
 provide('showCancel', showCancel);
 provide('cancelAdjustment', cancelAdjustment);
+provide('loadingSave', loadingSave)
 </script>
 
 <style></style>

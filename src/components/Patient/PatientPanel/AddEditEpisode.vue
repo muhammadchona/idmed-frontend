@@ -353,6 +353,8 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 
 //Declaration
 const {
@@ -452,7 +454,7 @@ const referealClinicSectors = computed(() => {
 
 const districts = computed(() => {
   if (selectedProvince.value !== null && selectedProvince.value !== undefined) {
-    if (isReferenceEpisode.value) {
+    if (isReferenceEpisode.value || isTransferenceEpisode.value) {
       return districtService.getAllDistrictByProvinceId(
         selectedProvince.value.id
       );
@@ -799,6 +801,15 @@ const doSave = async () => {
         episodeService
           .apiSave(closureEpisode.value, true)
           .then(() => {
+            if (
+              closureEpisode.value.startStopReason.code ===
+                'TRANSFERIDO_PARA' ||
+              closureEpisode.value.startStopReason.code === 'OBITO'
+            ) {
+              curIdentifier.value.patient.identifiers.forEach((identifiers) => {
+                patientServiceIdentifierService.apiFetchById(identifiers.id);
+              });
+            }
             console.log('Histórico Clínico de fecho criado com sucesso');
           })
           .catch((error) => {

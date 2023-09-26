@@ -4,7 +4,7 @@
       :addButtonActions="newPrescriptionOption"
       :mainContainer="true"
       bgColor="bg-primary"
-      :add-visible="patientHasEpisodes"
+      :add-visible="showAddPrescriptionButton"
       :expandVisible="false"
       :title="title"
     />
@@ -36,7 +36,11 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 //Declaration
-const { hasEpisodes, hasOneAndClosedIdentifier } = usePatient();
+const {
+  hasEpisodes,
+  hasOneAndClosedIdentifier,
+  hasNoObitOrTransferedForEpisode,
+} = usePatient();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 const showAddPrescription = ref(false);
@@ -72,6 +76,15 @@ const patientHasClosedIdentifier = computed(() => {
   return hasOneAndClosedIdentifier(patient.value);
 });
 
+const showAddPrescriptionButton = computed(() => {
+  if (hasEpisodes(patient.value)) {
+    if (hasNoObitOrTransferedForEpisode(patient.value)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+});
 // Methods
 const init = async () => {
   closeLoading();

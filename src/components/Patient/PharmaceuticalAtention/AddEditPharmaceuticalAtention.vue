@@ -398,7 +398,7 @@ const goToNextStep = async () => {
       ) > getJSDateFromDDMMYYY(visitDate.value).setHours(0, 0, 0, 0)
     ) {
       alertError(
-        'A data da consulta indicada é maior que a data da admissão ao serviço se saúde [ ' +
+        'A data da consulta indicada é menor que a data da admissão ao serviço se saúde [ ' +
           getOldestIdentifier(patient.value).service.code +
           ' ]'
       );

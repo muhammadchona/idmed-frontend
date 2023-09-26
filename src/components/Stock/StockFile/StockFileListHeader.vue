@@ -11,6 +11,7 @@
     <template v-slot:action>
       <q-btn
         v-if="doneVisible"
+        :loading="loadingSave"
         flat
         dense
         round
@@ -95,6 +96,7 @@ const saveAjustment = inject('saveAjustment');
 const showAddButton = inject('showAddButton')
 const cancelAdjustment = inject('cancelAdjustment')
 const showCancel = inject('showCancel')
+const loadingSave = inject('loadingSave')
 
 
 const headerClass = ref('');

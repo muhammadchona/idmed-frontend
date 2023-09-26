@@ -1,4 +1,6 @@
 import moment from 'moment';
+import Episode from 'src/stores/models/episode/Episode';
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 
 export function usePatient() {
   function fullName(patient: any) {
@@ -147,6 +149,22 @@ export function usePatient() {
     return 'patient';
   }
 
+  function hasNoObitOrTransferedForEpisode(patient: any) {
+    const filteredData = patient.identifiers.filter(
+      (item: PatientServiceIdentifier) =>
+        item.episodes.some(
+          (episode: Episode) =>
+            episode.startStopReason.code === 'TRANSFERIDO_PARA' ||
+            episode.startStopReason.code === 'OBITO'
+        )
+    );
+    if (filteredData.length >= 1) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   return {
     fullName,
     isActiveOnGroupOfService,
@@ -164,5 +182,6 @@ export function usePatient() {
     hasPatientVisitDetails,
     age,
     getClassName,
+    hasNoObitOrTransferedForEpisode,
   };
 }

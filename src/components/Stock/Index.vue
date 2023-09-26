@@ -122,8 +122,9 @@ const activeDrugs = computed(() => {
 
 onMounted(() => {
   const activeTabStock = localStorage.getItem('activeTabStock')
-  if (activeTabStock==="" ) {
+  if (activeTabStock==="" || activeTabStock=== null  ) {
     tab.value = 'stock'  
+    localStorage.setItem('activeTabStock', 'stock'  )
 } else {
   tab.value = activeTabStock
 }
