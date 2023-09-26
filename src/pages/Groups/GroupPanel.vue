@@ -188,8 +188,8 @@ const loadMemberInfoToShowByGroupId = async () => {
   groupMembersNew.value = await groupMemberService.apiGetGroupMemberInfo(
     SessionStorage.getItem('selectedGroupId')
   );
-  console.log(groupMembersNew.value);
   membersInfoLoaded.value = true;
+  closeLoading();
   return groupMembersNew;
 };
 
@@ -292,9 +292,9 @@ const loadMemberInfo = () => {
 };
 onMounted(() => {
   loadMemberInfo();
-  setTimeout(() => {
-    closeLoading();
-  }, 2000);
+  //setTimeout(() => {
+  // closeLoading();
+  // }, 2000);
 });
 
 const addMember = () => {
