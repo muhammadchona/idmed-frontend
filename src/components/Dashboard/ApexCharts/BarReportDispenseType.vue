@@ -40,73 +40,73 @@ const monthsX = [
   'NOV',
   'DEC',
 ];
-const toDateStr = (str) => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'));
-const monthsEng = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
-];
+// const toDateStr = (str) => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'));
+// const monthsEng = [
+//   'JAN',
+//   'FEB',
+//   'MAR',
+//   'APR',
+//   'MAY',
+//   'JUN',
+//   'JUL',
+//   'AUG',
+//   'SEP',
+//   'OCT',
+//   'NOV',
+//   'DEC',
+// ];
 
 const loading = ref(false);
 
-  const chartOptions = {
-    chart: {
-      id: 'vue-chart-bar',
+const chartOptions = {
+  chart: {
+    id: 'vue-chart-bar',
+  },
+  colors: ['#F44336', '#13c185', '#13a6c1'],
+  animations: {
+    enabled: true,
+    easing: 'easeinout',
+    speed: 2000,
+  },
+  title: {
+    text: 'Total Mensal de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
+    align: 'center',
+    offsetY: 12,
+    style: {
+      color: '#000000',
+      fontSize: '14px',
     },
-    colors: ['#F44336', '#13c185', '#13a6c1'],
-    animations: {
-      enabled: true,
-      easing: 'easeinout',
-      speed: 1000,
+  },
+  plotOptions: {
+    bar: {
+      borderRadius: 10,
     },
-    title: {
-      text: 'Total de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
-      align: 'center',
-      offsetY: 12,
-      style: {
-        color: '#000000',
-        fontSize: '14px',
+  },
+  stroke: {
+    show: true,
+    curve: 'smooth',
+    lineCap: 'butt',
+    colors: undefined,
+    width: 2,
+    dashArray: 0,
+  },
+  fill: {
+    opacity: 2,
+  },
+  tooltip: {
+    y: {
+      formatter: function (val) {
+        return val;
       },
     },
-    plotOptions: {
-      bar: {
-        borderRadius: 10,
-      },
-    },
-    stroke: {
-      show: true,
-      curve: 'smooth',
-      lineCap: 'butt',
-      colors: undefined,
-      width: 2,
-      dashArray: 0,
-    },
-    fill: {
-      opacity: 2,
-    },
-    tooltip: {
-      y: {
-        formatter: function (val) {
-          return val;
-        },
-      },
-    },
-    dataLabels: {
-      enabled: true,
-    },
-    xaxis: {
-      categories: [...monthsX],
-    },
-  };
+  },
+  dataLabels: {
+    enabled: true,
+  },
+  xaxis: {
+    categories: [...monthsX],
+  },
+};
 
 const series = ref([
   {
@@ -141,11 +141,10 @@ const getRegisteredPatientByDispenseType = () => {
       serviceCode.value
     )
     .then((resp) => {
-      const response = []
-      if(isOnline.value){
-        response.value = resp.data
+      const response = [];
+      if (isOnline.value) {
+        response.value = resp.data;
       } else {
-        console.log(resp)
         response.value = resp;
       }
       for (let i = 1; i <= 12; i++) {
@@ -153,7 +152,6 @@ const getRegisteredPatientByDispenseType = () => {
           if (item.dispense_type === 'DM' && item.month === i) {
             dms.data[i - 1] = item.quantity;
           } else if (item.dispense_type === 'DT' && item.month === i) {
-            console.log(item.month, ' - ', i - 1, ' - ', item.quantity)
             dts.data[i - 1] = item.quantity;
           } else if (item.dispense_type === 'DS' && item.month === i) {
             dss.data[i - 1] = item.quantity;
@@ -169,7 +167,7 @@ onMounted(() => {
   getRegisteredPatientByDispenseType();
 });
 
-watch([year,serviceCode], () => {
+watch([year, serviceCode], () => {
   getRegisteredPatientByDispenseType();
   chartOptions.title = {
     ...chartOptions.title,
