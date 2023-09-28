@@ -205,8 +205,8 @@ const initInventory = () => {
     doBeforeSave();
   }
   currInventory.value.id = uuidv4()
- // currInventory.value.clinic = currClinic.value;
-  currInventory.value.clinic_id = currClinic.value.id;
+   currInventory.value.clinic = {};
+  currInventory.value.clinic.id = currClinic.value.id;
   currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
     currInventory.value.startDate
   ));
