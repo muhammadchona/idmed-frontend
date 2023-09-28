@@ -6,6 +6,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 import InteroperabilityAttribute from 'src/stores/models/interoperabilityAttribute/InteroperabilityAttribute';
+import InteroperabilityAttributeService from '../InteroperabilityAttribute/InteroperabilityAttributeService';
 
 const healthInformationSystem = useRepo(HealthInformationSystem);
 const interoperabilityAttributeRepo = useRepo(InteroperabilityAttribute);
@@ -73,6 +74,9 @@ export default {
     return api()
       .patch('healthInformationSystem/' + uuid, params)
       .then((resp) => {
+        InteroperabilityAttributeService.deleteAllFromHealthSystem(
+          resp.data.id
+        );
         healthInformationSystem.save(resp.data);
       });
   },
@@ -155,11 +159,6 @@ export default {
   },
 
   getAllHis() {
-    return healthInformationSystem
-      .query()
-      .with('interoperabilityAttributes', (query) => {
-        query.with('interoperabilityType');
-      })
-      .get();
+    return healthInformationSystem.withAllRecursive(3).get();
   },
 };

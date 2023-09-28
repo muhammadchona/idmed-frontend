@@ -86,6 +86,7 @@
           option-label="description"
           @filter="filterFntherapeuticRegimens"
           label="Regime Terapêutico"
+          @update:model-value="curPrescription.prescribedDrugs = []"
         />
         <q-select
           v-if="hasTherapeuticalLine"
@@ -255,72 +256,88 @@
           </div>
         </div>
         <div>
-        <q-select
-          v-if="
-            hasPrescriptionChangeMotive &&
-            String(curPrescription.patientType).includes('Alterar')
-          "
-          :hint="reasonOutroSelected ? reasonPlaceholder : ''"
-          class="col q-mr-sm"
-          use-input
-          hide-selected
-          fill-input
-          input-debounce="0"
-          ref="reasonForUpdateRef"
-          dense
-          outlined
-          option-value="code"
-          :disable="showServiceDrugsManagement || !isNewPrescription"
-          :options="reasonsForUpdate"
-          v-model="curPrescriptionDetail.reasonForUpdate"
-          option-label="description"
-          @filter="filterFnreasonsForUpdate"
-          label="Motivo Alteração"
-        >
-          <template v-slot:option="scope">
-            <q-item v-bind="scope.itemProps" v-if="scope.opt === 'Outro'">
-              
-              <q-item-section>
-                <q-item-label>{{ scope.opt }}
-                </q-item-label>
-              </q-item-section>
-
-              <q-item-section avatar>
-                  <q-icon name="edit" >
-                  </q-icon>
+          <q-select
+            v-if="
+              hasPrescriptionChangeMotive &&
+              String(curPrescription.patientType).includes('Alterar')
+            "
+            :hint="reasonOutroSelected ? reasonPlaceholder : ''"
+            class="col q-mr-sm"
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="0"
+            ref="reasonForUpdateRef"
+            dense
+            outlined
+            option-value="code"
+            :disable="showServiceDrugsManagement || !isNewPrescription"
+            :options="reasonsForUpdate"
+            v-model="curPrescriptionDetail.reasonForUpdate"
+            option-label="description"
+            @filter="filterFnreasonsForUpdate"
+            label="Motivo Alteração"
+          >
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps" v-if="scope.opt === 'Outro'">
+                <q-item-section>
+                  <q-item-label>{{ scope.opt }} </q-item-label>
                 </q-item-section>
-              
-            </q-item>
 
-            <q-item v-bind="scope.itemProps" v-else>
-              <q-item-section>
-                <q-item-label>{{ scope.opt }}
-                </q-item-label>
-              </q-item-section>
-            </q-item>
-          </template>       
-        </q-select>
-        <div class="cursor-pointer"  v-if="reasonOutroSelected && String(curPrescription.patientType).includes('Alterar')">
-          <q-btn class="glossy" size="sm" color="primary"  label="Indicar Motivo">
-            <q-popup-edit
-              transition-show="flip-up" transition-hide="flip-down"
-              class="shadow-up-21 shadow-24"
-              v-model="curPrescriptionDetail.reasonForUpdateDesc" 
-              :cover="false"   
-              fit
-              buttons
-              label-set="OK" label-cancel="Cancelar"
-              :offset="[0, -130]" 
-              v-slot="scope">
-              <q-input color="primary" v-model="scope.value" label="Descricão Outro Motivo" dense autofocus  @keyup.enter="scope.set">
-                <template v-slot:prepend>
-                  <q-icon name="edit" color="primary"></q-icon>
-                </template>
-              </q-input>
-            </q-popup-edit>
-          </q-btn>
-            </div>
-            </div>
+                <q-item-section avatar>
+                  <q-icon name="edit"> </q-icon>
+                </q-item-section>
+              </q-item>
+
+              <q-item v-bind="scope.itemProps" v-else>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt }} </q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+          <div
+            class="cursor-pointer"
+            v-if="
+              reasonOutroSelected &&
+              String(curPrescription.patientType).includes('Alterar')
+            "
+          >
+            <q-btn
+              class="glossy"
+              size="sm"
+              color="primary"
+              label="Indicar Motivo"
+            >
+              <q-popup-edit
+                transition-show="flip-up"
+                transition-hide="flip-down"
+                class="shadow-up-21 shadow-24"
+                v-model="curPrescriptionDetail.reasonForUpdateDesc"
+                :cover="false"
+                fit
+                buttons
+                label-set="OK"
+                label-cancel="Cancelar"
+                :offset="[0, -130]"
+                v-slot="scope"
+              >
+                <q-input
+                  color="primary"
+                  v-model="scope.value"
+                  label="Descricão Outro Motivo"
+                  dense
+                  autofocus
+                  @keyup.enter="scope.set"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="edit" color="primary"></q-icon>
+                  </template>
+                </q-input>
+              </q-popup-edit>
+            </q-btn>
+          </div>
+        </div>
         <q-select
           class="col q-mr-sm"
           use-input
@@ -473,7 +490,7 @@ const reasonForUpdateRef = ref(null);
 const dispenseTypeRef = ref(null);
 const patientStatusRef = ref(null);
 const prescriptionDateRef = ref(null);
-const label = ref('Click me')
+const label = ref('Click me');
 // New Values
 const curPrescription = ref(new Prescription({ id: uuidv4() }));
 const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
@@ -548,9 +565,8 @@ const curPatientVisit = inject('curPatientVisit');
 const selectedMember = inject('selectedMember');
 
 const showEdit = () => {
- reasonOutroSelected.value = true
-    }
-
+  reasonOutroSelected.value = true;
+};
 
 // Computed
 const spetialPrescriptionMotives = computed(() => {
@@ -573,12 +589,12 @@ const hasTherapeuticalLine = computed(() => {
 });
 
 const reasonOutroSelected = computed(() => {
-  return curPrescriptionDetail.value.reasonForUpdate === 'Outro'
-})
+  return curPrescriptionDetail.value.reasonForUpdate === 'Outro';
+});
 
 const reasonPlaceholder = computed(() => {
-  return curPrescriptionDetail.value.reasonForUpdateDesc
-})
+  return curPrescriptionDetail.value.reasonForUpdateDesc;
+});
 
 const hasPrescriptionChangeMotive = computed(() => {
   const result = clinicalServiceAttributeService.checkWeatherAttExist(
@@ -938,9 +954,10 @@ const generatePacks = async (packagedDrug) => {
 
   let quantitySupplied = packagedDrug.quantitySupplied;
   //getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(
-const pickupDate=curPack.value.pickupDate
+  const pickupDate = curPack.value.pickupDate;
   const stocks = await StockService.getValidStockByDrugAndPickUpDateOnline(
-    packagedDrug.drug.id,pickupDate
+    packagedDrug.drug.id,
+    pickupDate
   );
 
   let i = 0;
@@ -966,17 +983,19 @@ const pickupDate=curPack.value.pickupDate
   packagedDrug.packagedDrugStocks = packagedDrugStocks;
 };
 
-const getItemsRemoved = async () => {
+const checkStockToPack = async () => {
   let indexToRemove = [];
   const packagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
 
   for (const packageDrug of packagedDrugs) {
-    const item = await checkStock(packageDrug, curPatientVisitDetail.value.pack.weeksSupply);
-    if (!item || Number(packageDrug.quantitySupplied) <= 0) {
+    const item = await checkStock(
+      packageDrug,
+      curPatientVisitDetail.value.pack.weeksSupply
+    );
+    if (!item) {
       const i = packagedDrugs.indexOf(packageDrug);
       indexToRemove.push(i);
     } else {
-      console.log(packageDrug.quantitySupplied);
       generatePacks(packageDrug);
     }
   }
@@ -984,8 +1003,20 @@ const getItemsRemoved = async () => {
   return indexToRemove;
 };
 
+const checkPackageDrugQtySupplied = () => {
+  let indexToRemove = [];
+  const packagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
+
+  for (const packageDrug of packagedDrugs) {
+    if (Number(packageDrug.quantitySupplied) <= 0) {
+      const i = packagedDrugs.indexOf(packageDrug);
+      indexToRemove.push(i);
+    }
+  }
+
+  return indexToRemove;
+};
 const addPatientVisitDetail = async () => {
-  
   let pickupDate4daysAdd = date.addToDate(
     curPatientVisitDetail.value.pack.pickupDate,
     {
@@ -993,13 +1024,14 @@ const addPatientVisitDetail = async () => {
     }
   );
 
-  
-    const itemsToRemove = await  getItemsRemoved()
-
-  if (itemsToRemove.length > 0) {
+  const itemsSuppliedToRemove = checkPackageDrugQtySupplied();
+  const itemsToRemove = await checkStockToPack();
+  if (itemsSuppliedToRemove.length > 0) {
     alertError(
-      ' Exitem medicamentos sem stock ou sem quantidade por dispensar na lista. Por favor, remova'
+      ' Existem medicamentos sem quantidade por dispensar na lista. Por favor, remova'
     );
+  } else if (itemsToRemove.length > 0) {
+    alertError(' Existem medicamentos sem stock na lista. Por favor, remova');
   } else if (
     Number(curPatientVisitDetail.value.pack.weeksSupply / 4) >
     remainigDuration(curPatientVisitDetail.value.prescription)
@@ -1054,9 +1086,6 @@ const addPatientVisitDetail = async () => {
   } else {
     allGoodValidatatedDispense();
   }
-  
-
- 
 };
 const allGoodValidatatedDispense = () => {
   validateDispense.value = true;
@@ -1080,7 +1109,7 @@ const removePatientVisitDetail = () => {
   curPatientVisit.value.patientVisitDetails.splice(i, 1);
 };
 
-const addPrescribedDrug =async (prescribedDrug) => {
+const addPrescribedDrug = async (prescribedDrug) => {
   const prescribedDrugExists = curPrescription.value.prescribedDrugs.some(
     (item) => {
       return item.drug.id === prescribedDrug.drug.id;
@@ -1088,7 +1117,7 @@ const addPrescribedDrug =async (prescribedDrug) => {
   );
 
   if (!prescribedDrugExists) {
-    const hasStock =  await checkStock(prescribedDrug);
+    const hasStock = await checkStock(prescribedDrug);
     if (hasStock) {
       if (
         getQtyPrescribed(
@@ -1134,17 +1163,18 @@ const addMedication = (prescribedDrug) => {
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
-const checkStock = async ( prescribedDrug, weeksSupply) => {
+const checkStock = async (prescribedDrug, weeksSupply) => {
+  const qtyPrescribed = getQtyPrescribed(prescribedDrug, weeksSupply);
 
-  const qtyPrescribed = getQtyPrescribed(
-    prescribedDrug,
-    weeksSupply
+  const prescrDate = getYYYYMMDDFromJSDate(
+    getDateFromHyphenDDMMYYYY(prescriptionDate.value)
   );
-
-  const prescrDate =getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(prescriptionDate.value))
-  const resp = await  StockService.checkStockStatus( prescribedDrug.drug.id,prescrDate,qtyPrescribed)
-  return resp
- 
+  const resp = await StockService.checkStockStatus(
+    prescribedDrug.drug.id,
+    prescrDate,
+    qtyPrescribed
+  );
+  return resp;
 };
 
 const deleteRow = (row) => {

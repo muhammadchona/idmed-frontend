@@ -73,7 +73,7 @@ export function useOnline() {
     formService.get(0);
     dispenseTypeService.get(0);
     InteroperabilityTypeService.get(0);
-    InteroperabilityAttributeService.get(0);
+    // InteroperabilityAttributeService.get(0);
     healthInformationSystemService.get(0);
     stockCenterService.get(0);
     facilityTypeService.get(0);

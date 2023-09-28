@@ -157,11 +157,15 @@ const newPacking = async () => {
     let invalidPrescription = '';
     // emit('newPacking', headers.value[0])
     groupMembersNew.value.forEach((gMember) => {
-      if (gMember.validade === 0 && gMember.validadeNova === 0) {
+      if (
+        gMember.validade === 0 &&
+        gMember.validadeNova === 0 &&
+        gMember.membershipEndDate === undefined
+      ) {
         invalidPrescription +=
           invalidPrescription === ''
-            ? fullName(patientService.getById(gMember.patientId))
-            : ', ' + fullName(patientService.getById(gMember.patientId));
+            ? gMember.fullName
+            : ', ' + gMember.fullName;
       }
     });
     if (invalidPrescription !== '') {

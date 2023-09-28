@@ -100,6 +100,7 @@
         color="orange-5"
         label="Editar"
         class="col"
+        :disable="!disableEditButton"
         @click="editPatient"
       />
     </div>
@@ -128,11 +129,16 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import patientRegister from 'src/components/Patient/Register/PatientRegister.vue';
 import mergeDuplicates from 'src/components/Patient/PatientPanel/MergeDuplicatePatients.vue';
-import { inject, onMounted, provide, ref } from 'vue';
+import { inject, onMounted, provide, ref, computed } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
 
 // Declaration
-const { postoAdministrativoName, bairroName, fullName } = usePatient();
+const {
+  postoAdministrativoName,
+  bairroName,
+  fullName,
+  hasNoObitOrTransferedForEpisode,
+} = usePatient();
 const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const showPatientRegister = ref(false);
@@ -180,6 +186,16 @@ const closeMergePatient = () => {
   showMergeDuplicates.value = false;
   newPatient.value = false;
 };
+
+const disableEditButton = computed(() => {
+  if (patient.value !== null) {
+    if (hasNoObitOrTransferedForEpisode(patient.value)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+});
 
 provide('newPatient', newPatient);
 provide('closePatient', closePatient);

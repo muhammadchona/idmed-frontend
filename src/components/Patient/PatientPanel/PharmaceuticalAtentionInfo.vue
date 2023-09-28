@@ -36,7 +36,11 @@ import { usePatient } from 'src/composables/patient/patientMethods';
 
 //Declaration
 const { website } = useSystemUtils();
-const { hasEpisodes, hasOneAndClosedIdentifier } = usePatient();
+const {
+  hasEpisodes,
+  hasOneAndClosedIdentifier,
+  hasNoObitOrTransferedForEpisode,
+} = usePatient();
 const infoVisible = ref(true);
 const showAddPharmaceuticalAtention = ref(false);
 const title = ref('Atenção Farmacêutica');
@@ -135,7 +139,13 @@ const patientVisits = computed(() => {
   );
 });
 const showAddButton = computed(() => {
-  return hasEpisodes(patient.value);
+  if (hasEpisodes(patient.value)) {
+    if (hasNoObitOrTransferedForEpisode(patient.value)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 });
 provide('title', title);
 provide('bgColor', bgColor);

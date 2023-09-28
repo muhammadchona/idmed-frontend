@@ -827,11 +827,6 @@ const doSave = async () => {
   identifier.value.service = {};
   identifier.value.service.id = clinical_service_id;
   if (usePreferedId.value) {
-    console.log(
-      patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(
-        patient.value.id
-      )
-    );
     identifier.value.value =
       patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(
         patient.value.id
@@ -932,6 +927,7 @@ const currClinic = computed(() => {
 
 const provinces = computed(() => {
   if (isReferenceEpisode.value) {
+    selectedProvince.value = patient.value.clinic.province;
     return provinceService.getAllProvincesById(
       patient.value.clinic.province_id
     );

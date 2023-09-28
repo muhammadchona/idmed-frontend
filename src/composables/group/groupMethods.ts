@@ -3,5 +3,15 @@ export function useGroup() {
     return group.endDate !== null;
   }
 
-  return { isDesintegrated };
+  function getActiveMemberRows(groupMembersNew: any) {
+    const activeMembers = [];
+    groupMembersNew.forEach((groupMember) => {
+      if (groupMember.membershipEndDate !== null) {
+        activeMembers.push(groupMember);
+      }
+    });
+    return activeMembers;
+  }
+
+  return { isDesintegrated, getActiveMemberRows };
 }

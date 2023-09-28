@@ -146,4 +146,15 @@ export default {
   getAllFromStorage() {
     return interoperabilityAttribute.all();
   },
+  saveLocalStorage(params: any) {
+    return interoperabilityAttribute.save(params);
+  },
+  deleteAllFromHealthSystem(healthInformationSysytemId: String) {
+    const attributes = interoperabilityAttribute
+      .where('healthInformationSystem_id', healthInformationSysytemId)
+      .get();
+    attributes.forEach((attr) => {
+      interoperabilityAttribute.destroy(attr.id);
+    });
+  },
 };
