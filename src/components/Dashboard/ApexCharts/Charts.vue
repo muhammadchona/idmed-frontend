@@ -8,7 +8,7 @@
               <q-btn
                 :color="colour"
                 @click="changeSevice(item.code, colour)"
-                style="background-color: grey; color: ##ffffff'"
+                style="background-color: black; color: #ffffff"
               >
                 <q-icon left size="6em" name="health_and_safety" />
                 <div>

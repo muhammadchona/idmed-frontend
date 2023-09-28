@@ -1,8 +1,10 @@
 <template>
   <div>
     <div class="">
-      <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-        Clínicos
+      <div class="q-mb-md text-weight-bold text-subtitle1">
+        <q-bar style="background-color: #9e9e9e2e">
+          <div class="cursor-pointer non-selectable">Clínicos</div>
+        </q-bar>
       </div>
       <q-table
         :rows="doctors"
@@ -11,17 +13,11 @@
         :filter="filter"
         virtual-scroll
       >
-      <template v-slot:loading>
+        <template v-slot:loading>
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Procurar"
-          >
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -39,9 +35,7 @@
           </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div
-            class="full-width row flex-center text-primary q-gutter-sm text-body2"
-          >
+          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -58,7 +52,7 @@
               {{ props.row.telephone }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? 'Sim' : 'Nao' }}
+              {{ props.row.active ? "Sim" : "Nao" }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -92,7 +86,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? 'Inactivar' : 'Activar'
+                    props.row.active ? "Inactivar" : "Activar"
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -179,15 +173,14 @@ const loadingOnTable = ref(true);
 const doctors = computed(() => {
   const doctorsRes = ref(null);
   doctorsRes.value = doctorService.getAlldoctors();
-  if(doctorsRes.value && doctorsRes.value.length >= 0) stopLoading()
+  if (doctorsRes.value && doctorsRes.value.length >= 0) stopLoading();
 
-  return doctorsRes.value
+  return doctorsRes.value;
 });
 
-
 const stopLoading = () => {
-  loadingOnTable.value = false
-}
+  loadingOnTable.value = false;
+};
 
 onMounted(() => {
   isEditStep.value = false;

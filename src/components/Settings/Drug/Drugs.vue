@@ -1,7 +1,9 @@
 <template>
   <div>
-    <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-      Medicamentos
+    <div class="q-mb-md text-weight-bold text-subtitle1">
+      <q-bar style="background-color: #9e9e9e2e">
+        <div class="cursor-pointer non-selectable">Medicamentos</div>
+      </q-bar>
     </div>
     <div class="">
       <q-table :loading="loading" :rows="drugs" :columns="columns" :filter="filter">
@@ -69,7 +71,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? 'Inactivar' : 'Activar'
+                    props.row.active ? "Inactivar" : "Activar"
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -89,7 +91,6 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import formService from 'src/services/api/formService/formService.ts';
-
 
 /*Components Import*/
 import addDrug from 'src/components/Settings/Drug/AddDrug.vue';
@@ -162,15 +163,15 @@ const forms = computed(() => {
 });
 
 const drugs = computed(() => {
-  const drugsRes = ref(null)
+  const drugsRes = ref(null);
   drugsRes.value = drugService.getAllForAllDrugs();
   if (drugsRes.value && drugsRes.value.length >= 0) stopLoading();
   return drugsRes.value;
 });
 
 const stopLoading = () => {
-  loading.value = false
-}
+  loading.value = false;
+};
 
 onMounted(() => {
   isEditStep.value = false;
@@ -246,9 +247,7 @@ const promptToConfirm = (drugParam) => {
           alertSucess('Medicamento actualizado com sucesso.');
         })
         .catch(() => {
-          alertError(
-            'Aconteceu um erro inesperado ao actualizar o Medicamento.'
-          );
+          alertError('Aconteceu um erro inesperado ao actualizar o Medicamento.');
         });
     }
   });

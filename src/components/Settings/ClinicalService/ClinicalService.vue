@@ -1,21 +1,22 @@
 <template>
   <div>
-    <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-      Serviço Clínico
+    <div class="q-mb-md text-weight-bold text-subtitle1">
+      <q-bar style="background-color: #9e9e9e2e">
+        <div class="cursor-pointer non-selectable">Serviço Clínico</div>
+      </q-bar>
     </div>
     <div class="">
-      <q-table :loading="loading" :rows="clinicalServices" :columns="columns" :filter="filter">
+      <q-table
+        :loading="loading"
+        :rows="clinicalServices"
+        :columns="columns"
+        :filter="filter"
+      >
         <template v-slot:loading>
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Procurar"
-          >
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -41,7 +42,7 @@
               {{ props.row.description }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? 'Sim' : 'Nao' }}
+              {{ props.row.active ? "Sim" : "Nao" }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -75,7 +76,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? 'Inactivar' : 'Activar'
+                    props.row.active ? "Inactivar" : "Activar"
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -86,13 +87,7 @@
     </div>
     <div class="absolute-bottom">
       <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
-        <q-btn
-          size="xl"
-          fab
-          icon="add"
-          @click="addClinicService"
-          color="primary"
-        />
+        <q-btn size="xl" fab icon="add" @click="addClinicService" color="primary" />
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showClinicServiceRegistrationScreen">
@@ -163,15 +158,15 @@ const currClinic = inject('currClinic');
 
 /*Hooks*/
 const clinicalServices = computed(() => {
-  const clinicalServicesRes = ref(null)
+  const clinicalServicesRes = ref(null);
   clinicalServicesRes.value = clinicalServiceService.getAllClinicalServices();
-  if(clinicalServicesRes.value && clinicalServicesRes.value.length >= 0) stopLoading();
-  return clinicalServicesRes.value
+  if (clinicalServicesRes.value && clinicalServicesRes.value.length >= 0) stopLoading();
+  return clinicalServicesRes.value;
 });
 
 const stopLoading = () => {
-  loading.value = false
-}
+  loading.value = false;
+};
 
 onMounted(() => {
   editMode.value = false;
@@ -240,15 +235,14 @@ const submitClinicalService = () => {
   clinicalService.value.therapeuticRegimens.forEach((therapeuticalRegimen) => {
     therapeuticalRegimen.drugs = [];
     therapeuticalRegimen.clinicalService = {};
-    therapeuticalRegimen.clinicalService.id =
-      therapeuticalRegimen.clinical_service_id;
+    therapeuticalRegimen.clinicalService.id = therapeuticalRegimen.clinical_service_id;
   });
 
   if (isNewClinicalService.value) {
     clinicalServiceService
       .post(clinicalService.value)
       .then(() => {
-        closeLoading()
+        closeLoading();
         alertSucess('Serviço Clínico adicionado com sucesso.');
         close();
       })
@@ -261,7 +255,7 @@ const submitClinicalService = () => {
     clinicalServiceService
       .patch(clinicalService.value.id, clinicalService.value)
       .then(() => {
-        closeLoading()
+        closeLoading();
         alertSucess('Serviço Clínico actualizado com sucesso.');
         close();
       })
@@ -304,9 +298,7 @@ const promptToConfirm = (clinicalServiceParam) => {
           alertSucess('Serviço Clínico actualizado com sucesso.');
         })
         .catch(() => {
-          alertError(
-            'Aconteceu um erro inesperado ao actualizar o Serviço Clínico.'
-          );
+          alertError('Aconteceu um erro inesperado ao actualizar o Serviço Clínico.');
         });
       // }
     }
@@ -319,10 +311,7 @@ provide(
   'clinicalServiceAttributeTypesObjectList',
   clinicalServiceAttributeTypesObjectList
 );
-provide(
-  'showClinicServiceRegistrationScreen',
-  showClinicServiceRegistrationScreen
-);
+provide('showClinicServiceRegistrationScreen', showClinicServiceRegistrationScreen);
 provide('clinicalServiceAttributeTypes', clinicalServiceAttributeTypes);
 provide('therapeuticRegimens', therapeuticRegimens);
 provide('clinicSectors', clinicSectors);

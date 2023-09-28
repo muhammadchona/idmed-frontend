@@ -1,7 +1,9 @@
 <template>
   <div>
-    <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-      Regime Terapêutico
+    <div class="q-mb-md text-weight-bold text-subtitle1">
+      <q-bar style="background-color: #9e9e9e2e">
+        <div class="cursor-pointer non-selectable">Regime Terapêutico</div>
+      </q-bar>
     </div>
     <div class="">
       <q-table
@@ -11,13 +13,11 @@
         :filter="filter"
         row-key="regimenScheme"
       >
-      <template v-slot:loading>
+        <template v-slot:loading>
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div
-            class="full-width row flex-center text-primary q-gutter-sm text-body2"
-          >
+          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -52,7 +52,7 @@
               {{ props.row.description }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? 'Sim' : 'Nao' }}
+              {{ props.row.active ? "Sim" : "Nao" }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -75,7 +75,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? 'Inactivar' : 'Activar'
+                    props.row.active ? "Inactivar" : "Activar"
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -85,13 +85,10 @@
       </q-table>
     </div>
     <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-      </q-page-sticky>
+      <q-page-sticky position="bottom-right" :offset="[18, 18]"> </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
-      <AddTherapeuticRegimen
-        @close="showTherapeuticRegimenRegistrationScreen = false"
-      />
+      <AddTherapeuticRegimen @close="showTherapeuticRegimenRegistrationScreen = false" />
     </q-dialog>
   </div>
 </template>
@@ -152,16 +149,16 @@ const isCreateStep = inject('isCreateStep');
 
 /*Hooks*/
 const therapeuticRegimens = computed(() => {
-  const therapeuticRegimensRes = ref(null)
-  therapeuticRegimensRes.value =
-    therapeuticalRegimenService.getAllTherapeuticalRegimens();
-  if (therapeuticRegimensRes.value && therapeuticRegimensRes.value.length >= 0) stopLoading();
+  const therapeuticRegimensRes = ref(null);
+  therapeuticRegimensRes.value = therapeuticalRegimenService.getAllTherapeuticalRegimens();
+  if (therapeuticRegimensRes.value && therapeuticRegimensRes.value.length >= 0)
+    stopLoading();
   return therapeuticRegimensRes.value;
 });
 
 const stopLoading = () => {
-  loading.value = false
-}
+  loading.value = false;
+};
 
 const forms = computed(() => {
   return formService.getAllForms();
@@ -239,9 +236,7 @@ const promptToConfirm = (therapeuticRegimenParam) => {
           alertSucess('Regime Terapêutico actualizado com sucesso.');
         })
         .catch(() => {
-          alertError(
-            'Aconteceu um erro inesperado ao actualizar o Regime Terapêutico.'
-          );
+          alertError('Aconteceu um erro inesperado ao actualizar o Regime Terapêutico.');
         });
     }
   });
