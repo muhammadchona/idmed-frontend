@@ -255,6 +255,7 @@ const initNewAdjustment = (stock, drug, i) => {
     newAdjustment = new InventoryStockAdjustment({
       inventory: inventory,
       clinic: clinicService.currClinic(),
+      clinic_id : clinicService.currClinic().id
     });
   }
   newAdjustment.index = i;
@@ -295,6 +296,9 @@ const saveAdjustments = () => {
       adjustment.clinic.id =  clinicService.currClinic().id
       adjustment.adjustedStock.clinic = {}
       adjustment.adjustedStock.clinic.id = clinicService.currClinic().id
+      adjustment.inventory.clinic = {}
+      adjustment.inventory ={}
+      adjustment.inventory.id  = inventory.id
       if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
         adjustment.adjustedValue = Number(
           adjustment.balance - adjustment.adjustedStock.stockMoviment
@@ -329,7 +333,7 @@ const doSave = (i) => {
           if (resp1.data.length=== 0) {
             InventoryStockAdjustmentService.post(adjustments.value[i]).then(
               (resp) => {
-                adjustments.value[i].id = resp.id;
+               // adjustments.value[i].id = resp.id;
                 i = i + 1;
                 setTimeout(doSave(i), 2);
               }
