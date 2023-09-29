@@ -368,7 +368,8 @@ const expandLess = (value) => {
   showPrescriptionData.value = !value;
 };
 
-const removeGroupMemberPrescription = (row) => {
+const removeGroupMemberPrescription = async (row) => {
+  await groupMemberPrescriptionService.apiFetchByMemberId(row.groupMemberId);
   const groupMemberPrescription =
     groupMemberPrescriptionService.getGroupMemberPrescriptionByMemberId(
       row.groupMemberId

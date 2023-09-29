@@ -499,10 +499,7 @@ const newPrescription = async (member, patientServiceId, episodeId) => {
   // if (loadedPrescriptionInfo.value === true) {
   //   showAddPrescription.value = true;
   // }\
-  setTimeout(() => {
-    closeLoading();
-  }, 2000);
-  console.log(patient.value);
+
   isNewPrescription.value = true;
   loadedPrescriptionInfo.value = true;
   // closeLoading();
