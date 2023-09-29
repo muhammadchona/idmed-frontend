@@ -62,7 +62,6 @@
                 outlined
                 class="col"
                 v-model="props.row.eventDate"
-                mask="date"
                 ref="expireDate"
                 label="Data Movimento"
               >
@@ -73,7 +72,7 @@
                       transition-show="scale"
                       transition-hide="scale"
                     >
-                      <q-date v-model="props.row.eventDate">
+                      <q-date v-model="props.row.eventDate"  mask="DD-MM-YYYY">
                         <div class="row items-center justify-end">
                           <q-btn
                             v-close-popup
@@ -88,7 +87,7 @@
                 </template>
               </q-input>
             </span>
-            <span v-else>{{ dateUtils.formatDate(props.row.eventDate) }}</span>
+            <span v-else>{{ dateUtils.isValidDate(props.row.eventDate) ? dateUtils.getDDMMYYYFromJSDate(props.row.eventDate) : props.row.eventDate}}</span>
           </q-td>
           <q-td key="moviment" :props="props">
             <span v-if="props.row.id === null && !isDisplayStep">
@@ -273,7 +272,7 @@ const saveAjustment = () => {
    
     destruction = new DestroyedStock({
       id : uuidv4(),
-      date: new Date(curEvent.value.eventDate),
+      date: dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate ),
       clinic: clinic,
     });
     adjustment = new StockDestructionAdjustment({
@@ -286,7 +285,7 @@ const saveAjustment = () => {
     reference = new ReferedStockMoviment({
       id : uuidv4(),
       origin: curEvent.value.moviment,
-      date: new Date(curEvent.value.eventDate),
+      date:  dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate ),
       quantity: isPosetiveAdjustment.value
         ? Number(curEvent.value.posetiveAdjustment)
         : Number(curEvent.value.negativeAdjustment),
@@ -312,6 +311,7 @@ const saveAjustment = () => {
     alertError(
       'Por favor indicar a  data de movimento correcta.'
     );
+    loadingSave.value=false
     return 
   }
   else
@@ -322,12 +322,16 @@ const saveAjustment = () => {
     alertError(
       'A data do movimento não pode ser menor que a data de entrada do lote.'
     );
+    loadingSave.value=false
   } else if (new Date(curEvent.value.eventDate) > new Date()) {
     alertError('A data do movimento não pode ser maior que a data corrente.');
+    loadingSave.value=false
   } else if (curEvent.value.moviment.trim() === '') {
     alertError( 'Por favor indicar a Origem/Destino.');
+    loadingSave.value=false
   } else if (Number(adjustment.adjustedValue) <= 0) {
     alertError('Por favor indicar uma quantidade válida.');
+    loadingSave.value=false
   } else if (
     (isLossAdjustment.value || isNegativeAdjustment.value) &&
     adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue < 0
@@ -335,11 +339,11 @@ const saveAjustment = () => {
     alertError(
       'A quantidade que pretende retitar é maior que a quantidade em stock no momento, impossível prosseguir!'
     );
+    loadingSave.value=false
   } else {
-    previousBalance.value =  drugEventList.value[1  ].balance
+    previousBalance.value =  drugEventList.value[1].balance
     adjustment.clinic = clinic;
-    adjustment.captureDate = new Date(curEvent.value.eventDate);
-    adjustment.finalised = true;
+    adjustment.captureDate  = dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate );
     adjustment.adjustedStock.clinic = clinic;
     if (isPosetiveAdjustment.value) {
       adjustment.adjustedStock.stockMoviment = Number(
@@ -347,7 +351,7 @@ const saveAjustment = () => {
       );
     } else {
       adjustment.adjustedStock.stockMoviment = Number(
-        previousBalance.value - adjustment.adjustedValue
+        previousBalance.value - adjustment.adjustedValues
       );
     }
     adjustment.balance = adjustment.adjustedStock.stockMoviment;
