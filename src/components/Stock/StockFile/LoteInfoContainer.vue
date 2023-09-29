@@ -87,7 +87,7 @@
                 </template>
               </q-input>
             </span>
-            <span v-else>{{ dateUtils.formatDate(props.row.eventDate) }}</span>
+            <span v-else>{{ dateUtils.isValidDate(props.row.eventDate) ? dateUtils.getDDMMYYYFromJSDate(props.row.eventDate) : props.row.eventDate}}</span>
           </q-td>
           <q-td key="moviment" :props="props">
             <span v-if="props.row.id === null && !isDisplayStep">
@@ -285,7 +285,7 @@ const saveAjustment = () => {
     reference = new ReferedStockMoviment({
       id : uuidv4(),
       origin: curEvent.value.moviment,
-      date: dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate ),
+      date:  dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate ),
       quantity: isPosetiveAdjustment.value
         ? Number(curEvent.value.posetiveAdjustment)
         : Number(curEvent.value.negativeAdjustment),
@@ -343,10 +343,7 @@ const saveAjustment = () => {
   } else {
     previousBalance.value =  drugEventList.value[1].balance
     adjustment.clinic = clinic;
-
-  adjustment.captureDate  = dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate ); //date.formatDate.subtractFromDate(dataReg, { hours: 0, milliseconds: 0 })
-    //new Date(curEvent.value.eventDate) //moment(dateUtils.getYYYYMMDDFromJSDate( dateUtils.getDateFromSlashYYYYMMDD(curEvent.value.eventDate));  // new Date(curEvent.value.eventDate);
-    adjustment.finalised = true;
+    adjustment.captureDate  = dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate );
     adjustment.adjustedStock.clinic = clinic;
     if (isPosetiveAdjustment.value) {
       adjustment.adjustedStock.stockMoviment = Number(
