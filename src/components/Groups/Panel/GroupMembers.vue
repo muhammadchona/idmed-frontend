@@ -378,8 +378,11 @@ const removeGroupMemberPrescription = async (row) => {
     'Confirma a remoção da Prescrição do Membro[' + row.fullName + '?'
   ).then((result) => {
     if (result) {
-      groupMemberPrescriptionService.delete(groupMemberPrescription.id);
-      loadMemberInfoToShowByGroupId();
+      groupMemberPrescriptionService
+        .delete(groupMemberPrescription.id)
+        .then((resp) => {
+          loadMemberInfoToShowByGroupId();
+        });
     }
   });
 };
