@@ -46,7 +46,7 @@
                 :rows="interoperabilityAttributes"
                 :columns="columnsAttributes"
                 row-key="code"
-                selection="multiple"
+                :selection="selectionTable"
                 v-model:selected="selectedAttributes"
               >
                 <template v-slot:no-data="{ icon, filter }">
@@ -80,7 +80,7 @@
           <q-btn
             v-if="stepScreens > 1"
             color="primary"
-            @click="stepper.previous()"
+            @click="goBackStep"
             label="Voltar"
             class="q-ml-sm"
           />
@@ -155,7 +155,8 @@ const selectedAttributes = ref([]);
 const stepScreens = ref(1);
 const nomeRef = ref(null);
 const codeRef = ref(null);
-
+const selectionTable = ref('');
+const openMrsId = 'ff8080817d9aa854017d9e2809b50008';
 /*injects*/
 const editMode = inject('editMode');
 const his = inject('selectedHis');
@@ -173,6 +174,10 @@ const healthInformationSystemList = computed(() => {
   return healthInformationSystemService.getAllHis();
 });
 
+const checkIfIsOpenmrs = computed(() => {
+  return his.value != null && his.value.id === openMrsId;
+});
+
 onMounted(() => {
   if (isCreateStep.value) {
     his.value = healthInformationSystemService.newInstanceEntity();
@@ -182,6 +187,11 @@ onMounted(() => {
       selectedAttributes.value.push(attribute.interoperabilityType);
       healthInformationAttributeTypes.value.push(attribute);
     });
+  }
+  if (checkIfIsOpenmrs.value) {
+    selectionTable.value = 'none';
+  } else {
+    selectionTable.value = 'multiple';
   }
   extractDatabaseCodes();
 });
@@ -220,6 +230,7 @@ const submitHis = () => {
         showHISRegistrationScreen.value = false;
       })
       .catch((error) => {
+        closeLoading();
         console.log(error);
         alertError(
           'Aconteceu um erro inesperado ao registar o Sistema para Interoperabilidade.'
@@ -232,6 +243,7 @@ const submitHis = () => {
     healthInformationSystemService
       .patch(his.value.id, his.value)
       .then(() => {
+        healthInformationSystemService.apiFetchById(his.value.id);
         closeLoading();
         alertSucess('Sistema para Interoperabilidade actualizado com sucesso');
         submitting.value = false;
@@ -239,6 +251,7 @@ const submitHis = () => {
         showHISRegistrationScreen.value = false;
       })
       .catch((error) => {
+        closeLoading();
         console.log(error);
         alertError(
           'Aconteceu um erro inesperado ao registar o Sistema para Interoperabilidade.'
@@ -300,6 +313,22 @@ const goToNextStep = () => {
     }
   }
 };
+
+const goBackStep = () => {
+  if (stepScreens.value === 2) {
+    stepper.value.previous();
+
+    healthInformationAttributeTypes.value.forEach((x) => {
+      if (x.healthInformationSystem === null) {
+        healthInformationAttributeTypes.value.splice(
+          healthInformationAttributeTypes.value.indexOf(x),
+          1
+        );
+      }
+    });
+  }
+};
+
 const extractDatabaseCodes = () => {
   healthInformationSystemList.value.forEach((element) => {
     databaseCodes.value.push(element.abbreviation);
@@ -328,6 +357,7 @@ const addAttributesOnHealthInformationSystem = () => {
     ) {
       interoperabilityAttribute.value =
         interoperabilityAttributeService.newInstanceEntity();
+      interoperabilityAttribute.value.id = uuidv4();
       interoperabilityAttribute.value.interoperabilityType = attribute;
       healthInformationAttributeTypes.value.push(
         interoperabilityAttribute.value
@@ -335,6 +365,7 @@ const addAttributesOnHealthInformationSystem = () => {
     }
   });
 };
+
 /*Provide*/
 provide('rows', healthInformationAttributeTypes);
 provide('columns', columnsSelectedAttributes);

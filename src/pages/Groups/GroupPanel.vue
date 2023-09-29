@@ -195,39 +195,42 @@ const loadMemberInfoToShowByGroupId = async () => {
 
 const loadAllMembersInfoByMember2 = async () => {
   const promises = groupMembersNew.value.map(async (gm) => {
-    const patient = await patientService.apiFetchById(gm.patientId);
-    const respIdent = await patientServiceIdentifierService.apiFetchById(
-      gm.patientServiceId
-    );
-    const identifier = respIdent.data;
-    const resp = await episodeService.apiFetchById(gm.episodeId);
-    const respGroupMemberPres =
-      await groupMemberPrescriptionService.apiFetchByMemberId(gm.groupMemberId);
-
-    if (resp.data) {
-      identifier.episodes[0] = resp.data;
-
-      //  for (const episode of identifier.episodes) {
-      const episode = identifier.episodes[0];
-      const respVisit = await patientVisitDetailsService.apiGetLastByEpisodeId(
-        episode.id
+    if (gm.membershipEndDate === undefined) {
+      const patient = await patientService.apiFetchById(gm.patientId);
+      const respIdent = await patientServiceIdentifierService.apiFetchById(
+        gm.patientServiceId
       );
-
-      if (respVisit.data) {
-        episode.patientVisitDetails = [];
-        episode.patientVisitDetails[0] = respVisit.data;
-
-        const prescriptionResp = await prescriptionService.apiFetchById(
-          episode.patientVisitDetails[0].prescription.id
+      const identifier = respIdent.data;
+      const resp = await episodeService.apiFetchById(gm.episodeId);
+      const respGroupMemberPres =
+        await groupMemberPrescriptionService.apiFetchByMemberId(
+          gm.groupMemberId
         );
-        episode.patientVisitDetails[0].prescription = prescriptionResp.data;
-        if (respGroupMemberPres.status === 200) {
-          await prescriptionService.apiFetchById(
-            respGroupMemberPres.data.prescription.id
+
+      if (resp.data) {
+        identifier.episodes[0] = resp.data;
+
+        //  for (const episode of identifier.episodes) {
+        const episode = identifier.episodes[0];
+        const respVisit =
+          await patientVisitDetailsService.apiGetLastByEpisodeId(episode.id);
+
+        if (respVisit.data) {
+          episode.patientVisitDetails = [];
+          episode.patientVisitDetails[0] = respVisit.data;
+
+          const prescriptionResp = await prescriptionService.apiFetchById(
+            episode.patientVisitDetails[0].prescription.id
           );
+          episode.patientVisitDetails[0].prescription = prescriptionResp.data;
+          if (respGroupMemberPres.status === 200) {
+            await prescriptionService.apiFetchById(
+              respGroupMemberPres.data.prescription.id
+            );
+          }
         }
+        //  }
       }
-      //  }
     }
   });
   await Promise.all(promises);
@@ -462,7 +465,9 @@ const newPrescription = async (member, patientServiceId, episodeId) => {
     episodeId
   );
   // const identifier = patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(patientId)
-  patient.value = selectedMember.value.patient;
+  patient.value = patientService.getPatienWithstByID(
+    selectedMember.value.patient_id
+  );
   // await patientServiceIdentifierService.apiGetAllByPatientId(
   //   selectedMember.value.patient.id
   // );
@@ -494,6 +499,7 @@ const newPrescription = async (member, patientServiceId, episodeId) => {
   // if (loadedPrescriptionInfo.value === true) {
   //   showAddPrescription.value = true;
   // }\
+
   isNewPrescription.value = true;
   loadedPrescriptionInfo.value = true;
   // closeLoading();

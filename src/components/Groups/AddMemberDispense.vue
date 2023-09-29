@@ -333,58 +333,64 @@ const checkStock = async (packagedDrug) => {
 
 const initDispenses = () => {
   let prescription;
-  if (props.member.groupMemberPrescriptions[0] != null) {
-    prescription = props.member.groupMemberPrescriptions[0].prescription;
-  } else {
-    prescription = useEpisode().lastVisit(
-      props.member.patient.identifiers[0].episodes[0]
-    ).prescription;
-  }
-  const patientVisitDetails = new PatientVisitDetails({
-    id: uuidv4(),
-  });
-  const groupPack = new GroupPack({ id: uuidv4() });
-  const pack = new Pack({ id: uuidv4() });
-  const patientVisit = new PatientVisit({
-    id: uuidv4(),
-    patient: props.member.patient,
-    clinic: props.member.patient.clinic,
-  });
-  prescription.prescribedDrugs.forEach((prescD) => {
-    const packDrug = new PackagedDrug();
-    packDrug.id = uuidv4();
-    packDrug.amtPerTime = prescD.amtPerTime;
-    packDrug.timesPerDay = prescD.timesPerDay;
-    packDrug.form = prescD.form;
-    packDrug.drug = drugService.getDrugWith1ById(prescD.drug.id);
-    packDrug.quantitySupplied = prescD.prescribedQty;
-    // packDrug.toContinue = prescD.toContinue
-    packDrug.creationDate = new Date();
-    if (!drugQuantities.has(prescD.drug.id)) {
-      drugQuantities.set(prescD.drug.id, 0);
+
+  if (props.member.endDate === null) {
+    if (props.member.groupMemberPrescriptions[0] != null) {
+      prescription = props.member.groupMemberPrescriptions[0].prescription;
+    } else {
+      prescription = useEpisode().lastVisit(
+        props.member.patient.identifiers[0].episodes[0]
+      ).prescription;
     }
-    const currentQuantity = drugQuantities.get(prescD.drug.id);
-    drugQuantities.set(prescD.drug.id, currentQuantity + prescD.prescribedQty);
-    pack.packagedDrugs.push(packDrug);
-  });
-  patientVisitDetails.prescription = prescription;
-  patientVisitDetails.pack = pack;
-  // patientVisitDetails.clinic = props.member.patient.clinic;
-  patientVisitDetails.clinic = {};
-  patientVisitDetails.clinic.id = props.member.patient.clinic.id;
-  patientVisitDetails.episode = episodeService.getEpisodeById(
-    props.member.patient.identifiers[0].episodes[0].id
-  );
-  patientVisitDetails.patientVisit = patientVisit;
-  pack.syncStatus = props.member.patient.his_id.length > 10 ? 'R' : 'N';
-  pack.patientVisitDetails.push(patientVisitDetails);
-  membersDispenses.value.set(props.member, pack);
-  groupPack.pack = pack;
-  curGroupPackHeader.value.groupPacks.push(groupPack);
-  showDispensesData.value = true;
-  setTimeout(() => {
-    closeLoading();
-  }, 1000);
+    const patientVisitDetails = new PatientVisitDetails({
+      id: uuidv4(),
+    });
+    const groupPack = new GroupPack({ id: uuidv4() });
+    const pack = new Pack({ id: uuidv4() });
+    const patientVisit = new PatientVisit({
+      id: uuidv4(),
+      patient: props.member.patient,
+      clinic: props.member.patient.clinic,
+    });
+    prescription.prescribedDrugs.forEach((prescD) => {
+      const packDrug = new PackagedDrug();
+      packDrug.id = uuidv4();
+      packDrug.amtPerTime = prescD.amtPerTime;
+      packDrug.timesPerDay = prescD.timesPerDay;
+      packDrug.form = prescD.form;
+      packDrug.drug = drugService.getDrugWith1ById(prescD.drug.id);
+      packDrug.quantitySupplied = prescD.prescribedQty;
+      // packDrug.toContinue = prescD.toContinue
+      packDrug.creationDate = new Date();
+      if (!drugQuantities.has(prescD.drug.id)) {
+        drugQuantities.set(prescD.drug.id, 0);
+      }
+      const currentQuantity = drugQuantities.get(prescD.drug.id);
+      drugQuantities.set(
+        prescD.drug.id,
+        currentQuantity + prescD.prescribedQty
+      );
+      pack.packagedDrugs.push(packDrug);
+    });
+    patientVisitDetails.prescription = prescription;
+    patientVisitDetails.pack = pack;
+    // patientVisitDetails.clinic = props.member.patient.clinic;
+    patientVisitDetails.clinic = {};
+    patientVisitDetails.clinic.id = props.member.patient.clinic.id;
+    patientVisitDetails.episode = episodeService.getEpisodeById(
+      props.member.patient.identifiers[0].episodes[0].id
+    );
+    patientVisitDetails.patientVisit = patientVisit;
+    pack.syncStatus = props.member.patient.his_id.length > 10 ? 'R' : 'N';
+    pack.patientVisitDetails.push(patientVisitDetails);
+    membersDispenses.value.set(props.member, pack);
+    groupPack.pack = pack;
+    curGroupPackHeader.value.groupPacks.push(groupPack);
+    showDispensesData.value = true;
+    setTimeout(() => {
+      closeLoading();
+    }, 1000);
+  }
 };
 
 const openAddPrescribedDrugForm = () => {
