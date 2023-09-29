@@ -175,17 +175,6 @@
                       flat
                       round
                       v-if="!(selectedDataSources.id.length > 4)"
-                      color="amber-8"
-                      icon="edit"
-                      @click="editPatient(props.row)"
-                    >
-                      <q-tooltip class="bg-amber-5">Editar</q-tooltip>
-                    </q-btn>
-
-                    <q-btn
-                      flat
-                      round
-                      v-if="!(selectedDataSources.id.length > 4)"
                       class="q-ml-md"
                       color="green-8"
                       icon="person_search"
