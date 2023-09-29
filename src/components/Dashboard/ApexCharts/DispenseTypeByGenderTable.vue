@@ -6,7 +6,7 @@
         :rows="rowData"
         :columns="columnsGender"
         class="my-sticky-header-table text-color-white"
-        title="Total de dispensa por Gênero no Serviço"
+        :title="tableTitle + serviceCode"
         hide-bottom
       >
         <template v-slot:body="props">
@@ -65,15 +65,16 @@ const rowData = ref([]);
 const serviceCode = inject('serviceCode');
 const year = inject('year');
 const currClinic = inject('currClinic');
+const tableTitle = ref('Total de dispensas por Gênero no Serviço ');
 
 const getDispensesByGender = () => {
   reportService
     .getDispensesByGender(year.value, currClinic.value.id, serviceCode.value)
     .then((resp) => {
       if (isOnline.value) {
-        rowData.value = resp.data
+        rowData.value = resp.data;
       } else {
-        rowData.value = resp
+        rowData.value = resp;
       }
     });
 };

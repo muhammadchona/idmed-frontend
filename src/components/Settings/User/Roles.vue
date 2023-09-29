@@ -1,7 +1,9 @@
 <template>
   <div>
-    <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-      Perfis
+    <div class="q-mb-md text-weight-bold text-subtitle1">
+      <q-bar style="background-color: #9e9e9e2e">
+        <div class="cursor-pointer non-selectable">Perfis</div>
+      </q-bar>
     </div>
     <div class="">
       <q-table :loading="loading" :rows="userRoles" :columns="columns" :filter="filter">
@@ -9,13 +11,7 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Procurar"
-          >
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -33,9 +29,7 @@
           </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div
-            class="full-width row flex-center text-primary q-gutter-sm text-body2"
-          >
+          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -80,7 +74,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? 'Inactivar' : 'Activar'
+                    props.row.active ? "Inactivar" : "Activar"
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -91,14 +85,7 @@
     </div>
     <div class="absolute-bottom">
       <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
-        <q-btn
-          size="xl"
-          fab
-          icon="add"
-          @click="addRole"
-          no-cap
-          color="primary"
-        />
+        <q-btn size="xl" fab icon="add" @click="addRole" no-cap color="primary" />
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showRoleRegistrationScreen">
@@ -157,14 +144,14 @@ provide('showRoleRegistrationScreen', showRoleRegistrationScreen);
 
 /*Hooks*/
 const userRoles = computed(() => {
-  const userRoles = ref(null)
+  const userRoles = ref(null);
   userRoles.value = roleService.getAllWithMenus();
-  if(userRoles.value && userRoles.value.length >= 0) stopLoading()
-  return userRoles.value
+  if (userRoles.value && userRoles.value.length >= 0) stopLoading();
+  return userRoles.value;
 });
 
 const stopLoading = () => {
-  loading.value = false
+  loading.value = false;
 };
 
 /*Methods*/

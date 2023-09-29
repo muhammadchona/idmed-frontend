@@ -90,15 +90,17 @@ const getActivePatientPercentage = () => {
   reportService
     .getActivePatientPercentage(year.value, clinic.value.id, serviceCode.value)
     .then((resp) => {
-      const response = []
+      const response = [];
       if (isOnline.value) {
-        response.value = resp.data
+        response.value = resp.data;
       } else {
-        response.value = resp
+        response.value = resp;
       }
       if (response.value.length > 0) {
-        series.value[0] = response.value[0] !== undefined ? response.value[0].quantity : 0;
-        series.value[1] = response.value[1] !== undefined ? response.value[1].quantity : 0;
+        series.value[0] =
+          response.value[0] !== undefined ? response.value[0].quantity : 0;
+        series.value[1] =
+          response.value[1] !== undefined ? response.value[1].quantity : 0;
       } else {
         series.value[0] = 0;
         series.value[1] = 0;

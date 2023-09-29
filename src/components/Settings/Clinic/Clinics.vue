@@ -1,7 +1,9 @@
 <template>
   <div>
-    <div class="row q-py-lg q-mt-md text-weight-bold text-subtitle1">
-      Farmácias
+    <div class="q-mb-md text-weight-bold text-subtitle1">
+      <q-bar style="background-color: #9e9e9e2e">
+        <div class="cursor-pointer non-selectable">Farmácias</div>
+      </q-bar>
     </div>
 
     <div class="">
@@ -14,26 +16,18 @@
         row-key="id"
         :rows-per-page-options="[5, 10, 15, 20]"
       >
-      <template v-slot:loading>
+        <template v-slot:loading>
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Procurar"
-          >
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
             <template v-slot:append>
               <q-icon name="search" />
             </template>
           </q-input>
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div
-            class="full-width row flex-center text-primary q-gutter-sm text-body2"
-          >
+          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -53,18 +47,18 @@
               {{
                 props.row.province !== undefined && props.row.province !== null
                   ? props.row.province.description
-                  : ''
+                  : ""
               }}
             </q-td>
             <q-td key="district" :props="props">
               {{
                 props.row.district !== undefined && props.row.district !== null
                   ? props.row.district.description
-                  : ''
+                  : ""
               }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? 'Sim' : 'Nao' }}
+              {{ props.row.active ? "Sim" : "Nao" }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -111,7 +105,6 @@
 import { inject, ref, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
-
 
 /*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
@@ -205,19 +198,18 @@ const nonOrderedClinics = computed(() => {
 });
 
 const clinics = computed(() => {
-  const orderedClinics = ref(null)
+  const orderedClinics = ref(null);
   orderedClinics.value = clinicService.getAllClinicsOrdered(
     allProvinces.value,
     nonOrderedClinics.value
   );
-  if(orderedClinics.value && orderedClinics.value.length >= 0)
-  stopLoading();
-  return orderedClinics.value
+  if (orderedClinics.value && orderedClinics.value.length >= 0) stopLoading();
+  return orderedClinics.value;
 });
 
 const stopLoading = () => {
-  loading.value = false
-}
+  loading.value = false;
+};
 
 onMounted(() => {
   step.value = '';

@@ -222,7 +222,9 @@ export default {
     } else {
       const dateStr = year + '-12-20'
       const parts = dateStr.split('-')
-      const endDateObject = new Date(parts[0], parts[1] - 1, parts[2])
+      const currentYear = new Date().getFullYear()
+      let endDateObject = new Date(parts[0], parts[1] - 1, parts[2])
+      if(currentYear == year) { endDateObject = new Date()}     
 
       showloading()
       return nSQL('identifiers')
