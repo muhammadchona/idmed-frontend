@@ -40,11 +40,12 @@ export default {
         groupMemberPrescription.save(resp.data);
       });
   },
-  delete(id: number) {
-    return api()
+  async delete(id: number) {
+    return await api()
       .delete('groupMemberPrescription/' + id)
       .then(() => {
         groupMemberPrescription.destroy(id);
+        return id;
       });
   },
 

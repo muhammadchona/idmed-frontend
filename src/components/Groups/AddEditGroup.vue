@@ -323,6 +323,7 @@ const filter = ref('');
 const selected = ref([]);
 const searchResults = ref([]);
 const clinic = inject('clinic');
+const loadMemberInfoToShowByGroupId = inject('loadMemberInfoToShowByGroupId');
 const curGroup = ref(new Group({ id: uuidv4(), members: [] }));
 const searchParam = ref('');
 const step = inject('step');
@@ -387,9 +388,11 @@ const getGroupForEdit = () => {
     curGroup.value.members = curGroup.value.members.filter((member) => {
       return member.endDate === null || member.endDate === '';
     });
-    curGroup.value.members.forEach((member) => {
+
+    curGroup.value.members.map((member) => {
       member.patient = patientService.getPatienWithstByID(member.patient.id);
     });
+    closeLoading();
     startDate.value = formatDate(curGroup.value.startDate);
   }
 };
@@ -651,8 +654,12 @@ const doSave = async () => {
         .apiUpdate(groupToSend)
         .then((resp) => {
           submitting.value = false;
-          getGroupMembers();
-          loadMembersData();
+          if (!isOnline.value) {
+            getGroupMembers();
+          } else {
+            loadMemberInfoToShowByGroupId();
+          }
+          // loadMembersData();
           alertSucess('Operação efectuada com sucesso.');
           emit('close');
           SessionStorage.set('selectedGroupId', curGroup.value.id);

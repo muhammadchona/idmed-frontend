@@ -300,12 +300,28 @@ onMounted(() => {
   // }, 2000);
 });
 
-const addMember = () => {
+const addMember = async () => {
+  showloading();
+  await getPatientData();
   groupAddEditStep.value = 'addMember';
   showRegisterRegister.value = true;
 };
 
-const editGroup = () => {
+const getPatientData = async () => {
+  const promises = groupMembersNew.value.map(async (gm) => {
+    const patient = await patientService.apiFetchById(gm.patientId);
+    /*
+    const respIdent = await patientServiceIdentifierService.apiFetchById(
+      gm.patientServiceId
+    );
+    */
+  });
+  await Promise.all(promises);
+};
+
+const editGroup = async () => {
+  showloading();
+  await getPatientData();
   groupAddEditStep.value = 'edit';
   showRegisterRegister.value = true;
 };
