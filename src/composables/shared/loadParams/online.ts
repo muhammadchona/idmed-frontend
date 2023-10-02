@@ -55,41 +55,74 @@ import pregnancyScreeningService from 'src/services/api/pregnancyScreening/pregn
 import rAMScreeningService from 'src/services/api/rAMScreening/rAMScreeningService';
 import tBScreeningService from 'src/services/api/tBScreening/tBScreeningService';
 import vitalSignsScreeningService from 'src/services/api/vitalSignsScreening/vitalSignsScreeningService';
+import { useLoading } from '../loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 export function useOnline() {
   function loadSettingParams() {
     clinicalServiceService.get(0);
+    showloading();
     clinicSectorService.get(0);
+    showloading();
     clinicalServiceAttributeTypeService.get(0);
+    showloading();
     identifierTypeService.get(0);
+    showloading();
     episodeTypeService.get(0);
+    showloading();
     facilityTypeService.get(0);
+    showloading();
     startStopReasonService.get(0);
+    showloading();
     // clinicalServiceAttributeService.get(0);
     durationService.get(0);
+    showloading();
     drugService.get(0);
+    showloading();
     therapeuticalRegimenService.get(0);
+    showloading();
     therapeuticLineService.get(0);
+    showloading();
     formService.get(0);
+    showloading();
     dispenseTypeService.get(0);
+    showloading();
     InteroperabilityTypeService.get(0);
+    showloading();
     // InteroperabilityAttributeService.get(0);
     healthInformationSystemService.get(0);
+    showloading();
     stockCenterService.get(0);
+    showloading();
     facilityTypeService.get(0);
+    showloading();
     clinicSectorTypeService.get(0);
+    showloading();
     patientTransReferenceTypeService.get(0);
+    showloading();
     spetialPrescriptionMotiveService.get(0);
+    showloading();
     provincialServerService.get(0);
+    showloading();
     doctorService.get(0);
+    showloading();
     dispenseModeService.get(0);
+    showloading();
     groupTypeService.get();
+    showloading();
     provinceService.get(0);
+    showloading();
     districtService.get(0);
+    showloading();
     clinicService.get(0);
+    showloading();
     roleService.get(0);
+    showloading();
     menuService.get(0);
+    showloading();
     userService.get(0);
+    showloading();
     StockOperationTypeService.get(0);
   }
 
