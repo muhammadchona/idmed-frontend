@@ -1416,7 +1416,7 @@ export default {
 
     for (const row in rows) {
       const createRow = [];
-      createRow.push(rows[row].lineCode + 'a Linha');
+      createRow.push(rows[row].code);
       createRow.push(rows[row].regimen);
       createRow.push(rows[row].totalPatients);
       createRow.push(rows[row].cumunitaryClinic);
