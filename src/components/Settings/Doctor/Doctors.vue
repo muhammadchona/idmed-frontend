@@ -5,6 +5,7 @@
         <q-bar style="background-color: #9e9e9e2e">
           <div class="cursor-pointer non-selectable">Clínicos</div>
         </q-bar>
+        <q-separator class="q-my-md max-width" color="primary" ></q-separator>
       </div>
       <q-table
         :rows="doctors"
