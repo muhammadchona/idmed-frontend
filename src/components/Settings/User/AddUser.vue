@@ -23,8 +23,11 @@
           <q-step :name="1" title="Dados Iniciais">
             <q-card-section class="q-px-md">
               <div class="row q-mt-md">
-                <nameInput
-                  ref="nome"
+                <q-input
+                  outlined
+                  dense
+                  @input="(event) => $emit('update:name', event.target.value)"
+                  ref="nomeRef"
                   square
                   v-model="user.fullName"
                   :rules="[(val) => codeRulesNomeCompleto(val)]"
@@ -35,11 +38,13 @@
                 />
               </div>
               <div class="row">
-                <nameInput
-                  ref="username"
+                <q-input
+                  outlined
+                  dense
+                  ref="usernameRef"
                   square
                   v-model="user.username"
-                  :rules="[(val) => codeRules(val)]"
+                  :rules="[(val) => userNameRules(val)]"
                   lazy-rules
                   :disable="onlyView"
                   class="col fild-radius"
@@ -56,11 +61,9 @@
                   class="col"
                   label="Senha"
                   :rules="[
-                    (val) =>
-                      val.length >= 4 ||
-                      'A senha deve ter um minimo de 4 caracteres',
+                    (val) => userPasswordRules(val)
                   ]"
-                  ref="password"
+                  ref="passwordRef"
                   :disable="onlyView"
                   :type="isPwd ? 'password' : 'text'"
                 >
@@ -85,27 +88,27 @@
                   label="Senha"
                   :rules="[
                     (val) =>
-                      val.length >= 4 ||
-                      'A senha deve ter um minimo de 4 caracteres',
+                    userPasswordRules(val)
                   ]"
-                  ref="password"
+                  ref="passwordRef"
                   :disable="onlyView"
                   type="password"
                 >
                 </q-input>
               </div>
               <div class="row q-mb-md">
-                <PhoneField
+                <q-input
+                  outlined
+                  maxlength="12"
                   v-model="user.contact"
                   dense
                   lazy-rules
-                  ref="contact"
+                  ref="contactRef"
                   :disable="onlyView"
                   class="col fild-radius"
                   :rules="[
                     (val) =>
-                      val.length >= 9 ||
-                      'O contacto deve ter um minimo de 9 caracteres',
+                      userContactRules(val)
                   ]"
                   label="Contact"
                 />
@@ -115,6 +118,7 @@
                   dense
                   outlined
                   lazy-rules
+                  ref="emailRef"
                   class="col fild-radius"
                   v-model="user.email"
                   :disable="onlyView"
@@ -260,9 +264,25 @@ const { closeLoading, showloading } = useLoading();
 
 /*Components import*/
 import nameInput from 'src/components/Shared/NameInput.vue';
-import PhoneField from 'src/components/Shared/Input/PhoneField.vue';
 
 /*Variables*/
+const nomeRef = ref(null)
+const usernameRef = ref(null)
+const passwordRef = ref(null)
+const contactRef = ref(null)
+const emailRef = ref(null)
+
+const validatestep1 = () => {
+  nomeRef.value.validate()
+  usernameRef.value.validate()
+  passwordRef.value.validate()
+  contactRef.value.validate()
+
+  console.log(nomeRef.value.hasError ,' - ', usernameRef.value.hasError ,' - ', passwordRef.value.hasError ,' - ', contactRef.value.hasError)
+
+  return !nomeRef.value.hasError && !usernameRef.value.hasError && !passwordRef.value.hasError && !contactRef.value.hasError
+}
+
 const columns = ref([
   {
     name: 'descricao',
@@ -376,11 +396,11 @@ const loadUserRelations = () => {
 
 const goToNextStep = () => {
   if (step.value === 1) {
-    stepper.value.next();
+    if (validatestep1()) stepper.value.next();
     // }
   } else if (step.value === 2) {
     if (selectedRoles.value.length <= 0) {
-      alertError('Por Favor, seleccione pelo menos um Menu para dar Acesso.');
+      alertError('Por Favor, seleccione pelo menos um Perfil para o utilizador.');
     } else {
       stepper.value.next();
     }
@@ -459,12 +479,12 @@ const extractDatabaseCodes = () => {
 };
 const codeRulesNomeCompleto = (val) => {
   if (val === '') {
-    return 'o nome é obrigatorio';
+    return 'O nome é obrigatorio';
   } else if (val.length < 3) {
     return 'O  nome  deve ter no mínimo 3 caracteres';
   }
 };
-const codeRules = (val) => {
+const userNameRules = (val) => {
   if (val === '') {
     return 'o nome do utilizador é obrigatorio';
   } else if (val.length < 3) {
@@ -480,6 +500,18 @@ const codeRules = (val) => {
       'O  nome do utilizador indicado já existe'
     );
   }
+};
+
+const userPasswordRules = (val) => {
+  if (val === '') {
+    return 'A Senha é obrigatoria';
+  } else if (val.length < 4) {
+    return 'A senha deve ter um minimo de 4 caracteres'
+  }
+};
+
+const userContactRules = (val) => {
+  if(val.length < 9) return 'O contacto deve ter um minimo de 9 caracteres'
 };
 </script>
 
