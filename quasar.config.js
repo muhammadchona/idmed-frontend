@@ -224,13 +224,18 @@ module.exports = configure(function (/* ctx */) {
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/configuring-electron
+    sourceFiles: {
+      electronMain: 'src-electron/electron-main',
+      electronPreload: 'src-electron/electron-preload',
+    },
+
     electron: {
       // extendElectronMainConf (esbuildConf)
       // extendElectronPreloadConf (esbuildConf)
 
       inspectPort: 5858,
 
-      bundler: 'packager', // 'packager' or 'builder'
+      bundler: 'builder', // 'packager' or 'builder'
 
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
