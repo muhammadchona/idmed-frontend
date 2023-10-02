@@ -87,7 +87,7 @@
                 </template>
               </q-input>
             </span>
-            <span v-else>{{ dateUtils.isValidDate(props.row.eventDate) ? dateUtils.getDDMMYYYFromJSDate(props.row.eventDate) : props.row.eventDate}}</span>
+            <span v-else>  {{ dateUtils.isValidDate(props.row.eventDate) ? dateUtils.getDDMMYYYFromJSDate(props.row.eventDate) : dateUtils.getDateFormatDDMMYYYYFromYYYYMMDD(props.row.eventDate)}}</span>
           </q-td>
           <q-td key="moviment" :props="props">
             <span v-if="props.row.id === null && !isDisplayStep">
@@ -97,7 +97,7 @@
                 dense
                 class="col"
               />
-            </span>
+            </span> 
             <span v-else>{{ props.row.moviment }}</span>
           </q-td>
            <q-td key="incomes" :props="props">
@@ -316,9 +316,10 @@ const saveAjustment = () => {
   }
   else
   if (
-    new Date(curEvent.value.eventDate) <
-    new Date(adjustment.adjustedStock.entrance.dateReceived)
+    dateUtils.getDateFormatYYYYMMDDFromDDMMYYYY(curEvent.value.eventDate)<
+      dateUtils.getDateFormatYYYYMMDDFromDDMMYYYY(adjustment.adjustedStock.entrance.dateReceived)
   ) {
+
     alertError(
       'A data do movimento não pode ser menor que a data de entrada do lote.'
     );
@@ -379,6 +380,7 @@ const updateRelatedStock = (stock) => {
   StockService.patch(stock.id, stock).then((resp) => {
     step.value = 'display';
     adjustmentTypeRef.value = '';
+    location.reload()
     alertSucess('Operação efectuada com sucesso.');
     loadingSave.value = false
   });
