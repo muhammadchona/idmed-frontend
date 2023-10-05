@@ -44,12 +44,12 @@ export default {
     }
   },
   // WEB
-  postWeb(params: string) {      
+  postWeb(params: string) {
     showloading();
     return api()
       .post('clinicSector', params)
       .then((resp) => {
-        clinicSector.save(resp.data);        
+        clinicSector.save(resp.data);
         closeLoading();
       });
   },
@@ -72,7 +72,7 @@ export default {
         });
     }
   },
-  patchWeb(uuid: string, params: string) {   
+  patchWeb(uuid: string, params: string) {
     showloading();
     return api()
       .patch('clinicSector/' + uuid, params)

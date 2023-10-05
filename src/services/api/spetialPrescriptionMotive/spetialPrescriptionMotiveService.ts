@@ -8,14 +8,14 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const spetialPrescriptionMotive = useRepo(SpetialPrescriptionMotive);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-     return this.putMobile(params);
+      return this.putMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -58,6 +58,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {

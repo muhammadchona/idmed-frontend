@@ -12,7 +12,7 @@ const clinicalService = useRepo(ClinicalService);
 const clinicalServiceAttribute = useRepo(ClinicalServiceAttribute);
 const clinicalServiceSector = useRepo(ClinicalServiceSector);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 

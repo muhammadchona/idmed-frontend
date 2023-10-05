@@ -11,7 +11,7 @@ import InteroperabilityAttributeService from '../InteroperabilityAttribute/Inter
 const healthInformationSystem = useRepo(HealthInformationSystem);
 const interoperabilityAttributeRepo = useRepo(InteroperabilityAttribute);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 

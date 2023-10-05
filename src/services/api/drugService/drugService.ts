@@ -21,17 +21,25 @@ export default {
   },
   get(offset: number) {
     if (offset >= 0) {
-      return api()
-        .get('drug?offset=' + offset + '&max=100')
-        .then((resp) => {
-          drug.save(resp.data);
-          offset = offset + 100;
-          if (resp.data.length > 0) {
-            this.get(offset);
-          } else {
-            closeLoading();
-          }
-        });
+      return (
+        api()
+          // .get('drug?offset=' + offset + '&max=100', {
+          //   onDownloadProgress(progressEvent) {
+          //     showloading();
+          //     console.log({ progressEvent });
+          //   },
+          // })
+          .get('drug?offset=' + offset + '&max=100')
+          .then((resp) => {
+            drug.save(resp.data);
+            offset = offset + 100;
+            if (resp.data.length > 0) {
+              this.get(offset);
+            } else {
+              closeLoading();
+            }
+          })
+      );
     }
   },
   getFromProvincial(offset: number) {
@@ -123,7 +131,7 @@ export default {
       .where(['drug_id', '=', drug.id])
       .exec()
       .then((result) => {
-          return result.length > 0;
+        return result.length > 0;
       });
   },
 };

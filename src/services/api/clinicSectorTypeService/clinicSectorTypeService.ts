@@ -4,9 +4,10 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const clinicSectorType = useRepo(ClinicSectorType);
-
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -59,6 +60,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {
