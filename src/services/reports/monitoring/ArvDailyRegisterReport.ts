@@ -204,39 +204,40 @@ export default {
           : pageSize.getHeight();
         doc.text(str, data.settings.margin.right, pageHeight - 10);
       },
-      didDrawCell: function (data) {
-        if (data.row.section === 'body' && data.column.dataKey === 10) {
-          console.log(rowsAux);
-          const dataRow = isOnline.value
-            ? rowsAux.data[data.row.index]
-            : rowsAux[0];
-          if (dataRow !== undefined) {
-            const dataAux2 = dataRow.drugQuantityTemps; //  cell.row.index
-            const datax = [];
-            for (const row in dataAux2) {
-              const createRow = [];
-              createRow.push(dataAux2[row].drugName);
-              createRow.push(dataAux2[row].quantity);
-              datax.push(createRow);
-            }
-            autoTable(doc, {
-              startY: data.cell.y + 2,
-              startX: data.cell.x + 211,
-              margin: { left: data.cell.x + 2 },
-              tableWidth: 45, // data.cell.width,
-              bodyStyles: {
-                fontSize: 8,
-              },
-              // tableHeight: data.cell.height,
-              // startY: doc.lastAutoTable.finalY + 15,
-              rowPageBreak: 'auto',
-              showHead: false,
-              // theme: 'plain'
-              body: datax,
-            });
-          }
-        }
-      },
+
+      // didDrawCell: function (data) {
+      //   if (data.row.section === 'body' && data.column.dataKey === 10) {
+      //     const dataRow = isOnline.value
+      //       ? rowsAux.data[data.row.index]
+      //       : rowsAux[0];
+      //     if (dataRow !== undefined) {
+      //       const dataAux2 = dataRow.drugQuantityTemps; //  cell.row.index
+      //       const datax = [];
+      //       for (const row in dataAux2) {// prescribedDrugs = dataAux2
+      //         const createRow = [];
+      //         createRow.push(dataAux2[row].drugName);
+      //         createRow.push(dataAux2[row].quantity);
+      //         datax.push(createRow);
+      //       }
+      //       autoTable(doc, {
+      //         startY: data.cell.y + 2,
+      //         startX: data.cell.x + 211,
+      //         margin: { left: data.cell.x + 2 },
+      //         tableWidth: 45, // data.cell.width,
+      //         bodyStyles: {
+      //           fontSize: 8,
+      //         },
+      //         // tableHeight: data.cell.height,
+      //         // startY: doc.lastAutoTable.finalY + 15,
+      //         rowPageBreak: 'auto',
+      //         showHead: false,
+      //         // theme: 'plain'
+      //         body: datax,
+      //       });
+      //     }
+      //   }
+      // },
+
       theme: 'grid',
       head: desiredDefinition,
       body: data,
@@ -251,7 +252,7 @@ export default {
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
   },
-
+  
   async downloadExcel(id, fileType2, params) {
     const clinic = clinicService.currClinic();
     let rowsAux = [];
@@ -785,31 +786,34 @@ export default {
   },
   createArrayOfArrayRow(rows) {
     const data = [];
-    for (const row in rows) {
-      const createRow = [];
-      createRow.push(rows[row].orderNumber);
-      createRow.push(rows[row].nid);
-      createRow.push(rows[row].patientName);
-      createRow.push(rows[row].startReason);
-      createRow.push(rows[row].ageGroup_0_4);
-      createRow.push(rows[row].ageGroup_5_9);
-      createRow.push(rows[row].ageGroup_10_14);
-      createRow.push(rows[row].ageGroup_Greater_than_15);
-      createRow.push(rows[row].patientType);
-      createRow.push(rows[row].regime);
-      createRow.push('');
-      createRow.push(rows[row].dispensationType);
-      createRow.push(rows[row].therapeuticLine);
-      createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate));
-      createRow.push(Report.getFormatDDMMYYYY(rows[row].nextPickupDate));
-      createRow.push(rows[row].ppe);
-      createRow.push(rows[row].prep);
-      createRow.push('');
-      data.push(createRow);
+    let duplicNid = 'abc';
+      for (const row in rows) {
+      if (!(rows[row].nid === duplicNid)) {
+        const createRow = [];
+        duplicNid = rows[row].nid;
+        createRow.push(rows[row].orderNumber);
+        createRow.push(rows[row].nid);
+        createRow.push(rows[row].patientName);
+        createRow.push(rows[row].startReason);
+        createRow.push(rows[row].ageGroup_0_4);
+        createRow.push(rows[row].ageGroup_5_9);
+        createRow.push(rows[row].ageGroup_10_14);
+        createRow.push(rows[row].ageGroup_Greater_than_15);
+        createRow.push(rows[row].patientType);
+        createRow.push(rows[row].regime);
+        createRow.push(Report.createDrugArrayOfArrayRow(rows[row].drugQuantityTemps).join('\n'));
+        createRow.push(rows[row].dispensationType);
+        createRow.push(rows[row].therapeuticLine);
+        createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate));
+        createRow.push(Report.getFormatDDMMYYYY(rows[row].nextPickupDate));
+        createRow.push(rows[row].ppe);
+        createRow.push(rows[row].prep);
+        createRow.push('');
+        data.push(createRow);
+      }
     }
     return data;
   },
-
   async getDataLocalReport(reportId) {
     const reportData =
       await ArvDailyRegisterMobileService.localDbGetAllByReportId(reportId);
@@ -869,6 +873,7 @@ export default {
         fileWriter.write(dataObj);
       });
     }
+
     function onErrorLoadFs(error) {
       console.log(error);
     }
