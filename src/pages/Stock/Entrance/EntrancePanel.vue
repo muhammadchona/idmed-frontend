@@ -951,11 +951,13 @@ const doSave = (stock) => {
   showloading();
 
   stock.stockMoviment = stock.unitsReceived;
-  stock.clinic_id = clinicService.currClinic().id;
-  stock.drug_id = stock.drug.id;
-  const center = StockCenterService.getStockCenter();
-  stock.clinic = clinicService.currClinic();
-  stock.stock_center_id = center.id;
+  stock.clinic = {}
+  stock.clinic.id =clinicService.currClinic().id
+  stock.drug = stock.drug.id;
+  stock.clinic = {}
+  stock.clinic.id =  clinicService.currClinic().id;
+  stock.center = {} ;
+  stock.center.id =StockCenterService.getStockCenter().id
   stock.entrance = currStockEntrance;
   stock.enabled = false;
   // const entrance = currStockEntrance.value
