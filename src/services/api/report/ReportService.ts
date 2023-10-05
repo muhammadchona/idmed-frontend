@@ -198,6 +198,16 @@ export default {
     return api().get(`/${controller}/${id}`);
   },
 
+  createDrugArrayOfArrayRow(rows: any) {
+    const data = [];
+    for (const row in rows) {
+      const createRow = [];      
+      createRow.push(rows[row].drugName +': '+rows[row].quantity);
+      data.push(createRow);
+    }
+    return data;
+  },
+
   /*apiPrintReportHistoricoLevantamentoReport(id: any, fileType:any){
  return api().get(`/historicoLevantamentoReport/printReport/${id}/${fileType}`, { responseType: 'json' })
 },*/
