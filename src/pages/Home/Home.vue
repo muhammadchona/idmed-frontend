@@ -149,7 +149,7 @@ const menusVisible = (name) => {
 onMounted(() => {
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
-    loadSettingParams(clinic);
+    loadSettingParams();
   } else {
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
@@ -159,9 +159,6 @@ onMounted(() => {
       }, 5000);
     }
   }
-  setTimeout(() => {
-    closeLoading();
-  }, 3000);
 });
 </script>
 

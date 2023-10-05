@@ -332,7 +332,7 @@ Hook
 onMounted(() => {
   const tokenExpiration = localStorage.getItem('tokenExpiration')
   if(tokenExpiration && tokenExpiration === '0') {
-    notifyError('Sessão Expirada'); 
+    notifyError('Sessão Expirada');
     localStorage.setItem('tokenExpiration', 1);
   }
   if (isMobile.value && localStorage.getItem('backend_url') === null) {
@@ -397,8 +397,6 @@ const loadMenusFromLocalToVuex = async () => {
 };
 
 const authUser = async () => {
-  console.log('WEB', isOnline.value);
-  console.log('Mobile', isMobile.value);
   const encodedStringBtoA = btoa(
     String(username.value).concat(':').concat(password.value)
   );
@@ -424,7 +422,7 @@ const loginOnline = (encodedStringBtoA) => {
     username: username.value,
     password: password.value,
   })
-    .then((response) => {      
+    .then((response) => {
       localStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10min
       submitting.value = false;
       // userLogin.save(resp.data);

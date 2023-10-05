@@ -224,4 +224,18 @@ export default {
       .orderBy('pickupDate', 'desc')
       .first();
   },
+  getPacksFromPatientId(patientServiceIdentifierid: string) {
+    return pack
+      .withAllRecursive(2)
+      .whereHas('patientVisitDetails', (query) => {
+        query.whereHas('episode', (query) => {
+          query.where(
+            'patientServiceIdentifier_id',
+            patientServiceIdentifierid
+          );
+        });
+      })
+      .orderBy('pickupDate', 'desc')
+      .get();
+  },
 };

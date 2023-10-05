@@ -8,7 +8,7 @@ import { nSQL } from 'nano-sql';
 
 const patientTransReferenceType = useRepo(PatientTransReferenceType);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 

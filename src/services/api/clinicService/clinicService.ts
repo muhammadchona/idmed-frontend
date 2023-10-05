@@ -254,9 +254,9 @@ export default {
     return clinic
       .query()
       .where((clinic) => {
-        return (
-          clinic.id === id)
-      }).withAllRecursive(2)
+        return clinic.id === id;
+      })
+      .withAllRecursive(2)
       .first();
-  }
+  },
 };

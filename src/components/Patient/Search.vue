@@ -550,6 +550,7 @@ const patientList = computed(() => {
 });
 
 const localSearch = () => {
+  console.log('Paciente after search', currPatient.value);
   currPatient.value.identifiers[0].value = patientId.value;
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
