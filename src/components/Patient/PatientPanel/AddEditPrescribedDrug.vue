@@ -91,7 +91,12 @@
       </q-card-section>
       <q-card-actions align="right" class="q-my-md q-mr-sm">
         <q-btn label="Cancelar" color="red" @click="showAddEditDrug = false" />
-        <q-btn type="submit" label="Adicionar" color="primary" />
+        <q-btn
+          type="submit"
+          :loading="submitting"
+          label="Adicionar"
+          color="primary"
+        />
       </q-card-actions>
     </form>
   </q-card>
@@ -109,6 +114,7 @@ const showOnlyOfRegimen = ref(false);
 const amtPerTimes = ref(['1', '2', '3', '4']);
 const timesPerDay = ref(['Dia', 'Semana', 'Mês', 'Ano']);
 const optionsDrugs = ref([]);
+const submitting = ref(false);
 
 // Ref's
 const amtPerTimeRef = ref(null);
@@ -135,6 +141,7 @@ onMounted(() => {
 //Methods
 
 const submitForm = () => {
+  submitting.value = true;
   drugRef.value.validate();
   amtPerTimeRef.value.validate();
   formRef.value.validate();
@@ -146,6 +153,8 @@ const submitForm = () => {
     !timesRef.value.hasError
   ) {
     addPrescribedDrug(prescribedDrug.value);
+  } else {
+    submitting.value = false;
   }
 };
 

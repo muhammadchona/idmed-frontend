@@ -8,7 +8,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const provincialServer = useRepo(ProvincialServer);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 

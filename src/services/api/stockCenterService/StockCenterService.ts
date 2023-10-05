@@ -16,6 +16,7 @@ export default {
     stockCenter.save(resp.data);
   },
   get(offset: number) {
+    showloading()
     if (offset >= 0) {
       return api()
         .get('stockCenter?offset=' + offset)
@@ -27,7 +28,7 @@ export default {
           } else {
             closeLoading();
           }
-        })
+        });
     }
   },
   async apiUpdate(id: number, params: string) {
@@ -50,8 +51,8 @@ export default {
   newInstanceEntity() {
     return stockCenter.getModel().$newInstance();
   },
-  
+
   getStockCenter() {
-    return stockCenter.withAllRecursive(3).where('prefered', true).first()
-  }
+    return stockCenter.withAllRecursive(3).where('prefered', true).first();
+  },
 };

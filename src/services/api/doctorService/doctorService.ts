@@ -1,4 +1,3 @@
-
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -8,7 +7,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 
 const doctor = useRepo(Doctor);
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -128,7 +127,7 @@ export default {
   },
 
   /*Pinia Methods*/
-   getAlldoctors () {
+  getAlldoctors() {
     return doctor
       .with('clinic', (query) => {
         query.with('province');
@@ -137,6 +136,5 @@ export default {
       })
       .orderBy('firstnames')
       .get();
-      
-    },
+  },
 };

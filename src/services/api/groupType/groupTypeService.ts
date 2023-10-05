@@ -6,6 +6,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 
 const { isMobile, isOnline } = useSystemUtils();
+const { closeLoading, showloading } = useLoading();
 const groupType = useRepo(GroupType);
 
 export default {

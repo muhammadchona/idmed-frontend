@@ -8,7 +8,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const therapeuticLine = useRepo(TherapeuticLine);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -135,8 +135,7 @@ export default {
     return therapeuticLine
       .query()
       .where((therapeuticRegimen) => {
-        return (
-          therapeuticRegimen.id === id)
+        return therapeuticRegimen.id === id;
       })
       .first();
   },
