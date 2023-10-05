@@ -52,6 +52,7 @@
         <p align="center">
           <q-knob
             show-value
+            value="100"
             font-size="17px"
             :class="'text-' + colour + ' q-ma-sm'"
             v-model="value"

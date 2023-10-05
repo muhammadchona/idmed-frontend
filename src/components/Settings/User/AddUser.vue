@@ -278,8 +278,6 @@ const validatestep1 = () => {
   passwordRef.value.validate()
   contactRef.value.validate()
 
-  console.log(nomeRef.value.hasError ,' - ', usernameRef.value.hasError ,' - ', passwordRef.value.hasError ,' - ', contactRef.value.hasError)
-
   return !nomeRef.value.hasError && !usernameRef.value.hasError && !passwordRef.value.hasError && !contactRef.value.hasError
 }
 
