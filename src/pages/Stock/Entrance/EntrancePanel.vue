@@ -341,7 +341,7 @@
               v-model="dateReceived"
               label="Data de Criação"
             >
-            
+
 
               <template v-slot:append>
                 <q-icon name="event" class="cursor-pointer">
@@ -797,7 +797,7 @@ const doSaveGuia = () => {
         });
       }
     }
-    
+
 };
 
 const circularReferenceReplacer = () => {
@@ -828,7 +828,7 @@ const removeGuia = () => {
       'Não pode remover esta guia, pois ja existem registos de lotes associados.'
     );
   } else {
-    
+
     alertWarningAction(
       'Deseja remover a presente guia de entrada de stock?',
       'Não',
@@ -995,7 +995,7 @@ const doSave = (stock) => {
           closeLoading();
         });
     }
- 
+
 
 };
 

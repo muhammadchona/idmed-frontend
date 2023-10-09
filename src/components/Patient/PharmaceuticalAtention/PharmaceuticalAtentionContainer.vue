@@ -197,14 +197,14 @@
           </q-card>
         </q-dialog>
         <q-dialog v-if="!isMale(patient)" persistent v-model="viewPregnancy">
-          <q-card style="max-width: 1500px; width: 1200px; height: 700px">
+          <q-card style="max-width: 1500px; width: 900px; height: 400px">
             <q-card-section class="q-pa-none">
               <pregnancyTable />
             </q-card-section>
           </q-card>
         </q-dialog>
         <q-dialog persistent v-model="viewAdherence">
-          <q-card style="max-width: 1500px; width: 900px; height: 550px">
+          <q-card style="max-width: 1500px; width: 900px; height: 350px">
             <q-card-section class="q-pa-none">
               <adherenceTable />
             </q-card-section>

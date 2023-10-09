@@ -215,6 +215,7 @@
             v-if="!onlyView"
             color="primary"
             :label="submitNextButtonLabel"
+            :loading="loadingStep"
             class="q-ml-sm"
           />
         </q-stepper-navigation>
@@ -305,6 +306,7 @@ const identifierTypes = inject('identifierTypes');
 const clinicalService = inject('clinicalService');
 const isNewClinicalService = inject('isNewClinicalService');
 const close = inject('close');
+const loadingStep = inject('loadingStep');
 
 /*Hooks*/
 const notFirstStep = computed(() => {

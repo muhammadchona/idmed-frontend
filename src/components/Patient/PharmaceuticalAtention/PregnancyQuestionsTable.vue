@@ -153,7 +153,7 @@ const handleInput = (row) => {
   switch (row.code) {
     case '01':
       pregnancyScreening.value.pregnant = row.completed;
-      if (row.completed === 'true') {
+      if (row.completed === 'true' || row.completed === true) {
         visible.value = false;
       } else {
         visible.value = true;
@@ -178,6 +178,7 @@ const handleInput = (row) => {
 };
 const addingValueToArray = () => {
   if (selectedPregnancyTracing.value) {
+    visible.value = !selectedPregnancyTracing.value.pregnant;
     pregnancyQuestions.value.forEach((pregnancyQuestion) => {
       if (pregnancyQuestion.code === '01')
         pregnancyQuestion.completed = String(

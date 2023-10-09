@@ -380,8 +380,8 @@
 
       <!-- <div class="row">
         <div class="col">
-        </div> 
-            
+        </div>
+
       </div> -->
 
       <div class="row reverse q-mb-sm q-mt-sm q-gutter-sm">
@@ -787,7 +787,18 @@ const init = () => {
     curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
     curPack.value.packDate = lastPack.value.nextPickUpDate;
     curPack.value.pickupDate = lastPack.value.nextPickUpDate;
-    curPack.value.packagedDrugs = lastPack.value.packagedDrugs;
+
+    lastPack.value.packagedDrugs.forEach((packagedDrug) => {
+      let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
+      packagedDrugEdit.drug = packagedDrug.drug;
+      packagedDrugEdit.drug_id = packagedDrug.drug.id;
+      packagedDrugEdit.amtPerTime = packagedDrug.amtPerTime;
+      packagedDrugEdit.timesPerDay = packagedDrug.timesPerDay;
+      packagedDrugEdit.form = packagedDrug.form;
+
+      curPack.value.packagedDrugs.push(packagedDrugEdit);
+    });
+
     curPack.value.weeksSupply = lastPack.value.weeksSupply;
     curPack.value.syncStatus = 'N';
     curPack.value.clinic = patient.value.clinic;

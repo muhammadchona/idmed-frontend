@@ -55,12 +55,11 @@ import pregnancyScreeningService from 'src/services/api/pregnancyScreening/pregn
 import rAMScreeningService from 'src/services/api/rAMScreening/rAMScreeningService';
 import tBScreeningService from 'src/services/api/tBScreening/tBScreeningService';
 import vitalSignsScreeningService from 'src/services/api/vitalSignsScreening/vitalSignsScreeningService';
-import { useLoading } from '../loading/loading';
-
-const { showloading } = useLoading();
 
 export function useOnline() {
-  function loadSettingParams() {
+  async function loadSettingParams() {
+    therapeuticalRegimenService.get(0);
+
     clinicalServiceService.get(0);
 
     clinicSectorService.get(0);
@@ -77,13 +76,11 @@ export function useOnline() {
 
     durationService.get(0);
 
-    drugService.get(0);
-
-    therapeuticalRegimenService.get(0);
-
     therapeuticLineService.get(0);
 
     formService.get(0);
+
+    drugService.get(0);
 
     dispenseTypeService.get(0);
 

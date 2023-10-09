@@ -155,6 +155,7 @@ import { usePatientServiceIdentifier } from 'src/composables/patient/patientServ
 import Episode from 'src/stores/models/episode/Episode';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import EpisodeInfo from './Episode.vue';
+import packService from 'src/services/api/pack/packService';
 
 //props
 const props = defineProps(['identifierId', 'serviceId']);
@@ -193,6 +194,12 @@ const curIdentifier = computed(() => {
     props.serviceId
   );
 });
+const curEpisode = computed(() => {
+  return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
+});
+const lastPack = computed(() => {
+  return packService.getLastPackFromEpisode(curEpisode.value.id);
+});
 // Methods
 const openEpisodeCreation = () => {
   selectedEpisode.value = new Episode();
@@ -207,6 +214,7 @@ const closeEpisodeCreation = () => {
 const editEpisodeCreation = () => {
   showAddEditEpisode.value = false;
   isNewEpisode.value = false;
+  isClosingEpisode.value = false;
 };
 const checkPatientStatusOnService = () => {
   if (curIdentifier.value.endDate !== '') {
@@ -312,6 +320,8 @@ const canEdit = computed(() => {
 //Provide
 provide('showAddEditEpisode', showAddEditEpisode);
 provide('curIdentifier', curIdentifier);
+provide('curEpisode', curEpisode);
+provide('lastPack', lastPack);
 provide('isNewEpisode', isNewEpisode);
 provide('closeEpisodeCreation', closeEpisodeCreation);
 provide('editEpisodeCreation', editEpisodeCreation);
