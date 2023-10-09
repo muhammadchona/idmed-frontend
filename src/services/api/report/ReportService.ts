@@ -202,10 +202,38 @@ export default {
     const data = [];
     for (const row in rows) {
       const createRow = [];      
-      createRow.push(rows[row].drugName +': '+rows[row].quantity);
+      createRow.push(rows[row]);
       data.push(createRow);
     }
     return data;
+  },
+
+  mapaDeAgrupamento(rowsAux: any) {
+    // Crie um mapa para rastrear os objetos agrupados por nid e pickupDate
+    const mapaDeAgrupamento = {};
+
+    // Percorra a lista de objetos pai
+    rowsAux.forEach(objetoPai => {
+      const nid = objetoPai.nid;
+      const pickupDate = objetoPai.pickupDate;
+
+      // Crie uma chave única para o agrupamento com base em nid e pickupDate
+      const chaveDeAgrupamento = `${nid}_${pickupDate}`;
+
+      // Se a chave de agrupamento não existir no mapa, crie um novo objeto
+      if (!mapaDeAgrupamento[chaveDeAgrupamento]) {
+        mapaDeAgrupamento[chaveDeAgrupamento] = { ...objetoPai };
+        mapaDeAgrupamento[chaveDeAgrupamento].drugQuantityTemps = [objetoPai.drugQuantityTemps[0].drugName+' - '+objetoPai.drugQuantityTemps[0].quantity];
+      } else {
+        // Verifique se o drugName já existe na lista
+        const drugName = objetoPai.drugQuantityTemps[0].drugName;
+        const quant = objetoPai.drugQuantityTemps[0].quantity;
+        if (!mapaDeAgrupamento[chaveDeAgrupamento].drugQuantityTemps.includes(drugName)) {
+          mapaDeAgrupamento[chaveDeAgrupamento].drugQuantityTemps.push(drugName+' - '+quant);
+        }
+      }
+    });
+    return mapaDeAgrupamento
   },
 
   /*apiPrintReportHistoricoLevantamentoReport(id: any, fileType:any){
@@ -1021,5 +1049,21 @@ export default {
         console.error(error);
       });
     },
+
+    saoIguais(arr1, arr2) {
+      if (arr1.length !== arr2.length) {
+          return false;
+      }
+      for (let i = 0; i < arr1.length; i++) {
+          if (arr1[i] !== arr2[i]) {
+              return false;
+          }
+      }
+      return true;
+  },
+
+  areEqualObjects(obj1, obj2) {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+  },
 };
 
