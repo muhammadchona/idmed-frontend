@@ -208,7 +208,7 @@ const canBeEdited = () => {
   return !hasVisits(currEpisode.value);
 };
 const editEpisode = () => {
-  isClosingEpisode.value = true;
+ // isClosingEpisode.value = true;
   const eps = currEpisode.value;
   if (hasVisits(eps)) {
     alertError(

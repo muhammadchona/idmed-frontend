@@ -1,11 +1,6 @@
 <template>
   <div>
-    <q-banner
-      dense
-      inline-actions
-      :class="[bgColor, headerClass]"
-      class="text-white q-pa-none"
-    >
+    <q-banner dense inline-actions class="text-white q-pa-none">
       <q-select
         class="q-ma-sm"
         dense

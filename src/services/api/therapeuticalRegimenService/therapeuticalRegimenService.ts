@@ -71,6 +71,21 @@ export default {
         });
     }
   },
+  getFromProvincial(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('therapeuticRegimen/therapeuticRegimenFromProvicnial/' + offset)
+        .then((resp) => {
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromProvincial(offset);
+          } else {
+            this.get(0);
+            closeLoading();
+          }
+        });
+    }
+  },
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('therapeuticRegimen/' + uuid, params);

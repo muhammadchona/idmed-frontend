@@ -153,15 +153,19 @@ const validateClinicSector = () => {
 
 const doSave = () => {
   showloading()
+  submitting.value = true
   if (isCreateStep.value) {
     identifierTypeService
       .post(identifierType.value)
       .then(() => {
+        submitting.value = false
         closeLoading()
         alertSucess('Tipo de Identificador registado com sucesso');
         showAddEditIdentifierType.value = false;
       })
       .catch((error) => {
+        submitting.value = false
+        closeLoading()
         console.log(error);
         alertError(
           'Aconteceu um erro inesperado ao registar o Sector Clínico.'
@@ -172,11 +176,14 @@ const doSave = () => {
     identifierTypeService
       .patch(identifierType.value.id, identifierType.value)
       .then(() => {
+        submitting.value = false
         closeLoading()
         alertSucess('Tipo de Identificador actualizado com sucesso');
         showAddEditIdentifierType.value = false;
       })
       .catch((error) => {
+        submitting.value = false
+        closeLoading()
         console.log(error);
         alertError(
           'Aconteceu um erro inesperado ao actualizar o Sector Clínico.'

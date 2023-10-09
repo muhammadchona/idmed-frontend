@@ -1,5 +1,8 @@
 import { RouteRecordRaw } from 'vue-router';
 import AccessControlUtils from '../utils/AccessControlUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { showloading } = useLoading();
 
 const routes: RouteRecordRaw[] = [
   {
