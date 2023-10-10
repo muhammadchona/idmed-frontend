@@ -54,8 +54,9 @@ const initReportProcessing = (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
     Report.apiInitActiveInDrugStoreProcessing(params).then((resp) => {
-      getProcessingStatus(params);
-    });
+        getProcessingStatus(params);
+      }
+    );
     // Pack.api().post('/receivedStockReport/initReportProcess' params)
   } else {
     const reportParams = reportDatesParams.determineStartEndDate(params);

@@ -47,7 +47,7 @@
   const totalRecords = ref(0)
   const qtyProcessed = ref(0)
   const report = 'FALTOSOS_AO_LEVANTAMENTO'
-  const progress = ref(0.00)
+  const progress = ref(0.0)
   const filterDrugStoreSection = ref('')
   
 
@@ -58,16 +58,17 @@
   
   const initReportProcessing = async (params) => {
     progress.value = 0.001
-          if (isOnline.value) {
-            Report.apiInitReportProcess('absentPatientsReport',params).then((response) => {
-           setTimeout(getProcessingStatus(params), 2)
-        })
-          } else {
-           const resp = await  AbsentPatientMobileService.getDataLocalDb(params)
-            progress.value = 100
-            params.progress = 100
+    if (isOnline.value) {
+        Report.apiInitReportProcess('absentPatientsReport', params).then((response) => {
+            getProcessingStatus(params);
           }
-        }
+        );
+      } else {
+        const resp = await  AbsentPatientMobileService.getDataLocalDb(params)
+        progress.value = 100
+        params.progress = 100
+      }
+    }
   
    const getProcessingStatus = (params) => {
     if (isOnline.value) {
