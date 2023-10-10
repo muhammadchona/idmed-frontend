@@ -58,7 +58,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import clinicService from 'src/services/api/clinicService/clinicService';
 
-const { alertSucess, alertInfo, alertError } = useSwal();
+const { alertSucess, alertInfo, alertError, alertWarningAction } = useSwal();
 const { closeLoading, showloading } = useLoading();
 
 const progress = ref([]);
@@ -98,8 +98,42 @@ const getMigrationPregress = () => {
   ReportService.apiMigrationStatus().then((resp) => {
     progress.value = resp.data;
     loadSpecificStatus();
+    checkMigrationIsFinished();
     t.value = null;
     if (!isMigrationFinished.value) t.value = '';
+  });
+};
+
+const checkMigrationIsFinished = async () => {
+  progress.value.forEach(async (progss) => {
+    if (progss.migration_stage === 'PATIENT_MIGRATION_STAGE') {
+      patientStatus.value = progss;
+      console.log(patientStatus.value.stage_progress > 97);
+      const migrationStage = migrationService.getFromStorageByCode(
+        'PATIENT_MIGRATION_STAGE'
+      );
+
+      if (
+        patientStatus.value.total_migrated !== 0 &&
+        patientStatus.value.stage_progress > 80 &&
+        patientStatus.value.stage_progress < 100 &&
+        migrationStage.value !== 'COMPLETED'
+      ) {
+        const isFinished =
+          await migrationService.apiMigrationStatusIsFinished();
+        if (isFinished.data === true) {
+          alertWarningAction('Deseja Terminar A Migração ?').then((result) => {
+            if (result) {
+              showloading();
+              migrationService.finishMigration().then((resp) => {
+                closeLoading();
+                alertSucess('Operação efectuada com sucesso.');
+              });
+            }
+          });
+        }
+      }
+    }
   });
 };
 

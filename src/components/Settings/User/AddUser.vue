@@ -60,9 +60,7 @@
                   square
                   class="col"
                   label="Senha"
-                  :rules="[
-                    (val) => userPasswordRules(val)
-                  ]"
+                  :rules="[(val) => userPasswordRules(val)]"
                   ref="passwordRef"
                   :disable="onlyView"
                   :type="isPwd ? 'password' : 'text'"
@@ -86,10 +84,7 @@
                   square
                   class="col"
                   label="Senha"
-                  :rules="[
-                    (val) =>
-                    userPasswordRules(val)
-                  ]"
+                  :rules="[(val) => userPasswordRules(val)]"
                   ref="passwordRef"
                   :disable="onlyView"
                   type="password"
@@ -106,10 +101,7 @@
                   ref="contactRef"
                   :disable="onlyView"
                   class="col fild-radius"
-                  :rules="[
-                    (val) =>
-                      userContactRules(val)
-                  ]"
+                  :rules="[(val) => userContactRules(val)]"
                   label="Contact"
                 />
               </div>
@@ -224,7 +216,7 @@
             </div>
           </q-step>
         </q-stepper>
-        <q-scroll-observer @scroll="scrollHandler" />
+        <q-scroll-observer />
       </q-scroll-area>
       <q-card-actions align="right" class="q-mb-md">
         <q-stepper-navigation>
@@ -266,20 +258,25 @@ const { closeLoading, showloading } = useLoading();
 import nameInput from 'src/components/Shared/NameInput.vue';
 
 /*Variables*/
-const nomeRef = ref(null)
-const usernameRef = ref(null)
-const passwordRef = ref(null)
-const contactRef = ref(null)
-const emailRef = ref(null)
+const nomeRef = ref(null);
+const usernameRef = ref(null);
+const passwordRef = ref(null);
+const contactRef = ref(null);
+const emailRef = ref(null);
 
 const validatestep1 = () => {
-  nomeRef.value.validate()
-  usernameRef.value.validate()
-  passwordRef.value.validate()
-  contactRef.value.validate()
+  nomeRef.value.validate();
+  usernameRef.value.validate();
+  passwordRef.value.validate();
+  contactRef.value.validate();
 
-  return !nomeRef.value.hasError && !usernameRef.value.hasError && !passwordRef.value.hasError && !contactRef.value.hasError
-}
+  return (
+    !nomeRef.value.hasError &&
+    !usernameRef.value.hasError &&
+    !passwordRef.value.hasError &&
+    !contactRef.value.hasError
+  );
+};
 
 const columns = ref([
   {
@@ -398,7 +395,9 @@ const goToNextStep = () => {
     // }
   } else if (step.value === 2) {
     if (selectedRoles.value.length <= 0) {
-      alertError('Por Favor, seleccione pelo menos um Perfil para o utilizador.');
+      alertError(
+        'Por Favor, seleccione pelo menos um Perfil para o utilizador.'
+      );
     } else {
       stepper.value.next();
     }
@@ -412,8 +411,8 @@ const goToNextStep = () => {
     }
   }
 };
-const submitUser = () => {  
-  showloading()
+const submitUser = () => {
+  showloading();
   submitting.value = true;
   selectedRoles.value = JSON.parse(JSON.stringify(selectedRoles.value));
   const roless = [];
@@ -443,10 +442,9 @@ const submitUser = () => {
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {
+        closeLoading();
         console.log(error);
-        alertError(
-          'Aconteceu um erro inesperado ao registar o Utilizador.'
-        );
+        alertError('Aconteceu um erro inesperado ao registar o Utilizador.');
         submitting.value = false;
         showUserRegistrationScreen.value = false;
       });
@@ -462,6 +460,7 @@ const submitUser = () => {
         showUserRegistrationScreen.value = false;
       })
       .catch((error) => {
+        closeLoading();
         console.log(error);
         alertError('Aconteceu um erro inesperado ao actualizar o Utilizador.');
         submitting.value = false;
@@ -483,12 +482,13 @@ const codeRulesNomeCompleto = (val) => {
   }
 };
 const userNameRules = (val) => {
+
   if (val === '') {
     return 'o nome do utilizador é obrigatorio';
   } else if (val.length < 3) {
     return 'O  nome do utilizador indicado deve ter no mínimo 3 caracteres';
   } else if (
-    (databaseCodes.value.includes(val) && isEditStep.value) ||
+    (databaseCodes.value.includes(val) && !isEditStep.value) ||
     (databaseCodes.value.includes(val) &&
       users.value.filter((x) => x.username === val)[0].id !== user.value.id &&
       !isEditStep.value)
@@ -504,12 +504,12 @@ const userPasswordRules = (val) => {
   if (val === '') {
     return 'A Senha é obrigatoria';
   } else if (val.length < 4) {
-    return 'A senha deve ter um minimo de 4 caracteres'
+    return 'A senha deve ter um minimo de 4 caracteres';
   }
 };
 
 const userContactRules = (val) => {
-  if(val.length < 9) return 'O contacto deve ter um minimo de 9 caracteres'
+  if (val.length < 9) return 'O contacto deve ter um minimo de 9 caracteres';
 };
 </script>
 

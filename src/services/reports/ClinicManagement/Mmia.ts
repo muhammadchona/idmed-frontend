@@ -39,7 +39,8 @@ export default {
     const doc = new JsPDF({
       orientation: 'p',
       unit: 'mm',
-      format: 'a3',
+      format: 'a4',
+      // format: [225, 427],
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });

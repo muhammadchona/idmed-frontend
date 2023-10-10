@@ -21,15 +21,15 @@ export default {
   },
   get(offset: number) {
     if (offset >= 0) {
+      // showloading();
       return (
         api()
-          // .get('drug?offset=' + offset + '&max=100', {
-          //   onDownloadProgress(progressEvent) {
-          //     showloading();
-          //     console.log({ progressEvent });
-          //   },
-          // })
-          .get('drug?offset=' + offset + '&max=100')
+          .get('drug?offset=' + offset + '&max=100', {
+            onDownloadProgress(progressEvent) {
+              // showloading();
+            },
+          })
+          // .get('drug?offset=' + offset + '&max=100')
           .then((resp) => {
             drug.save(resp.data);
             offset = offset + 100;

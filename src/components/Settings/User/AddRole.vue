@@ -72,7 +72,7 @@
         <q-btn
           type="submit"
           :loading="submitting"
-          label="GUARDAR"
+          label="GRAVAR"
           color="primary"
           v-if="!onlyView"
         />

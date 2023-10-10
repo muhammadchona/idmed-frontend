@@ -15,7 +15,7 @@
           </ListHeader>
           <div class="box-border q-pt-md">
             <q-input
-            outlined
+              outlined
               v-model="inventoryType"
               label="Tipo de Inventário"
               disable
@@ -109,7 +109,7 @@
           </ListHeader>
           <div class="box-border row q-pt-md">
             <q-input
-            outlined
+              outlined
               v-model="inventoryType"
               label="Tipo de Inventário"
               disable
@@ -206,8 +206,7 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
 
-
-const { isMobile, isOnline } = useSystemUtils(); 
+const { isMobile, isOnline } = useSystemUtils();
 const inventoryMethod = useInventory();
 const router = useRouter();
 const { closeLoading, showloading } = useLoading();
@@ -236,9 +235,9 @@ const thumbStyle = {
 
 const goBack = () => {
   router.go(-1);
-}
+};
 
-const drugs = ref([])
+const drugs = ref([]);
 
 const initInventoryClosure = () => {
   alertWarningAction(
@@ -252,32 +251,29 @@ const initInventoryClosure = () => {
   });
 };
 
-
 const deleteInventory = () => {
-  alertWarningAction(
-    'Nota: Deseja apagar o inventário?',
-    'Não',
-    'Sim'
-  ).then((result) => {
-    if (result) {
-      removeInventory();
+  alertWarningAction('Nota: Deseja apagar o inventário?', 'Não', 'Sim').then(
+    (result) => {
+      if (result) {
+        removeInventory();
+      }
     }
-  });
+  );
 };
 
 const removeInventory = () => {
-  inventoryMethod
-    InventoryService.delete(currInventory.value.id).then(async (resp) => {     
-      alertSucess('Operação efectuada com sucesso.');
-      router.go(-1);
-    });
+  inventoryMethod;
+  InventoryService.delete(currInventory.value.id).then(async (resp) => {
+    alertSucess('Operação efectuada com sucesso.');
+    router.go(-1);
+  });
 };
 
 const closeInventory = () => {
   showloading();
-    InventoryService.apiFetchById(currInventory.value.id).then(async (resp) => {
-     await doProcessAndClose();
-    });
+  InventoryService.apiFetchById(currInventory.value.id).then(async (resp) => {
+    await doProcessAndClose();
+  });
 };
 
 const doProcessAndClose = async () => {
@@ -285,11 +281,14 @@ const doProcessAndClose = async () => {
 
   inventory.endDate = new Date();
   inventory.open = false;
-  inventory.generic = JSON.parse(inventory.generic )
-  let adjustments = inventory.adjustments 
-  if (!isOnline.value) { 
-    adjustments = await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(inventory.id)
-    inventory.adjustments = []
+  inventory.generic = JSON.parse(inventory.generic);
+  let adjustments = inventory.adjustments;
+  if (!isOnline.value) {
+    adjustments =
+      await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(
+        inventory.id
+      );
+    inventory.adjustments = [];
     inventory.open = false;
   }
   adjustments.forEach((adjustment) => {
@@ -309,8 +308,11 @@ const doProcessAndClose = async () => {
 
 const doSaveAdjustment = (i) => {
   if (processAdjustment[i] !== undefined && processAdjustment[i] !== null) {
-    processAdjustment[i].inventory_id = null
-    InventoryStockAdjustmentService.patch(processAdjustment[i].id, processAdjustment[i]).then((resp) => {
+    processAdjustment[i].inventory_id = null;
+    InventoryStockAdjustmentService.patch(
+      processAdjustment[i].id,
+      processAdjustment[i]
+    ).then((resp) => {
       i = i + 1;
       setTimeout(doSaveAdjustment(i), 2);
     });
@@ -341,8 +343,6 @@ const processAdjustment = (adjustment, inventory) => {
   processedAdjustments.push(adjustment);
 };
 
-
-
 const retriveRelatedDrug = (adjustment, drugList) => {
   let isNewDrug = true;
   if (adjustment.adjustedStock === null) {
@@ -364,7 +364,9 @@ const retriveRelatedDrug = (adjustment, drugList) => {
 };
 
 const startDate = computed(() => {
-  return currInventory.value!==null? moment.utc(currInventory.value.startDate).local().format('DD-MM-YYYY'): "";
+  return currInventory.value !== null
+    ? moment.utc(currInventory.value.startDate).local().format('DD-MM-YYYY')
+    : '';
 });
 
 const currInventory = computed(() => {
@@ -373,15 +375,17 @@ const currInventory = computed(() => {
   return inventory;
 });
 
- 
-onMounted(() =>{
- // showloading()
-  var isGeneric = JSON.parse(currInventory.value.generic)
+onMounted(() => {
+  // showloading()
+  var isGeneric = JSON.parse(currInventory.value.generic);
   const drugList = [];
   if (isGeneric) {
-       drugs.value = drugService.getActiveDrugs()
+    Object.keys(StockService.getValidStock()).forEach((drugId) => {
+      let drugExist = drugService.getDrugById(drugId);
+      if (drugExist !== null && drugExist !== undefined)
+        drugs.value.push(drugExist);
+    });
   } else {
-   
     Object.keys(currInventory.value.adjustments).forEach(
       function (i) {
         currInventory.value.adjustments[i].adjustedStock =
@@ -391,15 +395,16 @@ onMounted(() =>{
         retriveRelatedDrug(currInventory.value.adjustments[i], drugList);
       }.bind(this)
     );
-    drugs.value =  drugList;
+    drugs.value = drugList;
   }
-  closeLoading()
-})
-
-const inventoryType = computed(() => {
-  return currInventory.value!==null?inventoryMethod.getInventoryType(currInventory.value): "";
+  closeLoading();
 });
 
+const inventoryType = computed(() => {
+  return currInventory.value !== null
+    ? inventoryMethod.getInventoryType(currInventory.value)
+    : '';
+});
 
 provide('title', title);
 </script>

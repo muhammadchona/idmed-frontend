@@ -120,6 +120,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { computed, onMounted } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
+import drugService from 'src/services/api/drugService/drugService';
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();

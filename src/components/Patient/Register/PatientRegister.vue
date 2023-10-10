@@ -11,10 +11,9 @@
       <q-separator />
       <q-card-section>
         <div class="row">
-
           <q-space />
 
-           <q-select
+          <q-select
             class="col-4 q-mt-md"
             dense
             outlined
@@ -35,7 +34,6 @@
           <q-separator color="grey-13" size="1px" />
         </div>
         <div class="q-mt-md">
-    
           <div class="row">
             <q-input
               label="Nome *"
@@ -324,7 +322,7 @@ import { v4 as uuidv4 } from 'uuid';
 const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
 const { hasIdentifiers, getOldestIdentifier } = usePatient();
 const { alertSucess, alertError, alertInfo } = useSwal();
-const { closeLoading, showloading} = useLoading();
+const { closeLoading, showloading } = useLoading();
 const router = useRouter();
 const dateOfBirth = ref('');
 const ageCalculated = ref('');
@@ -344,7 +342,7 @@ const genderRef = ref(null);
 const provinceRef = ref(null);
 const districtRef = ref(null);
 const idadeRef = ref(null);
-const dataSourceRef = ref('')
+const dataSourceRef = ref('');
 const selectedDataSources = ref({
   id: -1,
   description: 'iDMED',
@@ -372,7 +370,10 @@ const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
 };
 const onChangeProvincia = () => {
-  patientReg.value = new Patient({ id: uuidv4() });
+  // if (newPatient.value) {
+  //   patientReg.value = new Patient({ id: uuidv4() });
+  // }
+
   if (patientReg.value.province !== null) {
     if (patientReg.value.province.description !== patientReg.value.province) {
       patientReg.value.district = null;
@@ -516,14 +517,13 @@ const submitForm = () => {
       );
       submitLoading.value = false;
     } else {
-         savePatient();
+      savePatient();
     }
   } else {
     submitLoading.value = false;
   }
 };
 const savePatient = async () => {
-
   if (newPatient.value && !openMrsPatient.value) {
     patientReg.value.identifiers = [];
   }
@@ -576,16 +576,15 @@ const savePatient = async () => {
   }
 };
 const doSave = async () => {
-    
-    patientReg.value.hisProvider = localStorage.getItem('Btoa');
-  if (selectedDataSources.value.abbreviation  === 'OpenMRS') {
-    patientReg.value.his = {} 
-    patientReg.value.his.id =  selectedDataSources.value.id
-    patientReg.value.hisSyncStatus = 'P'
+  patientReg.value.hisProvider = localStorage.getItem('Btoa');
+  if (selectedDataSources.value.abbreviation === 'OpenMRS') {
+    patientReg.value.his = {};
+    patientReg.value.his.id = selectedDataSources.value.id;
+    patientReg.value.hisSyncStatus = 'P';
   } else {
-    patientReg.value.hisSyncStatus = 'N'
+    patientReg.value.hisSyncStatus = 'N';
   }
-  
+
   patientReg.value.clinic = {};
   patientReg.value.clinic.id = currClinic.value.id;
 
