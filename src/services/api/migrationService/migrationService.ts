@@ -1,6 +1,7 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import MigrationStage from '../../../stores/models/Migration/MigrationStage';
+import systemConfigsService from '../systemConfigs/systemConfigsService';
 
 const migrationStages = useRepo(MigrationStage);
 
@@ -20,6 +21,25 @@ export default {
     return await api().get(`/migration/${id}`);
   },
 
+  async apiMigrationStatusIsFinished() {
+    return await api().get('/migration/migrationStatusFinished');
+  },
+
+  async finishMigration() {
+    return await api()
+      .post('/migration/migrationCompleted')
+      .then((resp) => {
+        const migrationStage = this.getFromStorageByCode(
+          'PATIENT_MIGRATION_STAGE'
+        );
+        migrationStage.value = 'COMPLETED';
+        migrationStages.save(migrationStage);
+        const systemConfigs = systemConfigsService.getActiveDataMigration();
+        systemConfigs.value = false;
+        systemConfigsService.saveInStorage(systemConfigs);
+        return resp;
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return migrationStages.getModel().$newInstance();
@@ -27,5 +47,8 @@ export default {
 
   getAllFromStorage() {
     return migrationStages.all();
+  },
+  getFromStorageByCode(code: String) {
+    return migrationStages.where('code', code).first();
   },
 };

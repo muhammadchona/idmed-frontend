@@ -48,6 +48,7 @@ export default {
   // WEB
   async postWeb(params: string) {
     try {
+      console.log(api().instance);
       const resp = await api().post('systemConfigs', params);
       systemConfigs.save(resp.data);
       // alertSucess('O Registo foi efectuado com sucesso');
@@ -144,13 +145,16 @@ export default {
   async apiSave(systemConfigs: any) {
     return await this.post(systemConfigs);
   },
-
   // Local Storage Pinia
   newInstanceEntity() {
     return systemConfigs.getModel().$newInstance();
   },
   getAllFromStorage() {
     return systemConfigs.all();
+  },
+
+  saveInStorage(systemConfigsObj: any) {
+    return systemConfigs.save(systemConfigsObj);
   },
 
   getActiveDataMigration() {
@@ -162,5 +166,9 @@ export default {
 
   getInstallationType() {
     return systemConfigs.query().where('key', 'INSTALATION_TYPE').first();
+  },
+
+  getApiURL() {
+    return systemConfigs.query().where('key', 'API_URL').first();
   },
 };
