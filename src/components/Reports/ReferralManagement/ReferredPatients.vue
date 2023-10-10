@@ -78,7 +78,6 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
 
       const initReportProcessing = (params) => {
         progress.value = 0.001
-        console.log(params)
         if (isOnline.value) {
           Report.apiInitReferredPatientsProcessing(params).then(resp => {
             progress.value = resp.data.progress
@@ -121,31 +120,31 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
       // }
 
       const generateReport =  async (id, fileType, params) => {
-          if (isOnline.value) {
-            if (fileType === 'PDF') {
-               referredPatients.downloadPDF(null, params).then(resp => {
-                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
-               })
-            } else {
-               referredPatients.downloadExcel(null, params).then(resp => {
-                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
-               })
-            }
+        if (isOnline.value) {
+          if (fileType === 'PDF') {
+              referredPatients.downloadPDF(id,fileType, params).then(resp => {
+                if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+              })
           } else {
-            referredPatintsMobileService.getDataLocalReport(id).then(resp => {
-              if (resp <= 0) {
-                alertError('Nao existem Dados para o periodo selecionado')
-              } else {
-                console.log(params)
-                if (fileType === 'PDF') {
-                  referredPatients.downloadPDF(resp, params)
-                } else {
-                  referredPatients.downloadExcel(resp, params)
-                }
-              }
-            })
+              referredPatients.downloadExcel(id,fileType, params).then(resp => {
+                if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+              })
           }
+        } else {
+          referredPatintsMobileService.getDataLocalReport(id).then(resp => {
+            if (resp <= 0) {
+              alertError('Nao existem Dados para o periodo selecionado')
+            } else {
+              console.log(params)
+              if (fileType === 'PDF') {
+                referredPatients.downloadPDF(resp, params)
+              } else {
+                referredPatients.downloadExcel(resp, params)
+              }
+            }
+          })
         }
+      }
 
 </script>
 

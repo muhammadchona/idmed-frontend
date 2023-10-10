@@ -326,7 +326,7 @@ export default {
         createRow.push(rows[row].name)
         createRow.push(this.getFormatDDMMYYYY(rows[row].dateMissedPickUp))
         createRow.push(rows[row].dateIdentifiedAbandonment !== null ? this.getFormatDDMMYYYY(rows[row].dateIdentifiedAbandonment): '')
-        createRow.push(rows[row].returnedPickUp !== null ? this.getFormatDDMMYYYY(rows[row].returnedPickUp) : '')
+        createRow.push(rows[row].dateBackUs !== null ? this.getFormatDDMMYYYY(rows[row].dateBackUs) : '')
         createRow.push(rows[row].referralPharmacy)
         createRow.push(rows[row].contact)
 
