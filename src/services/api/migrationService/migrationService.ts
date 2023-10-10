@@ -20,6 +20,11 @@ export default {
   async apiFetchById(id) {
     return await api().get(`/migration/${id}`);
   },
+
+  async apiMigrationStatusIsFinished() {
+    return await api().get('/migration/migrationStatusFinished');
+  },
+
   async finishMigration() {
     return await api()
       .post('/migration/migrationCompleted')

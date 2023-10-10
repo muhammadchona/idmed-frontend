@@ -5,7 +5,6 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import axios, { Axios } from 'axios';
 
 const systemConfigs = useRepo(SystemConfigs);
 
@@ -145,15 +144,6 @@ export default {
   },
   async apiSave(systemConfigs: any) {
     return await this.post(systemConfigs);
-  },
-
-  async apiSaveUrlBackend(systemConfigs: any) {
-    return await axios
-      .post(systemConfigs.value + '/systemConfigs', systemConfigs)
-      .then((resp) => {
-        console.log(resp);
-        return resp;
-      });
   },
   // Local Storage Pinia
   newInstanceEntity() {
