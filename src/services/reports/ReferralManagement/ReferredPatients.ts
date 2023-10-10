@@ -17,7 +17,7 @@ const reportName = 'ReferredPatients'
  const fileName = reportName.concat('_' + moment(new Date()).format('DD-MM-YYYY'));
 
 export default {
-    async downloadPDF (regs:any, params:any) {
+    async downloadPDF (id, fileType, params) {
       const doc = new JsPDF({
         orientation: 'l',
         unit: 'mm',
@@ -48,13 +48,14 @@ export default {
       ]
       let data = []
       if(isOnline.value){
-        rows = await Report.printReportOther('referredPatientsReport', params.id)
+        rows = await Report.printReport('referredPatientsReport',
+        id,
+        fileType
+      );
         if(rows.status === 204) return rows.status
         data = this.createArrayOfArrayRow(rows.data)
       }else {
-        rows = regs
-        console.log(rows)
-        data = this.createArrayOfArrayRow(rows)
+        // data = this.createArrayOfArrayRow(rows)
       }
 
       autoTable(doc, {
@@ -96,20 +97,21 @@ export default {
      // params.value.loading.loading.hide()
       return doc.save(reportName + '.pdf')
     },
-    async downloadExcel(regs:any, params:any) {
+    async downloadExcel(id, fileType2, params) {
 
       let rows = []
       const clinic = clinicService.getById(params.clinicId)
       let data = []
 
       if(isOnline.value){
-        rows = await Report.printReportOther('referredPatientsReport', params.id)
+        rows = await Report.printReport('referredPatientsReport',
+          id,
+          fileType2
+        )
         if(rows.status === 204) return rows.status
         data = this.createArrayOfArrayRow(rows.data)
       }else {
-        rows = regs
-        console.log(rows)
-        data = this.createArrayOfArrayRow(rows)
+        // data = this.createArrayOfArrayRow(rows)
       }
 
       // const rows = await Report.printReportOther('referredPatientsReport', params.id)
@@ -365,7 +367,7 @@ export default {
         createRow.push(rows[row].name)
         createRow.push(rows[row].age)
         createRow.push(this.getFormatDDMMYYYY(rows[row].lastPrescriptionDate))
-        createRow.push(rows[row].therapeuticRegimen)
+        createRow.push(rows[row].therapeuticalRegimen)
         createRow.push(rows[row].dispenseType)
         createRow.push(this.getFormatDDMMYYYY(rows[row].nextPickUpDate))
         createRow.push(this.getFormatDDMMYYYY(rows[row].referrenceDate))

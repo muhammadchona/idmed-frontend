@@ -40,7 +40,6 @@ export default {
         ]
       const rows = await Report.printReportOther('referredPatientsReport', params.id)
       if(rows.status === 204) return rows.status
-      console.log(rows.data)
       const data = this.createArrayOfArrayRow(rows.data)
   
       autoTable(doc, {
