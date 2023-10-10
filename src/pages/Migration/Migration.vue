@@ -119,7 +119,8 @@ const checkMigrationIsFinished = async () => {
         patientStatus.value.stage_progress < 100 &&
         migrationStage.value !== 'COMPLETED'
       ) {
-        const isFinished = await ReportService.apiMigrationStatusIsFinished();
+        const isFinished =
+          await migrationService.apiMigrationStatusIsFinished();
         if (isFinished.data === true) {
           alertWarningAction('Deseja Terminar A Migração ?').then((result) => {
             if (result) {
