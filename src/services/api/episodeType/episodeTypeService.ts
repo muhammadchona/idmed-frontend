@@ -8,7 +8,7 @@ import { nSQL } from 'nano-sql';
 
 const episodeType = useRepo(EpisodeType);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 

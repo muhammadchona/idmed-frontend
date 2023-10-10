@@ -4,7 +4,7 @@
       <q-bar style="background-color: #9e9e9e2e">
         <div class="cursor-pointer non-selectable">Serviço Clínico</div>
       </q-bar>
-      <q-separator class="q-my-md max-width" color="primary" ></q-separator>
+      <q-separator class="q-my-md max-width" color="primary"></q-separator>
     </div>
     <div class="">
       <q-table
@@ -17,7 +17,13 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
+          <q-input
+            outlined
+            dense
+            debounce="300"
+            v-model="filter"
+            placeholder="Procurar"
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -43,7 +49,7 @@
               {{ props.row.description }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? "Sim" : "Nao" }}
+              {{ props.row.active ? 'Sim' : 'Nao' }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -77,7 +83,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? "Inactivar" : "Activar"
+                    props.row.active ? 'Inactivar' : 'Activar'
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -88,7 +94,13 @@
     </div>
     <div class="absolute-bottom">
       <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
-        <q-btn size="xl" fab icon="add" @click="addClinicService" color="primary" />
+        <q-btn
+          size="xl"
+          fab
+          icon="add"
+          @click="addClinicService"
+          color="primary"
+        />
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showClinicServiceRegistrationScreen">
@@ -113,7 +125,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { website } = useSystemUtils();
 const loading = ref(true);
 const columns = [
@@ -151,6 +163,7 @@ const filter = ref('');
 const clinicalService = reactive(ref(new ClinicalService()));
 const clinicalServiceAttributeTypesObjectList = reactive(ref([]));
 const isNewClinicalService = ref(false);
+const loadingStep = ref(false);
 
 /*injects*/
 const viewMode = inject('viewMode');
@@ -161,7 +174,8 @@ const currClinic = inject('currClinic');
 const clinicalServices = computed(() => {
   const clinicalServicesRes = ref(null);
   clinicalServicesRes.value = clinicalServiceService.getAllClinicalServices();
-  if (clinicalServicesRes.value && clinicalServicesRes.value.length >= 0) stopLoading();
+  if (clinicalServicesRes.value && clinicalServicesRes.value.length >= 0)
+    stopLoading();
   return clinicalServicesRes.value;
 });
 
@@ -222,11 +236,14 @@ const close = () => {
   isNewClinicalService.value = false;
   editMode.value = false;
   viewMode.value = false;
+  loadingStep.value = false;
   closeLoading();
 };
 
 /*methods*/
 const submitClinicalService = () => {
+  showloading();
+  loadingStep.value = true;
   clinicalService.value.active = true;
   clinicalService.value.clinicSectors.forEach((clinicSector) => {
     clinicSector.clinicSectorType = {};
@@ -236,7 +253,8 @@ const submitClinicalService = () => {
   clinicalService.value.therapeuticRegimens.forEach((therapeuticalRegimen) => {
     therapeuticalRegimen.drugs = [];
     therapeuticalRegimen.clinicalService = {};
-    therapeuticalRegimen.clinicalService.id = therapeuticalRegimen.clinical_service_id;
+    therapeuticalRegimen.clinicalService.id =
+      therapeuticalRegimen.clinical_service_id;
   });
 
   if (isNewClinicalService.value) {
@@ -248,6 +266,7 @@ const submitClinicalService = () => {
         close();
       })
       .catch((error) => {
+        closeLoading();
         console.log(error);
         alertError('Aconteceu um erro ao gravar o Serviço Clínico');
         close();
@@ -261,6 +280,7 @@ const submitClinicalService = () => {
         close();
       })
       .catch((error) => {
+        closeLoading();
         console.log(error);
         alertError('Aconteceu um erro ao actualizar o Serviço Clínico');
         close();
@@ -299,7 +319,9 @@ const promptToConfirm = (clinicalServiceParam) => {
           alertSucess('Serviço Clínico actualizado com sucesso.');
         })
         .catch(() => {
-          alertError('Aconteceu um erro inesperado ao actualizar o Serviço Clínico.');
+          alertError(
+            'Aconteceu um erro inesperado ao actualizar o Serviço Clínico.'
+          );
         });
       // }
     }
@@ -312,7 +334,10 @@ provide(
   'clinicalServiceAttributeTypesObjectList',
   clinicalServiceAttributeTypesObjectList
 );
-provide('showClinicServiceRegistrationScreen', showClinicServiceRegistrationScreen);
+provide(
+  'showClinicServiceRegistrationScreen',
+  showClinicServiceRegistrationScreen
+);
 provide('clinicalServiceAttributeTypes', clinicalServiceAttributeTypes);
 provide('therapeuticRegimens', therapeuticRegimens);
 provide('clinicSectors', clinicSectors);
@@ -320,4 +345,5 @@ provide('identifierTypes', identifierTypes);
 provide('isNewClinicalService', isNewClinicalService);
 provide('close', close);
 provide('submitClinicalService', submitClinicalService);
+provide('loadingStep', loadingStep);
 </script>

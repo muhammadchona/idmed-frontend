@@ -4,7 +4,7 @@
       <q-bar style="background-color: #9e9e9e2e">
         <div class="cursor-pointer non-selectable">Regime Terapêutico</div>
       </q-bar>
-      <q-separator class="q-my-md max-width" color="primary" ></q-separator>
+      <q-separator class="q-my-md max-width" color="primary"></q-separator>
     </div>
     <div class="">
       <q-table
@@ -18,7 +18,9 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+          <div
+            class="full-width row flex-center text-primary q-gutter-sm text-body2"
+          >
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -41,6 +43,7 @@
               icon-right="refresh"
               label="Actualizar Lista"
               no-caps
+              @click="getRegimensFromProvincialServer"
             />
           </div>
         </template>
@@ -53,7 +56,7 @@
               {{ props.row.description }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? "Sim" : "Nao" }}
+              {{ props.row.active ? 'Sim' : 'Nao' }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -76,7 +79,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? "Inactivar" : "Activar"
+                    props.row.active ? 'Inactivar' : 'Activar'
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -86,10 +89,13 @@
       </q-table>
     </div>
     <div class="absolute-bottomg">
-      <q-page-sticky position="bottom-right" :offset="[18, 18]"> </q-page-sticky>
+      <q-page-sticky position="bottom-right" :offset="[18, 18]">
+      </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showTherapeuticRegimenRegistrationScreen">
-      <AddTherapeuticRegimen @close="showTherapeuticRegimenRegistrationScreen = false" />
+      <AddTherapeuticRegimen
+        @close="showTherapeuticRegimenRegistrationScreen = false"
+      />
     </q-dialog>
   </div>
 </template>
@@ -103,9 +109,11 @@ import drugService from 'src/services/api/drugService/drugService.ts';
 
 /*Components import*/
 import AddTherapeuticRegimen from 'src/components/Settings/TherapeuticRegimen/AddTherapeuticRegimen.vue';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
+const { showloading, closeLoading } = useLoading();
 const loading = ref(true);
 const columns = [
   {
@@ -151,7 +159,8 @@ const isCreateStep = inject('isCreateStep');
 /*Hooks*/
 const therapeuticRegimens = computed(() => {
   const therapeuticRegimensRes = ref(null);
-  therapeuticRegimensRes.value = therapeuticalRegimenService.getAllTherapeuticalRegimens();
+  therapeuticRegimensRes.value =
+    therapeuticalRegimenService.getAllTherapeuticalRegimens();
   if (therapeuticRegimensRes.value && therapeuticRegimensRes.value.length >= 0)
     stopLoading();
   return therapeuticRegimensRes.value;
@@ -237,10 +246,26 @@ const promptToConfirm = (therapeuticRegimenParam) => {
           alertSucess('Regime Terapêutico actualizado com sucesso.');
         })
         .catch(() => {
-          alertError('Aconteceu um erro inesperado ao actualizar o Regime Terapêutico.');
+          alertError(
+            'Aconteceu um erro inesperado ao actualizar o Regime Terapêutico.'
+          );
         });
     }
   });
+};
+const getRegimensFromProvincialServer = () => {
+  showloading();
+  therapeuticalRegimenService
+    .getFromProvincial(0)
+    .then(() => {
+      closeLoading();
+      alertSucess('Lista actualizada com sucesso');
+    })
+    .catch((error) => {
+      closeLoading();
+      alertError('Erro na comunicação com o Servidor Central.');
+      console.log('Erro', error);
+    });
 };
 /*Provides*/
 provide('forms', forms);

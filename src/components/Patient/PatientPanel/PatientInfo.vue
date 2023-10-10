@@ -113,6 +113,7 @@
         @click="mergeDuplicatePatient"
       />
     </div>
+
     <q-dialog persistent v-model="showPatientRegister">
       <patientRegister />
     </q-dialog>
@@ -129,7 +130,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import patientRegister from 'src/components/Patient/Register/PatientRegister.vue';
 import mergeDuplicates from 'src/components/Patient/PatientPanel/MergeDuplicatePatients.vue';
-import { inject, onMounted, provide, ref, computed } from 'vue';
+import { inject, onMounted, provide, ref, computed, reactive } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
 
 // Declaration
@@ -187,6 +188,7 @@ const closeMergePatient = () => {
   newPatient.value = false;
 };
 
+// Computed
 const disableEditButton = computed(() => {
   if (patient.value !== null) {
     if (hasNoObitOrTransferedForEpisode(patient.value)) {
@@ -195,6 +197,7 @@ const disableEditButton = computed(() => {
       return false;
     }
   }
+  return false;
 });
 
 provide('newPatient', newPatient);

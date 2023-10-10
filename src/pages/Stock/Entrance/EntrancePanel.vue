@@ -341,7 +341,7 @@
               v-model="dateReceived"
               label="Data de Criação"
             >
-            
+
 
               <template v-slot:append>
                 <q-icon name="event" class="cursor-pointer">
@@ -797,7 +797,7 @@ const doSaveGuia = () => {
         });
       }
     }
-    
+
 };
 
 const circularReferenceReplacer = () => {
@@ -828,7 +828,7 @@ const removeGuia = () => {
       'Não pode remover esta guia, pois ja existem registos de lotes associados.'
     );
   } else {
-    
+
     alertWarningAction(
       'Deseja remover a presente guia de entrada de stock?',
       'Não',
@@ -951,11 +951,13 @@ const doSave = (stock) => {
   showloading();
 
   stock.stockMoviment = stock.unitsReceived;
-  stock.clinic_id = clinicService.currClinic().id;
-  stock.drug_id = stock.drug.id;
-  const center = StockCenterService.getStockCenter();
-  stock.clinic = clinicService.currClinic();
-  stock.stock_center_id = center.id;
+  stock.clinic = {}
+  stock.clinic.id =clinicService.currClinic().id
+  stock.drug = stock.drug.id;
+  stock.clinic = {}
+  stock.clinic.id =  clinicService.currClinic().id;
+  stock.center = {} ;
+  stock.center.id =StockCenterService.getStockCenter().id
   stock.entrance = currStockEntrance;
   stock.enabled = false;
   // const entrance = currStockEntrance.value
@@ -993,7 +995,7 @@ const doSave = (stock) => {
           closeLoading();
         });
     }
- 
+
 
 };
 

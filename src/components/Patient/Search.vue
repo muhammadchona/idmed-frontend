@@ -392,14 +392,22 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
   );
   localpatient.value.cellphone =
     cellphoneObject !== null && cellphoneObject !== undefined
-      ? cellphoneObject.value
+      ? String(cellphoneObject.value)
       : '';
-  localpatient.value.address = pacienteOpenMRS.person.addresses[0].address3;
+  localpatient.value.address =
+    pacienteOpenMRS.person.addresses.length > 0
+      ? pacienteOpenMRS.person.addresses[0].address3
+      : '';
   localpatient.value.addressReference =
-    pacienteOpenMRS.person.addresses[0].address1;
-  localpatient.value.district = districtService.getAllDistrictByDescription(
-    pacienteOpenMRS.person.addresses[0].countyDistrict
-  );
+    pacienteOpenMRS.person.addresses.length > 0
+      ? pacienteOpenMRS.person.addresses[0].address1
+      : '';
+  localpatient.value.district =
+    pacienteOpenMRS.person.addresses.length > 0
+      ? districtService.getAllDistrictByDescription(
+          pacienteOpenMRS.person.addresses[0].countyDistrict
+        )
+      : '';
   localpatient.value.province =
     localpatient.value.district !== null &&
     localpatient.value.district !== undefined

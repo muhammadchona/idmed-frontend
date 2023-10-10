@@ -12,7 +12,7 @@ const secUserRepo = useRepo(SecUser);
 const clinicSectorUsersRepo = useRepo(ClinicSectorUsers);
 const secUserRoleRepo = useRepo(SecUserRole);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 

@@ -8,7 +8,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const therapeuticRegimen = useRepo(TherapeuticRegimen);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -68,6 +68,21 @@ export default {
         .catch((error) => {
           // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
+        });
+    }
+  },
+  getFromProvincial(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('therapeuticRegimen/therapeuticRegimenFromProvicnial/' + offset)
+        .then((resp) => {
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromProvincial(offset);
+          } else {
+            this.get(0);
+            closeLoading();
+          }
         });
     }
   },

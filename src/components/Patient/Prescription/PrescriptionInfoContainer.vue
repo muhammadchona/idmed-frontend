@@ -180,13 +180,48 @@
               </div>
             </div>
             <div class="col q-py-md">
-              <ListHeader
+              <q-banner
+                dense
+                inline-actions
+                class="bg-primary text-white q-pa-none"
                 v-if="prescription !== null"
-                :addVisible="!isClosed && remainigDuration(prescription) !== 0"
-                :title="'Dispensa'"
-                bgColor="bg-primary"
-                :addButtonActions="editPrescriptionOption"
-              ></ListHeader>
+              >
+                <span class="text-bold text-subtitle1 vertical-middle q-pl-md">
+                  <slot> Dispensa</slot>
+                </span>
+
+                <template v-slot:action>
+                  <div class="q-gutter-x-md">
+                    <q-btn
+                      dense
+                      flat
+                      :loading="loadingFilaPDF"
+                      color="white"
+                      icon="print"
+                      :label="
+                        curIdentifier.service.code === 'TARV'
+                          ? 'FILA'
+                          : curIdentifier.service.code === 'TPT'
+                          ? 'FILT'
+                          : curIdentifier.service.code === 'PREP'
+                          ? 'FILP'
+                          : 'Ficha'
+                      "
+                      @click="printFilaReport(curIdentifier)"
+                    />
+                    <q-btn
+                      v-if="!isClosed && remainigDuration(prescription) !== 0"
+                      dense
+                      flat
+                      round
+                      color="white"
+                      icon="add"
+                      class="float-right"
+                      @click="editPrescriptionOption"
+                    />
+                  </div>
+                </template>
+              </q-banner>
               <EmptyList v-if="lastPackOnPrescription === null"
                 >Nenhum registo de Levantamentos</EmptyList
               >
@@ -205,9 +240,8 @@
 <script setup>
 import { date } from 'quasar';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, inject, onMounted, provide, ref } from 'vue';
+import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import PackInfo from 'components/Patient/Prescription/PackInfo.vue';
 import episodeService from 'src/services/api/episode/episodeService';
@@ -216,6 +250,7 @@ import prescriptionService from 'src/services/api/prescription/prescriptionServi
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import packService from 'src/services/api/pack/packService';
+import filaReport from 'src/services/reports/Patients/filaReport';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
@@ -228,6 +263,7 @@ const { isCloseEpisode, isDCReferenceEpisode } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { remainigDuration, remainigDurationInWeeks } = usePrescription();
 const infoVisible = ref(true);
+const loadingFilaPDF = reactive(ref(false));
 
 //props
 const props = defineProps(['identifierId', 'serviceId']);
@@ -347,6 +383,14 @@ const removePrescription = () => {
 
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
+};
+
+const printFilaReport = (patientServiceIdentifier) => {
+  filaReport.downloadPDF(
+    patient.value,
+    patientServiceIdentifier,
+    loadingFilaPDF
+  );
 };
 
 // Computed

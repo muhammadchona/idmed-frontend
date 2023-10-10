@@ -118,9 +118,8 @@ export default {
     return dispenseType
       .query()
       .where((dispenseType) => {
-        return (
-          dispenseType.id === id)
+        return dispenseType.id === id;
       })
       .get();
-  }
+  },
 };

@@ -1,152 +1,146 @@
 <template>
   <div ref="filterDrugStoreSection">
-     <ListHeader
+    <ListHeader
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
       @closeSection="closeSection"
-      bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Activos na Farmácia
+      bgColor="bg-orange-5"
+      >Serviço {{ selectedService !== null ? selectedService.code : '' }}:
+      Activos na Farmácia
     </ListHeader>
     <div class="param-container">
       <q-item>
-          <q-item-section  class="col" >
-           
-              <FiltersInput
-                :id="id"
-                :typeService="selectedService"
-                :progress="progress"
-                 :clinicalService="selectedService"
-                :applicablePeriods="periodType"
-                @generateReport="generateReport"
-                @initReportProcessing="initReportProcessing"
-              />
-          </q-item-section>
+        <q-item-section class="col">
+          <FiltersInput
+            :id="id"
+            :typeService="selectedService"
+            :progress="progress"
+            :clinicalService="selectedService"
+            @generateReport="generateReport"
+            @initReportProcessing="initReportProcessing"
+          />
+        </q-item-section>
       </q-item>
     </div>
-    </div>
-  </template>
-  
-  <script setup>
-    import moment from 'moment'
-    import Report from 'src/services/api/report/ReportService'
-    import { LocalStorage } from 'quasar'
-    import activePatients from 'src/services/reports/Patients/ActivePatients.ts'
-    import { ref } from 'vue'
-    import reportDatesParams from 'src/services/reports/ReportDatesParams'
-    import { useSwal } from 'src/composables/shared/dialog/dialog';
-    import ListHeader from 'components/Shared/ListHeader.vue'
-    import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
-    import activeInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
-    import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService'
-    import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+  </div>
+</template>
 
-    const { isOnline } = useSystemUtils();
-    const { alertError } = useSwal();
-    const props = defineProps(['selectedService', 'menuSelected', 'id'])
-    const   progress= ref(0.00)
-    const filterDrugStoreSection = ref('')
-       
-  
-      const  closeSection =  () => {
-        filterDrugStoreSection.value.remove()
+<script setup>
+import moment from 'moment';
+import Report from 'src/services/api/report/ReportService';
+import { LocalStorage } from 'quasar';
+import activePatients from 'src/services/reports/Patients/ActivePatients.ts';
+import { ref } from 'vue';
+import reportDatesParams from 'src/services/reports/ReportDatesParams';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import ListHeader from 'components/Shared/ListHeader.vue';
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
+import activeInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
+import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isOnline } = useSystemUtils();
+const { alertError } = useSwal();
+const props = defineProps(['selectedService', 'menuSelected', 'id']);
+const progress = ref(0.0);
+const filterDrugStoreSection = ref('');
+
+const closeSection = () => {
+  filterDrugStoreSection.value.remove();
+};
+
+const initReportProcessing = (params) => {
+  progress.value = 0.001;
+  if (isOnline.value) {
+    Report.apiInitActiveInDrugStoreProcessing(params).then((resp) => {
+      getProcessingStatus(params);
+    });
+    // Pack.api().post('/receivedStockReport/initReportProcess' params)
+  } else {
+    const reportParams = reportDatesParams.determineStartEndDate(params);
+    activeInDrugStoreMobileService.getDataLocalDb(reportParams).then((resp) => {
+      progress.value = 100;
+      params.progress = 100;
+    });
+  }
+};
+
+const getProcessingStatus = (params) => {
+  Report.getProcessingStatus('activePatientReport', params).then((resp) => {
+    if (resp.data.progress > 0.001) {
+      progress.value = resp.data.progress;
+      if (progress.value < 100) {
+        setTimeout(getProcessingStatus(params), 2);
+      } else {
+        progress.value = 100;
+        params.progress = 100;
+        LocalStorage.set(params.id, params);
       }
-  
-        const initReportProcessing = (params) => {
-          progress.value = 0.001
-          if (isOnline.value) {
-            Report.apiInitActiveInDrugStoreProcessing(params).then(resp => {
-              getProcessingStatus(params)
-            })
-           // Pack.api().post('/receivedStockReport/initReportProcess' params)
-          } else {
-            const reportParams = reportDatesParams.determineStartEndDate(params)
-             activeInDrugStoreMobileService.getDataLocalDb(reportParams).then(resp => {
-              progress.value = 100
-              params.progress = 100
-             })
-            
-          }
-        }
-  
-        const getProcessingStatus  = (params) => {
-          Report.getProcessingStatus('activePatientReport', params).then(resp => {
-            if (resp.data.progress > 0.001) {
-              progress.value = resp.data.progress
-              if (progress.value < 100) {
-                setTimeout(getProcessingStatus(params), 2)
-              } else {
-                progress.value = 100
-                params.progress = 100
-                LocalStorage.set(params.id, params)
-              }
-            } else {
-              setTimeout(getProcessingStatus(params), 2)
-            }
-          })
-        }
-  
-        const generateReport =  async (id, fileType) => {
-          if (isOnline.value) {
-            Report.apiPrintActivePatientReport(id).then(resp => {
-              if (!resp.data[0]) {
-                alertError('Nao existem Dados para o periodo selecionado')
-              } else {
-                const patientAux = resp.data[0]
-  
-                if (fileType === 'PDF') {
-                  activePatients.downloadPDF(
-                    patientAux.province,
-                    moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                    moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                    resp.data
-                  )
-                } else {
-                  activePatients.downloadExcel(
-                    patientAux.province,
-                    moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                    moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                    resp.data
-                  )
-                }
-              }
-          })
-          } else {
-            const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id)
-            if (data.length === 0) {
-                alertError('Nao existem Dados para o periodo selecionado')
-            } else {
-              const patientAux = data[0]
-  
-              if (fileType === 'PDF') {
-                activePatients.downloadPDF(
-                  patientAux.province,
-                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  data
-                )
-              } else {
-                console.log('Printing XLS')
-                activePatients.downloadExcel(
-                  patientAux.province,
-                  moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
-                  data
-                )
-              }
-            }
-        }
-  
-  
-        }
-  
-  </script>
-  
-  <style lang="scss" scoped>
-    .param-container {
-      border-bottom: 1px dashed $grey-13;
-      border-left: 1px dashed $grey-13;
-      border-right: 1px dashed $grey-13;
-      border-radius: 0px 0px 5px 5px;
+    } else {
+      setTimeout(getProcessingStatus(params), 2);
     }
-  </style>
-  
+  });
+};
+
+const generateReport = async (id, fileType) => {
+  if (isOnline.value) {
+    Report.apiPrintActivePatientReport(id).then((resp) => {
+      if (!resp.data[0]) {
+        alertError('Nao existem Dados para o periodo selecionado');
+      } else {
+        const patientAux = resp.data[0];
+
+        if (fileType === 'PDF') {
+          activePatients.downloadPDF(
+            patientAux.province,
+            moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+            moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+            resp.data
+          );
+        } else {
+          activePatients.downloadExcel(
+            patientAux.province,
+            moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+            moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+            resp.data
+          );
+        }
+      }
+    });
+  } else {
+    const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id);
+    if (data.length === 0) {
+      alertError('Nao existem Dados para o periodo selecionado');
+    } else {
+      const patientAux = data[0];
+
+      if (fileType === 'PDF') {
+        activePatients.downloadPDF(
+          patientAux.province,
+          moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+          moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+          data
+        );
+      } else {
+        console.log('Printing XLS');
+        activePatients.downloadExcel(
+          patientAux.province,
+          moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+          moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+          data
+        );
+      }
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+.param-container {
+  border-bottom: 1px dashed $grey-13;
+  border-left: 1px dashed $grey-13;
+  border-right: 1px dashed $grey-13;
+  border-radius: 0px 0px 5px 5px;
+}
+</style>

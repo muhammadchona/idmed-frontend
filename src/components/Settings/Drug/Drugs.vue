@@ -4,10 +4,15 @@
       <q-bar style="background-color: #9e9e9e2e">
         <div class="cursor-pointer non-selectable">Medicamentos</div>
       </q-bar>
-      <q-separator class="q-my-md max-width" color="primary" ></q-separator>
+      <q-separator class="q-my-md max-width" color="primary"></q-separator>
     </div>
     <div class="">
-      <q-table :loading="loading" :rows="drugs" :columns="columns" :filter="filter">
+      <q-table
+        :loading="loading"
+        :rows="drugs"
+        :columns="columns"
+        :filter="filter"
+      >
         <template v-slot:loading>
           <q-inner-loading showing color="primary" />
         </template>
@@ -72,7 +77,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? "Inactivar" : "Activar"
+                    props.row.active ? 'Inactivar' : 'Activar'
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -95,9 +100,11 @@ import formService from 'src/services/api/formService/formService.ts';
 
 /*Components Import*/
 import addDrug from 'src/components/Settings/Drug/AddDrug.vue';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 /*Declarations*/
 const { alertWarningAction, alertSucess, alertError } = useSwal();
+const { showloading, closeLoading } = useLoading();
 const columns = [
   {
     name: 'name',
@@ -216,12 +223,15 @@ const visualizeDrug = (drugParam) => {
 };
 
 const getDrugsFromProvincialServer = () => {
+  showloading();
   drugService
     .getFromProvincial(0)
     .then(() => {
+      closeLoading();
       alertSucess('Lista actualizada com sucesso');
     })
     .catch((error) => {
+      closeLoading();
       alertError('Erro na comunicação com o Servidor Central.');
       console.log('Erro', error);
     });
@@ -248,7 +258,9 @@ const promptToConfirm = (drugParam) => {
           alertSucess('Medicamento actualizado com sucesso.');
         })
         .catch(() => {
-          alertError('Aconteceu um erro inesperado ao actualizar o Medicamento.');
+          alertError(
+            'Aconteceu um erro inesperado ao actualizar o Medicamento.'
+          );
         });
     }
   });

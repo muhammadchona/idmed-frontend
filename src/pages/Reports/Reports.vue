@@ -111,6 +111,7 @@ import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.v
 import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPack.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const componentsList = {
   ActivesInDrugStore,
@@ -156,8 +157,8 @@ const thumbStyle = {
 };
 
 const components = ref([]);
-const headerClass = 'list-header';
-const bgColor = 'bg-primary';
+// const headerClass = 'list-header';
+// const bgColor = 'bg-primary';
 
 onMounted(() => {
   const array = LocalStorage.getAllKeys();

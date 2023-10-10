@@ -40,6 +40,7 @@ export default {
       orientation: 'p',
       unit: 'mm',
       format: 'a4',
+      // format: [225, 427],
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });

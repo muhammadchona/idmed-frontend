@@ -7,7 +7,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 
 const dispenseMode = useRepo(DispenseMode);
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -116,11 +116,15 @@ export default {
         console.log(error);
       });
   },
-   async localDbGetById (id) {
-    return nSQL(DispenseMode.entity).query('select').where(['id', '=', id]).exec().then(result => {
-       return result[0]
-     })
- },
+  async localDbGetById(id) {
+    return nSQL(DispenseMode.entity)
+      .query('select')
+      .where(['id', '=', id])
+      .exec()
+      .then((result) => {
+        return result[0];
+      });
+  },
   deleteMobile(paramsId: string) {
     return nSQL(DispenseMode.entity)
       .query('delete')

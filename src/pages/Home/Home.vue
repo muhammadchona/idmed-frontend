@@ -120,6 +120,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { computed, onMounted } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
+import drugService from 'src/services/api/drugService/drugService';
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -149,7 +150,7 @@ const menusVisible = (name) => {
 onMounted(() => {
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
-    loadSettingParams(clinic);
+    loadSettingParams();
   } else {
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
@@ -159,9 +160,6 @@ onMounted(() => {
       }, 5000);
     }
   }
-  setTimeout(() => {
-    closeLoading();
-  }, 3000);
 });
 </script>
 

@@ -8,7 +8,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const startStopReason = useRepo(StartStopReason);
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -58,6 +58,8 @@ export default {
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
+          } else {
+            closeLoading();
           }
         })
         .catch((error) => {
@@ -149,8 +151,7 @@ export default {
     return startStopReason
       .query()
       .where((startStopReason) => {
-        return (
-          startStopReason.id === id)
+        return startStopReason.id === id;
       })
       .get();
   },
