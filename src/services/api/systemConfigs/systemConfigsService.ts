@@ -5,6 +5,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import axios, { Axios } from 'axios';
 
 const systemConfigs = useRepo(SystemConfigs);
 
@@ -48,6 +49,7 @@ export default {
   // WEB
   async postWeb(params: string) {
     try {
+      console.log(api().instance);
       const resp = await api().post('systemConfigs', params);
       systemConfigs.save(resp.data);
       // alertSucess('O Registo foi efectuado com sucesso');
@@ -145,12 +147,24 @@ export default {
     return await this.post(systemConfigs);
   },
 
+  async apiSaveUrlBackend(systemConfigs: any) {
+    return await axios
+      .post(systemConfigs.value + '/systemConfigs', systemConfigs)
+      .then((resp) => {
+        console.log(resp);
+        return resp;
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return systemConfigs.getModel().$newInstance();
   },
   getAllFromStorage() {
     return systemConfigs.all();
+  },
+
+  saveInStorage(systemConfigsObj: any) {
+    return systemConfigs.save(systemConfigsObj);
   },
 
   getActiveDataMigration() {
@@ -162,5 +176,9 @@ export default {
 
   getInstallationType() {
     return systemConfigs.query().where('key', 'INSTALATION_TYPE').first();
+  },
+
+  getApiURL() {
+    return systemConfigs.query().where('key', 'API_URL').first();
   },
 };
