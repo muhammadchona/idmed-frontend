@@ -165,13 +165,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { Notify } from 'quasar';
-import { useMediaQuery } from '@vueuse/core';
+import { computed, onMounted, ref, onBeforeUnmount } from 'vue';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { sendData } from 'src/services/SendInfo';
+import useNotify from 'src/composables/shared/notify/UseNotify';
+
 const { website } = useSystemUtils();
 const userInfoOpen = ref(false);
 const onMainClick = ref('');
@@ -180,8 +180,38 @@ const username = ref(localStorage.getItem('user'));
 const tab = ref('home');
 const mobile = ref(false);
 
+const { notifyError } = useNotify()
 const { isOnline } = useSystemUtils();
-const { sendDataToBackEnd, getPatientsToSend, getGroupsToSend } = sendData();
+const { getPatientsToSend, getGroupsToSend } = sendData();
+
+
+const logoutTimer = ref(null);
+
+// Função para fazer o logout
+const logout = () => {
+  localStorage.removeItem('authUser');
+  localStorage.removeItem('user');
+  localStorage.removeItem('username');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('password');
+  // localStorage.removeItem('tokenExpiration');
+  window.location.reload();
+}
+
+const resetTimer = () => {
+  clearTimeout(logoutTimer.value);
+  setTimer();
+};
+
+const warningMessage = () => {
+  localStorage.setItem('tokenExpiration', 0);
+  logout();
+};
+
+const setTimer = () => {
+  // logoutTimer.value = setTimeout(warningMessage, 1200 * 1000); // 20 min
+  logoutTimer.value = setTimeout(warningMessage, 1170 * 1000); // 19 min e 30 Segundos
+};
 
 onMounted(() => {
   if (website.value || isOnline.value) {
@@ -190,6 +220,22 @@ onMounted(() => {
   } else {
     mobile.value = true;
   }
+
+  // Definir os eventos e adicionar os ouvintes
+  const events = ['click', 'mousemove', 'mousedown', 'scroll', 'keypress', 'load'];
+
+  events.forEach((event) => {
+    window.addEventListener(event, resetTimer);
+  });
+
+  // Inicie o timer após definir os eventos
+  setTimer();
+});
+
+// Define o hook onBeforeUnmount para destruir o timer quando o componente for desmontado
+onBeforeUnmount(() => {
+  // Certifique-se de limpar o timer antes de desmontar o componente
+  clearTimeout(logoutTimer.value);
 });
 
 const activateMigration = computed(() => {
@@ -216,42 +262,6 @@ const menusVisible = (name) => {
 };
 
 const sync = async () => {
-  /*
-  await isOnline().then((resp) => {
-    if (resp === true) {
-      if (localStorage.getItem('isSyncronizing') === 'true') {
-        Notify.create({
-          icon: 'announcement',
-          message: 'Já Existe uma sincronização em curso.',
-          type: 'warning',
-          progress: true,
-          timeout: 3000,
-          position: 'top',
-          color: 'warning',
-          textColor: 'white',
-          classes: 'glossy',
-        });
-      }
-    } else if (resp === false) {
-      //  const userPass = localStorage.getItem('sync_pass')
-      //     const decryptedPass = this.decryptPlainText(userPass)
-      //       SynchronizationService.send(decryptedPass)
-      sendDataToBackEnd();
-      Notify.create({
-        icon: 'announcement',
-        message:
-          'Nao Possui conectividade com a internet , Sincronização nao efectuda',
-        type: 'negative',
-        progress: true,
-        timeout: 3000,
-        position: 'top',
-        color: 'negative',
-        textColor: 'white',
-        classes: 'glossy',
-      });
-    }
-  });
-  */
   getGroupsToSend();
   getPatientsToSend();
 };
