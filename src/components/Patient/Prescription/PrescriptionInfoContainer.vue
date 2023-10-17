@@ -170,6 +170,13 @@
               <div class="row q-my-md">
                 <q-space />
                 <q-btn
+                  unelevated
+                  color="blue"
+                  label="Ver Detalhes"
+                  @click="showPrescriptionDetailView"
+                  class="float-right q-ml-sm"
+                />
+                <q-btn
                   v-if="!isClosed"
                   unelevated
                   color="red"
@@ -234,6 +241,9 @@
       </div>
     </q-expansion-item>
     <q-separator />
+    <q-dialog persistent v-model="showPrescriptionDetails">
+      <PrescriptionDetailsView />
+    </q-dialog>
   </div>
 </template>
 
@@ -255,6 +265,7 @@ import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import groupService from 'src/services/api/group/groupService';
+import PrescriptionDetailsView from 'components/Patient/Prescription/PrescriptionDetailsView.vue';
 
 //Declaration
 const { website } = useSystemUtils();
@@ -264,6 +275,7 @@ const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { remainigDuration, remainigDurationInWeeks } = usePrescription();
 const infoVisible = ref(true);
 const loadingFilaPDF = reactive(ref(false));
+const showPrescriptionDetails = ref(false);
 
 //props
 const props = defineProps(['identifierId', 'serviceId']);
@@ -496,10 +508,18 @@ const isPatientActiveGroupMember = computed(() => {
   );
 });
 
+const showPrescriptionDetailView = () => {
+  showPrescriptionDetails.value = true;
+};
+
 //Provide
 provide('lastPackOnPrescription', lastPackOnPrescription);
 provide('isClosed', isClosed);
 provide('removePack', removePack);
+provide('curIdentifier', curIdentifier);
+provide('prescription', prescription);
+provide('showPrescriptionDetails', showPrescriptionDetails);
+provide('validadeColor', validadeColor);
 </script>
 
 <style>
