@@ -209,8 +209,7 @@ const warningMessage = () => {
 };
 
 const setTimer = () => {
-  // logoutTimer.value = setTimeout(warningMessage, 1200 * 1000); // 20 min
-  logoutTimer.value = setTimeout(warningMessage, 1170 * 1000); // 19 min e 30 Segundos
+  logoutTimer.value = setTimeout(warningMessage, 1200 * 1000); // 20 min
 };
 
 onMounted(() => {
