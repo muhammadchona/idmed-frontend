@@ -57,6 +57,14 @@ export default {
         });
     }
   },
+  async getInventoryDrugs(id: string) {
+    return api()
+      .get('drug/getInventoryDrugs/' + id)
+      .then((resp) => {
+        closeLoading();
+        return resp.data;
+      });
+  },
   async patch(id: string, params: string) {
     const resp = await api().patch('drug/' + id, params);
     drug.save(JSON.parse(resp.config.data));

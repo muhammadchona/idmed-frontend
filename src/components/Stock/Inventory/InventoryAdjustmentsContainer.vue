@@ -43,7 +43,7 @@
             </q-td>
             <q-td key="batchNumber" :props="props">
               <q-input
-                outlined           
+                outlined
                 v-model="props.row.adjustedStock.batchNumber"
                 disable
                 label="Lote"
@@ -89,8 +89,8 @@
             <q-td key="currQty" :props="props">
               <div class="row">
                 <q-input
-                dense
-                outlined
+                  dense
+                  outlined
                   v-model="props.row.adjustedStock.stockMoviment"
                   disable
                   label="Quantidade"
@@ -101,7 +101,7 @@
             <q-td key="balance" :props="props">
               <div class="row">
                 <q-input
-                outlined
+                  outlined
                   v-model="props.row.balance"
                   :disable="!inventory.open"
                   @update:model-value="changeStepToEdition()"
@@ -110,7 +110,7 @@
                   class="col"
                 />
                 <q-input
-                outlined
+                  outlined
                   v-model="props.row.adjustedStock.drug.form.description"
                   disable
                   label="Foma"
@@ -121,7 +121,7 @@
             </q-td>
             <q-td key="notes" :props="props">
               <q-input
-              outlined
+                outlined
                 v-model="props.row.notes"
                 :disable="!inventory.open"
                 @update:model-value="changeStepToEdition()"
@@ -160,8 +160,9 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import StockService from 'src/services/api/stockService/StockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { v4 as uuidv4 } from 'uuid';
 
-const {  isOnline } = useSystemUtils();
+const { isOnline } = useSystemUtils();
 
 const props = defineProps(['drug', 'inventory']);
 const { alertSucess, alertError } = useSwal();
@@ -193,7 +194,6 @@ const columns = [
   { name: 'notes', align: 'center', label: 'Notas', sortable: false },
 ];
 
- 
 const inventoryStockAdjMethod = useInventoryStockAdjustment();
 const dateUtils = useDateUtils();
 
@@ -213,17 +213,16 @@ const expandLess = (value) => {
   infoContainerVisible = !value;
 };
 const init = () => {
-  if(!isOnline.value) {
-  InventoryStockAdjustmentService.apiGetAllMobile()
-}
-  
-   prepareInit();
+  if (!isOnline.value) {
+    InventoryStockAdjustmentService.apiGetAllMobile();
+  }
+
+  prepareInit();
 };
 
 const prepareInit = () => {
- 
   let i = 1;
-  const stockList = getValidStocks(drug)
+  const stockList = getValidStocks(drug);
 
   if (stockList.length > 0) {
     Object.keys(stockList).forEach(
@@ -232,18 +231,17 @@ const prepareInit = () => {
         i = i + 1;
       }.bind(this)
     );
-    closeLoading()
-  } else if(stockList.length === i) {
-  closeLoading()
-}
-closeLoading()
+    closeLoading();
+  } else if (stockList.length === i) {
+    closeLoading();
+  }
+  closeLoading();
 };
 
-
-const getValidStocks = (drug) =>{
-  closeLoading()
-  return StockService.getValidStockByDrug(drug)
-}
+const getValidStocks = (drug) => {
+  closeLoading();
+  return StockService.getValidStockByDrug(drug);
+};
 
 const initNewAdjustment = (stock, drug, i) => {
   let newAdjustment = null;
@@ -251,12 +249,14 @@ const initNewAdjustment = (stock, drug, i) => {
     stock.id,
     inventory.id
   );
+
   if (newAdjustment === null) {
     newAdjustment = new InventoryStockAdjustment({
       inventory: inventory,
       clinic: clinicService.currClinic(),
-      clinic_id : clinicService.currClinic().id
+      clinic_id: clinicService.currClinic().id,
     });
+    newAdjustment.id = uuidv4();
   }
   newAdjustment.index = i;
   newAdjustment.adjustedStock = stockService.getStockById(stock.id);
@@ -264,14 +264,16 @@ const initNewAdjustment = (stock, drug, i) => {
     newAdjustment.adjustedStock.expireDate
   );
   newAdjustment.adjustedStock.drug = drug;
-  newAdjustment.adjustedStock.clinic = {}
-  newAdjustment.adjustedStock.clinic.id = clinicService.currClinic().id
+  newAdjustment.adjustedStock.clinic = {};
+  newAdjustment.adjustedStock.clinic.id = clinicService.currClinic().id;
+  newAdjustment.inventory = {};
+  newAdjustment.inventory.id = inventory.id;
 
   adjustments.value.push(newAdjustment);
 };
 
 const saveAdjustments = () => {
-  showloading()
+  showloading();
   Object.keys(adjustments.value).forEach(
     function (k) {
       const adjustment = adjustments.value[k];
@@ -292,13 +294,13 @@ const saveAdjustments = () => {
       }
       adjustment.captureDate = new Date();
       adjustment.operation = operation;
-      adjustment.clinic = {}
-      adjustment.clinic.id =  clinicService.currClinic().id
-      adjustment.adjustedStock.clinic = {}
-      adjustment.adjustedStock.clinic.id = clinicService.currClinic().id
-      adjustment.inventory.clinic = {}
-      adjustment.inventory ={}
-      adjustment.inventory.id  = inventory.id
+      adjustment.clinic = {};
+      adjustment.clinic.id = clinicService.currClinic().id;
+      adjustment.adjustedStock.clinic = {};
+      adjustment.adjustedStock.clinic.id = clinicService.currClinic().id;
+      adjustment.inventory.clinic = {};
+      adjustment.inventory = {};
+      adjustment.inventory.id = inventory.id;
       if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
         adjustment.adjustedValue = Number(
           adjustment.balance - adjustment.adjustedStock.stockMoviment
@@ -312,8 +314,7 @@ const saveAdjustments = () => {
       }
     }.bind(this)
   );
-  doSave(0)
- 
+  doSave(0);
 };
 const doSave = (i) => {
   if (adjustments.value[i] !== undefined) {
@@ -321,40 +322,38 @@ const doSave = (i) => {
       adjustments.value[i].balance.length <= 0 ||
       isNaN(adjustments.value[i].balance)
     ) {
-      closeLoading()
+      closeLoading();
       alertError(
         'error',
         'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
       );
     } else {
-        InventoryStockAdjustmentService.apiFetchById(
-          adjustments.value[i].id
-        ).then((resp1) => {
-          if (resp1.data.length=== 0) {
-            InventoryStockAdjustmentService.post(adjustments.value[i]).then(
-              (resp) => {
-               // adjustments.value[i].id = resp.id;
-                i = i + 1;
-                setTimeout(doSave(i), 2);
-              }
-            );
-          } else {
-            const adjustment = adjustments.value[i];
-            adjustment.adjustedStock.adjustments = [];
-            InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
-              (resp) => {
-                i = i + 1;
-                setTimeout(doSave(i), 2);
-              }
-            );
-          }
-          if (i ===adjustments.value.length - 1) {
-            closeLoading()
+      InventoryStockAdjustmentService.apiFetchById(
+        adjustments.value[i].id
+      ).then((resp1) => {
+        if (resp1.data.length === 0) {
+          InventoryStockAdjustmentService.post(adjustments.value[i]).then(
+            (resp) => {
+              // adjustments.value[i].id = resp.id;
+              i = i + 1;
+              setTimeout(doSave(i), 2);
+            }
+          );
+        } else {
+          const adjustment = adjustments.value[i];
+          adjustment.adjustedStock.adjustments = [];
+          InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
+            (resp) => {
+              i = i + 1;
+              setTimeout(doSave(i), 2);
+            }
+          );
+        }
+        if (i === adjustments.value.length - 1) {
+          closeLoading();
           alertSucess('Operação efectuada com sucesso.');
-          }
-         
-        });
-  
+        }
+      });
     }
   } else {
     step.value = 'display';
@@ -366,9 +365,8 @@ const changeStepToEdition = () => {
 };
 
 onMounted(() => {
-  showloading()
+  showloading();
   init();
-  
 });
 
 const isEditStep = computed(() => {
@@ -384,5 +382,4 @@ const headerColor = computed(() => {
 });
 </script>
 
-<style>
-</style>
+<style></style>
