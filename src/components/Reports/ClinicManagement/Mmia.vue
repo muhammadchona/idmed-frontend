@@ -70,12 +70,13 @@ const initReportProcessing = async (params) => {
   } else {
     progress.value = 0.001;
     if (isOnline.value) {
+      LocalStorage.set(params.id, params)
       Report.apiInitMmiaProcessing(params).then((resp) => {
         getProcessingStatus(params);
       });
     } else {
+      LocalStorage.set(params.id, params)
       const reportParams = await MmiaMobileService.getMmiaStockReport(params);
-      console.log(reportParams);
       const listRegimenSubReport =
         await MmiaMobileService.getMmiaRegimenSubReport(reportParams);
       const beta = await MmiaMobileService.getMmiaReport(
