@@ -178,7 +178,7 @@ export default {
       .with('clinicSectors')
       .with('identifierType')
       .whereId(clinicalServiceId)
-      .get();
+      .first();
   },
 
   getClinicalServiceByCode(code: string) {

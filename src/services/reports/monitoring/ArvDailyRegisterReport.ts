@@ -762,9 +762,11 @@ export default {
   },
   createArrayOfArrayRow(rows) {
     const data = [];
+    let ord = 1
       for (const row in rows) {
         const createRow = [];
-        createRow.push(rows[row].orderNumber);
+        // createRow.push(rows[row].orderNumber);
+        createRow.push(ord++);
         createRow.push(rows[row].nid);
         createRow.push(rows[row].patientName);
         createRow.push(rows[row].startReason);

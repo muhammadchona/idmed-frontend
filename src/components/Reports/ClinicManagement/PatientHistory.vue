@@ -58,10 +58,12 @@ const closeSection = () => {
    const  initReportProcessing = (params) => {
         progress.value = 0.001
         if (isOnline.value) {
+            LocalStorage.set(params.id, params)
             Report.apiInitReportProcess('historicoLevantamentoReport',params).then(resp => {
             setTimeout(getProcessingStatus(params), 2)
           })
           } else {
+            LocalStorage.set(params.id, params)
             PatientHistoryMobileService.getDataLocalDb(params)
             progress.value = 100
             params.progress = 100

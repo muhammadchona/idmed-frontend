@@ -17,7 +17,7 @@ const instance = axios.create({
 const numTries = 0;
 
 // Função para fazer o logout
-function logout() {
+function logout () {
   localStorage.removeItem('authUser');
   localStorage.removeItem('user');
   localStorage.removeItem('username');
@@ -29,7 +29,7 @@ function logout() {
 
 // Função para iniciar o temporizador
 function fixNextTokenExpirationTime() {
-  localStorage.setItem('tokenExpiration', String(Date.now() + 1200000)); // 20 minutos sem request
+  // localStorage.setItem('tokenExpiration', String(Date.now() + 1200000)); // 20 minutos sem request
   // localStorage.setItem('tokenExpiration', String(Date.now() + 30000)); // 30 segundos sem request para teste
 }
 
@@ -55,12 +55,12 @@ instance.interceptors.request.use(
 
       if (tokenExpiration && currentTime < Number(tokenExpiration)) {
         // O token ainda é válido, reiniciar o temporizador
-        fixNextTokenExpirationTime();
+        // fixNextTokenExpirationTime();
       } else {
         // O token expirou, fazer o logout
-        localStorage.setItem('tokenExpiration', 0);
-        logout();
-        return; // Interromper a solicitação
+        // localStorage.setItem('tokenExpiration', 0);
+        // logout();
+        // return; // Interromper a solicitação
       }
       const localuser = UsersService.getUserByUserName(String(userloged));
       request.headers['X-Auth-Token'] = ['', localuser.access_token].join(' ');

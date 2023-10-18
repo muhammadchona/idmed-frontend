@@ -69,9 +69,7 @@ import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobi
 
       const getProcessingStatus = (params) => {
         Report.getProcessingStatus('usedStockReportTemp', params).then(resp => {
-          console.log(resp.data.progress)
           progress.value = resp.data.progress
-          console.log(progress)
           if (progress.value < 100) {
             setTimeout(getProcessingStatus(params), 2)
           } else {

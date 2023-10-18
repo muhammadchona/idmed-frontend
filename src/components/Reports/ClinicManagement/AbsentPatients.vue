@@ -1,10 +1,19 @@
 <template>
   <div ref="filterDrugStoreSection">
     <ListHeader
+      v-if="resultFromLocalStorage"
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
-      @closeSection="closeSection"
+      @closeSection="closeSection(params)"
+      bgColor="bg-orange-5">Serviço {{serviceAux !== null ? serviceAux.code : ''}}: Pacientes Faltosos ao levantamento
+    </ListHeader>
+    <ListHeader
+      v-else
+      :addVisible="false"
+      :mainContainer="true"
+      :closeVisible="true"
+      @closeSection="closeSection(params)"
       bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Pacientes Faltosos ao levantamento
     </ListHeader>
     <div class="param-container">
@@ -30,7 +39,7 @@
   <script setup>
   import Report from 'src/services/api/report/ReportService'
   import { LocalStorage } from 'quasar'
-  import { ref} from 'vue'
+  import { ref, provide } from 'vue'
   import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatients.ts'
   
   
@@ -51,51 +60,58 @@
   const filterDrugStoreSection = ref('')
   
 
-  const closeSection=  () => {
-          filterDrugStoreSection.value.remove()
-         // LocalStorage.remove(id)
-        }
+  const closeSection=  (params) => {
+    filterDrugStoreSection.value.remove()
+    LocalStorage.remove(params.id)
+  }
+
+  const serviceAux = ref(null)
+  const resultFromLocalStorage = ref(false)
   
   const initReportProcessing = async (params) => {
     progress.value = 0.001
     if (isOnline.value) {
-        Report.apiInitReportProcess('absentPatientsReport', params).then((response) => {
-            getProcessingStatus(params);
-          }
-        );
-      } else {
-        const resp = await  AbsentPatientMobileService.getDataLocalDb(params)
-        progress.value = 100
-        params.progress = 100
-      }
+      LocalStorage.set(params.id, params)
+      Report.apiInitReportProcess('absentPatientsReport', params).then((response) => {
+          getProcessingStatus(params);
+        }
+      );
+    } else {
+      LocalStorage.set(params.id, params)
+      const resp = await  AbsentPatientMobileService.getDataLocalDb(params)
+      progress.value = 100
+      params.progress = 100
     }
+  }
   
-   const getProcessingStatus = (params) => {
+  const getProcessingStatus = (params) => {
     if (isOnline.value) {
-          Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
-            progress.value = resp.data.progress
-            if (progress.value < 100) {
-              setTimeout(getProcessingStatus(params), 2)
-            } else {
-              params.progress = 100
-              LocalStorage.set(params.id, params)
-            }
-          })
+      Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
+        progress.value = resp.data.progress
+        if (progress.value < 100) {
+          setTimeout(getProcessingStatus(params), 2)
+        } else {
+          params.progress = 100
+          LocalStorage.set(params.id, params)
         }
-      }
+      })
+    }
+  }
   
-    const generateReport = (id, fileType, params) => {
-      if (fileType === 'PDF') {
-          absentPatientsTs.downloadPDF(id, fileType, params).then(resp => {
-                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
-               })
-        } else if (fileType === 'XLS') {
-          absentPatientsTs.downloadExcel(id, fileType, params).then(resp => {
-                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
-               })
-        }
-        }
+  const generateReport = (id, fileType, params) => {
+    if (fileType === 'PDF') {
+      absentPatientsTs.downloadPDF(id, fileType, params).then(resp => {
+        if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+      })
+    } else if (fileType === 'XLS') {
+      absentPatientsTs.downloadExcel(id, fileType, params).then(resp => {
+        if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+      })
+    }
+  }
   
+  provide('serviceAux', serviceAux)
+  provide('resultFromLocalStorage', resultFromLocalStorage)
      
   </script>
   
