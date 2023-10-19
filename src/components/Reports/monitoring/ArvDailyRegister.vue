@@ -1,10 +1,19 @@
 <template>
 <div ref="filterArvDailyRegisterSection">
   <ListHeader
+  v-if="resultFromLocalStorage"
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
-    @closeSection="closeSection"
+    @closeSection="closeSection(params)"
+    bgColor="bg-orange-5">Serviço {{serviceAux !== null ? serviceAux.code : ''}}: Lista de Registro Diário de ARV
+  </ListHeader>
+  <ListHeader
+  v-else
+    :addVisible="false"
+    :mainContainer="true"
+    :closeVisible="true"
+    @closeSection="closeSection(params)"
     bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Lista de Registro Diário de ARV
   </ListHeader>
   <div class="param-container">
@@ -12,10 +21,13 @@
          <q-item-section  class="col" >
             <FiltersInput
               :id="id"
-              :typeService="selectedService"
+              :totalRecords="totalRecords"
+              :qtyProcessed="qtyProcessed"
+              :reportType="report"
+              :tabName="name"
+              :params="params"
               :progress="progress"
               :clinicalService="selectedService"
-              :applicablePeriods="periodType"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
@@ -32,7 +44,7 @@ import Report from 'src/services/api/report/ReportService'
 import ArvDailyRegisterReport from 'src/services/reports/monitoring/ArvDailyRegisterReport.ts'
 import ClinicalService from '../../../stores/models/ClinicalService/ClinicalService'
  import { LocalStorage } from 'quasar'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, provide } from 'vue'
 import StartStopReason from 'src/stores/models/startStopReason/StartStopReason'
 
 //compontes
@@ -46,10 +58,11 @@ import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDai
 const {  isOnline } = useSystemUtils(); 
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 const filterArvDailyRegisterSection = ref('')
+const report = 'LIVRO_DIARIO'
     
 
     const name = 'ArvDailyRegister'
-    const props = defineProps(['selectedService', 'menuSelected', 'id'])
+    const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
     const totalRecords= ref(0)
     const qtyProcessed = ref(0)
      const progress = ref(0.00)
@@ -58,17 +71,25 @@ const filterArvDailyRegisterSection = ref('')
      // getStartStopReasonsToVuex()
     })
 
-     const closeSection = () =>{
+    const serviceAux = ref(null)
+const resultFromLocalStorage = ref(false)
+
+     const closeSection = (params) =>{
         filterArvDailyRegisterSection.value.remove()
+        LocalStorage.remove(params.id) 
       }
    const  initReportProcessing = (params) => {
       progress.value = 0.001
         if (isOnline.value) {
+          LocalStorage.set(params.id, params)
           Report.apiInitReportProcess('arvDailyRegisterReportTemp', params).then(resp => {
             progress.value = resp.data.progress
-            setTimeout(getProcessingStatus(params), 2)
+            setTimeout(() => {
+              getProcessingStatus(params)
+            }, 3000);
           })
         } else {
+          LocalStorage.set(params.id, params)
           ArvDailyRegisterMobileService.getDataLocalDb(params)
           progress.value = 100
          params.progress = 100
@@ -79,7 +100,9 @@ const filterArvDailyRegisterSection = ref('')
         Report.getProcessingStatus('arvDailyRegisterReportTemp', params).then(resp => {
           progress.value = resp.data.progress
           if (progress.value < 100) {
-            setTimeout(getProcessingStatus(params), 2)
+            setTimeout(() => {
+              getProcessingStatus(params)
+            }, 3000);
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
@@ -103,6 +126,8 @@ const filterArvDailyRegisterSection = ref('')
         }
       }
 
+      provide('serviceAux', serviceAux)
+provide('resultFromLocalStorage', resultFromLocalStorage)
   
 </script>
 

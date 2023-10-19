@@ -1,10 +1,19 @@
 <template>
 <div ref="filterDrugStoreSection">
   <ListHeader
+  v-if="resultFromLocalStorage"
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
-    @closeSection="closeSection"
+    @closeSection="closeSection(params)"
+    bgColor="bg-orange-5">Serviço {{serviceAux !== null ? serviceAux.code : ''}}: Historico de Levantamento de Pacientes Referidos
+  </ListHeader>
+  <ListHeader
+  v-else
+    :addVisible="false"
+    :mainContainer="true"
+    :closeVisible="true"
+    @closeSection="closeSection(params)"
     bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Historico de Levantamento de Pacientes Referidos
   </ListHeader>
   <div class="param-container">
@@ -17,7 +26,7 @@
               :qtyProcessed="qtyProcessed"
               :reportType="report"
               :progress="progress"
-               :tabName="name"
+              :tabName="name"
               :params="params"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
@@ -32,7 +41,7 @@
 
         import Report from 'src/services/api/report/ReportService'
         import { LocalStorage } from 'quasar'
-        import { ref, onMounted} from 'vue'
+        import { ref, onMounted, provide} from 'vue'
         import referredPatientDispenseHistory from 'src/services/reports/ReferralManagement/ReferredPatientDispenseHistory.ts'
 
         import ListHeader from 'components/Shared/ListHeader.vue'
@@ -53,23 +62,28 @@
         const report =  'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS'
         const progress =  ref(0.00)
         const filterDrugStoreSection = ref('')
+        const serviceAux = ref(null)
+        const resultFromLocalStorage = ref(false)
+
+
         onMounted (() => {
         if (props.params) {
           (getProcessingStatus(props.params))
         }
       }) 
 
-     const closeSection = () => {
+     const closeSection = (params) => {
         filterDrugStoreSection.value.remove()
-        LocalStorage.remove(id)
+        LocalStorage.remove(params.id)
       }
 
      const  initReportProcessing = (params) => {
       progress.value = 0.001
+      LocalStorage.set(params.id, params)
           Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
-        // reset your component inputs like textInput to null
-        // or your custom route redirect with vue-router
-         setTimeout(getProcessingStatus(params), 2)
+         setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
       })
       }
 
@@ -77,7 +91,9 @@
         Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
           progress.value = resp.data.progress
           if (progress.value < 100) {
-            setTimeout(getProcessingStatus(params), 2)
+            setTimeout(() => {
+              getProcessingStatus(params)
+            }, 3000);
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
@@ -97,6 +113,8 @@
             }
       }
 
+      provide('serviceAux', serviceAux)
+provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>

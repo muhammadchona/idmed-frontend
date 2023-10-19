@@ -1,10 +1,21 @@
 <template>
   <div ref="filterDrugStoreSection">
     <ListHeader
+    v-if="resultFromLocalStorage"
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
-      @closeSection="closeSection"
+      @closeSection="closeSection(params)"
+      bgColor="bg-orange-5"
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}:
+      Referidos Faltosos ao levantamento
+    </ListHeader>
+    <ListHeader
+    v-else
+      :addVisible="false"
+      :mainContainer="true"
+      :closeVisible="true"
+      @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}:
       Referidos Faltosos ao levantamento
@@ -33,7 +44,7 @@
 <script setup>
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, provide } from 'vue';
 import absentReferredPatients from 'src/services/reports/ReferralManagement/AbsentReferredPatients.ts';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
@@ -44,12 +55,15 @@ const { alertError } = useSwal();
 const { isOnline } = useSystemUtils();
 
 const name = 'AbsentReferredPatients';
-const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const report = 'REFERIDOS_FALTOSOS_AO_LEVANTAMENTO';
 const progress = ref(0.00);
 const filterDrugStoreSection = ref('');
+
+const serviceAux = ref(null)
+const resultFromLocalStorage = ref(false)
 
 onMounted(() => {
   if (props.params) {
@@ -57,17 +71,20 @@ onMounted(() => {
   }
 });
 
-const closeSection = () => {
+const closeSection = (params) => {
   filterDrugStoreSection.value.remove();
-  LocalStorage.remove(props.id);
+  LocalStorage.remove(params.id);
 };
 
 const initReportProcessing = (params) => {
   progress.value = 0.001
     if (isOnline.value) {
+      LocalStorage.set(params.id, params)
       Report.apiInitReportProcess('referredPatientsReport', params).then(
         (response) => {
-          setTimeout(getProcessingStatus(params), 2);
+          setTimeout(() => {
+            getProcessingStatus(params)
+          }, 3000);
         }
       )
     } else {
@@ -80,14 +97,19 @@ const getProcessingStatus = (params) => {
       if (resp.data.progress > 0.001) {
               progress.value = resp.data.progress
               if (progress.value < 100) {
-                setTimeout(getProcessingStatus(params), 2)
+              
+                setTimeout(() => {
+                  getProcessingStatus(params)
+                }, 3000);
               } else {
                 progress.value = 100
                 params.progress = 100
                 LocalStorage.set(params.id, params)
               }
             } else {
-              setTimeout(getProcessingStatus(params), 2)
+              setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
             }
   });
 };
@@ -105,6 +127,8 @@ const generateReport = (id, fileType, params) => {
     });
   }
 };
+provide('serviceAux', serviceAux)
+provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>

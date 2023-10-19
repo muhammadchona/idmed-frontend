@@ -1,10 +1,19 @@
 <template>
 <div ref="filterDPatientHistorySection">
   <ListHeader
+  v-if="resultFromLocalStorage"
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
-    @closeSection="closeSection"
+    @closeSection="closeSection(params)"
+    bgColor="bg-orange-5">Serviço {{serviceAux !== null ? serviceAux.code : ''}}: Histórico de Levantamento
+  </ListHeader>
+  <ListHeader
+  v-else
+    :addVisible="false"
+    :mainContainer="true"
+    :closeVisible="true"
+    @closeSection="closeSection(params)"
     bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Histórico de Levantamento
   </ListHeader>
   <div class="param-container">
@@ -12,10 +21,13 @@
         <q-item-section  class="col" >
             <FiltersInput
               :id="id"
-              :typeService="selectedService"
+              :totalRecords="totalRecords"
+              :qtyProcessed="qtyProcessed"           
               :progress="progress"
+              :reportType="report"
+              :tabName="name"
+              :params="params"
               :clinicalService="selectedService"
-              :applicablePeriods="periodType"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
@@ -30,7 +42,7 @@
  import moment from 'moment'
  import Report from 'src/services/api/report/ReportService'
 import { LocalStorage } from 'quasar'
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
  import patientHistoryTS from 'src/services/reports/ClinicManagement/PatientHistory.ts'
 
 
@@ -45,22 +57,29 @@ const {  isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 
 const name =  'PatientHistory'
-const props = defineProps(['selectedService', 'menuSelected', 'id'])
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const totalRecords =  ref(0)
 const qtyProcessed = ref(0)
- const progress = ref(0.00)
- const filterDPatientHistorySection = ref('')
+const progress = ref(0.00)
+const filterDPatientHistorySection = ref('')
+const report = 'HISTORICO_DE_LEVANTAMENTO';
 
-const closeSection = () => {
-        filterDPatientHistorySection.value.remove()
-       // LocalStorage.remove(id)
-      }
+const serviceAux = ref(null)
+const resultFromLocalStorage = ref(false)
+
+const closeSection = (params) => {
+  filterDPatientHistorySection.value.remove()
+  LocalStorage.remove(params.id)
+}
+
    const  initReportProcessing = (params) => {
         progress.value = 0.001
         if (isOnline.value) {
             LocalStorage.set(params.id, params)
             Report.apiInitReportProcess('historicoLevantamentoReport',params).then(resp => {
-            setTimeout(getProcessingStatus(params), 2)
+            setTimeout(() => {
+              getProcessingStatus(params)
+            }, 3000);
           })
           } else {
             LocalStorage.set(params.id, params)
@@ -74,7 +93,9 @@ const closeSection = () => {
         Report.getProcessingStatus('historicoLevantamentoReport', params).then(resp => {
           progress.value = resp.data.progress
           if (progress.value < 100) {
-            setTimeout(getProcessingStatus(params), 2)
+            setTimeout(() => {
+              getProcessingStatus(params)
+            }, 3000);
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
@@ -128,7 +149,8 @@ const closeSection = () => {
         
         }
       
-
+        provide('serviceAux', serviceAux)
+provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>

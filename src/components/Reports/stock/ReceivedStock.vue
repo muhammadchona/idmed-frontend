@@ -1,10 +1,19 @@
 <template>
 <div ref="filterReceivedStockSection">
   <ListHeader
+    v-if="resultFromLocalStorage"
     :addVisible="false"
     :mainContainer="true"
     :closeVisible="true"
-    @closeSection="closeSection"
+    @closeSection="closeSection(params)"
+    bgColor="bg-orange-5">Serviço {{serviceAux !== null ? serviceAux.code : ''}}: Lista de Stock Recebido
+  </ListHeader>
+  <ListHeader
+    v-else
+    :addVisible="false"
+    :mainContainer="true"
+    :closeVisible="true"
+    @closeSection="closeSection(params)"
     bgColor="bg-orange-5">Serviço {{selectedService !== null ? selectedService.code : ''}}: Lista de Stock Recebido
   </ListHeader>
   <div class="param-container">
@@ -12,10 +21,13 @@
         <q-item-section  class="col" >
             <FiltersInput
               :id="id"
-              :typeService="selectedService"
               :progress="progress"
+              :totalRecords="totalRecords"
+              :qtyProcessed="qtyProcessed"
+              :reportType="report"
               :clinicalService="selectedService"
-              :applicablePeriods="periodType"
+              :tabName="name"
+              :params="params"
               @generateReport="generateReport"
               @initReportProcessing="initReportProcessing"
             />
@@ -30,7 +42,7 @@
 import Report from 'src/services/api/report/ReportService'
 import ReceivedStockReport from 'src/services/reports/stock/ReceivedStockReport.ts'
 import { LocalStorage } from 'quasar'
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import reportDatesParams from 'src/services/reports/ReportDatesParams'
 import ListHeader from 'components/Shared/ListHeader.vue'
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
@@ -42,26 +54,33 @@ const {  isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 
    const name = 'ReceivedStock'
-   const props = defineProps(['selectedService', 'menuSelected', 'id'])
+   const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
     const totalRecords = ref(0)
     const qtyProcessed=ref(0)
 
    const progress= ref(0.00)
    const filterReceivedStockSection = ref('')
 
-     const  closeSection = ()  =>{
-        filterReceivedStockSection.value.remove()
-         LocalStorage.remove(id)
+   const serviceAux = ref(null)
+const resultFromLocalStorage = ref(false)
+
+     const  closeSection = (params)  =>{
+        filterReceivedStockSection.value.remove()  
+        LocalStorage.remove(params.id)      
       }
 
      const  initReportProcessing = (params) => {
       progress.value = 0.001
         if (isOnline.value) {
+          LocalStorage.set(params.id, params)
           Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
             progress.value = resp.data.progress
-            setTimeout(getProcessingStatus(params), 2)
+            setTimeout(() => {
+              getProcessingStatus(params)
+            }, 3000);
           })
         } else {
+          LocalStorage.set(params.id, params)
           reportDatesParams.determineStartEndDate(params)
          ReceivedStockMobileService.getDataLocalDb(params)
          progress.value = 100
@@ -73,7 +92,9 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
         Report.getProcessingStatus('stockReportTemp', params).then(resp => {
           progress.value = resp.data.progress
           if (progress.value < 100) {
-            setTimeout(getProcessingStatus(params), 2)
+            setTimeout(() => {
+              getProcessingStatus(params)
+            }, 3000);
           } else {
             params.progress = 100
             LocalStorage.set(params.id, params)
@@ -94,6 +115,8 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
         }
       }
 
+      provide('serviceAux', serviceAux)
+provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>
