@@ -4,7 +4,7 @@
         <q-select
             class="col q-mr-md"
             dense outlined
-                transition-show="flip-up"
+            transition-show="flip-up"
             transition-hide="flip-down"
             :options="semesters"
             v-model="semester"

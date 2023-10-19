@@ -133,6 +133,10 @@
             reportParams.periodTypeView !== null &&
             reportParams.periodTypeView.id === 2
           "
+          :initProcessing="initProcessing"
+          @setSelectedQuarter="setSelectedPeriod"
+          @setSelectedYearQuarter="setSelectedYear"
+          @errorCount="errorCount"
           ref="periodoRef"
         />
 

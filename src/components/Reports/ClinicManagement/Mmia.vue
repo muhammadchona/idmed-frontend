@@ -1,10 +1,21 @@
 <template>
   <div ref="filterMmiaSection">
     <ListHeader
+      v-if="resultFromLocalStorage"
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
-      @closeSection="closeSection"
+      @closeSection="closeSection(params)"
+      bgColor="bg-orange-5"
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa
+      Mensal de Informação de ARV (MMIA)
+    </ListHeader>
+    <ListHeader
+      v-else
+      :addVisible="false"
+      :mainContainer="true"
+      :closeVisible="true"
+      @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Mapa
       Mensal de Informação de ARV (MMIA)
@@ -12,10 +23,15 @@
     <div class="param-container">
       <q-item>
         <q-item-section class="col">
-          <FiltersInput
+          <FiltersInput           
             :id="id"
-            :typeService="selectedService"
+            :totalRecords="totalRecords"
+            :qtyProcessed="qtyProcessed"
+            :reportType="reportType"
             :progress="progress"
+            :tabName="name"
+            :params="params"
+            :typeService="selectedService"
             :clinicalService="selectedService"
             :applicablePeriods="periodType"
             @generateReport="generateReport"
@@ -29,7 +45,7 @@
 
 <script setup>
 import Report from 'src/services/api/report/ReportService';
-import { ref } from 'vue';
+import { ref, provide } from 'vue';
 import { LocalStorage } from 'quasar';
 import mmiaReport from 'src/services/reports/ClinicManagement/Mmia.ts';
 
@@ -43,12 +59,15 @@ import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 
+const serviceAux = ref(null)
+const resultFromLocalStorage = ref(false)
 const name = 'Mmia';
-const props = defineProps(['selectedService', 'menuSelected', 'id']);
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const filterMmiaSection = ref('');
 
+const reportType = 'MAPA_MENSAL_DE_INFORMACAO_ARV'
 const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
 const alert = ref({
   type: '',
@@ -57,9 +76,10 @@ const alert = ref({
 });
 
 const progress = ref(0.0);
-const closeSection = () => {
-  LocalStorage.remove(props.id);
+const closeSection = (params) => {
+  // LocalStorage.remove(props.id);
   filterMmiaSection.value.remove();
+  LocalStorage.remove(params.id)
 };
 
 const initReportProcessing = async (params) => {
@@ -118,6 +138,9 @@ const generateReport = (id, fileType) => {
     });
   }
 };
+
+provide('serviceAux', serviceAux)
+  provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>

@@ -60,7 +60,7 @@
   const filterDrugStoreSection = ref('')
   
 
-  const closeSection=  (params) => {
+  const closeSection =  (params) => {
     filterDrugStoreSection.value.remove()
     LocalStorage.remove(params.id)
   }
@@ -90,8 +90,8 @@
         progress.value = resp.data.progress
         if (progress.value < 100) {
           setTimeout(() => {
-          getProcessingStatus(params);
-        }, 3000);
+            getProcessingStatus(params)
+          }, 3000);
         } else {
           params.progress = 100
           LocalStorage.set(params.id, params)
