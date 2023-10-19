@@ -19,6 +19,15 @@ export function useSwal() {
     });
   }
 
+  function alertWarningTitle(title: string, message: string) {
+    return swal({
+      title: title,
+      text: message,
+      icon: 'warning',
+      // buttons: 'Aceitar',
+    });
+  }
+
   function alertError(message: string) {
     return swal({
       title: 'Erro',
@@ -52,6 +61,7 @@ export function useSwal() {
   return {
     alertSucess,
     alertWarning,
+    alertWarningTitle,
     alertError,
     alertInfo,
     alertWarningAction,
