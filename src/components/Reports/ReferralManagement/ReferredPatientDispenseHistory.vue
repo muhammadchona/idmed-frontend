@@ -38,15 +38,12 @@
 </template>
 
 <script setup>
-import Report from 'src/services/api/report/ReportService';
-import { LocalStorage } from 'quasar';
-import { ref, onMounted } from 'vue';
-import referredPatientDispenseHistory from 'src/services/reports/ReferralManagement/ReferredPatientDispenseHistory.ts';
-
-        import Report from 'src/services/api/report/ReportService'
-        import { LocalStorage } from 'quasar'
-        import { ref, onMounted, provide} from 'vue'
-        import referredPatientDispenseHistory from 'src/services/reports/ReferralManagement/ReferredPatientDispenseHistory.ts'
+import Report from 'src/services/api/report/ReportService'
+import { LocalStorage } from 'quasar'
+import { ref, onMounted, provide} from 'vue'
+import referredPatientDispenseHistory from 'src/services/reports/ReferralManagement/ReferredPatientDispenseHistory.ts'
+import ListHeader from 'components/Shared/ListHeader.vue';
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -57,74 +54,64 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
 const name = 'ReferredPatientDispenseHistory';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 
-const totalRecords = ref(0);
-const qtyProcessed = ref(0);
-const report = 'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS';
-const progress = ref(0.0);
-const filterDrugStoreSection = ref('');
-onMounted(() => {
-  if (props.params) {
-    getProcessingStatus(props.params);
-  }
-});
 
-        const totalRecords =  ref(0)
-        const qtyProcessed = ref(0)
-        const report =  'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS'
-        const progress =  ref(0.00)
-        const filterDrugStoreSection = ref('')
-        const serviceAux = ref(null)
-        const resultFromLocalStorage = ref(false)
+const totalRecords =  ref(0)
+const qtyProcessed = ref(0)
+const report =  'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS'
+const progress =  ref(0.00)
+const filterDrugStoreSection = ref('')
+const serviceAux = ref(null)
+const resultFromLocalStorage = ref(false)
 
 
-        onMounted (() => {
-        if (props.params) {
-          (getProcessingStatus(props.params))
-        }
-      }) 
+onMounted (() => {
+if (props.params) {
+  (getProcessingStatus(props.params))
+}
+}) 
 
-     const closeSection = (params) => {
-        filterDrugStoreSection.value.remove()
-        LocalStorage.remove(params.id)
-      }
+const closeSection = (params) => {
+  filterDrugStoreSection.value.remove()
+  LocalStorage.remove(params.id)
+}
 
-     const  initReportProcessing = (params) => {
-      progress.value = 0.001
+const  initReportProcessing = (params) => {
+progress.value = 0.001
+LocalStorage.set(params.id, params)
+    Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
+    setTimeout(() => {
+    getProcessingStatus(params)
+  }, 3000);
+})
+}
+
+const  getProcessingStatus = (params) => {
+  Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
+    progress.value = resp.data.progress
+    if (progress.value < 100) {
+      setTimeout(() => {
+        getProcessingStatus(params)
+      }, 3000);
+    } else {
+      params.progress = 100
       LocalStorage.set(params.id, params)
-          Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
-         setTimeout(() => {
-          getProcessingStatus(params)
-        }, 3000);
-      })
-      }
+    }
+  })
+}
 
-     const  getProcessingStatus = (params) => {
-        Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
-          progress.value = resp.data.progress
-          if (progress.value < 100) {
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
-          } else {
-            params.progress = 100
-            LocalStorage.set(params.id, params)
-          }
-        })
+const generateReport =  (id, fileType, params) => {
+      if (fileType === 'PDF') {
+          referredPatientDispenseHistory.downloadPDF(params).then(resp => {
+            if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+          })
+      } else {
+          referredPatientDispenseHistory.downloadExcel(params).then(resp => {
+            if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+          })
       }
+}
 
-      const generateReport =  (id, fileType, params) => {
-           if (fileType === 'PDF') {
-               referredPatientDispenseHistory.downloadPDF(params).then(resp => {
-                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
-               })
-            } else {
-               referredPatientDispenseHistory.downloadExcel(params).then(resp => {
-                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
-               })
-            }
-      }
-
-      provide('serviceAux', serviceAux)
+provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 

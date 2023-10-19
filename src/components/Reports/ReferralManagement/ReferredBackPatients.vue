@@ -56,18 +56,6 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 const { isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 
-const name = 'ReferredBackPatients';
-const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
-const totalRecords = ref(0);
-const qtyProcessed = ref(0);
-const report = 'VOLTOU_REFERENCIA';
-const progress = ref(0.0);
-const filterDrugStoreSection = ref('');
-onMounted(() => {
-  if (props.params) {
-    getProcessingStatus(props.params);
-  }
-});
 
       const name = 'ReferredBackPatients'
       const props= defineProps(['selectedService', 'menuSelected', 'id', 'params'])

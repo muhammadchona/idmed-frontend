@@ -94,13 +94,6 @@ const resultFromLocalStorage = ref(false)
          params.progress = 100
         }
       }
-    );
-  } else {
-    ArvDailyRegisterMobileService.getDataLocalDb(params);
-    progress.value = 100;
-    params.progress = 100;
-  }
-};
 
      const getProcessingStatus = (params) => {
         Report.getProcessingStatus('arvDailyRegisterReportTemp', params).then(resp => {
