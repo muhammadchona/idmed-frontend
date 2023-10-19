@@ -133,10 +133,6 @@
             reportParams.periodTypeView !== null &&
             reportParams.periodTypeView.id === 2
           "
-          :initProcessing="initProcessing"
-          @setSelectedMonth="setSelectedPeriod"
-          @setSelectedYearMonth="setSelectedYear"
-          @errorCount="errorCount"
           ref="periodoRef"
         />
 
@@ -267,7 +263,7 @@
 <script setup>
 import Province from '../../../stores/models/province/Province';
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { onMounted, ref, computed, inject } from 'vue';
+import { onMounted, ref, computed, inject, provide } from 'vue';
 import { LocalStorage, SessionStorage, date } from 'quasar';
 import moment from 'moment';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -325,12 +321,14 @@ const reportParams = ref({
   year: new Date().getFullYear(),
   period: null,
   periodTypeView: null,
+  monthSemesterQuarterView: null,
   reportType: null,
   progress: 0,
   localOrOnline: '',
   startDate: null,
   endDate: null,
   online: true,
+  tabName: null
 });
 
 const periodTypeList = ref([
@@ -342,27 +340,43 @@ const periodTypeList = ref([
 ]);
 const initProcessing = ref(false);
 const errorCountAux = 0;
+const retrievingFromLocalStore = ref(false)
 
-let periodTypeSelect = reportParams.value.periodTypeView;
+const periodTypeSelect = ref(null);
 onMounted(() => {
   //  init()
   reportProcessing.value = initProcessing.value;
   initParams();
   if (props.params) {
+    initProcessing.value = true
+    retrievingFromLocalStore.value = true
     reportParams.value = props.params;
+    periodTypeSelect.value = reportParams.value.periodTypeView
   }
 });
 
 const processingTerminated = computed(() => {
-  return props.progress >= 100;
+  if(retrievingFromLocalStore.value) {
+    return props.params.progress >= 100;
+  } else{
+    return props.progress >= 100;
+  }
 });
 
 const processingInitiated = computed(() => {
-  return props.progress == 0.001;
+  if (retrievingFromLocalStore.value) {
+    return props.params.progress == 0.001;
+  } else{
+    return props.progress == 0.001
+  } 
 });
 
 const progressStatus = computed(() => {
-  return barAndPercentProgressVal(props.progress);
+  if (retrievingFromLocalStore.value) {
+    return barAndPercentProgressVal(props.params.progress);
+  } else {
+    return barAndPercentProgressVal(props.progress);
+  }
 });
 
 const provinces = computed(() => {
@@ -455,14 +469,14 @@ const validateFilersReport = () => {
 };
 
 const onPeriodoChange = (val) => {
-  reportParams.value.provinceId = null;
-  reportParams.value.districtId = null;
+  // reportParams.value.provinceId = null;
+  // reportParams.value.districtId = null;
   reportParams.value.endDateParam = null;
   reportParams.value.startDateParam = null;
   reportParams.value.year = new Date().getFullYear();
-  reportParams.value.period = null;
+  reportParams.value.period = val.id;
   reportParams.value.periodTypeView = val;
-  periodTypeSelect = val;
+  periodTypeSelect.value = val;
   reportParams.value.progress = 0;
 };
 
@@ -547,6 +561,13 @@ const getWidthDateByPlatform = () => {
     return 'width: 100px';
   }
 };
+
+
+provide('initProcessing', initProcessing)
+provide('errorCount', errorCount)
+provide('setSelectedPeriod', setSelectedPeriod)
+provide('setSelectedYear', setSelectedYear)
+provide('reportParams', reportParams)
 </script>
 
 <style>

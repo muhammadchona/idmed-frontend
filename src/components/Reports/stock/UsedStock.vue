@@ -57,6 +57,7 @@ const closeSection = () => {
 const initReportProcessing = (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
+  LocalStorage.set(params.id, params)
     Report.apiInitReportProcess('usedStockReportTemp', params).then((resp) => {
       progress.value = resp.data.progress;
       getProcessingStatus(params);

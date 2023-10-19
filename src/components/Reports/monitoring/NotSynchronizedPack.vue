@@ -79,7 +79,6 @@ const getProcessingStatus = (params) => {
   Report.getProcessingStatus('notSynchronizingPacksOpenMrsReport', params).then(
     (resp) => {
       progress.value = resp.data.progress;
-      console.log(progress);
       if (progress.value < 100) {
         setTimeout(() => {
           getProcessingStatus(params);

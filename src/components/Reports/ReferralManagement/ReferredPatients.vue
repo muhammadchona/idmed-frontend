@@ -67,15 +67,6 @@ const closeSection = () => {
   filterDrugStoreSection.value.remove();
 };
 
-// const initReportProcessing =(params) => {
-//   console.log(params)
-// Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
-//   // reset your component inputs like textInput to nul    // or your custom route redirect with vue-router
-//   // or your custom route redirect with vue-router
-//     setTimeout(getProcessingStatus(params), 2)
-// })
-// }
-
 const initReportProcessing = (params) => {
   progress.value = 0.001;
   console.log(params);
@@ -117,18 +108,6 @@ const getProcessingStatus = (params) => {
   });
 };
 
-// const generateReport= (id, fileType, params) => {
-//       if (fileType === 'PDF') {
-//          referredPatients.downloadPDF(params).then(resp => {
-//             if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
-//          })
-//       } else {
-//          referredPatients.downloadExcel(params).then(resp => {
-//             if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
-//          })
-//       }
-// }
-
 const generateReport = async (id, fileType, params) => {
   if (isOnline.value) {
     if (fileType === 'PDF') {
@@ -151,6 +130,7 @@ const generateReport = async (id, fileType, params) => {
         if (fileType === 'PDF') {
           referredPatients.downloadPDF(resp, params);
         } else {
+        LocalStorage.set(params.id, params)
           referredPatients.downloadExcel(resp, params);
         }
       }

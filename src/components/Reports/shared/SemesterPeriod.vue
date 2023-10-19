@@ -8,13 +8,13 @@
             transition-hide="flip-down"
             :options="semesters"
             v-model="semester"
-            ref="semesterPeriod"
+            ref="semesterPeriodRef"
             option-value="id"
             option-label="description"
             :rules="[val => !!val || ' Por favor indique o Semestre']"
             lazy-rules
             label="Semestre"
-             @blur="setSelectedSemester()"
+            @update:model-value="(val) => setSelectedSemester(val)"
              :disable="initProcessing"
             />
 
@@ -23,45 +23,59 @@
               class="col q-mr-md"
                 dense
                 outlined
+                ref="yearSemesterPeriodRef"
                 type="number"
                 :rules="[val => !!val || ' Por favor indique o ano']"
                 v-model="yearSemesterPeriod"
-                @blur="setSelectedSemesterYear()"
+                @update:model-value="(val) => setSelectedYear(val)"
             />
        </div>
     </form>
   </template>
+<script setup>
+import { ref, inject, onMounted } from 'vue'
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 
-<script>
-    import { ref } from 'vue'
-    export default {
-        props: ['initProcessing', 'errorCount'],
-        data () {
-                return {
-                    semester: '',
-                    yearSemesterPeriod: new Date().getFullYear(),
-                    model: ref(new Date().getFullYear()),
-                    semesters: [
-                        { id: 1, description: 'Semestre 1' },
-                        { id: 2, description: 'Semestre 2' }
-                        ]
-                        }
-            },
-        methods: {
-                setSelectedSemester () {
-                this.$emit('setSelectedSemester', this.semester)
-        },
-                setSelectedSemesterYear () {
-                this.$emit('setSelectedSemesterYear', this.yearSemesterPeriod)
-        },
-        submitForm () {
-              let errorCountAux = 0
-              this.$refs.semesterPeriod.validate()
-              if (this.$refs.semesterPeriod.hasError) errorCountAux++
-              this.$refs.yearSemesterPeriod.validate()
-              if (this.$refs.yearSemesterPeriod.hasError) errorCountAux++
-              this.$emit('errorCount', errorCountAux)
-              }
-            }
-            }
+const initProcessing = inject('initProcessing')
+const reportParams = inject('reportParams')
+const errorCount = inject('errorCount')
+const resultFromLocalStorage = inject('resultFromLocalStorage')
+const serviceAux = inject('serviceAux')
+
+const semester = ref(null)
+let yearSemesterPeriod = ref(new Date().getFullYear())
+const semesters = ref([
+    { id: 1, description: 'Semestre 1' },
+    { id: 2, description: 'Semestre 2' }
+])
+
+const semesterPeriodRef = ref(null)
+const yearSemesterPeriodRef = ref(null)
+
+    const submitForm = () => {
+      let errorCountAux = 0
+      semesterPeriodRef.value.validate()
+      if (semesterPeriodRef.value.hasError) errorCountAux++
+      yearSemesterPeriodRef.value.validate()
+      if (yearSemesterPeriodRef.value.hasError) errorCountAux++
+      errorCount(errorCountAux)
+    }
+
+    const setSelectedSemester = (selectedSemester) => {    
+        reportParams.value.monthSemesterQuarterView = selectedSemester;
+        reportParams.value.period = selectedSemester.id;
+    };
+
+    const setSelectedYear = (year) => {
+      reportParams.value.year = year
+    }
+
+    onMounted(() => {
+      if(reportParams.value){
+        serviceAux.value = clinicalServiceService.getClinicalServicePersonalizedById(reportParams.value.clinicalService)
+        resultFromLocalStorage.value = true
+        yearSemesterPeriod.value = reportParams.value.year
+        semester.value = reportParams.value.monthSemesterQuarterView
+      }
+    })
 </script>

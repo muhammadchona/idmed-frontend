@@ -2,6 +2,17 @@
   <div ref="filterDrugStoreSection">
     <ListHeader
       :addVisible="false"
+      v-if="resultFromLocalStorage"
+      :mainContainer="true"
+      :closeVisible="true"
+      @closeSection="closeSection"
+      bgColor="bg-orange-5"
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}:
+      Activos na Farmácia
+    </ListHeader>
+    <ListHeader
+      :addVisible="false"
+      v-else
       :mainContainer="true"
       :closeVisible="true"
       @closeSection="closeSection"
@@ -14,8 +25,12 @@
         <q-item-section class="col">
           <FiltersInput
             :id="id"
-            :typeService="selectedService"
+            :reportType="report"
+            :tabName="name"
+            :params="params"
+            :totalRecords="totalRecords"
             :progress="progress"
+            :qtyProcessed="qtyProcessed"
             :clinicalService="selectedService"
             @generateReport="generateReport"
             @initReportProcessing="initReportProcessing"
@@ -31,7 +46,7 @@ import moment from 'moment';
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
 import activePatients from 'src/services/reports/Patients/ActivePatients.ts';
-import { ref } from 'vue';
+import { ref, provide } from 'vue';
 import reportDatesParams from 'src/services/reports/ReportDatesParams';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import ListHeader from 'components/Shared/ListHeader.vue';
@@ -42,22 +57,32 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
-const props = defineProps(['selectedService', 'menuSelected', 'id']);
+const  name =  'ActivesInDrugStore'
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
+const totalRecords = ref(0)
+  const qtyProcessed = ref(0)
 
 const closeSection = () => {
   filterDrugStoreSection.value.remove();
+  LocalStorage.remove(params.id)
 };
+
+const serviceAux = ref(null)
+const resultFromLocalStorage = ref(false)
 
 const initReportProcessing = (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
+    LocalStorage.set(params.id, params)
     Report.apiInitActiveInDrugStoreProcessing(params).then((resp) => {
-      getProcessingStatus(params);
-    });
+        getProcessingStatus(params);
+      }
+    );
     // Pack.api().post('/receivedStockReport/initReportProcess' params)
   } else {
+    LocalStorage.set(params.id, params)
     const reportParams = reportDatesParams.determineStartEndDate(params);
     activeInDrugStoreMobileService.getDataLocalDb(reportParams).then((resp) => {
       progress.value = 100;
@@ -138,6 +163,9 @@ const generateReport = async (id, fileType) => {
     }
   }
 };
+
+provide('serviceAux', serviceAux)
+provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>

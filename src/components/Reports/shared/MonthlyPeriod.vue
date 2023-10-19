@@ -11,7 +11,7 @@
             option-label="description"
             :rules="[val => !!val || 'Por favor indique o Mês']"
             lazy-rules
-            @blur="setSelectedMonth()"
+            @update:model-value="(val) => setSelectedMonth(val)"
             label="Mês"
             :disable="initProcessing"
             />
@@ -21,7 +21,7 @@
                 dense
                 outlined
                 v-model="yearMonthlyPeriod"
-                @blur="setSelectedYearMonth()"
+                @update:model-value="(val) => setSelectedYear(val)"
                 type="number"
                 ref="yearMonthlyPeriod"
                 :rules="[val => !!val || 'Por favor indique o ano']"
@@ -29,9 +29,10 @@
        </div>
 </form>
   </template>
+<script setup>
+import { ref, inject, onMounted } from 'vue'
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 
-<script>
-    import { ref } from 'vue'
     export default {
       props: ['initProcessing', 'errorCount'],
         data () {
@@ -72,4 +73,10 @@
               }
           }
             }
+</script>
+        yearMonthlyPeriod = reportParams.value.year
+        month.value = reportParams.value.monthSemesterQuarterView
+      }
+    })
+
 </script>

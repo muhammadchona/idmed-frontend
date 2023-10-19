@@ -58,18 +58,18 @@ const closeSection = () => {
 const initReportProcessing = (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
+  LocalStorage.set(params.id, params)
     Report.apiInitReportProcess('historicoLevantamentoReport', params).then(
       (resp) => {
         getProcessingStatus(params)
       }
-    );
   } else {
+   LocalStorage.set(params.id, params)
     PatientHistoryMobileService.getDataLocalDb(params);
     progress.value = 100;
     params.progress = 100;
   }
 };
-
 const getProcessingStatus = (params) => {
   Report.getProcessingStatus('historicoLevantamentoReport', params).then(
     (resp) => {

@@ -104,7 +104,7 @@ export default {
       const createRow = []
       createRow.push(ord)
       createRow.push(rows[row].nid)
-      createRow.push(rows[row].firstNames + ' ' + rows[row].middleNames + ' ' + rows[row].lastNames)
+      createRow.push(rows[row].firstNames + ' ' + rows[row].lastNames)
       createRow.push(rows[row].age)
       createRow.push(rows[row].cellphone)
       createRow.push(rows[row].patientType)
@@ -166,14 +166,11 @@ export default {
     if(isOnline.value && !isMobile.value) {
       return doc.save('PacientesActivos.pdf')
     } else {
-      console.log(doc)
       const pdfOutput = doc.output()
-      console.log(pdfOutput)
       this.downloadFile(fileName,'pdf',pdfOutput)
     }
     // params.value.loading.loading.hide()
-   // return doc.save('HistoricoDeLevantamento.pdf')
-   
+    // return doc.save('HistoricoDeLevantamento.pdf')
 
     // params.value.loading.loading.hide()
 
