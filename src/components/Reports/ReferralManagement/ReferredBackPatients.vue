@@ -32,8 +32,8 @@
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
-    </q-item>
-  </div>
+      </q-item>
+    </div>
   </div>
 </template>
 
@@ -50,12 +50,24 @@ import ListHeader from 'components/Shared/ListHeader.vue'
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 
-  import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-  import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-  const { isOnline } = useSystemUtils();
-  const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { isOnline } = useSystemUtils();
+const { alertSucess, alertError, alertWarningAction } = useSwal();
 
+const name = 'ReferredBackPatients';
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
+const totalRecords = ref(0);
+const qtyProcessed = ref(0);
+const report = 'VOLTOU_REFERENCIA';
+const progress = ref(0.0);
+const filterDrugStoreSection = ref('');
+onMounted(() => {
+  if (props.params) {
+    getProcessingStatus(props.params);
+  }
+});
 
       const name = 'ReferredBackPatients'
       const props= defineProps(['selectedService', 'menuSelected', 'id', 'params'])
@@ -147,10 +159,10 @@ provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>
-  .param-container {
-    border-bottom: 1px dashed $grey-13;
-    border-left: 1px dashed $grey-13;
-    border-right: 1px dashed $grey-13;
-    border-radius: 0px 0px 5px 5px;
-  }
+.param-container {
+  border-bottom: 1px dashed $grey-13;
+  border-left: 1px dashed $grey-13;
+  border-right: 1px dashed $grey-13;
+  border-radius: 0px 0px 5px 5px;
+}
 </style>

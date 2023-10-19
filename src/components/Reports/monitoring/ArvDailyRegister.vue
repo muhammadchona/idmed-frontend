@@ -32,9 +32,8 @@
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
-    </q-item>
-    
-  </div>
+      </q-item>
+    </div>
   </div>
 </template>
 
@@ -48,14 +47,14 @@ import { ref, onMounted, provide } from 'vue'
 import StartStopReason from 'src/stores/models/startStopReason/StartStopReason'
 
 //compontes
-import ListHeader from 'components/Shared/ListHeader.vue'
-import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
+import ListHeader from 'components/Shared/ListHeader.vue';
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { useSwal } from 'src/composables/shared/dialog/dialog';  
-import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDailyRegisterMobileService'
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDailyRegisterMobileService';
 
-const {  isOnline } = useSystemUtils(); 
+const { isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 const filterArvDailyRegisterSection = ref('')
 const report = 'LIVRO_DIARIO'
@@ -67,9 +66,9 @@ const report = 'LIVRO_DIARIO'
     const qtyProcessed = ref(0)
      const progress = ref(0.00)
 
-    onMounted(() => {
-     // getStartStopReasonsToVuex()
-    })
+onMounted(() => {
+  // getStartStopReasonsToVuex()
+});
 
     const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
@@ -95,6 +94,13 @@ const resultFromLocalStorage = ref(false)
          params.progress = 100
         }
       }
+    );
+  } else {
+    ArvDailyRegisterMobileService.getDataLocalDb(params);
+    progress.value = 100;
+    params.progress = 100;
+  }
+};
 
      const getProcessingStatus = (params) => {
         Report.getProcessingStatus('arvDailyRegisterReportTemp', params).then(resp => {
@@ -111,7 +117,7 @@ const resultFromLocalStorage = ref(false)
        /*
         getDataLocalDb(params)
         */
-      }
+};
 
      const generateReport = (id, fileType, params) => {
         // UID da tab corrent
@@ -132,10 +138,10 @@ provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>
-  .param-container {
-    border-bottom: 1px dashed $grey-13;
-    border-left: 1px dashed $grey-13;
-    border-right: 1px dashed $grey-13;
-    border-radius: 0px 0px 5px 5px;
-  }
+.param-container {
+  border-bottom: 1px dashed $grey-13;
+  border-left: 1px dashed $grey-13;
+  border-right: 1px dashed $grey-13;
+  border-radius: 0px 0px 5px 5px;
+}
 </style>

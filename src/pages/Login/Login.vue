@@ -232,7 +232,7 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.0.0 Beta</div>
+                <div class="row justify-center">Versão v.1.0.0</div>
               </q-card-section>
             </q-card>
           </transition>
@@ -304,8 +304,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import UrlChanger from 'src/components/Shared/UrlChanger.vue';
 import useNotify from 'src/composables/shared/notify/UseNotify';
 
-
-const { notifyError } = useNotify()
+const { notifyError } = useNotify();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
@@ -325,13 +324,12 @@ const submitting = ref(false);
 const notice = ref(true);
 const popUpUrlMobile = ref(false);
 
-
 /*
 Hook
 */
 onMounted(() => {
-  const tokenExpiration = localStorage.getItem('tokenExpiration')
-  if(tokenExpiration && tokenExpiration === '0') {
+  const tokenExpiration = localStorage.getItem('tokenExpiration');
+  if (tokenExpiration && tokenExpiration === '0') {
     notifyError('Sessão Expirada');
     localStorage.setItem('tokenExpiration', 1);
   }

@@ -32,9 +32,8 @@
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
-    </q-item>
-
-  </div>
+      </q-item>
+    </div>
   </div>
 </template>
 
@@ -47,13 +46,13 @@ import { ref, provide } from 'vue'
 
 
 //components
-import ListHeader  from 'components/Shared/ListHeader.vue'
-import FiltersInput  from 'components/Reports/shared/FiltersInput.vue'
+import ListHeader from 'components/Shared/ListHeader.vue';
+import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import PatientHistoryMobileService from 'src/services/api/report/mobile/PatientHistoryMobileService'
+import PatientHistoryMobileService from 'src/services/api/report/mobile/PatientHistoryMobileService';
 
-const {  isOnline } = useSystemUtils();
+const { isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 
 const name =  'PatientHistory'
@@ -102,51 +101,34 @@ const closeSection = (params) => {
           }
         })
       }
+    }
+  );
+};
 
-     const generateReport =  (id, fileType) => {
-       //  UID da tab corrente
-        if (isOnline.value) {
-          Report.printReport('historicoLevantamentoReport',id, fileType).then(resp => {
-           if (!resp.data[0]) {
-              alertError('Nao existem Dados para o periodo selecionado')
-            } else {
-              const firstReg = resp.data[0]
-              if (fileType === 'PDF') {
-                patientHistoryTS.downloadPDF(
-                  firstReg.province,
-                  moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-                  resp.data
-                )
-              } else {
-                patientHistoryTS.downloadExcel(
-                  firstReg.province,
-                  moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-                  resp.data
-                )
-              }
-            }
-            })
+const generateReport = (id, fileType) => {
+  //  UID da tab corrente
+  if (isOnline.value) {
+    Report.printReport('historicoLevantamentoReport', id, fileType).then(
+      (resp) => {
+        if (!resp.data[0]) {
+          alertError('Nao existem Dados para o periodo selecionado');
         } else {
-          PatientHistoryMobileService.localDbGetAllByReportId(id).then(reports => {
-            const firstReg = reports[0]
-            if (fileType === 'PDF') {            
+          const firstReg = resp.data[0];
+          if (fileType === 'PDF') {
             patientHistoryTS.downloadPDF(
-                   '',
-                    moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-                  reports)
-             } else {
-              patientHistoryTS.downloadExcel(
-                   '',
-                    moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
-                  moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
-                  reports)
-      }
-        })
-      } 
-        
+              firstReg.province,
+              moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+              moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+              resp.data
+            );
+          } else {
+            patientHistoryTS.downloadExcel(
+              firstReg.province,
+              moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+              moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+              resp.data
+            );
+          }
         }
       
         provide('serviceAux', serviceAux)
@@ -154,10 +136,10 @@ provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>
-  .param-container {
-    border-bottom: 1px dashed $grey-13;
-    border-left: 1px dashed $grey-13;
-    border-right: 1px dashed $grey-13;
-    border-radius: 0px 0px 5px 5px;
-  }
+.param-container {
+  border-bottom: 1px dashed $grey-13;
+  border-left: 1px dashed $grey-13;
+  border-right: 1px dashed $grey-13;
+  border-radius: 0px 0px 5px 5px;
+}
 </style>

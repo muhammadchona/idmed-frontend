@@ -18,20 +18,20 @@
     </ListHeader>
     <div class="param-container">
       <q-item>
-          <q-item-section  class="col" >
-              <FiltersInput
-                :id="id"
-                :clinicalService="selectedService"
-                :totalRecords="totalRecords"
-                :qtyProcessed="qtyProcessed"
-                :reportType="report"
-                :progress="progress"
-                :tabName="name"
-                :params="params"
-                @generateReport="generateReport"
-                @initReportProcessing="initReportProcessing"
-              />
-          </q-item-section>
+        <q-item-section class="col">
+          <FiltersInput
+            :id="id"
+            :clinicalService="selectedService"
+            :totalRecords="totalRecords"
+            :qtyProcessed="qtyProcessed"
+            :reportType="report"
+            :progress="progress"
+            :tabName="name"
+            :params="params"
+            @generateReport="generateReport"
+            @initReportProcessing="initReportProcessing"
+          />
+        </q-item-section>
       </q-item>
     </div>
     </div>
@@ -125,4 +125,3 @@
       border-radius: 0px 0px 5px 5px;
     }
   </style>
-  

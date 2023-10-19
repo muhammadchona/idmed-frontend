@@ -32,30 +32,41 @@
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
-    </q-item>
-  </div>
+      </q-item>
+    </div>
   </div>
 </template>
 
 <script setup>
+import Report from 'src/services/api/report/ReportService';
+import { LocalStorage } from 'quasar';
+import { ref, onMounted } from 'vue';
+import referredPatientDispenseHistory from 'src/services/reports/ReferralManagement/ReferredPatientDispenseHistory.ts';
 
         import Report from 'src/services/api/report/ReportService'
         import { LocalStorage } from 'quasar'
         import { ref, onMounted, provide} from 'vue'
         import referredPatientDispenseHistory from 'src/services/reports/ReferralManagement/ReferredPatientDispenseHistory.ts'
 
-        import ListHeader from 'components/Shared/ListHeader.vue'
-        import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
-        
-        import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-        import { useSwal } from 'src/composables/shared/dialog/dialog';  
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-        const { website, isDeskTop, isMobile } = useSystemUtils(); 
-        const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { website, isDeskTop, isMobile } = useSystemUtils();
+const { alertSucess, alertError, alertWarningAction } = useSwal();
 
+const name = 'ReferredPatientDispenseHistory';
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 
-        const name =  'ReferredPatientDispenseHistory'
-        const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const totalRecords = ref(0);
+const qtyProcessed = ref(0);
+const report = 'HISTORICO_LEVANTAMENTO_PACIENTES_REFERIDOS';
+const progress = ref(0.0);
+const filterDrugStoreSection = ref('');
+onMounted(() => {
+  if (props.params) {
+    getProcessingStatus(props.params);
+  }
+});
 
         const totalRecords =  ref(0)
         const qtyProcessed = ref(0)
@@ -118,10 +129,10 @@ provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>
-  .param-container {
-    border-bottom: 1px dashed $grey-13;
-    border-left: 1px dashed $grey-13;
-    border-right: 1px dashed $grey-13;
-    border-radius: 0px 0px 5px 5px;
-  }
+.param-container {
+  border-bottom: 1px dashed $grey-13;
+  border-left: 1px dashed $grey-13;
+  border-right: 1px dashed $grey-13;
+  border-radius: 0px 0px 5px 5px;
+}
 </style>

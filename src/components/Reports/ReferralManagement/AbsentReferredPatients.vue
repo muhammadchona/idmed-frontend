@@ -59,7 +59,7 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const report = 'REFERIDOS_FALTOSOS_AO_LEVANTAMENTO';
-const progress = ref(0.00);
+const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
 
 const serviceAux = ref(null)

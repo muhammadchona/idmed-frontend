@@ -32,8 +32,8 @@
               @initReportProcessing="initReportProcessing"
             />
         </q-item-section>
-    </q-item>
-  </div>
+      </q-item>
+    </div>
   </div>
 </template>
 
@@ -46,20 +46,20 @@ import UsedStockReport from 'src/services/reports/stock/UsedStockReport.ts'
 import ListHeader from 'components/Shared/ListHeader.vue'
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { useSwal } from 'src/composables/shared/dialog/dialog';  
-import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobileService.'
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobileService.';
 
-    const {  isOnline } = useSystemUtils(); 
-    const {  alertError } = useSwal();
+const { isOnline } = useSystemUtils();
+const { alertError } = useSwal();
 
-    const filterUsedStockSection = ref('')
+const filterUsedStockSection = ref('');
 
     const name = 'UsedStock'
     const props=  defineProps(['selectedService', 'menuSelected', 'id', 'params'])
     const totalRecords = ref(0)
     const qtyProcessed = ref(0)
 
-    const progress = ref(0.00)
+const progress = ref(0.0);
 
     const  closeSection = (params) => {
         filterUsedStockSection.value.remove()
@@ -121,10 +121,10 @@ provide('resultFromLocalStorage', resultFromLocalStorage)
 </script>
 
 <style lang="scss" scoped>
-  .param-container {
-    border-bottom: 1px dashed $grey-13;
-    border-left: 1px dashed $grey-13;
-    border-right: 1px dashed $grey-13;
-    border-radius: 0px 0px 5px 5px;
-  }
+.param-container {
+  border-bottom: 1px dashed $grey-13;
+  border-left: 1px dashed $grey-13;
+  border-right: 1px dashed $grey-13;
+  border-radius: 0px 0px 5px 5px;
+}
 </style>

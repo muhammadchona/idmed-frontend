@@ -64,7 +64,7 @@
           <q-td key="options" :props="props">
             <div class="col">
               <q-btn
-              :loading="submitting"
+                :loading="submitting"
                 flat
                 round
                 color="amber-8"
@@ -73,6 +73,19 @@
               >
                 <q-tooltip class="bg-amber-5">{{
                   props.row.open ? 'Abrir Ficha' : 'Visualizar Ficha'
+                }}</q-tooltip>
+              </q-btn>
+
+              <q-btn
+                :loading="submitting"
+                flat
+                round
+                color="amber-8"
+                icon="search"
+                @click="showInventoryDetails(props.row)"
+              >
+                <q-tooltip class="bg-amber-5">{{
+                  props.row.open ? 'Abrir Ficha' : 'Visualizar Medicamentos'
                 }}</q-tooltip>
               </q-btn>
             </div>
@@ -85,23 +98,30 @@
       </template>
     </q-table>
   </div>
+
+  <q-dialog persistent v-model="showDrugsDetails">
+    <inventoryDetails @close="showDrugsDetails = false" />
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, provide } from 'vue';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
 import { useRouter } from 'vue-router';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import inventoryDetails from 'components/Stock/Inventory/InventoryDetails.vue';
+import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
 
+const inventoryDetailsMethod = useInventoryStockAdjustment();
 
 let submitting = ref(false);
 const inventoryMethod = useInventory();
-const { isMobile, isOnline } = useSystemUtils(); 
+const { isMobile, isOnline } = useSystemUtils();
 const { showloading, closeLoading } = useLoading();
-const loading = ref(true)
+const loading = ref(true);
 
 const columns = [
   {
@@ -129,29 +149,45 @@ const columns = [
 ];
 const router = useRouter();
 const filter = ref('');
+const showDrugsDetails = ref(false);
+const inventoryDetail = ref(null);
 
 const openFile = (inventory) => {
   //submitting.value = true
-  showloading()
+  showloading();
   localStorage.setItem('currInventory', inventory.id);
   router.push('/stock/inventory');
+};
 
+/*Methods*/
+const showInventoryDetails = (inventory) => {
+  // showloading();
+  inventoryDetail.value = inventory;
+  // localStorage.setItem('currInventoryDetails', inventory);
+  // const lista = inventoryDetailsMethod.getInventoryDetailsById(inventory);
+  //console.log('Lista: ', lista);
+  // clinic.value = clinicParam;
+  // viewMode.value = true;
+  // editMode.value = false;
+  showDrugsDetails.value = true;
+  //closeLoading();
 };
 
 onMounted(() => {
   if (isOnline.value) {
-     InventoryService.apiGetAllByClinicId(clinicService.currClinic().id, 0, 300);
+    InventoryService.apiGetAllByClinicId(clinicService.currClinic().id, 0, 300);
   }
 });
 
 const inventories = computed(() => {
   const list = InventoryService.getInventories();
-  if (list.length>=0 ) {
-    loading.value = false
-  } 
-  return list
+  if (list.length >= 0) {
+    loading.value = false;
+  }
+  return list;
 });
+
+provide('inventoryDetail', inventoryDetail);
 </script>
 
-<style>
-</style>
+<style></style>

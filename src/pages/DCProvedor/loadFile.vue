@@ -405,7 +405,7 @@ const loadList = () => {
     const worksheet = selectedFile.value.Sheets[selectedSheet.value];
     var range = XLSX.utils.decode_range(worksheet['!ref']);
 
-    range.s.r = 1;
+    range.s.r = 2;
     worksheet['!ref'] = XLSX.utils.encode_range(range);
 
     const getRowsFromFile = XLSX.utils.sheet_to_json(worksheet, {
