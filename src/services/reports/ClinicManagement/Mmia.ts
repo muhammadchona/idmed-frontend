@@ -1509,13 +1509,15 @@ export default {
     let cumunitaryClinic = 0;
 
     for (const row in rows) {
-      totalPatients += rows[row].totalPatients;
-      cumunitaryClinic += rows[row].cumunitaryClinic;
+      if (rows[row].code !== 'TDF+3TC PrEP') {
+        totalPatients += rows[row].totalPatients;
+        cumunitaryClinic += rows[row].cumunitaryClinic;
+      }
     }
     const createRow = [];
     if (fileType == 'PDF') {
       createRow.push({
-        colSpan: 2,
+        // colSpan: 1,
         content: 'Total',
         styles: { halign: 'right', fillColor: [204, 204, 204] },
       });
@@ -1539,15 +1541,13 @@ export default {
     let totallinha3DC = 0;
 
     for (const row in rows) {
-      if (rows[row].lineCode === '1') {
-        totallinha1Nr += rows[row].totalPatients;
-        totallinha1DC += rows[row].cumunitaryClinic;
-      } else if (rows[row].lineCode === '2') {
-        totallinha2Nr += rows[row].totalPatients;
-        totallinha2DC += rows[row].cumunitaryClinic;
-      } else if (rows[row].lineCode === '3') {
-        totallinha3Nr += rows[row].totalPatients;
-        totallinha3DC += rows[row].cumunitaryClinic;
+      if (rows[row].code !== 'TDF+3TC PrEP') {
+        totallinha1Nr += rows[row].totalline1;
+        totallinha1DC += rows[row].totaldcline1;
+        totallinha2Nr += rows[row].totalline2;
+        totallinha2DC += rows[row].totaldcline2;
+        totallinha3Nr += rows[row].totalline3;
+        totallinha3DC += rows[row].totaldcline3;
       }
     }
     const createRow1 = [];
@@ -1555,7 +1555,7 @@ export default {
     const createRow3 = [];
     if (fileType == 'PDF') {
       createRow1.push({
-        colSpan: 2,
+        // colSpan: 1,
         content: '1as Linhas',
         styles: { halign: 'right' },
       });
@@ -1567,7 +1567,7 @@ export default {
 
     if (fileType == 'PDF') {
       createRow2.push({
-        colSpan: 2,
+        // colSpan: 1,
         content: '2as Linhas',
         styles: { halign: 'right' },
       });
@@ -1579,7 +1579,7 @@ export default {
 
     if (fileType == 'PDF') {
       createRow3.push({
-        colSpan: 2,
+        // colSpan: 1,
         content: '3as Linhas',
         styles: { halign: 'right' },
       });
@@ -1601,13 +1601,19 @@ export default {
     let totallinhaDC = 0;
 
     for (const row in rows) {
-      totallinhaNr += rows[row].totalPatients;
-      totallinhaDC += rows[row].cumunitaryClinic;
+      if (rows[row].code !== 'TDF+3TC PrEP') {
+        totallinhaNr +=
+          rows[row].totalline1 + rows[row].totalline2 + rows[row].totalline3;
+        totallinhaDC +=
+          rows[row].totaldcline1 +
+          rows[row].totaldcline2 +
+          rows[row].totaldcline3;
+      }
     }
     const createRow1 = [];
     if (fileType == 'PDF') {
       createRow1.push({
-        colSpan: 2,
+        // colSpan: 1,
         content: 'Total',
         styles: { halign: 'right', fillColor: [204, 204, 204] },
       });

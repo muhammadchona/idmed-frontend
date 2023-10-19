@@ -50,7 +50,7 @@ const name = 'NotSynchronizedPack';
 const props = defineProps(['selectedService', 'menuSelected', 'id']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
-const progress = ref(0.00);
+const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
 onMounted(() => {
   if (props.params) {
@@ -64,14 +64,14 @@ const closeSection = () => {
 };
 
 const initReportProcessing = (params) => {
-  progress.value = 0.001
+  progress.value = 0.001;
   Report.apiInitReportProcess(
     'notSynchronizingPacksOpenMrsReport',
     params
   ).then((response) => {
     // reset your component inputs like textInput to nul    // or your custom route redirect with vue-router
     // or your custom route redirect with vue-router
-    setTimeout(getProcessingStatus(params), 1000);
+    getProcessingStatus(params);
   });
 };
 
@@ -80,7 +80,9 @@ const getProcessingStatus = (params) => {
     (resp) => {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
-        setTimeout(getProcessingStatus(params), 1000);
+        setTimeout(() => {
+          getProcessingStatus(params);
+        }, 3000);
       } else {
         params.progress = 100;
         LocalStorage.set(params.id, params);

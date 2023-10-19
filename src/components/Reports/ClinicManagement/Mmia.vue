@@ -72,6 +72,7 @@ const initReportProcessing = async (params) => {
     if (isOnline.value) {
       LocalStorage.set(params.id, params)
       Report.apiInitMmiaProcessing(params).then((resp) => {
+        console.log(resp);
         getProcessingStatus(params);
       });
     } else {
@@ -94,7 +95,9 @@ const getProcessingStatus = (params) => {
   Report.getProcessingStatus('mmiaReport', params).then((resp) => {
     progress.value = resp.data.progress;
     if (progress.value < 100) {
-      setTimeout(getProcessingStatus(params), 2000);
+      setTimeout(() => {
+        getProcessingStatus(params);
+      }, 3000);
     } else {
       params.progress = 100;
       LocalStorage.set(params.id, params);
