@@ -75,6 +75,7 @@ const resultFromLocalStorage = ref(false)
 
      const closeSection = (params) =>{
         filterArvDailyRegisterSection.value.remove()
+        if(params)
         LocalStorage.remove(params.id) 
       }
    const  initReportProcessing = (params) => {

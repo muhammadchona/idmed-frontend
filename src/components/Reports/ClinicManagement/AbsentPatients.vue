@@ -62,6 +62,7 @@
 
   const closeSection =  (params) => {
     filterDrugStoreSection.value.remove()
+    if(params)
     LocalStorage.remove(params.id)
   }
 

@@ -79,6 +79,7 @@ const progress = ref(0.0);
 const closeSection = (params) => {
   // LocalStorage.remove(props.id);
   filterMmiaSection.value.remove();
+  if(params)
   LocalStorage.remove(params.id)
 };
 

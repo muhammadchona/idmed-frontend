@@ -65,6 +65,7 @@ const resultFromLocalStorage = ref(false)
 
      const  closeSection = (params)  =>{
         filterReceivedStockSection.value.remove()  
+        if(params)
         LocalStorage.remove(params.id)      
       }
 

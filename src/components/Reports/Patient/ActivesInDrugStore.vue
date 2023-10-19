@@ -67,6 +67,7 @@ const totalRecords = ref(0)
 
 const closeSection = (params) => {
   filterDrugStoreSection.value.remove();
+  if(params)
   LocalStorage.remove(params.id)
 };
 

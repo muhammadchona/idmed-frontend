@@ -68,6 +68,7 @@ const resultFromLocalStorage = ref(false)
 
 const closeSection = (params) => {
   filterDPatientHistorySection.value.remove()
+  if(params)
   LocalStorage.remove(params.id)
 }
 
