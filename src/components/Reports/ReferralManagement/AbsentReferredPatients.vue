@@ -48,7 +48,7 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const report = 'REFERIDOS_FALTOSOS_AO_LEVANTAMENTO';
-const progress = ref(0.00);
+const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
 
 onMounted(() => {
@@ -63,32 +63,36 @@ const closeSection = () => {
 };
 
 const initReportProcessing = (params) => {
-  progress.value = 0.001
-    if (isOnline.value) {
-      Report.apiInitReportProcess('referredPatientsReport', params).then(
-        (response) => {
-          setTimeout(getProcessingStatus(params), 2);
-        }
-      )
-    } else {
-      // Mobile to be implemented            
-    }
+  progress.value = 0.001;
+  if (isOnline.value) {
+    Report.apiInitReportProcess('referredPatientsReport', params).then(
+      (response) => {
+        getProcessingStatus(params);
+      }
+    );
+  } else {
+    // Mobile to be implemented
+  }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {    
-      if (resp.data.progress > 0.001) {
-              progress.value = resp.data.progress
-              if (progress.value < 100) {
-                setTimeout(getProcessingStatus(params), 2)
-              } else {
-                progress.value = 100
-                params.progress = 100
-                LocalStorage.set(params.id, params)
-              }
-            } else {
-              setTimeout(getProcessingStatus(params), 2)
-            }
+  Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {
+    if (resp.data.progress > 0.001) {
+      progress.value = resp.data.progress;
+      if (progress.value < 100) {
+        setTimeout(() => {
+          getProcessingStatus(params);
+        }, 3000);
+      } else {
+        progress.value = 100;
+        params.progress = 100;
+        LocalStorage.set(params.id, params);
+      }
+    } else {
+      setTimeout(() => {
+        getProcessingStatus(params);
+      }, 3000);
+    }
   });
 };
 

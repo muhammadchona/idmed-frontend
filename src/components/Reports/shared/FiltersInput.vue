@@ -204,7 +204,11 @@
                 text-color="accent"
                 animation-speed="1200"
                 dark
-                :label="processingInitiated ? 'Processamento iniciado...' : progressStatus.percentVal"
+                :label="
+                  processingInitiated
+                    ? 'Processamento iniciado...'
+                    : progressStatus.percentVal
+                "
               />
             </div>
           </q-linear-progress>
@@ -234,7 +238,7 @@
             .Xls
           </q-btn>
           <q-spinner-ios
-          class="gt-xs"
+            class="gt-xs"
             dense
             color="primary"
             size="2em"
@@ -293,7 +297,7 @@ const $emit = defineEmits([
   'generateReport',
 ]);
 
-const reportProcessing =  ref(false)
+const reportProcessing = ref(false);
 const currClinic = inject('currClinic');
 const progress1 = ref(0);
 const period = ref('');
@@ -304,8 +308,8 @@ const quarterlyPeriod = ref('');
 const semesterPeriod = ref('');
 const annualPeriod = ref('');
 const submitForm = ref('');
-const downloadingXls = ref(false)
-const downloadingPdf = ref(false)
+const downloadingXls = ref(false);
+const downloadingPdf = ref(false);
 
 const reportParams = ref({
   id: null,
@@ -342,7 +346,7 @@ const errorCountAux = 0;
 let periodTypeSelect = reportParams.value.periodTypeView;
 onMounted(() => {
   //  init()
-  reportProcessing.value = initProcessing.value
+  reportProcessing.value = initProcessing.value;
   initParams();
   if (props.params) {
     reportParams.value = props.params;
@@ -508,19 +512,19 @@ const saveParams = () => {
 };
 
 const generatingXlsReportLoading = (fileType) => {
-    if(fileType === 'XLS'){
-      downloadingXls.value = true;
+  if (fileType === 'XLS') {
+    downloadingXls.value = true;
+  } else {
+    downloadingPdf.value = true;
+  }
+
+  setTimeout(() => {
+    if (fileType === 'XLS') {
+      downloadingXls.value = false;
     } else {
-      downloadingPdf.value = true;
+      downloadingPdf.value = false;
     }
-    
-    setTimeout(() => {
-      if(fileType === 'XLS'){
-        downloadingXls.value = false;
-      } else {
-        downloadingPdf.value = false;
-      }
-    }, 2000);
+  }, 2000);
 };
 
 const generateReport = (fileType) => {
