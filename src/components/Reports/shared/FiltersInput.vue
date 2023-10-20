@@ -310,6 +310,7 @@ const annualPeriod = ref('');
 const submitForm = ref('');
 const downloadingXls = ref(false);
 const downloadingPdf = ref(false);
+const resultFromLocalStorage = inject('resultFromLocalStorage')
 
 const reportParams = ref({
   id: null,
@@ -347,6 +348,9 @@ const errorCountAux = 0;
 const retrievingFromLocalStore = ref(false)
 
 const periodTypeSelect = ref(null);
+
+const getProcessingStatus = inject('getProcessingStatus')
+
 onMounted(() => {
   //  init()
   reportProcessing.value = initProcessing.value;
@@ -355,6 +359,7 @@ onMounted(() => {
     initProcessing.value = true
     retrievingFromLocalStore.value = true
     reportParams.value = props.params;
+    getProcessingStatus(reportParams.value)
     periodTypeSelect.value = reportParams.value.periodTypeView
   }
 });

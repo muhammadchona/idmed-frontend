@@ -19,6 +19,7 @@ const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 export default {
   async downloadPDF(id, fileType, params) {
+    console.log(params)
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -51,9 +52,11 @@ export default {
       if (data.length === 0) return 204;
     }
 
+    console.log(data[0].startDate)
+
     params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate);
     params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate);
-    console.log(data);
+    console.log(data[0].endDate);
 
     autoTable(doc, {
       margin: { top: 55 },

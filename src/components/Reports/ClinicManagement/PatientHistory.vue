@@ -89,19 +89,28 @@ const closeSection = (params) => {
           }
         }
 
-      const getProcessingStatus =  (params) => {
+      const getProcessingStatus = (params) => {
         Report.getProcessingStatus('historicoLevantamentoReport', params).then(resp => {
-          progress.value = resp.data.progress
-          if (progress.value < 100) {
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
+          if (resp.data.progress > 0.001) {
+            progress.value = resp.data.progress;
+            if (progress.value < 100) {
+              params.progress = resp.data.progress;
+              setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
+            } else {
+              progress.value = 100;
+              params.progress = 100;
+              LocalStorage.set(params.id, params);
+            }
           } else {
-            params.progress = 100
-            LocalStorage.set(params.id, params)
+            setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
           }
-        })
-      }
+        });
+        LocalStorage.set(params.id, params)
+      };
 
 
 const generateReport = (id, fileType) => {
@@ -154,6 +163,7 @@ const generateReport = (id, fileType) => {
       
         provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
+      provide('getProcessingStatus',getProcessingStatus) 
 </script>
 
 <style lang="scss" scoped>

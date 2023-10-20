@@ -98,6 +98,7 @@ const getProcessingStatus = (params) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
+        params.progress = resp.data.progress;
         setTimeout(() => {
           getProcessingStatus(params)
         }, 3000);
@@ -112,6 +113,7 @@ const getProcessingStatus = (params) => {
         }, 3000);
     }
   });
+  LocalStorage.set(params.id, params)
 };
 
 const generateReport = async (id, fileType) => {
@@ -154,7 +156,6 @@ const generateReport = async (id, fileType) => {
           data
         );
       } else {
-        console.log('Printing XLS');
         activePatients.downloadExcel(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
@@ -168,6 +169,8 @@ const generateReport = async (id, fileType) => {
 
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
+
+provide('getProcessingStatus', getProcessingStatus)
 </script>
 
 <style lang="scss" scoped>

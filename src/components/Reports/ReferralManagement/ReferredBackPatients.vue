@@ -102,19 +102,28 @@ const resultFromLocalStorage = ref(false)
         }
       }
 
-      const  getProcessingStatus= (params)=>{
-        Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
-          progress.value = resp.data.progress
-          if (progress.value < 100) {
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
+      const getProcessingStatus = (params) => {
+        Report.getProcessingStatus('referredPatientsReport', params).then(resp => { 
+          if (resp.data.progress > 0.001) {
+            progress.value = resp.data.progress;
+            if (progress.value < 100) {
+              params.progress = resp.data.progress;
+              setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
+            } else {
+              progress.value = 100;
+              params.progress = 100;
+              LocalStorage.set(params.id, params);
+            }
           } else {
-            params.progress = 100
-            LocalStorage.set(params.id, params)
+            setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
           }
-        })
-      }
+          LocalStorage.set(params.id, params)
+        });
+      };
 
       const generateReport =  async (id, fileType, params) => {
           if (isOnline.value) {
@@ -144,7 +153,8 @@ const resultFromLocalStorage = ref(false)
         }
 
         provide('serviceAux', serviceAux)
-provide('resultFromLocalStorage', resultFromLocalStorage)
+    provide('resultFromLocalStorage', resultFromLocalStorage)
+provide('getProcessingStatus',getProcessingStatus)
 </script>
 
 <style lang="scss" scoped>

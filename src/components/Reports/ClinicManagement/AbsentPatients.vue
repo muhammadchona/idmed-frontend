@@ -84,22 +84,29 @@
       params.progress = 100
     }
   }
-  
+
   const getProcessingStatus = (params) => {
-    if (isOnline.value) {
-      Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
-        progress.value = resp.data.progress
+    Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
         if (progress.value < 100) {
+          params.progress = resp.data.progress;
           setTimeout(() => {
             getProcessingStatus(params)
           }, 3000);
         } else {
-          params.progress = 100
-          LocalStorage.set(params.id, params)
+          progress.value = 100;
+          params.progress = 100;
+          LocalStorage.set(params.id, params);
         }
-      })
-    }
-  }
+      } else {
+        setTimeout(() => {
+            getProcessingStatus(params)
+          }, 3000);
+      }
+    });
+    LocalStorage.set(params.id, params)
+  };
   
   const generateReport = (id, fileType, params) => {
     if (fileType === 'PDF') {
@@ -114,7 +121,8 @@
   }
   
   provide('serviceAux', serviceAux)
-  provide('resultFromLocalStorage', resultFromLocalStorage)
+  provide('resultFromLocalStorage', resultFromLocalStorage) 
+  provide('getProcessingStatus', getProcessingStatus)
      
   </script>
   

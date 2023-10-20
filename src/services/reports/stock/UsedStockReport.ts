@@ -18,6 +18,7 @@ const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 export default {
   async downloadPDF(id, fileType, params) {
+    console.log(params)
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -53,6 +54,7 @@ export default {
       data = this.createArrayOfArrayRow(rowsAux.data);
     } else {
       const dataAux = await UsedStockMobileService.localDbGetAllByReportId(id);
+      console.log(dataAux)
       if (dataAux.length === 0) return 204;
       params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate);
       params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate);

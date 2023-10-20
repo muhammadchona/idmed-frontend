@@ -4,6 +4,8 @@
         <q-select
             class="col q-mr-md"
             dense outlined
+            transition-show="flip-up"
+            transition-hide="flip-down"
             :options="months"
             v-model="month"
             ref="monthlyPeriodRef"
@@ -13,6 +15,7 @@
             lazy-rules
             label="Mês"
             :disable="initProcessing"
+            @update:model-value="(val) => setSelectedMonth(val)"
             />
              <q-input
              :disable="initProcessing"
@@ -66,7 +69,7 @@ const months = ref([
       errorCount(errorCountAux)
     }
 
-    const setSelectedMonth = (selectedMonth) => {      
+    const setSelectedMonth = (selectedMonth) => {    
       reportParams.value.monthSemesterQuarterView = selectedMonth;
       reportParams.value.period = selectedMonth.id;
     };
