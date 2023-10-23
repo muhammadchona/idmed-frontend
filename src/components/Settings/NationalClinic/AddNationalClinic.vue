@@ -154,12 +154,12 @@ export default {
          }
     }
     },
-    components: {
-        nameInput: require('components/Shared/NameInput.vue').default,
-        codeInput: require('components/Shared/CodeInput.vue').default,
-         PhoneField: require('components/Shared/Input/PhoneField.vue').default,
-          Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    }
+    // components: {
+    //     nameInput: require('components/Shared/NameInput.vue').default,
+    //     codeInput: require('components/Shared/CodeInput.vue').default,
+    //      PhoneField: require('components/Shared/Input/PhoneField.vue').default,
+    //       Dialog: require('components/Shared/Dialog/Dialog.vue').default
+    // }
 
 }
 </script>

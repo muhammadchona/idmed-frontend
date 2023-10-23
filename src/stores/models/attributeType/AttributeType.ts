@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class AttributeType extends Model {
   static entity = 'attributeTypes';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -13,4 +13,7 @@ export default class AttributeType extends Model {
       datatype: this.attr(''),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

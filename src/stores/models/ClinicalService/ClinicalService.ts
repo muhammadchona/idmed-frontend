@@ -1,18 +1,16 @@
 import { Model } from 'pinia-orm';
 import ClinicalServiceAttribute from '../ClinicalServiceAttribute/ClinicalServiceAttribute';
-// import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import IdentifierType from '../identifierType/IdentifierType';
 import ClinicSector from '../clinicSector/ClinicSector';
 import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServiceSector';
-// import Group from '../group/Group'
-// import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier'
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 import Drug from '../drug/Drug';
+import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen';
+import ClinicalServiceAttributeType from '../ClinicalServiceAttributeType/ClinicalServiceAttributeType';
 
 export default class ClinicalService extends Model {
   static entity = 'clinicalServices';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -21,10 +19,17 @@ export default class ClinicalService extends Model {
       identifier_type_id: this.attr(''),
       active: this.attr(''),
       syncStatus: this.attr(''),
-      // therapeuticRegimens: this.attr(''),
-
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
-      attributes: this.hasMany(ClinicalServiceAttribute, 'service_id'),
+      clinicalServiceAttributes: this.belongsToMany(
+        ClinicalServiceAttributeType,
+        ClinicalServiceAttribute,
+        'clinical_service_id',
+        'service_attr_type_id'
+      ),
+      therapeuticRegimens: this.hasMany(
+        TherapeuticRegimen,
+        'clinical_service_id'
+      ),
       clinicSectors: this.belongsToMany(
         ClinicSector,
         ClinicalServiceSector,
@@ -32,62 +37,10 @@ export default class ClinicalService extends Model {
         'clinic_sector_id'
       ),
       drugs: this.hasMany(Drug, 'clinical_service_id'),
-      // patientServiceIdentifiers: this.hasMany(PatientServiceIdentifier, 'service_id')
     };
   }
 
-  static async apiGetAll(offset, max) {
-    return await this.api().get('/clinicalService?offset=0&max=100');
-  }
-
-  static async apiFetchById(id) {
-    return await this.api().get(`/clinicalService/${id}`);
-  }
-
-  static async apiSave(clinicalService) {
-    return await this.api().post('/clinicalService', clinicalService);
-  }
-
-  static async apiUpdate(clinicalService) {
-    return await this.api().patch(
-      '/clinicalService/' + clinicalService.id,
-      clinicalService
-    );
-  }
-
-  static localDbAdd(clinicalService) {
-    return db.newDb().collection('clinicalServices').add(clinicalService);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('clinicalServices').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('clinicalServices').get();
-  }
-
-  static localDbUpdate(clinicalService) {
-    return db
-      .newDb()
-      .collection('clinicalServices')
-      .doc({ id: clinicalService.id })
-      .set(clinicalService);
-  }
-
-  static localDbUpdateAll(clinicalServices) {
-    return db.newDb().collection('clinicalServices').set(clinicalServices);
-  }
-
-  static localDbDelete(clinicalService) {
-    return db
-      .newDb()
-      .collection('clinicalServices')
-      .doc({ id: clinicalService.id })
-      .delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('clinicalServices').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

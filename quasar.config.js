@@ -74,11 +74,11 @@ module.exports = configure(function (/* ctx */) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
+      env: require('dotenv').config({ override: true }).parsed,
       target: {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node16',
       },
-
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
@@ -124,7 +124,19 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
-      config: {},
+      config: {
+        cordova: {
+          // add the dynamic top padding on iOS mobile devices
+          // iosStatusBarPadding: true / false,
+
+          // Quasar handles app exit on mobile phone back button.
+          backButtonExit: true / false / '*' / ['/login', '/home', '/my-page'],
+
+          // On the other hand, the following completely
+          // disables Quasar's back button management.
+          backButton: true / false,
+        },
+      },
 
       iconSet: 'material-icons', // Quasar icon set
       lang: 'pt-BR', // Quasar language pack
@@ -212,13 +224,18 @@ module.exports = configure(function (/* ctx */) {
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/configuring-electron
+    sourceFiles: {
+      electronMain: 'src-electron/electron-main',
+      electronPreload: 'src-electron/electron-preload',
+    },
+
     electron: {
       // extendElectronMainConf (esbuildConf)
       // extendElectronPreloadConf (esbuildConf)
 
       inspectPort: 5858,
 
-      bundler: 'packager', // 'packager' or 'builder'
+      bundler: 'builder', // 'packager' or 'builder'
 
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options

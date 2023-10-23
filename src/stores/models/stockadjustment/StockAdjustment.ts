@@ -8,11 +8,10 @@ import {
   StockReferenceAdjustment,
 } from './StockAdjustmentHierarchy';
 import { v4 as uuidv4 } from 'uuid';
-import db from 'src/stores/localbase';
 
 export class StockAdjustment extends Model {
   static entity = 'stockAdjustments';
-
+  static primaryKey = 'id';
   static types() {
     return {
       INVENTORYSTOCKADJUSTMENT: InventoryStockAdjustment,
@@ -43,19 +42,8 @@ export class StockAdjustment extends Model {
     };
   }
 
-  isPosetiveAdjustment() {
-    return this.operation.code === 'AJUSTE_POSETIVO';
+  static piniaOptions = {
+    persist: true,
   }
 
-  isNegativeAdjustment() {
-    return this.operation.code === 'AJUSTE_NEGATIVO';
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('stockAdjustments').delete();
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('stockAdjustments').doc({ id: id }).get();
-  }
 }

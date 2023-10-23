@@ -1,26 +1,30 @@
 <template>
-<div>
-   <Charts :dataLoaded=dataLoaded> </Charts>
-</div>
+  <div>
+    <Charts />
+  </div>
 </template>
 
-<script>
-  import { ref } from 'vue'
-export default {
-   data () {
-     return {
-       dataLoaded: ref(false)
-     }
-   },
-    components: {
-        Charts: require('components/Dashboard/ApexCharts/Charts.vue').default
-    },
-    mounted () {
-      this.dataLoaded = true
-    }
-}
+<script setup>
+import { ref, onMounted, provide, computed } from 'vue';
+import clinicServiceService from 'src/services/api/clinicService/clinicService.ts';
+
+/*Variables*/
+const dataLoaded = ref(false);
+
+/*Components im port*/
+import Charts from 'src/components/Dashboard/ApexCharts/Charts.vue';
+
+/*Hooks*/
+onMounted(() => {
+  dataLoaded.value = true;
+});
+const currClinic = computed(() => {
+  return clinicServiceService.currClinic();
+});
+
+/*provides*/
+provide('dataLoaded', dataLoaded);
+provide('currClinic', currClinic);
 </script>
 
-<style>
-
-</style>
+<style></style>

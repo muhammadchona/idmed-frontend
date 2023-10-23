@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class StockReferenceAdjustment extends StockAdjustment {
   static entity = 'stockReferenceAdjustments';
   static baseEntity = 'stockAdjustments';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       ...super.fields(),
@@ -16,19 +16,7 @@ export class StockReferenceAdjustment extends StockAdjustment {
     };
   }
 
-  static async apiSave(adjustment) {
-    return await this.api().post('/stockReferenceAdjustment', adjustment);
-  }
-
-  static async apiRemove(id) {
-    return await this.api().delete(`/stockReferenceAdjustment/${id}`);
-  }
-
-  static async apiUpdate(adjustment) {
-    return await this.api().patch('/stockReferenceAdjustment', adjustment);
-  }
-
-  static async apiGetAll() {
-    return await this.api().get('/stockReferenceAdjustment');
+  static piniaOptions = {
+    persist: true,
   }
 }

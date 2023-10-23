@@ -6,12 +6,11 @@
             dense outlined
             :options="months"
             v-model="month"
-            ref="monthlyPeriod"
+            ref="monthlyPeriodRef"
             option-value="id"
             option-label="description"
             :rules="[val => !!val || 'Por favor indique o Mês']"
             lazy-rules
-            @blur="setSelectedMonth()"
             label="Mês"
             :disable="initProcessing"
             />
@@ -21,55 +20,68 @@
                 dense
                 outlined
                 v-model="yearMonthlyPeriod"
-                @blur="setSelectedYearMonth()"
+                @update:model-value="(val) => setSelectedYear(val)"
                 type="number"
-                ref="yearMonthlyPeriod"
+                ref="yearMonthlyPeriodRef"
                 :rules="[val => !!val || 'Por favor indique o ano']"
             />
        </div>
 </form>
   </template>
+<script setup>
+import { ref, inject, onMounted } from 'vue'
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 
-<script>
-    import { ref } from 'vue'
-    export default {
-      props: ['initProcessing', 'errorCount'],
-        data () {
-            return {
-              yearMonthlyPeriod: new Date().getFullYear(),
-              month: '',
-            model: ref(new Date().getFullYear()),
-                    months: [
-                        { id: 1, description: 'Janeiro' },
-                        { id: 2, description: 'Fevereiro' },
-                        { id: 3, description: 'Março' },
-                        { id: 4, description: 'Abril' },
-                        { id: 5, description: 'Maio' },
-                        { id: 6, description: 'Junho' },
-                        { id: 7, description: 'Julho' },
-                        { id: 8, description: 'Agosto' },
-                        { id: 9, description: 'Setembro' },
-                        { id: 10, description: 'Outubro' },
-                        { id: 11, description: 'Novembro' },
-                        { id: 12, description: 'Dezembro' }
-                        ]
-                        }
-            },
-            methods: {
-              setSelectedMonth () {
-                this.$emit('setSelectedMonth', this.month)
-              },
-              setSelectedYearMonth () {
-                this.$emit('setSelectedYearMonth', this.yearMonthlyPeriod)
-              },
-              submitForm () {
-              let errorCountAux = 0
-              this.$refs.monthlyPeriod.validate()
-              if (this.$refs.monthlyPeriod.hasError) errorCountAux++
-              this.$refs.yearMonthlyPeriod.validate()
-              if (this.$refs.yearMonthlyPeriod.hasError) errorCountAux++
-              this.$emit('errorCount', errorCountAux)
-              }
-          }
-            }
+const initProcessing = inject('initProcessing')
+const reportParams = inject('reportParams')
+const errorCount = inject('errorCount')
+const resultFromLocalStorage = inject('resultFromLocalStorage')
+const serviceAux = inject('serviceAux')
+
+let yearMonthlyPeriod = ref(parseInt(new Date().getFullYear()))
+const monthlyPeriodRef = ref(null)
+const yearMonthlyPeriodRef = ref(null)
+const month = ref(null)
+const months = ref([
+    { id: 1, description: 'Janeiro' },
+    { id: 2, description: 'Fevereiro' },
+    { id: 3, description: 'Março' },
+    { id: 4, description: 'Abril' },
+    { id: 5, description: 'Maio' },
+    { id: 6, description: 'Junho' },
+    { id: 7, description: 'Julho' },
+    { id: 8, description: 'Agosto' },
+    { id: 9, description: 'Setembro' },
+    { id: 10, description: 'Outubro' },
+    { id: 11, description: 'Novembro' },
+    { id: 12, description: 'Dezembro' }
+    ])
+
+    const submitForm = () => {
+      let errorCountAux = 0
+      monthlyPeriodRef.value.validate()
+      if (monthlyPeriodRef.value.hasError) errorCountAux++
+      yearMonthlyPeriodRef.value.validate()
+      if (yearMonthlyPeriodRef.value.hasError) errorCountAux++
+      errorCount(errorCountAux)
+    }
+
+    const setSelectedMonth = (selectedMonth) => {      
+      reportParams.value.monthSemesterQuarterView = selectedMonth;
+      reportParams.value.period = selectedMonth.id;
+    };
+
+    const setSelectedYear = (year) => {
+      reportParams.value.year = year
+    }
+
+    onMounted(() => {
+    if(reportParams.value.id){
+        serviceAux.value = clinicalServiceService.getClinicalServicePersonalizedById(reportParams.value.clinicalService)
+        resultFromLocalStorage.value = true
+        yearMonthlyPeriod.value = reportParams.value.year
+        month.value = reportParams.value.monthSemesterQuarterView
+    }
+})
+
 </script>

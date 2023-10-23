@@ -1,7 +1,7 @@
-// import { Model } from 'pinia-orm'
-import db from 'src/stores/localbase';
+import { Model } from 'pinia-orm';
 
-export default class AbsentPatientReport {
+
+export default class AbsentPatientReport extends Model{
   static entity = 'absentPatientReports';
   static fields() {
     return {
@@ -26,34 +26,4 @@ export default class AbsentPatientReport {
     };
   }
 
-  static localDbAdd(absentPatientReport) {
-    return db
-      .newDb()
-      .collection('absentPatientReports')
-      .add(absentPatientReport);
-  }
-
-  static localDbGetAll() {
-    //
-    return db.newDb().collection('absentPatientReports').get();
-  }
-
-  static localDbUpdateAll(absentPatientReports) {
-    return db
-      .newDb()
-      .collection('absentPatientReports')
-      .set(absentPatientReports);
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('absentPatientReports').delete();
-  }
-
-  static localDbDeleteById(id) {
-    return db
-      .newDb()
-      .collection('absentPatientReports')
-      .doc({ id: id })
-      .delete();
-  }
 }

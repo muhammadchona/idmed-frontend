@@ -10,4 +10,7 @@ export default class TherapeuticRegimensDrug extends Model {
       therapeutic_regimen_id: this.attr(null),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

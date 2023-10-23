@@ -10,4 +10,8 @@ export default class UserRole extends Model {
       role_id: this.attr(null),
     };
   }
+
+  static piniaOptions = {
+    persist: true,
+  };
 }

@@ -1,7 +1,8 @@
-// import { Model } from 'pinia-orm'
-import db from 'src/stores/localbase';
 
-export default class StockUsedReport {
+import { v4 as uuidv4 } from 'uuid'
+import { Model } from 'pinia-orm';
+
+export default class StockUsedReport extends Model{
   static entity = 'stockUsedReports';
   static fields() {
     return {
@@ -27,24 +28,4 @@ export default class StockUsedReport {
     };
   }
 
-  static localDbAdd(stockUsedReport) {
-    return db.newDb().collection('stockUsedReports').add(stockUsedReport);
-  }
-
-  static localDbGetAll() {
-    //
-    return db.newDb().collection('stockUsedReports').get();
-  }
-
-  static localDbUpdateAll(stockUsedReport) {
-    return db.newDb().collection('stockUsedReports').set(stockUsedReport);
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('stockUsedReports').delete();
-  }
-
-  static localDbDeleteById(id) {
-    return db.newDb().collection('stockUsedReports').doc({ id: id }).delete();
-  }
 }

@@ -1,0 +1,3 @@
+export function useSpetialPrescriptionMotive() {
+  return {};
+}

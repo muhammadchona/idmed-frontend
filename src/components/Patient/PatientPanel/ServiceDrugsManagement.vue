@@ -1,268 +1,303 @@
 <template>
   <div>
-      <PrescriptionDrugsListHeader
-          :addVisible="true"
-          :mainContainer="false"
-          bgColor="bg-grey-6"
-          :duration="duration"
-          :newPickUpDate="newPickUpDate"
-          @updateQtyPrescribed="updateQtyPrescribed"
-          :visitDetails="visitDetails"
-          @showAdd="addEditDrugs"
-          :step="stepp">
-        Medicamentos para {{visitDetails.episode.patientServiceIdentifier.service.code}}
-      </PrescriptionDrugsListHeader>
-      <div class="col prescription-box q-pa-md q-mb-md">
-        <q-table
-            class="col"
-            dense
-            :rows="prescribedDrugs"
-            :columns="columns"
-            row-key="id"
-            hide-bottom
-            flat
+    <PrescriptionDrugsListHeader
+      :addVisible="true"
+      :mainContainer="false"
+      bgColor="bg-grey-6"
+    >
+      Medicamentos para
+      {{ curIdentifier.service.code }}
+    </PrescriptionDrugsListHeader>
+    <div class="col prescription-box q-pa-md q-mb-md">
+      <q-table
+        class="col"
+        dense
+        :rows="curPack.packagedDrugs"
+        :columns="columns"
+        row-key="id"
+        hide-bottom
+        flat
+      >
+        <template #header="props">
+          <q-tr class="text-left bg-green-2" :props="props">
+            <q-th>{{ columns[0].label }}</q-th>
+            <q-th>{{ columns[1].label }}</q-th>
+            <q-th v-if="!curPatientVisitDetail.createPackLater">{{
+              columns[2].label
+            }}</q-th>
+            <q-th v-if="!curPatientVisitDetail.createPackLater">{{
+              columns[3].label
+            }}</q-th>
+            <q-th>{{ columns[4].label }}</q-th>
+          </q-tr>
+        </template>
+        <template #body="props">
+          <q-tr no-hover :props="props">
+          <div class="hidden" >{{  qtySupplied(props.row) }} </div> 
+            <q-td
+              :style="
+               qtySuppliedFlag=== -1 ? 'color: red' : ' color: black'
+              "
+              key="drug"
+              :props="props"
             >
-            <template #header="props">
-              <q-tr class="text-left bg-green-2"  :props="props">
-                <q-th >{{columns[0].label}}</q-th>
-                <q-th >{{columns[1].label}}</q-th>
-                <q-th v-if="!visitDetails.createPackLater">{{columns[2].label}}</q-th>
-                <q-th v-if="!visitDetails.createPackLater">{{columns[3].label}}</q-th>
-                <q-th >{{columns[4].label}}</q-th>
-              </q-tr>
-
-            </template>
-            <template #body="props">
-              <q-tr no-hover :props="props">
-                <q-td key="drug" :props="props">
-                  {{props.row.drug.name}}
-                </q-td>
-                <q-td key="dosage" :props="props">
-                  {{props.row.amtPerTime + ' - ' + props.row.timesPerDay + ' X por ' + props.row.form}}
-                </q-td>
-                <q-td v-if="!visitDetails.createPackLater" auto-width key="packs" :props="props">
-                  {{props.row.getQtyPrescribed(drugsDuration)}}
-                </q-td>
-                <q-td v-if="!visitDetails.createPackLater" key="nextPickUpDate" :props="props">
-                  <div class="row">
-                    <q-toggle v-model="props.row.toContinue" label="Continua" />
-                  </div>
-                </q-td>
-                <q-td key="options" :props="props">
-                  <q-btn flat round
-                    color="red"
-                    icon="delete"
-                    @click="deleteRow(props.row)"/>
-                </q-td>
-              </q-tr>
-            </template>
-        </q-table>
-      </div>
-      <q-dialog persistent v-model="showAddEditDrug">
-        <AddEditPrescribedDrug
-          @addPrescribedDrug="addPrescribedDrug"
-          :visitDetails="curVisitDetails"
-          :hasTherapeuticalRegimen="hasTherapeuticalRegimen"
-          @close="showAddEditDrug = false" />
-    </q-dialog>
-    <q-dialog v-model="alert.visible">
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{alert.msg}} </template>
-      </Dialog>
+              {{
+                getDrugById(props.row.drug.id) !== null &&
+                getDrugById(props.row.drug.id) !== undefined
+                  ? getDrugById(props.row.drug.id).name
+                  : ''
+              }}
+            </q-td>
+            <q-td
+              :style="
+                qtySuppliedFlag === -1 ? 'color: red' : ' color: black'
+              "
+              key="dosage"
+              :props="props"
+            >
+              {{
+                getDrugById(props.row.drug.id) !== null &&
+                getDrugById(props.row.drug.id) !== undefined
+                  ? ' Toma ' +
+                    getDrugById(props.row.drug.id).defaultTimes +
+                    ' - ' +
+                    getDrugById(props.row.drug.id).defaultTreatment +
+                    ' vez(es) por ' +
+                    getDrugById(props.row.drug.id).defaultPeriodTreatment
+                  : ''
+              }}
+            </q-td>
+            <q-td
+              :style="
+             
+                qtySuppliedFlag === -1 ? 'color: red' : ' color: black'
+              "
+              v-if="!curPatientVisitDetail.createPackLater"
+              auto-width
+              key="packs"
+              :props="props"
+            >
+              {{ props.row.quantitySupplied }}
+            </q-td>
+            <q-td
+              :style="
+                qtySuppliedFlag=== -1 ? 'color: red' : ' color: black'
+              "
+              v-if="!curPatientVisitDetail.createPackLater"
+              key="nextPickUpDate"
+              :props="props"
+            >
+              <div class="row">
+                <q-toggle
+                  v-model="props.row.toContinue"
+                  :disable="qtySuppliedFlag=== -1 || validateDispense"
+                  label="Continua"
+                />
+              </div>
+            </q-td>
+            <q-td key="options" :props="props">
+              <q-btn
+                flat
+                :disable="validateDispense"
+                round
+                color="red"
+                icon="delete"
+                @click="deleteRow(props.row)"
+              />
+              <q-btn
+                v-if="qtySuppliedFlag === -1"
+                flat
+                round
+                :disable="validateDispense"
+                color="red"
+                icon="info"
+              >
+                <q-tooltip
+                  class="bg-red"
+                  :offset="[10, 10]"
+                  transition-show="flip-right"
+                  transition-hide="flip-left"
+                >
+                  <strong><em> Medicamento sem stock </em></strong>
+                </q-tooltip>
+              </q-btn>
+            </q-td>
+          </q-tr>
+        </template>
+      </q-table>
+    </div>
+    <div class="row reverse q-mb-sm q-mt-sm q-gutter-sm">
+      <q-btn
+        v-if="!validateDispense"
+        unelevated
+        color="primary"
+        :disable="validateDispense"
+        label="Validar Dispensa"
+        class="all-pointer-events"
+        @click="addPatientVisitDetail()"
+      />
+      <q-btn
+        v-if="validateDispense"
+        unelevated
+        color="red"
+        :disable="!validateDispense"
+        label="Invalidar Dispensa"
+        class="all-pointer-events"
+        @click="removePatientVisitDetail()"
+      />
+    </div>
+    <q-dialog persistent v-model="showAddEditDrug">
+      <AddEditPrescribedDrug />
     </q-dialog>
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
-import PrescribedDrug from '../../../store/models/prescriptionDrug/PrescribedDrug'
-import Duration from '../../../store/models/Duration/Duration'
-import Prescription from '../../../store/models/prescription/Prescription'
-import Stock from '../../../store/models/stock/Stock'
-import PatientVisitDetails from '../../../store/models/patientVisitDetails/PatientVisitDetails'
-import mixinutils from 'src/mixins/mixin-utils'
-import mixinplatform from 'src/mixins/mixin-system-platform'
-import Drug from '../../../store/models/drug/Drug'
+<script setup>
+import { computed, inject, onMounted, provide, ref } from 'vue';
+import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue';
+import PrescriptionDrugsListHeader from 'components/Patient/Prescription/PrescriptionDrugsListHeader.vue';
+import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
+import StockService from 'src/services/api/stockService/StockService';
+import moment from 'moment';
+import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
+import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+import drugService from 'src/services/api/drugService/drugService';
+import { v4 as uuidv4 } from 'uuid';
+//Declaration
+const { getQtyPrescribed } = usePrescribedDrug();
+const { alertSucess, alertError, alertInfo } = useSwal();
+const { remainigDurationInWeeks } = usePrescription();
 const columns = [
-  { name: 'drug', align: 'left', field: 'row.drug.name', label: 'Medicamento', sortable: true },
-  { name: 'dosage', align: 'left', field: 'row.amtPerTime', label: 'Toma', sortable: false },
-  { name: 'packs', align: 'center', style: 'width: 20px', field: 'row.qtyPrescribed', label: 'Quantidade em (Frascos)', sortable: false },
-  { name: 'nextPickUpDate', align: 'left', field: 'row.toContinue', label: 'Próx. Levantamento', sortable: false },
-  { name: 'options', align: 'left', label: 'Opções', sortable: false }
-]
-export default {
-  props: ['visitDetails', 'hasTherapeuticalRegimen', 'oldPrescribedDrugs', 'lastPack', 'prescription', 'stepp', 'visitClone', 'isAlreadyEdited'],
-  mixins: [mixinplatform, mixinutils],
-  data () {
-    return {
-      columns,
-      showAddEditDrug: false,
-      curVisitDetails: '',
-      nextPUpDate: '',
-      pickupDate: '',
-      prescribedDrugs: ref([]),
-      nums: Array(4).fill().map((x, i) => i + 1),
-      drugsDuration: '',
-      currPrescription: ''
-    }
+  {
+    name: 'drug',
+    align: 'left',
+    field: 'row.drug.name',
+    label: 'Medicamento',
+    sortable: true,
   },
-  methods: {
-    addEditDrugs (pickupDate, nextPDate, duration) {
-      if (!this.visitDetails.createPackLater) {
-        this.drugsDuration = duration
-        this.nextPUpDate = nextPDate
-        this.pickupDate = new Date(pickupDate)
-      }
-      const prescriptionCopy = new Prescription(JSON.parse(JSON.stringify(this.prescription)))
-      prescriptionCopy.patientVisitDetails = PatientVisitDetails.query()
-                                                                .with('pack')
-                                                                .where('prescription_id', prescriptionCopy.id)
-                                                                .get()
-      if (duration.weeks > prescriptionCopy.remainigDurationInWeeks()) {
-        this.displayAlert('error', 'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' + Number((prescriptionCopy.remainigDurationInWeeks()) / 4) + ' mes(es)]')
+  {
+    name: 'dosage',
+    align: 'left',
+    field: 'row.amtPerTime',
+    label: 'Toma',
+    sortable: false,
+  },
+  {
+    name: 'packs',
+    align: 'center',
+    style: 'width: 20px',
+    field: 'row.quantitySupplied',
+    label: 'Quantidade em (Frascos)',
+    sortable: false,
+  },
+  {
+    name: 'nextPickUpDate',
+    align: 'left',
+    field: 'row.toContinue',
+    label: 'Próx. Levantamento',
+    sortable: false,
+  },
+  { name: 'options', align: 'left', label: 'Opções', sortable: false },
+];
+const showAddEditDrug = ref(false);
+const nextPUpDate = ref('');
+const pickupDate = ref('');
+const nums = ref(
+  Array(4)
+    .fill()
+    .map((x, i) => i + 1)
+);
+const drugsDuration = ref('');
+const qtySuppliedFlag = ref(0)
+
+// Injection
+const curPrescription = inject('curPrescription');
+const curPatientVisitDetail = inject('curPatientVisitDetail');
+const curPack = inject('curPack');
+const validateDispense = inject('validateDispense');
+const addPatientVisitDetail = inject('addPatientVisitDetail');
+const removePatientVisitDetail = inject('removePatientVisitDetail');
+const curIdentifier = inject('curIdentifier');
+//Methods
+const deleteRow = (row) => {
+  const i = curPack.value.packagedDrugs
+    .map((toRemove) => toRemove.id)
+    .indexOf(row.id);
+  curPack.value.packagedDrugs.splice(i, 1);
+};
+
+const addPackagedDrug = async (prescribedDrug) => {
+  const packagedDrug = new PackagedDrug({ id: uuidv4() });
+
+  packagedDrug.amtPerTime = prescribedDrug.amtPerTime;
+  packagedDrug.timesPerDay = prescribedDrug.timesPerDay;
+  packagedDrug.form = prescribedDrug.form;
+  packagedDrug.drug = prescribedDrug.drug;
+  packagedDrug.drug_id = prescribedDrug.drug.id;
+
+  const packagedDruggExists = curPack.value.packagedDrugs.some((item) => {
+    return item.drug.id === prescribedDrug.drug.id;
+  });
+
+  if (!packagedDruggExists) {
+    const hasStock =await checkStock(packagedDrug);
+
+    if (hasStock) {
+      if (
+        drugsDuration.value.weeks >
+        remainigDurationInWeeks(curPrescription.value)
+      ) {
+        alertError(
+          'error',
+          'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' +
+            Number(remainigDurationInWeeks(curPrescription.value) / 4) +
+            ' mes(es)]'
+        );
       } else {
-        this.showAddEditDrug = true
+        showAddEditDrug.value = false;
+        curPack.value.packagedDrugs.push(packagedDrug);
       }
-    },
-    deleteRow (row) {
-      const i = this.prescribedDrugs.map(toRemove => toRemove.id).indexOf(row.id) // find index of your object
-      this.prescribedDrugs.splice(i, 1)
-      this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
-    },
-    addPrescribedDrug (prescribedDrug) {
-      const prescribedDrugExists = this.prescribedDrugs.some((item) => {
-        return item.drug.id === prescribedDrug.drug.id
-      })
-      if (!prescribedDrugExists) {
-        const hasStock = this.checkStock(prescribedDrug)
-        if (hasStock) {
-          if (new PrescribedDrug(prescribedDrug).getQtyPrescribed(this.duration) <= 0) {
-            this.displayAlert('error', 'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.')
-          } else {
-            this.showAddEditDrug = false
-            if (!this.visitDetails.createPackLater) prescribedDrug.nextPickUpDate = this.nextPUpDate
-            this.prescribedDrugs.push(new PrescribedDrug(prescribedDrug))
-            this.$emit('updatePrescribedDrugs', this.prescribedDrugs, this.pickupDate, this.nextPUpDate, this.drugsDuration)
-          }
-        } else {
-          this.displayAlert('error', 'O medicamento seleccionado não possui stock suficiente para dispensar.')
-        }
-      } else {
-        this.displayAlert('error', 'Não pode adicionar o medicamento seleccionado, pois ja existe na lista dos medicamentos prescritos.')
-      }
-    },
-    checkStock (prescribedDrug) {
-      let qtyInStock = 0
-      const qtyPrescribed = prescribedDrug.getQtyPrescribed(this.drugsDuration)
-      const stocks = Stock.query()
-                          .where('drug_id', prescribedDrug.drug.id)
-                          .get()
-      const validStock = stocks.filter((item) => {
-        return new Date(item.expireDate) > new Date()
-      })
-      if (validStock.length <= 0) {
-        return false
-      } else {
-        validStock.forEach((item) => {
-          qtyInStock = Number(qtyInStock + item.stockMoviment)
-        })
-        if (qtyInStock < qtyPrescribed) {
-          return false
-        } else {
-          return true
-        }
-      }
-    },
-    init () {
-      console.log(this.step)
-      this.pickupDate = this.newPickUpDate
-      if (this.isNewPrescriptionStep) {
-        const pvd = new PatientVisitDetails(this.visitClone)
-        this.prescribedDrugs = pvd.prescription.prescribedDrugs
-      } else
-      if (this.oldPrescribedDrugs !== null && this.oldPrescribedDrugs.length > 0) {
-        this.prescribedDrugs = this.oldPrescribedDrugs
-        console.log('prescribedD: ', this.prescribedDrugs)
-        this.$emit('updatePrescribedDrugs', this.prescribedDrugs)
-      }
-    },
-    updateQtyPrescribed (duration, pickupDate, nextPDate) {
-      this.drugsDuration = duration
-      this.nextPUpDate = nextPDate
-      this.pickupDate = pickupDate
-      this.$emit('updatePrescribedDrugs', this.prescribedDrugs, pickupDate, nextPDate, duration)
-    },
-    async loadParams () {
-      if (this.mobile) {
-        await Drug.localDbGetAll().then(drugs => {
-          drugs.forEach((drug) => {
-            drug.clinicalServiceId = ''
-            drug.formId = ''
-            Drug.insert({ data: drug })
-          })
-        })
-      }
+    } else {
+      alertError(
+        'O medicamento seleccionado não possui stock suficiente para dispensar até a data da dispensa'
+      );
     }
-  },
-  mounted () {
-    this.init()
-  },
-  computed: {
-    duration: {
-      get () {
-        if (this.isEditPackStep) {
-          return Duration.query().where('weeks', this.lastPack.weeksSupply).first()
-        } else {
-          return Duration.query()
-                        .where('weeks', this.currPrescription.prescriptionDetails[0].dispenseType.getRelatedWeeks())
-                        .first()
-        }
-      }
-    },
-    newPickUpDate: {
-      get () {
-        if (this.isNewPrescriptionStep || this.lastPack === null) {
-          return this.currPrescription.prescriptionDate
-        } else if (this.isAlreadyEdited) {
-          return this.curVisitDetails.pack.pickupDate
-        } else if (this.isEditPackStep) {
-          return this.lastPack.pickupDate
-        } else {
-          return this.lastPack.nextPickUpDate
-        }
-      }
-    },
-    isEditPackStep: {
-      get () {
-        return this.step === 'editPack'
-      }
-    },
-    isNewPackStep: {
-      get () {
-        return this.step === 'addNewPack'
-      }
-    },
-    isNewPrescriptionStep: {
-      get () {
-        return this.currPrescription.id === null
-      }
-    }
-  },
-  created () {
-    this.setStep(this.stepp)
-    this.curVisitDetails = Object.assign({}, this.visitDetails)
-    this.currPrescription = new Prescription(this.prescription)
-    this.loadParams()
-  },
-  components: {
-    AddEditPrescribedDrug: require('components/Patient/PatientPanel/AddEditPrescribedDrug.vue').default,
-    Dialog: require('components/Shared/Dialog/Dialog.vue').default,
-    PrescriptionDrugsListHeader: require('components/Patient/Prescription/PrescriptionDrugsListHeader.vue').default
+  } else {
+    alertError(
+      'O medicamento ja existe na lista dos medicamentos por dispensar.'
+    );
   }
-}
+};
+const getDrugById = (drugID) => {
+  return drugService.getCleanDrugById(drugID);
+};
+
+const qtySupplied = async (packagedDrug) => {
+ const item =  await checkStock(packagedDrug)
+    if(item) {
+    qtySuppliedFlag.value =  packagedDrug.quantitySupplied
+  } else {
+    qtySuppliedFlag.value = -1
+  }
+  return qtySuppliedFlag.value
+};
+const checkStock = async (packagedDrug) => {
+
+  packagedDrug.drug = getDrugById(packagedDrug.drug.id);
+  const qtytoDispense = getQtyPrescribed(
+    packagedDrug,
+    curPack.value.weeksSupply
+  );
+  packagedDrug.quantitySupplied = qtytoDispense;
+  const resp = await  StockService.checkStockStatus( packagedDrug.drug.id,curPack.value.pickupDate, qtytoDispense)
+  return resp
+};
+
+// Computed
+provide('showAddEditDrug', showAddEditDrug);
+provide('addPrescribedDrug', addPackagedDrug);
 </script>
 
-<style>
-
-</style>
+<style></style>

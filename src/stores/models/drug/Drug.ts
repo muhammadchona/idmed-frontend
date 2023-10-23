@@ -6,14 +6,12 @@ import PackagedDrugStock from '../packagedDrug/PackagedDrugStock';
 import Stock from '../stock/Stock';
 import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen';
 import TherapeuticRegimensDrug from '../TherapeuticRegimensDrug/TherapeuticRegimensDrug';
-import db from 'src/stores/localbase';
-// import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen'
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
 
 export default class Drug extends Model {
   static entity = 'drugs';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -43,7 +41,9 @@ export default class Drug extends Model {
       ),
     };
   }
-
+  static piniaOptions = {
+    persist: true,
+  };
   getCurStockAmount() {
     if (this.stocks.length <= 0) return 0;
     let curStock = 0;
@@ -113,49 +113,5 @@ export default class Drug extends Model {
       quantityDispensed = quantityDispensed + item.quantitySupplied;
     });
     return quantityDispensed;
-  }
-
-  static async apiGetAll(offset, max) {
-    return await this.api().get('/drug?offset=' + offset + '&max=' + max);
-  }
-
-  static async apiFetchById(id) {
-    return await this.api().get(`/drug/${id}`);
-  }
-
-  static async apiSave(drug) {
-    return await this.api().post('/drug', drug);
-  }
-
-  static async apiUpdate(drug) {
-    return await this.api().patch('/drug/' + drug.id, drug);
-  }
-
-  static localDbAdd(drug) {
-    return db.newDb().collection('drugs').add(drug);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('drugs').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('drugs').get();
-  }
-
-  static localDbUpdate(drug) {
-    return db.newDb().collection('drugs').doc({ id: drug.id }).set(drug);
-  }
-
-  static localDbUpdateAll(drugs) {
-    return db.newDb().collection('drugs').set(drugs);
-  }
-
-  static localDbDelete(drug) {
-    return db.newDb().collection('drugs').doc({ id: drug.id }).delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('drugs').delete();
   }
 }

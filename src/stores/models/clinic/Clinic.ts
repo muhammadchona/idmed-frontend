@@ -5,12 +5,11 @@ import NationalClinic from '../nationalClinic/NationalClinic';
 import Patient from '../patient/Patient';
 import Province from '../province/Province';
 import FacilityType from '../facilityType/FacilityType';
-import db from 'src/stores/localbase';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class Clinic extends Model {
   static entity = 'clinics';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -36,56 +35,7 @@ export default class Clinic extends Model {
     };
   }
 
-  static apiFetchById(id) {
-    return this.api().get(`/clinic/${id}`);
-  }
-
-  static apiFetchMainClinic() {
-    return this.api().get('/clinic/mainClinic');
-  }
-
-  static async apiGetAll(offset, max) {
-    return await this.api().get('/clinic?offset=' + offset + '&max=' + max);
-  }
-
-  static async apiGetByUUID(uuid) {
-    return await this.api().get('/clinic/uuid/' + uuid);
-  }
-
-  static async apiSave(clinic) {
-    return await this.api().post('/clinic', clinic);
-  }
-
-  static async apiUpdate(clinic) {
-    // return await this.api().post('/clinic', clinic)
-    return await this.api().patch('/clinic/' + clinic.id, clinic);
-  }
-
-  static localDbAdd(clinic) {
-    return db.newDb().collection('clinics').add(clinic);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('clinics').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('clinics').get();
-  }
-
-  static localDbUpdate(clinic) {
-    return db.newDb().collection('clinics').doc({ id: clinic.id }).set(clinic);
-  }
-
-  static localDbUpdateAll(clinics) {
-    return db.newDb().collection('clinics').set(clinics);
-  }
-
-  static localDbDelete(clinic) {
-    return db.newDb().collection('clinics').doc({ id: clinic.id }).delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('clinics').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

@@ -1,7 +1,9 @@
-import { store } from 'quasar/wrappers'
-import { createPinia } from 'pinia'
+import { store } from 'quasar/wrappers';
+import { createPinia } from 'pinia';
 import { Router } from 'vue-router';
-
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils';
+import nanosSqlDatabase from 'src/stores/nanosSqlDatabase';
 /*
  * When adding new properties to stores, you should also
  * extend the `PiniaCustomProperties` interface.
@@ -23,10 +25,12 @@ declare module 'pinia' {
  */
 
 export default store((/* { ssrContext } */) => {
-  const pinia = createPinia()
-
+  const pinia = createPinia();
+  const list = nanosSqlDatabase.getEntities();
+  NonSqlDatabaseUtils.initDatabase(list);
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)
+  pinia.use(piniaPluginPersistedstate);
 
-  return pinia
-})
+  return pinia;
+});

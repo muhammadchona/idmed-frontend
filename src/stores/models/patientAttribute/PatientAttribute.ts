@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientAttribute extends Model {
   static entity = 'attributes';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -18,4 +18,7 @@ export default class PatientAttribute extends Model {
       attributeType: this.belongsTo(AttributeType, 'attributeType_id'),
     };
   }
+  static piniaOptions = {
+    persist: true,
+  };
 }

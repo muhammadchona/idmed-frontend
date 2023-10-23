@@ -1,10 +1,10 @@
+import provinceService from 'src/services/api/provinceService/provinceService';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 import axios from 'axios';
 import Clinic from 'src/stores/models/clinic/Clinic';
 import Patient from 'src/stores/models/patient/Patient';
-import PrescriptionDetail from '../../store/models/prescriptionDetails/PrescriptionDetail';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
-import Province from 'src/stores/models/province/Province';
 import District from 'src/stores/models/district/District';
 import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 import ClinicSector from 'src/stores/models/clinicSector/ClinicSector';
@@ -21,17 +21,20 @@ import Episode from 'src/stores/models/episode/Episode';
 // import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails'
 // import PatientVisit from 'src/stores/models/patientVisit/PatientVisit'
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
-import Duration from 'src/stores/models/Duration/Duration';
+import Duration from 'src/stores/models/duration/Duration';
 import Doctor from 'src/stores/models/doctor/Doctor';
 import { SessionStorage } from 'quasar';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
 import DispenseMode from 'src/stores/models/dispenseMode/DispenseMode';
+import { v4 as uuidv4 } from 'uuid';
+
+const { alertSucess, alertError, alertInfo } = useSwal();
 export default {
-  checkProvincialServer($q) {
+  checkProvincialServer() {
     // const $q = useQuasar()
     const openProvincialServer = axios.create({
-      baseURL: 'http://dev.fgh.org.mz:3110',
+      baseURL: 'http://dev.fgh.org.mz:3910',
     });
     openProvincialServer
       .post('/rpc/login', {
@@ -40,68 +43,47 @@ export default {
       })
       .then((response) => {
         if (response.data[0].token === undefined) {
-          $q.notify({
-            color: 'negative',
-            position: 'center',
-            message:
-              'O Utilizador ' +
-              this.username +
-              ' não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.',
-            icon: 'report_problem',
-          });
+          alertInfo(
+            'O Utilizador  não se encontra no OpenMRS ou serviço rest no OpenMRS não se encontra em funcionamento.'
+          );
         } else {
-          $q.notify({
-            color: 'positive',
-            position: 'center',
-            message:
-              'Pesquisa de Pacientes no Servidor Provincial em funcionamento!!',
-            icon: 'verified_user',
-          });
+          alertSucess(
+            'Pesquisa de Pacientes no Servidor Provincial em funcionamento!!'
+          );
         }
       })
       .catch((error) => {
         if (String(error).includes('Network Error')) {
-          $q.notify({
-            color: 'negative',
-            position: 'center',
-            message:
-              'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão!',
-            icon: 'report_problem',
-          });
+          alertError(
+            'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão!'
+          );
         } else {
-          $q.notify({
-            color: 'negative',
-            position: 'center',
-            message: 'Falha inexperada, por favor contacte o adminitrador.',
-            icon: 'report_problem',
-          });
+          alertError('Falha inexperada, por favor contacte o adminitrador.');
         }
       });
-    setTimeout(() => {
-      $q.loading.hide();
-    }, 400);
   },
-  provincialServiceSearch($q, currPatient, patients, transferencePatientData) {
+  provincialServiceSearch(
+    currPatient: any,
+    patients: any,
+    transferencePatientData: any
+  ) {
     const openProvincialServer = axios.create({
       baseURL: 'http://localhost:8884',
     });
     const nid = currPatient.identifiers[0].value.replaceAll('/', '-');
 
     if (nid.length <= 0) {
-      $q.notify({
-        color: 'negative',
-        position: 'center',
-        message:
-          'Não contem nenhum parâmetro de pesquisa. Por favor, indtroduza um Nº de Identificador',
-        icon: 'report_problem',
-      });
+      alertError(
+        'Não contem nenhum parâmetro de pesquisa. Por favor, indtroduza um Nº de Identificador'
+      );
     } else {
       openProvincialServer
-        .get('/patientTransReference/getPatientNid/' + '3245233342')
+        .get('/patientTransReference/getPatientNid/' + nid)
         .then((response) => {
-          this.patients = [];
+          patients = [];
           if (response.data !== null) {
             const localpatient = new Patient({
+              id: uuidv4(),
               identifiers: [],
             });
             patients.push(
@@ -109,22 +91,17 @@ export default {
             );
             transferencePatientData.push(response.data);
           } else {
-            $q.notify({
-              color: 'negative',
-              position: 'center',
-              message:
-                'Nenhum resultado encontrado para o identificador ' + nid + '',
-              icon: 'report_problem',
-            });
+            alertError(
+              'Nenhum resultado encontrado para o identificador ' + nid
+            );
           }
         });
     }
   },
-  buildLocalPatientTransfered(localpatient, idmedPatientTransfered) {
-    localpatient.firstNames = idmedPatientTransfered.firstNames + 'rrrrrt';
-    localpatient.middleNames = idmedPatientTransfered.middleNames + 'aa';
-    localpatient.lastNames =
-      idmedPatientTransfered.lastNames + 'ccddaaabbbcccddd';
+  buildLocalPatientTransfered(localpatient: any, idmedPatientTransfered: any) {
+    localpatient.firstNames = idmedPatientTransfered.firstNames;
+    localpatient.middleNames = idmedPatientTransfered.middleNames;
+    localpatient.lastNames = idmedPatientTransfered.lastNames;
     localpatient.gender = idmedPatientTransfered.gender;
     localpatient.dateOfBirth = idmedPatientTransfered.dateOfBirth;
     localpatient.cellphone = idmedPatientTransfered.cellphone;
@@ -139,8 +116,8 @@ export default {
     //  localpatient.his = (this.selectedDataSources.id.length > 4) ? this.selectedDataSources : null
     //  localpatient.identifiers.push(this.buildPatientIdentifierFromIdmed(idmedPatientTransfered))
     //  localpatient.patientVisits.push(this.buildPatientVisitFromIdmed(idmedPatientTransfered))
-    localpatient.province = Province.query()
-      .where('code', idmedPatientTransfered.provinceCode)
+    localpatient.province = provinceService
+      .getAllProvincesByCode(idmedPatientTransfered.provinceCode)
       .first();
     localpatient.district = District.query()
       .with('province')
@@ -149,7 +126,7 @@ export default {
     return localpatient;
   },
   buildPatientIdentifierFromIdmed(idmedPatientTransfered) {
-    const psi = new PatientServiceIdentifier();
+    const psi = new PatientServiceIdentifier({ id: uuidv4() });
     psi.startDate = idmedPatientTransfered.startDate;
     psi.value = idmedPatientTransfered.patientNid + '9989';
     psi.state = 'Activo';
@@ -171,7 +148,7 @@ export default {
     return psi;
   },
   buildEpisodeFromIdmed(idmedPatientTransfered) {
-    const episode = new Episode();
+    const episode = new Episode({ id: uuidv4() });
     episode.episodeDate = idmedPatientTransfered.episodeDate;
     episode.startStopReason = StartStopReason.query()
       .where('code', 'TRANSFERIDO_DE')
@@ -195,7 +172,7 @@ export default {
     return episode;
   },
   buildPrescriptionFromIdmed(idmedPatientTransfered) {
-    const prescription = new Prescription();
+    const prescription = new Prescription({ id: uuidv4() });
     prescription.prescriptionDate = idmedPatientTransfered.prescriptionDate;
     prescription.expiryDate = idmedPatientTransfered.expiryDate;
     prescription.prescriptionSeq = idmedPatientTransfered.prescriptionSeq;
@@ -235,7 +212,7 @@ export default {
         .first();
       prescribedDrug.amtPerTime = obj1.amtPerTime;
       prescribedDrug.timesPerDay = obj1.timesPerDay;
-      prescribedDrug.qtyPrescribed = 0;
+      prescribedDrug.prescribedQty = 0;
       prescribedDrug.form = obj1.form;
       // prescribedDrug.prescription = prescription
       prescribedDrugsLocal.push(prescribedDrug);
@@ -244,7 +221,7 @@ export default {
     return prescription;
   },
   buildPackFromIdmed(idmedPatientTransfered) {
-    const pack = new Pack();
+    const pack = new Pack({ id: uuidv4() });
     pack.dateLeft = idmedPatientTransfered.dateLeft;
     pack.dateReceived = idmedPatientTransfered.dateReceived;
     pack.modified = idmedPatientTransfered.modified;
@@ -269,7 +246,7 @@ export default {
     const packDrugsLocal = [];
     const obj = idmedPatientTransfered.jsonPackagedDrug;
     obj.forEach((obj1) => {
-      const packageDrug = new PackagedDrug();
+      const packageDrug = new PackagedDrug({ id: uuidv4() });
       packageDrug.drug = Drug.query()
         .with('form')
         .where('fnmCode', obj1.drugCode)
@@ -285,7 +262,7 @@ export default {
     return pack;
   },
   buildPatientVisitFromIdmed(idmedPatientTransfered) {
-    const patientVisit = new PatientVisit();
+    const patientVisit = new PatientVisit({ id: uuidv4() });
     patientVisit.visitDate = idmedPatientTransfered.patientVisitDate;
     patientVisit.clinic = Clinic.query()
       .with('province')
@@ -294,7 +271,7 @@ export default {
       .where('uuid', idmedPatientTransfered.originClinicUuid)
       .first();
 
-    const patientVisitDetails = new PatientVisitDetails();
+    const patientVisitDetails = new PatientVisitDetails({ id: uuidv4() });
     patientVisitDetails.clinic = Clinic.query()
       .with('province')
       .with('district.province')
@@ -312,7 +289,7 @@ export default {
     return patientVisit;
   },
   buildPatientVisitDetailsFromIdmed(idmedPatientTransfered) {
-    const patientVisit = new PatientVisit();
+    const patientVisit = new PatientVisit({ id: uuidv4() });
     patientVisit.visitDate = idmedPatientTransfered.patientVisitDate;
     patientVisit.clinic = Clinic.query()
       .with('province')
@@ -321,7 +298,7 @@ export default {
       .where('uuid', idmedPatientTransfered.originClinicUuid)
       .first();
 
-    const patientVisitDetails = new PatientVisitDetails();
+    const patientVisitDetails = new PatientVisitDetails({ id: uuidv4() });
     patientVisitDetails.clinic = Clinic.query()
       .with('province')
       .with('district.province')

@@ -1,11 +1,15 @@
 import { RouteRecordRaw } from 'vue-router';
 import AccessControlUtils from '../utils/AccessControlUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { showloading } = useLoading();
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     beforeEnter(to, from, next) {
+      // next();
       const authUser = localStorage.getItem('user');
       if (authUser === null || String(authUser).includes('null')) {
         next('/Login');
@@ -141,6 +145,17 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/Migration/Migration.vue'),
         beforeEnter(to, from, next) {
           if (!AccessControlUtils.menusVisible('Migração')) {
+            next('/:catchAll(.*)*');
+          } else {
+            next();
+          }
+        },
+      },
+      {
+        path: 'loadfiledc',
+        component: () => import('pages/DCProvedor/loadFile.vue'),
+        beforeEnter(to, from, next) {
+          if (!AccessControlUtils.menusVisible('DCProvedor')) {
             next('/:catchAll(.*)*');
           } else {
             next();

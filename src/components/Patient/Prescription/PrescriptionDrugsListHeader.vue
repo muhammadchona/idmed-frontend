@@ -1,215 +1,286 @@
 <template>
-   <q-banner
+  <q-banner
     dense
     inline-actions
     :class="[bgColor, headerClass]"
-    class="text-white q-pa-none">
-        <span class="text-bold text-subtitle1 vertical-middle q-pl-md"><slot></slot></span>
-        <template v-slot:action class="items-center">
-            <q-input
-              v-if="!visitDetails.createPackLater"
-              dense
-              outlined
-              bg-color="white"
-              style="margin:2px; width: 200px"
-              v-model="pickupDate"
-              @update:model-value="determineNextPickUpDate()"
-              ref="pickupDate"
-              label="Data de Levantamento">
-              <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                  <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                      <q-date v-model="pickupDate" mask="DD-MM-YYYY" @update:model-value="determineNextPickUpDate()" >
-                      <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="Close" color="primary" flat />
-                      </div>
-                      </q-date>
-                  </q-popup-proxy>
-                  </q-icon>
-              </template>
-          </q-input>
-
-          <q-select
-            v-if="!visitDetails.createPackLater"
-            dense
-            style="width: 200px"
-            class="q-mx-sm"
-            bg-color="white"
-            @blur="determineNextPickUpDate()"
-            outlined
-            v-model="drugsDuration"
-            :options="durations"
-            option-value="id"
-            option-label="description"
-            label="Dispensa para" />
-
-          <q-input
-            v-if="!visitDetails.createPackLater"
-            outlined dense
-            v-model="nextPDate"
-            label="Proximo Levantamento"
-            bg-color="white"
-            style="margin:2px; width: 200px"
-            ref="nextPickupDate">
-            <template v-slot:append>
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                  <q-date v-model="nextPDate" mask="DD-MM-YYYY">
-                    <div class="row items-center justify-end">
-                      <q-btn v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
-
-          <q-btn dense flat round color="white" :icon="expanded ? 'expand_less' : 'expand_more'" class="float-right" @click="expand"/>
-          <q-btn dense v-if="addVisible" flat round color="white" icon="add" class="float-right q-mx-sm" @click="showAdd"/>
+    class="text-white q-pa-none"
+  >
+    <span class="text-bold text-subtitle1 vertical-middle q-pl-md"
+      ><slot></slot
+    ></span>
+    <template v-slot:action>
+      <q-input
+        v-if="!curPatientVisit.createPackLater"
+        dense
+        outlined
+        :disable="validateDispense"
+        bg-color="white"
+        style="margin: 2px; width: 200px"
+        v-model="pickupDate"
+        @update:model-value="
+          determineNextPickUpDate(pickupDate, drugsDuration.weeks)
+        "
+        ref="pickupDateRef"
+        label="Data de Levantamento"
+      >
+        <template v-slot:append>
+          <q-icon name="event" class="cursor-pointer">
+            <q-popup-proxy
+              ref="qDateProxy"
+              transition-show="scale"
+              transition-hide="scale"
+            >
+              <q-date
+                v-model="pickupDate"
+                mask="DD-MM-YYYY"
+                :disable="validateDispense"
+                @update:model-value="
+                  determineNextPickUpDate(pickupDate, drugsDuration.weeks)
+                "
+              >
+                <div class="row items-center justify-end">
+                  <q-btn v-close-popup label="Close" color="primary" flat />
+                </div>
+              </q-date>
+            </q-popup-proxy>
+          </q-icon>
         </template>
+      </q-input>
 
-        <q-dialog v-model="alert.visible">
-          <Dialog :type="alert.type" @closeDialog="closeDialog">
-            <template v-slot:title> Informação</template>
-            <template v-slot:msg> {{alert.msg}} </template>
-          </Dialog>
-        </q-dialog>
-    </q-banner>
+      <q-select
+        v-if="!curPatientVisit.createPackLater"
+        dense
+        :disable="validateDispense"
+        style="width: 200px"
+        class="q-mx-sm"
+        bg-color="white"
+        @update:model-value="
+          (value) => determineNextPickUpDate(pickupDate, value.weeks)
+        "
+        outlined
+        v-model="drugsDuration"
+        :options="durations"
+        option-value="id"
+        option-label="description"
+        label="Dispensa para"
+      />
+
+      <q-input
+        v-if="!curPatientVisit.createPackLater"
+        outlined
+        dense
+        :disable="validateDispense"
+        v-model="nextPDate"
+        label="Proximo Levantamento"
+        bg-color="white"
+        style="margin: 2px; width: 200px"
+        ref="nextPickupDateRef"
+      >
+        <template v-slot:append>
+          <q-icon name="event" class="cursor-pointer">
+            <q-popup-proxy
+              ref="qDateProxy"
+              transition-show="scale"
+              transition-hide="scale"
+            >
+              <q-date v-model="nextPDate" mask="DD-MM-YYYY">
+                <div class="row items-center justify-end">
+                  <q-btn v-close-popup label="Close" color="primary" flat />
+                </div>
+              </q-date>
+            </q-popup-proxy>
+          </q-icon>
+        </template>
+      </q-input>
+
+      <q-btn
+        dense
+        flat
+        round
+        color="white"
+        :icon="expanded ? 'expand_less' : 'expand_more'"
+        class="float-right"
+        @click="expand"
+      />
+      <q-btn
+        dense
+        v-if="addVisible"
+        flat
+        round
+        :disable="validateDispense"
+        color="white"
+        icon="add"
+        class="float-right q-mx-sm"
+        @click="showAdd"
+      />
+    </template>
+  </q-banner>
 </template>
 
-<script>
-import { ref } from 'vue'
-import { date } from 'quasar'
-import Duration from '../../../store/models/Duration/Duration'
-import mixinplatform from 'src/mixins/mixin-system-platform'
-import mixinutils from 'src/mixins/mixin-utils'
-import moment from 'moment'
-export default {
-    mixins: [mixinplatform, mixinutils],
-    props: ['addVisible', 'bgColor', 'mainContainer', 'visitDetails', 'newPickUpDate', 'duration', 'step'],
-    data () {
-      return {
-        alert: ref({
-          type: '',
-          visible: false,
-          msg: ''
-        }),
-        headerClass: '',
-        expanded: ref(false),
-        curVisitDetails: '',
-        nextPDate: '',
-        pickupDate: '',
-        drugsDuration: ''
-      }
-    },
-    methods: {
-      determineHeaderClass () {
-        if (this.mainContainer) {
-          this.headerClass = 'list-header'
-        } else {
-          this.headerClass = ''
-        }
-      },
-      tryToDetermineDefaultTakePeriod () {
-        if (this.duration !== null) {
-          this.drugsDuration = this.duration
-          this.determineNextPickUpDate()
-        }
-      },
-      expand () {
-        this.expanded = !this.expanded
-        this.$emit('expandLess', this.expanded)
-      },
-      showAdd () {
-        // this.$refs.pickupDate.validate()
-        // this.$refs.nextPickupDate.validate()
-        if (this.visitDetails.createPackLater) {
-          this.$emit('showAdd', null, null, this.drugsDuration)
-        } else {
-          if (!date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.pickupDate))) {
-            this.displayAlert('error', 'A data de levantamento é inválida')
-          } else if (!date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.nextPDate))) {
-            this.displayAlert('error', 'A data do próximo levantamento é inválida')
-          } else if (this.drugsDuration === '') {
-            this.displayAlert('error', 'Por favor indicar a duração da medicação a dispensar.')
-          } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) < this.curVisitDetails.prescription.prescriptionDate) {
-            this.displayAlert('error', 'A data de levantamento indicada é menor que a data da prescrição')
-          } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) > moment().format('YYYY-MM-DD')) {
-            this.displayAlert('error', 'A data de levantamento indicada é maior que a data da corrente')
-          } else if (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) > this.extractHyphenDateFromDMYConvertYMD(this.nextPDate)) {
-            this.displayAlert('error', 'A data do levantamento é maior que a data do próximo levantamento')
-          } else if (this.newPickUpDate !== '' && (this.extractHyphenDateFromDMYConvertYMD(this.pickupDate) < this.newPickUpDate)) {
-            this.displayAlert('error', 'A data de levantamento não pode ser anterior a ' + this.getDDMMYYYFromJSDate(this.newPickUpDate) + ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.')
-          } else {
-            this.$emit('showAdd', this.getDateFromHyphenDDMMYYYY(this.pickupDate), this.getDateFromHyphenDDMMYYYY(this.nextPDate), this.drugsDuration)
-          }
-        }
-      },
-      determineNextPickUpDate () {
-        if (date.isValid(this.extractHyphenDateFromDMYConvertYMD(this.pickupDate)) && this.drugsDuration !== '') {
-          const newDate = this.getDateFromHyphenDDMMYYYY(this.pickupDate)
-          let lostDays = parseInt((this.drugsDuration.weeks / 4) * 2)
-          if (this.drugsDuration.weeks <= 1) lostDays = 0
-          const daysToAdd = parseInt((this.drugsDuration.weeks * 7) + lostDays)
-          this.nextPDate = this.getJSDateFromDDMMYYY(date.addToDate(newDate, { days: daysToAdd }))
-          this.$emit('updateQtyPrescribed', this.drugsDuration, this.pickupDate, this.nextPDate)
-        }
-      },
-      displayAlert (type, msg) {
-        this.alert.type = type
-        this.alert.msg = msg
-        this.alert.visible = true
-      },
-      closeDialog () {
-        this.alert.visible = false
-      },
-      formatDate (dateString) {
-        return date.formatDate(dateString, 'YYYY-MM-DD')
-      },
-      init () {
-        this.pickupDate = this.getDDMMYYYFromJSDate(this.newPickUpDate)
-        this.tryToDetermineDefaultTakePeriod()
-      },
-      getJSDateFromDDMMYYY (dateString) {
-        if (dateString !== null && dateString !== undefined) {
-          return moment(dateString).format('DD-MM-YYYY')
-        } else {
-          return moment().format('DD-MM-YYYY')
-        }
+<script setup>
+import { inject, onMounted, provide, ref } from 'vue';
+import moment from 'moment';
+import { date } from 'quasar';
+import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import durationService from 'src/services/api/duration/durationService';
+// props
+const props = defineProps(['addVisible', 'mainContainer', 'bgColor']);
 
-        // const dateParts = dateString.split('-')
-        // return new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0])
-      },
-      getDDMMYYYFromJSDate (jsDate) {
-        return moment(jsDate).format('DD-MM-YYYY')
-      }
-    },
-    components: {
-      Dialog: require('components/Shared/Dialog/Dialog.vue').default
-    },
-    created () {
-      this.determineHeaderClass()
-      this.curVisitDetails = Object.assign({}, this.visitDetails)
-    },
-    computed: {
-      durations () {
-        return Duration.all()
-      }
-    },
-    mounted () {
-      this.init()
+// Declaration
+const {
+  extractHyphenDateFromDMYConvertYMD,
+  getDateFromHyphenDDMMYYYY,
+  getDateFormatDDMMYYYYFromYYYYMMDD,
+  getJSDateFromDDMMYYY,
+} = useDateUtils();
+const { alertSucess, alertError, alertInfo } = useSwal();
+const headerClass = ref('');
+const expanded = ref(false);
+const curVisitDetails = ref('');
+const nextPDate = ref('');
+const pickupDate = ref('');
+const drugsDuration = ref();
+
+//Inject
+const curPatientVisit = inject('curPatientVisit');
+const curPrescription = inject('curPrescription');
+const curPack = inject('curPack');
+const isNewPrescription = inject('isNewPrescription');
+const durations = inject('durations');
+const showAddEditDrug = inject('showAddEditDrug');
+const validateDispense = inject('validateDispense');
+const lastPack = inject('lastPack');
+
+// Hook
+
+onMounted(() => {
+  init();
+  determineHeaderClass();
+});
+
+// Methods
+const determineHeaderClass = () => {
+  if (props.mainContainer) {
+    headerClass.value = 'list-header';
+  } else {
+    headerClass.value = '';
+  }
+};
+const expand = () => {
+  expanded.value = !expanded.value;
+  $emit('expandLess', expanded);
+};
+const showAdd = () => {
+  if (!date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate.value))) {
+    alertError('A data de levantamento é inválida');
+  } else if (
+    !date.isValid(extractHyphenDateFromDMYConvertYMD(nextPDate.value))
+  ) {
+    alertError('A data do próximo levantamento é inválida');
+  } else if (drugsDuration.value === '') {
+    alertError('Por favor indicar a duração da medicação a dispensar.');
+    // } else if (
+    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) <
+    //   curPatientVisitDetail.value.prescription.prescriptionDate
+    // ) {
+    //   alertError(
+    //     'A data de levantamento indicada é menor que a data da prescrição'
+    //   );
+  } else if (
+    extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
+    moment().format('YYYY-MM-DD')
+  ) {
+    alertError(
+      'A data de levantamento indicada é maior que a data da corrente'
+    );
+  } else if (
+    extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
+    extractHyphenDateFromDMYConvertYMD(nextPDate.value)
+  ) {
+    alertError(
+      'A data do levantamento é maior que a data do próximo levantamento'
+    );
+    // } else if (
+    //   newPickUpDate !== '' &&
+    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) < newPickUpDate.value
+    // ) {
+    //   alertError(
+    //     'A data de levantamento não pode ser anterior a ' +
+    //       getDDMMYYYFromJSDate(newPickUpDate.value) +
+    //       ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.'
+    //   );
+  } else {
+    showAddEditDrug.value = true;
+  }
+};
+const determineNextPickUpDate = (pickupDate, weeks) => {
+  if (date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate))) {
+    const newDate = getDateFromHyphenDDMMYYYY(pickupDate);
+    let lostDays = parseInt((weeks / 4) * 2);
+    if (weeks <= 1) {
+      lostDays = 0;
     }
-}
+    const daysToAdd = parseInt(weeks * 7 + lostDays);
+    nextPDate.value = getDDMMYYYFromJSDate(
+      date.addToDate(newDate, { days: daysToAdd })
+    );
+
+    curPack.value.packDate = extractHyphenDateFromDMYConvertYMD(pickupDate);
+    curPack.value.pickupDate = extractHyphenDateFromDMYConvertYMD(pickupDate);
+    curPack.value.nextPickUpDate = extractHyphenDateFromDMYConvertYMD(
+      nextPDate.value
+    );
+    curPack.value.weeksSupply = weeks;
+  }
+};
+const formatDate = (dateString) => {
+  return date.formatDate(dateString, 'YYYY-MM-DD');
+};
+const init = () => {
+  if (isNewPrescription.value) {
+    pickupDate.value = getDDMMYYYFromJSDate(
+      curPrescription.value.prescriptionDate
+    );
+    drugsDuration.value = curPrescription.value.duration;
+  } else {
+    if (
+      lastPack.value.nextPickUpDate !== null &&
+      lastPack.value.nextPickUpDate !== undefined
+    ) {
+      curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+      curPack.value.weeksSupply = lastPack.value.weeksSupply;
+      drugsDuration.value = durationService.getDurationByWeeks(
+        curPack.value.weeksSupply
+      );
+    } else {
+      curPack.value.pickupDate = curPrescription.value.prescriptionDate;
+      curPack.value.weeksSupply = curPrescription.value.duration.weeks;
+      drugsDuration.value = curPrescription.value.duration;
+    }
+    pickupDate.value = getDDMMYYYFromJSDate(curPack.value.pickupDate);
+  }
+
+  determineNextPickUpDate(pickupDate.value, drugsDuration.value.weeks);
+};
+
+const getDDMMYYYFromJSDate = (jsDate) => {
+  return moment(jsDate).local().format('DD-MM-YYYY');
+};
+
+// Provide
+
+provide('drugsDuration', drugsDuration);
 </script>
 
 <style scoped>
-    .list-header {
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-    }
-    .input-color {
-      border: 1px solid white;
-      border-radius: 5px;
-      color: white;
-    }
+.list-header {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+.input-color {
+  border: 1px solid white;
+  border-radius: 5px;
+  color: white;
+}
 </style>

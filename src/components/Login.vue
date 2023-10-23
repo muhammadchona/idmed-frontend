@@ -7,3 +7,4 @@
 
 <script>
 </script>
+src/components/Shared/ListEmpty.vue

@@ -1,9 +1,8 @@
 import { Model } from 'pinia-orm';
-import db from 'src/stores/localbase';
 
 export default class ProvincialServer extends Model {
   static entity = 'provincialServers';
-
+  static primaryKey = 'id';
   static fields() {
     return {
       id: this.attr(null),
@@ -16,48 +15,7 @@ export default class ProvincialServer extends Model {
       password: this.attr(''),
     };
   }
-
-  static async apiFetchById(id) {
-    return await this.api().get(`/provincialServer/${id}`);
-  }
-
-  static async apiGetAll() {
-    return await this.api().get('/provincialServer');
-  }
-
-  static localDbAdd(provincialServer) {
-    return db.newDb().collection('provincialServers').add(provincialServer);
-  }
-
-  static localDbGetById(id) {
-    return db.newDb().collection('provincialServers').doc({ id: id }).get();
-  }
-
-  static localDbGetAll() {
-    return db.newDb().collection('provincialServers').get();
-  }
-
-  static localDbUpdate(provincialServer) {
-    return db
-      .newDb()
-      .collection('provincialServers')
-      .doc({ id: provincialServer.id })
-      .set(provincialServer);
-  }
-
-  static localDbUpdateAll(provincialServers) {
-    return db.newDb().collection('provincialServers').set(provincialServers);
-  }
-
-  static localDbDelete(provincialServer) {
-    return db
-      .newDb()
-      .collection('provincialServers')
-      .doc({ id: provincialServer.id })
-      .delete();
-  }
-
-  static localDbDeleteAll() {
-    return db.newDb().collection('provincialServers').delete();
-  }
+  static piniaOptions = {
+    persist: true,
+  };
 }

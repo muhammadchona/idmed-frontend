@@ -1,93 +1,122 @@
 <template>
-     <div  class="row">
-      <div class="col">
-        <q-table
-         style="max-width: 100%; "
-          :rows="rows"
-          :columns="columnsGender"
-           class="my-sticky-header-table text-color-white"
-            title="Alerta de Stock"
-           >
+  <div class="row">
+    <div class="col">
+      <q-table
+        style="max-width: 100%"
+        :rows="rows"
+        :columns="columnsGender"
+        class="my-sticky-header-table text-color-white"
+        title="Alerta de Stock"
+      >
         <template v-slot:body="props">
-            <q-tr :props="props">
-            <q-td key="drug" :props="props">
-                {{ props.row.drug }}
+          <q-tr v-bind="props">
+            <q-td key="drug" v-bind="props">
+              {{ !isOnline ?  props.row.drug.name  : props.row.drug }}
             </q-td>
-            <q-td key="avgConsuption" :props="props">
-                {{ props.row.avgConsuption }}
+            <q-td key="avgConsuption" v-bind="props">
+              {{ props.row.avgConsuption }}
             </q-td>
-              <q-td key="balance" :props="props">
-                {{ props.row.balance }}
+            <q-td key="balance" v-bind="props">
+              {{ props.row.balance }}
             </q-td>
-              <q-td key="state" :props="props">
-                <q-chip :color="this.getConsuptionRelatedColor(props.row.state)" text-color="white">
-                  {{ props.row.state }}
-                </q-chip>
+            <q-td key="state" v-bind="props">
+              <q-chip
+                :color="getConsuptionRelatedColor(props.row.state)"
+                text-color="white"
+              >
+                {{ props.row.state }}
+              </q-chip>
             </q-td>
-            </q-tr>
+          </q-tr>
         </template>
-    </q-table>
-      </div>
+      </q-table>
     </div>
+  </div>
 </template>
-<script>
-import Clinic from '../../../store/models/clinic/Clinic'
-import Report from 'src/store/models/report/Report'
-import { SessionStorage } from 'quasar'
+
+<script setup>
+import { ref, computed, onMounted, inject, watch } from 'vue';
+import reportService from 'src/services/api/report/ReportService.ts';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { isOnline } = useSystemUtils();
 
 const columnsGender = [
-  { name: 'drug', required: true, label: 'Medicamento', align: 'left', field: row => row.drug, format: val => `${val}` },
-  { name: 'avgConsuption', required: true, label: 'Média de Consumo Mensal', align: 'left', field: row => row.avgConsuption, format: val => `${val}` },
-  { name: 'balance', required: true, label: 'Saldo actual', align: 'left', field: row => row.balance, format: val => `${val}` },
-   { name: 'state', required: true, label: 'Estado', align: 'left', field: row => row.state, format: val => `${val}` }
-]
+  {
+    name: 'drug',
+    required: true,
+    label: 'Medicamento',
+    align: 'left',
+    field: (row) => row.drug,
+    format: (val) => `${val}`,
+  },
+  {
+    name: 'avgConsuption',
+    required: true,
+    label: 'Média de Consumo Mensal',
+    align: 'left',
+    field: (row) => row.avgConsuption,
+    format: (val) => `${val}`,
+  },
+  {
+    name: 'balance',
+    required: true,
+    label: 'Saldo atual',
+    align: 'left',
+    field: (row) => row.balance,
+    format: (val) => `${val}`,
+  },
+  {
+    name: 'state',
+    required: true,
+    label: 'Estado',
+    align: 'left',
+    field: (row) => row.state,
+    format: (val) => `${val}`,
+  },
+];
 
-export default {
-  props: ['serviceCode'],
-  data () {
-    return {
-        columnsGender,
-        rowData: []
-    }
-  },
-  methods: {
-    getStockAlert () {
-      Report.apiGetStockAlert(this.clinic.id, this.serviceCode).then(resp => {
-        this.rowData = resp.response.data
-      })
-    },
-    getConsuptionRelatedColor (state) {
-      if (state === 'Sem Consumo') {
-        return 'blue'
-      } else if (state === 'Ruptura de Stock') {
-        return 'red'
-      } else if (state === 'Acima do Consumo Máximo') {
-        return 'info'
+const rowData = ref([]);
+
+const currClinic = inject('currClinic');
+const serviceCode = inject('serviceCode');
+const year = inject('year');
+
+const getStockAlert = () => {
+  reportService.getStockAlert(currClinic.value.id, serviceCode.value).then((resp) => {
+      if (isOnline.value) {
+        rowData.value = resp.data
       } else {
-        return 'primary'
+        rowData.value = resp
       }
-    }
-  },
-  computed: {
-    clinic () {
-      return Clinic.query()
-                  .where('id', SessionStorage.getItem('currClinic').id)
-                  .first()
-    },
-    rows () {
-      return this.rowData
-    }
-  },
-    created () {
-      this.getStockAlert()
-    },
-    watch: {
-   serviceCode: function (newVal, oldVal) {
-        this.getStockAlert()
-    }
+  });
+};
+
+const getConsuptionRelatedColor = (state) => {
+  if (state === 'Sem Consumo') {
+    return 'blue';
+  } else if (state === 'Ruptura de Stock') {
+    return 'red';
+  } else if (state === 'Acima do Consumo Máximo') {
+    return 'info';
+  } else {
+    return 'primary';
   }
-}
+};
+
+const rows = computed(() => {
+  return rowData.value;
+});
+
+onMounted(() => {
+  getStockAlert();
+});
+
+watch([serviceCode, year], () => {
+  getStockAlert();
+});
 </script>
+
 <style lang="sass">
 .my-sticky-header-table
   /* height or max-height is important */

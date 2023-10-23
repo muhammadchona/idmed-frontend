@@ -153,6 +153,7 @@ export default class Report extends Model {
     return moment(date).format('DD-MM-YYYY');
   }
 
+  
   static getFormatYYYYMMDD(date) {
     return moment(date).format('YYYY-MM-DD');
   }

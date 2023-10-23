@@ -83,10 +83,10 @@ export default {
         this.nationalClinic = Object.assign({}, nationalClinic)
       }
   },
-  mounted () {
-  },
-    components: {
-      addNationalClinic: require('components/Settings/NationalClinic/AddNationalClinic.vue').default
-  }
+  // mounted () {
+  // },
+  //   components: {
+  //     addNationalClinic: require('components/Settings/NationalClinic/AddNationalClinic.vue').default
+  // }
 }
 </script>
