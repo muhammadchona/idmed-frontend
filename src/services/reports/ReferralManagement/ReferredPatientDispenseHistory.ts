@@ -40,6 +40,9 @@ export default {
         ]
       const rows = await Report.printReportOther('referredPatientsReport', params.id)
       if(rows.status === 204) return rows.status
+      const firstReg = rows.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       const data = this.createArrayOfArrayRow(rows.data)
   
       autoTable(doc, {
@@ -81,6 +84,9 @@ export default {
 
       const rows = await Report.printReportOther('referredPatientsReport',params.id)
       if(rows.status === 204) return rows.status
+      const firstReg = rows.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       const data =  this.createArrayOfArrayRow(rows.data)
   
       const workbook = new ExcelJS.Workbook();

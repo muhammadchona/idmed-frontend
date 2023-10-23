@@ -60,8 +60,10 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
 const progress = ref(0.0);
 const filterReceivedStockSection = ref('');
 
-   const serviceAux = ref(null)
+const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
      const  closeSection = (params)  =>{
         filterReceivedStockSection.value.remove()  
@@ -116,13 +118,19 @@ const resultFromLocalStorage = ref(false)
       if (fileType === 'PDF') {
            ReceivedStockReport.downloadPDF(id, fileType, params).then(resp => {
                   if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+                  downloadingPdf.value = false
                })
         } else if (fileType === 'XLS') {
            ReceivedStockReport.downloadExcel(id, fileType, params).then(resp => {
                   if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                  downloadingXls.value = false
                })
         }
       }
+
+      
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
 
       provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)

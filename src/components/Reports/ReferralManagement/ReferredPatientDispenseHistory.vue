@@ -62,6 +62,8 @@ const progress =  ref(0.00)
 const filterDrugStoreSection = ref('')
 const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
 
 onMounted (() => {
@@ -113,14 +115,19 @@ const generateReport =  (id, fileType, params) => {
       if (fileType === 'PDF') {
           referredPatientDispenseHistory.downloadPDF(params).then(resp => {
             if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+            downloadingPdf.value = false
           })
       } else {
           referredPatientDispenseHistory.downloadExcel(params).then(resp => {
             if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+            downloadingXls.value = false
           })
       }
 }
 
+
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
 provide('getProcessingStatus',getProcessingStatus)

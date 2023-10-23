@@ -47,7 +47,7 @@
           class="col q-mr-md"
           dense
           outlined
-          :options="periodTypeList"
+          :options="filteredPeriodTypes"
           v-model="periodTypeSelect"
           ref="period"
           option-value="code"
@@ -308,8 +308,8 @@ const quarterlyPeriod = ref('');
 const semesterPeriod = ref('');
 const annualPeriod = ref('');
 const submitForm = ref('');
-const downloadingXls = ref(false);
-const downloadingPdf = ref(false);
+const downloadingXls = inject('downloadingXls')
+const downloadingPdf = inject('downloadingPdf')
 const resultFromLocalStorage = inject('resultFromLocalStorage')
 
 const reportParams = ref({
@@ -336,6 +336,8 @@ const reportParams = ref({
   tabName: null
 });
 
+const isMMiaReport = ref(false)
+
 const periodTypeList = ref([
   { id: 1, description: 'Especifico', code: 'SPECIFIC' },
   { id: 2, description: 'Mensal', code: 'MONTH' },
@@ -343,6 +345,17 @@ const periodTypeList = ref([
   { id: 4, description: 'Semestral', code: 'SEMESTER' },
   { id: 5, description: 'Anual', code: 'ANNUAL' },
 ]);
+
+const filteredPeriodTypes = computed(() => {
+      if (isMMiaReport.value) {
+        // Se isMMiaReport for verdadeiro, retornar apenas o período "Mensal"
+        return periodTypeList.value.filter((periodType) => periodType.code === 'MONTH');
+      } else {
+        // Se isMMiaReport for falso, retornar a lista completa de tipos de período
+        return periodTypeList.value;
+      }
+    });
+
 const initProcessing = ref(false);
 const errorCountAux = 0;
 const retrievingFromLocalStore = ref(false)
@@ -352,7 +365,6 @@ const periodTypeSelect = ref(null);
 const getProcessingStatus = inject('getProcessingStatus')
 
 onMounted(() => {
-  //  init()
   reportProcessing.value = initProcessing.value;
   initParams();
   if (props.params) {
@@ -362,6 +374,7 @@ onMounted(() => {
     getProcessingStatus(reportParams.value)
     periodTypeSelect.value = reportParams.value.periodTypeView
   }
+  if (props.tabName  === 'Mmia') isMMiaReport.value = true // MMia eh so no periodo mensal
 });
 
 const processingTerminated = computed(() => {
@@ -430,12 +443,6 @@ const blockDataFutura = (date) => {
   const data = ref(moment(date).format('YYYY/MM/DD'));
   return data.value <= moment(new Date()).format('YYYY/MM/DD');
 };
-
-/* const init=  ()=> {
-if (   applicablePeriods !== null) {
-//    periodTypeList = ref(   applicablePeriods)
-}
-} */
 
 const errorCount = (value) => {
   errorCountAux = value;
@@ -534,24 +541,25 @@ const saveParams = () => {
   reportParams.value.clinic = currClinic.value;
 };
 
-const generatingXlsReportLoading = (fileType) => {
-  if (fileType === 'XLS') {
-    downloadingXls.value = true;
-  } else {
-    downloadingPdf.value = true;
-  }
+// const generatingXlsReportLoading = (fileType) => {
+//   if (fileType === 'XLS') {
+//     downloadingXls.value = true;
+//   } else {
+//     downloadingPdf.value = true;
+//   }
 
-  setTimeout(() => {
-    if (fileType === 'XLS') {
-      downloadingXls.value = false;
-    } else {
-      downloadingPdf.value = false;
-    }
-  }, 2000);
-};
+  // setTimeout(() => {
+  //   if (fileType === 'XLS') {
+  //     downloadingXls.value = false;
+  //   } else {
+  //     downloadingPdf.value = false;
+  //   }
+  // }, 2000);
+
 
 const generateReport = (fileType) => {
-  generatingXlsReportLoading(fileType);
+  // generatingXlsReportLoading(fileType);
+  if (fileType === 'PDF') { downloadingPdf.value = true } else { downloadingXls.value = true }
   $emit('generateReport', props.id, fileType, reportParams.value);
 };
 

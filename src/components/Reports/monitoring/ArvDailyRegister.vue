@@ -59,6 +59,8 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
 const filterArvDailyRegisterSection = ref('')
 const report = 'LIVRO_DIARIO'
     
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
     const name = 'ArvDailyRegister'
     const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
@@ -126,13 +128,18 @@ const resultFromLocalStorage = ref(false)
           if (fileType === 'PDF') {
            ArvDailyRegisterReport.downloadPDF(id, fileType, params).then(resp => {
                   if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+                  downloadingPdf.value = false
                })
         } else if (fileType === 'XLS') {
            ArvDailyRegisterReport.downloadExcel(id, fileType, params).then(resp => {
                   if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+                  downloadingXls.value = false
                })
         }
       }
+
+      provide('downloadingPdf', downloadingPdf)
+      provide('downloadingXls', downloadingXls)
 
       provide('serviceAux', serviceAux)
       provide('resultFromLocalStorage', resultFromLocalStorage) 

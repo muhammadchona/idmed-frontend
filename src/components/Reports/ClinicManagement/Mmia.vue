@@ -137,18 +137,28 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType) => {
   if (fileType === 'PDF') {
+    downloadingPdf.value = true
     mmiaReport.downloadPDF(id).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingPdf.value = false
     });
+    
   } else {
+    downloadingXls.value = true
     mmiaReport.downloadExcel(id).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingXls.value = false
     });
+    
   }
 };
 
+const downloadingPdf = ref(false)
+  const downloadingXls = ref(false)
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
 provide('serviceAux', serviceAux)
   provide('resultFromLocalStorage', resultFromLocalStorage)
       provide('getProcessingStatus',getProcessingStatus) 

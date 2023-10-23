@@ -110,16 +110,26 @@
   
   const generateReport = (id, fileType, params) => {
     if (fileType === 'PDF') {
+      downloadingPdf.value = true
       absentPatientsTs.downloadPDF(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+        downloadingPdf.value = false
       })
+      
     } else if (fileType === 'XLS') {
+      downloadingXls.value = true
       absentPatientsTs.downloadExcel(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+        downloadingXls.value = false
       })
+      
     }
   }
   
+  const downloadingPdf = ref(false)
+  const downloadingXls = ref(false)
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
   provide('serviceAux', serviceAux)
   provide('resultFromLocalStorage', resultFromLocalStorage) 
   provide('getProcessingStatus', getProcessingStatus)

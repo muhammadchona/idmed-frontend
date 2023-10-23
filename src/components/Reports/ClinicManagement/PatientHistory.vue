@@ -123,19 +123,23 @@ const generateReport = (id, fileType) => {
         } else {
           const firstReg = resp.data[0];
           if (fileType === 'PDF') {
+            downloadingPdf.value = true
             patientHistoryTS.downloadPDF(
               firstReg.province,
               moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
               moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
               resp.data
             );
+            downloadingPdf.value = false
           } else {
+            downloadingXls.value = true
             patientHistoryTS.downloadExcel(
               firstReg.province,
               moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
               moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
               resp.data
             );
+            downloadingXls.value = false
           }
         }
       })
@@ -143,24 +147,32 @@ const generateReport = (id, fileType) => {
     PatientHistoryMobileService.localDbGetAllByReportId(id).then((reports) => {
       const firstReg = reports[0];
       if (fileType === 'PDF') {
+        downloadingPdf.value = true
         patientHistoryTS.downloadPDF(
           '',
           moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
           moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
           reports
         );
+        downloadingPdf.value = false
       } else {
+        downloadingXls.value = true
         patientHistoryTS.downloadExcel(
           '',
           moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
           moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
           reports
         );
+        downloadingXls.value = false
       }
     });
   }
 };
       
+const downloadingPdf = ref(false)
+  const downloadingXls = ref(false)
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
         provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
       provide('getProcessingStatus',getProcessingStatus) 

@@ -61,6 +61,8 @@ const qtyProcessed = ref(0);
 const report = 'REFERIDOS_FALTOSOS_AO_LEVANTAMENTO';
 const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
 const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
@@ -94,8 +96,6 @@ const initReportProcessing = (params) => {
 };
 
 const getProcessingStatus = (params) => {
-  alert('IN')
-  console.log(params)
   Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {  
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
@@ -120,17 +120,24 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
-    absentReferredPatients.downloadPDF(params).then((resp) => {
+  absentReferredPatients.downloadPDF(params).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingPdf.value = false
     });
+    
   } else {
     absentReferredPatients.downloadExcel(params).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingXls.value = false
     });
+    
   }
 };
+
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
 provide('getProcessingStatus',getProcessingStatus)

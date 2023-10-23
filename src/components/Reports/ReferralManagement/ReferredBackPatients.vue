@@ -62,16 +62,18 @@ const { alertSucess, alertError, alertWarningAction } = useSwal();
       const totalRecords= ref(0)
       const qtyProcessed = ref(0)
       const  report= 'VOLTOU_REFERENCIA'
-        const progress = ref(0.00)
-        const filterDrugStoreSection = ref('')
-        const serviceAux = ref(null)
-const resultFromLocalStorage = ref(false)   
+      const progress = ref(0.00)
+      const filterDrugStoreSection = ref('')
+      const serviceAux = ref(null)
+      const downloadingPdf = ref(false)
+      const downloadingXls = ref(false)
+      const resultFromLocalStorage = ref(false)   
 
-        onMounted (()=> {
+      onMounted (()=> {
         if (props.params) {
           (getProcessingStatus(props.params))
         }
-    })
+      })
 
      const closeSection= (params)=> {
         filterDrugStoreSection.value.remove()
@@ -125,15 +127,18 @@ const resultFromLocalStorage = ref(false)
         });
       };
 
-      const generateReport =  async (id, fileType, params) => {
+      const generateReport =  (id, fileType, params) => {
           if (isOnline.value) {
             if (fileType === 'PDF') {
                referredBackPatients.downloadPDF(null, params).then(resp => {
                   if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                  downloadingPdf.value = false
                })
+               
             } else {
                referredBackPatients.downloadExcel(null, params).then(resp => {
                   if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                  downloadingXls.value = false
                })
             }
           } else {
@@ -141,17 +146,23 @@ const resultFromLocalStorage = ref(false)
               if (resp <= 0) {
                 alertError('Nao existem Dados para o periodo selecionado')
               } else {
-                console.log(params)
                 if (fileType === 'PDF') {
+                  downloadingPdf.value = true
                   referredBackPatients.downloadPDF(resp, params)
+                  downloadingPdf.value = false
                 } else {
+                  downloadingXls.value = true
                   referredBackPatients.downloadExcel(resp, params)
+                  downloadingXls.value = false
                 }
               }
             })
           }
         }
 
+        
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
         provide('serviceAux', serviceAux)
     provide('resultFromLocalStorage', resultFromLocalStorage)
 provide('getProcessingStatus',getProcessingStatus)

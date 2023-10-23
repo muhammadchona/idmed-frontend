@@ -19,7 +19,7 @@ const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 export default {
   async downloadPDF(id, fileType, params) {
-    console.log(params)
+  
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -46,17 +46,14 @@ export default {
     if (isOnline.value) {
       data = await Report.printReportOther('stockReportTemp', id);
       if (data.status === 204 || data.length === 0) return 204;
+      const firstReg = data.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       data = this.createArrayOfArrayRow(data.data);
     } else {
       data = await this.getDataLocalReport(id);
       if (data.length === 0) return 204;
     }
-
-    console.log(data[0].startDate)
-
-    params.startDateParam = Report.getFormatDDMMYYYY(data[0].startDate);
-    params.endDateParam = Report.getFormatDDMMYYYY(data[0].endDate);
-    console.log(data[0].endDate);
 
     autoTable(doc, {
       margin: { top: 55 },

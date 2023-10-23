@@ -69,6 +69,8 @@ const filterDrugStoreSection = ref('');
 const report = 'DISPENSAS_NAO_SINCRONIZADAS'
 const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
 onMounted(() => {
   if (props.params) {
@@ -121,18 +123,25 @@ const getProcessingStatus = (params) => {
 };
 
 const generateReport = (id, fileType, params) => {
+  
   if (fileType === 'PDF') {
     NotSynchronizedPack.downloadPDF(params).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingPdf.value = false
     });
   } else {
     NotSynchronizedPack.downloadExcel(params).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingXls.value = false
     });
   }
 };
+
+
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
 
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)

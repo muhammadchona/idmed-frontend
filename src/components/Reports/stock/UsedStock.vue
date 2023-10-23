@@ -58,6 +58,8 @@ const filterUsedStockSection = ref('');
     const props=  defineProps(['selectedService', 'menuSelected', 'id', 'params'])
     const totalRecords = ref(0)
     const qtyProcessed = ref(0)
+    const downloadingPdf = ref(false)
+  const downloadingXls = ref(false) 
 
 const progress = ref(0.0);
 
@@ -115,15 +117,21 @@ const progress = ref(0.0);
        if (fileType === 'PDF') {
            UsedStockReport.downloadPDF(id, fileType, params).then(resp => {
                   if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                  downloadingPdf.value = false
                })
         } else if (fileType === 'XLS') {
            UsedStockReport.downloadExcel(id, fileType, params).then(resp => {
-                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
-               })
+              if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+              downloadingXls.value = false
+            })
         }
         // UID da tab corrent
       }
 
+
+      
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
   provide('serviceAux', serviceAux)
   provide('resultFromLocalStorage', resultFromLocalStorage)
   provide('getProcessingStatus',getProcessingStatus)

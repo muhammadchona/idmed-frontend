@@ -62,8 +62,10 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const progress = ref(0.0)
 const filterDrugStoreSection = ref('')
 const totalRecords = ref(0)
-  const qtyProcessed = ref(0)
-  const report =  'ACTIVOS'
+const qtyProcessed = ref(0)
+const report =  'ACTIVOS'
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
 const closeSection = (params) => {
   filterDrugStoreSection.value.remove();
@@ -124,20 +126,22 @@ const generateReport = async (id, fileType) => {
       } else {
         const patientAux = resp.data[0];
 
-        if (fileType === 'PDF') {
+        if (fileType === 'PDF') {          
           activePatients.downloadPDF(
             patientAux.province,
             moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
             moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
             resp.data
           );
-        } else {
+          downloadingPdf.value = false
+        } else {          
           activePatients.downloadExcel(
             patientAux.province,
             moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
             moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
             resp.data
-          );
+          );          
+          downloadingXls.value = false
         }
       }
     });
@@ -149,14 +153,15 @@ const generateReport = async (id, fileType) => {
       const patientAux = data[0];
 
       if (fileType === 'PDF') {
-        activePatients.downloadPDF(
+        await activePatients.downloadPDF(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
+        // downloadingPdf.value = false
       } else {
-        activePatients.downloadExcel(
+        await activePatients.downloadExcel(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
@@ -167,9 +172,11 @@ const generateReport = async (id, fileType) => {
   }
 };
 
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
+
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
-
 provide('getProcessingStatus', getProcessingStatus)
 </script>
 
