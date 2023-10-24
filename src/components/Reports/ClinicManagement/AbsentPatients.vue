@@ -41,8 +41,6 @@
   import { LocalStorage } from 'quasar'
   import { ref, provide } from 'vue'
   import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatients.ts'
-  
-  
   import ListHeader from 'components/Shared/ListHeader.vue'
   import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
   import { useSwal } from 'src/composables/shared/dialog/dialog';  
@@ -58,6 +56,8 @@
   const report = 'FALTOSOS_AO_LEVANTAMENTO'
   const progress = ref(0.0)
   const filterDrugStoreSection = ref('')
+  const downloadingPdf = ref(false)
+  const downloadingXls = ref(false)
   
 
   const closeSection =  (params) => {
@@ -110,14 +110,12 @@
   
   const generateReport = (id, fileType, params) => {
     if (fileType === 'PDF') {
-      downloadingPdf.value = true
       absentPatientsTs.downloadPDF(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
         downloadingPdf.value = false
       })
       
     } else if (fileType === 'XLS') {
-      downloadingXls.value = true
       absentPatientsTs.downloadExcel(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
         downloadingXls.value = false
@@ -126,8 +124,6 @@
     }
   }
   
-  const downloadingPdf = ref(false)
-  const downloadingXls = ref(false)
   provide('downloadingPdf', downloadingPdf)
   provide('downloadingXls', downloadingXls)
   provide('serviceAux', serviceAux)

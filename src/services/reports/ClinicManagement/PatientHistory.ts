@@ -151,10 +151,7 @@ export default {
 
         // Footer
         const str = 'Pagina ' + doc.internal.getNumberOfPages()
-        // Total page number plugin only available in jspdf v1.0+
-        // if (typeof doc.putTotalPages === 'function') {
-        //   str = str + ' de ' + totalPagesExp
-        // }
+        
         doc.setFontSize(10)
 
       // jsPDF 1.4+ uses getWidth, <1.4 uses .width
@@ -175,8 +172,7 @@ export default {
       console.log(pdfOutput)
       this.downloadFile(fileName,'pdf',pdfOutput)
     }
-    // params.value.loading.loading.hide()
-   // return doc.save('HistoricoDeLevantamento.pdf')
+    
    
  
   
@@ -193,10 +189,7 @@ export default {
     workbook.lastPrinted = new Date()
 
     const worksheet = workbook.addWorksheet(reportName)
-    // const imageId = workbook.addImage({
-    //   base64: 'data:image/png;base64,' + MOHIMAGELOG,
-    //   extension: 'png',
-    // })
+ 
 
     // Get Cells
     // const cellRepublica = worksheet.getCell('A8')

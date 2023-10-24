@@ -268,7 +268,7 @@
 import Province from '../../../stores/models/province/Province';
 import Clinic from '../../../stores/models/clinic/Clinic';
 import { onMounted, ref, computed, inject, provide } from 'vue';
-import { LocalStorage, SessionStorage, date } from 'quasar';
+import { LocalStorage, SessionStorage } from 'quasar';
 import moment from 'moment';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useProgress } from 'src/composables/shared/progressBarParams/progressBarParams';
@@ -278,7 +278,7 @@ import MonthlyPeriod from 'components/Reports/shared/MonthlyPeriod.vue';
 import QuarterlyPeriod from 'components/Reports/shared/QuarterlyPeriod.vue';
 import AnnualPeriod from 'components/Reports/shared/AnnualPeriod.vue';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { website } = useSystemUtils();
 const { barAndPercentProgressVal } = useProgress();
 const props = defineProps([
   'clinicalService',
@@ -310,7 +310,6 @@ const annualPeriod = ref('');
 const submitForm = ref('');
 const downloadingXls = inject('downloadingXls')
 const downloadingPdf = inject('downloadingPdf')
-const resultFromLocalStorage = inject('resultFromLocalStorage')
 
 const reportParams = ref({
   id: null,
@@ -474,10 +473,6 @@ const validateFilersReport = () => {
       : null;
   if (ref !== null) {
     submitForm.value.click();
-    /* $refs.periodoRef.$refs.monthlyPeriod.validate()
-  errorCount = $refs.periodoRef.$refs.monthlyPeriod.hasError ? errorCount + 1 : errorCount
-  $refs.periodoRef.$refs.monthlyPeriod.validate()
-  errorCount = $refs.periodoRef.$refs.yearMonthlyPeriod.hasError ? errorCount + 1 : errorCount */
   }
   if (countErr === 0 && errorCountAux === 0) {
     processReport();
@@ -485,8 +480,6 @@ const validateFilersReport = () => {
 };
 
 const onPeriodoChange = (val) => {
-  // reportParams.value.provinceId = null;
-  // reportParams.value.districtId = null;
   reportParams.value.endDateParam = null;
   reportParams.value.startDateParam = null;
   reportParams.value.year = new Date().getFullYear();
@@ -541,24 +534,7 @@ const saveParams = () => {
   reportParams.value.clinic = currClinic.value;
 };
 
-// const generatingXlsReportLoading = (fileType) => {
-//   if (fileType === 'XLS') {
-//     downloadingXls.value = true;
-//   } else {
-//     downloadingPdf.value = true;
-//   }
-
-  // setTimeout(() => {
-  //   if (fileType === 'XLS') {
-  //     downloadingXls.value = false;
-  //   } else {
-  //     downloadingPdf.value = false;
-  //   }
-  // }, 2000);
-
-
 const generateReport = (fileType) => {
-  // generatingXlsReportLoading(fileType);
   if (fileType === 'PDF') { downloadingPdf.value = true } else { downloadingXls.value = true }
   $emit('generateReport', props.id, fileType, reportParams.value);
 };

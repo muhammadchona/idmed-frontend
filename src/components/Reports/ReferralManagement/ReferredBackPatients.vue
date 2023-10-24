@@ -54,7 +54,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 const { isOnline } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
 
       const name = 'ReferredBackPatients'

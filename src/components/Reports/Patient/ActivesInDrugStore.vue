@@ -84,7 +84,6 @@ const initReportProcessing = (params) => {
         getProcessingStatus(params);
       }
     );
-    // Pack.api().post('/receivedStockReport/initReportProcess' params)
   } else {
     LocalStorage.set(params.id, params)
     const reportParams = reportDatesParams.determineStartEndDate(params);
@@ -159,7 +158,6 @@ const generateReport = async (id, fileType) => {
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
-        // downloadingPdf.value = false
       } else {
         await activePatients.downloadExcel(
           patientAux.province,
@@ -174,7 +172,6 @@ const generateReport = async (id, fileType) => {
 
 provide('downloadingPdf', downloadingPdf)
 provide('downloadingXls', downloadingXls)
-
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
 provide('getProcessingStatus', getProcessingStatus)

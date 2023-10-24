@@ -43,22 +43,16 @@
 
 <script setup>
 import Report from 'src/services/api/report/ReportService';
-import reportDatesParams from 'src/services/reports/ReportDatesParams';
 import { v4 as uuidv4 } from 'uuid';
 import { LocalStorage } from 'quasar';
 import { ref, onMounted, provide } from 'vue';
 //compontes
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
-
-import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import NotSynchronizedPack from 'src/services/reports/monitoring/NotSynchronizedPack';
-// import { Script } from 'vm';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
-const filterArvDailyRegisterSection = ref('');
+const { alertError } = useSwal();
 
 const name = 'NotSynchronizedPack';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
@@ -91,8 +85,6 @@ const initReportProcessing = (params) => {
     'notSynchronizingPacksOpenMrsReport',
     params
   ).then((response) => {
-    // reset your component inputs like textInput to nul    // or your custom route redirect with vue-router
-    // or your custom route redirect with vue-router
     setTimeout(() => {
       getProcessingStatus(params)
     }, 3000);
@@ -139,10 +131,8 @@ const generateReport = (id, fileType, params) => {
   }
 };
 
-
 provide('downloadingPdf', downloadingPdf)
 provide('downloadingXls', downloadingXls)
-
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
 provide('getProcessingStatus',getProcessingStatus)

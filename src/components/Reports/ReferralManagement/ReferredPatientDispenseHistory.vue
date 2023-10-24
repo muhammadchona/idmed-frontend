@@ -48,8 +48,7 @@ import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
 const name = 'ReferredPatientDispenseHistory';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);

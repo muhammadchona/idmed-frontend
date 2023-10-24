@@ -52,7 +52,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 const { isOnline } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
 const name = 'ReferredPatients';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
@@ -60,7 +60,6 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const report = 'REFERIDO_PARA';
-const progressValue = ref(0);
 const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
 const downloadingPdf = ref(false)
@@ -169,7 +168,6 @@ const resultFromLocalStorage = ref(false)
       
 provide('downloadingPdf', downloadingPdf)
 provide('downloadingXls', downloadingXls)
-
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
 provide('getProcessingStatus',getProcessingStatus)

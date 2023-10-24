@@ -50,7 +50,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedStockMobileService.';
 
 const { isOnline } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
    const name = 'ReceivedStock'
    const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
