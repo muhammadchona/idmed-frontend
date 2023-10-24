@@ -373,8 +373,6 @@ export default {
         window.resolveLocalFileSystemURL(
           folder,
           function (dirEntry) {
-            console.log('file system open: ' + dirEntry.name);
-            console.log('file system open11111: ' + blob);
             createFile(dirEntry, fileName, blob);
             // $q.loading.hide()
           },
@@ -471,8 +469,6 @@ export default {
       window.resolveLocalFileSystemURL(
         folder,
         function (dirEntry) {
-          console.log('file system open: ' + dirEntry.name);
-          console.log('file system open11111: ' + blob);
           createFile(dirEntry, fileName, blob);
           // $q.loading.hide()
         },

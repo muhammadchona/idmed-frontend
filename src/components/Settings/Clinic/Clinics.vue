@@ -4,7 +4,7 @@
       <q-bar style="background-color: #9e9e9e2e">
         <div class="cursor-pointer non-selectable">Farmácias</div>
       </q-bar>
-      <q-separator class="q-my-md max-width" color="primary" ></q-separator>
+      <q-separator class="q-my-md max-width" color="primary"></q-separator>
     </div>
 
     <div class="">
@@ -21,14 +21,31 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+          <div class="row q-gutter-sm">
+            <q-input
+              outlined
+              dense
+              debounce="300"
+              v-model="filter"
+              placeholder="Procurar"
+            >
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-btn
+              color="primary"
+              icon-right="refresh"
+              label="Actualizar Lista"
+              no-caps
+              @click="getClinicsFromProvincialServer"
+            />
+          </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+          <div
+            class="full-width row flex-center text-primary q-gutter-sm text-body2"
+          >
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -48,18 +65,18 @@
               {{
                 props.row.province !== undefined && props.row.province !== null
                   ? props.row.province.description
-                  : ""
+                  : ''
               }}
             </q-td>
             <q-td key="district" :props="props">
               {{
                 props.row.district !== undefined && props.row.district !== null
                   ? props.row.district.description
-                  : ""
+                  : ''
               }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? "Sim" : "Nao" }}
+              {{ props.row.active ? 'Sim' : 'Nao' }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -106,12 +123,13 @@
 import { inject, ref, onMounted, computed } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
-
-/*Components Import*/
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 /*Declarations*/
 const showClinicRegistrationScreen = ref(false);
+
+const { showloading, closeLoading } = useLoading();
 
 /*injects*/
 const step = inject('step');
@@ -210,6 +228,21 @@ const clinics = computed(() => {
 
 const stopLoading = () => {
   loading.value = false;
+};
+
+const getClinicsFromProvincialServer = () => {
+  showloading();
+  clinicService
+    .getFromProvincial(0)
+    .then(() => {
+      closeLoading();
+      alertSucess('Lista actualizada com sucesso');
+    })
+    .catch((error) => {
+      closeLoading();
+      alertError('Erro na comunicação com o Servidor Central.');
+      console.log('Erro', error);
+    });
 };
 
 onMounted(() => {

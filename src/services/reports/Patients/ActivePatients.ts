@@ -419,7 +419,7 @@ export default {
 
     const blob = new Blob([buffer], { type: fileType })
 
-   
+
 
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension)
@@ -430,8 +430,6 @@ export default {
           const folder = cordova.file.externalRootDirectory + 'Download'
          //  var folder = 'Download'
           window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-            console.log('file system open: ' + dirEntry.name)
-             console.log('file system open11111: ' + blob)
             createFile(dirEntry, fileName, blob)
            // $q.loading.hide()
           }, onErrorLoadFs)
@@ -442,7 +440,7 @@ export default {
             writeFile(fileEntry, blob)
           }, onErrorCreateFile)
         }
-   
+
         function writeFile (fileEntry, dataObj) {
           // Create a FileWriter object for our FileEntry
           fileEntry.createWriter(function (fileWriter) {
@@ -450,7 +448,7 @@ export default {
               console.log('Successful file write...')
                openFile()
             }
-   
+
             fileWriter.onerror = function (error) {
               console.log('Failed file write: ' + error)
             }
@@ -460,7 +458,7 @@ export default {
         function onErrorLoadFs (error) {
           console.log(error)
         }
-   
+
         function onErrorCreateFile (error) {
           console.log('errorr: ' + error.toString())
         }
@@ -477,7 +475,7 @@ export default {
                   console.log('file system open3333366: ' + e + documentURL)
               },
               success: function () {
-   
+
               }
           })
       }}
@@ -508,14 +506,6 @@ export default {
     return data
   },
   downloadFile(fileName , fileType, blop) {
-    // console.log(blop)
-    // var pdfOutput = blop.output()
-   //  console.log(pdfOutput)
-   //  if (typeof cordova !== 'undefined') {
-      //   var blob = new Blob(materialEducativo.blop)
-      //  const bytes = new Uint8Array(materialEducativo.blop)
-     // var UTF8_STR = new Uint8Array(pdfOutput)
-     //   var BINARY_ARR = UTF8_STR.buffer
         const titleFile = fileName + fileType
         console.log('result' + titleFile)
          saveBlob2File(titleFile, blop)
@@ -523,8 +513,6 @@ export default {
             const folder = cordova.file.externalRootDirectory + 'Download'
            //  var folder = 'Download'
             window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-              console.log('file system open: ' + dirEntry.name)
-               console.log('file system open11111: ' + blob)
               createFile(dirEntry, fileName, blob)
              // $q.loading.hide()
             }, onErrorLoadFs)
@@ -535,7 +523,7 @@ export default {
               writeFile(fileEntry, blob)
             }, onErrorCreateFile)
           }
-    
+
           function writeFile (fileEntry, dataObj) {
             // Create a FileWriter object for our FileEntry
             fileEntry.createWriter(function (fileWriter) {
@@ -543,7 +531,7 @@ export default {
                 console.log('Successful file write...')
                  openFile()
               }
-    
+
               fileWriter.onerror = function (error) {
                 console.log('Failed file write: ' + error)
               }
@@ -553,7 +541,7 @@ export default {
           function onErrorLoadFs (error) {
             console.log(error)
           }
-    
+
           function onErrorCreateFile (error) {
             console.log('errorr: ' + error.toString())
           }
@@ -570,7 +558,7 @@ export default {
                     console.log('file system open3333366: ' + e + documentURL)
                 },
                 success: function () {
-    
+
                 }
             })
         }

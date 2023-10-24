@@ -5,7 +5,7 @@ import saveAs from 'file-saver'
 import * as ExcelJS from 'exceljs'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const {  isMobile, isOnline } = useSystemUtils(); 
+const {  isMobile, isOnline } = useSystemUtils();
 
 const reportName = 'HistoricoDeLevantamento'
 // const logoTitle =
@@ -16,7 +16,7 @@ const fileName = reportName.concat(
 )
 
 export default {
-  
+
   async downloadPDF (province, startDate, endDate, result) {
     const doc = new JsPDF({
       orientation: 'l',
@@ -172,10 +172,6 @@ export default {
       console.log(pdfOutput)
       this.downloadFile(fileName,'pdf',pdfOutput)
     }
-    
-   
- 
-  
   },
   async downloadExcel (province, startDate, endDate, result) {
     const rows = result
@@ -436,8 +432,6 @@ export default {
        const folder = cordova.file.externalRootDirectory + 'Download'
       //  var folder = 'Download'
        window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-         console.log('file system open: ' + dirEntry.name)
-          console.log('file system open11111: ' + blob)
          createFile(dirEntry, fileName, blob)
         // $q.loading.hide()
        }, onErrorLoadFs)
@@ -533,8 +527,6 @@ export default {
            const folder = cordova.file.externalRootDirectory + 'Download'
           //  var folder = 'Download'
            window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-             console.log('file system open: ' + dirEntry.name)
-              console.log('file system open11111: ' + blob)
              createFile(dirEntry, fileName, blob)
             // $q.loading.hide()
            }, onErrorLoadFs)
@@ -545,7 +537,7 @@ export default {
              writeFile(fileEntry, blob)
            }, onErrorCreateFile)
          }
-   
+
          function writeFile (fileEntry, dataObj) {
            // Create a FileWriter object for our FileEntry
            fileEntry.createWriter(function (fileWriter) {
@@ -553,7 +545,7 @@ export default {
                console.log('Successful file write...')
                 openFile()
              }
-   
+
              fileWriter.onerror = function (error) {
                console.log('Failed file write: ' + error)
              }
@@ -563,7 +555,7 @@ export default {
          function onErrorLoadFs (error) {
            console.log(error)
          }
-   
+
          function onErrorCreateFile (error) {
            console.log('errorr: ' + error.toString())
          }
@@ -580,7 +572,7 @@ export default {
                    console.log('file system open3333366: ' + e + documentURL)
                },
                success: function () {
-   
+
                }
            })
        }

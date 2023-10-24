@@ -40,9 +40,9 @@ export default {
 
       // Agora, obtenha a lista única de objetos pai agrupados
       const listaFinal = Object.values(Report.mapaDeAgrupamento(rowsAux.data));
-    
+
       data = this.createArrayOfArrayRow(listaFinal);
-      
+
     } else {
       rowsAux = await this.getDataLocalReport(id);
       if (rowsAux.length === 0) return 204;
@@ -225,7 +225,7 @@ export default {
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
   },
-  
+
   async downloadExcel(id, fileType2, params) {
     const clinic = clinicService.currClinic();
     let rowsAux = [];
@@ -244,7 +244,7 @@ export default {
 
       // Agora, obtenha a lista única de objetos pai agrupados
       const listaFinal = Object.values(Report.mapaDeAgrupamento(rowsAux.data));
-    
+
       data = this.createArrayOfArrayRow(listaFinal);
     } else {
       rowsAux = await this.getDataLocalReport(id);
@@ -699,8 +699,6 @@ export default {
         window.resolveLocalFileSystemURL(
           folder,
           function (dirEntry) {
-            console.log('file system open: ' + dirEntry.name);
-            console.log('file system open11111: ' + blob);
             createFile(dirEntry, fileName, blob);
             // $q.loading.hide()
           },
@@ -786,7 +784,7 @@ export default {
         createRow.push('');
         data.push(createRow);
       }
-    
+
     return data;
   },
   async getDataLocalReport(reportId) {
