@@ -117,10 +117,12 @@ import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
-import drugService from 'src/services/api/drugService/drugService';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import InventoryService from 'src/services/api/inventoryService/InventoryService';
+import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -128,14 +130,12 @@ const { website, isMobile, isOnline } = useSystemUtils();
 const { loadSettingParams, loadPatientData } = useOnline();
 
 const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
+const { alertWarningTitle } = useSwal();
+let codeExecuted = false;
 
 const clinic = computed(() => {
   return clinicService.currClinic();
 });
-
-const init = () => {
-  showloading();
-};
 
 const menusVisible = (name) => {
   const menus = localStorage.getItem('role_menus');
@@ -159,6 +159,23 @@ onMounted(() => {
         loadPatientDataToOffline();
       }, 5000);
     }
+  }
+});
+
+watch(clinic, () => {
+  const config = sysConfigsService.getInstallationType();
+  if (!codeExecuted) {
+    codeExecuted = true;
+    InventoryService.isInventoryPeriod(clinic.value.id).then((resp) => {
+      const isInventoryPeriod = resp;
+
+      if (isInventoryPeriod && config.value === 'LOCAL') {
+        alertWarningTitle(
+          'Lembrete de Inventário',
+          'Último inventário foi feito há mais de 28 dias. Por favor, efectue um novo inventário!'
+        );
+      }
+    });
   }
 });
 </script>
