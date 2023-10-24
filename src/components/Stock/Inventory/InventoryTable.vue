@@ -80,13 +80,13 @@
                 :loading="submitting"
                 flat
                 round
-                color="amber-8"
+                color="primary"
                 icon="search"
                 @click="showInventoryDetails(props.row)"
               >
-                <q-tooltip class="bg-amber-5">{{
-                  props.row.open ? 'Abrir Ficha' : 'Visualizar Medicamentos'
-                }}</q-tooltip>
+                <q-tooltip class="bg-primary">
+                   Visualizar Medicamentos
+                </q-tooltip>
               </q-btn>
             </div>
           </q-td>

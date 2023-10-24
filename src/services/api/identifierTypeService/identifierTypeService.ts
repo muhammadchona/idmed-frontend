@@ -130,4 +130,19 @@ export default {
   getAllIdentifierTypes() {
     return identifierType.query().withAll().get();
   },
+  getFromProvincial(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('identifierType/identifierTypeFromProvicnial/' + offset)
+        .then((resp) => {
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromProvincial(offset);
+          } else {
+            this.get(0);
+            closeLoading();
+          }
+        });
+    }
+  },
 };
