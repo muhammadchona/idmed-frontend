@@ -48,10 +48,12 @@ export default {
       if(isOnline.value){
         rows = await Report.printReportOther('referredPatientsReport', params.id)
         if(rows.status === 204) return rows.status
+        const firstReg = rows.data[0];
+        params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+        params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
         data = this.createArrayOfArrayRow(rows.data)
       }else {
         rows = regs
-        console.log(rows)
         data = this.createArrayOfArrayRow(rows)
       }
 
@@ -103,10 +105,12 @@ export default {
       if(isOnline.value){
         rows = await Report.printReportOther('referredPatientsReport', params.id)
         if(rows.status === 204) return rows.status
+        const firstReg = rows.data[0];
+        params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+        params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
         data = this.createArrayOfArrayRow(rows.data)
       }else {
         rows = regs
-        console.log(rows)
         data = this.createArrayOfArrayRow(rows)
       }
 

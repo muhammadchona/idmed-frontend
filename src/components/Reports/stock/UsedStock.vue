@@ -58,16 +58,19 @@ const filterUsedStockSection = ref('');
     const props=  defineProps(['selectedService', 'menuSelected', 'id', 'params'])
     const totalRecords = ref(0)
     const qtyProcessed = ref(0)
+    const downloadingPdf = ref(false)
+  const downloadingXls = ref(false) 
 
 const progress = ref(0.0);
 
     const  closeSection = (params) => {
         filterUsedStockSection.value.remove()
+        if(params)
         LocalStorage.remove(params.id)   
       }
 
       const serviceAux = ref(null)
-const resultFromLocalStorage = ref(false)
+      const resultFromLocalStorage = ref(false)
 
       const initReportProcessing = (params) => {
         progress.value = 0.001
@@ -89,34 +92,48 @@ const resultFromLocalStorage = ref(false)
 
       const getProcessingStatus = (params) => {
         Report.getProcessingStatus('usedStockReportTemp', params).then(resp => {
-          progress.value = resp.data.progress
-          if (progress.value < 100) {
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
+          if (resp.data.progress > 0.001) {
+            progress.value = resp.data.progress;
+            if (progress.value < 100) {
+              params.progress = resp.data.progress;
+              setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
+            } else {
+              progress.value = 100;
+              params.progress = 100;
+              LocalStorage.set(params.id, params);
+            }
           } else {
-            LocalStorage.set(params.id, params)
-            progress.value = 100
-            params.progress = 100
+            setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
           }
-        })
-      }
+          LocalStorage.set(params.id, params)
+        });
+      };
 
       const generateReport=  (id, fileType, params) => {
        if (fileType === 'PDF') {
            UsedStockReport.downloadPDF(id, fileType, params).then(resp => {
                   if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                  downloadingPdf.value = false
                })
         } else if (fileType === 'XLS') {
            UsedStockReport.downloadExcel(id, fileType, params).then(resp => {
-                  if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
-               })
+              if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+              downloadingXls.value = false
+            })
         }
-        // UID da tab corrent
       }
 
-      provide('serviceAux', serviceAux)
-provide('resultFromLocalStorage', resultFromLocalStorage)
+
+      
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
+  provide('serviceAux', serviceAux)
+  provide('resultFromLocalStorage', resultFromLocalStorage)
+  provide('getProcessingStatus',getProcessingStatus)
     
 </script>
 

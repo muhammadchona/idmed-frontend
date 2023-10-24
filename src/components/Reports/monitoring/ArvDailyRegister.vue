@@ -38,13 +38,10 @@
 </template>
 
 <script setup>
-
 import Report from 'src/services/api/report/ReportService'
 import ArvDailyRegisterReport from 'src/services/reports/monitoring/ArvDailyRegisterReport.ts'
-import ClinicalService from '../../../stores/models/ClinicalService/ClinicalService'
- import { LocalStorage } from 'quasar'
-import { ref, onMounted, provide } from 'vue'
-import StartStopReason from 'src/stores/models/startStopReason/StartStopReason'
+import { LocalStorage } from 'quasar'
+import { ref, provide } from 'vue'
 
 //compontes
 import ListHeader from 'components/Shared/ListHeader.vue';
@@ -55,79 +52,86 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDailyRegisterMobileService';
 
 const { isOnline } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 const filterArvDailyRegisterSection = ref('')
-const report = 'LIVRO_DIARIO'
-    
-
-    const name = 'ArvDailyRegister'
-    const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
-    const totalRecords= ref(0)
-    const qtyProcessed = ref(0)
-     const progress = ref(0.00)
-
-onMounted(() => {
-  // getStartStopReasonsToVuex()
-});
-
-    const serviceAux = ref(null)
+const report = 'LIVRO_DIARIO'    
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
+const name = 'ArvDailyRegister'
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const totalRecords= ref(0)
+const qtyProcessed = ref(0)
+const progress = ref(0.00)
+const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
 
-     const closeSection = (params) =>{
-        filterArvDailyRegisterSection.value.remove()
-        LocalStorage.remove(params.id) 
-      }
-   const  initReportProcessing = (params) => {
-      progress.value = 0.001
-        if (isOnline.value) {
-          LocalStorage.set(params.id, params)
-          Report.apiInitReportProcess('arvDailyRegisterReportTemp', params).then(resp => {
-            progress.value = resp.data.progress
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
-          })
-        } else {
-          LocalStorage.set(params.id, params)
-          ArvDailyRegisterMobileService.getDataLocalDb(params)
-          progress.value = 100
-         params.progress = 100
-        }
-      }
+const closeSection = (params) =>{
+  filterArvDailyRegisterSection.value.remove()
+  if(params)
+  LocalStorage.remove(params.id) 
+}
 
-     const getProcessingStatus = (params) => {
-        Report.getProcessingStatus('arvDailyRegisterReportTemp', params).then(resp => {
-          progress.value = resp.data.progress
-          if (progress.value < 100) {
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
-          } else {
-            params.progress = 100
-            LocalStorage.set(params.id, params)
-          }
-        })
-       /*
-        getDataLocalDb(params)
-        */
+const  initReportProcessing = (params) => {
+  progress.value = 0.001
+  if (isOnline.value) {
+    LocalStorage.set(params.id, params)
+    Report.apiInitReportProcess('arvDailyRegisterReportTemp', params).then(resp => {
+      progress.value = resp.data.progress
+      setTimeout(() => {
+        getProcessingStatus(params)
+      }, 3000);
+    })
+  } else {
+    LocalStorage.set(params.id, params)
+    ArvDailyRegisterMobileService.getDataLocalDb(params)
+    progress.value = 100
+    params.progress = 100
+  }
+}
+
+const getProcessingStatus = (params) => {
+  Report.getProcessingStatus('arvDailyRegisterReportTemp', params).then(resp => {
+    if (resp.data.progress > 0.001) {
+      progress.value = resp.data.progress;
+      if (progress.value < 100) {
+        params.progress = resp.data.progress;
+        setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
+      } else {
+        progress.value = 100;
+        params.progress = 100;
+        LocalStorage.set(params.id, params);
+      }
+    } else {
+      setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
+    }
+    LocalStorage.set(params.id, params)
+  });
 };
+   
+const generateReport = (id, fileType, params) => {
+  // UID da tab corrent
+  if (fileType === 'PDF') {
+    ArvDailyRegisterReport.downloadPDF(id, fileType, params).then(resp => {
+          if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+          downloadingPdf.value = false
+        })
+  } else if (fileType === 'XLS') {
+      ArvDailyRegisterReport.downloadExcel(id, fileType, params).then(resp => {
+            if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+            downloadingXls.value = false
+          })
+  }
+}
 
-     const generateReport = (id, fileType, params) => {
-        // UID da tab corrent
-          if (fileType === 'PDF') {
-           ArvDailyRegisterReport.downloadPDF(id, fileType, params).then(resp => {
-                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
-               })
-        } else if (fileType === 'XLS') {
-           ArvDailyRegisterReport.downloadExcel(id, fileType, params).then(resp => {
-                  if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
-               })
-        }
-      }
-
-      provide('serviceAux', serviceAux)
-provide('resultFromLocalStorage', resultFromLocalStorage)
-  
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
+provide('serviceAux', serviceAux)
+provide('resultFromLocalStorage', resultFromLocalStorage) 
+provide('getProcessingStatus',getProcessingStatus) 
 </script>
 
 <style lang="scss" scoped>

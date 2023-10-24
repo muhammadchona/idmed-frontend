@@ -66,7 +66,8 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const filterMmiaSection = ref('');
-
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 const reportType = 'MAPA_MENSAL_DE_INFORMACAO_ARV'
 const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
 const alert = ref({
@@ -79,6 +80,7 @@ const progress = ref(0.0);
 const closeSection = (params) => {
   // LocalStorage.remove(props.id);
   filterMmiaSection.value.remove();
+  if(params)
   LocalStorage.remove(params.id)
 };
 
@@ -92,7 +94,6 @@ const initReportProcessing = async (params) => {
     if (isOnline.value) {
       LocalStorage.set(params.id, params)
       Report.apiInitMmiaProcessing(params).then((resp) => {
-        console.log(resp);
         getProcessingStatus(params);
       });
     } else {
@@ -104,7 +105,6 @@ const initReportProcessing = async (params) => {
         reportParams,
         listRegimenSubReport
       );
-      console.log('MMia: ', beta);
       progress.value = 100;
       params.progress = 100;
     }
@@ -113,34 +113,50 @@ const initReportProcessing = async (params) => {
 
 const getProcessingStatus = (params) => {
   Report.getProcessingStatus('mmiaReport', params).then((resp) => {
-    progress.value = resp.data.progress;
-    if (progress.value < 100) {
-      setTimeout(() => {
-        getProcessingStatus(params);
-      }, 3000);
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
+        if (progress.value < 100) {
+          params.progress = resp.data.progress;
+          setTimeout(() => {
+            getProcessingStatus(params)
+          }, 3000);
+        } else {
+          progress.value = 100;
+          params.progress = 100;
+          LocalStorage.set(params.id, params);
+        }
+      } else {
+        setTimeout(() => {
+            getProcessingStatus(params)
+          }, 3000);
+      }
+    });
+    LocalStorage.set(params.id, params)
+  };
+
+  const generateReport = (id, fileType) => {
+    if (fileType === 'PDF') {
+      mmiaReport.downloadPDF(id).then((resp) => {
+        if (resp === 204)
+          alertError('Nao existem Dados para o periodo selecionado');
+          downloadingPdf.value = false
+      });
+      
     } else {
-      params.progress = 100;
-      LocalStorage.set(params.id, params);
+      mmiaReport.downloadExcel(id).then((resp) => {
+        if (resp === 204)
+          alertError('Nao existem Dados para o periodo selecionado');
+          downloadingXls.value = false
+      });
+      
     }
-  });
-};
+  };
 
-const generateReport = (id, fileType) => {
-  if (fileType === 'PDF') {
-    mmiaReport.downloadPDF(id).then((resp) => {
-      if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
-    });
-  } else {
-    mmiaReport.downloadExcel(id).then((resp) => {
-      if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
-    });
-  }
-};
-
-provide('serviceAux', serviceAux)
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
+  provide('serviceAux', serviceAux)
   provide('resultFromLocalStorage', resultFromLocalStorage)
+  provide('getProcessingStatus',getProcessingStatus) 
 </script>
 
 <style lang="scss" scoped>

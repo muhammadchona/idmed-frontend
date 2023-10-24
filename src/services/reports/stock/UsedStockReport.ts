@@ -53,6 +53,7 @@ export default {
       data = this.createArrayOfArrayRow(rowsAux.data);
     } else {
       const dataAux = await UsedStockMobileService.localDbGetAllByReportId(id);
+      
       if (dataAux.length === 0) return 204;
       params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate);
       params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate);

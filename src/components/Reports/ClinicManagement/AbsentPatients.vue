@@ -41,8 +41,6 @@
   import { LocalStorage } from 'quasar'
   import { ref, provide } from 'vue'
   import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatients.ts'
-  
-  
   import ListHeader from 'components/Shared/ListHeader.vue'
   import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
   import { useSwal } from 'src/composables/shared/dialog/dialog';  
@@ -58,10 +56,13 @@
   const report = 'FALTOSOS_AO_LEVANTAMENTO'
   const progress = ref(0.0)
   const filterDrugStoreSection = ref('')
+  const downloadingPdf = ref(false)
+  const downloadingXls = ref(false)
   
 
   const closeSection =  (params) => {
     filterDrugStoreSection.value.remove()
+    if(params)
     LocalStorage.remove(params.id)
   }
 
@@ -83,37 +84,51 @@
       params.progress = 100
     }
   }
-  
+
   const getProcessingStatus = (params) => {
-    if (isOnline.value) {
-      Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
-        progress.value = resp.data.progress
+    Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
         if (progress.value < 100) {
+          params.progress = resp.data.progress;
           setTimeout(() => {
             getProcessingStatus(params)
           }, 3000);
         } else {
-          params.progress = 100
-          LocalStorage.set(params.id, params)
+          progress.value = 100;
+          params.progress = 100;
+          LocalStorage.set(params.id, params);
         }
-      })
-    }
-  }
+      } else {
+        setTimeout(() => {
+            getProcessingStatus(params)
+          }, 3000);
+      }
+    });
+    LocalStorage.set(params.id, params)
+  };
   
   const generateReport = (id, fileType, params) => {
     if (fileType === 'PDF') {
       absentPatientsTs.downloadPDF(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+        downloadingPdf.value = false
       })
+      
     } else if (fileType === 'XLS') {
       absentPatientsTs.downloadExcel(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+        downloadingXls.value = false
       })
+      
     }
   }
   
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
   provide('serviceAux', serviceAux)
-  provide('resultFromLocalStorage', resultFromLocalStorage)
+  provide('resultFromLocalStorage', resultFromLocalStorage) 
+  provide('getProcessingStatus', getProcessingStatus)
      
   </script>
   
