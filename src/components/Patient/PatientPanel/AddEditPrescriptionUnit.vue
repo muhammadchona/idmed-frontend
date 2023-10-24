@@ -427,7 +427,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, ref } from 'vue';
+import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import { date } from 'quasar';
 import moment from 'moment';
 import ServiceDrugsManagement from 'components/Patient/PatientPanel/ServiceDrugsManagement.vue';
@@ -478,7 +478,7 @@ const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { getQtyPrescribed } = usePrescribedDrug();
 const { remainigDuration } = usePrescription();
 const expanded = ref(false);
-const submitting = ref(false);
+const submittingPrescribedDrug = reactive(ref(false));
 const prescriptionDate = ref();
 //Ref's
 const therapeuticRegimenRef = ref(null);
@@ -1139,12 +1139,14 @@ const addPrescribedDrug = async (prescribedDrug) => {
         alertError(
           'Quantidade de Medicamento superior ao solicitado! \n O frasco seleccionado possui quantidade de medicamento superior ao necessário para cobrir o período de dispensa indicado.'
         );
+        submittingPrescribedDrug.value = false;
       } else {
         prescribedDrug.prescribedQty = getQtyPrescribed(
           prescribedDrug,
           curPrescription.value.duration.weeks
         );
         addMedication(prescribedDrug);
+        submittingPrescribedDrug.value = false;
       }
     } else {
       alertInfo(
@@ -1155,11 +1157,13 @@ const addPrescribedDrug = async (prescribedDrug) => {
         curPrescription.value.duration.weeks
       );
       addMedication(prescribedDrug);
+      submittingPrescribedDrug.value = false;
     }
   } else {
     alertError(
       'O medicamento seleccionado ja existe na lista dos medicamentos prescritos.'
     );
+    submittingPrescribedDrug.value = false;
   }
 };
 
@@ -1422,6 +1426,7 @@ provide('addPrescribedDrug', addPrescribedDrug);
 provide('validateDispense', validateDispense);
 provide('addPatientVisitDetail', addPatientVisitDetail);
 provide('removePatientVisitDetail', removePatientVisitDetail);
+provide('submittingPrescribedDrug', submittingPrescribedDrug);
 </script>
 
 <style lang="scss">

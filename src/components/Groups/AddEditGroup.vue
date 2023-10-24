@@ -327,13 +327,11 @@ const loadMemberInfoToShowByGroupId = inject('loadMemberInfoToShowByGroupId');
 const curGroup = ref(new Group({ id: uuidv4(), members: [] }));
 const searchParam = ref('');
 const step = inject('step');
-console.log(clinic.value);
 const clinicServices = computed(() =>
   clinicalServiceService.getAllClinicalServices()
 );
 
 const groupTypes = computed(() => groupTypeService.getAllFromStorage());
-console.log('11111' + curGroup.value.id);
 
 const isCreateStep = computed(() => step.value === 'create');
 // const isCreateStep = true
@@ -341,12 +339,7 @@ const isCreateStep = computed(() => step.value === 'create');
 const isEditStep = computed(() => step.value === 'edit');
 // const isEditStep = false
 const isMemberEditionStep = computed(() => step === 'addMember');
-console.log('11111' + step.value);
 const submitting = ref(false);
-
-console.log('11111' + isCreateStep.value);
-console.log('11111' + isEditStep.value);
-console.log('11111' + isMemberEditionStep.value);
 
 //Ref's
 const curGroupServiceRef = ref(null);
@@ -359,7 +352,6 @@ const getGroupMembers = inject('getGroupMembers');
 const isMemberOfGroupOnService = (patient, serviceCode) => {
   let res = false;
   const members = groupMemberService.getAllFromStorage();
-  console.log(members);
   if (members !== null) {
     members.forEach((member) => {
       member.group = groupService.getGroupById(member.group_id);
@@ -621,7 +613,6 @@ const doSave = async () => {
       member.syncStatus = 'R';
     });
     if (isCreateStep.value) {
-      console.log(groupToSend);
       groupService
         .apiSave(groupToSend)
         .then((resp) => {
@@ -648,7 +639,6 @@ const doSave = async () => {
           alertError('error', listErrors);
         });
     } else {
-      console.log(groupToSend);
       groupToSend.packHeaders = [];
       groupService
         .apiUpdate(groupToSend)
@@ -690,12 +680,10 @@ const init = () => {
   curGroup.value = new Group({
     id: uuidv4(),
   });
-  console.log(curGroup.value.id);
 };
 
 onMounted(() => {
   //  init()
-  console.log(curGroup.value.id);
   getGroupForEdit();
 });
 

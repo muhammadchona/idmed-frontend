@@ -194,6 +194,22 @@ export default {
       .get();
   },
 
+  getFromProvincial(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('clinic/clinicFromProvicnial/' + offset)
+        .then((resp) => {
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromProvincial(offset);
+          } else {
+            this.get(0);
+            closeLoading();
+          }
+        });
+    }
+  },
+
   getAllClinicsOrdered(provinces: Province[], clinics: Clinic[]) {
     let listaFinal = [];
     let orderedList: any[] = [];

@@ -114,7 +114,6 @@ const showOnlyOfRegimen = ref(false);
 const amtPerTimes = ref(['1', '2', '3', '4']);
 const timesPerDay = ref(['Dia', 'Semana', 'Mês', 'Ano']);
 const optionsDrugs = ref([]);
-const submitting = ref(false);
 
 // Ref's
 const amtPerTimeRef = ref(null);
@@ -130,6 +129,8 @@ const curIdentifier = inject('curIdentifier');
 const addPrescribedDrug = inject('addPrescribedDrug');
 const curPack = inject('curPack');
 const showAddEditDrug = inject('showAddEditDrug');
+const submitting = inject('submittingPrescribedDrug');
+
 // Hook
 
 onMounted(() => {
@@ -166,18 +167,19 @@ const getDrugs = computed(() => {
     );
   } else {
     validDrugs = drugs.value;
+
+    validDrugs = validDrugs.filter((drug) => {
+      return (
+        drug.clinicalService !== null &&
+        drug.clinicalService.code ===
+          (curIdentifier.service !== undefined
+            ? curIdentifier.service.code
+            : curIdentifier.value.service.code) &&
+        drug.active === true
+        // && hasStock(drug)
+      );
+    });
   }
-  validDrugs = validDrugs.filter((drug) => {
-    return (
-      drug.clinicalService !== null &&
-      drug.clinicalService.code ===
-        (curIdentifier.service !== undefined
-          ? curIdentifier.service.code
-          : curIdentifier.value.service.code) &&
-      drug.active === true
-      // && hasStock(drug)
-    );
-  });
 
   return validDrugs;
 });
