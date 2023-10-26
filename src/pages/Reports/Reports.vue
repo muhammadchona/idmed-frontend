@@ -113,6 +113,8 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
+const { closeLoading, showloading } = useLoading();
+
 const componentsList = {
   ActivesInDrugStore,
   GuestList,
@@ -161,7 +163,9 @@ const components = ref([]);
 // const bgColor = 'bg-primary';
 
 onMounted(() => {
+  
   const array = LocalStorage.getAllKeys();
+  if(array.length > 0) showloading();
   for (let index = 0; index < array.length; index++) {
     // check if is uuid
     if (array[index].substring(0, 6) === 'report') {
@@ -172,7 +176,10 @@ onMounted(() => {
         );
       changeTab(item.tabName, selectedService, item);
     }
+
+    if(index === (array.length) - 1) closeLoading()
   }
+  
 });
 
 const changeTab = (tabName, selectedService, params) => {
