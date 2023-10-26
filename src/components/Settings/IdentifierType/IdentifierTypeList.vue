@@ -119,10 +119,12 @@ import identifierTypeService from 'src/services/api/identifierTypeService/identi
 import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 /*Declarations*/
 const { website } = useSystemUtils();
 const { showloading, closeLoading } = useLoading();
+const { alertError, alertSucess } = useSwal();
 const columns = [
   {
     name: 'code',
