@@ -125,11 +125,14 @@ import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
 import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 /*Declarations*/
 const showClinicRegistrationScreen = ref(false);
 
 const { showloading, closeLoading } = useLoading();
+
+const { alertError, alertSucess } = useSwal();
 
 /*injects*/
 const step = inject('step');
