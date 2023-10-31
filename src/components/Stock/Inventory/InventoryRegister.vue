@@ -120,6 +120,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import StockService from 'src/services/api/stockService/StockService';
 import inventoryService from 'src/services/api/inventoryService/InventoryService';
+import drugService from 'src/services/api/drugService/drugService';
+
 import { useMediaQuery } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
@@ -168,62 +170,71 @@ const getSelectedString = () => {
 };
 
 const submitForm = () => {
-        showloading()
-        const inventory = inventoryService.getLastInventory();
-       
-        if (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)) {
-          closeLoading()
-          alertError('A data de inicio do inventário não pode ser superior a data corrente.'
+  showloading();
+  const inventory = inventoryService.getLastInventory();
+
+  if (
+    dateUtils
+      .getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
+      .setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)
+  ) {
+    closeLoading();
+    alertError(
+      'A data de inicio do inventário não pode ser superior a data corrente.'
+    );
+  } else if (
+    inventory !== null &&
+    dateUtils
+      .getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
+      .setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0)
+  ) {
+    const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate);
+    closeLoading();
+    alertError(
+      'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
+        dateUtils.getDDMMYYYFromJSDate(endDateLast) +
+        ']'
+    );
+  } else if (currInventory.value.generic) {
+    initInventory();
+  } else {
+    if (selected.value.length <= 0) {
+      closeLoading();
+      alertError(
+        'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
       );
-        } else
-        if (inventory !== null && (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0))) {
-          const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate) 
-          closeLoading()
-          alertError(
-        'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
-          dateUtils.getDDMMYYYFromJSDate(endDateLast) +
-          ']'
-      );
-        } else
-        if (currInventory.value.generic) {
-          initInventory()
-        } else {
-          if (selected.value.length <= 0) {
-            closeLoading()
-            alertError(
-          'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
-        );
-          } else {
-            initInventory()
-          }
-        }
-       
+    } else {
+      initInventory();
+    }
+  }
 };
 
 const initInventory = () => {
   if (currInventory.value.generic !== 'true') {
     doBeforeSave();
+  } else {
+    doBeforeSaveGeneric();
   }
-  currInventory.value.id = uuidv4()
-   currInventory.value.clinic = {};
+  currInventory.value.id = uuidv4();
+  currInventory.value.clinic = {};
   currInventory.value.clinic.id = currClinic.value.id;
-  currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
-    currInventory.value.startDate
-  ));
-    inventoryService.post(currInventory.value).then((resp) => {
-      localStorage.setItem('currInventory', currInventory.value.id);
-      // console.log(resp.response);
-      closeLoading()
-      router.push('/stock/inventory');
-    });
-  
+  currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(
+    dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
+  );
+
+  inventoryService.post(currInventory.value).then((resp) => {
+    localStorage.setItem('currInventory', currInventory.value.id);
+    // console.log(resp.response);
+    closeLoading();
+    router.push('/stock/inventory');
+  });
 };
 
 const doBeforeSave = () => {
   Object.keys(selected.value).forEach(
     function (k) {
       const drug = selected.value[k];
-     const validStocks = StockService.getValidStockByDrug(drug)
+      const validStocks = StockService.getValidStockByDrug(drug);
       Object.keys(validStocks).forEach(
         function (i) {
           initNewAdjustment(drug.stocks[i], drug);
@@ -233,10 +244,29 @@ const doBeforeSave = () => {
   );
 };
 
+const doBeforeSaveGeneric = () => {
+  Object.keys(StockService.getValidStock()).forEach((drugId) => {
+    let drugExist = drugService.getDrugById(drugId);
+    if (drugExist !== null && drugExist !== undefined) {
+      // drugs.value.push(drugExist);
+
+      const stockList = StockService.getValidStockByDrug(drugExist);
+
+      Object.keys(stockList).forEach(
+        function (k) {
+          initNewAdjustment(stockList[k], drugExist);
+        }.bind(this)
+      );
+    }
+
+    console.log(currInventory.value);
+  });
+};
+
 const initNewAdjustment = (stock, drug) => {
   const newAdjustment = new InventoryStockAdjustment({
     adjustedStock: StockService.getStockById(stock.id),
-     clinic: currClinic.value,
+    clinic: currClinic.value,
     captureDate: new Date(),
     operation:
       StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO'),
@@ -244,10 +274,10 @@ const initNewAdjustment = (stock, drug) => {
   newAdjustment.adjustedStock.drug = null;
   newAdjustment.inventory_id = currInventory.value.id;
   newAdjustment.adjusted_stock_id = newAdjustment.adjustedStock.id;
-  newAdjustment.adjustedStock.clinic = {}
-  newAdjustment.adjustedStock.clinic.id = currClinic.value.id
-  newAdjustment.clinic = {}
-  newAdjustment.clinic.id =currClinic.value.id
+  newAdjustment.adjustedStock.clinic = {};
+  newAdjustment.adjustedStock.clinic.id = currClinic.value.id;
+  newAdjustment.clinic = {};
+  newAdjustment.clinic.id = currClinic.value.id;
   newAdjustment.id = uuidv4();
   currInventory.value.adjustments.push(newAdjustment);
 };
@@ -261,5 +291,4 @@ onMounted(() => {
 });
 </script>
 
-<style>
-</style>
+<style></style>
