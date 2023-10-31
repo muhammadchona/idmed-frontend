@@ -331,19 +331,19 @@ const doSave = (i) => {
       InventoryStockAdjustmentService.apiFetchById(
         adjustments.value[i].id
       ).then((resp1) => {
-        if (resp1.data.length === 0) {
-          InventoryStockAdjustmentService.post(adjustments.value[i]).then(
+        if (resp1.data !== null && resp1.data !== '') {
+          const adjustment = adjustments.value[i];
+          adjustment.adjustedStock.adjustments = [];
+          InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
             (resp) => {
-              // adjustments.value[i].id = resp.id;
               i = i + 1;
               setTimeout(doSave(i), 2);
             }
           );
         } else {
-          const adjustment = adjustments.value[i];
-          adjustment.adjustedStock.adjustments = [];
-          InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
+          InventoryStockAdjustmentService.post(adjustments.value[i]).then(
             (resp) => {
+              // adjustments.value[i].id = resp.id;
               i = i + 1;
               setTimeout(doSave(i), 2);
             }
