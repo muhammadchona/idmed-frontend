@@ -47,7 +47,8 @@
             style="max-width: 500px"
             v-if="!isMobile"
           >
-            <ListReportMenu @changeTab="changeTab" v-if="!isMobile" />
+            <ListReportMenu @changeTab="changeTab" v-if="!isMobile"/>
+            <!-- <ListReportMenuTPT @changeTab="changeTab" v-if="!isMobile && codeServicoActual == 'TPT'" /> -->
           </div>
           <div class="col q-mr-sm panel q-pa-sm">
             <q-scroll-area
@@ -92,7 +93,6 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import MenuMobile from 'components/Reports/Menus/ListReportMenuMobile.vue';
 import ListReportMenu from 'components/Reports/Menus/ListReportMenu.vue';
-
 import ActivesInDrugStore from 'components/Reports/Patient/ActivesInDrugStore.vue';
 import GuestList from 'components/Reports/Patient/GuestList.vue';
 import ImportedPatientList from 'components/Reports/Patient/ImportedPatientList.vue';
@@ -139,7 +139,7 @@ const title = ref('Relatórios');
 const tab = ref('list');
 const model = ref(null);
 const activeTab = ref('');
-const selectedService = ref(null);
+const selectedService = ref();
 const contentStyle = {
   backgroundColor: '#ffffff',
   color: '#555',
@@ -157,6 +157,9 @@ const thumbStyle = {
   width: '5px',
   opacity: 0.75,
 };
+
+const servicoActual = ref(null)
+const codeServicoActual = ref('TARV')
 
 const components = ref([]);
 // const headerClass = 'list-header';
@@ -190,6 +193,7 @@ const changeTab = (tabName, selectedService, params) => {
     clinicalService: selectedService,
     params: params,
   };
+  
   components.value.push(comp);
 };
 
@@ -203,6 +207,8 @@ const clinic = computed(() => {
 
 provide('currClinic', clinic);
 provide('title', title);
+provide('servicoActual', servicoActual)
+provide('codeServicoActual', codeServicoActual)
 </script>
 
 <style lang="scss">
