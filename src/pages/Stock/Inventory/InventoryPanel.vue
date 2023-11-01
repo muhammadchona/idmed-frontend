@@ -308,7 +308,6 @@ const doProcessAndClose = async () => {
 
 const doSaveAdjustment = (i) => {
   if (processAdjustment[i] !== undefined && processAdjustment[i] !== null) {
-    processAdjustment[i].inventory_id = null;
     InventoryStockAdjustmentService.patch(
       processAdjustment[i].id,
       processAdjustment[i]
