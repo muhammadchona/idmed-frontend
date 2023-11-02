@@ -5,7 +5,7 @@
         <q-bar style="background-color: #9e9e9e2e">
           <div class="cursor-pointer non-selectable">Clínicos</div>
         </q-bar>
-        <q-separator class="q-my-md max-width" color="primary" ></q-separator>
+        <q-separator class="q-my-md max-width" color="primary"></q-separator>
       </div>
       <q-table
         :rows="doctors"
@@ -18,7 +18,13 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
+          <q-input
+            outlined
+            dense
+            debounce="300"
+            v-model="filter"
+            placeholder="Procurar"
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -36,7 +42,9 @@
           </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+          <div
+            class="full-width row flex-center text-primary q-gutter-sm text-body2"
+          >
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -53,7 +61,7 @@
               {{ props.row.telephone }}
             </q-td>
             <q-td key="active" :props="props">
-              {{ props.row.active ? "Sim" : "Nao" }}
+              {{ props.row.active ? 'Sim' : 'Nao' }}
             </q-td>
             <q-td key="options" :props="props">
               <div class="col">
@@ -87,7 +95,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? "Inactivar" : "Activar"
+                    props.row.active ? 'Inactivar' : 'Activar'
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -97,7 +105,11 @@
       </q-table>
     </div>
     <div class="absolute-bottom">
-      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
+      <q-page-sticky
+        v-if="website && !isProvincialInstalation()"
+        position="bottom-right"
+        :offset="[18, 18]"
+      >
         <q-btn size="xl" fab icon="add" @click="addDoctor()" color="primary" />
       </q-page-sticky>
     </div>
@@ -113,9 +125,11 @@ import { ref, inject, provide, onMounted, computed } from 'vue';
 import doctorService from 'src/services/api/doctorService/doctorService.ts';
 import addDoctorComp from 'src/components/Settings/Doctor/AddDoctor.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
+const { isProvincialInstalation } = useSystemConfig();
 const { website } = useSystemUtils();
 const showDoctorRegistrationScreen = ref(false);
 const doctor = ref(doctorService.newInstanceEntity());

@@ -97,7 +97,11 @@
       </q-table>
     </div>
     <div class="absolute-bottom">
-      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
+      <q-page-sticky
+        v-if="website && isProvincialInstalation()"
+        position="bottom-right"
+        :offset="[18, 18]"
+      >
         <q-btn
           size="xl"
           fab
@@ -120,9 +124,11 @@ import AddEditIdentifierType from 'src/components/Settings/IdentifierType/Identi
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 /*Declarations*/
 const { website } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
 const { showloading, closeLoading } = useLoading();
 const { alertError, alertSucess } = useSwal();
 const columns = [

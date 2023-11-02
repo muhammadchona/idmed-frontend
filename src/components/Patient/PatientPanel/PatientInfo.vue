@@ -94,7 +94,7 @@
         {{ patient.alternativeCellphone }}
       </div>
     </div>
-    <div class="row q-my-md">
+    <div class="row q-my-md" v-if="!isProvincialInstalation()">
       <q-btn
         unelevated
         color="orange-5"
@@ -104,7 +104,7 @@
         @click="editPatient"
       />
     </div>
-    <div class="row">
+    <div class="row" v-if="!isProvincialInstalation()">
       <q-btn
         unelevated
         color="primary"
@@ -132,6 +132,7 @@ import patientRegister from 'src/components/Patient/Register/PatientRegister.vue
 import mergeDuplicates from 'src/components/Patient/PatientPanel/MergeDuplicatePatients.vue';
 import { inject, onMounted, provide, ref, computed, reactive } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 // Declaration
 const {
@@ -141,6 +142,7 @@ const {
   hasNoObitOrTransferedForEpisode,
 } = usePatient();
 const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
+const { isProvincialInstalation } = useSystemConfig();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const showPatientRegister = ref(false);
 const showMergeDuplicates = ref(false);

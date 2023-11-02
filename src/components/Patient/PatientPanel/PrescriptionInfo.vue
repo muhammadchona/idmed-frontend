@@ -4,7 +4,7 @@
       :addButtonActions="newPrescriptionOption"
       :mainContainer="true"
       bgColor="bg-primary"
-      :add-visible="showAddPrescriptionButton"
+      :add-visible="showAddPrescriptionButton && !isProvincialInstalation()"
       :expandVisible="false"
       :title="title"
     />
@@ -34,6 +34,7 @@ import { computed, provide, inject, onMounted, ref } from 'vue';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 //Declaration
 const {
@@ -42,6 +43,7 @@ const {
   hasNoObitOrTransferedForEpisode,
 } = usePatient();
 const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
 const { closeLoading, showloading } = useLoading();
 const showAddPrescription = ref(false);
 const isNewPrescription = ref(false);

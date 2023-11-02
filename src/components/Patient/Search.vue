@@ -199,7 +199,11 @@
               </q-tr>
             </template>
           </q-table>
-          <q-page-sticky position="bottom-right" :offset="[18, 18]">
+          <q-page-sticky
+            position="bottom-right"
+            :offset="[18, 18]"
+            v-if="!isProvincialInstalation()"
+          >
             <q-btn
               class="q-mb-xl q-mr-xl"
               fab
@@ -238,6 +242,7 @@ import clinicalServiceService from 'src/services/api/clinicalServiceService/clin
 import districtService from 'src/services/api/districtService/districtService';
 import { v4 as uuidv4 } from 'uuid';
 import { useOnline } from 'src/composables/shared/loadParams/online';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -245,6 +250,7 @@ const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
 const { website, isOnline, isDeskTop, isMobile } = useSystemUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { deleteStorageWithoutPatientInfo } = useOnline();
+const { isProvincialInstalation } = useSystemConfig();
 
 //Declaration
 
