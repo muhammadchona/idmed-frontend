@@ -21,7 +21,11 @@
                 class="text-bold text-italic"
                 style="font-family: 'Gill Sans'; font-size: 25px"
                 >{{
-                  currClinic !== null ? currClinic.clinicName : ''
+                  currClinic !== null
+                    ? currClinic.clinicName
+                    : currProvince !== null
+                    ? 'Provincia - ' + currProvince.description
+                    : ''
                 }}</q-item-label
               >
             </q-item-section>
@@ -52,7 +56,7 @@
               label="Pacientes/Utentes"
             />
             <q-route-tab
-              v-if="menusVisible('Grupos')"
+              v-if="menusVisible('Grupos') && !isProvincialInstalation()"
               exact
               :to="'/group/search'"
               name="groups"
@@ -60,7 +64,7 @@
               label="Grupos"
             />
             <q-route-tab
-              v-if="menusVisible('Stock')"
+              v-if="menusVisible('Stock') && !isProvincialInstalation()"
               exact
               :to="'/stock'"
               name="stock"
@@ -92,7 +96,12 @@
               label="Administração"
             />
             <q-route-tab
-              v-if="menusVisible('Migração') && activateMigration && website"
+              v-if="
+                menusVisible('Migração') &&
+                activateMigration &&
+                website &&
+                !isProvincialInstalation()
+              "
               exact
               :to="'/migration'"
               name="migration"
@@ -100,7 +109,7 @@
               label="Migração"
             />
             <q-route-tab
-              v-if="menusVisible('DCProvedor')"
+              v-if="menusVisible('DCProvedor') && !isProvincialInstalation()"
               exact
               :to="'/loadfiledc'"
               name="migration"
@@ -171,8 +180,11 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { sendData } from 'src/services/SendInfo';
 import useNotify from 'src/composables/shared/notify/UseNotify';
+import provinceService from 'src/services/api/provinceService/provinceService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { website } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
 const userInfoOpen = ref(false);
 const onMainClick = ref('');
 const onItemClick = ref('');
@@ -180,10 +192,9 @@ const username = ref(localStorage.getItem('user'));
 const tab = ref('home');
 const mobile = ref(false);
 
-const { notifyError } = useNotify()
+const { notifyError } = useNotify();
 const { isOnline } = useSystemUtils();
 const { getPatientsToSend, getGroupsToSend } = sendData();
-
 
 const logoutTimer = ref(null);
 
@@ -196,7 +207,7 @@ const logout = () => {
   localStorage.removeItem('password');
   // localStorage.removeItem('tokenExpiration');
   window.location.reload();
-}
+};
 
 const resetTimer = () => {
   clearTimeout(logoutTimer.value);
@@ -221,7 +232,14 @@ onMounted(() => {
   }
 
   // Definir os eventos e adicionar os ouvintes
-  const events = ['click', 'mousemove', 'mousedown', 'scroll', 'keypress', 'load'];
+  const events = [
+    'click',
+    'mousemove',
+    'mousedown',
+    'scroll',
+    'keypress',
+    'load',
+  ];
 
   events.forEach((event) => {
     window.addEventListener(event, resetTimer);
@@ -247,6 +265,13 @@ const migrationConfig = computed(() => {
 
 const currClinic = computed(() => {
   return clinicService.currClinic();
+});
+
+const currProvince = computed(() => {
+  const instalationType = systemConfigsService.getInstallationType();
+  if (instalationType.value === 'PROVINCIAL') {
+    return provinceService.getAllProvincesByCode(instalationType.description);
+  } else return null;
 });
 
 const menusVisible = (name) => {

@@ -5,7 +5,7 @@
       :bg-color="bgColor"
       :main-container="mainContainer"
       :expanded="expandLess"
-      :add-visible="showAddButton"
+      :add-visible="showAddButton && !isProvincialInstalation()"
       :expand-visible="false"
       :addButtonActions="addButtonActions"
     />
@@ -33,9 +33,11 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import { usePatient } from 'src/composables/patient/patientMethods';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 //Declaration
 const { website } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
 const {
   hasEpisodes,
   hasOneAndClosedIdentifier,

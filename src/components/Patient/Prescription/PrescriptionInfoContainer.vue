@@ -217,7 +217,11 @@
                       @click="printFilaReport(curIdentifier)"
                     />
                     <q-btn
-                      v-if="!isClosed && remainigDuration(prescription) !== 0"
+                      v-if="
+                        !isClosed &&
+                        remainigDuration(prescription) !== 0 &&
+                        !isProvincialInstalation()
+                      "
                       dense
                       flat
                       round
@@ -266,10 +270,12 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import groupService from 'src/services/api/group/groupService';
 import PrescriptionDetailsView from 'components/Patient/Prescription/PrescriptionDetailsView.vue';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 //Declaration
 const { website } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
+const { isProvincialInstalation } = useSystemConfig();
 const { isCloseEpisode, isDCReferenceEpisode } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { remainigDuration, remainigDurationInWeeks } = usePrescription();

@@ -93,7 +93,11 @@
       </q-table>
     </div>
     <div class="absolute-bottom">
-      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
+      <q-page-sticky
+        v-if="website && isProvincialInstalation()"
+        position="bottom-right"
+        :offset="[18, 18]"
+      >
         <q-btn
           size="xl"
           fab
@@ -122,10 +126,12 @@ import addClinicalService from 'src/components/Settings/ClinicalService/AddClini
 import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
 const { closeLoading, showloading } = useLoading();
+const { isProvincialInstalation } = useSystemConfig();
 const { website } = useSystemUtils();
 const loading = ref(true);
 const columns = [

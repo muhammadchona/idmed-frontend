@@ -108,7 +108,7 @@
           </div>
           <div class="col q-py-md">
             <ListHeader
-              :addVisible="islastEpisodeClosed"
+              :addVisible="islastEpisodeClosed && !isProvincialInstalation()"
               bgColor="bg-primary"
               :addButtonActions="openEpisodeCreation"
               >Histórico Clínico</ListHeader
@@ -156,12 +156,14 @@ import Episode from 'src/stores/models/episode/Episode';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import EpisodeInfo from './Episode.vue';
 import packService from 'src/services/api/pack/packService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 //props
 const props = defineProps(['identifierId', 'serviceId']);
 
 // Declaration
 const { hasVisits, isCloseEpisode, isDCReferenceEpisode } = useEpisode();
+const { isProvincialInstalation } = useSystemConfig();
 const { canBeEdited } = usePatientServiceIdentifier();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { preferedIdentifierValue, fullName } = usePatient();

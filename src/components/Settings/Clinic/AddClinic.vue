@@ -13,16 +13,24 @@
       <q-scroll-area style="height: 600px">
         <q-card-section class="q-px-md">
           <div class="row q-mt-md">
-            <nameInput
+            <q-input
+              outlined
+              dense
+              class="col"
               v-model="clinic.clinicName"
               label="Nome da Farmácia *"
               :disable="onlyView"
-              ref="nome"
+              ref="nomeRef"
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              lazy-rules
             />
           </div>
           <div class="row q-mt-md">
-            <codeInput
-              ref="code"
+            <q-input
+              outlined
+              dense
+              ref="codeRef"
+              class="col"
               v-model="clinic.code"
               :rules="[(val) => codeRules(val)]"
               :disable="onlyView"
@@ -38,7 +46,7 @@
               :options="facilityTypes"
               transition-show="flip-up"
               transition-hide="flip-down"
-              ref="facilityType"
+              ref="facilityTypeRef"
               option-value="id"
               option-label="description"
               :rules="[
@@ -48,7 +56,7 @@
               label="Tipo de Farmácia *"
             />
           </div>
-          <div class="row q-mb-md">
+          <div class="row q-mt-md">
             <q-select
               dense
               outlined
@@ -58,7 +66,7 @@
               :options="provinces"
               transition-show="flip-up"
               transition-hide="flip-down"
-              ref="province"
+              ref="provinceRef"
               option-value="id"
               option-label="description"
               :rules="[
@@ -67,10 +75,8 @@
               lazy-rules
               label="Província *"
             />
-          </div>
-          <div class="row q-mb-md">
             <q-select
-              class="col"
+              class="q-ml-md col"
               dense
               outlined
               transition-show="flip-up"
@@ -78,7 +84,7 @@
               :disable="onlyView"
               v-model="clinic.district"
               :options="districts"
-              ref="district"
+              ref="districtRef"
               option-value="id"
               option-label="description"
               :rules="[(val) => val != null || ' Por favor indique o Distrito']"
@@ -86,11 +92,11 @@
               label="Distrito"
             />
           </div>
-          <div class="row q-mt-md">
+          <div class="row">
             <PhoneField
               v-model="clinic.telephone"
               dense
-              label="Numero de Telefone"
+              label="Número de Telefone"
               :disable="onlyView"
             />
           </div>
@@ -129,17 +135,32 @@ import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import provinceService from 'src/services/api/provinceService/provinceService.ts';
 import facilityTypeService from 'src/services/api/facilityTypeService/facilityTypeService.ts';
 import districtService from 'src/services/api/districtService/districtService.ts';
+import { v4 as uuidv4 } from 'uuid';
 
 /*Components import*/
-import nameInput from 'src/components/Shared/NameInput.vue';
-import codeInput from 'src/components/Shared/CodeInput.vue';
 import PhoneField from 'src/components/Shared/Input/PhoneField.vue';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 /*Declarations*/
+const { alertSucess, alertError } = useSwal();
+const { isProvincialInstalation } = useSystemConfig();
 const databaseCodes = ref([]);
 const submitting = ref(false);
+const createMode = inject('createMode');
 const clinic = inject('clinic');
 const selectedClinic = inject('clinic');
+const showClinicRegistrationScreen = inject('showClinicRegistrationScreen');
+
+/**
+ Refs
+ */
+
+const nomeRef = ref(null);
+const codeRef = ref(null);
+const facilityTypeRef = ref(null);
+const provinceRef = ref(null);
+const districtRef = ref(null);
 
 /*injects*/
 const viewMode = inject('viewMode');
@@ -162,7 +183,11 @@ const provinces = computed(() => {
 });
 
 const facilityTypes = computed(() => {
-  return facilityTypeService.getAllFacilityTypes();
+  if (isProvincialInstalation()) {
+    return facilityTypeService.getAllFacilityTypesWithoutUS();
+  } else {
+    return facilityTypeService.getAllFacilityTypes();
+  }
 });
 
 const districts = computed(() => {
@@ -183,8 +208,68 @@ const extractDatabaseCodes = () => {
 const codeRules = (val) => {
   if (clinic.value.code === '') {
     return 'o Código e obrigatorio';
-  } else if (clinic.value.id && selectedClinic.value.id === clinic.value.id) {
-    return databaseCodes.value.includes(val) || 'o Código indicado ja existe';
+  } else if (createMode.value) {
+    return !databaseCodes.value.includes(val) || 'o Código indicado ja existe';
+  } else {
+    if (selectedClinic.value.code !== clinic.value.code) {
+      return databaseCodes.value.includes(val) || 'o Código indicado ja existe';
+    }
+  }
+};
+
+const validateClinic = () => {
+  submitting.value = true;
+  nomeRef.value.validate();
+  codeRef.value.validate();
+  facilityTypeRef.value.validate();
+  provinceRef.value.validate();
+  districtRef.value.validate();
+  if (
+    !nomeRef.value.hasError &&
+    !codeRef.value.hasError &&
+    !facilityTypeRef.value.hasError &&
+    !provinceRef.value.hasError &&
+    !districtRef.value.hasError
+  ) {
+    submitClinic();
+  } else {
+    submitting.value = false;
+  }
+};
+
+const submitClinic = () => {
+  if (createMode.value) {
+    clinic.value.active = true;
+    clinic.value.uuid = uuidv4();
+    clinic.value.syncStatus = 'P';
+
+    clinicService
+      .post(clinic.value)
+      .then(() => {
+        alertSucess('Farmácia registada com sucesso.');
+        submitting.value = false;
+        showClinicRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        console.log(error);
+        alertError('Aconteceu um erro inesperado ao registar a Farmácia.');
+        submitting.value = false;
+        showClinicRegistrationScreen.value = false;
+      });
+  } else {
+    clinicService
+      .patch(clinic.value.id, clinic.value)
+      .then(() => {
+        alertSucess('Farmácia actualizada com sucesso.');
+        submitting.value = false;
+        showClinicRegistrationScreen.value = false;
+      })
+      .catch((error) => {
+        console.log(error);
+        alertError('Aconteceu um erro inesperado ao actualizar a Farmácia.');
+        submitting.value = false;
+        showClinicRegistrationScreen.value = false;
+      });
   }
 };
 </script>
