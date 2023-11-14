@@ -394,7 +394,7 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
     pacienteOpenMRS.person.gender === 'M' ? 'Masculino' : 'Feminino';
   localpatient.value.dateOfBirth = pacienteOpenMRS.person.birthdate;
   localpatient.value.identifiers.push(
-    buildPatientIdentifierFromOpenMRS(pacienteOpenMRS.identifiers[0].identifier)
+    buildPatientIdentifierFromOpenMRS(pacienteOpenMRS.identifiers[0])
   );
   localpatient.value.cellphone =
     cellphoneObject !== null && cellphoneObject !== undefined
@@ -424,15 +424,32 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
   // localpatient.clinic_id = pacienteOpenMRS.person.names[0]
   return localpatient.value;
 };
-const buildPatientIdentifierFromOpenMRS = (identifier) => {
+const buildPatientIdentifierFromOpenMRS = (identifierOpenMrs) => {
+  let serviceCode = 'TARV';
+  if (String(identifierOpenMrs.identifierType.display).includes('TARV')) {
+    serviceCode = 'TARV';
+  } else {
+    if (String(identifierOpenMrs.identifierType.display).includes('PREP')) {
+      serviceCode = 'PREP';
+    } else {
+      if (String(identifierOpenMrs.identifierType.display).includes('TB')) {
+        serviceCode = 'TB';
+      } else {
+        if (String(identifierOpenMrs.identifierType.display).includes('CCR')) {
+          serviceCode = 'CCR';
+        }
+      }
+    }
+  }
   const psi = ref(new PatientServiceIdentifier({ id: uuidv4() }));
   psi.value.startDate = new Date();
-  psi.value.value = identifier;
+  psi.value.value = identifierOpenMrs.identifier;
   psi.value.state = 'Activo';
   psi.value.prefered = true;
-  psi.value.service = clinicalServiceService.getByIdentifierTypeCode('TARV');
+  psi.value.service =
+    clinicalServiceService.getByIdentifierTypeCode(serviceCode);
   psi.value.identifierType =
-    clinicalServiceService.getByIdentifierTypeCode('TARV').identifierType;
+    clinicalServiceService.getByIdentifierTypeCode(serviceCode).identifierType;
   psi.value.clinic = clinic.value;
   return psi.value;
 };
