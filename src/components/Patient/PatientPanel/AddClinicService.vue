@@ -1005,18 +1005,15 @@ const notAssociatedServices = computed(() => {
 const stopReasons = computed(() => {
   const allReasons = startStopReasonService.getAllStopReasons();
   let resonList = [];
-  if (isReferenceOrTransferenceEpisode(lastEpisode.value)) {
-    resonList = allReasons.filter((reason) => {
-      return (
-        reason.code !== 'REFERIDO_DC' &&
-        reason.code !== 'TRANSFERIDO_PARA' &&
-        reason.code !== 'REFERIDO_PARA'
-      );
-    });
-    return resonList;
-  } else {
-    return allReasons;
-  }
+  resonList = allReasons.filter((reason) => {
+    return (
+      reason.code !== 'REFERIDO_DC' &&
+      reason.code !== 'REFERIDO_PARA' &&
+      reason.code !== 'ABANDONO' &&
+      reason.code !== 'VOLTOU_A_SER_REFERIDO_PARA'
+    );
+  });
+  return resonList;
 });
 
 const startReasons = computed(() => {
