@@ -128,6 +128,7 @@ import StockOperationTypeService from 'src/services/api/stockOperationTypeServic
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
+import moment from 'moment';
 
 const { showloading, closeLoading } = useLoading();
 
@@ -288,6 +289,12 @@ const isGeneric = computed(() => {
 
 onMounted(() => {
   currInventory.value.generic = 'true';
+  if (
+    currInventory.value.startDate === null ||
+    currInventory.value.startDate === undefined
+  ) {
+    currInventory.value.startDate = moment().format('DD-MM-YYYY');
+  }
 });
 </script>
 
