@@ -7,17 +7,17 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const {  isMobile, isOnline } = useSystemUtils();
 
-const reportName = 'HistoricoDeLevantamento'
+const reportName = 'HistoricoDeLevantamentoPrep'
 // const logoTitle =
 // 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
-const title = 'HISTÓRICO DE LEVANTAMENTO'
+const title = 'HISTÓRICO DE LEVANTAMENTO PREP'
 const fileName = reportName.concat(
 '_' + moment(new Date()).format('DD-MM-YYYY')
 )
 
 export default {
 
-  async downloadPDF (province, startDate, endDate, result, tipoPacient) {
+  async downloadPDF (province, startDate, endDate, result) {
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -34,7 +34,7 @@ export default {
   const desiredDefinition = [
   [
     {
-      content: '                                                                                                        HISTÓRICO DE LEVANTAMENTO',
+      content: '                                                                                                        HISTÓRICO DE LEVANTAMENTO PREP',
       colSpan: 3,
       halign: 'center',
       valign: 'middle',
@@ -91,7 +91,7 @@ export default {
       'Nome',
       'Idade',
       'Contacto',
-      tipoPacient === 'tarv' ? 'Tipo TARV' : 'Tipo Paciente',
+      'Tipo TARV',
       'Regime Terapêutica',
       'Tipo de Dispensa',
       'Modo de Dispensa',
@@ -173,7 +173,7 @@ export default {
       this.downloadFile(fileName,'pdf',pdfOutput)
     }
   },
-  async downloadExcel (province, startDate, endDate, result, tipoPacient) {
+  async downloadExcel (province, startDate, endDate, result) {
     const rows = result
     const data = this.createArrayOfArrayRow(rows)
 
@@ -340,7 +340,7 @@ export default {
           filterButton: false
         },
         {
-          name:  tipoPacient === 'tarv' ? 'Tipo TARV' : 'Tipo Paciente',
+          name: 'Tipo TARV',
           totalsRowFunction: 'none',
           filterButton: false
         },
@@ -374,8 +374,7 @@ export default {
     })
 
     // Format all data cells
-    const lastRowNum =
-      worksheet.lastRow.number !== undefined ? worksheet.lastRow.number : 0
+    const lastRowNum = worksheet.lastRow.number !== undefined ? worksheet.lastRow.number : 0
     const lastTableRowNum = lastRowNum
 
     // Loop through all table's row
@@ -512,10 +511,10 @@ export default {
   },
 
   downloadFile(fileName , fileType, blop) {
-   // console.log(blop)
-   // var pdfOutput = blop.output()
-  //  console.log(pdfOutput)
-  //  if (typeof cordova !== 'undefined') {
+    // console.log(blop)
+    // var pdfOutput = blop.output()
+    //  console.log(pdfOutput)
+    //  if (typeof cordova !== 'undefined') {
      //   var blob = new Blob(materialEducativo.blop)
      //  const bytes = new Uint8Array(materialEducativo.blop)
     // var UTF8_STR = new Uint8Array(pdfOutput)
@@ -571,9 +570,7 @@ export default {
                error: function (e) {
                    console.log('file system open3333366: ' + e + documentURL)
                },
-               success: function () {
-
-               }
+               success: function () {}
            })
        }
     // }

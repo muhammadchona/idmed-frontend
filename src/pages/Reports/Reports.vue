@@ -107,7 +107,10 @@ import ReceivedStock from 'components/Reports/stock/ReceivedStock.vue';
 import UsedStock from 'components/Reports/stock/UsedStock.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
+import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue';
 import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.vue';
+import PatientHistoryPREP from 'components/Reports/ClinicManagement/prep/PatientHistory.vue';
+import PatientHistoryTPT from 'components/Reports/ClinicManagement/tpt/PatientHistory.vue';
 import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPack.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
@@ -126,15 +129,18 @@ const componentsList = {
   ReferredPatients,
   ReferredPatientDispenseHistory,
   AbsentPatients,
+  AbsentPatientsApss,
   AbsentReferredPatients,
   ReceivedStock,
   UsedStock,
   ArvDailyRegister,
   PatientHistory,
+  PatientHistoryPREP,
+  PatientHistoryTPT,
   NotSynchronizedPack,
 };
 
-const { isOnline, isMobile } = useSystemUtils();
+const { isMobile } = useSystemUtils();
 const title = ref('Relatórios');
 const tab = ref('list');
 const model = ref(null);
@@ -165,8 +171,7 @@ const components = ref([]);
 // const headerClass = 'list-header';
 // const bgColor = 'bg-primary';
 
-onMounted(() => {
-  
+onMounted(() => {  
   const array = LocalStorage.getAllKeys();
   if(array.length > 0) showloading();
   for (let index = 0; index < array.length; index++) {
@@ -181,8 +186,7 @@ onMounted(() => {
     }
 
     if(index === (array.length) - 1) closeLoading()
-  }
-  
+  }  
 });
 
 const changeTab = (tabName, selectedService, params) => {

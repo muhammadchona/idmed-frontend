@@ -88,7 +88,8 @@ const menu = [
                         //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                         //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
                         //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
-                         { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' }
+                         { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
+                         { description: 'Lista de Pacientes Faltosos ao Levantamento de ARV\'s para APSS', tabName: 'AbsentPatientsAPSS' }
                         ]
               },
               {

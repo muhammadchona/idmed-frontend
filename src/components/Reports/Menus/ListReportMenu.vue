@@ -46,7 +46,7 @@
 
 <script setup>
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
-import { computed, ref, inject, onMounted, provide } from 'vue'
+import { computed, ref, inject } from 'vue'
 import tarv from './reportMenuListTypes/tarv.vue';
 import tpt from './reportMenuListTypes/tpt.vue';
 import prep from './reportMenuListTypes/prep.vue';

@@ -52,13 +52,13 @@
   const { isOnline } = useSystemUtils();
   const { alertError } = useSwal();
 
-  const name =  'PatientHistory'
+  const name =  'PatientHistoryPREP'
   const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
   const totalRecords =  ref(0)
   const qtyProcessed = ref(0)
   const progress = ref(0.00)
   const filterDPatientHistorySection = ref('')
-  const report = 'HISTORICO_DE_LEVANTAMENTO';
+  const report = 'HISTORICO_DE_LEVANTAMENTO_PREP';
   const downloadingPdf = ref(false)
   const downloadingXls = ref(false)
   const serviceAux = ref(null)
@@ -75,10 +75,10 @@
     if (isOnline.value) {
       LocalStorage.set(params.id, params)
       Report.apiInitReportProcess('historicoLevantamentoReport',params).then(resp => {
-      setTimeout(() => {
-        getProcessingStatus(params)
-      }, 3000);
-    })
+        setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
+      })
     } else {
       LocalStorage.set(params.id, params)
       PatientHistoryMobileService.getDataLocalDb(params)
@@ -127,7 +127,7 @@
                 moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
                 moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
                 resp.data,
-                'tarv'
+                'prep'
               );
               downloadingPdf.value = false
             } else {
@@ -137,7 +137,7 @@
                 moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
                 moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
                 resp.data,
-                'tarv'
+                'prep'
               );
               downloadingXls.value = false
             }

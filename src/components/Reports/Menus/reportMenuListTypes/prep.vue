@@ -64,7 +64,7 @@
             //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
             //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
             //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
-            { description: 'Histórico de Levantamentos PREP', tabName: 'PatientHistory' },
+            { description: 'Histórico de Levantamentos PREP', tabName: 'PatientHistoryPREP' },
             ],
         },
         {
