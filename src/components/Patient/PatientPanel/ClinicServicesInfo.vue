@@ -1,7 +1,7 @@
 <template>
   <div>
     <ListHeader
-      :addVisible="true"
+      :addVisible="!isProvincialInstalation()"
       :mainContainer="true"
       bgColor="bg-primary"
       :addButtonActions="addClinicService"
@@ -36,9 +36,11 @@ import InfoContainer from 'components/Patient/PatientPanel/InfoContainer.vue';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 // Declaration
 const { preferedIdentifier } = usePatient();
+const { isProvincialInstalation } = useSystemConfig();
 const { canBeEdited } = usePatientServiceIdentifier();
 const emptyList = ref(false);
 const selectedIdentifier = ref(new PatientServiceIdentifier());

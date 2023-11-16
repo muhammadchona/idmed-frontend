@@ -203,8 +203,8 @@ export default {
           if (resp.data.length > 0) {
             this.getFromProvincial(offset);
           } else {
+            alertSucess('Lista actualizada com sucesso');
             this.get(0);
-            closeLoading();
           }
         });
     }

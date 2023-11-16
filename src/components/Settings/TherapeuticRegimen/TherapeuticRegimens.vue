@@ -258,8 +258,7 @@ const getRegimensFromProvincialServer = () => {
   therapeuticalRegimenService
     .getFromProvincial(0)
     .then(() => {
-      closeLoading();
-      alertSucess('Lista actualizada com sucesso');
+      console.log('Inicio actualizacao da lista Regimens');
     })
     .catch((error) => {
       closeLoading();

@@ -227,8 +227,7 @@ const getDrugsFromProvincialServer = () => {
   drugService
     .getFromProvincial(0)
     .then(() => {
-      closeLoading();
-      alertSucess('Lista actualizada com sucesso');
+      console.log('Inicio actualizacao da lista Drugs');
     })
     .catch((error) => {
       closeLoading();

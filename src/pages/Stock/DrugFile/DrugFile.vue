@@ -93,12 +93,11 @@
                 <q-td key="balance" :props="props">
                   {{ props.row.balance }}
                 </q-td>
-               
               </q-tr>
             </template>
             <template v-slot:loading>
-        <q-inner-loading showing color="primary" />
-      </template>
+              <q-inner-loading showing color="primary" />
+            </template>
           </q-table>
         </div>
         <div>
@@ -124,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, provide } from 'vue';
+import { ref, onMounted, computed, provide, watch } from 'vue';
 import DrugFile from '../../../stores/models/drugFile/DrugFile';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
@@ -144,7 +143,8 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isOnline } = useSystemUtils();
 
-const loading = ref(true)
+const loading = ref(true);
+const batchChanged = ref(false);
 
 const columns = [
   {
@@ -181,7 +181,6 @@ const columns = [
   },
   { name: 'loses', align: 'center', label: 'Perdas', sortable: true },
   { name: 'balance', align: 'center', label: 'Saldo', sortable: true },
-
 ];
 
 const dateUtils = useDateUtils();
@@ -218,7 +217,7 @@ const generateDrugEventSummary = async () => {
   if (!isOnline.value) {
     showloading();
     drugEventList.value = await drugFileService.getDrugFileSummary(drug.value);
-    loading.value=false
+    loading.value = false;
     closeLoading();
   } else {
     showloading();
@@ -226,14 +225,13 @@ const generateDrugEventSummary = async () => {
       console.log(resp.data);
       const t = resp.data;
       drugEventList.value = t;
-      loading.value=false
+      loading.value = false;
       closeLoading();
     });
   }
 };
 
 const updateDrugFileAdjustment = (adjustment) => {
-  console.log(' drugFile.drugFileSummary[0]::', drugFile.drugFileSummary[0]);
   // Actualiza o resumo por Drug
   if (
     adjustment.constructor.name === 'StockReferenceAdjustment' &&
@@ -284,6 +282,10 @@ const updateDrugFileAdjustment = (adjustment) => {
   }
 };
 
+watch((batchChanged) => {
+  generateDrugEventSummary();
+});
+
 onMounted(() => {
   generateDrugEventSummary();
 });
@@ -303,6 +305,7 @@ const drugFile = () => {
 };
 
 provide('title', title);
+provide('batchChanged', batchChanged);
 </script>
 
 <style lang="scss">

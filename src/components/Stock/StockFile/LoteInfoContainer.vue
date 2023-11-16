@@ -72,7 +72,11 @@
                       transition-show="scale"
                       transition-hide="scale"
                     >
-                      <q-date v-model="props.row.eventDate" mask="DD-MM-YYYY">
+                      <q-date
+                        v-model="props.row.eventDate"
+                        mask="DD-MM-YYYY"
+                        :options="blockDataFutura"
+                      >
                         <div class="row items-center justify-end">
                           <q-btn
                             v-close-popup
@@ -194,7 +198,7 @@ import { date } from 'quasar';
 import Stock from '../../../stores/models/stock/Stock';
 import { StockDestructionAdjustment } from '../../../stores/models/stockadjustment/StockDestructionAdjustment';
 import DestroyedStock from '../../../stores/models/stockdestruction/DestroyedStock';
-import { onMounted, ref, computed, provide } from 'vue';
+import { onMounted, ref, computed, provide, inject } from 'vue';
 import { StockReferenceAdjustment } from '../../../stores/models/stockadjustment/StockReferenceAdjustment';
 import ReferedStockMoviment from '../../../stores/models/stockrefered/ReferedStockMoviment';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
@@ -211,11 +215,13 @@ import ReferedStockMovimentService from 'src/services/api/referedStockMovimentSe
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment';
 
 const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError } = useSwal();
 const loading = ref(true);
 const loadingSave = ref(false);
+const batchChanged = inject('batchChanged');
 
 const columns = [
   {
@@ -267,6 +273,10 @@ const expandLess = (value) => {
   serviceInfoVisible.value = !value;
 };
 
+const blockDataFutura = (date) => {
+  return date <= moment(new Date()).format('YYYY/MM/DD');
+};
+
 const saveAjustment = () => {
   loadingSave.value = true;
   showCancel.value = false;
@@ -314,7 +324,6 @@ const saveAjustment = () => {
   }
 
   adjustment.adjustedStock = StockService.getStockById(stock.value.id);
-
   if (curEvent.value.eventDate.trim() === '') {
     alertError('Por favor indicar a  data de movimento correcta.');
     loadingSave.value = false;
@@ -329,13 +338,19 @@ const saveAjustment = () => {
       'A data do movimento não pode ser menor que a data de entrada do lote.'
     );
     loadingSave.value = false;
-  } else if (new Date(curEvent.value.eventDate) > new Date()) {
+  } else if (
+    dateUtils.getDateFromHyphenDDMMYYYYWithTime(curEvent.value.eventDate) >
+    new Date()
+  ) {
     alertError('A data do movimento não pode ser maior que a data corrente.');
     loadingSave.value = false;
   } else if (curEvent.value.moviment.trim() === '') {
     alertError('Por favor indicar a Origem/Destino.');
     loadingSave.value = false;
-  } else if (Number(adjustment.adjustedValue) <= 0) {
+  } else if (
+    Number(adjustment.adjustedValue) <= 0 ||
+    isNaN(adjustment.adjustedValue)
+  ) {
     alertError('Por favor indicar uma quantidade válida.');
     loadingSave.value = false;
   } else if (
@@ -357,12 +372,12 @@ const saveAjustment = () => {
       adjustment.adjustedStock.stockMoviment =
         Number(previousBalance.value) + Number(adjustment.adjustedValue);
     } else {
-      adjustment.adjustedStock.stockMoviment = Number(
-        previousBalance.value - adjustment.adjustedValues
-      );
+      adjustment.adjustedStock.stockMoviment =
+        Number(previousBalance.value) - Number(adjustment.adjustedValue);
     }
     adjustment.balance = adjustment.adjustedStock.stockMoviment;
     curEvent.value.balance = adjustment.balance;
+    console.log('RFERENCE:', reference);
     doSave(reference, destruction);
   }
 };
@@ -383,10 +398,11 @@ const doSave = (reference, destruction) => {
 };
 
 const updateRelatedStock = (stock) => {
+  batchChanged.value = true;
   StockService.patch(stock.id, stock).then((resp) => {
     step.value = 'display';
     adjustmentTypeRef.value = '';
-    location.reload();
+    generateDrugBatchEventSummary();
     alertSucess('Operação efectuada com sucesso.');
     loadingSave.value = false;
   });
