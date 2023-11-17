@@ -111,7 +111,17 @@ import { v4 as uuidv4 } from 'uuid';
 //Declatarion
 const prescribedDrug = ref(new PrescribedDrug({ id: uuidv4() }));
 const showOnlyOfRegimen = ref(false);
-const amtPerTimes = ref(['1', '2', '3', '4']);
+const amtPerTimes = ref([
+  '0.5',
+  '1',
+  '1.5',
+  '2',
+  '2.5',
+  '3',
+  '3.5',
+  '4',
+  '4.5',
+]);
 const timesPerDay = ref(['Dia', 'Semana', 'Mês', 'Ano']);
 const optionsDrugs = ref([]);
 

@@ -458,6 +458,7 @@ import PackagedDrugStock from 'src/stores/models/packagedDrug/PackagedDrugStock'
 import packService from 'src/services/api/pack/packService';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+//import { usePackagedDrugs } from 'src/composables/packaging/packagedDrugMethods';
 
 import { v4 as uuidv4 } from 'uuid';
 import drugService from 'src/services/api/drugService/drugService';
@@ -477,6 +478,8 @@ const { lastVisitPrescription } = usePatientServiceIdentifier();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { getQtyPrescribed } = usePrescribedDrug();
 const { remainigDuration } = usePrescription();
+const { getQtyRemain } = usePrescribedDrug();
+
 const expanded = ref(false);
 const submittingPrescribedDrug = reactive(ref(false));
 const prescriptionDate = ref();
@@ -563,6 +566,7 @@ const isNewPrescription = inject('isNewPrescription');
 const patient = inject('patient');
 const curPatientVisit = inject('curPatientVisit');
 const selectedMember = inject('selectedMember');
+let quantityRemainAux = 0;
 
 const showEdit = () => {
   reasonOutroSelected.value = true;
@@ -957,41 +961,70 @@ const addPackagedDrugs = () => {
     packagedDrug.timesPerDay = prescribedDrug.timesPerDay;
     packagedDrug.form = prescribedDrug.form;
 
+    if (lastPack.value !== null) {
+      lastPack.value.packagedDrugs.find((item) => {
+        if (item.drug.id === packagedDrug.drug.id) {
+          const qtyRemain = getQtyRemain(
+            packagedDrug,
+            curPrescription.value.duration.weeks
+          );
+          quantityRemainAux = Number(qtyRemain) + Number(item.quantityRemain);
+          packagedDrug.quantityRemain = quantityRemainAux;
+        }
+      });
+    } else {
+      const qtyRemain = getQtyRemain(
+        packagedDrug,
+        curPrescription.value.duration.weeks
+      );
+      // quantityRemainAux = qtyRemain + packagedDrug.quantityRemain;
+      packagedDrug.quantityRemain = qtyRemain;
+    }
+    // hereeeeeee
+    prescribedDrug.quantityRemain = quantityRemainAux;
+    packagedDrug.quantityRemain = quantityRemainAux;
+
     curPack.value.packagedDrugs.push(packagedDrug);
   });
 };
 const generatePacks = async (packagedDrug) => {
+  packagedDrug.quantityRemain = quantityRemainAux;
   const packagedDrugStocks = [];
 
   let quantitySupplied = packagedDrug.quantitySupplied;
   //getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(
   const pickupDate = curPack.value.pickupDate;
-  const stocks = await StockService.getValidStockByDrugAndPickUpDateOnline(
+  StockService.getValidStockByDrugAndPickUpDateOnline(
     packagedDrug.drug.id,
     pickupDate
-  );
+  ).then((stocks) => {
+    let i = 0;
+    while (quantitySupplied > 0) {
+      const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
 
-  let i = 0;
-  while (quantitySupplied > 0) {
-    const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
+      if (stocks[i].stockMoviment >= quantitySupplied) {
+        quantitySupplied = 0;
+        packagedDrugStock.quantitySupplied = packagedDrug.quantitySupplied;
+      } else {
+        quantitySupplied = Number(quantitySupplied - stocks[i].stockMoviment);
+        packagedDrugStock.quantitySupplied = stocks[i].stockMoviment;
 
-    if (stocks[i].stockMoviment >= quantitySupplied) {
-      quantitySupplied = 0;
-      packagedDrugStock.quantitySupplied = packagedDrug.quantitySupplied;
-    } else {
-      quantitySupplied = Number(quantitySupplied - stocks[i].stockMoviment);
-      packagedDrugStock.quantitySupplied = stocks[i].stockMoviment;
+        i = i + 1;
+      }
+      packagedDrugStock.drug = {};
+      packagedDrugStock.drug.id = packagedDrug.drug.id;
+      packagedDrugStock.stock = {};
+      packagedDrugStock.stock.id = stocks[i].id;
+      packagedDrugStock.creationDate = moment().format('YYYY-MM-DD');
 
-      i = i + 1;
+      packagedDrugStocks.push(packagedDrugStock);
     }
-    packagedDrugStock.drug = {};
-    packagedDrugStock.drug.id = packagedDrug.drug.id;
-    packagedDrugStock.stock = {};
-    packagedDrugStock.stock.id = stocks[i].id;
-    packagedDrugStock.creationDate = moment().format('YYYY-MM-DD');
-    packagedDrugStocks.push(packagedDrugStock);
-  }
-  packagedDrug.packagedDrugStocks = packagedDrugStocks;
+
+    // alert('222 : ' + quantityRemainAux);
+    //packagedDrug.quantityRemain = quantityRemainAux;
+    //alert('generatePacks: ' + packagedDrug.quantityRemain);
+    packagedDrug.packagedDrugStocks = packagedDrugStocks;
+  });
 };
 
 const checkStockToPack = async () => {
@@ -1034,6 +1067,30 @@ const addPatientVisitDetail = async () => {
       days: 4,
     }
   );
+
+  let quantityRemainAux = 0;
+  curPatientVisitDetail.value.pack.packagedDrugs.forEach((packagedDrug) => {
+    if (lastPack.value !== null) {
+      lastPack.value.packagedDrugs.find((itemLastPackagedDrug) => {
+        if (packagedDrug.drug.id === itemLastPackagedDrug.drug.id) {
+          const qtyRemain = getQtyRemain(
+            packagedDrug,
+            curPrescription.value.duration.weeks
+          );
+          quantityRemainAux =
+            Number(qtyRemain) + Number(itemLastPackagedDrug.quantityRemain);
+          packagedDrug.quantityRemain = quantityRemainAux;
+        }
+      });
+    } else {
+      const qtyRemain = getQtyRemain(
+        packagedDrug,
+        curPrescription.value.duration.weeks
+      );
+
+      packagedDrug.quantityRemain = qtyRemain;
+    }
+  });
 
   const itemsSuppliedToRemove = checkPackageDrugQtySupplied();
   const itemsToRemove = await checkStockToPack();
