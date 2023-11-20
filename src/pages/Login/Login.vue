@@ -232,7 +232,9 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.1.0 Tue Nov 14 02:58:39 PM CAT 2023</div>
+                <div class="row justify-center">
+                  Versão v.1.1.0 SNAPSHOT 20.11.2023
+                </div>
               </q-card-section>
             </q-card>
           </transition>
