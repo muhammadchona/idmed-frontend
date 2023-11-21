@@ -243,7 +243,7 @@
             v-model="notice"
             transition-show="slide-up"
             transition-hide="slide-down"
-            v-if="LocalStorage.getItem('backend_url') !== null"
+            v-if="LocalStorage.getItem('backend_url') !== null || isOnline"
           >
             <q-card class="bg-white text-red">
               <q-card-section>
