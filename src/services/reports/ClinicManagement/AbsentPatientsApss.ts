@@ -62,7 +62,7 @@ export default {
       const doc = new JsPDF({
         orientation: 'l',
         unit: 'mm',
-        format: 'a3',
+        format: 'a4',
         putOnlyUsedFonts: true,
         floatPrecision: 'smart',
       });  
@@ -75,7 +75,7 @@ export default {
       const headerReport = [
       [
         {
-          content: 'Faltosos ao Levantamento de ARV´s para APSS_'+service,
+          content: 'Faltosos ao Levantamento de ARV´s para APSS',
           styles: { minCellHeight: 20, fontSize: 16, halign: 'center' },
           colSpan: 3,
           halign: 'center',
@@ -164,18 +164,6 @@ export default {
         { content: 'Cr. Exp.' },
       ], 
     ];  
-      
-     // Iterate through the table header and add it to the PDF
-    // for (let i = 0; i < desiredDefinition.length; i++) {
-    //   for (let j = 0; j < desiredDefinition[i].length; j++) {
-    //     // Set text direction to vertical for a specific column (e.g., column 4)
-    //     if (j === 4) {
-    //       doc.text(desiredDefinition[i][j].content, 20 + j * 20, 20 + i * 10, { angle: 90 });
-    //     } else {
-    //       doc.text(desiredDefinition[i][j].content, 20 + j * 20, 20 + i * 10);
-    //     }
-    //   }
-    // }
 
       autoTable(doc, {
         //  margin: { top: 10 },
@@ -206,7 +194,7 @@ export default {
         cellWidth: 'wrap',
         valign: 'middle',
         // font: 'arial',
-        fontSize: 8,
+        fontSize: 6,
         // cellPadding: 8,
         overflowColumns: 'linebreak',
       },
@@ -214,7 +202,7 @@ export default {
       {
         valign: 'bottom',
         halign: 'center',
-        fontSize: 8,
+        fontSize: 6,
         lineWidth: 0.5,
         lineColor: [230, 230, 230],
         fillColor: [255, 255, 255],
@@ -223,30 +211,11 @@ export default {
       didDrawPage: function (data) 
       {    
         const str = 'Página ' + doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
+        doc.setFontSize(6);
         // jsPDF 1.4+ uses getWidth, <1.4 uses .width
         const pageSize = doc.internal.pageSize;
         const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);
-
-         // Encontrar a posição da string 'TARV' no cabeçalho
-        let tarvPosition = -1;
-        for (let i = 0; i < desiredDefinition[1].length; i++) {
-          console.log(desiredDefinition[1][i])
-          if (desiredDefinition[1][i].content === 'TARV') {
-              tarvPosition = i;
-              break;
-          }
-        }
-
-        if (tarvPosition !== -1) {
-            // Desenha o cabeçalho com base na posição de 'TARV'
-            const headerText = 'Cabeçalho Personalizado';  // Substitua pelo texto desejado
-            console.log(tarvPosition)
-            // Centraliza o texto do cabeçalho com base na posição de 'TARV'
-            const centerX = (tarvPosition * 20 + (tarvPosition + 1) * 20) / 2; // Ajuste conforme necessário
-            doc.text(headerText, centerX, 90, 90);
-        }
+        doc.text(str, data.settings.margin.right, pageHeight - 10);        
       },
 
       theme: 'grid',
