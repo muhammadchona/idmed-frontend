@@ -39,7 +39,7 @@
   <script setup>
   import Report from 'src/services/api/report/ReportService'
   import { LocalStorage } from 'quasar'
-  import { ref, provide } from 'vue'
+  import { ref, provide, onMounted } from 'vue'
   import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatients.ts'
   import ListHeader from 'components/Shared/ListHeader.vue'
   import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
@@ -123,6 +123,10 @@
       
     }
   }
+
+  onMounted(() => {
+    console.log(name)
+  })
   
   provide('downloadingPdf', downloadingPdf)
   provide('downloadingXls', downloadingXls)

@@ -39,16 +39,16 @@
   <script setup>
   import Report from 'src/services/api/report/ReportService'
   import { LocalStorage } from 'quasar'
-  import { ref, provide } from 'vue'
-  import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatients.ts'
+  import { ref, provide, onMounted } from 'vue'
+  import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatientsApss.ts'
   import ListHeader from 'components/Shared/ListHeader.vue'
   import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
-  import { useSwal } from 'src/composables/shared/dialog/dialog';  
+  import { useSwal } from 'src/composables/shared/dialog/dialog'
   import AbsentPatientMobileService from 'src/services/api/report/mobile/AbsentPatientMobileService'
-  import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+  import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils'
   
-  const {  isOnline } = useSystemUtils(); 
-  const {  alertError } = useSwal();
+  const {  isOnline } = useSystemUtils()
+  const {  alertError } = useSwal()
   const  name =  'AbsentPatientsApss'
   const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
   const totalRecords = ref(0)
@@ -123,6 +123,10 @@
       
     }
   }
+
+  onMounted(() => {
+    console.log(name)
+  })
   
   provide('downloadingPdf', downloadingPdf)
   provide('downloadingXls', downloadingXls)
