@@ -232,7 +232,9 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.1.0 Tue Nov 14 02:58:39 PM CAT 2023</div>
+                <div class="row justify-center">
+                  Versão v.1.1.0 SNAPSHOT 20.11.2023
+                </div>
               </q-card-section>
             </q-card>
           </transition>
@@ -241,7 +243,7 @@
             v-model="notice"
             transition-show="slide-up"
             transition-hide="slide-down"
-            v-if="LocalStorage.getItem('backend_url') !== null"
+            v-if="LocalStorage.getItem('backend_url') !== null || isOnline"
           >
             <q-card class="bg-white text-red">
               <q-card-section>

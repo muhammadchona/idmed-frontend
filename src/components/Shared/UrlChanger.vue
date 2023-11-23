@@ -6,6 +6,8 @@
         v-model="urlBackend"
         placeholder="URL do Servidor"
         label-color="black"
+        :suffix="urlBackend.includes('https') ? '' : '/api'"
+        clearable
       >
         <template v-slot:append> </template>
       </q-input>
@@ -23,7 +25,7 @@ import { ref, onMounted } from 'vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 const { isMobile, isOnline } = useSystemUtils();
 const { alertError } = useSwal();
-const urlBackend = ref('');
+const urlBackend = ref('http://');
 
 onMounted(() => {
   if (localStorage.getItem('backend_url') !== null && isMobile.value) {
@@ -32,10 +34,12 @@ onMounted(() => {
 });
 
 const saveURLBackend = () => {
-  console.log(urlBackend.value);
+  urlBackend.value = urlBackend.value.includes('https')
+    ? urlBackend.value
+    : urlBackend.value.concat('/api');
+
   if (urlBackend.value && isValidUrl(urlBackend.value)) {
     localStorage.setItem('backend_url', urlBackend.value);
-    //  popUpUrlMobile.value = false;
     location.reload();
   } else {
     alertError('Por Favor Preencha uma URL válida');

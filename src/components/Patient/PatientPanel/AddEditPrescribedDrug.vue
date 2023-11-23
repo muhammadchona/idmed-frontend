@@ -47,7 +47,11 @@
                   'Por favor indicar a quantidade a tomar de cada vez.',
               ]"
               v-model="prescribedDrug.amtPerTime"
-              :options="amtPerTimes"
+              :options="
+                idadePaciente <= 14
+                  ? amtPerTimesForPediatric
+                  : amtPerTimesForAdults
+              "
               label="Toma"
             />
             <q-input
@@ -107,11 +111,25 @@ import drugService from 'src/services/api/drugService/drugService';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 import { computed, inject, onMounted, ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
+import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 
 //Declatarion
+const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
+  useDateUtils();
 const prescribedDrug = ref(new PrescribedDrug({ id: uuidv4() }));
 const showOnlyOfRegimen = ref(false);
-const amtPerTimes = ref(['1', '2', '3', '4']);
+const amtPerTimesForPediatric = ref([
+  '0.5',
+  '1',
+  '1.5',
+  '2',
+  '2.5',
+  '3',
+  '3.5',
+  '4',
+  '4.5',
+]);
+const amtPerTimesForAdults = ref(['1', '2', '3', '4']);
 const timesPerDay = ref(['Dia', 'Semana', 'Mês', 'Ano']);
 const optionsDrugs = ref([]);
 
@@ -158,6 +176,12 @@ const submitForm = () => {
     submitting.value = false;
   }
 };
+
+const idadePaciente = computed(() => {
+  return idadeCalculator(
+    getDDMMYYYFromJSDate(curIdentifier.patient.dateOfBirth)
+  );
+});
 
 const getDrugs = computed(() => {
   let validDrugs = [];
