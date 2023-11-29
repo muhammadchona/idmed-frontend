@@ -93,8 +93,7 @@ export default {
           fontSize: '14',
         },
         {
-          content:
-            'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+          content: 'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -279,8 +278,8 @@ export default {
         nameSheet = 'ADULTO E PEDIATRICO'
       }
 
-      // Adicione uma nova planilha para cada serviço
-      const worksheet = workbook.addWorksheet(nameSheet);
+    // Adicione uma nova planilha para cada serviço
+    const worksheet = workbook.addWorksheet(nameSheet);
    
     const imageId = workbook.addImage({
       base64: 'data:image/png;base64,' + MOHIMAGELOG,
@@ -397,7 +396,7 @@ export default {
         };
 
     // Border Format
-    // cellRepublica.border =
+    cellRepublica.border =
       cellTitle.border =
       cellPharm.border =
       cellPharmParamValue.border =
@@ -503,7 +502,6 @@ export default {
         showRowStripes: false,
       },
       columns: [
-        // { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
         { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'NOME', totalsRowFunction: 'none', filterButton: false },
         {
