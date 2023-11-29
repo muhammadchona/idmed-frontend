@@ -501,6 +501,9 @@ export default {
     if (fileTypeParam === 'PDF'){
           const desiredDefinition1 = [
             [
+              { content: 'LOTES', colSpan: 10 },
+            ],
+            [
               { content: 'NR. DO LOTE'},
               { content: 'DATA DE MOVIMENTO'},
               { content: 'MOVIMENTO' },
