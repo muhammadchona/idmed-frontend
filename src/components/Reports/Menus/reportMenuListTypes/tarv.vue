@@ -53,19 +53,19 @@
             description: 'Gestão de Farmácia',
             id: 2,
             menuItem: [
-            {
-                description: 'Lista de Pacientes Faltosos ao Levantamento',
-                tabName: 'AbsentPatients',
-            },
-            {
-                description: 'Mapa Mensal de Informação de ARV (MMIA)',
-                tabName: 'Mmia',
-            },
-            //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
-            //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
-            //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
-            { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
-            { description: 'Lista de Pacientes Faltosos ao Levantamento de ARV\'s para APSS', tabName: 'AbsentPatientsAPSS' }
+                {
+                    description: 'Lista de Pacientes Faltosos ao Levantamento',
+                    tabName: 'AbsentPatients',
+                },
+                {
+                    description: 'Mapa Mensal de Informação de ARV (MMIA)',
+                    tabName: 'Mmia',
+                },
+                //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
+                //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
+                //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
+                { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
+                { description: 'Lista de Pacientes Faltosos ao Levantamento de ARV\'s para APSS', tabName: 'AbsentPatientsApss' }
             ],
         },
         {
@@ -116,6 +116,7 @@
     ];
 
     const changeTab = (tabName) => {
+        console.log(tabName)
         currTab.value = tabName;
         emit('changeTab', tabName, selectedService.value);
     };
