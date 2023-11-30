@@ -119,6 +119,14 @@ export default {
       .first();
   },
 
+  isBatchNumberExists(stockObj: any) {
+    const batchNumberList = stock
+      .query()
+      .where('batchNumber', stockObj.batchNumber)
+      .where('entrance_id', stockObj.entrance_id)
+      .get();
+    return batchNumberList.length > 0;
+  },
   getStockById(id: string) {
     return (
       stock
@@ -177,7 +185,7 @@ export default {
         return false;
       }
     } else {
-      var qtyInStock = 0;
+      let qtyInStock = 0;
       const stocks = this.getStockByDrug(idPrescribedDrug);
       const validStock = stocks.filter((item) => {
         return moment(item.expireDate) >= moment(date);
