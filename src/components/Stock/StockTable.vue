@@ -173,7 +173,7 @@ const openDrugFile = (drugInfo) => {
   loadingDrugFile.value = true
   drug.value = drugService.getDrugById(drugInfo.id);
   localStorage.setItem('selectedDrug', drug.value.id);
-  
+
   router.push('/stock/drugFile');
  // loadingDrugFile.value = false
 };
@@ -201,7 +201,7 @@ const getConsuptionRelatedColor = (state) => {
 
 
 const rows = computed(() => {
- const list =   StockAlertService.getStockAlertsByClinic();
+ const list = StockAlertService.getStockAlertsByClinic();
  if (list.length>0) {
   loading.value = false
  }
