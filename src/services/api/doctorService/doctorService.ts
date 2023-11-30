@@ -134,6 +134,7 @@ export default {
         query.with('district');
         query.with('facilityType');
       })
+      .where('active', true)
       .orderBy('firstnames')
       .get();
   },

@@ -37,7 +37,9 @@
       <q-card-section>
         <q-list bordered>
           <q-expansion-item
-            v-for="identifier in getIdentifierWithInicialEpisode"
+            v-for="identifier in getIdentifierWithInicialEpisode.length > 0
+              ? getIdentifierWithInicialEpisode
+              : getIdentifierWithRefferalEpisode"
             :key="identifier.id"
             group="somegroup"
             dense
@@ -193,6 +195,12 @@ const dispenseModes = computed(() => {
 
 const getIdentifierWithInicialEpisode = computed(() => {
   return patientServiceIdentifierService.getAllIdentifierWithInicialEpisodeByPatient(
+    patient.value.id
+  );
+});
+
+const getIdentifierWithRefferalEpisode = computed(() => {
+  return patientServiceIdentifierService.getAllIdentifierWithREferralEpisodeByPatient(
     patient.value.id
   );
 });
