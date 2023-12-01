@@ -22,8 +22,8 @@ const clinic = clinicService.currClinic();
 const data = [];
 
 export default {
-  
-  async downloadPDF(fileTypeParam, drugEventList, drug, stocks) {  
+
+  async downloadPDF(fileTypeParam, drugEventList, drug, stocks) {
 
     const doc = new JsPDF({
       orientation: 'l',
@@ -31,8 +31,8 @@ export default {
       format: 'a4',
       putOnlyUsedFonts: true,
       floatPrecision: 'smart',
-    });  
-    
+    });
+
     const image = new Image();
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
     const img = new Image();
@@ -147,14 +147,14 @@ export default {
           { content: 'AJUSTE NEGATIVO (-)' },
           { content: 'PERDAS' },
           { content: 'SALDOS' },
-        ], 
-      ];  
+        ],
+      ];
 
       const data1 = this.createArrayOfArrayRowForResumo(drugEventList.value);
-  
+
       autoTable(doc, {
         // margin: { top: 45 },
-        bodyStyles: 
+        bodyStyles:
         {
           overflow: 'linebreak',
           cellWidth: 'wrap',
@@ -164,7 +164,7 @@ export default {
           // cellPadding: 8,
           overflowColumns: 'linebreak',
         },
-        headStyles: 
+        headStyles:
         {
           valign: 'bottom',
           halign: 'center',
@@ -174,16 +174,16 @@ export default {
           fillColor: [255, 255, 255],
           textColor: [96, 96, 96],
         },
-        didDrawPage: function (data) 
-        {    
+        didDrawPage: function (data)
+        {
           const str = 'Página ' + doc.internal.getNumberOfPages();
           doc.setFontSize(6);
           // jsPDF 1.4+ uses getWidth, <1.4 uses .width
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-          doc.text(str, data.settings.margin.right, pageHeight - 10);        
+          doc.text(str, data.settings.margin.right, pageHeight - 10);
         },
-  
+
         theme: 'grid',
         head: desiredDefinition,
         body: data1,
@@ -198,9 +198,9 @@ export default {
     this.imprimirAoTerminar(stocksOrdenadosPorExpireDateDesc, doc, fileTypeParam, '');
   },
 
-  async downloadExcel(fileTypeParam, drugEventList, drug, stocks) { 
+  async downloadExcel(fileTypeParam, drugEventList, drug, stocks) {
     const clinic = clinicService.currClinic();
-    const data = this.createArrayOfArrayRowForResumo(drugEventList.value);
+    let data = this.createArrayOfArrayRowForResumo(drugEventList.value);
     if (isOnline.value) {
       // const rows = await Report.printReportOther('stockReportTemp', id);
       // if (rows.status === 204 || rows.data.length === 0) return 204;
@@ -222,9 +222,9 @@ export default {
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
-    
+
     const worksheet = workbook.addWorksheet(reportName);
-    
+
     const imageId = workbook.addImage({
       base64: 'data:image/png;base64,' + MOHIMAGELOG,
       extension: 'png',
@@ -264,7 +264,7 @@ export default {
     const colH = worksheet.getColumn('H');
     const colI = worksheet.getColumn('I');
     const colJ = worksheet.getColumn('J');
-    
+
     worksheet.getCell('A13').fill =
     worksheet.getCell('B13').fill =
     worksheet.getCell('C13').fill =
@@ -371,7 +371,7 @@ export default {
       tl: { col: 0, row: 1 },
       ext: { width: 144, height: 98 },
     });
-    
+
     // Cereate Table RESUMO
     worksheet.addTable({
       name: reportName,
@@ -425,8 +425,8 @@ export default {
     const stocksOrdenadosPorExpireDateDesc = this.filtrarEOrdenarObjetos(stocks);
 
     this.imprimirAoTerminar(stocksOrdenadosPorExpireDateDesc, worksheet, fileTypeParam, workbook);
-    
-    
+
+
   },
 
 
@@ -468,12 +468,12 @@ export default {
 
       dataa.push(createRow);
     }
-    
+
     return dataa;
   },
 
   async imprimirAoTerminar(stocksOrdenadosPorExpireDateDesc, docOrWorksheet, fileTypeParam, workbook) {
-    const promises = [];  
+    const promises = [];
     const lotesPersonalisados = []
     for(const stockk in stocksOrdenadosPorExpireDateDesc) {
         const stock1 = []
@@ -490,12 +490,12 @@ export default {
           const lotesOrdenados = this.ordenaPorMovimentoDesc(lotesDoStock)
           for (let i = 0; i < lotesOrdenados.length; i++) {
             lotesPersonalisados.push(lotesOrdenados[i])
-          }        
-                
+          }
+
       });
       promises.push(promise);
     }
-    
+
     await Promise.all(promises);
     const data2Result = this.createArrayOfArrayRowForLote(this.ordenaPorMovimentoDesc1(lotesPersonalisados))
     if (fileTypeParam === 'PDF'){
@@ -514,12 +514,12 @@ export default {
               { content: 'PERDAS' },
               { content: 'SALDO' },
               { content: 'VALIDADE' },
-            ], 
-          ];  
-      
+            ],
+          ];
+
           autoTable(docOrWorksheet, {
             // margin: { top: 45 },
-            bodyStyles: 
+            bodyStyles:
             {
               overflow: 'linebreak',
               cellWidth: 'wrap',
@@ -529,7 +529,7 @@ export default {
               // cellPadding: 8,
               overflowColumns: 'linebreak',
             },
-            headStyles: 
+            headStyles:
             {
               valign: 'bottom',
               halign: 'center',
@@ -539,7 +539,7 @@ export default {
               fillColor: [255, 255, 255],
               textColor: [96, 96, 96],
             },
-      
+
             theme: 'grid',
             head: desiredDefinition1,
             body: data2Result,
@@ -560,7 +560,7 @@ export default {
 
     const cellLotesTitle = docOrWorksheet.getCell('A' + (Number(docOrWorksheet.lastRow.number)))
     cellLotesTitle.value = 'LOTES'
-    cellLotesTitle.fill = 
+    cellLotesTitle.fill =
     {
       type: 'pattern',
       pattern: 'solid',
@@ -574,7 +574,7 @@ export default {
       size: 10,
       italic: false,
     };
-    
+
 
     // Format all data cells
     const lastRowNum =  docOrWorksheet.lastRow.number !== undefined ? docOrWorksheet.lastRow.number : 0;
