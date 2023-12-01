@@ -629,6 +629,9 @@ const durations = computed(() => {
 const lastStartEpisode = computed(() => {
   return episodeService.getLastStartEpisodeByIdentifier(props.identifier.id);
 });
+const lastRefferalEpisode = computed(() => {
+  return episodeService.getLastRefferalEpisodeByIdentifier(props.identifier.id);
+});
 const lastPatientVisit = computed(() => {
   const listPatietVisitIds = [];
   if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
@@ -855,15 +858,21 @@ const validateForm = () => {
     ) {
       alertError('A data da prescrição é inválida.');
     } else if (
-      lastStartEpisode.value === null ||
-      lastStartEpisode.value === undefined
+      (lastStartEpisode.value === null ||
+        lastStartEpisode.value === undefined) &&
+      (lastRefferalEpisode.value === null ||
+        lastRefferalEpisode.value === undefined)
     ) {
       alertError(
-        'Nenhuma prescrição não deve ser criada sem um Histórico clínico.'
+        'Nenhuma prescrição não deve ser criada sem um Histórico clínico de Início ou Referência.'
       );
     } else if (
       getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(prescriptionDate.value)) <
-      getYYYYMMDDFromJSDate(lastStartEpisode.value.episodeDate)
+      getYYYYMMDDFromJSDate(
+        lastStartEpisode.value !== null && lastStartEpisode.value !== undefined
+          ? lastStartEpisode.value.episodeDate
+          : lastRefferalEpisode.value.episodeDate
+      )
     ) {
       alertError(
         'A data da prescrição não deve ser anterior a data de inicio do tratamento no sector corrente'
@@ -941,8 +950,8 @@ const allGoodvalidatedForm = () => {
   curPatientVisitDetail.value.pack = curPack.value;
   curPatientVisitDetail.value.prescription = curPrescription.value;
   curPatientVisitDetail.value.prescription_id = curPrescription.value.id;
-  curPatientVisitDetail.value.episode = lastStartEpisode.value;
-  curPatientVisitDetail.value.episode_id = lastStartEpisode.value.id;
+  curPatientVisitDetail.value.episode = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value : lastRefferalEpisode.value
+  curPatientVisitDetail.value.episode_id = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value.id : lastRefferalEpisode.value.id
 
   addPackagedDrugs();
   showServiceDrugsManagement.value = true;
@@ -1019,10 +1028,6 @@ const generatePacks = async (packagedDrug) => {
 
       packagedDrugStocks.push(packagedDrugStock);
     }
-
-    // alert('222 : ' + quantityRemainAux);
-    //packagedDrug.quantityRemain = quantityRemainAux;
-    //alert('generatePacks: ' + packagedDrug.quantityRemain);
     packagedDrug.packagedDrugStocks = packagedDrugStocks;
   });
 };
@@ -1164,8 +1169,8 @@ const allGoodValidatatedDispense = () => {
   );
   curPatientVisit.value.visitDate = curPrescription.value.prescriptionDate;
   curPatientVisitDetail.value.prescription = curPrescription.value;
-  curPatientVisitDetail.value.episode = lastStartEpisode.value;
-  curPatientVisitDetail.value.episode_id = lastStartEpisode.value.id;
+  curPatientVisitDetail.value.episode = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value : lastRefferalEpisode.value;
+  curPatientVisitDetail.value.episode_id = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value.id : lastRefferalEpisode.value.id;
   curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
 };
 
@@ -1226,8 +1231,6 @@ const addPrescribedDrug = async (prescribedDrug) => {
 
 const addMedication = (prescribedDrug) => {
   showAddEditDrug.value = false;
-  // if (!this.visitDetails.createPackLater)
-  //   prescribedDrug.nextPickUpDate = this.nextPUpDate;
   curPrescription.value.prescribedDrugs.push(
     new PrescribedDrug(prescribedDrug)
   );

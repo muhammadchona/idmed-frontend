@@ -277,6 +277,17 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
+  getLastRefferedEpisodeWithPrescription(patientIdentifierid: string) {
+    return episode
+      .withAllRecursive(2)
+      .whereHas('startStopReason', (query) => {
+        query.where('code', 'REFERIDO_DC').orWhere('code', 'REFERIDO_PARA');
+      })
+      .has('patientVisitDetails')
+      .where('patientServiceIdentifier_id', patientIdentifierid)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
   getLastStopEpisodeByIdentifier(identifierId: string) {
     return episode
       .with('startStopReason')
@@ -294,6 +305,16 @@ export default {
       .whereHas('episodeType', (query) => {
         query.where('code', 'INICIO');
       })
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+  getLastRefferalEpisodeByIdentifier(patientIdentifierid: string) {
+    return episode
+      .withAllRecursive(2)
+      .whereHas('startStopReason', (query) => {
+        query.where('code', 'REFERIDO_DC').orWhere('code', 'REFERIDO_PARA');
+      })
+      .where('patientServiceIdentifier_id', patientIdentifierid)
       .orderBy('episodeDate', 'desc')
       .first();
   },

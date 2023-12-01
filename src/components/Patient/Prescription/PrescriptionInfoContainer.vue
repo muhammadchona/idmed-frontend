@@ -10,7 +10,6 @@
         <q-item-section avatar>
           <q-icon color="white" name="medication" />
         </q-item-section>
-
         <q-item-section>
           {{
             curIdentifier.service === null ||
@@ -463,16 +462,46 @@ const patientVisit = computed(() => {
     }
     return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
   } else {
-    return null;
+    if (
+      lastRefferedEpisode.value !== null &&
+      lastRefferedEpisode.value !== undefined
+    ) {
+      const listPatietVisitDetails =
+        patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
+          lastRefferedEpisode.value.id
+        );
+
+      if (
+        listPatietVisitDetails !== null &&
+        listPatietVisitDetails !== undefined
+      ) {
+        listPatietVisitDetails.forEach((patientvisitdetails) => {
+          listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+        });
+      }
+      return patientVisitService.getLastFromPatientVisitList(
+        listPatietVisitIds
+      );
+    } else return null;
   }
 });
 
 const lastPatientVisitDetails = computed(() => {
   if (patientVisit.value !== null && patientVisit.value !== undefined) {
-    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
-      patientVisit.value.id,
-      lastStartEpisode.value.id
-    );
+    if (
+      lastStartEpisode.value !== null &&
+      lastStartEpisode.value !== undefined
+    ) {
+      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+        patientVisit.value.id,
+        lastStartEpisode.value.id
+      );
+    } else {
+      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+        patientVisit.value.id,
+        lastRefferedEpisode.value.id
+      );
+    }
   } else {
     return null;
   }
@@ -481,6 +510,16 @@ const lastPatientVisitDetails = computed(() => {
 const lastStartEpisode = computed(() => {
   if (curIdentifier.value !== null) {
     return episodeService.getLastStartEpisodeWithPrescription(
+      curIdentifier.value.id
+    );
+  } else {
+    return null;
+  }
+});
+
+const lastRefferedEpisode = computed(() => {
+  if (curIdentifier.value !== null) {
+    return episodeService.getLastRefferedEpisodeWithPrescription(
       curIdentifier.value.id
     );
   } else {
