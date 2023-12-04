@@ -99,6 +99,14 @@ export function useDateUtils() {
     }
   }
 
+  function idadeReportCalculator(dateOfBirth: Date) {
+    if (dateOfBirth !== undefined && dateOfBirth !== null) {
+      return moment().diff(moment(dateOfBirth, 'YYYY-MM-DD'), 'years');
+    } else {
+      return null;
+    }
+  }
+
   return {
     isValidDate,
     formatDate,
@@ -120,6 +128,7 @@ export function useDateUtils() {
     getDateFormatDDMMYYYYFromYYYYMMDD,
     getDateFormatDDMMYYYYDash,
     idadeCalculator,
+    idadeReportCalculator,
     getDateFromHyphenDDMMYYYYWithTime,
   };
 }
