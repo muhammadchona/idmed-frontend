@@ -6,7 +6,7 @@ import { MOHIMAGELOG } from 'src/assets/imageBytes';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import packService from 'src/services/api/pack/packService';
 
-const { idadeCalculator } = useDateUtils();
+const { idadeCalculator, idadeReportCalculator } = useDateUtils();
 export default {
   async downloadPDF(
     patient: object,
@@ -107,7 +107,7 @@ export default {
 
       [
         { content: 'Idade:' },
-        { content: Math.abs(idadeCalculator(patient.dateOfBirth)) },
+        { content: Math.abs(idadeReportCalculator(patient.dateOfBirth)) },
         { content: 'Sexo:' },
         { content: patient.gender },
       ],
