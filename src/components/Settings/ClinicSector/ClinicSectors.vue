@@ -221,7 +221,7 @@ const editClinicSector = (clinicSectorParam) => {
 };
 const addClinicSectorr = () => {
   isNewClinicSector.value = true;
-  clinicSector.value = C;
+  clinicSector.value = clinicSector.value;
   clinicSector.value.clinic = currClinic.value;
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = false;
