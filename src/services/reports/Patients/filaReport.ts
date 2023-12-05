@@ -40,6 +40,9 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
     loadingPDF.value = true;
     const image = new Image();
     // image.src = '/src/assets/MoHLogo.png';
@@ -165,7 +168,8 @@ export default {
       body: data,
     });
     loadingPDF.value = false;
-    return doc.save(fileName.concat('.pdf'));
+    window.open(doc.output('bloburl'));
+    // return doc.save(fileName.concat('.pdf'));
   },
 };
 function createDrugArrayOfArrayRow(rows: any) {
