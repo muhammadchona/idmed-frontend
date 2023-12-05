@@ -209,6 +209,10 @@ export default {
         fillColor: [255, 255, 255],
         textColor: [96, 96, 96],
       },
+      columnStyles: {
+        4: { cellWidth: 40, fontSize: 5 },
+        11: { cellWidth: 25 },
+      },
       didDrawPage: function (data) 
       {    
         const str = 'Página ' + doc.internal.getNumberOfPages();
