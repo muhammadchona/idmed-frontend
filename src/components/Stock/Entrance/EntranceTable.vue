@@ -101,13 +101,13 @@ const columns = [
 ];
 const filter = ref('');
 const router = useRouter();
-const loading= ref(true)
+const loading = ref(true);
 
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
 const editStockEntrance = (entrance) => {
-  entrance.clinic = null
+  entrance.clinic = null;
   localStorage.setItem('currStockEntrance', JSON.stringify(entrance.id));
   router.push('/stock/entrance');
 };
@@ -115,8 +115,8 @@ const editStockEntrance = (entrance) => {
 const stockEntrances = computed(() => {
   const list = StockEntranceService.getStockEntrances();
   if (list.length > 0) {
-    loading.value = false
+    loading.value = false;
   }
-  return list
+  return list;
 });
 </script>

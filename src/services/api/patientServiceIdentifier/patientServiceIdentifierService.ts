@@ -236,6 +236,19 @@ export default {
       .where('patient_id', patientId)
       .get();
   },
+
+  getAllIdentifierWithREferralEpisodeByPatient(patientId: string) {
+    return patientServiceIdentifier
+      .withAllRecursive(2)
+      .whereHas('episodes', (query) => {
+        query.whereHas('startStopReason', (query) => {
+          query.where('code', 'REFERIDO_PARA').orWhere('code', 'REFERIDO_DC');
+        });
+      })
+      .where('patient_id', patientId)
+      .get();
+  },
+
   curIdentifierById(id: string) {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
   },
