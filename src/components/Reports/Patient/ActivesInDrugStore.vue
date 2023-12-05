@@ -122,6 +122,8 @@ const generateReport = async (id, fileType) => {
     Report.apiPrintActivePatientReport(id).then((resp) => {
       if (!resp.data[0]) {
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingXls.value = false
+            downloadingPdf.value = false
       } else {
         const patientAux = resp.data[0];
 
@@ -148,6 +150,8 @@ const generateReport = async (id, fileType) => {
     const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id);
     if (data.length === 0) {
       alertError('Nao existem Dados para o periodo selecionado');
+      downloadingXls.value = false
+            downloadingPdf.value = false
     } else {
       const patientAux = data[0];
 

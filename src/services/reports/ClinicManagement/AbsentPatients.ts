@@ -21,6 +21,7 @@ const fileName = reportName.concat(
 
 export default {
   async downloadPDF(id, fileType, params) {
+    console.log(params)
     const clinic = clinicService.currClinic();
     const doc = new JsPDF({
       orientation: 'l',
@@ -33,9 +34,90 @@ export default {
     // image.src = '/src/assets/MoHLogo.png'
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
     const width = doc.internal.pageSize.getWidth();
-    /*
-      Fill Table
-    */
+    
+    const headerReport = [
+      [
+        {
+          content: 'Faltosos ao Levantamento de ARV´s',
+          styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
+          colSpan: 3,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+        },
+      ],
+      [
+        {
+          content: 'Unidade Sanitária: ' + clinic.clinicName,
+          colSpan: 2,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content: 'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+          colSpan: 1,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+      ],
+      [
+        {
+          content:
+            'Distrito: ' +
+            (params.district === null
+              ? clinic.district.description
+              : params.district.description),
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content:
+            'Província: ' +
+            (params.province === null
+              ? clinic.province.description
+              : params.province.description),
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content: 'Ano: ' + params.year,
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+      ],
+    ];
+
+    autoTable(doc, {
+      //  margin: { top: 10 },
+      bodyStyles: {
+        halign: 'left',
+        valign: 'middle',
+        fontSize: 8,
+      },
+      headStyles: {
+        halign: 'left',
+        valign: 'middle',
+      },
+      theme: 'grid',
+      body: headerReport,
+    });
+
+    doc.setFontSize(8);
+    doc.text('República de Moçambique ', 16, 28);
+    doc.text('Ministério da Saúde ', 20, 32);
+    doc.text('Serviço Nacional de Saúde ', 16, 36);
+    doc.addImage(image, 'png', 28, 15, 10, 10);
+
     const cols = [
       'NID',
       'NOME',
@@ -65,51 +147,32 @@ export default {
     }
 
     autoTable(doc, {
-      margin: { top: 60 },
-      bodyStyles: {
-        halign: 'center',
-      },
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
-      },
-      didDrawPage: function (data) {
-        // Header
-        doc.setFontSize(10);
-        doc.setTextColor(40);
-        doc.addImage(image, 'PNG', data.settings.margin.left + 15, 5, 25, 25);
-        doc.text('REPÚBLICA DE MOÇAMBIQUE', data.settings.margin.left + 2, 35);
-        doc.text('MINISTÉRIO DA SAÚDE', data.settings.margin.left + 7, 40);
-        doc.text('SERVIÇO NACIONAL DE SAÚDE', data.settings.margin.left, 45);
-        doc.setFontSize(16);
-        doc.text('Relatório de Pacientes Faltosos ao', width / 2, 35, {
-          align: 'center',
-        });
-        doc.text("Levantamento de ARV's", width / 2, 43, {
-          align: 'center',
-        });
-        doc.setFontSize(10);
-        doc.text('US: ' + clinic.clinicName, width / 20, 57);
-        // doc.text('US: ' + clinic, width / 2 + 80, 49)
-        doc.text('Data Início:  ' + params.startDateParam, width / 2 + 97, 49);
-        doc.text('Data Fim:    ' + params.endDateParam, width / 2 + 97, 57);
-
-        // Footer
-        const str = 'Pagina ' + doc.internal.getNumberOfPages();
-        // Total page number plugin only available in jspdf v1.0+
-        // if (typeof doc.putTotalPages === 'function') {
-        //   str = str + ' de ' + totalPagesExp
-        // }
-        doc.setFontSize(10);
-
-        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height
-          ? pageSize.height
-          : pageSize.getHeight();
-        doc.text(str, data.settings.margin.left, pageHeight - 10);
-      },
-      // startY: doc.lastAutoTable.finalY,
+        bodyStyles: {
+          halign: 'center',
+          fontSize: 8,
+        },
+        headStyles: {
+          halign: 'center',
+          valign: 'middle',
+          fontSize: 8,
+        },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 55 },
+          2: { cellWidth: 55 },
+          3: { cellWidth: 55 },
+          4: { cellWidth: 40 },
+        },
+        didDrawPage: function (data) 
+        {    
+          const str = 'Página ' + doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+          doc.text(str, data.settings.margin.right, pageHeight - 10);        
+        },
+      startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
       body: data,

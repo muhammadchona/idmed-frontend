@@ -2,18 +2,22 @@ import JsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import moment from 'moment'
 import saveAs from 'file-saver'
+import { MOHIMAGELOG } from '../../../assets/imageBytes.ts';
 import * as ExcelJS from 'exceljs'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const {  isMobile, isOnline } = useSystemUtils();
 
 const reportName = 'HistoricoDeLevantamento'
-// const logoTitle =
-// 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
+const logoTitle =
+'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'HISTÓRICO DE LEVANTAMENTO'
 const fileName = reportName.concat(
 '_' + moment(new Date()).format('DD-MM-YYYY')
 )
+
+const img = new Image();
+img.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
 
@@ -23,67 +27,87 @@ export default {
       unit: 'mm',
       format: 'a4',
       putOnlyUsedFonts: true,
-      floatPrecision: 'smart' // or "smart", default is 16
+      floatPrecision: 'smart', // or "smart", default i
     })
     const firstObject = result[0]
-    // const totalPagesExp = '{total_pages_count_string}'
     /*
       Fill Table
     */
 
-  const desiredDefinition = [
-  [
-    {
-      content: '                                                                                                        HISTÓRICO DE LEVANTAMENTO',
-      colSpan: 3,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ],
-  [
-    {
-      content: 'Unidade Sanitária: ' + firstObject.clinic,
-      colSpan: 2,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    },
-    {
-      content: 'Período: ' + startDate + ' à ' + endDate,
-      colSpan: 1,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ],
-  [
-    {
-      content: 'Distrito: ' + firstObject.district,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    },
-    {
-      content: 'Província: ' + firstObject.province,
-      halign: 'center',
-      valign: 'left',
-      fontStyle: 'bold',
-      fontSize: '14'
-    },
-    {
-      content: 'Ano: ' + firstObject.year,
-      halign: 'center',
-      valign: 'left',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ]
-  ]
+    const headerReport = [
+      [
+        {
+          content: 'HISTÓRICO DE LEVANTAMENTO',
+          styles: { minCellHeight: 25, fontSize: 12, halign: 'center' },
+          colSpan: 3,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+        },
+      ],
+      [
+        {
+          content: 'Unidade Sanitária: ' + firstObject.clinic,
+          colSpan: 2,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content: 'Período: ' + startDate + ' à ' + endDate,
+          colSpan: 1,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+      ],
+      [
+        {
+          content: 'Distrito: ' + firstObject.district,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content: 'Província: ' + firstObject.province,
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content: 'Ano: ' + firstObject.year,
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+      ],
+    ];
+
+    autoTable(doc, {
+      //  margin: { top: 10 },
+      bodyStyles: {
+        halign: 'left',
+        valign: 'middle',
+        fontSize: 8,
+      },
+      headStyles: {
+        halign: 'left',
+        valign: 'middle',
+      },
+      theme: 'grid',
+      body: headerReport,
+    });
+
+    doc.setFontSize(8);
+    doc.text('República de Moçambique ', 16, 28);
+    doc.text('Ministério da Saúde ', 20, 32);
+    doc.text('Serviço Nacional de Saúde ', 16, 36);
+    doc.addImage(img, 'png', 28, 15, 10, 10);
 
     const cols = [
       'ORD',
@@ -95,10 +119,9 @@ export default {
       'Regime Terapêutica',
       'Tipo de Dispensa',
       'Modo de Dispensa',
-      'DATA LEVANT.',
-      'DATA PRÓX. LEVANT.'
-    ]
-
+      'Data Levant.',
+      'Data Prox. Levant.'
+    ];
     const rows = result
     const data = []
     let ord = 1
@@ -122,44 +145,37 @@ export default {
     }
     ord = 0
     autoTable(doc, {
-      margin: { top: 42 },
       bodyStyles: {
-        halign: 'center'
+        halign: 'center',
+        fontSize: 8,
       },
       headStyles: {
         halign: 'center',
-        valign: 'middle'
+        valign: 'middle',
+        fontSize: 8,
       },
-      didDrawPage: function (data) {
-      // First Hearder
-      autoTable(
-        doc,
-        {
-          margin: { top: 20 },
-          bodyStyles: {
-            halign: 'left',
-            valign: 'middle'
-          },
-          headStyles: {
-            halign: 'center',
-            valign: 'middle'
-          },
-          theme: 'grid',
-          body: desiredDefinition
-        }
-        )
-
-        // Footer
-        const str = 'Pagina ' + doc.internal.getNumberOfPages()
-        
-        doc.setFontSize(10)
-
-      // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-      const pageSize = doc.internal.pageSize
-      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
-      doc.text(str, data.settings.margin.left, pageHeight - 10)
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 15 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 25 },
+        6: { cellWidth: 30 },
+        7: { cellWidth: 30 },
+        8: { cellWidth: 30 },
+        9: { cellWidth: 20 },
       },
-     // startY: doc.lastAutoTable.finalY,
+      didDrawPage: function (data) 
+      {    
+        const str = 'Página ' + doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);        
+      },
+      startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
       body: data
@@ -167,9 +183,7 @@ export default {
     if(isOnline.value && !isMobile.value) {
       return doc.save('HistoricoDeLevantamento.pdf')
     } else {
-      console.log(doc)
       const pdfOutput = doc.output()
-      console.log(pdfOutput)
       this.downloadFile(fileName,'pdf',pdfOutput)
     }
   },
@@ -178,17 +192,22 @@ export default {
     const data = this.createArrayOfArrayRow(rows)
 
     const workbook = new ExcelJS.Workbook()
-    workbook.creator = 'FGH'
-    workbook.lastModifiedBy = 'FGH'
-    workbook.created = new Date()
-    workbook.modified = new Date()
-    workbook.lastPrinted = new Date()
-
-    const worksheet = workbook.addWorksheet(reportName)
+    workbook.creator = 'FGH';
+    workbook.lastModifiedBy = 'FGH';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    workbook.lastPrinted = new Date();
+    // Force workbook calculation on load
+    // workbook.calcProperties.fullCalcOnLoad = true
+    const worksheet = workbook.addWorksheet(reportName);
+    const imageId = workbook.addImage({
+      base64: 'data:image/pngbase64,' + MOHIMAGELOG,
+      extension: 'png',
+    });
  
 
     // Get Cells
-    // const cellRepublica = worksheet.getCell('A8')
+    const cellRepublica = worksheet.getCell('A8')
     const cellTitle = worksheet.getCell('A9')
     const cellPharm = worksheet.getCell('A11')
     const cellDistrict = worksheet.getCell('A12')
@@ -219,7 +238,7 @@ export default {
 
     // Format Table Cells
     // Alignment Format
-    // cellRepublica.alignment =
+    cellRepublica.alignment =
       cellTitle.alignment =
       headerRow.alignment =
         {
@@ -240,7 +259,7 @@ export default {
         }
 
     // Border Format
-    // cellRepublica.border =
+    cellRepublica.border =
       cellTitle.border =
       cellPharm.border =
       cellDistrictParamValue.border =
@@ -260,7 +279,7 @@ export default {
         }
 
     // Assign Value to Cell
-    // cellRepublica.value = logoTitle
+    cellRepublica.value = logoTitle
     cellTitle.value = title
     cellPharmParamValue.value = result[0].clinic
     cellProvinceParamValue.value = province
@@ -315,10 +334,10 @@ export default {
         }
 
     // Add Image
-    // worksheet.addImage(imageId, {
-    //   tl: { col: 0, row: 1 },
-    //   ext: { width: 144, height: 98 },
-    // });
+    worksheet.addImage(imageId, {
+      tl: { col: 0, row: 1 },
+      ext: { width: 144, height: 98 },
+    });
 
     // Cereate Table
     worksheet.addTable({
