@@ -112,12 +112,15 @@
 
 
   const generateReport = (id, fileType) => {
+    console.log(fileType)
     //  UID da tab corrente
     if (isOnline.value) {
       Report.printReport('historicoLevantamentoReport', id, fileType).then(
         (resp) => {
           if (!resp.data[0]) {
             alertError('Nao existem Dados para o periodo selecionado');
+            downloadingPdf.value = false
+            downloadingXls.value = false
           } else {
             const firstReg = resp.data[0];
             if (fileType === 'PDF') {

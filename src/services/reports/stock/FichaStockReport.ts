@@ -494,8 +494,7 @@ export default {
                 
       });
       promises.push(promise);
-    }
-    
+    };
     await Promise.all(promises);
     const data2Result = this.createArrayOfArrayRowForLote(this.ordenaPorMovimentoDesc1(lotesPersonalisados))
     if (fileTypeParam === 'PDF'){

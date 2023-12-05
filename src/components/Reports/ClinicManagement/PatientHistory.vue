@@ -118,6 +118,8 @@
         (resp) => {
           if (!resp.data[0]) {
             alertError('Nao existem Dados para o periodo selecionado');
+            downloadingXls.value = false
+            downloadingPdf.value = false
           } else {
             const firstReg = resp.data[0];
             if (fileType === 'PDF') {

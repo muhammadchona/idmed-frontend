@@ -76,7 +76,7 @@ export default {
       [
         {
           content: 'Faltosos ao Levantamento de ARV´s para APSS',
-          styles: { minCellHeight: 20, fontSize: 16, halign: 'center' },
+          styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
           colSpan: 3,
           halign: 'center',
           valign: 'middle',
@@ -134,7 +134,7 @@ export default {
       ],
     ];
 	
-	const desiredDefinition = [
+    const desiredDefinition = [
       [
         { content: 'NID', rowSpan: 2 },
         { content: 'NOME', rowSpan: 2 },
@@ -147,7 +147,7 @@ export default {
         { content: 'Retornos e Referências', colSpan: 3 },
       ],
       [
-        { content: 'TARV'},
+        { content: 'TARV' },
         { content: 'TB' },
         { content: 'SMI' },
         { content: 'Chamada de Apoio' },
@@ -161,8 +161,9 @@ export default {
         { content: 'PPE' },
         { content: 'PREP' },
         { content: 'Cr. Exp.' },
-      ], 
-    ];  
+      ],
+    ];
+     
 
       autoTable(doc, {
         //  margin: { top: 10 },
@@ -180,10 +181,11 @@ export default {
         body: headerReport,
       });
 
-    doc.setFontSize(8);
-    doc.text('República de Moçambique ', 16, 28);
-    doc.text('Ministério da Saúde ', 20, 32);
-    doc.addImage(img, 'png', 30, 15, 10, 10);
+      doc.setFontSize(8);
+      doc.text('República de Moçambique ', 16, 28);
+      doc.text('Ministério da Saúde ', 20, 32);
+      doc.text('Serviço Nacional de Saúde ', 16, 36);
+      doc.addImage(img, 'png', 28, 15, 10, 10);
 
     autoTable(doc, {
       // margin: { top: 45 },
@@ -230,7 +232,6 @@ export default {
       }
     }
   }, 
-
   async downloadExcel(id, fileType, params) {
     const clinic = clinicService.currClinic();
 
@@ -751,6 +752,24 @@ export default {
     }
     
     return data;
+  },
+
+  drawRotatedHeader(doc, header, angle, x, y) {
+    const startY = y || 10; // Se y não for fornecido, use 10 como valor padrão
+    const startX = x || 10; // Se x não for fornecido, use 10 como valor padrão
+  
+    header.forEach((row, i) => {
+      row.forEach((cell, j) => {
+        const cellWidth = doc.getStringUnitWidth(cell.content) * doc.internal.getFontSize(); // Calcular a largura da célula
+        const cellHeight = doc.internal.getLineHeight(); // Calcular a altura da célula
+  
+        // Calcular as coordenadas da célula com rotação
+        const rotatedX = startX + j * cellWidth * Math.cos(angle) + i * cellHeight * Math.sin(angle);
+        const rotatedY = startY + i * cellWidth * Math.sin(angle) + j * cellHeight * Math.cos(angle);
+  
+        doc.text(cell.content, rotatedX, rotatedY, { angle: angle });
+      });
+    });
   },
 
   downloadFile(fileName, fileType, blop) {
