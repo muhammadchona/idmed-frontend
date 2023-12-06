@@ -149,4 +149,11 @@ export default {
       .where('description', description)
       .first();
   },
+  getDistrictById(id: string) {
+    return district
+      .query()
+      .with('province')
+      .where('id', id)
+      .first();
+  },
 };

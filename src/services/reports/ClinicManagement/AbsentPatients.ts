@@ -21,7 +21,6 @@ const fileName = reportName.concat(
 
 export default {
   async downloadPDF(id, fileType, params) {
-    console.log(params)
     const clinic = clinicService.currClinic();
     const doc = new JsPDF({
       orientation: 'l',
