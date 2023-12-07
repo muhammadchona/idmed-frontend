@@ -127,7 +127,6 @@ import { useRouter } from 'vue-router';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import moment from 'moment';
 
 const { showloading, closeLoading } = useLoading();
@@ -238,7 +237,7 @@ const doBeforeSave = () => {
       const validStocks = StockService.getValidStockByDrug(drug);
       Object.keys(validStocks).forEach(
         function (i) {
-          initNewAdjustment(drug.stocks[i], drug);
+          initNewAdjustment(validStocks[i], drug);
         }.bind(this)
       );
     }.bind(this)
@@ -266,7 +265,7 @@ const doBeforeSaveGeneric = () => {
 
 const initNewAdjustment = (stock, drug) => {
   const newAdjustment = new InventoryStockAdjustment({
-    adjustedStock: StockService.getStockById(stock.id),
+    adjustedStock: stock,
     clinic: currClinic.value,
     captureDate: new Date(),
     operation:
@@ -274,7 +273,7 @@ const initNewAdjustment = (stock, drug) => {
   });
   newAdjustment.adjustedStock.drug = null;
   newAdjustment.inventory_id = currInventory.value.id;
-  newAdjustment.adjusted_stock_id = newAdjustment.adjustedStock.id;
+  newAdjustment.adjusted_stock_id = stock.id;
   newAdjustment.adjustedStock.clinic = {};
   newAdjustment.adjustedStock.clinic.id = currClinic.value.id;
   newAdjustment.clinic = {};
