@@ -34,6 +34,10 @@ export default {
       Fill Table
     */
 
+      doc.setProperties({
+        title: fileName.concat('.pdf'),
+      });
+
     const headerReport = [
       [
         {
@@ -181,7 +185,8 @@ export default {
       body: data
     })
     if(isOnline.value && !isMobile.value) {
-      return doc.save('HistoricoDeLevantamento.pdf')
+      // return doc.save('HistoricoDeLevantamento.pdf')
+      window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output()
       this.downloadFile(fileName,'pdf',pdfOutput)

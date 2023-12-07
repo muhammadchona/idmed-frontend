@@ -29,6 +29,10 @@ export default {
     const firstObject = result[0]
     // const totalPagesExp = '{total_pages_count_string}'
 
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
+
     const image = new Image();
     // image.src = '/src/assets/MoHLogo.png'
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
@@ -182,7 +186,8 @@ export default {
     })
 
     if(isOnline.value && !isMobile.value) {
-      return doc.save('PacientesActivos.pdf')
+      // return doc.save('PacientesActivos.pdf')
+      window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output()
       this.downloadFile(fileName,'pdf',pdfOutput)

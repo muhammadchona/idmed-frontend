@@ -47,6 +47,10 @@ export default {
     doc.setFontSize(10);
     const image = new Image();
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
     /*
       Fill Table
     */
@@ -180,7 +184,7 @@ export default {
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
         textColor: 0,
       },
       columnStyles: {
@@ -192,6 +196,9 @@ export default {
       body: headData,
       startY: 10,
     });
+
+    doc.addImage(image, 'PNG', 16, 10, 10, 10);
+
     autoTable(doc, {
       theme: 'grid',
       styles: {
@@ -199,7 +206,7 @@ export default {
       },
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         0: { cellWidth: 13 },
@@ -223,12 +230,13 @@ export default {
       startY: doc.lastAutoTable.finalY,
     });
 
-    const newY = doc.lastAutoTable.finalY;
-    autoTable(doc, {
+    const firstTableHeigth = doc.lastAutoTable.finalY;
+
+    autoTable(doc, { // Segunda tabela (Regime Terapêutico) Lado esquerdo
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         0: { cellWidth: 13 },
@@ -238,7 +246,7 @@ export default {
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
         fillColor: [75, 76, 77],
       },
       styles: {
@@ -246,49 +254,53 @@ export default {
       },
       head: [regimenCols],
       body: regimendata,
-      startY: newY + 1,
+      startY: firstTableHeigth + 1,
       margin: { right: 90.1 },
     });
 
-    autoTable(doc, {
+    const secondTableHeigth = doc.lastAutoTable.finalY;
+
+    autoTable(doc, { // Terceira tabela (Total)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
-        2: { cellWidth: 15 },
-        3: { cellWidth: 18 },
+        1: { cellWidth: 15 },
+        2: { cellWidth: 18 },
       },
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 4,
       },
       body: miaRegimenTotalData,
-      // startY: doc.lastAutoTable.finalY,
+      startY: secondTableHeigth,
       margin: { right: 90.1 },
     });
 
-    autoTable(doc, {
+    const hirdTableHeigth = doc.lastAutoTable.finalY;
+
+    autoTable(doc, {// Quarta  tabela (Linhas Terapêuticas)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         0: { fillColor: [240, 241, 242] },
-        2: { cellWidth: 15 },
-        3: { cellWidth: 18 },
+        1: { cellWidth: 15 },
+        2: { cellWidth: 18 },
       },
       head: [
         [
           {
-            content: 'Linhas Terapêuticas',
-            colSpan: 4,
+            content: 'Linhas Terapêuticas\n',
+            colSpan: 3,
             styles: { halign: 'center', fillColor: [75, 76, 77] },
           },
         ],
@@ -296,45 +308,48 @@ export default {
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 4,
       },
       body: miaLinesSumaryData,
-      // startY: doc.lastAutoTable.finalY,
+      startY: hirdTableHeigth + 1,
       margin: { right: 90.1 },
     });
 
-    autoTable(doc, {
+    const fourthTableHeigth = doc.lastAutoTable.finalY;
+
+    autoTable(doc, {// Quinta tabela (Total Linhas)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
-        2: { cellWidth: 15 },
-        3: { cellWidth: 18 },
+        1: { cellWidth: 15 },
+        2: { cellWidth: 18 },
       },
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 4,
       },
       body: miaLinesSumaryTotalData,
-      // startY: doc.lastAutoTable.finalY,
+      startY: fourthTableHeigth,
       margin: { right: 90.1 },
     });
-    // const regimenTableY = doc.lastAutoTable.finalY
 
-    autoTable(doc, {
+    // Fim das colunas a esquerda
+
+    autoTable(doc, {// Sexta tabela (Tipo de Doencas em TARV)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         0: { halign: 'left', fillColor: [240, 241, 242] },
@@ -343,7 +358,7 @@ export default {
       head: [
         [
           {
-            content: 'Tipo de doentes em TARV',
+            content: 'Tipo de doentes em \nTARV',
             colSpan: 2,
             styles: { halign: 'center', fillColor: [75, 76, 77] },
           },
@@ -352,21 +367,23 @@ export default {
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 4,
       },
       body: miaTipoDoenteData,
-      startY: newY + 1,
-      margin: { left: 122 },
+      startY: firstTableHeigth + 1,
+      margin: { left: 121.1 },
     });
+
+    const sixthTableHeigth = doc.lastAutoTable.finalY;
 
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         0: { halign: 'left', fillColor: [240, 241, 242] },
@@ -375,7 +392,7 @@ export default {
       head: [
         [
           {
-            content: 'Faixa Etária dos Pacientes TARV',
+            content: 'Faixa Etária dos Pacientes \nTARV',
             colSpan: 2,
             styles: { halign: 'center', fillColor: [75, 76, 77] },
           },
@@ -384,20 +401,23 @@ export default {
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 4,
       },
       body: miaFaixaEtariaData,
-      // startY: doc.lastAutoTable.finalY,
-      margin: { left: 122 },
+      startY: sixthTableHeigth + 1,
+      margin: { left: 121.1 },
     });
+
+    const seventhTableHeigth = doc.lastAutoTable.finalY;
+
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         0: { halign: 'left', fillColor: [240, 241, 242] },
@@ -406,7 +426,7 @@ export default {
       head: [
         [
           {
-            content: 'Profilaxia',
+            content: 'Profilaxia \n',
             colSpan: 2,
             styles: { halign: 'center', fillColor: [75, 76, 77] },
           },
@@ -415,26 +435,28 @@ export default {
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 2,
       },
       body: miaProfilaxiaData,
-      startY: doc.lastAutoTable.finalY,
-      margin: { left: 122 },
+      startY: seventhTableHeigth + 1,
+      margin: { left: 121.1 },
     });
+
+    const eigthTableHeigth = doc.lastAutoTable.finalY;
 
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       head: [
         [
           {
-            content: 'Tipo de Dispensa',
+            content: 'Tipo de Dispensa\n',
             styles: { halign: 'center', fillColor: [75, 76, 77] },
           },
         ],
@@ -442,138 +464,206 @@ export default {
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 4,
       },
-      startY: doc.lastAutoTable.finalY,
-      margin: { left: 122 },
+      startY: eigthTableHeigth + 1,
+      margin: { left: 121.1 },
     });
 
-    const dsStartY = doc.lastAutoTable.finalY;
+    const ninethTableHeigth = doc.lastAutoTable.finalY;
+
+    const arrayAux = [
+      ['', 'DS', '', '', '']
+    ]
+    for (let i = 0; i < mmiadsTypeData.length; i++) {
+      
+      if(i==0) {
+        mmiadsTypeData[i].push('')
+        mmiadsTypeData[i].push(mmiaAjusteData[0][0])
+        mmiadsTypeData[i].push(mmiaAjusteData[0][1])
+      }
+      if(i==1) {
+        mmiadsTypeData[i].push('')
+        mmiadsTypeData[i].push('')
+        mmiadsTypeData[i].push('')
+      }
+      if(i==2) {
+        mmiadsTypeData[i].push('DT')
+        mmiadsTypeData[i].push('')
+        mmiadsTypeData[i].push('')
+      }
+      if(i==3) {
+        mmiadsTypeData[i].push(mmiadtTypeData[0][0])
+        mmiadsTypeData[i].push('')
+        mmiadsTypeData[i].push('')
+      }
+      if(i==4) {
+        mmiadsTypeData[i].push(mmiadtTypeData[1][0])
+        mmiadsTypeData[i].push('DM')
+        mmiadsTypeData[i].push('Total')
+      }
+      if(i==5) {
+        mmiadsTypeData[i].push(mmiadtTypeData[2][0])
+        mmiadsTypeData[i].push(mmiadmTypeData[0][0])
+        mmiadsTypeData[i].push(mmiadmTypeData[0][1])
+      }
+      if(i==6) {
+        mmiadsTypeData[i].push(mmiadtTypeData[3][0])
+        mmiadsTypeData[i].push(mmiadmTypeData[1][0])
+        mmiadsTypeData[i].push(mmiadmTypeData[1][1])
+      }
+      arrayAux.push(mmiadsTypeData[i])
+    }
 
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
-      head: [
-        [
-          {
-            content: '',
-          },
-          {
-            content: 'DS',
-          },
-        ],
-      ],
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 7,
-        fillColor: [75, 76, 77],
+        fontSize: 6,
       },
       columnStyles: {
-        0: { cellWidth: 20, halign: 'right', fillColor: [240, 241, 242] },
-        1: { cellWidth: 15 },
+        0: { cellWidth: 12, halign: 'right', fillColor: [240, 241, 242] },
+        1: { cellWidth: 10 },
       },
       styles: {
-        maxCellHeight: 2,
+        maxCellHeight: 4,
       },
-      body: mmiadsTypeData,
-      startY: dsStartY,
-      margin: { left: 122 },
+      body: arrayAux,
+      startY: ninethTableHeigth,
+      margin: { left: 121.1  },
+      // Adiciona o hook para condicionalmente alterar a cor de preenchimento
+      didParseCell: function (data) {
+      if (data.row.section === 'body' && (data.column.index === 1) && (data.cell.raw === 'DS')) {
+          
+          data.cell.styles.fillColor = [75, 76, 77];
+          data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        
+      };
+      if (data.row.section === 'body' && (data.column.index === 2) && (data.cell.raw === 'DT')) {
+          
+        data.cell.styles.fillColor = [75, 76, 77];
+        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        
+      };
+      if (data.row.section === 'body' && (data.column.index === 3) && (data.cell.raw === 'DM')) {
+          
+        data.cell.styles.fillColor = [75, 76, 77];
+        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        
+      };
+      if (data.row.section === 'body' && (data.column.index === 3) && (data.cell.raw === 'Ajuste')) {
+          
+        data.cell.styles.fillColor = [75, 76, 77];
+        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        
+      };
+      if (data.row.section === 'body' && (data.column.index === 4) && (data.cell.raw === 'Total')) {
+            
+        data.cell.styles.fillColor = [75, 76, 77];
+        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+     
+    };
+    }
+    
+    // willDrawCell: function (data) {
+    //   if (data.row.section === 'body' && data.column.index === 1 && data.cell.raw === 'DS') {
+    //       // data.cell.styles.fillColor = [240, 241, 242];
+    //       const text = 'DSS';
+    //       const fontSize = data.cell.styles.fontSize || 12;
+    //       const xOffset = data.cell.x + (data.cell.width / 2);
+    //       const yOffset = data.cell.y + (data.cell.height / 2);
+    //       console.log(xOffset);
+    //       console.log(yOffset);
+
+    //       doc.text(text, data.cell.x+5, yOffset+2, { angle: 90 });
+  
+    //       // doc.text(text, xOffset, yOffset, { align: 'center', valign: 'middle', angle: 90, fontSize });
+    //   }
+  // }
+  
     });
+
+
+    // autoTable(doc, {
+    //   theme: 'grid',
+    //   bodyStyles: {
+    //     halign: 'center',
+    //     fontSize: 6,
+    //   },
+    //   head: [
+    //     [
+    //       {
+    //         content: 'DT\n',
+    //       },
+    //     ],
+    //   ],
+    //   headStyles: {
+    //     halign: 'center',
+    //     valign: 'middle',
+    //     fontSize: 6,
+    //     fillColor: [75, 76, 77],
+    //   },
+    //   columnStyles: {
+    //     0: { cellWidth: 10 },
+    //     1: { cellWidth: 10 },
+    //   },
+    //   styles: {
+    //     maxCellHeight: 4,
+    //   },
+    //   body: mmiadtTypeData,
+    //   startY: ninethTableHeigth,
+    //   margin: { left: 1 },
+    // });
+
+    // autoTable(doc, {
+    //   theme: 'grid',
+    //   bodyStyles: {
+    //     halign: 'center',
+    //     fontSize: 6,
+    //   },
+    //   head: [
+    //     [
+    //       {
+    //         content: 'DM\n',
+    //       },
+    //       {
+    //         content: 'Total\n',
+    //       },
+    //     ],
+    //   ],
+    //   headStyles: {
+    //     halign: 'center',
+    //     valign: 'middle',
+    //     fontSize: 6,
+    //     fillColor: [75, 76, 77],
+    //   },
+    //   columnStyles: {
+    //     0: { cellWidth: 10 },
+    //     1: { cellWidth: 10 },
+    //   },
+    //   styles: {
+    //     maxCellHeight: 2,
+    //   },
+    //   body: mmiadmTypeData,
+    //   startY: ninethTableHeigth + 29.8,
+    //   margin: { left: 153.1 },
+    // });
+
+    const tiposDispensaTableY = doc.lastAutoTable.finalY;
 
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 7,
-      },
-      head: [
-        [
-          {
-            content: 'DT',
-          },
-        ],
-      ],
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 7,
-        fillColor: [75, 76, 77],
-      },
-      columnStyles: {
-        0: { cellWidth: 15 },
-      },
-      styles: {
-        maxCellHeight: 2,
-      },
-      body: mmiadtTypeData,
-      startY: dsStartY + 19.1,
-      margin: { left: 157 },
-    });
-
-    autoTable(doc, {
-      theme: 'grid',
-      bodyStyles: {
-        halign: 'center',
-        fontSize: 7,
-      },
-      head: [
-        [
-          {
-            content: 'DM',
-          },
-          {
-            content: 'Total',
-          },
-        ],
-      ],
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 7,
-        fillColor: [75, 76, 77],
-      },
-      columnStyles: {
-        0: { cellWidth: 13 },
-      },
-      styles: {
-        maxCellHeight: 2,
-      },
-      body: mmiadmTypeData,
-      startY: dsStartY + 31.8,
-      margin: { left: 172 },
-    });
-
-    const dmTableY = doc.lastAutoTable.finalY;
-
-    autoTable(doc, {
-      theme: 'grid',
-      bodyStyles: {
-        halign: 'center',
-        fontSize: 7,
-      },
-      columnStyles: {
-        0: { cellWidth: 13, halign: 'right', fillColor: [240, 241, 242] },
-      },
-      styles: {
-        maxCellHeight: 2,
-      },
-      body: mmiaAjusteData,
-      startY: dsStartY + 6,
-      margin: { left: 172 },
-    });
-
-    autoTable(doc, {
-      theme: 'striped',
-      bodyStyles: {
-        halign: 'center',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         0: { halign: 'left' },
@@ -581,16 +671,16 @@ export default {
       styles: {
         maxCellHeight: 2,
       },
-      body: [['Observaçãoes:'], ['']],
-      startY: dmTableY + 1,
-      margin: { left: 122 },
+      body: [['Observaçãoes:'], [' \n\n\n\n\n\n\n\n']],
+      startY: tiposDispensaTableY + 1,
+      margin: { left: 121.1 },
     });
 
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
         halign: 'left',
-        fontSize: 7,
+        fontSize: 6,
       },
       columnStyles: {
         1: { cellWidth: 60 },
@@ -608,7 +698,7 @@ export default {
       15,
       doc.lastAutoTable.finalY + 5
     );
-    doc.addImage(image, 'PNG', 16, 11, 10, 10);
+    
 
     // Footer
     const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -620,7 +710,8 @@ export default {
     doc.text(str, 15, pageHeight - 10);
     // params.value.loading.loading.hide()
     if (isOnline.value && !isMobile.value) {
-      return doc.save(fileName.concat('.pdf'));
+      // return doc.save(fileName.concat('.pdf'));
+      window.open(doc.output('bloburl'));
     } else {
       console.log(doc);
       var pdfOutput = doc.output();

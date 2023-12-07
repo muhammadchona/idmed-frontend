@@ -33,6 +33,9 @@ export default {
     // image.src = '/src/assets/MoHLogo.png'
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
     const width = doc.internal.pageSize.getWidth();
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
     
     const headerReport = [
       [
@@ -178,7 +181,8 @@ export default {
     });
     // params.value.loading.loading.hide()
     if (isOnline.value && !isMobile.value) {
-      return doc.save('PacientesFaltosos.pdf');
+      // return doc.save('PacientesFaltosos.pdf');
+      window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output();
       this.downloadFile(fileName, 'pdf', pdfOutput);

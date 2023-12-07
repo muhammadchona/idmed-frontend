@@ -203,7 +203,7 @@ export default {
       {
         valign: 'bottom',
         halign: 'center',
-        fontSize: 6,
+        fontSize: 5,
         lineWidth: 0.5,
         lineColor: [230, 230, 230],
         fillColor: [255, 255, 255],

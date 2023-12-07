@@ -23,13 +23,15 @@ export default {
         floatPrecision: 'smart' 
       })
 
+      doc.setProperties({
+        title: fileName.concat('.pdf'),
+      });
+
       const rows = await Report.printReportOther('referredPatientsReport', params.id)
       if(rows.status === 204) return rows.status
       const firstReg = rows.data[0];
-      console.log(firstReg)
       const district = districtService.getDistrictById(firstReg.districtId)
       const province = district?.province
-      console.log(params)
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       const data = this.createArrayOfArrayRow(rows.data)
@@ -153,7 +155,8 @@ export default {
         body: data,
       });
      // params.value.loading.loading.hide()
-      return doc.save(reportName + '.pdf')
+      // return doc.save(reportName + '.pdf')
+      window.open(doc.output('bloburl'));
     },
     async downloadExcel(params) {
 
