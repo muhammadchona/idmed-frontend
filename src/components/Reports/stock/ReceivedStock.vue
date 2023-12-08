@@ -52,10 +52,10 @@ import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedS
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 
-   const name = 'ReceivedStock'
-   const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
-    const totalRecords = ref(0)
-    const qtyProcessed=ref(0)
+const name = 'ReceivedStock'
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const totalRecords = ref(0)
+const qtyProcessed=ref(0)
 
 const progress = ref(0.0);
 const filterReceivedStockSection = ref('');
@@ -65,37 +65,45 @@ const resultFromLocalStorage = ref(false)
 const downloadingPdf = ref(false)
 const downloadingXls = ref(false)
 
-     const  closeSection = (params)  =>{
-        filterReceivedStockSection.value.remove()  
-        if(params)
-        LocalStorage.remove(params.id)      
-      }
+const isReportClosed = ref(false)
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if(!isReportClosed.value) LocalStorage.set(params.id, params)
+}
 
-     const  initReportProcessing = (params) => {
-      progress.value = 0.001
-        if (isOnline.value) {
-          LocalStorage.set(params.id, params)
-          Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
-            progress.value = resp.data.progress
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
-          })
-        } else {
-          LocalStorage.set(params.id, params)
-          reportDatesParams.determineStartEndDate(params)
-         ReceivedStockMobileService.getDataLocalDb(params)
-         progress.value = 100
-         params.progress = 100
-        }
-      }
+const  closeSection = (params)  => {
+  filterReceivedStockSection.value.remove()  
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }     
+}
+
+  const  initReportProcessing = (params) => {
+  progress.value = 0.001
+    if (isOnline.value) {
+      updateParamsOnLocalStrage(params, isReportClosed) 
+      Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
+        progress.value = resp.data.progress
+        setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
+      })
+    } else {
+      updateParamsOnLocalStrage(params, isReportClosed) 
+      reportDatesParams.determineStartEndDate(params)
+      ReceivedStockMobileService.getDataLocalDb(params)
+      progress.value = 100
+      params.progress = 100
+    }
+  }
 
       const getProcessingStatus = (params) => {
         Report.getProcessingStatus('stockReportTemp', params).then(resp => {
           if (resp.data.progress > 0.001) {
             progress.value = resp.data.progress;
             if (progress.value < 100) {
-              LocalStorage.set(params.id, params);
+              updateParamsOnLocalStrage(params, isReportClosed) ;
               params.progress = resp.data.progress;
               setTimeout(() => {
                 getProcessingStatus(params)
@@ -103,7 +111,7 @@ const downloadingXls = ref(false)
             } else {
               progress.value = 100;
               params.progress = 100;
-              LocalStorage.set(params.id, params);
+              updateParamsOnLocalStrage(params, isReportClosed) ;
             }
           } else {
             setTimeout(() => {

@@ -67,10 +67,18 @@ const report =  'ACTIVOS'
 const downloadingPdf = ref(false)
 const downloadingXls = ref(false)
 
+const isReportClosed = ref(false)
+  const updateParamsOnLocalStrage = (params, isReportClosed) => {
+    if(!isReportClosed.value) LocalStorage.set(params.id, params)
+  }
+
 const closeSection = (params) => {
   filterDrugStoreSection.value.remove();
-  if(params)
-  LocalStorage.remove(params.id)
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
 };
 
 const serviceAux = ref(null)
@@ -79,13 +87,13 @@ const resultFromLocalStorage = ref(false)
 const initReportProcessing = (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
-    LocalStorage.set(params.id, params)
+    updateParamsOnLocalStrage(params, isReportClosed) 
     Report.apiInitActiveInDrugStoreProcessing(params).then((resp) => {
         getProcessingStatus(params);
       }
     );
   } else {
-    LocalStorage.set(params.id, params)
+    updateParamsOnLocalStrage(params, isReportClosed) 
     const reportParams = reportDatesParams.determineStartEndDate(params);
     activeInDrugStoreMobileService.getDataLocalDb(reportParams).then((resp) => {
       progress.value = 100;
@@ -99,7 +107,7 @@ const getProcessingStatus = (params) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed) ;
         params.progress = resp.data.progress;
         setTimeout(() => {
           getProcessingStatus(params)
@@ -107,7 +115,7 @@ const getProcessingStatus = (params) => {
       } else {
         progress.value = 100;
         params.progress = 100;
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed) ;
       }
     } else {
       setTimeout(() => {

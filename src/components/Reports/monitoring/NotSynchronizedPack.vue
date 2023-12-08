@@ -72,14 +72,22 @@ onMounted(() => {
   }
 });
 
+const isReportClosed = ref(false)
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if(!isReportClosed.value) LocalStorage.set(params.id, params)
+}
+
 const closeSection = (params) => {
   filterDrugStoreSection.value.remove()
-  if(params)
-  LocalStorage.remove(params.id)
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
 };
 
 const initReportProcessing = (params) => {
-  LocalStorage.set(params.id, params)
+  updateParamsOnLocalStrage(params, isReportClosed) 
   progress.value = 0.001
   Report.apiInitReportProcess(
     'notSynchronizingPacksOpenMrsReport',
@@ -96,7 +104,7 @@ const getProcessingStatus = (params) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed) ;
         params.progress = resp.data.progress;
         setTimeout(() => {
           getProcessingStatus(params)
@@ -104,7 +112,7 @@ const getProcessingStatus = (params) => {
       } else {
         progress.value = 100;
         params.progress = 100;
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed) ;
       }
     } else {
       setTimeout(() => {

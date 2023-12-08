@@ -63,10 +63,18 @@ const filterUsedStockSection = ref('');
 
 const progress = ref(0.0);
 
+const isReportClosed = ref(false)
+  const updateParamsOnLocalStrage = (params, isReportClosed) => {
+    if(!isReportClosed.value) LocalStorage.set(params.id, params)
+  }
+
     const  closeSection = (params) => {
         filterUsedStockSection.value.remove()
-        if(params)
-        LocalStorage.remove(params.id)   
+        if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  } 
       }
 
       const serviceAux = ref(null)
@@ -75,7 +83,7 @@ const progress = ref(0.0);
       const initReportProcessing = (params) => {
         progress.value = 0.001
         if (isOnline.value) {
-          LocalStorage.set(params.id, params)
+          updateParamsOnLocalStrage(params, isReportClosed) 
           Report.apiInitReportProcess('usedStockReportTemp', params).then(resp => {
             progress.value = resp.data.progress
             setTimeout(() => {
@@ -83,7 +91,7 @@ const progress = ref(0.0);
             }, 3000);
           })
         } else {
-          LocalStorage.set(params.id, params)
+          updateParamsOnLocalStrage(params, isReportClosed) 
           UsedStockMobileService.getDataLocalDb(params)
           progress.value = 100
             params.progress = 100
@@ -95,7 +103,7 @@ const progress = ref(0.0);
           if (resp.data.progress > 0.001) {
             progress.value = resp.data.progress;
             if (progress.value < 100) {
-              LocalStorage.set(params.id, params);
+              updateParamsOnLocalStrage(params, isReportClosed) ;
               params.progress = resp.data.progress;
               setTimeout(() => {
                 getProcessingStatus(params)
@@ -103,7 +111,7 @@ const progress = ref(0.0);
             } else {
               progress.value = 100;
               params.progress = 100;
-              LocalStorage.set(params.id, params);
+              updateParamsOnLocalStrage(params, isReportClosed) ;
             }
           } else {
             setTimeout(() => {
