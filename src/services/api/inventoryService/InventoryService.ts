@@ -52,9 +52,7 @@ export default {
   },
 
   async apiClose(id: string) {
-    if (!isOnline.value) {
-      return await api().patch(`/inventory/close/${id}`);
-    }
+    return await api().patch(`/inventory/close/${id}`);
   },
 
   async apiRemove(id: string) {
@@ -93,6 +91,12 @@ export default {
       .orderBy('open', 'desc')
       .orderBy('startDate', 'desc')
       .get();
+  },
+
+  closeInventoryPinia(inventoryOb: any) {
+    inventoryOb.open = false;
+    inventoryOb.endDate = new Date();
+    inventory.save(inventoryOb);
   },
 
   getOpenInventory() {
@@ -185,14 +189,12 @@ export default {
         inventory.destroy(id);
       });
   },
-  apiFetchByIdWeb(id: string) {
+  async apiFetchByIdWeb(id: string) {
     return api()
       .get('/inventory/' + id)
       .then((resp) => {
         inventory.save(resp.data);
-        if (resp.data.length > 0) {
-          setTimeout(this.get, 2);
-        }
+        return resp.data;
       });
   },
 };

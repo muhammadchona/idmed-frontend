@@ -205,12 +205,17 @@ import InventoryService from 'src/services/api/inventoryService/InventoryService
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
+import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
+import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 
 const { isMobile, isOnline } = useSystemUtils();
 const inventoryMethod = useInventory();
 const router = useRouter();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertWarningAction } = useSwal();
+const inventoryStockAdjMethod = useInventoryStockAdjustment();
+
 let step = 'display';
 
 const title = ref('Detalhes do Inventário');
@@ -277,12 +282,10 @@ const closeInventory = () => {
 };
 
 const doProcessAndClose = async () => {
-  const inventory = InventoryService.getInvnetoryById(currInventory.value.id);
+  const inventory = await InventoryService.apiFetchByIdWeb(
+    currInventory.value.id
+  );
 
-  inventory.endDate = new Date();
-  inventory.open = false;
-  inventory.generic = JSON.parse(inventory.generic);
-  let adjustments = inventory.adjustments;
   if (!isOnline.value) {
     adjustments =
       await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(
@@ -291,19 +294,8 @@ const doProcessAndClose = async () => {
     inventory.adjustments = [];
     inventory.open = false;
   }
-  adjustments.forEach((adjustment) => {
-    processAdjustment(adjustment, inventory);
-  });
-  doSaveAdjustment(0);
-  const inv = JSON.parse(
-    JSON.stringify(inventory, inventoryMethod.circularReferenceReplacer())
-  );
-  InventoryService.patch(inventory.id, inv).then((resp) => {
-    step = 'display';
-    currInventory.value.open = false;
-    closeLoading();
-    alertSucess('Operação efectuada com sucesso.');
-  });
+
+  saveAllAdjustments(inventory);
 };
 
 const doSaveAdjustment = (i) => {
@@ -318,6 +310,114 @@ const doSaveAdjustment = (i) => {
   }
 };
 
+// acualiza os stock movement
+
+const saveAllAdjustments = (inventory) => {
+  showloading();
+  Object.keys(inventory.adjustments).forEach(
+    function (k) {
+      const adjustment = inventory.adjustments[k];
+      adjustment.adjustedStock = StockService.getStockById(
+        adjustment.adjustedStock.id
+      );
+      let operation = null;
+      if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
+        operation =
+          StockOperationTypeService.getStockOperatinTypeByCode(
+            'AJUSTE_POSETIVO'
+          );
+      } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
+        operation =
+          StockOperationTypeService.getStockOperatinTypeByCode(
+            'AJUSTE_NEGATIVO'
+          );
+      } else {
+        operation =
+          StockOperationTypeService.getStockOperatinTypeByCode('SEM_AJUSTE');
+      }
+      adjustment.captureDate = new Date();
+      adjustment.operation = operation;
+      adjustment.clinic = {};
+      adjustment.clinic.id = clinicService.currClinic().id;
+      adjustment.adjustedStock.clinic = {};
+      adjustment.adjustedStock.clinic.id = clinicService.currClinic().id;
+      adjustment.inventory.clinic = {};
+      adjustment.inventory = {};
+      adjustment.inventory.id = inventory.id;
+      adjustment.clinic_id = clinicService.currClinic().id;
+      adjustment.finalised = true;
+
+      if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
+        adjustment.adjustedValue = Number(
+          adjustment.balance - adjustment.adjustedStock.stockMoviment
+        );
+      } else if (inventoryStockAdjMethod.isNegativeAdjustment(adjustment)) {
+        adjustment.adjustedValue = Number(
+          adjustment.adjustedStock.stockMoviment - adjustment.balance
+        );
+      } else {
+        adjustment.adjustedValue = 0;
+      }
+      adjustment.adjustedStock.stockMoviment =
+        adjustment.adjustedStock.stockMoviment + adjustment.balance;
+    }.bind(this)
+  );
+  doSaveAll(0, inventory);
+};
+const doSaveAll = (i, inventory) => {
+  const adjustments = inventory.adjustments;
+
+  if (adjustments[i] !== undefined) {
+    if (adjustments[i].balance.length <= 0 || isNaN(adjustments[i].balance)) {
+      closeLoading();
+      alertError(
+        'error',
+        'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
+      );
+    } else {
+      InventoryStockAdjustmentService.apiFetchById(adjustments[i].id).then(
+        (resp1) => {
+          if (resp1.data !== null && resp1.data !== '') {
+            const adjustment = adjustments[i];
+            adjustment.adjustedStock.adjustments = [];
+            InventoryStockAdjustmentService.patch(
+              adjustment.id,
+              adjustment
+            ).then((resp) => {
+              i = i + 1;
+              setTimeout(doSaveAll(i, inventory), 2);
+            });
+          } else {
+            InventoryStockAdjustmentService.post(adjustments[i]).then(
+              (resp) => {
+                // adjustments.value[i].id = resp.id;
+                i = i + 1;
+                setTimeout(doSaveAll(i, inventory), 2);
+              }
+            );
+          }
+          if (i === adjustments.length - 1) {
+            inventory.open = false;
+            inventory.endDate = new Date();
+            InventoryService.patch(inventory.id, inventory).then((resp) => {
+              step = 'display';
+              InventoryService.closeInventoryPinia(inventory);
+              // const clinic = clinicService.currClinic();
+              StockAlertService.apiGetStockAlertAll(
+                clinicService.currClinic().id
+              );
+              closeLoading();
+              alertSucess('Operação efectuada com sucesso.');
+            });
+          }
+        }
+      );
+    }
+  } else {
+    step = 'display';
+  }
+};
+
 const doSaveAdjustmentMobile = (i) => {
   if (processAdjustment[i] !== undefined && processAdjustment[i] !== null) {
     InventoryStockAdjustment.localDbUpdate(processAdjustment[i]).then(
@@ -329,14 +429,14 @@ const doSaveAdjustmentMobile = (i) => {
   }
 };
 
-const processAdjustment = (adjustment, inventory) => {
-  const iv = Object.assign({}, inventory);
-  iv.adjustments = [];
+const processAdjustment = (adjustment) => {
+  // const iv = Object.assign({}, inventory);
+  // iv.adjustments = [];
   //adjustment.inventory = iv;
   adjustment.clinic_id = clinicService.currClinic().id;
   adjustment.finalised = true;
   adjustment.adjustedStock = StockService.getStockById(
-    adjustment.adjusted_stock_id
+    adjustment.adjustedStock.id
   );
   adjustment.adjustedStock.stockMoviment = adjustment.balance;
   processedAdjustments.push(adjustment);
