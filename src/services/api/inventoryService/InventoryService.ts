@@ -106,7 +106,7 @@ export default {
     return inventory.query().orderBy('endDate', 'desc').first();
   },
   getInvnetoryById(id: string) {
-    return inventory.query().withAllRecursive(2).where('id', id).first();
+    return inventory.query().withAllRecursive(4).where('id', id).first();
   },
 
   //Mobile
@@ -182,7 +182,7 @@ export default {
       });
   },
 
-  deleteWeb(id: any) {
+  async deleteWeb(id: any) {
     return api()
       .delete('inventory/' + id)
       .then(() => {
