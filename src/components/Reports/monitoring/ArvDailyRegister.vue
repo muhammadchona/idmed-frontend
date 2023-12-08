@@ -65,16 +65,25 @@ const progress = ref(0.00)
 const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
 
+const isReportClosed = ref(false)
+  const updateParamsOnLocalStrage = (params, isReportClosed) => {
+    if(!isReportClosed.value) LocalStorage.set(params.id, params)
+    console.log(!isReportClosed.value)
+  }
+
 const closeSection = (params) =>{
   filterArvDailyRegisterSection.value.remove()
-  if(params)
-  LocalStorage.remove(params.id) 
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
 }
 
 const  initReportProcessing = (params) => {
   progress.value = 0.001
   if (isOnline.value) {
-    LocalStorage.set(params.id, params)
+    updateParamsOnLocalStrage(params, isReportClosed) 
     Report.apiInitReportProcess('arvDailyRegisterReportTemp', params).then(resp => {
       progress.value = resp.data.progress
       setTimeout(() => {
@@ -82,7 +91,7 @@ const  initReportProcessing = (params) => {
       }, 3000);
     })
   } else {
-    LocalStorage.set(params.id, params)
+    updateParamsOnLocalStrage(params, isReportClosed) 
     ArvDailyRegisterMobileService.getDataLocalDb(params)
     progress.value = 100
     params.progress = 100
@@ -94,7 +103,7 @@ const getProcessingStatus = (params) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed) ;
         params.progress = resp.data.progress;
         setTimeout(() => {
           getProcessingStatus(params)
@@ -102,7 +111,7 @@ const getProcessingStatus = (params) => {
       } else {
         progress.value = 100;
         params.progress = 100;
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed) ;
       }
     } else {
       setTimeout(() => {
