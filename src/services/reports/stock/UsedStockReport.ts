@@ -22,6 +22,7 @@ const image = new Image();
 
 export default {
   async downloadPDF(id, fileType, params) {
+    console.log(params)
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',

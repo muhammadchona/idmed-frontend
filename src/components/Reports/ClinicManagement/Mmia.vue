@@ -89,7 +89,6 @@ const closeSection = (params) => {
 
 const updateParamsOnLocalStrage = (params, isReportClosed) => {
   if(!isReportClosed.value) LocalStorage.set(params.id, params)
-  console.log(!isReportClosed.value)
 }
 
 const initReportProcessing = async (params) => {

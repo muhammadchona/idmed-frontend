@@ -78,16 +78,15 @@ const { alertError } = useSwal();
       const isReportClosed = ref(false)
       const updateParamsOnLocalStrage = (params, isReportClosed) => {
         if(!isReportClosed.value) LocalStorage.set(params.id, params)
-        console.log(!isReportClosed.value)
       }
 
      const closeSection= (params)=> {
         filterDrugStoreSection.value.remove()
         if(params) {
-    const paramId = params.id
-    isReportClosed.value = true
-    LocalStorage.remove(paramId)
-  }
+        const paramId = params.id
+        isReportClosed.value = true
+        LocalStorage.remove(paramId)
+      }
       }
 
       const initReportProcessing = (params) => {

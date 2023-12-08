@@ -67,7 +67,6 @@
   const isReportClosed = ref(false)
   const updateParamsOnLocalStrage = (params, isReportClosed) => {
     if(!isReportClosed.value) LocalStorage.set(params.id, params)
-    console.log(!isReportClosed.value)
   }
 
   const closeSection = (params) => {

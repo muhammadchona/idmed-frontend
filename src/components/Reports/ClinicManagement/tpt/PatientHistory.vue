@@ -67,7 +67,6 @@
   const isReportClosed = ref(false)
   const updateParamsOnLocalStrage = (params, isReportClosed) => {
     if(!isReportClosed.value) LocalStorage.set(params.id, params)
-    console.log(!isReportClosed.value)
   }
 
   const closeSection = (params) => {
@@ -121,7 +120,6 @@
 
 
   const generateReport = (id, fileType) => {
-    console.log(fileType)
     //  UID da tab corrente
     if (isOnline.value) {
       Report.printReport('historicoLevantamentoReport', id, fileType).then(
