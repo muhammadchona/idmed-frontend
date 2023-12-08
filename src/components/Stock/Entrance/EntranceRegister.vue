@@ -48,8 +48,8 @@
                 </q-icon>
               </template>
             </q-input>
-            
-           
+
+
           </div>
           <div class="row">
 

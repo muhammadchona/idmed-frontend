@@ -72,7 +72,7 @@
                 @click="openFile(props.row)"
               >
                 <q-tooltip class="bg-amber-5">{{
-                  props.row.open ? 'Abrir Ficha' : 'Visualizar Ficha'
+                  props.row.open ? 'Abrir Inventário' : 'Visualizar Inventário'
                 }}</q-tooltip>
               </q-btn>
 

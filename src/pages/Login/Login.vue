@@ -233,7 +233,7 @@
                   </div>
                 </div>
                 <div class="row justify-center">
-                  Versão v.1.1.0 SNAPSHOT 01.12.2023
+                  Versão v.1.1.0_SNAPSHOT_081223
                 </div>
               </q-card-section>
             </q-card>
