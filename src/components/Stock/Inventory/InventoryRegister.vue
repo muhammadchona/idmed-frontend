@@ -99,7 +99,12 @@
       </q-card-section>
       <q-card-actions align="right" class="q-mb-md q-mr-sm">
         <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-        <q-btn type="submit" label="Avançar" color="primary" />
+        <q-btn
+          type="submit"
+          label="Avançar"
+          :loading="loadingIventory"
+          color="primary"
+        />
       </q-card-actions>
     </form>
     <!-- <q-dialog v-model="alert.visible" persistent>
@@ -133,6 +138,8 @@ const { showloading, closeLoading } = useLoading();
 
 const router = useRouter();
 const { alertError } = useSwal();
+
+const loadingIventory = ref(false);
 
 const activeDrugs = inject('activeDrugs');
 const currClinic = inject('currClinic');
@@ -170,6 +177,7 @@ const getSelectedString = () => {
 };
 
 const submitForm = () => {
+  loadingIventory.value = true;
   showloading();
   const inventory = inventoryService.getLastInventory();
 
@@ -179,6 +187,7 @@ const submitForm = () => {
       .setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)
   ) {
     closeLoading();
+    loadingIventory.value = false;
     alertError(
       'A data de inicio do inventário não pode ser superior a data corrente.'
     );
@@ -190,6 +199,7 @@ const submitForm = () => {
   ) {
     const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate);
     closeLoading();
+    loadingIventory.value = false;
     alertError(
       'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
         dateUtils.getDDMMYYYFromJSDate(endDateLast) +
@@ -200,6 +210,7 @@ const submitForm = () => {
   } else {
     if (selected.value.length <= 0) {
       closeLoading();
+      loadingIventory.value = false;
       alertError(
         'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
       );
@@ -210,11 +221,7 @@ const submitForm = () => {
 };
 
 const initInventory = () => {
-  if (currInventory.value.generic !== 'true') {
-    doBeforeSave();
-  } else {
-    doBeforeSaveGeneric();
-  }
+  const selectedLocalDrugsId = [];
   currInventory.value.id = uuidv4();
   currInventory.value.clinic = {};
   currInventory.value.clinic.id = currClinic.value.id;
@@ -222,64 +229,18 @@ const initInventory = () => {
     dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
   );
 
+  if (selected.value != null)
+    selected.value.forEach((drug) => {
+      selectedLocalDrugsId.push(drug.id);
+    });
+  if (currInventory.value.generic !== 'true')
+    localStorage.setItem('selectedDrugs', selectedLocalDrugsId);
+
   inventoryService.post(currInventory.value).then((resp) => {
     localStorage.setItem('currInventory', currInventory.value.id);
-    // console.log(resp.response);
     closeLoading();
     router.push('/stock/inventory');
   });
-};
-
-const doBeforeSave = () => {
-  Object.keys(selected.value).forEach(
-    function (k) {
-      const drug = selected.value[k];
-      const validStocks = StockService.getValidStockByDrug(drug);
-      Object.keys(validStocks).forEach(
-        function (i) {
-          initNewAdjustment(validStocks[i], drug);
-        }.bind(this)
-      );
-    }.bind(this)
-  );
-};
-
-const doBeforeSaveGeneric = () => {
-  Object.keys(StockService.getValidStock()).forEach((drugId) => {
-    let drugExist = drugService.getDrugById(drugId);
-    if (drugExist !== null && drugExist !== undefined) {
-      // drugs.value.push(drugExist);
-
-      const stockList = StockService.getValidStockByDrug(drugExist);
-
-      Object.keys(stockList).forEach(
-        function (k) {
-          initNewAdjustment(stockList[k], drugExist);
-        }.bind(this)
-      );
-    }
-
-    console.log(currInventory.value);
-  });
-};
-
-const initNewAdjustment = (stock, drug) => {
-  const newAdjustment = new InventoryStockAdjustment({
-    adjustedStock: stock,
-    clinic: currClinic.value,
-    captureDate: new Date(),
-    operation:
-      StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO'),
-  });
-  newAdjustment.adjustedStock.drug = null;
-  newAdjustment.inventory_id = currInventory.value.id;
-  newAdjustment.adjusted_stock_id = stock.id;
-  newAdjustment.adjustedStock.clinic = {};
-  newAdjustment.adjustedStock.clinic.id = currClinic.value.id;
-  newAdjustment.clinic = {};
-  newAdjustment.clinic.id = currClinic.value.id;
-  newAdjustment.id = uuidv4();
-  currInventory.value.adjustments.push(newAdjustment);
 };
 
 const isGeneric = computed(() => {

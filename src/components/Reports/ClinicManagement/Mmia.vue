@@ -7,8 +7,8 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa
-      Mensal de Informação de ARV (MMIA)
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa Mensal de
+      Informação de ARV (MMIA)
     </ListHeader>
     <ListHeader
       v-else
@@ -23,7 +23,7 @@
     <div class="param-container">
       <q-item>
         <q-item-section class="col">
-          <FiltersInput           
+          <FiltersInput
             :id="id"
             :totalRecords="totalRecords"
             :qtyProcessed="qtyProcessed"
@@ -59,16 +59,16 @@ import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 
-const serviceAux = ref(null)
-const resultFromLocalStorage = ref(false)
+const serviceAux = ref(null);
+const resultFromLocalStorage = ref(false);
 const name = 'Mmia';
-const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const filterMmiaSection = ref('');
-const downloadingPdf = ref(false)
-const downloadingXls = ref(false)
-const reportType = 'MAPA_MENSAL_DE_INFORMACAO_ARV'
+const downloadingPdf = ref(false);
+const downloadingXls = ref(false);
+const reportType = 'MAPA_MENSAL_DE_INFORMACAO_ARV';
 const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
 const isReportClosed = ref(false)
 const alert = ref({
@@ -135,35 +135,42 @@ const getProcessingStatus = (params) => {
         }
       } else {
         setTimeout(() => {
-            getProcessingStatus(params)
-          }, 3000);
+          getProcessingStatus(params);
+        }, 3000);
+      } else {
+        progress.value = 100;
+        params.progress = 100;
+        LocalStorage.set(params.id, params);
       }
-    });
-  };
-
-  const generateReport = (id, fileType) => {
-    if (fileType === 'PDF') {
-      mmiaReport.downloadPDF(id).then((resp) => {
-        if (resp === 204)
-          alertError('Nao existem Dados para o periodo selecionado');
-          downloadingPdf.value = false
-      });
-      
     } else {
-      mmiaReport.downloadExcel(id).then((resp) => {
-        if (resp === 204)
-          alertError('Nao existem Dados para o periodo selecionado');
-          downloadingXls.value = false
-      });
-      
+      setTimeout(() => {
+        getProcessingStatus(params);
+      }, 3000);
     }
-  };
+  });
+};
 
-  provide('downloadingPdf', downloadingPdf)
-  provide('downloadingXls', downloadingXls)
-  provide('serviceAux', serviceAux)
-  provide('resultFromLocalStorage', resultFromLocalStorage)
-  provide('getProcessingStatus',getProcessingStatus) 
+const generateReport = (id, fileType) => {
+  if (fileType === 'PDF') {
+    mmiaReport.downloadPDF(id).then((resp) => {
+      if (resp === 204)
+        alertError('Nao existem Dados para o periodo selecionado');
+      downloadingPdf.value = false;
+    });
+  } else {
+    mmiaReport.downloadExcel(id).then((resp) => {
+      if (resp === 204)
+        alertError('Nao existem Dados para o periodo selecionado');
+      downloadingXls.value = false;
+    });
+  }
+};
+
+provide('downloadingPdf', downloadingPdf);
+provide('downloadingXls', downloadingXls);
+provide('serviceAux', serviceAux);
+provide('resultFromLocalStorage', resultFromLocalStorage);
+provide('getProcessingStatus', getProcessingStatus);
 </script>
 
 <style lang="scss" scoped>

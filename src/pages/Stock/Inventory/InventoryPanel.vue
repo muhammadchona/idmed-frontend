@@ -208,6 +208,7 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
 import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
+import { v4 as uuidv4 } from 'uuid';
 
 const { isMobile, isOnline } = useSystemUtils();
 const inventoryMethod = useInventory();
@@ -251,7 +252,9 @@ const initInventoryClosure = () => {
     'Sim'
   ).then((result) => {
     if (result) {
-      closeInventory();
+      showloading();
+      // closeInventory();
+      doProcessAndClose();
     }
   });
 };
@@ -474,8 +477,73 @@ const currInventory = computed(() => {
   return inventory;
 });
 
+const doBeforeSave = () => {
+  const selectedDrugist = localStorage.getItem('selectedDrugs').split(',');
+  console.log('ID List ', selectedDrugist);
+  Object.keys(selectedDrugist).forEach(
+    function (k) {
+      const drugId = selectedDrugist[k];
+      console.log('drugId', drugId);
+      const drug = drugService.getDrugById(drugId);
+      console.log('Drug', drug);
+      const validStocks =
+        drug !== null ? StockService.getValidStockByDrug(drug) : [];
+      console.log('validStocks', validStocks);
+      Object.keys(validStocks).forEach(
+        function (i) {
+          initNewAdjustment(validStocks[i], drug);
+        }.bind(this)
+      );
+    }.bind(this)
+  );
+};
+
+const doBeforeSaveGeneric = () => {
+  Object.keys(StockService.getValidStock()).forEach((drugId) => {
+    let drugExist = drugService.getDrugById(drugId);
+    if (drugExist !== null && drugExist !== undefined) {
+      // drugs.value.push(drugExist);
+
+      const stockList = StockService.getValidStockByDrug(drugExist);
+
+      Object.keys(stockList).forEach(
+        function (k) {
+          initNewAdjustment(stockList[k], drugExist);
+        }.bind(this)
+      );
+    }
+
+    console.log(currInventory.value);
+  });
+};
+
+const initNewAdjustment = (stock, drug) => {
+  const newAdjustment = new InventoryStockAdjustment({
+    adjustedStock: stock,
+    clinic: currInventory.value.clinic,
+    captureDate: new Date(),
+    operation:
+      StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO'),
+  });
+  newAdjustment.adjustedStock.drug = null;
+  newAdjustment.inventory_id = currInventory.value.id;
+  newAdjustment.adjusted_stock_id = stock.id;
+  newAdjustment.adjustedStock.clinic = {};
+  newAdjustment.adjustedStock.clinic.id = currInventory.value.clinic.id;
+  newAdjustment.clinic = {};
+  newAdjustment.clinic.id = currInventory.value.clinic.id;
+  newAdjustment.id = uuidv4();
+  currInventory.value.adjustments.push(newAdjustment);
+};
+
 onMounted(() => {
   // showloading()
+  if (!currInventory.value.generic) {
+    doBeforeSave();
+  } else {
+    doBeforeSaveGeneric();
+  }
+
   var isGeneric = JSON.parse(currInventory.value.generic);
   const drugList = [];
   if (isGeneric) {
