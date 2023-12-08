@@ -2,9 +2,9 @@ import JsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import * as ExcelJS from 'exceljs';
-// import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/services/api/report/ReportService';
 import StockReceivedReport from 'src/stores/models/report/stock/StockReceivedReport';
+import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
@@ -12,10 +12,14 @@ import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedS
 
 const { isMobile, isOnline } = useSystemUtils();
 
-// const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
+const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Stock Recebido';
 const reportName = 'ListaDeStockRecebido';
 const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
+
+const image = new Image();
+    // image.src = '/src/assets/MoHLogo.png'
+    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
   async downloadPDF(id, fileType, params) {
@@ -28,9 +32,96 @@ export default {
       floatPrecision: 'smart', // or "smart", default is 16
     });
     const width = doc.internal.pageSize.getWidth();
-    /*
-      Fill Table
-    */
+
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
+    
+    const clinic = clinicService.currClinic();
+
+    const headerReport = [
+      [
+        {
+          content: 'Lista de Stock Recebido',
+          styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
+          colSpan: 3,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+        },
+      ],
+      [
+        {
+          content: 'Unidade Sanitária: ' + clinic.clinicName,
+          colSpan: 2,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content: 'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+          colSpan: 1,
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+      ],
+      [
+        {
+          content:
+            'Distrito: ' +
+            (params.district === null
+              ? clinic.district.description
+              : params.district.description),
+          halign: 'center',
+          valign: 'middle',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content:
+            'Província: ' +
+            (params.province === null
+              ? clinic.province.description
+              : params.province.description),
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+        {
+          content: 'Ano: ' + params.year,
+          halign: 'center',
+          valign: 'left',
+          fontStyle: 'bold',
+          fontSize: '14',
+        },
+      ],
+    ];
+
+    autoTable(doc, {
+      //  margin: { top: 10 },
+      bodyStyles: {
+        halign: 'left',
+        valign: 'middle',
+        fontSize: 8,
+      },
+      headStyles: {
+        halign: 'left',
+        valign: 'middle',
+      },
+      theme: 'grid',
+      body: headerReport,
+    });
+
+    doc.setFontSize(8);
+    doc.text('República de Moçambique ', 16, 28);
+    doc.text('Ministério da Saúde ', 20, 32);
+    doc.text('Serviço Nacional de Saúde ', 16, 36);
+    doc.addImage(image, 'png', 28, 15, 10, 10);
+
     const cols = [
       'Ordem',
       'Entrada',
@@ -40,7 +131,6 @@ export default {
       'Recebidos',
       'Fornecedor',
     ];
-    const clinic = clinicService.currClinic();
 
     let data = [];
     if (isOnline.value) {
@@ -56,62 +146,33 @@ export default {
     }
 
     autoTable(doc, {
-      margin: { top: 55 },
       bodyStyles: {
-        halign: 'left',
-        valign: 'middle',
+        halign: 'center',
+        fontSize: 8,
       },
       headStyles: {
         halign: 'center',
         valign: 'middle',
+        fontSize: 8,
       },
-      didDrawPage: function (data) {
-        // Header
-        doc.setFontSize(10);
-        doc.setTextColor(40);
-        doc.setFontSize(16);
-        doc.text(title, width / 2, 20, {
-          align: 'center',
-        });
-        doc.setFontSize(10);
-        // doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, data.settings.margin.left + 2, 32)
-        doc.text(
-          'Província: ' +
-            (params.province === null
-              ? clinic.province.description
-              : params.province.description),
-          data.settings.margin.left + 2,
-          40
-        );
-        doc.text(
-          'Distrito: ' +
-            (params.district === null
-              ? clinic.district.description
-              : params.district.description),
-          data.settings.margin.left + 2,
-          48
-        );
-        doc.text('Data Início: ' + params.startDateParam, width / 2 + 95, 32);
-        doc.text('Data Fim: ' + params.endDateParam, width / 2 + 95, 40);
-
-        doc.setFontSize(10);
+      didDrawPage: function (data) 
+      {    
         const str = 'Página ' + doc.internal.getNumberOfPages();
-
-        doc.setFontSize(10);
+        doc.setFontSize(8);
         // jsPDF 1.4+ uses getWidth, <1.4 uses .width
         const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height
-          ? pageSize.height
-          : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);        
       },
+      startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
       body: data,
     });
 
     if (isOnline.value && !isMobile.value) {
-      return doc.save(fileName.concat('.pdf'));
+      // return doc.save(fileName.concat('.pdf'));
+      window.open(doc.output('bloburl'));
     } else {
       console.log(doc);
       const pdfOutput = doc.output();
@@ -146,12 +207,12 @@ export default {
     // Force workbook calculation on load
     // workbook.calcProperties.fullCalcOnLoad = true
     const worksheet = workbook.addWorksheet(reportName);
-    /*   const imageId = workbook.addImage({
+      const imageId = workbook.addImage({
         base64: 'data:image/pngbase64,' + MOHIMAGELOG,
         extension: 'png'
-      }) */
+      }) 
     // Get Cells
-    /* const cellRepublica = worksheet.getCell('A8') */
+    const cellRepublica = worksheet.getCell('A8') 
     const cellTitle = worksheet.getCell('A9');
     const cellPharm = worksheet.getCell('A11');
     const cellDistrict = worksheet.getCell('A12');
@@ -176,7 +237,7 @@ export default {
     const colH = worksheet.getColumn('H');
     // Format Table Cells
     // Alignment Format
-    // cellRepublica.alignment =
+    cellRepublica.alignment =
     cellTitle.alignment = headerRow.alignment = {
       vertical: 'middle',
       horizontal: 'center',
@@ -193,7 +254,7 @@ export default {
           wrapText: false,
         };
     // Border Format
-    //  cellRepublica.border =
+     cellRepublica.border =
     cellTitle.border =
       cellPharm.border =
       cellDistrictParamValue.border =
@@ -212,7 +273,7 @@ export default {
           right: { style: 'thin' },
         };
     // Assign Value to Cell
-    //  cellRepublica.value = logoTitle
+     cellRepublica.value = logoTitle
     cellTitle.value = title;
     cellPharmParamValue.value =
       params.clinic !== null ? params.clinic.clinicName : '';
@@ -228,7 +289,7 @@ export default {
     cellStartDate.value = 'Data Início';
     cellEndDate.value = 'Data Fim';
     // merge a range of cells
-    // worksheet.mergeCells('A1:A7')
+    worksheet.mergeCells('A1:A7')
     worksheet.mergeCells('A9:G9');
     worksheet.mergeCells('B11:E11');
     worksheet.mergeCells('B12:C12');
@@ -263,10 +324,10 @@ export default {
           bold: true,
         };
     // Add Image
-    /* worksheet.addImage(imageId, {
+    worksheet.addImage(imageId, {
         tl: { col: 0, row: 1 },
         ext: { width: 144, height: 98 }
-      }) */
+      })
     // Cereate Table
     worksheet.addTable({
       name: reportName,

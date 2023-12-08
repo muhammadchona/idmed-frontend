@@ -6,6 +6,7 @@ import * as ExcelJS from 'exceljs'
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
 import Report from 'src/services/api/report/ReportService'
 import moment from 'moment'
+import districtService from 'src/services/api/districtService/districtService'
 
  const logoTitle ='REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'HISTÓRICO DE LEVANTAMENTOS PARA \n PACIENTES REFERIDOS'
@@ -21,12 +22,102 @@ export default {
         putOnlyUsedFonts: true,
         floatPrecision: 'smart' 
       })
+
+      doc.setProperties({
+        title: fileName.concat('.pdf'),
+      });
+
+      const rows = await Report.printReportOther('referredPatientsReport', params.id)
+      if(rows.status === 204) return rows.status
+      const firstReg = rows.data[0];
+      const district = districtService.getDistrictById(firstReg.districtId)
+      const province = district?.province
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      const data = this.createArrayOfArrayRow(rows.data)
+
       const image = new Image()
       image.src = 'data:image/png;base64,' + MOHIMAGELOG
-        const width = doc.internal.pageSize.getWidth()
-      /*
-        Fill Table
-      */
+      const width = doc.internal.pageSize.getWidth()
+
+        const headerReport = [
+          [
+            {
+              content: 'HISTÓRICO DE LEVANTAMENTOS PARA \nPACIENTES REFERIDOS',
+              styles: { minCellHeight: 25, fontSize: 12, halign: 'center' },
+              colSpan: 3,
+              halign: 'center',
+              valign: 'middle',
+              fontStyle: 'bold',
+            },
+          ],
+          [
+            {
+              content: 'Unidade Sanitária: ' + params.clinic.clinicName,
+              colSpan: 2,
+              halign: 'center',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '14',
+            },
+            {
+              content: 'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+              colSpan: 1,
+              halign: 'center',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '14',
+            },
+          ],
+          [
+            {
+              content:
+                'Distrito: ' +
+                district?.description,
+              halign: 'center',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '14',
+            },
+            {
+              content:
+                'Província: ' +
+                province.description,
+              halign: 'center',
+              valign: 'left',
+              fontStyle: 'bold',
+              fontSize: '14',
+            },
+            {
+              content: 'Ano: ' + params.year,
+              halign: 'center',
+              valign: 'left',
+              fontStyle: 'bold',
+              fontSize: '14',
+            },
+          ],
+        ];
+      
+        autoTable(doc, {
+          bodyStyles: {
+            halign: 'left',
+            valign: 'middle',
+            fontSize: 8,
+          },
+          headStyles: {
+            halign: 'left',
+            valign: 'middle',
+          },
+          theme: 'grid',
+          body: headerReport,
+        });
+      
+        doc.setFontSize(8);
+        doc.text('República de Moçambique ', 16, 28);
+        doc.text('Ministério da Saúde ', 20, 32);
+        doc.text('Serviço Nacional de Saúde ', 16, 36);
+        doc.addImage(image, 'png', 28, 15, 10, 10);
+
         const cols = [
           'ORD',
           'NID',
@@ -38,47 +129,34 @@ export default {
           'Data Prox. Levant.',
           'Farmacia'
         ]
-      const rows = await Report.printReportOther('referredPatientsReport', params.id)
-      if(rows.status === 204) return rows.status
-      const firstReg = rows.data[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
-      const data = this.createArrayOfArrayRow(rows.data)
   
       autoTable(doc, {
-        margin: { top: 60 },
         bodyStyles: {
-          halign: 'center'
+          halign: 'center',
+          fontSize: 8,
         },
         headStyles: {
           halign: 'center',
-          valign: 'middle'
+          valign: 'middle',
+          fontSize: 8,
         },
-        didDrawPage: function (data) {
-          // Header
-          doc.setFontSize(10)
-          doc.setTextColor(40)
-          doc.setFontSize(16)
-          doc.text(title,
-            width / 2,
-            40,
-            {
-              align: 'center'
-            }
-          )
-          doc.setFontSize(10)
-          doc.text('Unidade Sanitaria: ' + params.clinic.clinicName, width / 15, 57)
-        //  doc.text('Data Início: ' + moment(params.startDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 49)
-        //  doc.text('Data Fim: ' + moment(params.endDateParam, 'DD-MM-YYYY').format('DD/MM/YYYY'), width / 2 + 98, 57)
-          doc.text('Periodo: ' + params.startDateParam +' à '+ params.endDateParam, width / 2 + 90, 57)
-          // doc.line(0, 35, 400, 50);
+        didDrawPage: function (data) 
+        {    
+          const str = 'Página ' + doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+          doc.text(str, data.settings.margin.right, pageHeight - 10);        
         },
+        startY: doc.lastAutoTable.finalY,
         theme: 'grid',
         head: [cols],
         body: data,
       });
      // params.value.loading.loading.hide()
-      return doc.save(reportName + '.pdf')
+      // return doc.save(reportName + '.pdf')
+      window.open(doc.output('bloburl'));
     },
     async downloadExcel(params) {
 
@@ -95,6 +173,11 @@ export default {
       workbook.created = new Date();
       workbook.modified = new Date();
       workbook.lastPrinted = new Date();
+
+      const imageId = workbook.addImage({
+        base64: 'data:image/png;base64,' + MOHIMAGELOG,
+        extension: 'png',
+      })
   
       // Force workbook calculation on load
       //workbook.calcProperties.fullCalcOnLoad = true;
@@ -225,7 +308,11 @@ export default {
             bold: true,
           };
   
-   
+      // Add Image
+      worksheet.addImage(imageId, {
+        tl: { col: 0, row: 1 },
+        ext: { width: 144, height: 98 },
+      });
   
       // Cereate Table
       worksheet.addTable({

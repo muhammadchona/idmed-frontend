@@ -203,11 +203,15 @@ export default {
       {
         valign: 'bottom',
         halign: 'center',
-        fontSize: 6,
+        fontSize: 5,
         lineWidth: 0.5,
         lineColor: [230, 230, 230],
         fillColor: [255, 255, 255],
         textColor: [96, 96, 96],
+      },
+      columnStyles: {
+        4: { cellWidth: 40, fontSize: 5 },
+        11: { cellWidth: 25 },
       },
       didDrawPage: function (data) 
       {    

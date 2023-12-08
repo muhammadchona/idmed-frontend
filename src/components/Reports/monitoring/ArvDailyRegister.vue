@@ -94,6 +94,7 @@ const getProcessingStatus = (params) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
+        LocalStorage.set(params.id, params);
         params.progress = resp.data.progress;
         setTimeout(() => {
           getProcessingStatus(params)
@@ -108,7 +109,6 @@ const getProcessingStatus = (params) => {
           getProcessingStatus(params)
         }, 3000);
     }
-    LocalStorage.set(params.id, params)
   });
 };
    

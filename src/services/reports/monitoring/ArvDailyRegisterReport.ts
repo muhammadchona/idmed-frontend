@@ -60,6 +60,10 @@ export default {
       floatPrecision: 'smart', // or "smart", default is 16
     });
 
+    // doc.setProperties({
+    //   title: fileName.concat('.pdf'),
+    // });
+
     const headerReport = [
       [
         {
@@ -211,6 +215,7 @@ export default {
 
     if (isOnline.value && !isMobile.value) {
       return doc.save(fileName.concat('.pdf'));
+      // window.open(doc.output('bloburl'));
     } else {
       console.log(doc);
       const pdfOutput = doc.output();

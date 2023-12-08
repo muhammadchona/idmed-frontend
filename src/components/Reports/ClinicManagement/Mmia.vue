@@ -78,10 +78,11 @@ const alert = ref({
 
 const progress = ref(0.0);
 const closeSection = (params) => {
-  // LocalStorage.remove(props.id);
   filterMmiaSection.value.remove();
-  if(params)
-  LocalStorage.remove(params.id)
+  if(params) {
+    const paramId = params.id
+    LocalStorage.remove(paramId)
+  }
 };
 
 const initReportProcessing = async (params) => {
@@ -116,6 +117,7 @@ const getProcessingStatus = (params) => {
       if (resp.data.progress > 0.001) {
         progress.value = resp.data.progress;
         if (progress.value < 100) {
+          LocalStorage.set(params.id, params);
           params.progress = resp.data.progress;
           setTimeout(() => {
             getProcessingStatus(params)
@@ -131,7 +133,6 @@ const getProcessingStatus = (params) => {
           }, 3000);
       }
     });
-    LocalStorage.set(params.id, params)
   };
 
   const generateReport = (id, fileType) => {

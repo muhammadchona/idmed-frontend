@@ -33,6 +33,10 @@ export default {
       floatPrecision: 'smart',
     });
 
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
+
     const image = new Image();
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
     const img = new Image();
@@ -545,7 +549,8 @@ export default {
             body: data2Result,
         });
     if (isOnline.value && !isMobile.value) {
-      return docOrWorksheet.save(fileName.concat('.pdf'));
+      // return docOrWorksheet.save(fileName.concat('.pdf'));
+      window.open(docOrWorksheet.output('bloburl'));
     } else {
       const pdfOutput = docOrWorksheet.output();
       this.downloadFile(fileName, 'pdf', pdfOutput);
