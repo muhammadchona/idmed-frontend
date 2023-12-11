@@ -134,20 +134,11 @@ const getProcessingStatus = (params) => {
           updateParamsOnLocalStrage(params, isReportClosed)
         }
       } else {
-        setTimeout(() => {
-          getProcessingStatus(params);
-        }, 3000);
-      } else {
         progress.value = 100;
         params.progress = 100;
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed)
       }
-    } else {
-      setTimeout(() => {
-        getProcessingStatus(params);
-      }, 3000);
-    }
-  });
+    });
 };
 
 const generateReport = (id, fileType) => {
