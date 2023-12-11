@@ -116,9 +116,19 @@ export default {
       ],
       [
         { content: 'Contacto:' },
-        { content: patient.cellphone },
+        {
+          content:
+            patient.cellphone !== null && patient.cellphone !== undefined
+              ? patient.cellphone
+              : '',
+        },
         { content: 'Endereço:' },
-        { content: patient.address },
+        {
+          content:
+            patient.address !== null && patient.address !== undefined
+              ? patient.address
+              : '',
+        },
       ],
     ];
     autoTable(
