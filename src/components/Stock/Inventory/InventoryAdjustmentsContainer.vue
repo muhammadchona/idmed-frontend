@@ -161,6 +161,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import StockService from 'src/services/api/stockService/StockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
+import InventoryService from 'src/services/api/inventoryService/InventoryService';
 
 const { isOnline } = useSystemUtils();
 
@@ -274,9 +275,10 @@ const initNewAdjustment = (stock, drug, i) => {
 
 const saveAdjustments = () => {
   showloading();
-  Object.keys(adjustments.value).forEach(
+  const inv = InventoryService.getInvnetoryById(inventory.id);
+  Object.keys(inv.adjustments).forEach(
     function (k) {
-      const adjustment = adjustments.value[k];
+      const adjustment = inv.adjustments[k];
       let operation = null;
       if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
         operation =
@@ -328,32 +330,18 @@ const doSave = (i) => {
         'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
       );
     } else {
-      InventoryStockAdjustmentService.apiFetchById(
-        adjustments.value[i].id
-      ).then((resp1) => {
-        if (resp1.data !== null && resp1.data !== '') {
-          const adjustment = adjustments.value[i];
-          adjustment.adjustedStock.adjustments = [];
-          InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
-            (resp) => {
-              i = i + 1;
-              setTimeout(doSave(i), 2);
-            }
-          );
-        } else {
-          InventoryStockAdjustmentService.post(adjustments.value[i]).then(
-            (resp) => {
-              // adjustments.value[i].id = resp.id;
-              i = i + 1;
-              setTimeout(doSave(i), 2);
-            }
-          );
+      const adjustment = adjustments.value[i];
+      InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
+        (resp) => {
+          i = i + 1;
+          setTimeout(doSave(i), 2);
         }
-        if (i === adjustments.value.length - 1) {
-          closeLoading();
-          alertSucess('Operação efectuada com sucesso.');
-        }
-      });
+      );
+
+      if (i === adjustments.value.length - 1) {
+        closeLoading();
+        alertSucess('Operação efectuada com sucesso.');
+      }
     }
   } else {
     step.value = 'display';

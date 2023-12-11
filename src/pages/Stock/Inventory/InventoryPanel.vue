@@ -297,7 +297,7 @@ const doProcessAndClose = async () => {
     inventory.adjustments = [];
     inventory.open = false;
   }
-
+  inventory.adjustments = currInventory.value.adjustments;
   saveAllAdjustments(inventory);
 };
 
@@ -472,9 +472,9 @@ const startDate = computed(() => {
 });
 
 const currInventory = computed(() => {
-  const idInventory = localStorage.getItem('currInventory');
-  const inventory = InventoryService.getInvnetoryById(idInventory);
-  return inventory;
+  return InventoryService.getInvnetoryById(
+    localStorage.getItem('currInventory')
+  );
 });
 
 const doBeforeSave = () => {
@@ -490,12 +490,13 @@ const doBeforeSave = () => {
         drug !== null ? StockService.getValidStockByDrug(drug) : [];
       console.log('validStocks', validStocks);
       Object.keys(validStocks).forEach(
-        function (i) {
-          initNewAdjustment(validStocks[i], drug);
+        async function (i) {
+          await initNewAdjustment(validStocks[i]);
         }.bind(this)
       );
     }.bind(this)
   );
+  closeLoading();
 };
 
 const doBeforeSaveGeneric = () => {
@@ -515,9 +516,10 @@ const doBeforeSaveGeneric = () => {
 
     console.log(currInventory.value);
   });
+  closeLoading();
 };
 
-const initNewAdjustment = (stock, drug) => {
+const initNewAdjustment = async (stock) => {
   const newAdjustment = new InventoryStockAdjustment({
     adjustedStock: stock,
     clinic: currInventory.value.clinic,
@@ -526,7 +528,8 @@ const initNewAdjustment = (stock, drug) => {
       StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO'),
   });
   newAdjustment.adjustedStock.drug = null;
-  newAdjustment.inventory_id = currInventory.value.id;
+  newAdjustment.inventory = {};
+  newAdjustment.inventory.id = currInventory.value.id;
   newAdjustment.adjusted_stock_id = stock.id;
   newAdjustment.adjustedStock.clinic = {};
   newAdjustment.adjustedStock.clinic.id = currInventory.value.clinic.id;
@@ -534,16 +537,18 @@ const initNewAdjustment = (stock, drug) => {
   newAdjustment.clinic.id = currInventory.value.clinic.id;
   newAdjustment.id = uuidv4();
   currInventory.value.adjustments.push(newAdjustment);
+  await InventoryStockAdjustmentService.post(newAdjustment);
 };
 
 onMounted(() => {
-  // showloading()
-  if (!currInventory.value.generic) {
-    doBeforeSave();
-  } else {
-    doBeforeSaveGeneric();
+  if (currInventory.value.adjustments.length === 0) {
+    showloading();
+    if (!currInventory.value.generic) {
+      doBeforeSave();
+    } else {
+      doBeforeSaveGeneric();
+    }
   }
-
   var isGeneric = JSON.parse(currInventory.value.generic);
   const drugList = [];
   if (isGeneric) {
