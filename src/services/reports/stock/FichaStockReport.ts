@@ -440,7 +440,7 @@ export default {
     for (const row in rows) {
       counter++
       const createRow = [];
-      createRow.push(rows[row].month+', '+rows[row].year);
+      createRow.push(rows[row].month+', '+ parseInt(rows[row].year));
       createRow.push(rows[row].moviment);
       createRow.push(rows[row].incomes);
       createRow.push(rows[row].outcomes);
