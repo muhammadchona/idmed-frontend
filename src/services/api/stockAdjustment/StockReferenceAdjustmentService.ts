@@ -13,7 +13,7 @@ export default {
         stockReferenceAdjustment.save(resp.data);
       });
   },
-  
+
   get(offset: number) {
     if (offset >= 0) {
       return api()
@@ -41,5 +41,8 @@ export default {
         stockReferenceAdjustment.destroy(id);
       });
   },
- 
+  // Local Storage Pinia
+  deleteAllFromStorage() {
+    stockReferenceAdjustment.flush();
+  },
 };

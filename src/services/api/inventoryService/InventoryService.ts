@@ -197,4 +197,8 @@ export default {
         return resp.data;
       });
   },
+  // Local Storage Pinia
+  deleteAllFromStorage() {
+    inventory.flush();
+  },
 };

@@ -61,7 +61,7 @@
                 label="Voltar"
                 @click="goBack"
               />
-              <q-space v-if="currInventory.open" />
+              <q-space v-if="currInventory !== null" />
               <q-btn
                 v-if="currInventory.open"
                 unelevated
@@ -92,7 +92,10 @@
           class="q-pr-md"
         >
           <span v-for="drug in drugs" :key="drug.id">
-            <AdjustmentTable :drug="drug" :inventory="currInventory" />
+            <AdjustmentTable
+              :drugFromInventoryPanel="drug"
+              :inventory="currInventory"
+            />
           </span>
         </q-scroll-area>
       </div>
@@ -208,7 +211,6 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
 import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
-import { v4 as uuidv4 } from 'uuid';
 
 const { isMobile, isOnline } = useSystemUtils();
 const inventoryMethod = useInventory();
@@ -243,8 +245,6 @@ const goBack = () => {
   router.go(-1);
 };
 
-const drugs = ref([]);
-
 const initInventoryClosure = () => {
   alertWarningAction(
     'Nota: Ao encerrar o presente inventário o stock será actualizado para os dados informados e está operação não poderá ser desfeita. Continuar?',
@@ -253,7 +253,6 @@ const initInventoryClosure = () => {
   ).then((result) => {
     if (result) {
       showloading();
-      // closeInventory();
       doProcessAndClose();
     }
   });
@@ -393,7 +392,6 @@ const doSaveAll = (i, inventory) => {
           } else {
             InventoryStockAdjustmentService.post(adjustments[i]).then(
               (resp) => {
-                // adjustments.value[i].id = resp.id;
                 i = i + 1;
                 setTimeout(doSaveAll(i, inventory), 2);
               }
@@ -405,7 +403,6 @@ const doSaveAll = (i, inventory) => {
             InventoryService.patch(inventory.id, inventory).then((resp) => {
               step = 'display';
               InventoryService.closeInventoryPinia(inventory);
-              // const clinic = clinicService.currClinic();
               StockAlertService.apiGetStockAlertAll(
                 clinicService.currClinic().id
               );
@@ -433,9 +430,6 @@ const doSaveAdjustmentMobile = (i) => {
 };
 
 const processAdjustment = (adjustment) => {
-  // const iv = Object.assign({}, inventory);
-  // iv.adjustments = [];
-  //adjustment.inventory = iv;
   adjustment.clinic_id = clinicService.currClinic().id;
   adjustment.finalised = true;
   adjustment.adjustedStock = StockService.getStockById(
@@ -477,99 +471,17 @@ const currInventory = computed(() => {
   );
 });
 
-const doBeforeSave = () => {
-  const selectedDrugist = localStorage.getItem('selectedDrugs').split(',');
-  console.log('ID List ', selectedDrugist);
-  Object.keys(selectedDrugist).forEach(
-    function (k) {
-      const drugId = selectedDrugist[k];
-      console.log('drugId', drugId);
-      const drug = drugService.getDrugById(drugId);
-      console.log('Drug', drug);
-      const validStocks =
-        drug !== null ? StockService.getValidStockByDrug(drug) : [];
-      console.log('validStocks', validStocks);
-      Object.keys(validStocks).forEach(
-        async function (i) {
-          await initNewAdjustment(validStocks[i]);
-        }.bind(this)
-      );
-    }.bind(this)
-  );
-  closeLoading();
-};
-
-const doBeforeSaveGeneric = () => {
-  Object.keys(StockService.getValidStock()).forEach((drugId) => {
-    let drugExist = drugService.getDrugById(drugId);
-    if (drugExist !== null && drugExist !== undefined) {
-      // drugs.value.push(drugExist);
-
-      const stockList = StockService.getValidStockByDrug(drugExist);
-
-      Object.keys(stockList).forEach(
-        function (k) {
-          initNewAdjustment(stockList[k], drugExist);
-        }.bind(this)
-      );
-    }
-
-    console.log(currInventory.value);
-  });
-  closeLoading();
-};
-
-const initNewAdjustment = async (stock) => {
-  const newAdjustment = new InventoryStockAdjustment({
-    adjustedStock: stock,
-    clinic: currInventory.value.clinic,
-    captureDate: new Date(),
-    operation:
-      StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO'),
-  });
-  newAdjustment.adjustedStock.drug = null;
-  newAdjustment.inventory = {};
-  newAdjustment.inventory.id = currInventory.value.id;
-  newAdjustment.adjusted_stock_id = stock.id;
-  newAdjustment.adjustedStock.clinic = {};
-  newAdjustment.adjustedStock.clinic.id = currInventory.value.clinic.id;
-  newAdjustment.clinic = {};
-  newAdjustment.clinic.id = currInventory.value.clinic.id;
-  newAdjustment.id = uuidv4();
-  currInventory.value.adjustments.push(newAdjustment);
-  await InventoryStockAdjustmentService.post(newAdjustment);
-};
-
 onMounted(() => {
-  if (currInventory.value.adjustments.length === 0) {
-    showloading();
-    if (!currInventory.value.generic) {
-      doBeforeSave();
-    } else {
-      doBeforeSaveGeneric();
-    }
-  }
-  var isGeneric = JSON.parse(currInventory.value.generic);
-  const drugList = [];
-  if (isGeneric) {
-    Object.keys(StockService.getValidStock()).forEach((drugId) => {
-      let drugExist = drugService.getDrugById(drugId);
-      if (drugExist !== null && drugExist !== undefined)
-        drugs.value.push(drugExist);
-    });
-  } else {
-    Object.keys(currInventory.value.adjustments).forEach(
-      function (i) {
-        currInventory.value.adjustments[i].adjustedStock =
-          StockService.getStockById(
-            currInventory.value.adjustments[i].adjusted_stock_id
-          );
-        retriveRelatedDrug(currInventory.value.adjustments[i], drugList);
-      }.bind(this)
-    );
-    drugs.value = drugList;
-  }
   closeLoading();
+});
+
+const drugs = computed(() => {
+  if (currInventory.value.generic) {
+    return drugService.getDrugsWithValidStockInList();
+  } else {
+    const selectedDrugs = localStorage.getItem('selectedDrugs').split(',');
+    return drugService.getDrugsFromListId(selectedDrugs);
+  }
 });
 
 const inventoryType = computed(() => {

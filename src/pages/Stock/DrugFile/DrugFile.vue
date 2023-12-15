@@ -18,45 +18,53 @@
         </ListHeader>
         <div class="box-border q-pb-md">
           <div class="row q-pa-md">
-  <q-space />
+            <q-space />
 
-  <q-btn unelevated color="blue" label="Voltar" @click="goBack" />
+            <q-btn unelevated color="blue" label="Voltar" @click="goBack" />
 
-  <div class="q-ml-md relative-position">
-    <q-btn
-      class="q-fab"
-      unelevated
-      color="green-4"
-      label="Imprimir"
-      icon="print"
-      @click="morphar(true)"
-    />
+            <div class="q-ml-md relative-position">
+              <q-btn
+                class="q-fab"
+                unelevated
+                color="green-4"
+                label="Imprimir"
+                icon="print"
+                @click="morphar(true)"
+              />
 
-    <q-menu ref="menu" :offset="[5, 5]" class="bg-grey-2">
-      <q-list>
-        <q-item clickable @click="printFichaPDF()">
-          <q-item-section avatar>
-            <q-icon name="picture_as_pdf" class="text-red-10"></q-icon> <!-- Ícone de PDF -->
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="text-red-10">PDF</q-item-label>
-          </q-item-section>
-        </q-item>
-        <hr/>
-        <q-item clickable @click="printFichaXLS()">
-          <q-item-section avatar>
-            <q-icon name="insert_drive_file" class="text-green-10"></q-icon> <!-- Ícone de Excel -->
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="text-green-10">XLS</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-menu>
+              <q-menu ref="menu" :offset="[5, 5]" class="bg-grey-2">
+                <q-list>
+                  <q-item clickable @click="printFichaPDF()">
+                    <q-item-section avatar>
+                      <q-icon
+                        name="picture_as_pdf"
+                        class="text-red-10"
+                      ></q-icon>
+                      <!-- Ícone de PDF -->
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-red-10">PDF</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <hr />
+                  <q-item clickable @click="printFichaXLS()">
+                    <q-item-section avatar>
+                      <q-icon
+                        name="insert_drive_file"
+                        class="text-green-10"
+                      ></q-icon>
+                      <!-- Ícone de Excel -->
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-green-10">XLS</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
 
-    <div ref="refFab" class="absolute-center bg-accent"></div>
-  </div>
-</div>
+              <div ref="refFab" class="absolute-center bg-accent"></div>
+            </div>
+          </div>
 
           <q-table
             class="col"
@@ -96,7 +104,7 @@
             <template #body="props">
               <q-tr :props="props">
                 <q-td key="year" :props="props">
-                  {{ props.row.year }}
+                  {{ String(props.row.year).replace('.0', '') }}
                 </q-td>
                 <q-td key="month" :props="props">
                   {{ props.row.month }}
@@ -172,7 +180,7 @@ import StockService from 'src/services/api/stockService/StockService';
 
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-import fichaStockReport from  'src/services/reports/stock/FichaStockReport'
+import fichaStockReport from 'src/services/reports/stock/FichaStockReport';
 
 const { isOnline } = useSystemUtils();
 
@@ -232,21 +240,21 @@ const contentStyle = {
   color: '#555',
 };
 
-const morphar = (state)=> {
+const morphar = (state) => {
   if (state !== toggle.value) {
-    const getFab = () => refFab.value
-    const getCard = () => refCard.value ? refCard.value.$el : void 0
+    const getFab = () => refFab.value;
+    const getCard = () => (refCard.value ? refCard.value.$el : void 0);
 
     morph({
       from: toggle.value === true ? getCard : getFab,
       to: toggle.value === true ? getFab : getCard,
       onToggle: () => {
-        toggle.value = state
+        toggle.value = state;
       },
-      duration: 500
-    })
+      duration: 500,
+    });
   }
-}
+};
 
 const contentActiveStyle = {
   backgroundColor: '#eee',
@@ -266,11 +274,16 @@ const goBack = () => {
 };
 
 const printFichaPDF = () => {
-  fichaStockReport.downloadPDF('PDF', drugEventList, drug, stocks(drug.value))
+  fichaStockReport.downloadPDF('PDF', drugEventList, drug, stocks(drug.value));
 };
 
 const printFichaXLS = () => {
-  fichaStockReport.downloadExcel('XLS', drugEventList, drug, stocks(drug.value))
+  fichaStockReport.downloadExcel(
+    'XLS',
+    drugEventList,
+    drug,
+    stocks(drug.value)
+  );
 };
 
 const generateDrugEventSummary = async () => {

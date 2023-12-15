@@ -2,20 +2,33 @@
   <div>Logout</div>
 </template>
 <script>
-import { SessionStorage } from 'quasar'
-import UsersService from 'src/services/UsersService'
+import { SessionStorage } from 'quasar';
+import UsersService from 'src/services/UsersService';
+import StockService from 'src/services/api/stockService/StockService';
+import StockReferenceAdjustmentService from 'src/services/api/stockAdjustment/StockReferenceAdjustmentService';
+import StockDestructionAdjustmentService from 'src/services/api/stockAdjustment/StockDestructionAdjustmentService';
+import InventoryService from 'src/services/api/inventoryService/InventoryService';
+import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 
 export default {
-  data () {
-    return {}
+  data() {
+    return {};
   },
   created: function () {
-   UsersService.logout()
-  //  localStorage.setItem('id_token', null)
-  SessionStorage.clear()
-   localStorage.setItem('user', null)
-  this.$router.push({ path: '/Login' })
-  localStorage.setItem('activeTabStock', "")
-  }
-}
+    UsersService.logout();
+    StockService.deleteAllFromStorage();
+    StockReferenceAdjustmentService.deleteAllFromStorage();
+    StockDestructionAdjustmentService.deleteAllFromStorage();
+    InventoryStockAdjustmentService.deleteAllFromStorage();
+    InventoryService.deleteAllFromStorage();
+    SessionStorage.clear();
+    localStorage.setItem('user', null);
+    localStorage.setItem('id_token', null);
+    localStorage.setItem('refresh_token', null);
+    localStorage.setItem('activeTabStock', '');
+    localStorage.setItem('Btoa', '');
+    localStorage.setItem('currInventory', '');
+    this.$router.push({ path: '/Login' });
+  },
+};
 </script>
