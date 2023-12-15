@@ -72,6 +72,18 @@ export default {
       .get();
   },
 
+  getValidStockWithDrug() {
+    return stock
+      .with('drug')
+      .where((stock) => {
+        return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
+          moment().format('YYYY-MM-DD')
+        );
+      })
+      .orderBy('expireDate', 'desc')
+      .get();
+  },
+
   getValidStockByDrug(drug: any) {
     return stock
       .where('drug_id', drug.id)
@@ -324,5 +336,10 @@ export default {
         stock.save(resp.data);
         return resp.data;
       });
+  },
+
+  // Local Storage Pinia
+  deleteAllFromStorage() {
+    stock.flush();
   },
 };

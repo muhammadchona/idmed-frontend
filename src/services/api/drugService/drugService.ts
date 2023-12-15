@@ -6,6 +6,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment';
 
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -76,6 +77,23 @@ export default {
   },
   getActiveDrugs() {
     return drug.query().withAllRecursive(1).where('active', true).get();
+  },
+  getDrugsFromListId(drugListId: []) {
+    return drug.query().withAllRecursive(1).find(drugListId);
+  },
+  getDrugsWithValidStockInList() {
+    return drug
+      .query()
+      .withAllRecursive(1)
+      .whereHas('stocks', (query) => {
+        query.where((stock) => {
+          return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
+            moment().format('YYYY-MM-DD')
+          );
+        });
+        query.orderBy('expireDate', 'asc');
+      })
+      .get();
   },
   getActiveDrugsByRegimen(regimenId: string) {
     return drug

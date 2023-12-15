@@ -107,32 +107,22 @@
         />
       </q-card-actions>
     </form>
-    <!-- <q-dialog v-model="alert.visible" persistent>
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog> -->
   </q-card>
 </template>
 
 <script setup>
 import Inventory from 'src/stores/models/stockinventory/Inventory';
-import { ref, computed, onMounted, inject } from 'vue';
-import { InventoryStockAdjustment } from '../../../stores/models/stockadjustment/InventoryStockAdjustment';
+import { ref, computed, onMounted, inject, watch } from 'vue';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
 
-import StockService from 'src/services/api/stockService/StockService';
 import inventoryService from 'src/services/api/inventoryService/InventoryService';
-import drugService from 'src/services/api/drugService/drugService';
 
-import { useMediaQuery } from '@vueuse/core';
 import { useRouter } from 'vue-router';
-import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import moment from 'moment';
+import drugService from 'src/services/api/drugService/drugService';
 
 const { showloading, closeLoading } = useLoading();
 
@@ -141,9 +131,10 @@ const { alertError } = useSwal();
 
 const loadingIventory = ref(false);
 
-const activeDrugs = inject('activeDrugs');
-const currClinic = inject('currClinic');
+const loading = ref(false);
 
+const currClinic = inject('currClinic');
+const readyToRoute = ref(null);
 const columns = [
   {
     name: 'code',
@@ -205,14 +196,17 @@ const submitForm = () => {
         dateUtils.getDDMMYYYFromJSDate(endDateLast) +
         ']'
     );
-  } else if (currInventory.value.generic) {
+  } else if (
+    currInventory.value.generic &&
+    currInventory.value.generic === 'true'
+  ) {
     initInventory();
   } else {
     if (selected.value.length <= 0) {
       closeLoading();
       loadingIventory.value = false;
       alertError(
-        'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
+        'Por favor, selecione pelo menos um medicamento para o inventário.'
       );
     } else {
       initInventory();
@@ -237,14 +231,18 @@ const initInventory = () => {
     localStorage.setItem('selectedDrugs', selectedLocalDrugsId);
 
   inventoryService.post(currInventory.value).then((resp) => {
+    readyToRoute.value = resp;
     localStorage.setItem('currInventory', currInventory.value.id);
-    closeLoading();
     router.push('/stock/inventory');
   });
 };
 
 const isGeneric = computed(() => {
   return currInventory.value.generic !== 'true';
+});
+
+const activeDrugs = computed(() => {
+  return drugService.getDrugsWithValidStockInList();
 });
 
 onMounted(() => {

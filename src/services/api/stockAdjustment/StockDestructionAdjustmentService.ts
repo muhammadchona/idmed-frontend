@@ -6,7 +6,7 @@ import api from '../apiService/apiService';
 
 export default {
 
- 
+
   apiSave(params: string) {
     return api()
       .post('stockDestructionAdjustment', params)
@@ -40,5 +40,9 @@ export default {
       .then(() => {
         stockDestructionAdjustment.destroy(id);
       });
-  }
+  },
+    // Local Storage Pinia
+    deleteAllFromStorage() {
+      stockDestructionAdjustment.flush();
+    },
 }
