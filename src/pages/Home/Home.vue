@@ -138,7 +138,7 @@ const clinic = computed(() => {
 });
 
 const menusVisible = (name) => {
-  const menus = localStorage.getItem('role_menus');
+  const menus = sessionStorage.getItem('role_menus');
   if (menus !== null)
     if (!menus.includes(name)) {
       return false;

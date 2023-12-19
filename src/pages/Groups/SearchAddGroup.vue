@@ -168,7 +168,7 @@ const { showloading } = useLoading();
 //Declaration
 const title = ref('Procurar ou adicionar Grupo');
 const router = useRouter();
-const username = localStorage.getItem('user');
+const username = sessionStorage.getItem('user');
 const searchResults = ref([]);
 const curGroup = ref(new Group());
 const showGroupRegister = ref(false);
