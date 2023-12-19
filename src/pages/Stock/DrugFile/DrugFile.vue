@@ -289,17 +289,13 @@ const printFichaXLS = () => {
 const generateDrugEventSummary = async () => {
   const clinic = clinicService.currClinic();
   if (!isOnline.value) {
-    showloading();
     drugEventList.value = await drugFileService.getDrugFileSummary(drug.value);
     loading.value = false;
-    closeLoading();
   } else {
-    showloading();
     drugFileService.apiGetDrugSummary(clinic.id, drug.value.id).then((resp) => {
       const t = resp.data;
       drugEventList.value = t;
       loading.value = false;
-      closeLoading();
     });
   }
 };

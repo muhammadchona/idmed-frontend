@@ -209,6 +209,13 @@ const logout = () => {
   window.location.reload();
 };
 
+const removeFromLocalStorage = () => {
+  localStorage.removeItem('authUser');
+  localStorage.removeItem('user');
+  localStorage.removeItem('username');
+  localStorage.removeItem('refresh_token');
+};
+
 const resetTimer = () => {
   clearTimeout(logoutTimer.value);
   setTimer();

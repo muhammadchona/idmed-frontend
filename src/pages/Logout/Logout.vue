@@ -32,6 +32,7 @@ export default {
     localStorage.setItem('activeTabStock', '');
     sessionStorage.setItem('Btoa', '');
     localStorage.setItem('currInventory', '');
+    localStorage.setItem('Btoa', '');
     this.$router.push({ path: '/Login' });
   },
 };
