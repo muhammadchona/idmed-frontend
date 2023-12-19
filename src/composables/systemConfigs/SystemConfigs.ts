@@ -8,6 +8,13 @@ export function useSystemConfig() {
       return instalationType.value === 'PROVINCIAL';
     } else return false;
   }
+  function localProvincialInstalationCode() {
+    const instalationType = systemConfigsService.getInstallationType();
 
-  return { isProvincialInstalation };
+    if (instalationType !== null && instalationType !== undefined) {
+      return instalationType.description;
+    } else return '';
+  }
+
+  return { isProvincialInstalation, localProvincialInstalationCode };
 }

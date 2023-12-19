@@ -11,7 +11,7 @@
         <template v-slot:body="props">
           <q-tr v-bind="props">
             <q-td key="drug" v-bind="props">
-              {{ !isOnline ?  props.row.drug.name  : props.row.drug }}
+              {{ !isOnline ? props.row.drug.name : props.row.drug }}
             </q-td>
             <q-td key="avgConsuption" v-bind="props">
               {{ props.row.avgConsuption }}
@@ -38,6 +38,7 @@
 import { ref, computed, onMounted, inject, watch } from 'vue';
 import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { isOnline } = useSystemUtils();
 
@@ -77,19 +78,34 @@ const columnsGender = [
 ];
 
 const rowData = ref([]);
-
+const { isProvincialInstalation, localProvincialInstalationCode } =
+  useSystemConfig();
 const currClinic = inject('currClinic');
 const serviceCode = inject('serviceCode');
 const year = inject('year');
 
 const getStockAlert = () => {
-  reportService.getStockAlert(currClinic.value.id, serviceCode.value).then((resp) => {
-      if (isOnline.value) {
-        rowData.value = resp.data
-      } else {
-        rowData.value = resp
-      }
-  });
+  if (isProvincialInstalation) {
+    reportService
+      .getStockAlert(localProvincialInstalationCode(), serviceCode.value)
+      .then((resp) => {
+        if (isOnline.value) {
+          rowData.value = resp.data;
+        } else {
+          rowData.value = resp;
+        }
+      });
+  } else {
+    reportService
+      .getStockAlert(currClinic.value.id, serviceCode.value)
+      .then((resp) => {
+        if (isOnline.value) {
+          rowData.value = resp.data;
+        } else {
+          rowData.value = resp;
+        }
+      });
+  }
 };
 
 const getConsuptionRelatedColor = (state) => {
