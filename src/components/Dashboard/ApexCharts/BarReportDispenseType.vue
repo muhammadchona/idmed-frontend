@@ -138,7 +138,7 @@ const getRegisteredPatientByDispenseType = () => {
     name: 'Dispensa Semestral',
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getRegisteredPatientByDispenseType(
         year.value,

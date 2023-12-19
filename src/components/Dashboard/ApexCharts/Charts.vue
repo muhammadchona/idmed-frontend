@@ -158,7 +158,7 @@ const changeSevice = (service, colourParam) => {
 
 const getDashboardServiceButton = () => {
   serviceLoaded.value = false;
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getDashboardServiceButton(year.value, localProvincialInstalationCode())
       .then((resp) => {

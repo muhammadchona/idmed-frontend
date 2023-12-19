@@ -124,7 +124,7 @@ function getPatientsFirstDispenseByGender() {
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
 
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getPatientsFirstDispenseByGender(
         year.value,
