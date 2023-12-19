@@ -6,8 +6,7 @@ import useNotify from 'src/composables/shared/notify/UseNotify';
 // import { Notify } from 'quasar';
 
 const { website } = useSystemUtils();
-const { notifyError } = useNotify()
-
+const { notifyError } = useNotify();
 
 const instance = axios.create({
   baseURL: website.value
@@ -17,6 +16,7 @@ const instance = axios.create({
 const numTries = 0;
 
 // Função para fazer o logout
+
 function logout () {
   sessionStorage.removeItem('authUser');
   sessionStorage.removeItem('user');
@@ -39,6 +39,7 @@ instance.interceptors.request.use(
     const userloged = sessionStorage.getItem('user');
     request.headers = {
       Accept: 'application/json',
+      'Cache-Control': 'no-store, no-cache',
     };
     if (
       request.url === '/province' ||
@@ -73,61 +74,26 @@ instance.interceptors.request.use(
     Promise.reject(error);
   }
 );
-// axios.interceptors.request.use(
-//   (config) => {
-//     config.headers = {
-//       Accept: 'application/json',
-//     };
-//     console.log('Utilizador 2', userloged);
-//     if (
-//       config.url === '/province' ||
-//       config.url === '/district' ||
-//       config.url.includes('/clinic/district') ||
-//       config.url === '/systemConfigs' ||
-//       config.url === '/menu' ||
-//       config.url.includes('/clinic/uuid')
-//     ) {
-//       delete config.headers.Authorization;
-//     } else if (userloged != null) {
-//       const localuser = UsersService.getUserByUserName(String(userloged));
-//       config.headers['X-Auth-Token'] = [
-//         '',
-//         localuser.access_token,
-//         // localStorage.getItem('id_token'),
-//       ].join(' ');
-//     } else {
-//       delete config.headers.Authorization; // ["Authorization"]
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     console.log('Utilizador 3', userloged);
-//     Promise.reject(error);
-//   }
-// );
 
 // Response interceptor for API calls
-  instance.interceptors.response.use(
+instance.interceptors.response.use(
   function (response) {
     return response;
-  }, function (error) {
-
+  },
+  function (error) {
     const originalRequest = error.config;
     // const rToken = localStorage.getItem('id_token')
     const rToken = sessionStorage.getItem('refresh_token');
     if (rToken != null && rToken.length > 10) {
       if (
-        (error.response.status === 403 || error.response.status === 401) && !originalRequest._retry
+        (error.response.status === 403 || error.response.status === 401) &&
+        !originalRequest._retry
       ) {
         originalRequest._retry = true;
-        console.log(
-          'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
-            rToken
-        );
-        
+
         return axios
           .post(
-            'http://idartzambezia.fgh.org.mz:3000/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+            process.env.API_URL+'/oauth/access_token?grant_type=refresh_token&refresh_token=' +
               rToken
           )
           .then(({ data }) => {

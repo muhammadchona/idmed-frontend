@@ -6,6 +6,7 @@ import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { P } from 'app/dist/spa/assets/apiService.4d03f836';
 
 const clinic = useRepo(Clinic);
 const { closeLoading, showloading } = useLoading();
@@ -275,4 +276,7 @@ export default {
       .withAllRecursive(2)
       .first();
   },
+  deleteFromPinia(){
+    return clinic.flush()
+  }
 };

@@ -1,15 +1,13 @@
 <template>
-  <div
-    class="relative-position"
-  >
-  <div v-if="loaded">
-    <apexchart
-      style="max-width: 100%"
-      height="600"
-      type="area"
-      :options="chartOptions"
-      :series="series"
-    ></apexchart>
+  <div class="relative-position">
+    <div v-if="loaded">
+      <apexchart
+        style="max-width: 100%"
+        height="600"
+        type="area"
+        :options="chartOptions"
+        :series="series"
+      ></apexchart>
     </div>
     <div v-if="!loaded" class="absolute-center">
       <q-spinner-ball color="primary" size="xl" />
@@ -22,6 +20,7 @@ import { ref, watch, onMounted, computed, inject, watchEffect } from 'vue';
 import reportService from 'src/services/api/report/ReportService.ts';
 import apexchart from 'vue3-apexcharts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { isOnline } = useSystemUtils();
 
@@ -51,6 +50,7 @@ const series = ref([
 const clinic = inject('currClinic');
 const serviceCode = inject('serviceCode');
 const year = inject('year');
+const { isProvincialInstalation, localProvincialInstalationCode } = useSystemConfig();
 
 const loaded = computed(() => {
   return !loading.value;
@@ -124,27 +124,59 @@ function getPatientsFirstDispenseByGender() {
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
 
-  reportService
-    .getPatientsFirstDispenseByGender(year.value, clinic.value.id, serviceCode.value)
-    .then((resp) => {
-      const response = []
-      if (isOnline.value) {
-        response.value = resp.data
-      } else {
-        response.value = resp
-      }
-      for (let i = 1; i <= 12; i++) {
-        response.value.forEach((item) => {
-          if (item.gender === 'Feminino' && item.month === i) {
-            fm.data[i - 1] = item.quantity;
-          } else if (item.gender === 'Masculino' && item.month === i) {
-            ms.data[i - 1] = item.quantity;
-          }
-        });
-      }
-      series.value = [ms, fm];
-      loading.value = false;
-    });
+  if (isProvincialInstalation) {
+    reportService
+      .getPatientsFirstDispenseByGender(
+        year.value,
+        localProvincialInstalationCode(),
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        for (let i = 1; i <= 12; i++) {
+          response.value.forEach((item) => {
+            if (item.gender === 'Feminino' && item.month === i) {
+              fm.data[i - 1] = item.quantity;
+            } else if (item.gender === 'Masculino' && item.month === i) {
+              ms.data[i - 1] = item.quantity;
+            }
+          });
+        }
+        series.value = [ms, fm];
+        loading.value = false;
+      });
+  } else {
+    reportService
+      .getPatientsFirstDispenseByGender(
+        year.value,
+        clinic.value.id,
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        for (let i = 1; i <= 12; i++) {
+          response.value.forEach((item) => {
+            if (item.gender === 'Feminino' && item.month === i) {
+              fm.data[i - 1] = item.quantity;
+            } else if (item.gender === 'Masculino' && item.month === i) {
+              ms.data[i - 1] = item.quantity;
+            }
+          });
+        }
+        series.value = [ms, fm];
+        loading.value = false;
+      });
+  }
 }
 
 watch([serviceCode, year], () => {
@@ -152,14 +184,13 @@ watch([serviceCode, year], () => {
   chartOptions.title = {
     ...chartOptions.title,
     ...{
-      text:
-      `Total de Pacientes no Serviço ${ serviceCode.value } que iniciaram o levantamento`,
-    align: 'center',
-    offsetY: 12,
-    style: {
-      color: '#000000',
-      fontSize: '0.5vw',
-    },
+      text: `Total de Pacientes no Serviço ${serviceCode.value} que iniciaram o levantamento`,
+      align: 'center',
+      offsetY: 12,
+      style: {
+        color: '#000000',
+        fontSize: '0.5vw',
+      },
     },
   };
 });
