@@ -269,7 +269,7 @@ const patients = ref([]);
 const patientId = ref('');
 const middleNamesRef = ref();
 const newPatient = ref(false);
-const username = localStorage.getItem('user');
+const username = sessionStorage.getItem('user');
 const transferencePatientData = ref([]);
 const openMrsPatient = ref(false);
 const title = ref('Procurar ou adicionar Utentes/Pacientes');
@@ -352,7 +352,7 @@ const openMRSSerach = (his) => {
     currPatient.value.identifiers.push(patientServiceIdentifier.value);
 
     patientService
-      .apiSearchPatientOnOpenMRS(his.id, nid, localStorage.getItem('Btoa'))
+      .apiSearchPatientOnOpenMRS(his.id, nid, sessionStorage.getItem('Btoa'))
       .then((response) => {
         patientService.deleteAllFromStorage();
         if (response.data.results.length > 0) {
@@ -592,7 +592,7 @@ const localSearch = () => {
 
 const checkOpenMRS = (his) => {
   patientService
-    .apiCheckOpenmRSisOn(his.id, localStorage.getItem('Btoa'))
+    .apiCheckOpenmRSisOn(his.id, sessionStorage.getItem('Btoa'))
     .then((response) => {
       if (
         response.data.authenticated === false ||

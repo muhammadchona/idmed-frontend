@@ -11,17 +11,18 @@ const { notifyError } = useNotify();
 const instance = axios.create({
   baseURL: website.value
     ? process.env.API_URL
-    : LocalStorage.getItem('backend_url'),
+    : sessionStorage.getItem('backend_url'),
 });
 const numTries = 0;
 
 // Função para fazer o logout
-function logout() {
-  localStorage.removeItem('authUser');
-  localStorage.removeItem('user');
-  localStorage.removeItem('username');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('password');
+
+function logout () {
+  sessionStorage.removeItem('authUser');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('username');
+  sessionStorage.removeItem('refresh_token');
+  sessionStorage.removeItem('password');
   // localStorage.removeItem('tokenExpiration');
   window.location.reload();
 }
@@ -35,7 +36,7 @@ function fixNextTokenExpirationTime() {
 // Request interceptor for API calls
 instance.interceptors.request.use(
   (request) => {
-    const userloged = localStorage.getItem('user');
+    const userloged = sessionStorage.getItem('user');
     request.headers = {
       Accept: 'application/json',
       'Cache-Control': 'no-store, no-cache',
@@ -63,7 +64,7 @@ instance.interceptors.request.use(
         // return; // Interromper a solicitação
       }
       const localuser = UsersService.getUserByUserName(String(userloged));
-      request.headers['X-Auth-Token'] = ['', localuser.access_token].join(' ');
+      request.headers['X-Auth-Token'] = ['', sessionStorage.getItem('id_token')].join(' ');
     } else {
       delete request.headers.Authorization;
     }
@@ -81,7 +82,8 @@ instance.interceptors.response.use(
   },
   function (error) {
     const originalRequest = error.config;
-    const rToken = localStorage.getItem('refresh_token');
+    // const rToken = localStorage.getItem('id_token')
+    const rToken = sessionStorage.getItem('refresh_token');
     if (rToken != null && rToken.length > 10) {
       if (
         (error.response.status === 403 || error.response.status === 401) &&
@@ -95,11 +97,17 @@ instance.interceptors.response.use(
               rToken
           )
           .then(({ data }) => {
-            localStorage.setItem('id_token', data.access_token);
-            localStorage.setItem('refresh_token', data.access_token);
+            console.log(
+              '==got the following token back: ' +
+                data.access_token +
+                '___________________________________________'
+            );
+            sessionStorage.setItem('id_token', data.access_token);
+            sessionStorage.setItem('refresh_token', data.access_token);
+            //  axios.defaults.headers.common['X-Auth-Token'] = data.access_token
             originalRequest.headers['X-Auth-Token'] = [
               '',
-              localStorage.getItem('id_token'),
+              sessionStorage.getItem('id_token'),
             ].join(' ');
             return axios(originalRequest);
           });

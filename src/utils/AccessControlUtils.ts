@@ -1,6 +1,6 @@
 export default {
   menusVisible(name: string) {
-    const menus = localStorage.getItem('role_menus');
+    const menus = sessionStorage.getItem('role_menus');
 
     if (menus !== null)
       if (!menus.includes(name)) {

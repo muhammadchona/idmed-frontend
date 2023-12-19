@@ -939,7 +939,7 @@ const allGoodvalidatedForm = () => {
 
   curPack.value.clinic = patient.value.clinic;
   curPack.value.clinic_id = patient.value.clinic_id;
-  curPack.value.providerUuid = localStorage.getItem('Btoa');
+  curPack.value.providerUuid = sessionStorage.getItem('Btoa');
   curPack.value.syncStatus = 'R';
   curPack.value.packagedDrugs = [];
 

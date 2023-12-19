@@ -549,7 +549,7 @@ const savePatient = async () => {
       .apiopenmrsProgramSearch(
         patientReg.value.his.id,
         uuid,
-        localStorage.getItem('Btoa')
+        sessionStorage.getItem('Btoa')
       )
       .then((response) => {
         closeLoading();
@@ -576,7 +576,7 @@ const savePatient = async () => {
   }
 };
 const doSave = async () => {
-  patientReg.value.hisProvider = localStorage.getItem('Btoa');
+  patientReg.value.hisProvider = sessionStorage.getItem('Btoa');
   if (selectedDataSources.value.abbreviation === 'OpenMRS') {
     patientReg.value.his = {};
     patientReg.value.his.id = selectedDataSources.value.id;

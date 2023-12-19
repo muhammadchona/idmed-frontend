@@ -26,11 +26,11 @@ export default {
     clinicService.deleteFromPinia();
     systemConfigsService.deleteAllFromStorage();
     SessionStorage.clear();
-    localStorage.setItem('user', null);
-    localStorage.setItem('id_token', null);
-    localStorage.setItem('refresh_token', null);
+    sessionStorage.setItem('user', null);
+    sessionStorage.setItem('id_token', null);
+    sessionStorage.setItem('refresh_token', null);
     localStorage.setItem('activeTabStock', '');
-    localStorage.setItem('Btoa', '');
+    sessionStorage.setItem('Btoa', '');
     localStorage.setItem('currInventory', '');
     this.$router.push({ path: '/Login' });
   },
