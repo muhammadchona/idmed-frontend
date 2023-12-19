@@ -333,9 +333,9 @@ onMounted(() => {
     notifyError('Sessão Expirada');
     sessionStorage.setItem('tokenExpiration', 1);
   }
-   if (isMobile.value && localStorage.getItem('backend_url') === null) {
-     popUpUrlMobile.value = true;
-   }
+  if (isMobile.value && localStorage.getItem('backend_url') === null) {
+    popUpUrlMobile.value = true;
+  }
   $q.loading.show({
     message: 'Carregando ...',
     spinnerColor: 'grey-4',
@@ -431,6 +431,7 @@ const loginOnline = (encodedStringBtoA) => {
         sessionStorage.setItem('username', localuser.username);
         sessionStorage.setItem('user', localuser.username);
         sessionStorage.setItem('Btoa', encodedStringBtoA);
+        localStorage.setItem('Btoa', encodedStringBtoA);
         sessionStorage.setItem('role_menus', localuser.menus);
         sessionStorage.setItem(
           'clinic_sector_users',
