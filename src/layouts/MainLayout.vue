@@ -188,7 +188,7 @@ const { isProvincialInstalation } = useSystemConfig();
 const userInfoOpen = ref(false);
 const onMainClick = ref('');
 const onItemClick = ref('');
-const username = ref(localStorage.getItem('user'));
+const username = ref(sessionStorage.getItem('user'));
 const tab = ref('home');
 const mobile = ref(false);
 
@@ -200,11 +200,11 @@ const logoutTimer = ref(null);
 
 // Função para fazer o logout
 const logout = () => {
-  localStorage.removeItem('authUser');
-  localStorage.removeItem('user');
-  localStorage.removeItem('username');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('password');
+  sessionStorage.removeItem('authUser');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('username');
+  sessionStorage.removeItem('refresh_token');
+  // localStorage.removeItem('password');
   // localStorage.removeItem('tokenExpiration');
   window.location.reload();
 };
@@ -215,7 +215,7 @@ const resetTimer = () => {
 };
 
 const warningMessage = () => {
-  localStorage.setItem('tokenExpiration', 0);
+  sessionStorage.setItem('tokenExpiration', 0);
   logout();
 };
 
@@ -275,7 +275,7 @@ const currProvince = computed(() => {
 });
 
 const menusVisible = (name) => {
-  const menus = localStorage.getItem('role_menus');
+  const menus = sessionStorage.getItem('role_menus');
   if (menus !== null) {
     if (!menus.includes(name)) {
       return false;
