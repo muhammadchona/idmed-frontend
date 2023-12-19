@@ -71,7 +71,7 @@ const currClinic = inject('currClinic');
 const tableTitle = ref('Total de dispensas por Gênero no Serviço ');
 
 const getDispensesByGender = () => {
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getDispensesByGender(
         year.value,

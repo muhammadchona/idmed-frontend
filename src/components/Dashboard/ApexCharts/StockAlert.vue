@@ -85,7 +85,7 @@ const serviceCode = inject('serviceCode');
 const year = inject('year');
 
 const getStockAlert = () => {
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getStockAlert(localProvincialInstalationCode(), serviceCode.value)
       .then((resp) => {

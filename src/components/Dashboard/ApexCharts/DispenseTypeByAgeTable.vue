@@ -70,7 +70,7 @@ const rowData = ref([]);
 const tableTitle = ref('Total de dispensas por Idade no Serviço ');
 
 function getDispenseByAge() {
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getDispenseByAge(
         year.value,

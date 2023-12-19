@@ -90,7 +90,7 @@ const chartOptions = {
 const getActivePatientPercentage = () => {
   loading.value = true;
 
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getActivePatientPercentage(
         year.value,

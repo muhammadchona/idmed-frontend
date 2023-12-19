@@ -109,7 +109,7 @@ const getPatientsFirstDispenseByAge = () => {
   const fm = { name: 'Criancas', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
   const ms = { name: 'Adultos', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
 
-  if (isProvincialInstalation) {
+  if (isProvincialInstalation()) {
     reportService
       .getPatientsFirstDispenseByAge(
         year.value,
