@@ -165,6 +165,8 @@ import patientVisitService from 'src/services/api/patientVisit/patientVisitServi
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 
 import { v4 as uuidv4 } from 'uuid';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
+import episodeService from 'src/services/api/episode/episodeService';
 
 // Declaration
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
@@ -176,6 +178,7 @@ const dispenseMode = ref();
 const selected_model = ref([]);
 const submitting = ref(false);
 const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
+const { isReferenceOrTransferenceEpisode } = useEpisode();
 
 //Inject
 const patient = inject('patient');
@@ -263,6 +266,18 @@ const doValidationToDispense = () => {
           // prescribedDrug.prescribedQty = 1;
         }
       );
+      const checkEpisode = episodeService.getEpisodeById(
+        patientVisitDetail.episode_id
+      );
+      const lastEpisode = episodeService.lastEpisodeByIdentifier(checkEpisode.patientServiceIdentifier_id);
+      console.log('Episode to check ', lastEpisode);
+      console.log(
+        'Episode os refferal  ',
+        isReferenceOrTransferenceEpisode(lastEpisode)
+      );
+      if (isReferenceOrTransferenceEpisode(lastEpisode)) {
+        patientVisitDetail.pack.isreferral = true;
+      }
     });
     patientVisitService
       .post(curPatientVisit.value)

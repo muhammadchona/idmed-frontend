@@ -618,7 +618,7 @@ const checkOpenMRS = (his) => {
         closeLoading();
       } else {
         console.log(error);
-        alertError('Falha inexperada, por favor contacte o adminitrador.');
+        alertError('Falha inesperada, por favor contacte o administrador.');
         closeLoading();
       }
     });
