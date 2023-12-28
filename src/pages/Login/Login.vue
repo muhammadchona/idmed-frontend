@@ -232,7 +232,7 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.1.0_SNAPSHOT</div>
+                <div class="row justify-center">Versão v.1.1.0</div>
               </q-card-section>
             </q-card>
           </transition>
