@@ -102,6 +102,11 @@
             description: 'Monitoria e Avaliação',
             id: 5,
             menuItem: [
+                
+            {
+                description: 'Lista de Registro Diário de PREP',
+                tabName: 'PrepDailyRegister',
+            },
             // {
             //     description: 'Lista de Registro Diário de ARV',
             //     tabName: 'ArvDailyRegister',

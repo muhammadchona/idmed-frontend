@@ -63,9 +63,10 @@
                 },
                 //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                 //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
-                //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' },
                 { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
-                { description: 'Lista de Pacientes Faltosos ao Levantamento de ARV\'s para APSS', tabName: 'AbsentPatientsApss' }
+                { description: 'Lista de Pacientes Faltosos ao Levantamento de ARV\'s para APSS', tabName: 'AbsentPatientsApss' },
+                { description: 'Pacientes em Dispensa Semestral', tabName: 'SemiannualDispensation' },
+                { description: 'Pacientes em Dispensa Trimestral', tabName: 'QuarterlyDispensation' },
             ],
         },
         {

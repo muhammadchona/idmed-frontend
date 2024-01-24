@@ -116,6 +116,13 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
+// NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
+import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue'
+import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue'
+import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
+import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+
+
 const { closeLoading, showloading } = useLoading();
 
 const componentsList = {
@@ -138,6 +145,10 @@ const componentsList = {
   PatientHistoryPREP,
   PatientHistoryTPT,
   NotSynchronizedPack,
+  SemiannualDispensation,
+  QuarterlyDispensation,
+  PrepDailyRegister,
+  TptDailyRegister
 };
 
 const { isMobile } = useSystemUtils();
