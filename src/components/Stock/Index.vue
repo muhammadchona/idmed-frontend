@@ -10,6 +10,15 @@
           label="Inventário"
           @click="selectTab('inventory')"
         />
+        <div class="absolute-top-right q-mr-md">
+          <q-btn
+            flat
+            icon-right="refresh"
+            label="Actualizar Lista"
+            no-caps
+            @click="reloadPage"
+          />
+        </div>
       </q-tabs>
       <q-separator color="grey-13" size="1px" />
       <div class="q-mt-md">
@@ -109,7 +118,9 @@ const addEntrada = () => {
   }
   //
 };
-
+const reloadPage = () => {
+  window.location.reload();
+};
 const clinic = computed(() => {
   return clinicService.currClinic();
 });
