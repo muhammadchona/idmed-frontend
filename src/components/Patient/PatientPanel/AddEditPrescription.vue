@@ -30,6 +30,16 @@
           {{ idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth)) }}
           Anos de Idade
         </div>
+        <div class="absolute-top-right q-pa-md">
+          <q-btn
+            flat
+            v-close-popup
+            round
+            dense
+            icon="close"
+            @click="closePrescriptionOption"
+          />
+        </div>
       </div>
       <q-separator />
     </q-card-section>
@@ -269,7 +279,9 @@ const doValidationToDispense = () => {
       const checkEpisode = episodeService.getEpisodeById(
         patientVisitDetail.episode_id
       );
-      const lastEpisode = episodeService.lastEpisodeByIdentifier(checkEpisode.patientServiceIdentifier_id);
+      const lastEpisode = episodeService.lastEpisodeByIdentifier(
+        checkEpisode.patientServiceIdentifier_id
+      );
       console.log('Episode to check ', lastEpisode);
       console.log(
         'Episode os refferal  ',

@@ -901,7 +901,7 @@ const validateStock = (stock) => {
   } else if (stock.batchNumber === '') {
     submitting = false;
     alertError('Por favor indicar o lote!');
-  } else if (StockService.isBatchNumberExists(stock)) {
+  } else if (StockService.isBatchNumberExists(stock) && step.value !== 'edit') {
     alertError(
       ' O lote introduzido para esta guia Já  existe, por favor registe um lote válido!'
     );
