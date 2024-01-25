@@ -105,6 +105,7 @@ import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagemen
 import AbsentReferredPatients from 'components/Reports/ReferralManagement/AbsentReferredPatients.vue';
 import ReceivedStock from 'components/Reports/stock/ReceivedStock.vue';
 import UsedStock from 'components/Reports/stock/UsedStock.vue';
+import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
 import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue'
@@ -121,6 +122,8 @@ import SemiannualDispensation from 'components/Reports/ClinicManagement/Semiannu
 import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue'
 import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
 import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+import partialInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+import generalInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 
 
 const { closeLoading, showloading } = useLoading();
@@ -148,7 +151,10 @@ const componentsList = {
   SemiannualDispensation,
   QuarterlyDispensation,
   PrepDailyRegister,
-  TptDailyRegister
+  TptDailyRegister,
+  QuantityRemain,
+  partialInventory,
+  generalInventory
 };
 
 const { isMobile } = useSystemUtils();
