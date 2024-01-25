@@ -6,7 +6,7 @@ import { MOHIMAGELOG } from 'src/assets/imageBytes';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import packService from 'src/services/api/pack/packService';
 
-const { idadeCalculator } = useDateUtils();
+const { idadeCalculator, idadeReportCalculator } = useDateUtils();
 export default {
   async downloadPDF(
     patient: object,
@@ -39,6 +39,9 @@ export default {
       format: 'a4',
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
+    });
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
     });
     loadingPDF.value = true;
     const image = new Image();
@@ -107,15 +110,25 @@ export default {
 
       [
         { content: 'Idade:' },
-        { content: Math.abs(idadeCalculator(patient.dateOfBirth)) },
+        { content: Math.abs(idadeReportCalculator(patient.dateOfBirth)) },
         { content: 'Sexo:' },
         { content: patient.gender },
       ],
       [
         { content: 'Contacto:' },
-        { content: patient.cellphone },
+        {
+          content:
+            patient.cellphone !== null && patient.cellphone !== undefined
+              ? patient.cellphone
+              : '',
+        },
         { content: 'Endereço:' },
-        { content: patient.address },
+        {
+          content:
+            patient.address !== null && patient.address !== undefined
+              ? patient.address
+              : '',
+        },
       ],
     ];
     autoTable(
@@ -165,7 +178,8 @@ export default {
       body: data,
     });
     loadingPDF.value = false;
-    return doc.save(fileName.concat('.pdf'));
+    window.open(doc.output('bloburl'));
+    // return doc.save(fileName.concat('.pdf'));
   },
 };
 function createDrugArrayOfArrayRow(rows: any) {

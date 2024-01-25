@@ -7,8 +7,8 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa
-      Mensal de Informação de ARV (MMIA)
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa Mensal de
+      Informação de ARV (MMIA)
     </ListHeader>
     <ListHeader
       v-else
@@ -23,7 +23,7 @@
     <div class="param-container">
       <q-item>
         <q-item-section class="col">
-          <FiltersInput           
+          <FiltersInput
             :id="id"
             :totalRecords="totalRecords"
             :qtyProcessed="qtyProcessed"
@@ -59,16 +59,18 @@ import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 
-const serviceAux = ref(null)
-const resultFromLocalStorage = ref(false)
+const serviceAux = ref(null);
+const resultFromLocalStorage = ref(false);
 const name = 'Mmia';
-const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const filterMmiaSection = ref('');
-
-const reportType = 'MAPA_MENSAL_DE_INFORMACAO_ARV'
+const downloadingPdf = ref(false);
+const downloadingXls = ref(false);
+const reportType = 'MAPA_MENSAL_DE_INFORMACAO_ARV';
 const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
+const isReportClosed = ref(false)
 const alert = ref({
   type: '',
   visible: false,
@@ -77,10 +79,17 @@ const alert = ref({
 
 const progress = ref(0.0);
 const closeSection = (params) => {
-  // LocalStorage.remove(props.id);
   filterMmiaSection.value.remove();
-  LocalStorage.remove(params.id)
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
 };
+
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if(!isReportClosed.value) LocalStorage.set(params.id, params)
+}
 
 const initReportProcessing = async (params) => {
   if (params.periodType !== 'MONTH') {
@@ -90,13 +99,12 @@ const initReportProcessing = async (params) => {
   } else {
     progress.value = 0.001;
     if (isOnline.value) {
-      LocalStorage.set(params.id, params)
+      updateParamsOnLocalStrage(params, isReportClosed)      
       Report.apiInitMmiaProcessing(params).then((resp) => {
-        console.log(resp);
         getProcessingStatus(params);
       });
     } else {
-      LocalStorage.set(params.id, params)
+      updateParamsOnLocalStrage(params, isReportClosed)
       const reportParams = await MmiaMobileService.getMmiaStockReport(params);
       const listRegimenSubReport =
         await MmiaMobileService.getMmiaRegimenSubReport(reportParams);
@@ -104,7 +112,6 @@ const initReportProcessing = async (params) => {
         reportParams,
         listRegimenSubReport
       );
-      console.log('MMia: ', beta);
       progress.value = 100;
       params.progress = 100;
     }
@@ -113,16 +120,25 @@ const initReportProcessing = async (params) => {
 
 const getProcessingStatus = (params) => {
   Report.getProcessingStatus('mmiaReport', params).then((resp) => {
-    progress.value = resp.data.progress;
-    if (progress.value < 100) {
-      setTimeout(() => {
-        getProcessingStatus(params);
-      }, 3000);
-    } else {
-      params.progress = 100;
-      LocalStorage.set(params.id, params);
-    }
-  });
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
+        if (progress.value < 100) {
+          updateParamsOnLocalStrage(params, isReportClosed)
+          params.progress = resp.data.progress;
+          setTimeout(() => {
+            getProcessingStatus(params)
+          }, 3000);
+        } else {
+          progress.value = 100;
+          params.progress = 100;
+          updateParamsOnLocalStrage(params, isReportClosed)
+        }
+      } else {
+        progress.value = 100;
+        params.progress = 100;
+        updateParamsOnLocalStrage(params, isReportClosed)
+      }
+    });
 };
 
 const generateReport = (id, fileType) => {
@@ -130,17 +146,22 @@ const generateReport = (id, fileType) => {
     mmiaReport.downloadPDF(id).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+      downloadingPdf.value = false;
     });
   } else {
     mmiaReport.downloadExcel(id).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
+      downloadingXls.value = false;
     });
   }
 };
 
-provide('serviceAux', serviceAux)
-  provide('resultFromLocalStorage', resultFromLocalStorage)
+provide('downloadingPdf', downloadingPdf);
+provide('downloadingXls', downloadingXls);
+provide('serviceAux', serviceAux);
+provide('resultFromLocalStorage', resultFromLocalStorage);
+provide('getProcessingStatus', getProcessingStatus);
 </script>
 
 <style lang="scss" scoped>

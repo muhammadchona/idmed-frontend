@@ -47,7 +47,8 @@
             style="max-width: 500px"
             v-if="!isMobile"
           >
-            <ListReportMenu @changeTab="changeTab" v-if="!isMobile" />
+            <ListReportMenu @changeTab="changeTab" v-if="!isMobile"/>
+            <!-- <ListReportMenuTPT @changeTab="changeTab" v-if="!isMobile && codeServicoActual == 'TPT'" /> -->
           </div>
           <div class="col q-mr-sm panel q-pa-sm">
             <q-scroll-area
@@ -92,7 +93,6 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import MenuMobile from 'components/Reports/Menus/ListReportMenuMobile.vue';
 import ListReportMenu from 'components/Reports/Menus/ListReportMenu.vue';
-
 import ActivesInDrugStore from 'components/Reports/Patient/ActivesInDrugStore.vue';
 import GuestList from 'components/Reports/Patient/GuestList.vue';
 import ImportedPatientList from 'components/Reports/Patient/ImportedPatientList.vue';
@@ -107,11 +107,16 @@ import ReceivedStock from 'components/Reports/stock/ReceivedStock.vue';
 import UsedStock from 'components/Reports/stock/UsedStock.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
+import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue'
 import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.vue';
+import PatientHistoryPREP from 'components/Reports/ClinicManagement/prep/PatientHistory.vue';
+import PatientHistoryTPT from 'components/Reports/ClinicManagement/tpt/PatientHistory.vue';
 import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPack.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+
+const { closeLoading, showloading } = useLoading();
 
 const componentsList = {
   ActivesInDrugStore,
@@ -124,20 +129,23 @@ const componentsList = {
   ReferredPatients,
   ReferredPatientDispenseHistory,
   AbsentPatients,
+  AbsentPatientsApss,
   AbsentReferredPatients,
   ReceivedStock,
   UsedStock,
   ArvDailyRegister,
   PatientHistory,
+  PatientHistoryPREP,
+  PatientHistoryTPT,
   NotSynchronizedPack,
 };
 
-const { isOnline, isMobile } = useSystemUtils();
+const { isMobile } = useSystemUtils();
 const title = ref('Relatórios');
 const tab = ref('list');
 const model = ref(null);
 const activeTab = ref('');
-const selectedService = ref(null);
+const selectedService = ref();
 const contentStyle = {
   backgroundColor: '#ffffff',
   color: '#555',
@@ -156,12 +164,16 @@ const thumbStyle = {
   opacity: 0.75,
 };
 
+const servicoActual = ref(null)
+const codeServicoActual = ref('TARV')
+
 const components = ref([]);
 // const headerClass = 'list-header';
 // const bgColor = 'bg-primary';
 
-onMounted(() => {
+onMounted(() => {  
   const array = LocalStorage.getAllKeys();
+  if(array.length > 0) showloading();
   for (let index = 0; index < array.length; index++) {
     // check if is uuid
     if (array[index].substring(0, 6) === 'report') {
@@ -172,7 +184,9 @@ onMounted(() => {
         );
       changeTab(item.tabName, selectedService, item);
     }
-  }
+
+    if(index === (array.length) - 1) closeLoading()
+  }  
 });
 
 const changeTab = (tabName, selectedService, params) => {
@@ -183,6 +197,7 @@ const changeTab = (tabName, selectedService, params) => {
     clinicalService: selectedService,
     params: params,
   };
+  
   components.value.push(comp);
 };
 
@@ -196,6 +211,8 @@ const clinic = computed(() => {
 
 provide('currClinic', clinic);
 provide('title', title);
+provide('servicoActual', servicoActual)
+provide('codeServicoActual', codeServicoActual)
 </script>
 
 <style lang="scss">

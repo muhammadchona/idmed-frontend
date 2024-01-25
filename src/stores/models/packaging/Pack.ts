@@ -27,6 +27,8 @@ export default class Pack extends Model {
       clinic_id: this.attr(''),
       providerUuid: this.attr(''),
       syncStatus: this.attr(''),
+      isreferral: this.boolean(false),
+      isreferalSynced: this.boolean(false),
       // Relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'pack_id'),

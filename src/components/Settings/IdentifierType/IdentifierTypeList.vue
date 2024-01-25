@@ -4,7 +4,7 @@
       <q-bar style="background-color: #9e9e9e2e">
         <div class="cursor-pointer non-selectable">Tipo de Identificador</div>
       </q-bar>
-      <q-separator class="q-my-md max-width" color="primary" ></q-separator>
+      <q-separator class="q-my-md max-width" color="primary"></q-separator>
     </div>
     <div class="">
       <q-table
@@ -17,11 +17,26 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+          <div class="row q-gutter-sm">
+            <q-input
+              outlined
+              dense
+              debounce="300"
+              v-model="filter"
+              placeholder="Procurar"
+            >
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-btn
+              color="primary"
+              icon-right="refresh"
+              label="Actualizar Lista"
+              no-caps
+              @click="getIdentifierTypeFromProvincialServer"
+            />
+          </div>
           <div class="q-pa-md q-gutter-sm">
             <q-btn
               v-if="!website"
@@ -35,7 +50,9 @@
           </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+          <div
+            class="full-width row flex-center text-primary q-gutter-sm text-body2"
+          >
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -80,8 +97,18 @@
       </q-table>
     </div>
     <div class="absolute-bottom">
-      <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
-        <q-btn size="xl" fab icon="add" @click="addIdentifierType" color="primary" />
+      <q-page-sticky
+        v-if="website && isProvincialInstalation()"
+        position="bottom-right"
+        :offset="[18, 18]"
+      >
+        <q-btn
+          size="xl"
+          fab
+          icon="add"
+          @click="addIdentifierType"
+          color="primary"
+        />
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showAddEditIdentifierType">
@@ -95,9 +122,15 @@ import { ref, inject, provide, onMounted, computed } from 'vue';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService.ts';
 import AddEditIdentifierType from 'src/components/Settings/IdentifierType/IdentifierType.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 /*Declarations*/
 const { website } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
+const { showloading, closeLoading } = useLoading();
+const { alertError, alertSucess } = useSwal();
 const columns = [
   {
     name: 'code',
@@ -160,13 +193,6 @@ onMounted(() => {
   viewMode.value = false;
 });
 
-/*Provides*/
-provide('selectedIdentifierType', identifierType);
-provide('stepp', step);
-provide('showAddEditIdentifierType', showAddEditIdentifierType);
-provide('identifierTypes', identifierTypes);
-provide('identifierTypeParam', identifierType.value);
-
 /*Methods*/
 const getIconActive = (clinicSector) => {
   if (clinicSector.active) {
@@ -188,6 +214,21 @@ const getTooltipClass = (clinicSector) => {
   } else if (!clinicSector.active) {
     return 'bg-green-5';
   }
+};
+
+const getIdentifierTypeFromProvincialServer = () => {
+  showloading();
+  identifierTypeService
+    .getFromProvincial(0)
+    .then(() => {
+      closeLoading();
+      alertSucess('Lista actualizada com sucesso');
+    })
+    .catch((error) => {
+      closeLoading();
+      alertError('Erro na comunicação com o Servidor Central.');
+      console.log('Erro', error);
+    });
 };
 
 const showIdentifierType = (identifierTypeParam) => {
@@ -226,4 +267,10 @@ const addIdentifierType = () => {
   editMode.value = false;
   viewMode.value = false;
 };
+/*Provides*/
+provide('selectedIdentifierType', identifierType);
+provide('stepp', step);
+provide('showAddEditIdentifierType', showAddEditIdentifierType);
+provide('identifierTypes', identifierTypes);
+provide('identifierTypeParam', identifierType.value);
 </script>

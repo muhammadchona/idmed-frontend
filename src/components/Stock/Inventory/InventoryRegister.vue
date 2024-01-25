@@ -99,42 +99,42 @@
       </q-card-section>
       <q-card-actions align="right" class="q-mb-md q-mr-sm">
         <q-btn label="Cancelar" color="red" @click="$emit('close')" />
-        <q-btn type="submit" label="Avançar" color="primary" />
+        <q-btn
+          type="submit"
+          label="Avançar"
+          :loading="loadingIventory"
+          color="primary"
+        />
       </q-card-actions>
     </form>
-    <!-- <q-dialog v-model="alert.visible" persistent>
-      <Dialog :type="alert.type" @closeDialog="closeDialog">
-        <template v-slot:title> Informação</template>
-        <template v-slot:msg> {{ alert.msg }} </template>
-      </Dialog>
-    </q-dialog> -->
   </q-card>
 </template>
 
 <script setup>
 import Inventory from 'src/stores/models/stockinventory/Inventory';
-import { ref, computed, onMounted, inject } from 'vue';
-import { InventoryStockAdjustment } from '../../../stores/models/stockadjustment/InventoryStockAdjustment';
+import { ref, computed, onMounted, inject, watch } from 'vue';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
 
-import StockService from 'src/services/api/stockService/StockService';
 import inventoryService from 'src/services/api/inventoryService/InventoryService';
-import { useMediaQuery } from '@vueuse/core';
+
 import { useRouter } from 'vue-router';
-import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
+import moment from 'moment';
+import drugService from 'src/services/api/drugService/drugService';
 
 const { showloading, closeLoading } = useLoading();
 
 const router = useRouter();
 const { alertError } = useSwal();
 
-const activeDrugs = inject('activeDrugs');
-const currClinic = inject('currClinic');
+const loadingIventory = ref(false);
 
+const loading = ref(false);
+
+const currClinic = inject('currClinic');
+const readyToRoute = ref(null);
 const columns = [
   {
     name: 'code',
@@ -168,98 +168,92 @@ const getSelectedString = () => {
 };
 
 const submitForm = () => {
-        showloading()
-        const inventory = inventoryService.getLastInventory();
-       
-        if (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)) {
-          closeLoading()
-          alertError('A data de inicio do inventário não pode ser superior a data corrente.'
+  loadingIventory.value = true;
+  showloading();
+  const inventory = inventoryService.getLastInventory();
+
+  if (
+    dateUtils
+      .getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
+      .setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0)
+  ) {
+    closeLoading();
+    loadingIventory.value = false;
+    alertError(
+      'A data de inicio do inventário não pode ser superior a data corrente.'
+    );
+  } else if (
+    inventory !== null &&
+    dateUtils
+      .getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
+      .setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0)
+  ) {
+    const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate);
+    closeLoading();
+    loadingIventory.value = false;
+    alertError(
+      'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
+        dateUtils.getDDMMYYYFromJSDate(endDateLast) +
+        ']'
+    );
+  } else if (
+    currInventory.value.generic &&
+    currInventory.value.generic === 'true'
+  ) {
+    initInventory();
+  } else {
+    if (selected.value.length <= 0) {
+      closeLoading();
+      loadingIventory.value = false;
+      alertError(
+        'Por favor, selecione pelo menos um medicamento para o inventário.'
       );
-        } else
-        if (inventory !== null && (dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate).setHours(0, 0, 0, 0) < new Date(inventory.endDate).setHours(0, 0, 0, 0))) {
-          const endDateLast = dateUtils.getDDMMYYYFromJSDate(inventory.endDate) 
-          closeLoading()
-          alertError(
-        'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
-          dateUtils.getDDMMYYYFromJSDate(endDateLast) +
-          ']'
-      );
-        } else
-        if (currInventory.value.generic) {
-          initInventory()
-        } else {
-          if (selected.value.length <= 0) {
-            closeLoading()
-            alertError(
-          'Por favor selecionar os medicamentos a inventariar uma vez seleccionada a opção para inventário parcial.'
-        );
-          } else {
-            initInventory()
-          }
-        }
-       
+    } else {
+      initInventory();
+    }
+  }
 };
 
 const initInventory = () => {
-  if (currInventory.value.generic !== 'true') {
-    doBeforeSave();
-  }
-  currInventory.value.id = uuidv4()
-   currInventory.value.clinic = {};
+  const selectedLocalDrugsId = [];
+  currInventory.value.id = uuidv4();
+  currInventory.value.clinic = {};
   currInventory.value.clinic.id = currClinic.value.id;
-  currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(dateUtils.getDateFromHyphenDDMMYYYY (
-    currInventory.value.startDate
-  ));
-    inventoryService.post(currInventory.value).then((resp) => {
-      localStorage.setItem('currInventory', currInventory.value.id);
-      // console.log(resp.response);
-      closeLoading()
-      router.push('/stock/inventory');
-    });
-  
-};
-
-const doBeforeSave = () => {
-  Object.keys(selected.value).forEach(
-    function (k) {
-      const drug = selected.value[k];
-     const validStocks = StockService.getValidStockByDrug(drug)
-      Object.keys(validStocks).forEach(
-        function (i) {
-          initNewAdjustment(drug.stocks[i], drug);
-        }.bind(this)
-      );
-    }.bind(this)
+  currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(
+    dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
   );
-};
 
-const initNewAdjustment = (stock, drug) => {
-  const newAdjustment = new InventoryStockAdjustment({
-    adjustedStock: StockService.getStockById(stock.id),
-     clinic: currClinic.value,
-    captureDate: new Date(),
-    operation:
-      StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO'),
+  if (selected.value != null)
+    selected.value.forEach((drug) => {
+      selectedLocalDrugsId.push(drug.id);
+    });
+  if (currInventory.value.generic !== 'true')
+    localStorage.setItem('selectedDrugs', selectedLocalDrugsId);
+
+  inventoryService.post(currInventory.value).then((resp) => {
+    readyToRoute.value = resp;
+    localStorage.setItem('currInventory', currInventory.value.id);
+    router.push('/stock/inventory');
   });
-  newAdjustment.adjustedStock.drug = null;
-  newAdjustment.inventory_id = currInventory.value.id;
-  newAdjustment.adjusted_stock_id = newAdjustment.adjustedStock.id;
-  newAdjustment.adjustedStock.clinic = {}
-  newAdjustment.adjustedStock.clinic.id = currClinic.value.id
-  newAdjustment.clinic = {}
-  newAdjustment.clinic.id =currClinic.value.id
-  newAdjustment.id = uuidv4();
-  currInventory.value.adjustments.push(newAdjustment);
 };
 
 const isGeneric = computed(() => {
   return currInventory.value.generic !== 'true';
 });
 
+const activeDrugs = computed(() => {
+  return drugService.getDrugsWithValidStockInList();
+});
+
 onMounted(() => {
   currInventory.value.generic = 'true';
+  if (
+    currInventory.value.startDate === null ||
+    currInventory.value.startDate === undefined
+  ) {
+    currInventory.value.startDate = moment().format('DD-MM-YYYY');
+  }
 });
 </script>
 
-<style>
-</style>
+<style></style>

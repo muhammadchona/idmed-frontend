@@ -6,6 +6,7 @@ import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { P } from 'app/dist/spa/assets/apiService.4d03f836';
 
 const clinic = useRepo(Clinic);
 const { closeLoading, showloading } = useLoading();
@@ -194,6 +195,22 @@ export default {
       .get();
   },
 
+  getFromProvincial(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('clinic/clinicFromProvicnial/' + offset)
+        .then((resp) => {
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromProvincial(offset);
+          } else {
+            alertSucess('Lista actualizada com sucesso');
+            this.get(0);
+          }
+        });
+    }
+  },
+
   getAllClinicsOrdered(provinces: Province[], clinics: Clinic[]) {
     let listaFinal = [];
     let orderedList: any[] = [];
@@ -259,4 +276,7 @@ export default {
       .withAllRecursive(2)
       .first();
   },
+  deleteFromPinia(){
+    return clinic.flush()
+  }
 };

@@ -232,7 +232,7 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.0.0</div>
+                <div class="row justify-center">Versão v.1.1.0</div>
               </q-card-section>
             </q-card>
           </transition>
@@ -241,7 +241,7 @@
             v-model="notice"
             transition-show="slide-up"
             transition-hide="slide-down"
-            v-if="LocalStorage.getItem('backend_url') !== null"
+            v-if="LocalStorage.getItem('backend_url') !== null || isOnline"
           >
             <q-card class="bg-white text-red">
               <q-card-section>
@@ -328,10 +328,10 @@ const popUpUrlMobile = ref(false);
 Hook
 */
 onMounted(() => {
-  const tokenExpiration = localStorage.getItem('tokenExpiration');
+  const tokenExpiration = sessionStorage.getItem('tokenExpiration');
   if (tokenExpiration && tokenExpiration === '0') {
     notifyError('Sessão Expirada');
-    localStorage.setItem('tokenExpiration', 1);
+    sessionStorage.setItem('tokenExpiration', 1);
   }
   if (isMobile.value && localStorage.getItem('backend_url') === null) {
     popUpUrlMobile.value = true;
@@ -421,18 +421,19 @@ const loginOnline = (encodedStringBtoA) => {
     password: password.value,
   })
     .then((response) => {
-      localStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10min
+      sessionStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10min
       submitting.value = false;
       // userLogin.save(resp.data);
       if (response !== undefined && response.status === 200) {
         const localuser = UsersService.getUserByUserName(username.value);
-        localStorage.setItem('id_token', localuser.access_token);
-        localStorage.setItem('refresh_token', localuser.refresh_token);
-        localStorage.setItem('username', localuser.username);
-        localStorage.setItem('user', localuser.username);
+        sessionStorage.setItem('id_token', localuser.access_token);
+        sessionStorage.setItem('refresh_token', localuser.refresh_token);
+        sessionStorage.setItem('username', localuser.username);
+        sessionStorage.setItem('user', localuser.username);
+        sessionStorage.setItem('Btoa', encodedStringBtoA);
         localStorage.setItem('Btoa', encodedStringBtoA);
-        localStorage.setItem('role_menus', localuser.menus);
-        localStorage.setItem(
+        sessionStorage.setItem('role_menus', localuser.menus);
+        sessionStorage.setItem(
           'clinic_sector_users',
           localuser.clinicSectorUsers
         );
@@ -462,9 +463,9 @@ const loginOffline = (encodedStringBtoA) => {
     userLoged.username === username.value &&
     bcrypt.compareSync(password.value, userLoged.password.substring(8))
   ) {
-    localStorage.setItem('username', userLoged.username);
-    localStorage.setItem('user', userLoged.username);
-    localStorage.setItem('Btoa', encodedStringBtoA);
+    sessionStorage.setItem('username', userLoged.username);
+    sessionStorage.setItem('user', userLoged.username);
+    sessionStorage.setItem('Btoa', encodedStringBtoA);
     // localStorage.setItem('sync_pass', encryption.encryptPlainText('user.sync'));
     router.push({ path: '/' });
   } else {

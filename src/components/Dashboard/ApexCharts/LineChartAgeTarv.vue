@@ -1,14 +1,14 @@
 <template>
   <div class="relative-position">
     <div v-if="loaded">
-    <apexchart
-      style="max-width: 100%"
-      height="600"
-      type="line"
-      :options="chartOptions"
-      :series="series"
-    ></apexchart>
-  </div>
+      <apexchart
+        style="max-width: 100%"
+        height="600"
+        type="line"
+        :options="chartOptions"
+        :series="series"
+      ></apexchart>
+    </div>
     <div v-if="!loaded" class="absolute-center">
       <q-spinner-ball color="primary" size="xl" />
     </div>
@@ -20,6 +20,7 @@ import apexchart from 'vue3-apexcharts';
 import { ref, watch, onMounted, inject, computed } from 'vue';
 import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { isOnline } = useSystemUtils();
 
@@ -41,6 +42,7 @@ const month = [
 const serviceCode = inject('serviceCode');
 const year = inject('year');
 const currClinic = inject('currClinic');
+const { isProvincialInstalation } = useSystemConfig();
 
 const loading = ref(false);
 // const clinic = computed(() => Clinic.query().where('id', SessionStorage.getItem('currClinic').id).first());
@@ -107,27 +109,59 @@ const getPatientsFirstDispenseByAge = () => {
   const fm = { name: 'Criancas', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
   const ms = { name: 'Adultos', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
 
-  reportService
-    .getPatientsFirstDispenseByAge(year.value, currClinic.value.id, serviceCode.value)
-    .then((resp) => {
-      const response = []
-      if (isOnline.value) {
-        response.value = resp.data
-      } else {
-        response.value = resp
-      }
-      for (let i = 1; i <= 12; i++) {
-        response.value.forEach((item) => {
-          if (item.faixa === 'MENOR' && item.month === i) {
-            fm.data[i - 1] = item.quantity;
-          } else if (item.faixa === 'ADULTO' && item.month === i) {
-            ms.data[i - 1] = item.quantity;
-          }
-        });
-      }
-      series.value = [fm, ms];
-      loading.value = false;
-    });
+  if (isProvincialInstalation()) {
+    reportService
+      .getPatientsFirstDispenseByAge(
+        year.value,
+        currClinic.value, // Colocar busca para Provincia
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        for (let i = 1; i <= 12; i++) {
+          response.value.forEach((item) => {
+            if (item.faixa === 'MENOR' && item.month === i) {
+              fm.data[i - 1] = item.quantity;
+            } else if (item.faixa === 'ADULTO' && item.month === i) {
+              ms.data[i - 1] = item.quantity;
+            }
+          });
+        }
+        series.value = [fm, ms];
+        loading.value = false;
+      });
+  } else {
+    reportService
+      .getPatientsFirstDispenseByAge(
+        year.value,
+        currClinic.value.id,
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        for (let i = 1; i <= 12; i++) {
+          response.value.forEach((item) => {
+            if (item.faixa === 'MENOR' && item.month === i) {
+              fm.data[i - 1] = item.quantity;
+            } else if (item.faixa === 'ADULTO' && item.month === i) {
+              ms.data[i - 1] = item.quantity;
+            }
+          });
+        }
+        series.value = [fm, ms];
+        loading.value = false;
+      });
+  }
 };
 
 onMounted(() => {

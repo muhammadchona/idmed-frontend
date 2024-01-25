@@ -20,11 +20,14 @@ import apexchart from 'vue3-apexcharts';
 import { ref, watch, onMounted, inject, computed } from 'vue';
 import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const serviceCode = inject('serviceCode');
 const year = inject('year');
 const currClinic = inject('currClinic');
 const { isOnline } = useSystemUtils();
+const { isProvincialInstalation, localProvincialInstalationCode } =
+  useSystemConfig();
 
 const monthsX = [
   'JAN',
@@ -69,7 +72,9 @@ const chartOptions = {
     speed: 2000,
   },
   title: {
-    text: 'Total Mensal de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
+    text:
+      'Total Mensal de Pacientes com Levantamentos no Serviço ' +
+      serviceCode.value,
     align: 'center',
     offsetY: 12,
     style: {
@@ -133,34 +138,63 @@ const getRegisteredPatientByDispenseType = () => {
     name: 'Dispensa Semestral',
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
-
-  reportService
-    .getRegisteredPatientByDispenseType(
-      year.value,
-      currClinic.value.id,
-      serviceCode.value
-    )
-    .then((resp) => {
-      const response = [];
-      if (isOnline.value) {
-        response.value = resp.data;
-      } else {
-        response.value = resp;
-      }
-      for (let i = 1; i <= 12; i++) {
-        response.value.forEach((item) => {
-          if (item.dispense_type === 'DM' && item.month === i) {
-            dms.data[i - 1] = item.quantity;
-          } else if (item.dispense_type === 'DT' && item.month === i) {
-            dts.data[i - 1] = item.quantity;
-          } else if (item.dispense_type === 'DS' && item.month === i) {
-            dss.data[i - 1] = item.quantity;
-          }
-        });
-      }
-      series.value = [dms, dts, dss];
-      loading.value = false;
-    });
+  if (isProvincialInstalation()) {
+    reportService
+      .getRegisteredPatientByDispenseType(
+        year.value,
+        localProvincialInstalationCode(),
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        for (let i = 1; i <= 12; i++) {
+          response.value.forEach((item) => {
+            if (item.dispense_type === 'DM' && item.month === i) {
+              dms.data[i - 1] = item.quantity;
+            } else if (item.dispense_type === 'DT' && item.month === i) {
+              dts.data[i - 1] = item.quantity;
+            } else if (item.dispense_type === 'DS' && item.month === i) {
+              dss.data[i - 1] = item.quantity;
+            }
+          });
+        }
+        series.value = [dms, dts, dss];
+        loading.value = false;
+      });
+  } else {
+    reportService
+      .getRegisteredPatientByDispenseType(
+        year.value,
+        currClinic.value.id,
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        for (let i = 1; i <= 12; i++) {
+          response.value.forEach((item) => {
+            if (item.dispense_type === 'DM' && item.month === i) {
+              dms.data[i - 1] = item.quantity;
+            } else if (item.dispense_type === 'DT' && item.month === i) {
+              dts.data[i - 1] = item.quantity;
+            } else if (item.dispense_type === 'DS' && item.month === i) {
+              dss.data[i - 1] = item.quantity;
+            }
+          });
+        }
+        series.value = [dms, dts, dss];
+        loading.value = false;
+      });
+  }
 };
 
 onMounted(() => {
@@ -172,7 +206,8 @@ watch([year, serviceCode], () => {
   chartOptions.title = {
     ...chartOptions.title,
     ...{
-      text: 'Total de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
+      text:
+        'Total de Pacientes com Levantamentos no Serviço ' + serviceCode.value,
       align: 'center',
       offsetY: 12,
       style: {

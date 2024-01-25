@@ -7,7 +7,7 @@
       :mainContainer="false"
       @done="saveAdjustments"
       :bgColor="headerColor"
-      >{{ props.drug.name }}
+      >{{ drug.name }}
     </ListHeader>
     <div class="box-border q-pb-md" v-show="infoContainerVisible">
       <q-table
@@ -30,7 +30,7 @@
           <q-tr class="text-left bg-grey-3" :props="props">
             <q-th style="width: 70px">{{ columns[0].label }}</q-th>
             <q-th style="width: 110px">{{ columns[1].label }}</q-th>
-            <q-th style="width: 190px">{{ columns[2].label }}</q-th>
+            <q-th style="width: 180px">{{ columns[2].label }}</q-th>
             <q-th style="width: 190px">{{ columns[3].label }}</q-th>
             <q-th style="width: 190px">{{ columns[4].label }}</q-th>
             <q-th class="col">{{ columns[5].label }}</q-th>
@@ -111,9 +111,9 @@
                 />
                 <q-input
                   outlined
-                  v-model="props.row.adjustedStock.drug.form.description"
+                  v-model="drug.form.description"
                   disable
-                  label="Foma"
+                  label="Forma"
                   dense
                   class="col q-ml-sm"
                 />
@@ -151,12 +151,10 @@ import { onMounted, ref, computed, reactive } from 'vue';
 import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
-import stockService from 'src/services/api/stockService/StockService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import clinicService from 'src/services/api/clinicService/clinicService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import StockService from 'src/services/api/stockService/StockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -164,7 +162,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const { isOnline } = useSystemUtils();
 
-const props = defineProps(['drug', 'inventory']);
+const props = defineProps(['drugFromInventoryPanel', 'inventory']);
 const { alertSucess, alertError } = useSwal();
 const { showloading, closeLoading } = useLoading();
 
@@ -197,7 +195,7 @@ const columns = [
 const inventoryStockAdjMethod = useInventoryStockAdjustment();
 const dateUtils = useDateUtils();
 
-const drug = reactive(props.drug);
+const drug = reactive(props.drugFromInventoryPanel);
 const inventory = reactive(props.inventory);
 const alert = ref({
   type: '',
@@ -206,31 +204,38 @@ const alert = ref({
 });
 
 const adjustments = ref([]);
+const isNewAdjustment = ref(false);
+const numberOfValidStockPerDrug = ref(0);
 const step = ref('display');
 const infoContainerVisible = true;
 
 const expandLess = (value) => {
   infoContainerVisible = !value;
 };
+
+onMounted(() => {
+  showloading();
+  init();
+});
+
 const init = () => {
+  numberOfValidStockPerDrug.value = 0;
   if (!isOnline.value) {
     InventoryStockAdjustmentService.apiGetAllMobile();
   }
-
   prepareInit();
 };
 
 const prepareInit = () => {
   let i = 1;
   const stockList = getValidStocks(drug);
+  numberOfValidStockPerDrug.value = stockList.length;
 
   if (stockList.length > 0) {
-    Object.keys(stockList).forEach(
-      function (k) {
-        initNewAdjustment(stockList[k], drug, i);
-        i = i + 1;
-      }.bind(this)
-    );
+    stockList.forEach((stock) => {
+      initNewAdjustment(stock, drug, i);
+      i = i + 1;
+    });
     closeLoading();
   } else if (stockList.length === i) {
     closeLoading();
@@ -245,6 +250,7 @@ const getValidStocks = (drug) => {
 
 const initNewAdjustment = (stock, drug, i) => {
   let newAdjustment = null;
+
   newAdjustment = inventoryStockAdjMethod.getInventoryStockAdjustmentById(
     stock.id,
     inventory.id
@@ -252,31 +258,34 @@ const initNewAdjustment = (stock, drug, i) => {
 
   if (newAdjustment === null) {
     newAdjustment = new InventoryStockAdjustment({
-      inventory: inventory,
-      clinic: clinicService.currClinic(),
-      clinic_id: clinicService.currClinic().id,
+      id: null,
     });
-    newAdjustment.id = uuidv4();
+    newAdjustment.inventory = inventory;
+    newAdjustment.clinic = stock.clinic;
+    newAdjustment.clinic_id = stock.clinic_id;
+    isNewAdjustment.value = true;
   }
+
   newAdjustment.index = i;
-  newAdjustment.adjustedStock = stockService.getStockById(stock.id);
+  newAdjustment.adjustedStock = stock;
   newAdjustment.adjustedStock.auxExpireDate = dateUtils.getDDMMYYYFromJSDate(
     newAdjustment.adjustedStock.expireDate
   );
   newAdjustment.adjustedStock.drug = drug;
   newAdjustment.adjustedStock.clinic = {};
-  newAdjustment.adjustedStock.clinic.id = clinicService.currClinic().id;
+  newAdjustment.adjustedStock.clinic.id = stock.clinic_id;
   newAdjustment.inventory = {};
   newAdjustment.inventory.id = inventory.id;
-
+  inventory.adjustments.push(newAdjustment);
   adjustments.value.push(newAdjustment);
 };
 
 const saveAdjustments = () => {
   showloading();
-  Object.keys(adjustments.value).forEach(
-    function (k) {
-      const adjustment = adjustments.value[k];
+  let conta = 0;
+  adjustments.value.forEach((adjustment) => {
+    if (adjustment.adjustedStock.drug.id === drug.id) {
+      conta++;
       let operation = null;
       if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
         operation =
@@ -294,11 +303,13 @@ const saveAdjustments = () => {
       }
       adjustment.captureDate = new Date();
       adjustment.operation = operation;
-      adjustment.clinic = {};
-      adjustment.clinic.id = clinicService.currClinic().id;
       adjustment.adjustedStock.clinic = {};
-      adjustment.adjustedStock.clinic.id = clinicService.currClinic().id;
+      adjustment.adjustedStock.clinic.id = adjustment.clinic_id;
       adjustment.inventory.clinic = {};
+      adjustment.adjustedStock.drug = {};
+      adjustment.adjustedStock.stock = {};
+      adjustment.adjustedStock.stock.id = adjustment.adjustedStock.stock_id;
+      adjustment.adjustedStock.drug.id = drug.id;
       adjustment.inventory = {};
       adjustment.inventory.id = inventory.id;
       if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
@@ -312,48 +323,43 @@ const saveAdjustments = () => {
       } else {
         adjustment.adjustedValue = 0;
       }
-    }.bind(this)
-  );
-  doSave(0);
+      doSave(adjustment, conta);
+    }
+  });
 };
-const doSave = (i) => {
-  if (adjustments.value[i] !== undefined) {
-    if (
-      adjustments.value[i].balance.length <= 0 ||
-      isNaN(adjustments.value[i].balance)
-    ) {
+const doSave = async (adjustment, contagem) => {
+  if (adjustment !== undefined) {
+    if (adjustment.balance.length <= 0 || isNaN(adjustment.balance)) {
       closeLoading();
       alertError(
         'error',
         'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
       );
     } else {
-      InventoryStockAdjustmentService.apiFetchById(
-        adjustments.value[i].id
-      ).then((resp1) => {
-        if (resp1.data.length === 0) {
-          InventoryStockAdjustmentService.post(adjustments.value[i]).then(
+      showloading();
+      if (contagem <= numberOfValidStockPerDrug.value) {
+        if (adjustment.id === null) {
+          adjustment.id = uuidv4();
+          await InventoryStockAdjustmentService.post(adjustment).then(
             (resp) => {
-              // adjustments.value[i].id = resp.id;
-              i = i + 1;
-              setTimeout(doSave(i), 2);
+              console.log('Post', resp);
             }
           );
         } else {
-          const adjustment = adjustments.value[i];
-          adjustment.adjustedStock.adjustments = [];
-          InventoryStockAdjustmentService.patch(adjustment.id, adjustment).then(
-            (resp) => {
-              i = i + 1;
-              setTimeout(doSave(i), 2);
-            }
-          );
+          console.log('Ajuste Pastch', adjustment);
+          await InventoryStockAdjustmentService.patch(
+            adjustment.id,
+            adjustment
+          ).then((resp) => {
+            console.log('patch', resp);
+          });
         }
-        if (i === adjustments.value.length - 1) {
-          closeLoading();
-          alertSucess('Operação efectuada com sucesso.');
-        }
-      });
+      }
+      if (contagem === numberOfValidStockPerDrug.value) {
+        alertSucess('Operação efectuada com sucesso.');
+        step.value = 'display';
+        closeLoading();
+      }
     }
   } else {
     step.value = 'display';
@@ -363,11 +369,6 @@ const doSave = (i) => {
 const changeStepToEdition = () => {
   step.value = 'edit';
 };
-
-onMounted(() => {
-  showloading();
-  init();
-});
 
 const isEditStep = computed(() => {
   return step.value === 'edit';

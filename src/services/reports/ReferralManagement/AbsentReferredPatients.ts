@@ -24,6 +24,10 @@ export default {
       const image = new Image()
       image.src = 'data:image/png;base64,' + MOHIMAGELOG
         const width = doc.internal.pageSize.getWidth()
+
+        doc.setProperties({
+          title: fileName.concat('.pdf'),
+        });
       /*
         Fill Table
       */
@@ -38,7 +42,9 @@ export default {
         ]
       const rows = await Report.printReportOther('referredPatientsReport',params.id)
       if(rows.status === 204) return rows.status
-      
+      const firstReg = rows.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       const data = this.createArrayOfArrayRow(rows.data)
 
       autoTable(doc, {
@@ -78,11 +84,15 @@ export default {
         body: data,
       });
      // params.value.loading.loading.hide()
-      return doc.save(reportName + '.pdf')
+      // return doc.save(reportName + '.pdf')
+      window.open(doc.output('bloburl'));
     },
     async downloadExcel(params) {
       const rows = await Report.printReportOther('referredPatientsReport',params.id)
       if(rows.status === 204) return rows.status
+      const firstReg = rows.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       const data =  this.createArrayOfArrayRow(rows.data)
 
       const workbook = new ExcelJS.Workbook();

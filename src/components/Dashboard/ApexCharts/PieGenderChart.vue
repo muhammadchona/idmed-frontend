@@ -20,8 +20,10 @@ import { ref, watch, onMounted, computed, inject } from 'vue';
 import apexchart from 'vue3-apexcharts';
 import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { isOnline } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
 
 const clinic = inject('currClinic');
 const loaded = computed(() => !loading.value);
@@ -87,26 +89,58 @@ const chartOptions = {
 
 const getActivePatientPercentage = () => {
   loading.value = true;
-  reportService
-    .getActivePatientPercentage(year.value, clinic.value.id, serviceCode.value)
-    .then((resp) => {
-      const response = [];
-      if (isOnline.value) {
-        response.value = resp.data;
-      } else {
-        response.value = resp;
-      }
-      if (response.value.length > 0) {
-        series.value[0] =
-          response.value[0] !== undefined ? response.value[0].quantity : 0;
-        series.value[1] =
-          response.value[1] !== undefined ? response.value[1].quantity : 0;
-      } else {
-        series.value[0] = 0;
-        series.value[1] = 0;
-      }
-      loading.value = false;
-    });
+
+  if (isProvincialInstalation()) {
+    reportService
+      .getActivePatientPercentage(
+        year.value,
+        clinic.value, // Alterar para carregar a partir da Povincia
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        if (response.value.length > 0) {
+          series.value[0] =
+            response.value[0] !== undefined ? response.value[0].quantity : 0;
+          series.value[1] =
+            response.value[1] !== undefined ? response.value[1].quantity : 0;
+        } else {
+          series.value[0] = 0;
+          series.value[1] = 0;
+        }
+        loading.value = false;
+      });
+  } else {
+    reportService
+      .getActivePatientPercentage(
+        year.value,
+        clinic.value.id,
+        serviceCode.value
+      )
+      .then((resp) => {
+        const response = [];
+        if (isOnline.value) {
+          response.value = resp.data;
+        } else {
+          response.value = resp;
+        }
+        if (response.value.length > 0) {
+          series.value[0] =
+            response.value[0] !== undefined ? response.value[0].quantity : 0;
+          series.value[1] =
+            response.value[1] !== undefined ? response.value[1].quantity : 0;
+        } else {
+          series.value[0] = 0;
+          series.value[1] = 0;
+        }
+        loading.value = false;
+      });
+  }
 };
 
 onMounted(() => {

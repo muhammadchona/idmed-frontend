@@ -3,7 +3,6 @@
         outlined
         label="Código *"
         dense
-         ref="ref"
         class="col"
         :value="code"
         @input="(event) => $emit('update:code', event.target.value)"

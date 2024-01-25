@@ -565,12 +565,25 @@ const stopReasons = computed(() => {
       return (
         reason.code !== 'REFERIDO_DC' &&
         reason.code !== 'TRANSFERIDO_PARA' &&
-        reason.code !== 'REFERIDO_PARA'
+        reason.code !== 'REFERIDO_PARA' &&
+        reason.code !== 'FIM_PPE' &&
+        reason.code !== 'TERMINO_DO_TRATAMENTO' &&
+        reason.code !== 'OBITO' &&
+        reason.code !== 'TSPC'
       );
     });
     return resonList;
   } else {
-    return allReasons;
+    resonList = allReasons.filter((reason) => {
+      return (
+        reason.code !== 'TRANSFERIDO_PARA' &&
+        reason.code !== 'FIM_PPE' &&
+        reason.code !== 'TERMINO_DO_TRATAMENTO' &&
+        reason.code !== 'OBITO' &&
+        reason.code !== 'TSPC'
+      );
+    });
+    return resonList;
   }
 });
 

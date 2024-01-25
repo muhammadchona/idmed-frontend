@@ -4,7 +4,11 @@
       <div class="col-10">
         <div class="row justify-center">
           <div v-if="clinicalServiceReports.length == 0">
-            <div class="q-pa-sm" v-for="item in clinicalServices" :key="item.id">
+            <div
+              class="q-pa-sm"
+              v-for="item in clinicalServices"
+              :key="item.id"
+            >
               <q-btn
                 :color="colour"
                 @click="changeSevice(item.code, colour)"
@@ -18,7 +22,11 @@
               </q-btn>
             </div>
           </div>
-          <div class="q-pa-sm" v-for="item in clinicalServiceReports" :key="item.id">
+          <div
+            class="q-pa-sm"
+            v-for="item in clinicalServiceReports"
+            :key="item.id"
+          >
             <q-btn
               :color="item.colour"
               @click="changeSevice(item.service, item.colour)"
@@ -122,10 +130,13 @@ import DispenseTypeByAgeTable from 'src/components/Dashboard/ApexCharts/Dispense
 import StockAlert from 'src/components/Dashboard/ApexCharts/StockAlert.vue';
 import DispenseTypeByGenderTable from 'src/components/Dashboard/ApexCharts/DispenseTypeByGenderTable.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 /*Variables*/
 const value = ref(100);
 const { isOnline } = useSystemUtils();
+const { isProvincialInstalation, localProvincialInstalationCode } =
+  useSystemConfig();
 const { closeLoading, showloading } = useLoading();
 const year = ref(new Date().getFullYear());
 const serviceCode = ref('TARV');
@@ -147,34 +158,67 @@ const changeSevice = (service, colourParam) => {
 
 const getDashboardServiceButton = () => {
   serviceLoaded.value = false;
-  reportService
-    .getDashboardServiceButton(year.value, currClinic.value.id)
-    .then((resp) => {
-      serviceLoaded.value = true;
-      if (isOnline.value) {
-        clinicalServiceReports.value = resp.data;
-      } else {
-        clinicalServiceReports.value = resp;
-      }
-      if (clinicalServiceReports.value.length > 0) {
-        clinicalServiceReports.value.forEach((item) => {
-          if (item.service === 'TARV') {
-            item.colour = 'green';
-            item.icon = 'medication';
-          } else if (item.service === 'TPT') {
-            item.colour = 'red';
-            item.icon = 'vaccines';
-          } else if (item.service === 'PREP') {
-            item.colour = 'teal';
-            item.icon = 'health_and_safety';
-          } else {
-            item.icon = 'health_and_safety';
-            const color = Math.floor(Math.random() * 16777215).toString(16);
-            item.style = 'background-color: #' + color + ';' + 'color: ##ffffff';
-          }
-        });
-      }
-    });
+  if (isProvincialInstalation()) {
+    reportService
+      .getDashboardServiceButton(year.value, localProvincialInstalationCode())
+      .then((resp) => {
+        serviceLoaded.value = true;
+        if (isOnline.value) {
+          clinicalServiceReports.value = resp.data;
+        } else {
+          clinicalServiceReports.value = resp;
+        }
+        if (clinicalServiceReports.value.length > 0) {
+          clinicalServiceReports.value.forEach((item) => {
+            if (item.service === 'TARV') {
+              item.colour = 'green';
+              item.icon = 'medication';
+            } else if (item.service === 'TPT') {
+              item.colour = 'red';
+              item.icon = 'vaccines';
+            } else if (item.service === 'PREP') {
+              item.colour = 'teal';
+              item.icon = 'health_and_safety';
+            } else {
+              item.icon = 'health_and_safety';
+              const color = Math.floor(Math.random() * 16777215).toString(16);
+              item.style =
+                'background-color: #' + color + ';' + 'color: ##ffffff';
+            }
+          });
+        }
+      });
+  } else {
+    reportService
+      .getDashboardServiceButton(year.value, currClinic.value.id)
+      .then((resp) => {
+        serviceLoaded.value = true;
+        if (isOnline.value) {
+          clinicalServiceReports.value = resp.data;
+        } else {
+          clinicalServiceReports.value = resp;
+        }
+        if (clinicalServiceReports.value.length > 0) {
+          clinicalServiceReports.value.forEach((item) => {
+            if (item.service === 'TARV') {
+              item.colour = 'green';
+              item.icon = 'medication';
+            } else if (item.service === 'TPT') {
+              item.colour = 'red';
+              item.icon = 'vaccines';
+            } else if (item.service === 'PREP') {
+              item.colour = 'teal';
+              item.icon = 'health_and_safety';
+            } else {
+              item.icon = 'health_and_safety';
+              const color = Math.floor(Math.random() * 16777215).toString(16);
+              item.style =
+                'background-color: #' + color + ';' + 'color: ##ffffff';
+            }
+          });
+        }
+      });
+  }
 };
 
 const yearsToShow = computed(() => {

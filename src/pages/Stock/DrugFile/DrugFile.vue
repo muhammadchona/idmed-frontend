@@ -19,15 +19,53 @@
         <div class="box-border q-pb-md">
           <div class="row q-pa-md">
             <q-space />
+
             <q-btn unelevated color="blue" label="Voltar" @click="goBack" />
-            <q-btn
-              unelevated
-              color="green-4"
-              class="q-ml-md"
-              :disable="true"
-              label="Imprimir"
-            />
+
+            <div class="q-ml-md relative-position">
+              <q-btn
+                class="q-fab"
+                unelevated
+                color="green-4"
+                label="Imprimir"
+                icon="print"
+                @click="morphar(true)"
+              />
+
+              <q-menu ref="menu" :offset="[5, 5]" class="bg-grey-2">
+                <q-list>
+                  <q-item clickable @click="printFichaPDF()">
+                    <q-item-section avatar>
+                      <q-icon
+                        name="picture_as_pdf"
+                        class="text-red-10"
+                      ></q-icon>
+                      <!-- Ícone de PDF -->
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-red-10">PDF</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <hr />
+                  <q-item clickable @click="printFichaXLS()">
+                    <q-item-section avatar>
+                      <q-icon
+                        name="insert_drive_file"
+                        class="text-green-10"
+                      ></q-icon>
+                      <!-- Ícone de Excel -->
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-green-10">XLS</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+
+              <div ref="refFab" class="absolute-center bg-accent"></div>
+            </div>
           </div>
+
           <q-table
             class="col"
             dense
@@ -66,7 +104,7 @@
             <template #body="props">
               <q-tr :props="props">
                 <q-td key="year" :props="props">
-                  {{ props.row.year }}
+                  {{ String(props.row.year).replace('.0', '') }}
                 </q-td>
                 <q-td key="month" :props="props">
                   {{ props.row.month }}
@@ -93,12 +131,11 @@
                 <q-td key="balance" :props="props">
                   {{ props.row.balance }}
                 </q-td>
-               
               </q-tr>
             </template>
             <template v-slot:loading>
-        <q-inner-loading showing color="primary" />
-      </template>
+              <q-inner-loading showing color="primary" />
+            </template>
           </q-table>
         </div>
         <div>
@@ -124,7 +161,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, provide } from 'vue';
+import { morph } from 'quasar';
+import { ref, onMounted, computed, provide, watch } from 'vue';
 import DrugFile from '../../../stores/models/drugFile/DrugFile';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
@@ -142,9 +180,16 @@ import StockService from 'src/services/api/stockService/StockService';
 
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
+import fichaStockReport from 'src/services/reports/stock/FichaStockReport';
+
 const { isOnline } = useSystemUtils();
 
-const loading = ref(true)
+const loading = ref(true);
+const batchChanged = ref(false);
+
+const toggle = ref(false);
+const refFab = ref(null);
+const refCard = ref(null);
 
 const columns = [
   {
@@ -181,7 +226,6 @@ const columns = [
   },
   { name: 'loses', align: 'center', label: 'Perdas', sortable: true },
   { name: 'balance', align: 'center', label: 'Saldo', sortable: true },
-
 ];
 
 const dateUtils = useDateUtils();
@@ -194,6 +238,22 @@ const drugEventListBatch = ref([]);
 const contentStyle = {
   backgroundColor: '#ffffff',
   color: '#555',
+};
+
+const morphar = (state) => {
+  if (state !== toggle.value) {
+    const getFab = () => refFab.value;
+    const getCard = () => (refCard.value ? refCard.value.$el : void 0);
+
+    morph({
+      from: toggle.value === true ? getCard : getFab,
+      to: toggle.value === true ? getFab : getCard,
+      onToggle: () => {
+        toggle.value = state;
+      },
+      duration: 500,
+    });
+  }
 };
 
 const contentActiveStyle = {
@@ -213,27 +273,34 @@ const goBack = () => {
   router.go(-1);
 };
 
+const printFichaPDF = () => {
+  fichaStockReport.downloadPDF('PDF', drugEventList, drug, stocks(drug.value));
+};
+
+const printFichaXLS = () => {
+  fichaStockReport.downloadExcel(
+    'XLS',
+    drugEventList,
+    drug,
+    stocks(drug.value)
+  );
+};
+
 const generateDrugEventSummary = async () => {
   const clinic = clinicService.currClinic();
   if (!isOnline.value) {
-    showloading();
     drugEventList.value = await drugFileService.getDrugFileSummary(drug.value);
-    loading.value=false
-    closeLoading();
+    loading.value = false;
   } else {
-    showloading();
     drugFileService.apiGetDrugSummary(clinic.id, drug.value.id).then((resp) => {
-      console.log(resp.data);
       const t = resp.data;
       drugEventList.value = t;
-      loading.value=false
-      closeLoading();
+      loading.value = false;
     });
   }
 };
 
 const updateDrugFileAdjustment = (adjustment) => {
-  console.log(' drugFile.drugFileSummary[0]::', drugFile.drugFileSummary[0]);
   // Actualiza o resumo por Drug
   if (
     adjustment.constructor.name === 'StockReferenceAdjustment' &&
@@ -265,7 +332,6 @@ const updateDrugFileAdjustment = (adjustment) => {
           adjustment.adjustedValue;
         drugFile.drugFileSummaryBatch[i].balance =
           drugFile.drugFileSummaryBatch[i].balance + adjustment.adjustedValue;
-        console.log('AJUSTE_POSETIVO: ');
       } else if (
         adjustment.constructor.name === 'StockReferenceAdjustment' &&
         adjustment.operation.code === 'AJUSTE_NEGATIVO'
@@ -273,16 +339,18 @@ const updateDrugFileAdjustment = (adjustment) => {
         drugFile.drugFileSummaryBatch[i].posetiveAdjustment -=
           adjustment.adjustedValue;
         drugFile.drugFileSummaryBatch[i].balance -= adjustment.adjustedValue;
-        console.log('AJUSTE_NEGATIVO: ');
       } else if (adjustment.constructor.name === 'StockDestructionAdjustment') {
         drugFile.drugFileSummaryBatch[i].posetiveAdjustment -=
           adjustment.adjustedValue;
         drugFile.drugFileSummaryBatch[i].balance -= adjustment.adjustedValue;
-        console.log('DESTRUCTION: ');
       }
     }
   }
 };
+
+watch((batchChanged) => {
+  generateDrugEventSummary();
+});
 
 onMounted(() => {
   generateDrugEventSummary();
@@ -303,6 +371,7 @@ const drugFile = () => {
 };
 
 provide('title', title);
+provide('batchChanged', batchChanged);
 </script>
 
 <style lang="scss">

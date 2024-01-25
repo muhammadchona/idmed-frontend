@@ -17,6 +17,7 @@ const fileName = reportName.concat(
 
 export default {
   async downloadPDF(params) {
+    let firstReg = {};
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -27,6 +28,10 @@ export default {
     const image = new Image();
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
     const width = doc.internal.pageSize.getWidth();
+
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
     /*
         Fill Table
       */
@@ -44,8 +49,9 @@ export default {
       params.id
     );
     if (rows.status === 204) return rows.status;
-    params.startDateParam = moment(rows.data[0].startDate).format('DD-MM-YYYY');
-    params.endDateParam = moment(rows.data[0].endDate).format('DD-MM-YYYY');
+    firstReg = rows.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
     const data = this.createArrayOfArrayRow(rows.data);
 
     autoTable(doc, {
@@ -89,16 +95,20 @@ export default {
       body: data,
     });
     // params.value.loading.loading.hide()
-    return doc.save(reportName + '.pdf');
+    // return doc.save(reportName + '.pdf');
+    window.open(doc.output('bloburl'));
   },
   async downloadExcel(params) {
+    let firstReg = {}
     const rows = await Report.printReportOther(
       'notSynchronizingPacksOpenMrsReport',
       params.id
     );
     if (rows.status === 204) return rows.status;
-    params.startDateParam = moment(rows.data[0].startDate).format('DD-MM-YYYY');
-    params.endDateParam = moment(rows.data[0].endDate).format('DD-MM-YYYY');
+
+    firstReg = rows.data[0];
+    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
     const data = this.createArrayOfArrayRow(rows.data);
 
     const workbook = new ExcelJS.Workbook();

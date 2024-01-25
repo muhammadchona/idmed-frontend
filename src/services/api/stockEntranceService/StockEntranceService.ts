@@ -170,12 +170,12 @@ apiGetAllByClinicIdMobile(id: any){
     })
   })
 },
-  
+
   // Local Storage Pinia
   newInstanceEntity() {
     return stockEntrance.getModel().$newInstance();
   },
-// ****** PNIA 
+// ****** PNIA
   getStockEntranceById (id: string) {
     return stockEntrance.query()
     .with('stocks')
@@ -190,8 +190,10 @@ apiGetAllByClinicIdMobile(id: any){
                                 .with('stocks')
                                 .orderBy('dateReceived', 'desc')
                                 .get()
-  }
+  },
 
-
+ deleteAllFromStorage() {
+  stockEntrance.flush();
+},
 
 };

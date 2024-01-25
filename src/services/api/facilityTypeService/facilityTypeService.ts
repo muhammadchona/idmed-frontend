@@ -136,4 +136,12 @@ export default {
   getAllFacilityTypes() {
     return facilityType.query().get();
   },
+  getAllFacilityTypesWithoutUS() {
+    return facilityType
+      .query()
+      .where((query) => {
+        return query.code != 'US';
+      })
+      .get();
+  },
 };

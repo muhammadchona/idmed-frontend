@@ -69,24 +69,30 @@
                 round
                 color="amber-8"
                 icon="list_alt"
-                @click="openFile(props.row)"
+                @click="
+                  submitting = true;
+                  openFile(props.row);
+                "
               >
                 <q-tooltip class="bg-amber-5">{{
-                  props.row.open ? 'Abrir Ficha' : 'Visualizar Ficha'
+                  props.row.open ? 'Abrir Inventário' : 'Visualizar Inventário'
                 }}</q-tooltip>
               </q-btn>
 
               <q-btn
-                :loading="submitting"
+                :loading="submittingDetails"
                 flat
                 round
-                color="amber-8"
+                color="primary"
                 icon="search"
-                @click="showInventoryDetails(props.row)"
+                @click="
+                  submittingDetails = true;
+                  showInventoryDetails(props.row);
+                "
               >
-                <q-tooltip class="bg-amber-5">{{
-                  props.row.open ? 'Abrir Ficha' : 'Visualizar Medicamentos'
-                }}</q-tooltip>
+                <q-tooltip class="bg-primary">
+                  Visualizar Medicamentos
+                </q-tooltip>
               </q-btn>
             </div>
           </q-td>
@@ -100,7 +106,12 @@
   </div>
 
   <q-dialog persistent v-model="showDrugsDetails">
-    <inventoryDetails @close="showDrugsDetails = false" />
+    <inventoryDetails
+      @close="
+        showDrugsDetails = false;
+        submittingDetails = false;
+      "
+    />
   </q-dialog>
 </template>
 
@@ -117,7 +128,8 @@ import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/Inv
 
 const inventoryDetailsMethod = useInventoryStockAdjustment();
 
-let submitting = ref(false);
+const submitting = ref(false);
+const submittingDetails = ref(false);
 const inventoryMethod = useInventory();
 const { isMobile, isOnline } = useSystemUtils();
 const { showloading, closeLoading } = useLoading();
@@ -153,7 +165,6 @@ const showDrugsDetails = ref(false);
 const inventoryDetail = ref(null);
 
 const openFile = (inventory) => {
-  //submitting.value = true
   showloading();
   localStorage.setItem('currInventory', inventory.id);
   router.push('/stock/inventory');

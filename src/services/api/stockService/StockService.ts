@@ -72,6 +72,18 @@ export default {
       .get();
   },
 
+  getValidStockWithDrug() {
+    return stock
+      .with('drug')
+      .where((stock) => {
+        return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
+          moment().format('YYYY-MM-DD')
+        );
+      })
+      .orderBy('expireDate', 'desc')
+      .get();
+  },
+
   getValidStockByDrug(drug: any) {
     return stock
       .where('drug_id', drug.id)
@@ -119,6 +131,14 @@ export default {
       .first();
   },
 
+  isBatchNumberExists(stockObj: any) {
+    const batchNumberList = stock
+      .query()
+      .where('batchNumber', stockObj.batchNumber)
+      .where('entrance_id', stockObj.entrance_id)
+      .get();
+    return batchNumberList.length > 0;
+  },
   getStockById(id: string) {
     return (
       stock
@@ -177,7 +197,7 @@ export default {
         return false;
       }
     } else {
-      var qtyInStock = 0;
+      let qtyInStock = 0;
       const stocks = this.getStockByDrug(idPrescribedDrug);
       const validStock = stocks.filter((item) => {
         return moment(item.expireDate) >= moment(date);
@@ -316,5 +336,10 @@ export default {
         stock.save(resp.data);
         return resp.data;
       });
+  },
+
+  // Local Storage Pinia
+  deleteAllFromStorage() {
+    stock.flush();
   },
 };

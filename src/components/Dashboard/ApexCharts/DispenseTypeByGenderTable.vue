@@ -31,6 +31,7 @@
 import { ref, computed, onMounted, watch, inject } from 'vue';
 import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { isOnline } = useSystemUtils();
 
@@ -62,21 +63,39 @@ const columnsGender = [
 ];
 
 const rowData = ref([]);
+const { isProvincialInstalation, localProvincialInstalationCode } =
+  useSystemConfig();
 const serviceCode = inject('serviceCode');
 const year = inject('year');
 const currClinic = inject('currClinic');
 const tableTitle = ref('Total de dispensas por Gênero no Serviço ');
 
 const getDispensesByGender = () => {
-  reportService
-    .getDispensesByGender(year.value, currClinic.value.id, serviceCode.value)
-    .then((resp) => {
-      if (isOnline.value) {
-        rowData.value = resp.data;
-      } else {
-        rowData.value = resp;
-      }
-    });
+  if (isProvincialInstalation()) {
+    reportService
+      .getDispensesByGender(
+        year.value,
+        localProvincialInstalationCode(),
+        serviceCode.value
+      )
+      .then((resp) => {
+        if (isOnline.value) {
+          rowData.value = resp.data;
+        } else {
+          rowData.value = resp;
+        }
+      });
+  } else {
+    reportService
+      .getDispensesByGender(year.value, currClinic.value.id, serviceCode.value)
+      .then((resp) => {
+        if (isOnline.value) {
+          rowData.value = resp.data;
+        } else {
+          rowData.value = resp;
+        }
+      });
+  }
 };
 
 const rows = computed(() => {

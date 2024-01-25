@@ -50,72 +50,99 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedStockMobileService.';
 
 const { isOnline } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
-   const name = 'ReceivedStock'
-   const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
-    const totalRecords = ref(0)
-    const qtyProcessed=ref(0)
+const name = 'ReceivedStock'
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const totalRecords = ref(0)
+const qtyProcessed=ref(0)
 
 const progress = ref(0.0);
 const filterReceivedStockSection = ref('');
 
-   const serviceAux = ref(null)
+const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
-     const  closeSection = (params)  =>{
-        filterReceivedStockSection.value.remove()  
-        LocalStorage.remove(params.id)      
-      }
+const isReportClosed = ref(false)
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if(!isReportClosed.value) LocalStorage.set(params.id, params)
+}
 
-     const  initReportProcessing = (params) => {
-      progress.value = 0.001
-        if (isOnline.value) {
-          LocalStorage.set(params.id, params)
-          Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
-            progress.value = resp.data.progress
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
-          })
-        } else {
-          LocalStorage.set(params.id, params)
-          reportDatesParams.determineStartEndDate(params)
-         ReceivedStockMobileService.getDataLocalDb(params)
-         progress.value = 100
-         params.progress = 100
-        }
-      }
+const  closeSection = (params)  => {
+  filterReceivedStockSection.value.remove()  
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }     
+}
 
-    const  getProcessingStatus = (params) => {
+  const  initReportProcessing = (params) => {
+  progress.value = 0.001
+    if (isOnline.value) {
+      updateParamsOnLocalStrage(params, isReportClosed) 
+      Report.apiInitReportProcess('stockReportTemp', params).then(resp => {
+        progress.value = resp.data.progress
+        setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
+      })
+    } else {
+      updateParamsOnLocalStrage(params, isReportClosed) 
+      reportDatesParams.determineStartEndDate(params)
+      ReceivedStockMobileService.getDataLocalDb(params)
+      progress.value = 100
+      params.progress = 100
+    }
+  }
+
+      const getProcessingStatus = (params) => {
         Report.getProcessingStatus('stockReportTemp', params).then(resp => {
-          progress.value = resp.data.progress
-          if (progress.value < 100) {
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
+          if (resp.data.progress > 0.001) {
+            progress.value = resp.data.progress;
+            if (progress.value < 100) {
+              updateParamsOnLocalStrage(params, isReportClosed) ;
+              params.progress = resp.data.progress;
+              setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
+            } else {
+              progress.value = 100;
+              params.progress = 100;
+              updateParamsOnLocalStrage(params, isReportClosed) ;
+            }
           } else {
-            params.progress = 100
-            LocalStorage.set(params.id, params)
+            setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
           }
-        })
-      }
+        });
+      };
 
      const generateReport = (id, fileType, params) => {
         // UID da tab corrent
       if (fileType === 'PDF') {
            ReceivedStockReport.downloadPDF(id, fileType, params).then(resp => {
                   if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+                  downloadingPdf.value = false
                })
         } else if (fileType === 'XLS') {
            ReceivedStockReport.downloadExcel(id, fileType, params).then(resp => {
                   if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                  downloadingXls.value = false
                })
         }
       }
 
+      
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
+
       provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
+provide('getProcessingStatus',getProcessingStatus)
 </script>
 
 <style lang="scss" scoped>

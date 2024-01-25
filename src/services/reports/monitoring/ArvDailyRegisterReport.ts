@@ -40,9 +40,9 @@ export default {
 
       // Agora, obtenha a lista única de objetos pai agrupados
       const listaFinal = Object.values(Report.mapaDeAgrupamento(rowsAux.data));
-    
+
       data = this.createArrayOfArrayRow(listaFinal);
-      
+
     } else {
       rowsAux = await this.getDataLocalReport(id);
       if (rowsAux.length === 0) return 204;
@@ -59,6 +59,10 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
+
+    // doc.setProperties({
+    //   title: fileName.concat('.pdf'),
+    // });
 
     const headerReport = [
       [
@@ -172,43 +176,36 @@ export default {
     doc.setFontSize(8);
     doc.text('República de Moçambique ', 16, 28);
     doc.text('Ministério da Saúde ', 20, 32);
-    doc.addImage(img, 'png', 30, 15, 10, 10);
+    doc.addImage(img, 'png', 28, 15, 10, 10);
 
     autoTable(doc, {
       // margin: { top: 45 },
-      bodyStyles: {
+      bodyStyles: 
+      {
         overflow: 'linebreak',
         cellWidth: 'wrap',
         valign: 'middle',
-        // font: 'arial',
-        fontSize: 8,
-        // cellPadding: 8,
+        fontSize: 6,
         overflowColumns: 'linebreak',
-        minCellHeight: 35,
       },
-      headStyles: {
+      headStyles: 
+      {
         valign: 'bottom',
         halign: 'center',
+        fontSize: 6,
         lineWidth: 0.5,
         lineColor: [230, 230, 230],
         fillColor: [255, 255, 255],
         textColor: [96, 96, 96],
       },
-      didDrawPage: function (data) {
-        // Header
-        doc.setFontSize(10);
-        doc.setTextColor(40);
-        doc.setFontSize(16);
-        doc.setFontSize(10);
+      didDrawPage: function (data) 
+      {    
         const str = 'Página ' + doc.internal.getNumberOfPages();
-
-        doc.setFontSize(8);
+        doc.setFontSize(6);
         // jsPDF 1.4+ uses getWidth, <1.4 uses .width
         const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height
-          ? pageSize.height
-          : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);        
       },
 
       theme: 'grid',
@@ -218,14 +215,14 @@ export default {
 
     if (isOnline.value && !isMobile.value) {
       return doc.save(fileName.concat('.pdf'));
+      // window.open(doc.output('bloburl'));
     } else {
       console.log(doc);
       const pdfOutput = doc.output();
-      console.log(pdfOutput);
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
   },
-  
+
   async downloadExcel(id, fileType2, params) {
     const clinic = clinicService.currClinic();
     let rowsAux = [];
@@ -244,7 +241,7 @@ export default {
 
       // Agora, obtenha a lista única de objetos pai agrupados
       const listaFinal = Object.values(Report.mapaDeAgrupamento(rowsAux.data));
-    
+
       data = this.createArrayOfArrayRow(listaFinal);
     } else {
       rowsAux = await this.getDataLocalReport(id);
@@ -699,8 +696,6 @@ export default {
         window.resolveLocalFileSystemURL(
           folder,
           function (dirEntry) {
-            console.log('file system open: ' + dirEntry.name);
-            console.log('file system open11111: ' + blob);
             createFile(dirEntry, fileName, blob);
             // $q.loading.hide()
           },
@@ -786,7 +781,7 @@ export default {
         createRow.push('');
         data.push(createRow);
       }
-    
+
     return data;
   },
   async getDataLocalReport(reportId) {

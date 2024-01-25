@@ -81,7 +81,7 @@ export default {
             this.getFromProvincial(offset);
           } else {
             this.get(0);
-            closeLoading();
+            alertSucess('Lista actualizada com sucesso');
           }
         });
     }

@@ -48,8 +48,7 @@ import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
-const { website, isDeskTop, isMobile } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
 const name = 'ReferredPatientDispenseHistory';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
@@ -62,6 +61,8 @@ const progress =  ref(0.00)
 const filterDrugStoreSection = ref('')
 const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
 
 onMounted (() => {
@@ -70,14 +71,23 @@ if (props.params) {
 }
 }) 
 
+const isReportClosed = ref(false)
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if(!isReportClosed.value) LocalStorage.set(params.id, params)
+}
+
 const closeSection = (params) => {
   filterDrugStoreSection.value.remove()
-  LocalStorage.remove(params.id)
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
 }
 
 const  initReportProcessing = (params) => {
 progress.value = 0.001
-LocalStorage.set(params.id, params)
+updateParamsOnLocalStrage(params, isReportClosed) 
     Report.apiInitReportProcess('referredPatientsReport', params).then((response) => {
     setTimeout(() => {
     getProcessingStatus(params)
@@ -85,34 +95,49 @@ LocalStorage.set(params.id, params)
 })
 }
 
-const  getProcessingStatus = (params) => {
+const getProcessingStatus = (params) => {
   Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
-    progress.value = resp.data.progress
-    if (progress.value < 100) {
-      setTimeout(() => {
-        getProcessingStatus(params)
-      }, 3000);
+    if (resp.data.progress > 0.001) {
+      progress.value = resp.data.progress;
+      if (progress.value < 100) {
+        updateParamsOnLocalStrage(params, isReportClosed) ;
+        params.progress = resp.data.progress;
+        setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
+      } else {
+        progress.value = 100;
+        params.progress = 100;
+        updateParamsOnLocalStrage(params, isReportClosed) ;
+      }
     } else {
-      params.progress = 100
-      LocalStorage.set(params.id, params)
+      setTimeout(() => {
+          getProcessingStatus(params)
+        }, 3000);
     }
-  })
-}
+  });
+};
 
 const generateReport =  (id, fileType, params) => {
       if (fileType === 'PDF') {
           referredPatientDispenseHistory.downloadPDF(params).then(resp => {
             if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+            downloadingPdf.value = false
           })
       } else {
           referredPatientDispenseHistory.downloadExcel(params).then(resp => {
             if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+            downloadingXls.value = false
           })
       }
 }
 
+
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
+provide('getProcessingStatus',getProcessingStatus)
 </script>
 
 <style lang="scss" scoped>

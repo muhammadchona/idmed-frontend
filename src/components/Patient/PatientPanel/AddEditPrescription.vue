@@ -30,6 +30,16 @@
           {{ idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth)) }}
           Anos de Idade
         </div>
+        <div class="absolute-top-right q-pa-md">
+          <q-btn
+            flat
+            v-close-popup
+            round
+            dense
+            icon="close"
+            @click="closePrescriptionOption"
+          />
+        </div>
       </div>
       <q-separator />
     </q-card-section>
@@ -37,7 +47,9 @@
       <q-card-section>
         <q-list bordered>
           <q-expansion-item
-            v-for="identifier in getIdentifierWithInicialEpisode"
+            v-for="identifier in getIdentifierWithInicialEpisode.length > 0
+              ? getIdentifierWithInicialEpisode
+              : getIdentifierWithRefferalEpisode"
             :key="identifier.id"
             group="somegroup"
             dense
@@ -163,6 +175,8 @@ import patientVisitService from 'src/services/api/patientVisit/patientVisitServi
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 
 import { v4 as uuidv4 } from 'uuid';
+import { useEpisode } from 'src/composables/episode/episodeMethods';
+import episodeService from 'src/services/api/episode/episodeService';
 
 // Declaration
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
@@ -174,6 +188,7 @@ const dispenseMode = ref();
 const selected_model = ref([]);
 const submitting = ref(false);
 const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
+const { isReferenceOrTransferenceEpisode } = useEpisode();
 
 //Inject
 const patient = inject('patient');
@@ -193,6 +208,12 @@ const dispenseModes = computed(() => {
 
 const getIdentifierWithInicialEpisode = computed(() => {
   return patientServiceIdentifierService.getAllIdentifierWithInicialEpisodeByPatient(
+    patient.value.id
+  );
+});
+
+const getIdentifierWithRefferalEpisode = computed(() => {
+  return patientServiceIdentifierService.getAllIdentifierWithREferralEpisodeByPatient(
     patient.value.id
   );
 });
@@ -240,7 +261,7 @@ const doValidationToDispense = () => {
       patientVisitDetail.pack.dispenseMode = {};
       patientVisitDetail.pack.dispenseMode.id = dispenseMode.value.id;
       patientVisitDetail.pack.syncStatus = 'R';
-      patientVisitDetail.pack.providerUuid = localStorage.getItem('Btoa');
+      patientVisitDetail.pack.providerUuid = sessionStorage.getItem('Btoa');
       patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug) => {
         packagedDrug.drug = {};
         packagedDrug.drug.id = packagedDrug.drug_id;
@@ -255,6 +276,20 @@ const doValidationToDispense = () => {
           // prescribedDrug.prescribedQty = 1;
         }
       );
+      const checkEpisode = episodeService.getEpisodeById(
+        patientVisitDetail.episode_id
+      );
+      const lastEpisode = episodeService.lastEpisodeByIdentifier(
+        checkEpisode.patientServiceIdentifier_id
+      );
+      console.log('Episode to check ', lastEpisode);
+      console.log(
+        'Episode os refferal  ',
+        isReferenceOrTransferenceEpisode(lastEpisode)
+      );
+      if (isReferenceOrTransferenceEpisode(lastEpisode)) {
+        patientVisitDetail.pack.isreferral = true;
+      }
     });
     patientVisitService
       .post(curPatientVisit.value)

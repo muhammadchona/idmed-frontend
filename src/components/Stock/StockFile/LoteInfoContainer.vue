@@ -27,7 +27,7 @@
       :columns="columns"
       row-key="id"
       v-show="serviceInfoVisible"
-      :loading = "loading"
+      :loading="loading"
     >
       <template v-slot:no-data="{ icon, filter }">
         <div
@@ -72,7 +72,11 @@
                       transition-show="scale"
                       transition-hide="scale"
                     >
-                      <q-date v-model="props.row.eventDate"  mask="DD-MM-YYYY">
+                      <q-date
+                        v-model="props.row.eventDate"
+                        mask="DD-MM-YYYY"
+                        :options="blockDataFutura"
+                      >
                         <div class="row items-center justify-end">
                           <q-btn
                             v-close-popup
@@ -87,7 +91,15 @@
                 </template>
               </q-input>
             </span>
-            <span v-else>  {{ dateUtils.isValidDate(props.row.eventDate) ? dateUtils.getDDMMYYYFromJSDate(props.row.eventDate) : dateUtils.getDateFormatDDMMYYYYFromYYYYMMDD(props.row.eventDate)}}</span>
+            <span v-else>
+              {{
+                dateUtils.isValidDate(props.row.eventDate)
+                  ? dateUtils.getDDMMYYYFromJSDate(props.row.eventDate)
+                  : dateUtils.getDateFormatDDMMYYYYFromYYYYMMDD(
+                      props.row.eventDate
+                    )
+              }}</span
+            >
           </q-td>
           <q-td key="moviment" :props="props">
             <span v-if="props.row.id === null && !isDisplayStep">
@@ -97,10 +109,10 @@
                 dense
                 class="col"
               />
-            </span> 
+            </span>
             <span v-else>{{ props.row.moviment }}</span>
           </q-td>
-           <q-td key="incomes" :props="props">
+          <q-td key="incomes" :props="props">
             <span v-if="props.row.id === null && !isDisplayStep">
               <TextInput
                 v-model="props.row.incomes"
@@ -172,7 +184,6 @@
             </span>
             <span v-else>{{ props.row.balance }}</span>
           </q-td>
-       
         </q-tr>
       </template>
       <template v-slot:loading>
@@ -187,7 +198,7 @@ import { date } from 'quasar';
 import Stock from '../../../stores/models/stock/Stock';
 import { StockDestructionAdjustment } from '../../../stores/models/stockadjustment/StockDestructionAdjustment';
 import DestroyedStock from '../../../stores/models/stockdestruction/DestroyedStock';
-import { onMounted, ref, computed, provide } from 'vue';
+import { onMounted, ref, computed, provide, inject } from 'vue';
 import { StockReferenceAdjustment } from '../../../stores/models/stockadjustment/StockReferenceAdjustment';
 import ReferedStockMoviment from '../../../stores/models/stockrefered/ReferedStockMoviment';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
@@ -204,11 +215,13 @@ import ReferedStockMovimentService from 'src/services/api/referedStockMovimentSe
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment';
 
 const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError } = useSwal();
-const loading = ref(true)
-const loadingSave =ref(false)
+const loading = ref(true);
+const loadingSave = ref(false);
+const batchChanged = inject('batchChanged');
 
 const columns = [
   {
@@ -253,26 +266,31 @@ const serviceInfoVisible = ref(true);
 const curEvent = ref({});
 const bgColor = ref({});
 const mainContainer = ref({});
-const previousBalance = ref(0)
-const showCancel = ref(false)
+const previousBalance = ref(0);
+const showCancel = ref(false);
 
 const expandLess = (value) => {
   serviceInfoVisible.value = !value;
 };
 
+const blockDataFutura = (date) => {
+  return date <= moment(new Date()).format('YYYY/MM/DD');
+};
+
 const saveAjustment = () => {
-  loadingSave.value = true
-  showCancel.value=false
+  loadingSave.value = true;
+  showCancel.value = false;
   const clinic = clinicService.currClinic();
   clinic.sectors = [];
   let adjustment = null;
   let reference = null;
   let destruction = null;
   if (isLossAdjustment.value) {
-   
     destruction = new DestroyedStock({
-      id : uuidv4(),
-      date: dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate ),
+      id: uuidv4(),
+      date: dateUtils.getDateFromHyphenDDMMYYYYWithTime(
+        curEvent.value.eventDate
+      ),
       clinic: clinic,
     });
     adjustment = new StockDestructionAdjustment({
@@ -283,13 +301,15 @@ const saveAjustment = () => {
     destruction.adjustments.push(adjustment);
   } else if (isPosetiveAdjustment.value || isNegativeAdjustment.value) {
     reference = new ReferedStockMoviment({
-      id : uuidv4(),
+      id: uuidv4(),
       origin: curEvent.value.moviment,
-      date:  dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate ),
+      date: dateUtils.getDateFromHyphenDDMMYYYYWithTime(
+        curEvent.value.eventDate
+      ),
       quantity: isPosetiveAdjustment.value
         ? Number(curEvent.value.posetiveAdjustment)
         : Number(curEvent.value.negativeAdjustment),
-     orderNumber: 'Ordem_ajuste',
+      orderNumber: 'Ordem_ajuste',
       clinic: clinic,
     });
     adjustment = new StockReferenceAdjustment({
@@ -304,35 +324,35 @@ const saveAjustment = () => {
   }
 
   adjustment.adjustedStock = StockService.getStockById(stock.value.id);
-
-    if (
-     curEvent.value.eventDate.trim() ===""
+  if (curEvent.value.eventDate.trim() === '') {
+    alertError('Por favor indicar a  data de movimento correcta.');
+    loadingSave.value = false;
+    return;
+  } else if (
+    dateUtils.getDateFormatYYYYMMDDFromDDMMYYYY(curEvent.value.eventDate) <
+    dateUtils.getYYYYMMDDFromJSDate(
+      adjustment.adjustedStock.entrance.dateReceived
+    )
   ) {
-    alertError(
-      'Por favor indicar a  data de movimento correcta.'
-    );
-    loadingSave.value=false
-    return 
-  }
-  else
-  if (
-    dateUtils.getDateFormatYYYYMMDDFromDDMMYYYY(curEvent.value.eventDate)<
-      dateUtils.getDateFormatYYYYMMDDFromDDMMYYYY(adjustment.adjustedStock.entrance.dateReceived)
-  ) {
-
     alertError(
       'A data do movimento não pode ser menor que a data de entrada do lote.'
     );
-    loadingSave.value=false
-  } else if (new Date(curEvent.value.eventDate) > new Date()) {
+    loadingSave.value = false;
+  } else if (
+    dateUtils.getDateFromHyphenDDMMYYYYWithTime(curEvent.value.eventDate) >
+    new Date()
+  ) {
     alertError('A data do movimento não pode ser maior que a data corrente.');
-    loadingSave.value=false
+    loadingSave.value = false;
   } else if (curEvent.value.moviment.trim() === '') {
-    alertError( 'Por favor indicar a Origem/Destino.');
-    loadingSave.value=false
-  } else if (Number(adjustment.adjustedValue) <= 0) {
+    alertError('Por favor indicar a Origem/Destino.');
+    loadingSave.value = false;
+  } else if (
+    Number(adjustment.adjustedValue) <= 0 ||
+    isNaN(adjustment.adjustedValue)
+  ) {
     alertError('Por favor indicar uma quantidade válida.');
-    loadingSave.value=false
+    loadingSave.value = false;
   } else if (
     (isLossAdjustment.value || isNegativeAdjustment.value) &&
     adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue < 0
@@ -340,23 +360,24 @@ const saveAjustment = () => {
     alertError(
       'A quantidade que pretende retitar é maior que a quantidade em stock no momento, impossível prosseguir!'
     );
-    loadingSave.value=false
+    loadingSave.value = false;
   } else {
-    previousBalance.value =  drugEventList.value[1].balance
+    previousBalance.value = drugEventList.value[1].balance;
     adjustment.clinic = clinic;
-    adjustment.captureDate  = dateUtils.getDateFromHyphenDDMMYYYYWithTime ( curEvent.value.eventDate );
+    adjustment.captureDate = dateUtils.getDateFromHyphenDDMMYYYYWithTime(
+      curEvent.value.eventDate
+    );
     adjustment.adjustedStock.clinic = clinic;
     if (isPosetiveAdjustment.value) {
-      adjustment.adjustedStock.stockMoviment = Number(
-        previousBalance.value) + Number(adjustment.adjustedValue
-      );
+      adjustment.adjustedStock.stockMoviment =
+        Number(previousBalance.value) + Number(adjustment.adjustedValue);
     } else {
-      adjustment.adjustedStock.stockMoviment = Number(
-        previousBalance.value - adjustment.adjustedValues
-      );
+      adjustment.adjustedStock.stockMoviment =
+        Number(previousBalance.value) - Number(adjustment.adjustedValue);
     }
     adjustment.balance = adjustment.adjustedStock.stockMoviment;
     curEvent.value.balance = adjustment.balance;
+    console.log('RFERENCE:', reference);
     doSave(reference, destruction);
   }
 };
@@ -368,8 +389,8 @@ const doSave = (reference, destruction) => {
       updateRelatedStock(reference.adjustments[0].adjustedStock);
     });
   } else {
-    destruction.notes = ' - '
-    DestroyedStockService.post(destruction).then((resp) => {      
+    destruction.notes = ' - ';
+    DestroyedStockService.post(destruction).then((resp) => {
       curEvent.value.id = destruction.adjustments[0].id;
       updateRelatedStock(destruction.adjustments[0].adjustedStock);
     });
@@ -377,12 +398,13 @@ const doSave = (reference, destruction) => {
 };
 
 const updateRelatedStock = (stock) => {
+  batchChanged.value = true;
   StockService.patch(stock.id, stock).then((resp) => {
     step.value = 'display';
     adjustmentTypeRef.value = '';
-    location.reload()
+    generateDrugBatchEventSummary();
     alertSucess('Operação efectuada com sucesso.');
-    loadingSave.value = false
+    loadingSave.value = false;
   });
 };
 
@@ -396,40 +418,35 @@ const cancel = () => {
 };
 
 const cancelAdjustment = () => {
-  drugEventList.value.shift()
+  drugEventList.value.shift();
   step.value = 'display';
-  showCancel.value=false
-}
+  showCancel.value = false;
+};
 const addNewAdjustment = (adjustmentType) => {
-  
-  const hasCreateRow = drugEventList.value.some(obj => obj.id === null);
+  const hasCreateRow = drugEventList.value.some((obj) => obj.id === null);
 
-  
-  if (!hasCreateRow){
-    showCancel.value=true
-    addVisible.value = false
-  adjustmentTypeRef.value = adjustmentType;
-  const event = {
-    id: null,
-    eventDate: ' ',
-    moviment: ' ',
-    orderNumber: adjustmentType === 'POSETIVE' ? ' ' : '',
-    incomes: '-',
-    outcomes: '-',
-    posetiveAdjustment: adjustmentType === 'POSETIVE' ? ' ' : '',
-    negativeAdjustment: adjustmentType === 'NEGATIVE' ? ' ' : '',
-    loses: adjustmentType === 'LOSS' ? ' ' : '-',
-    balance: ' ',
-  };
-  curEvent.value = event;
-  drugEventList.value.unshift(event);
-  step.value = 'create'; 
-} else {
-  alertError(
-      'Ja existe uma operacao de ajuste em curso.'
-    );
-}
-
+  if (!hasCreateRow) {
+    showCancel.value = true;
+    addVisible.value = false;
+    adjustmentTypeRef.value = adjustmentType;
+    const event = {
+      id: null,
+      eventDate: ' ',
+      moviment: ' ',
+      orderNumber: adjustmentType === 'POSETIVE' ? ' ' : '',
+      incomes: '-',
+      outcomes: '-',
+      posetiveAdjustment: adjustmentType === 'POSETIVE' ? ' ' : '',
+      negativeAdjustment: adjustmentType === 'NEGATIVE' ? ' ' : '',
+      loses: adjustmentType === 'LOSS' ? ' ' : '-',
+      balance: ' ',
+    };
+    curEvent.value = event;
+    drugEventList.value.unshift(event);
+    step.value = 'create';
+  } else {
+    alertError('Ja existe uma operacao de ajuste em curso.');
+  }
 };
 
 const determineValidade = () => {
@@ -451,31 +468,30 @@ const determineValidade = () => {
 };
 
 const generateDrugBatchEventSummary = () => {
-
-const clinic =   clinicService.currClinic()
+  const clinic = clinicService.currClinic();
   if (!isOnline.value) {
-    drugFileService.getDrugFileSummaryBatch(stock.value.id).then(resp => {
-        drugEventList.value = resp
-        loading.value = false
-      })
-  
-    } else {
-      drugFileService.apiGetDrugBatchSummary(clinic.id, stock.value.id).then(resp => {
-        const t = resp.data
+    drugFileService.getDrugFileSummaryBatch(stock.value.id).then((resp) => {
+      drugEventList.value = resp;
+      loading.value = false;
+    });
+  } else {
+    drugFileService
+      .apiGetDrugBatchSummary(clinic.id, stock.value.id)
+      .then((resp) => {
+        const t = resp.data;
         /* t.sort((a, b) => {
           const d1 = new Date(a.eventDate)
           const d2 = new Date(b.eventDate)
           return d2 - d1
         }) */
-        drugEventList.value = t
-        loading.value = false
-      })
-     
-    }
+        drugEventList.value = t;
+        loading.value = false;
+      });
+  }
 };
 
 const stock = computed(() => {
-  return props.stockInfo
+  return props.stockInfo;
 });
 
 const getValidade = computed(() => {
@@ -498,11 +514,9 @@ const isDisplayStep = computed(() => {
   return step.value === 'display';
 });
 
-
 const addVisible = computed(() => {
-  return stockExpiteStatus.value !== 'Expired' || step.value !== 'edit' 
-})
-
+  return stockExpiteStatus.value !== 'Expired' || step.value !== 'edit';
+});
 
 const isPosetiveAdjustment = computed(() => {
   return adjustmentTypeRef.value === 'POSETIVE';
@@ -525,8 +539,7 @@ const headerColor = computed(() => {
 });
 
 onMounted(() => {
-    generateDrugBatchEventSummary();
-
+  generateDrugBatchEventSummary();
 });
 provide('expandLess', expandLess);
 provide('addNewAdjustment', addNewAdjustment);
@@ -538,7 +551,7 @@ provide('mainContainer', mainContainer);
 provide('saveAjustment', saveAjustment);
 provide('showCancel', showCancel);
 provide('cancelAdjustment', cancelAdjustment);
-provide('loadingSave', loadingSave)
+provide('loadingSave', loadingSave);
 </script>
 
 <style></style>

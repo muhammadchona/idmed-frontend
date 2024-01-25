@@ -62,12 +62,23 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
 const progress = ref(0.0)
 const filterDrugStoreSection = ref('')
 const totalRecords = ref(0)
-  const qtyProcessed = ref(0)
-  const report =  'ACTIVOS'
+const qtyProcessed = ref(0)
+const report =  'ACTIVOS'
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
+
+const isReportClosed = ref(false)
+  const updateParamsOnLocalStrage = (params, isReportClosed) => {
+    if(!isReportClosed.value) LocalStorage.set(params.id, params)
+  }
 
 const closeSection = (params) => {
   filterDrugStoreSection.value.remove();
-  LocalStorage.remove(params.id)
+  if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
 };
 
 const serviceAux = ref(null)
@@ -76,14 +87,13 @@ const resultFromLocalStorage = ref(false)
 const initReportProcessing = (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
-    LocalStorage.set(params.id, params)
+    updateParamsOnLocalStrage(params, isReportClosed) 
     Report.apiInitActiveInDrugStoreProcessing(params).then((resp) => {
         getProcessingStatus(params);
       }
     );
-    // Pack.api().post('/receivedStockReport/initReportProcess' params)
   } else {
-    LocalStorage.set(params.id, params)
+    updateParamsOnLocalStrage(params, isReportClosed) 
     const reportParams = reportDatesParams.determineStartEndDate(params);
     activeInDrugStoreMobileService.getDataLocalDb(reportParams).then((resp) => {
       progress.value = 100;
@@ -97,13 +107,15 @@ const getProcessingStatus = (params) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
+        updateParamsOnLocalStrage(params, isReportClosed) ;
+        params.progress = resp.data.progress;
         setTimeout(() => {
           getProcessingStatus(params)
         }, 3000);
       } else {
         progress.value = 100;
         params.progress = 100;
-        LocalStorage.set(params.id, params);
+        updateParamsOnLocalStrage(params, isReportClosed) ;
       }
     } else {
       setTimeout(() => {
@@ -118,23 +130,27 @@ const generateReport = async (id, fileType) => {
     Report.apiPrintActivePatientReport(id).then((resp) => {
       if (!resp.data[0]) {
         alertError('Nao existem Dados para o periodo selecionado');
+        downloadingXls.value = false
+            downloadingPdf.value = false
       } else {
         const patientAux = resp.data[0];
 
-        if (fileType === 'PDF') {
+        if (fileType === 'PDF') {          
           activePatients.downloadPDF(
             patientAux.province,
             moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
             moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
             resp.data
           );
-        } else {
+          downloadingPdf.value = false
+        } else {          
           activePatients.downloadExcel(
             patientAux.province,
             moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
             moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
             resp.data
-          );
+          );          
+          downloadingXls.value = false
         }
       }
     });
@@ -142,19 +158,20 @@ const generateReport = async (id, fileType) => {
     const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id);
     if (data.length === 0) {
       alertError('Nao existem Dados para o periodo selecionado');
+      downloadingXls.value = false
+            downloadingPdf.value = false
     } else {
       const patientAux = data[0];
 
       if (fileType === 'PDF') {
-        activePatients.downloadPDF(
+        await activePatients.downloadPDF(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
       } else {
-        console.log('Printing XLS');
-        activePatients.downloadExcel(
+        await activePatients.downloadExcel(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
@@ -165,8 +182,11 @@ const generateReport = async (id, fileType) => {
   }
 };
 
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
 provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
+provide('getProcessingStatus', getProcessingStatus)
 </script>
 
 <style lang="scss" scoped>

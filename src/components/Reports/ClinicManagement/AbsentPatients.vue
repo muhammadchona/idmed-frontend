@@ -39,10 +39,8 @@
   <script setup>
   import Report from 'src/services/api/report/ReportService'
   import { LocalStorage } from 'quasar'
-  import { ref, provide } from 'vue'
+  import { ref, provide, onMounted } from 'vue'
   import absentPatientsTs from 'src/services/reports/ClinicManagement/AbsentPatients.ts'
-  
-  
   import ListHeader from 'components/Shared/ListHeader.vue'
   import FiltersInput from 'components/Reports/shared/FiltersInput.vue'
   import { useSwal } from 'src/composables/shared/dialog/dialog';  
@@ -58,62 +56,91 @@
   const report = 'FALTOSOS_AO_LEVANTAMENTO'
   const progress = ref(0.0)
   const filterDrugStoreSection = ref('')
+  const downloadingPdf = ref(false)
+  const downloadingXls = ref(false)
+  const isReportClosed = ref(false)
   
 
   const closeSection =  (params) => {
     filterDrugStoreSection.value.remove()
-    LocalStorage.remove(params.id)
+    if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
   }
 
   const serviceAux = ref(null)
   const resultFromLocalStorage = ref(false)
+
+  const updateParamsOnLocalStrage = (params, isReportClosed) => {
+    if(!isReportClosed.value) LocalStorage.set(params.id, params)
+  }
   
   const initReportProcessing = async (params) => {
     progress.value = 0.001
     if (isOnline.value) {
-      LocalStorage.set(params.id, params)
+      updateParamsOnLocalStrage(params, isReportClosed) 
       Report.apiInitReportProcess('absentPatientsReport', params).then((response) => {
           getProcessingStatus(params);
         }
       );
     } else {
-      LocalStorage.set(params.id, params)
+      updateParamsOnLocalStrage(params, isReportClosed) 
       const resp = await  AbsentPatientMobileService.getDataLocalDb(params)
       progress.value = 100
       params.progress = 100
     }
   }
-  
+
   const getProcessingStatus = (params) => {
-    if (isOnline.value) {
-      Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
-        progress.value = resp.data.progress
+    Report.getProcessingStatus('absentPatientsReport', params).then(resp => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
         if (progress.value < 100) {
+          updateParamsOnLocalStrage(params, isReportClosed) 
+          params.progress = resp.data.progress;
           setTimeout(() => {
             getProcessingStatus(params)
           }, 3000);
         } else {
-          params.progress = 100
-          LocalStorage.set(params.id, params)
+          progress.value = 100;
+          params.progress = 100;
+          updateParamsOnLocalStrage(params, isReportClosed) 
         }
-      })
-    }
-  }
+      } else {
+        setTimeout(() => {
+            getProcessingStatus(params)
+          }, 3000);
+      }
+    });
+  };
   
   const generateReport = (id, fileType, params) => {
     if (fileType === 'PDF') {
       absentPatientsTs.downloadPDF(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+        downloadingPdf.value = false
       })
+      
     } else if (fileType === 'XLS') {
       absentPatientsTs.downloadExcel(id, fileType, params).then(resp => {
         if (resp === 204) alertError( 'Nao existem Dados para o periodo selecionado')
+        downloadingXls.value = false
       })
+      
     }
   }
+
+  onMounted(() => {
+    console.log(name)
+  })
   
+  provide('downloadingPdf', downloadingPdf)
+  provide('downloadingXls', downloadingXls)
   provide('serviceAux', serviceAux)
-  provide('resultFromLocalStorage', resultFromLocalStorage)
+  provide('resultFromLocalStorage', resultFromLocalStorage) 
+  provide('getProcessingStatus', getProcessingStatus)
      
   </script>
   

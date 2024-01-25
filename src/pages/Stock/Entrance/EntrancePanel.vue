@@ -29,8 +29,7 @@
             v-model="dateReceived"
             label="Data de Criação"
           >
-
-          <q-input
+            <q-input
               outlined
               v-model="notes"
               label="Notas"
@@ -38,8 +37,8 @@
               :disable="!isGuiaEditionStep"
               dense
               class="col"
-              type="textarea" />
-
+              type="textarea"
+            />
 
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
@@ -341,8 +340,6 @@
               v-model="dateReceived"
               label="Data de Criação"
             >
-
-
               <template v-slot:append>
                 <q-icon name="event" class="cursor-pointer">
                   <q-popup-proxy
@@ -372,7 +369,8 @@
               :disable="!isGuiaEditionStep"
               dense
               class="col q-ma-sm"
-              type="textarea" />
+              type="textarea"
+            />
             <q-separator class="q-mx-sm" />
             <div class="row q-pa-sm" v-if="isGuiaDisplayStep">
               <q-btn
@@ -646,8 +644,6 @@ import { useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-
-
 // import { v4 as uuidv4 } from 'uuid'
 
 // components
@@ -689,7 +685,7 @@ const columns = [
 let submitting = false;
 const dateReceived = ref('');
 const orderNumber = ref('');
-const notes = ref('')
+const notes = ref('');
 
 const step = ref('display');
 const guiaStep = ref('display');
@@ -698,23 +694,21 @@ const drugs = ref([]);
 const stockList = ref([]);
 let stock = '';
 const orderNumberRef = ref('');
-const notesRef = ref('')
+const notesRef = ref('');
 
 const goBack = () => {
   router.go(-1);
 };
 
-
 const blockDataFutura = (date) => {
   return date >= moment(new Date()).add(28, 'd').format('YYYY/MM/DD');
 };
-
 
 const filterFn = (val, update, abort) => {
   const stringOptions = activeDrugs.value;
   if (val === '') {
     update(() => {
-    return  drugs.value = stringOptions.map((drug) => drug);
+      return (drugs.value = stringOptions.map((drug) => drug));
     });
   } else if (stringOptions.length === 0) {
     update(() => {
@@ -739,7 +733,7 @@ const init = () => {
   );
   orderNumber.value = currStockEntrance.value.orderNumber;
   notes.value = currStockEntrance.value.notes;
- };
+};
 
 const cancelOperation = () => {
   guiaStep.value = 'display';
@@ -752,7 +746,7 @@ const doSaveGuia = () => {
   ); // getJSDateFromDDMMYYY()
   currStockEntrance.value.orderNumber = orderNumber.value;
   currStockEntrance.value.clinic = currClinic.value;
-  currStockEntrance.value.notes = notes.value
+  currStockEntrance.value.notes = notes.value;
 
   orderNumberRef.value.validate();
   if (dateReceived.value === '') {
@@ -762,42 +756,40 @@ const doSaveGuia = () => {
       'A data de criação da guia não pode ser superior a data corrente.'
     );
   } else if (!orderNumberRef.value.hasError) {
-         if (guiaStep.value === 'create') {
-        StockEntranceService.post(currStockEntrance.value)
-          .then((resp) => {
-            currStockEntrance.value = resp.response.data;
-            guiaStep.value = 'display';
-            alertSucess('Operação efectuada com sucesso.');
-          })
-          .catch((error) => {
-            const listErrors = [];
-            if (error != null) {
-              const arrayErrors = JSON.parse(error);
-              if (arrayErrors.total == null) {
-                listErrors.push(arrayErrors.message);
-              } else {
-                arrayErrors._embedded.errors.forEach((element) => {
-                  listErrors.push(element.message);
-                });
-              }
+    if (guiaStep.value === 'create') {
+      StockEntranceService.post(currStockEntrance.value)
+        .then((resp) => {
+          currStockEntrance.value = resp.response.data;
+          guiaStep.value = 'display';
+          alertSucess('Operação efectuada com sucesso.');
+        })
+        .catch((error) => {
+          const listErrors = [];
+          if (error != null) {
+            const arrayErrors = JSON.parse(error);
+            if (arrayErrors.total == null) {
+              listErrors.push(arrayErrors.message);
+            } else {
+              arrayErrors._embedded.errors.forEach((element) => {
+                listErrors.push(element.message);
+              });
             }
-            alertError(listErrors);
-          });
-      } else if (guiaStep.value === 'edit') {
-        const entrance = JSON.parse(
-          JSON.stringify(currStockEntrance.value, circularReferenceReplacer())
-        );
-        StockEntranceService.apiUpdate(
-          currStockEntrance.value.id,
-          entrance
-        ).then((resp) => {
+          }
+          alertError(listErrors);
+        });
+    } else if (guiaStep.value === 'edit') {
+      const entrance = JSON.parse(
+        JSON.stringify(currStockEntrance.value, circularReferenceReplacer())
+      );
+      StockEntranceService.apiUpdate(currStockEntrance.value.id, entrance).then(
+        (resp) => {
           localStorage.setItem('currStockEntrance', currStockEntrance.value.id);
           guiaStep.value = 'display';
           alertSucess('Operação efectuada com sucesso.');
-        });
-      }
+        }
+      );
     }
-
+  }
 };
 
 const circularReferenceReplacer = () => {
@@ -828,7 +820,6 @@ const removeGuia = () => {
       'Não pode remover esta guia, pois ja existem registos de lotes associados.'
     );
   } else {
-
     alertWarningAction(
       'Deseja remover a presente guia de entrada de stock?',
       'Não',
@@ -843,24 +834,24 @@ const removeGuia = () => {
 };
 
 const doRemoveGuia = () => {
-    StockEntranceService.delete(currStockEntrance.value.id).then((resp) => {
-      goBack();
-      alertSucess('Operação efectuada com sucesso.');
-    });
+  StockEntranceService.delete(currStockEntrance.value.id).then((resp) => {
+    goBack();
+    alertSucess('Operação efectuada com sucesso.');
+  });
 };
 
 const doRemoveStock = (stock) => {
   step.value = 'delete';
-    showloading();
-    StockService.delete(stock.id)
-      .then((resp) => {
-        removeFromList(stock);
-        closeLoading();
-        alertSucess('Operação efectuada com sucesso.');
-      })
-      .catch((error) => {
-        alertError('Ocorreu um erro inesperado, contacte o administrador!');
-      });
+  showloading();
+  StockService.delete(stock.id)
+    .then((resp) => {
+      removeFromList(stock);
+      closeLoading();
+      alertSucess('Operação efectuada com sucesso.');
+    })
+    .catch((error) => {
+      alertError('Ocorreu um erro inesperado, contacte o administrador!');
+    });
 };
 
 const initNewStock = () => {
@@ -900,6 +891,7 @@ const isPositiveInteger = (str) => {
 const validateStock = (stock) => {
   submitting = true;
   stock.expireDate = dateUtils.getJSDateFromDDMMYYY(stock.auxExpireDate);
+  stock.entrance_id = currStockEntrance.value.id;
   if (stock.drug.name === '') {
     submitting = false;
     alertError('Por favor indicar o medicamento!');
@@ -909,6 +901,10 @@ const validateStock = (stock) => {
   } else if (stock.batchNumber === '') {
     submitting = false;
     alertError('Por favor indicar o lote!');
+  } else if (StockService.isBatchNumberExists(stock) && step.value !== 'edit') {
+    alertError(
+      ' O lote introduzido para esta guia Já  existe, por favor registe um lote válido!'
+    );
   } else if (!date.isValid(stock.expireDate)) {
     submitting = false;
     alertError('Por favor indicar uma data de validade válida!');
@@ -951,52 +947,49 @@ const doSave = (stock) => {
   showloading();
 
   stock.stockMoviment = stock.unitsReceived;
-  stock.clinic = {}
-  stock.clinic.id =clinicService.currClinic().id
-  stock.drug = stock.drug.id;
-  stock.clinic = {}
-  stock.clinic.id =  clinicService.currClinic().id;
-  stock.center = {} ;
-  stock.center.id =StockCenterService.getStockCenter().id
+  stock.clinic = {};
+  stock.clinic.id = clinicService.currClinic().id;
+  stock.clinic = {};
+  stock.clinic.id = clinicService.currClinic().id;
+  stock.center = {};
+  stock.center.id = StockCenterService.getStockCenter().id;
   stock.entrance = currStockEntrance;
   stock.enabled = false;
   // const entrance = currStockEntrance.value
   stock.entrance_id = currStockEntrance.value.id;
   // stock.entrance = entrance
-    if (isCreationStep.value) {
-      stock.id = uuidv4();
-      StockService.post(stock)
-        .then((resp) => {
-          // stock.id = resp.response.data.id
-          submitting = false;
-          stock.enabled = false;
-          step.value = 'display';
-          alertSucess('Operação efectuada com sucesso.');
-          closeLoading();
-        })
-        .catch((error) => {
-          alertError('Ocorreu um erro inesperado');
-          console.log('ERRO: ', error);
-          closeLoading();
-        });
-    } else if (isEditionStep.value) {
-      StockService.patch(stock.id, stock)
-        .then((resp) => {
-          //stock.id = resp.response.data.id
-          submitting = false;
-          stock.enabled = false;
-          step.value = 'display';
-          alertSucess('Operação efectuada com sucesso.');
-          closeLoading();
-        })
-        .catch((error) => {
-          alertError('Ocorreu um erro inesperado');
-          console.log('ERRO: ', error);
-          closeLoading();
-        });
-    }
-
-
+  if (isCreationStep.value) {
+    stock.id = uuidv4();
+    StockService.post(stock)
+      .then((resp) => {
+        // stock.id = resp.response.data.id
+        submitting = false;
+        stock.enabled = false;
+        step.value = 'display';
+        alertSucess('Operação efectuada com sucesso.');
+        closeLoading();
+      })
+      .catch((error) => {
+        alertError('Ocorreu um erro inesperado');
+        console.log('ERRO: ', error);
+        closeLoading();
+      });
+  } else if (isEditionStep.value) {
+    StockService.patch(stock.id, stock)
+      .then((resp) => {
+        //stock.id = resp.response.data.id
+        submitting = false;
+        stock.enabled = false;
+        step.value = 'display';
+        alertSucess('Operação efectuada com sucesso.');
+        closeLoading();
+      })
+      .catch((error) => {
+        alertError('Ocorreu um erro inesperado');
+        console.log('ERRO: ', error);
+        closeLoading();
+      });
+  }
 };
 
 const fetchStockEntrance = () => {

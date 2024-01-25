@@ -2,13 +2,15 @@ import JsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import moment from 'moment'
 import saveAs from 'file-saver'
+import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
 import * as ExcelJS from 'exceljs'
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isMobile, isOnline } = useSystemUtils();
 const reportName = 'PacientesActivosNaFarmacia'
-// const logoTitle =
-// 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
+const logoTitle =
+'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
 const title = 'Lista de Pacientes Activos na Farmácia'
 const fileName = reportName.concat(
 '_' + moment(new Date()).format('DD-MM-YYYY')
@@ -16,6 +18,7 @@ const fileName = reportName.concat(
 
 export default {
   async downloadPDF (province, startDate, endDate, result) {
+    const clinic = clinicService.currClinic();
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -25,63 +28,93 @@ export default {
     })
     const firstObject = result[0]
     // const totalPagesExp = '{total_pages_count_string}'
-    /*
-      Fill Table
-    */
 
-  const desiredDefinition = [
-  [
-    {
-      content: '                                                                                                        Lista de Pacientes Activos na Farmácia',
-      colSpan: 3,
-      halign: 'center',
+    doc.setProperties({
+      title: fileName.concat('.pdf'),
+    });
+
+    const image = new Image();
+    // image.src = '/src/assets/MoHLogo.png'
+    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+
+  const headerReport = [
+    [
+      {
+        content: 'Lista de Pacientes Activos na Farmácia',
+        styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
+        colSpan: 3,
+        halign: 'center',
+        valign: 'middle',
+        fontStyle: 'bold',
+      },
+    ],
+    [
+      {
+        content: 'Unidade Sanitária: ' + clinic.clinicName,
+        colSpan: 2,
+        halign: 'center',
+        valign: 'middle',
+        fontStyle: 'bold',
+        fontSize: '14',
+      },
+      {
+        content: 'Período: ' + startDate + ' à ' + endDate,
+        colSpan: 1,
+        halign: 'center',
+        valign: 'middle',
+        fontStyle: 'bold',
+        fontSize: '14',
+      },
+    ],
+    [
+      {
+        content:
+          'Distrito: ' +
+          firstObject.district,
+        halign: 'center',
+        valign: 'middle',
+        fontStyle: 'bold',
+        fontSize: '14',
+      },
+      {
+        content:
+          'Província: ' +
+          province,
+        halign: 'center',
+        valign: 'left',
+        fontStyle: 'bold',
+        fontSize: '14',
+      },
+      {
+        content: 'Ano: ' + firstObject.year,
+        halign: 'center',
+        valign: 'left',
+        fontStyle: 'bold',
+        fontSize: '14',
+      },
+    ],
+  ];
+
+  autoTable(doc, {
+    bodyStyles: {
+      halign: 'left',
       valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ],
-  [
-    {
-      content: 'Unidade Sanitária: ' + firstObject.clinic,
-      colSpan: 2,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
+      fontSize: 8,
     },
-    {
-      content: 'Período: ' + startDate + ' à ' + endDate,
-      colSpan: 1,
-      halign: 'center',
+    headStyles: {
+      halign: 'left',
       valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ],
-  [
-    {
-      content: 'Distrito: ' + firstObject.district,
-      halign: 'center',
-      valign: 'middle',
-      fontStyle: 'bold',
-      fontSize: '14'
     },
-    {
-      content: 'Província: ' + province,
-      halign: 'center',
-      valign: 'left',
-      fontStyle: 'bold',
-      fontSize: '14'
-    },
-    {
-      content: 'Ano: ' + firstObject.year,
-      halign: 'center',
-      valign: 'left',
-      fontStyle: 'bold',
-      fontSize: '14'
-    }
-  ]
-  ]
+    theme: 'grid',
+    body: headerReport,
+  });
+
+  doc.setFontSize(8);
+  doc.text('República de Moçambique ', 16, 28);
+  doc.text('Ministério da Saúde ', 20, 32);
+  doc.text('Serviço Nacional de Saúde ', 16, 36);
+  doc.addImage(image, 'png', 28, 15, 10, 10);
+
 
     const cols = [
       'ORD',
@@ -118,53 +151,43 @@ export default {
     }
     ord = 0
     autoTable(doc, {
-      margin: { top: 42 },
       bodyStyles: {
-        halign: 'center'
+        halign: 'center',
+        fontSize: 8,
       },
       headStyles: {
         halign: 'center',
-        valign: 'middle'
+        valign: 'middle',
+        fontSize: 8,
       },
-      didDrawPage: function (data) {
-      // First Hearder
-      autoTable(
-        doc,
-        {
-          margin: { top: 20 },
-          bodyStyles: {
-            halign: 'left',
-            valign: 'middle'
-          },
-          headStyles: {
-            halign: 'center',
-            valign: 'middle'
-          },
-          theme: 'grid',
-          body: desiredDefinition
-        }
-        )
-
-        // Footer
-        const str = 'Pagina ' + doc.internal.getNumberOfPages()
-        // Total page number plugin only available in jspdf v1.0+
-        // if (typeof doc.putTotalPages === 'function') {
-        //   str = str + ' de ' + totalPagesExp
-        // }
-        doc.setFontSize(10)
-
-      // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-      const pageSize = doc.internal.pageSize
-      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
-      doc.text(str, data.settings.margin.left, pageHeight - 10)
+      columnStyles: {
+        0: { cellWidth: 15 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 45 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 25 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 25 },
+        7: { cellWidth: 30 },
       },
+      didDrawPage: function (data) 
+      {    
+        const str = 'Página ' + doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);        
+      },
+      startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
       body: data
     })
 
     if(isOnline.value && !isMobile.value) {
-      return doc.save('PacientesActivos.pdf')
+      // return doc.save('PacientesActivos.pdf')
+      window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output()
       this.downloadFile(fileName,'pdf',pdfOutput)
@@ -175,7 +198,8 @@ export default {
     // params.value.loading.loading.hide()
 
   },
-  async downloadExcel (province, startDate, endDate, result) {
+  async downloadExcel (province, startDate, endDate, result, params) {
+    const clinic = clinicService.currClinic();
     const rows = result
     const data = this.createArrayOfArrayRow(rows)
 
@@ -187,13 +211,13 @@ export default {
     workbook.lastPrinted = new Date()
 
     const worksheet = workbook.addWorksheet(reportName)
-    // const imageId = workbook.addImage({
-    //   base64: 'data:image/png;base64,' + MOHIMAGELOG,
-    //   extension: 'png',
-    // })
+    const imageId = workbook.addImage({
+      base64: 'data:image/png;base64,' + MOHIMAGELOG,
+      extension: 'png',
+    })
 
     // Get Cells
-    // const cellRepublica = worksheet.getCell('A8')
+    const cellRepublica = worksheet.getCell('A8')
     const cellTitle = worksheet.getCell('A9')
     const cellPharm = worksheet.getCell('A11')
     const cellDistrict = worksheet.getCell('A12')
@@ -223,7 +247,7 @@ export default {
 
     // Format Table Cells
     // Alignment Format
-    // cellRepublica.alignment =
+    cellRepublica.alignment =
       cellTitle.alignment =
       headerRow.alignment =
         {
@@ -244,7 +268,7 @@ export default {
         }
 
     // Border Format
-    // cellRepublica.border =
+    cellRepublica.border =
       cellTitle.border =
       cellPharm.border =
       cellDistrictParamValue.border =
@@ -264,7 +288,7 @@ export default {
         }
 
     // Assign Value to Cell
-    // cellRepublica.value = logoTitle
+    cellRepublica.value = logoTitle
     cellTitle.value = title
     cellPharmParamValue.value = result[0].clinic
     cellProvinceParamValue.value = province
@@ -318,10 +342,10 @@ export default {
         }
 
     // Add Image
-    // worksheet.addImage(imageId, {
-    //   tl: { col: 0, row: 1 },
-    //   ext: { width: 144, height: 98 },
-    // });
+    worksheet.addImage(imageId, {
+      tl: { col: 0, row: 1 },
+      ext: { width: 144, height: 98 },
+    });
 
     // Cereate Table
     worksheet.addTable({
@@ -419,7 +443,7 @@ export default {
 
     const blob = new Blob([buffer], { type: fileType })
 
-   
+
 
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension)
@@ -430,8 +454,6 @@ export default {
           const folder = cordova.file.externalRootDirectory + 'Download'
          //  var folder = 'Download'
           window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-            console.log('file system open: ' + dirEntry.name)
-             console.log('file system open11111: ' + blob)
             createFile(dirEntry, fileName, blob)
            // $q.loading.hide()
           }, onErrorLoadFs)
@@ -442,7 +464,7 @@ export default {
             writeFile(fileEntry, blob)
           }, onErrorCreateFile)
         }
-   
+
         function writeFile (fileEntry, dataObj) {
           // Create a FileWriter object for our FileEntry
           fileEntry.createWriter(function (fileWriter) {
@@ -450,7 +472,7 @@ export default {
               console.log('Successful file write...')
                openFile()
             }
-   
+
             fileWriter.onerror = function (error) {
               console.log('Failed file write: ' + error)
             }
@@ -460,7 +482,7 @@ export default {
         function onErrorLoadFs (error) {
           console.log(error)
         }
-   
+
         function onErrorCreateFile (error) {
           console.log('errorr: ' + error.toString())
         }
@@ -477,7 +499,7 @@ export default {
                   console.log('file system open3333366: ' + e + documentURL)
               },
               success: function () {
-   
+
               }
           })
       }}
@@ -508,14 +530,6 @@ export default {
     return data
   },
   downloadFile(fileName , fileType, blop) {
-    // console.log(blop)
-    // var pdfOutput = blop.output()
-   //  console.log(pdfOutput)
-   //  if (typeof cordova !== 'undefined') {
-      //   var blob = new Blob(materialEducativo.blop)
-      //  const bytes = new Uint8Array(materialEducativo.blop)
-     // var UTF8_STR = new Uint8Array(pdfOutput)
-     //   var BINARY_ARR = UTF8_STR.buffer
         const titleFile = fileName + fileType
         console.log('result' + titleFile)
          saveBlob2File(titleFile, blop)
@@ -523,8 +537,6 @@ export default {
             const folder = cordova.file.externalRootDirectory + 'Download'
            //  var folder = 'Download'
             window.resolveLocalFileSystemURL(folder, function (dirEntry) {
-              console.log('file system open: ' + dirEntry.name)
-               console.log('file system open11111: ' + blob)
               createFile(dirEntry, fileName, blob)
              // $q.loading.hide()
             }, onErrorLoadFs)
@@ -535,7 +547,7 @@ export default {
               writeFile(fileEntry, blob)
             }, onErrorCreateFile)
           }
-    
+
           function writeFile (fileEntry, dataObj) {
             // Create a FileWriter object for our FileEntry
             fileEntry.createWriter(function (fileWriter) {
@@ -543,7 +555,7 @@ export default {
                 console.log('Successful file write...')
                  openFile()
               }
-    
+
               fileWriter.onerror = function (error) {
                 console.log('Failed file write: ' + error)
               }
@@ -553,7 +565,7 @@ export default {
           function onErrorLoadFs (error) {
             console.log(error)
           }
-    
+
           function onErrorCreateFile (error) {
             console.log('errorr: ' + error.toString())
           }
@@ -570,7 +582,7 @@ export default {
                     console.log('file system open3333366: ' + e + documentURL)
                 },
                 success: function () {
-    
+
                 }
             })
         }

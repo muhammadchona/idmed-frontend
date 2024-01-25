@@ -58,7 +58,7 @@ export default {
             'O Servidor OpenMRS encontra-se desligado ou existe um problema de conexão!'
           );
         } else {
-          alertError('Falha inexperada, por favor contacte o adminitrador.');
+          alertError('Falha inesperado, por favor contacte o administrador.');
         }
       });
   },

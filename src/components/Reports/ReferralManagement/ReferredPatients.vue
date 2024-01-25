@@ -52,7 +52,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 const { isOnline } = useSystemUtils();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertError } = useSwal();
 
 const name = 'ReferredPatients';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
@@ -60,9 +60,10 @@ const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const report = 'REFERIDO_PARA';
-const progressValue = ref(0);
 const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
+const downloadingPdf = ref(false)
+const downloadingXls = ref(false)
 
 onMounted(() => {
   if (props.params) {
@@ -70,7 +71,7 @@ onMounted(() => {
   }
 });
 
-    const serviceAux = ref(null)
+const serviceAux = ref(null)
 const resultFromLocalStorage = ref(false)
 
     onMounted (() => {
@@ -79,15 +80,24 @@ const resultFromLocalStorage = ref(false)
         }
     })
 
+    const isReportClosed = ref(false)
+    const updateParamsOnLocalStrage = (params, isReportClosed) => {
+      if(!isReportClosed.value) LocalStorage.set(params.id, params)
+    }
+
       const closeSection = (params) => {
         filterDrugStoreSection.value.remove()
-        LocalStorage.remove(params.id)
+        if(params) {
+    const paramId = params.id
+    isReportClosed.value = true
+    LocalStorage.remove(paramId)
+  }
       }
 
       const initReportProcessing = (params) => {
         progress.value = 0.001
         if (isOnline.value) {
-          LocalStorage.set(params.id, params)
+          updateParamsOnLocalStrage(params, isReportClosed) 
           Report.apiInitReferredPatientsProcessing(params).then(resp => {
             progress.value = resp.data.progress
             setTimeout(() => {
@@ -95,7 +105,7 @@ const resultFromLocalStorage = ref(false)
             }, 3000);
           })
         } else {
-          LocalStorage.set(params.id, params)
+          updateParamsOnLocalStrage(params, isReportClosed) 
           const reportParams = reportDatesParams.determineStartEndDate(params)
             Report.referredPatientsMobileOffline(reportParams.startDate, reportParams.endDate, reportParams.clinicId).then(respReferredPatients => {
               const clinic = clinicService.getById(reportParams.clinicId)
@@ -107,29 +117,42 @@ const resultFromLocalStorage = ref(false)
         }
       }
 
-      const getProcessingStatus = (params)=> {
+      const getProcessingStatus = (params) => {
         Report.getProcessingStatus('referredPatientsReport', params).then(resp => {
-          progress.value = resp.data.progress
-          if (progress.value < 100) {
-            setTimeout(() => {
-              getProcessingStatus(params)
-            }, 3000);
+          if (resp.data.progress > 0.001) {
+            progress.value = resp.data.progress;
+            if (progress.value < 100) {
+              updateParamsOnLocalStrage(params, isReportClosed) ;
+              params.progress = resp.data.progress;
+              setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
+            } else {
+              progress.value = 100;
+              params.progress = 100;
+              updateParamsOnLocalStrage(params, isReportClosed) ;
+            }
           } else {
-            params.progress = 100
-            LocalStorage.set(params.id, params)
+            setTimeout(() => {
+                getProcessingStatus(params)
+              }, 3000);
           }
-        })
-      }
+        });
+      };
 
       const generateReport =  async (id, fileType, params) => {
         if (isOnline.value) {
           if (fileType === 'PDF') {
+            downloadingPdf.value = true
               referredPatients.downloadPDF(id,fileType, params).then(resp => {
                 if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                downloadingPdf.value = false
               })
           } else {
+            downloadingXls.value = true
               referredPatients.downloadExcel(id,fileType, params).then(resp => {
                 if (resp === 204) alertError('Nao existem Dados para o periodo selecionado')
+                downloadingXls.value = false
               })
           }
         } else {
@@ -137,19 +160,24 @@ const resultFromLocalStorage = ref(false)
             if (resp <= 0) {
               alertError('Nao existem Dados para o periodo selecionado')
             } else {
-              console.log(params)
               if (fileType === 'PDF') {
                 referredPatients.downloadPDF(resp, params)
+                downloadingPdf.value = false
               } else {
                 referredPatients.downloadExcel(resp, params)
+                downloadingXls.value = false
               }
             }
           })
         }
       }
 
-      provide('serviceAux', serviceAux)
+      
+provide('downloadingPdf', downloadingPdf)
+provide('downloadingXls', downloadingXls)
+provide('serviceAux', serviceAux)
 provide('resultFromLocalStorage', resultFromLocalStorage)
+provide('getProcessingStatus',getProcessingStatus)
 
 </script>
 

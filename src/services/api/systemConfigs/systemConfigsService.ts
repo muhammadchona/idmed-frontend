@@ -171,4 +171,7 @@ export default {
   getApiURL() {
     return systemConfigs.query().where('key', 'API_URL').first();
   },
+  deleteAllFromStorage() {
+    systemConfigs.flush();
+  },
 };
