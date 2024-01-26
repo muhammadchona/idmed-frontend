@@ -147,7 +147,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, ref } from 'vue';
+import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue';
 import PrescriptionDrugsListHeader from 'components/Patient/Prescription/PrescriptionDrugsListHeader.vue';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
@@ -196,6 +196,7 @@ const columns = [
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 const showAddEditDrug = ref(false);
+const submittingPrescribedDrug = reactive(ref(false));
 const nextPUpDate = ref('');
 const pickupDate = ref('');
 const nums = ref(
@@ -263,6 +264,7 @@ const addPackagedDrug = async (prescribedDrug) => {
       'O medicamento ja existe na lista dos medicamentos por dispensar.'
     );
   }
+  submittingPrescribedDrug.value = false;
 };
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
@@ -295,6 +297,7 @@ const checkStock = async (packagedDrug) => {
 // Computed
 provide('showAddEditDrug', showAddEditDrug);
 provide('addPrescribedDrug', addPackagedDrug);
+provide('submittingPrescribedDrug', submittingPrescribedDrug);
 </script>
 
 <style></style>
