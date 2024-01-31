@@ -154,7 +154,7 @@ export function usePatient() {
       (item: PatientServiceIdentifier) =>
         item.episodes.some(
           (episode: Episode) =>
-            episode.startStopReason.code === 'TRANSFERIDO_PARA' ||
+            // episode.startStopReason.code === 'TRANSFERIDO_PARA' ||
             episode.startStopReason.code === 'OBITO'
         )
     );
