@@ -103,8 +103,8 @@
             id: 5,
             menuItem: [
                 // {
-                //     description: 'Lista de Registro Diário de ARV',
-                //     tabName: 'ArvDailyRegister',
+                //     description: 'Lista de Registro Diário de TPT',
+                //     tabName: 'TptDailyRegister',
                 // },
                 // {
                 //     description: 'Lista de Dispensas Nao Sicronizadas Para o OpenMrs',

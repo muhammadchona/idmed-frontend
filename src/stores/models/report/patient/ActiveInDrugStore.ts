@@ -26,6 +26,7 @@ export default class ActiveInDrugStore extends Model {
       therapeuticRegimen: this.attr(''),
       pickupDate: this.attr(''),
       nextPickUpDate: this.attr(''),
+      prescriptionDate: this.attr(''),
     };
   }
 
