@@ -37,7 +37,7 @@ export default {
     // image.src = '/src/assets/MoHLogo.png'
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
-  const headerReport = [
+    const headerReport = [
     [
       {
         content: 'Pacientes em Dispensa Trimestral',
@@ -150,6 +150,44 @@ export default {
       ord += 1
     }
     ord = 0
+
+    autoTable(doc, {
+      theme: 'grid',
+      bodyStyles: {
+        halign: 'center',
+        fontSize: 6,
+      },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { cellWidth: 50 }
+      },
+      headStyles: {
+        halign: 'center',
+        valign: 'middle',
+        fontSize: 6,
+        fillColor: [75, 76, 77],
+      },
+      styles: {
+        maxCellHeight: 4,
+      },
+      head: [
+        [{
+          content: 'Qualificação dos Pacientes',
+          colSpan: 2,
+          styles: { halign: 'center', fillColor: [75, 76, 77] , fontStyle: 'bold'},
+        }]
+      ],
+      body: [
+          [{ content: 'TIPO', styles: { halign: 'center', fillColor: [75, 76, 77] , fontStyle: 'bold', textColor: [255, 255, 255]}},{content: 'TOTAL', styles: { halign: 'center', fillColor: [75, 76, 77] , fontStyle: 'bold', textColor: [255, 255, 255]}}],
+          [{ content: 'Novos',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],  
+          [{ content: 'Manutenção',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],
+          [{ content: 'Manutenção Transporte',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],
+          [{ content: 'Cumulativo em DT',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],
+      ],
+      startY: doc.lastAutoTable.finalY + 5
+    });
+    
+
     autoTable(doc, {
       bodyStyles: {
         halign: 'center',
@@ -179,7 +217,7 @@ export default {
         const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
         doc.text(str, data.settings.margin.right, pageHeight - 10);        
       },
-      startY: doc.lastAutoTable.finalY,
+      startY: doc.lastAutoTable.finalY + 5,
       theme: 'grid',
       head: [cols],
       body: data
@@ -256,7 +294,7 @@ export default {
           wrapText: true
         }
 
-    cellPharm.alignment =
+      cellPharm.alignment =
       cellDistrict.alignment =
       cellProvince.alignment =
       cellStartDate.alignment =

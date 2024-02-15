@@ -125,7 +125,7 @@ import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister
 import partialInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 import generalInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
-import MmTb from 'components/Reports/ClinicManagement/tb/MmTb.vue';
+import MmTb from 'components/Reports/ClinicManagement/tb/MmiaTb.vue';
 
 
 const { closeLoading, showloading } = useLoading();
