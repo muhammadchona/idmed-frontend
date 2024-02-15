@@ -122,4 +122,15 @@ export default {
       })
       .get();
   },
+
+  getAllForGroupDispense() {
+    return dispenseType
+      .where('code', (value: string) => {
+        return (
+          value === 'DM' || value === 'DT' || value === 'DS' || value === 'DA'
+        );
+      })
+      .orderBy('id', 'asc')
+      .get();
+  },
 };

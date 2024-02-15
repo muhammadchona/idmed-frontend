@@ -346,7 +346,11 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement || !isNewPrescription"
+          :disable="
+            showServiceDrugsManagement ||
+            !isNewPrescription ||
+            selectedMember != null
+          "
           ref="dispenseTypeRef"
           :rules="[(val) => !!val || 'Por favor indicar o tipo de dispensa']"
           v-model="curPrescriptionDetail.dispenseType"
@@ -799,9 +803,18 @@ const init = () => {
       let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
       packagedDrugEdit.drug = packagedDrug.drug;
       packagedDrugEdit.drug_id = packagedDrug.drug.id;
-      packagedDrugEdit.amtPerTime = packagedDrug.amtPerTime;
-      packagedDrugEdit.timesPerDay = packagedDrug.timesPerDay;
-      packagedDrugEdit.form = packagedDrug.form;
+      packagedDrugEdit.amtPerTime =
+        packagedDrug.amtPerTime !== 0
+          ? packagedDrug.amtPerTime
+          : packagedDrug.drug.defaultTimes;
+      packagedDrugEdit.timesPerDay =
+        packagedDrug.timesPerDay !== 0
+          ? packagedDrug.amtPerTime
+          : packagedDrug.drug.defaultTimes;
+      packagedDrugEdit.form =
+        packagedDrug.form !== null
+          ? packagedDrug.form
+          : packagedDrug.drug.defaultPeriodTreatment;
 
       curPack.value.packagedDrugs.push(packagedDrugEdit);
     });
