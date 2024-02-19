@@ -125,7 +125,7 @@ import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister
 import partialInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 import generalInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
-import MmTb from 'components/Reports/ClinicManagement/tb/MmiaTb.vue';
+import MmiaTb from 'components/Reports/ClinicManagement/tb/MmiaTb.vue';
 
 
 const { closeLoading, showloading } = useLoading();
@@ -158,7 +158,7 @@ const componentsList = {
   partialInventory,
   generalInventory,
   expectedOfDay,
-  MmTb
+  MmiaTb
 };
 
 const { isMobile } = useSystemUtils();
