@@ -105,7 +105,7 @@ import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagemen
 import AbsentReferredPatients from 'components/Reports/ReferralManagement/AbsentReferredPatients.vue';
 import ReceivedStock from 'components/Reports/stock/ReceivedStock.vue';
 import UsedStock from 'components/Reports/stock/UsedStock.vue';
-// import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
+import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
 import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue';
