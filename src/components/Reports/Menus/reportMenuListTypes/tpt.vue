@@ -102,10 +102,10 @@
             description: 'Monitoria e Avaliação',
             id: 5,
             menuItem: [
-                {
-                    description: 'Lista de Registro Diário de TPT',
-                    tabName: 'TptDailyRegister',
-                },
+                // {
+                //     description: 'Lista de Registro Diário de TPT',
+                //     tabName: 'TptDailyRegister',
+                // },
                 // {
                 //     description: 'Lista de Dispensas Nao Sicronizadas Para o OpenMrs',
                 //     tabName: 'NotSynchronizedPack',
