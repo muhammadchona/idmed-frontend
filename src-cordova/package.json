@@ -14,9 +14,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^12.0.1",
-    "cordova-plugin-androidx-adapter": "github:dpa99c/cordova-plugin-androidx-adapter",
     "cordova-plugin-device": "github:apache/cordova-plugin-device",
     "cordova-plugin-file": "github:apache/cordova-plugin-file",
+    "cordova-plugin-network-information": "github:apache/cordova-plugin-network-information",
     "cordova-plugin-splashscreen": "github:apache/cordova-plugin-splashscreen"
   },
   "cordova": {
@@ -24,17 +24,12 @@
       "android"
     ],
     "plugins": {
-      "cordova-plugin-device": {},
       "cordova-plugin-splashscreen": {},
-      "cordova-plugin-androidx-adapter": {},
-      "cordova-plugin-nano-sqlite": {},
       "cordova-plugin-file": {
         "ANDROIDX_WEBKIT_VERSION": "1.4.0"
-      }
+      },
+      "cordova-plugin-device": {},
+      "cordova-plugin-network-information": {}
     }
-  },
-  "dependencies": {
-    "cordova-plugin-nano-sqlite": "^1.7.0",
-    "cordova-sqlite-storage": "6.1.0"
   }
 }

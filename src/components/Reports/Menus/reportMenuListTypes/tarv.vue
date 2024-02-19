@@ -1,38 +1,38 @@
 <template>
-    <q-expansion-item
-        v-for="menu in menu"
-        :key="menu.id"
-        group="somegroup"
-        :label="menu.description"
-        header-class="bg-green-1 text-black"
-        expand-icon-class="text-black"
-        class="q-ma-sm"
-    >
-        <q-card class="bg-white">
-        <div
-            class="q-pa-sm no-margin no-padding full-height"
-            style="max-width: 1000px"
-        >
-            <q-list bordered separator>
-            <q-item
-                v-for="(item, index) in menu.menuItem"
-                :key="index"
-                clickable
-                v-ripple
-                :active="true"
-                class="bg-orange-1 q-ma-sm text-black"
-                @click="changeTab(item.tabName)"
-            >
-                <q-item-section> {{ item.description }} </q-item-section>
-            </q-item>
-            </q-list>
-        </div>
-        </q-card>
-    </q-expansion-item>
+  <q-expansion-item
+    v-for="menu in menu"
+    :key="menu.id"
+    group="somegroup"
+    :label="menu.description"
+    header-class="bg-green-1 text-black"
+    expand-icon-class="text-black"
+    class="q-ma-sm"
+  >
+    <q-card class="bg-white">
+      <div
+        class="q-pa-sm no-margin no-padding full-height"
+        style="max-width: 1000px"
+      >
+        <q-list bordered separator>
+          <q-item
+            v-for="(item, index) in menu.menuItem"
+            :key="index"
+            clickable
+            v-ripple
+            :active="true"
+            class="bg-orange-1 q-ma-sm text-black"
+            @click="changeTab(item.tabName)"
+          >
+            <q-item-section> {{ item.description }} </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+    </q-card>
+  </q-expansion-item>
 </template>
 
 <script setup>
-    import { computed, ref, inject, onMounted, provide } from 'vue'
+import { computed, ref, inject, onMounted, provide } from 'vue';
 
     const emit = defineEmits(['changeTab'])
     const selectedService = ref(null);
@@ -119,13 +119,13 @@
         },
     ];
 
-    const changeTab = (tabName) => {
-        console.log(tabName)
-        currTab.value = tabName;
-        emit('changeTab', tabName, selectedService.value);
-    };
+const changeTab = (tabName) => {
+  console.log(tabName);
+  currTab.value = tabName;
+  emit('changeTab', tabName, selectedService.value);
+};
 
-    onMounted(() => {
-    // console.log(menu.value)
-    })
+onMounted(() => {
+  // console.log(menu.value)
+});
 </script>

@@ -27,9 +27,12 @@ const { isMobile, isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 const urlBackend = ref('http://');
 
+
 onMounted(() => {
   if (localStorage.getItem('backend_url') !== null && isMobile.value) {
     urlBackend.value = localStorage.getItem('backend_url');
+  } else if (sessionStorage.getItem('backend_url') !== null && isMobile.value) {
+    urlBackend.value = sessionStorage.getItem('backend_url');
   }
 });
 
@@ -40,11 +43,13 @@ const saveURLBackend = () => {
 
   if (urlBackend.value && isValidUrl(urlBackend.value)) {
     localStorage.setItem('backend_url', urlBackend.value);
+    sessionStorage.setItem('backend_url', urlBackend.value);
     location.reload();
   } else {
     alertError('Por Favor Preencha uma URL válida');
   }
 };
+
 
 const isValidUrl = (url) => {
   try {

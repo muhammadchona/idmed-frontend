@@ -126,6 +126,7 @@
         unelevated
         color="primary"
         :disable="validateDispense"
+        :loading="submittingValidateDispense"
         label="Validar Dispensa"
         class="all-pointer-events"
         @click="addPatientVisitDetail()"
@@ -159,6 +160,7 @@ import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import drugService from 'src/services/api/drugService/drugService';
 import { v4 as uuidv4 } from 'uuid';
+import { debounce } from 'lodash';
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertSucess, alertError, alertInfo } = useSwal();
@@ -206,7 +208,7 @@ const nums = ref(
 );
 const drugsDuration = ref('');
 const qtySuppliedFlag = ref(0);
-
+const isClicked = ref(false);
 // Injection
 const curPrescription = inject('curPrescription');
 const curPatientVisitDetail = inject('curPatientVisitDetail');
@@ -215,6 +217,7 @@ const validateDispense = inject('validateDispense');
 const addPatientVisitDetail = inject('addPatientVisitDetail');
 const removePatientVisitDetail = inject('removePatientVisitDetail');
 const curIdentifier = inject('curIdentifier');
+const submittingValidateDispense = inject('submittingValidateDispense');
 //Methods
 const deleteRow = (row) => {
   const i = curPack.value.packagedDrugs

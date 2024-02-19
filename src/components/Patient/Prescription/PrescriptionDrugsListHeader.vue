@@ -75,6 +75,7 @@
         bg-color="white"
         style="margin: 2px; width: 200px"
         ref="nextPickupDateRef"
+        @update:model-value="setNextPickupDate()"
       >
         <template v-slot:append>
           <q-icon name="event" class="cursor-pointer">
@@ -83,7 +84,11 @@
               transition-show="scale"
               transition-hide="scale"
             >
-              <q-date v-model="nextPDate" mask="DD-MM-YYYY">
+              <q-date
+                v-model="nextPDate"
+                mask="DD-MM-YYYY"
+                @update:model-value="setNextPickupDate()"
+              >
                 <div class="row items-center justify-end">
                   <q-btn v-close-popup label="Close" color="primary" flat />
                 </div>
@@ -234,6 +239,12 @@ const determineNextPickUpDate = (pickupDate, weeks) => {
     curPack.value.weeksSupply = weeks;
   }
 };
+const setNextPickupDate = () => {
+  curPack.value.nextPickUpDate = extractHyphenDateFromDMYConvertYMD(
+    nextPDate.value
+  );
+};
+
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'YYYY-MM-DD');
 };
