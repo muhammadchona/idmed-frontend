@@ -43,7 +43,7 @@ import { computed, ref, inject, onMounted, provide } from 'vue';
             id: 1,
             menuItem: [
             { description: 'Activos na Farmácia', tabName: 'ActivesInDrugStore' },
-             { description: 'Pacientes Esperados Num Dia', tabName: 'expectedOfDay' },
+            //  { description: 'Pacientes Esperados Num Dia', tabName: 'expectedOfDay' },
             //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
             //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
             //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
@@ -99,8 +99,8 @@ import { computed, ref, inject, onMounted, provide } from 'vue';
             { description: 'Lista de Stock Recebido', tabName: 'ReceivedStock' },
             { description: 'Lista de Stock Usado', tabName: 'UsedStock' },
             { description: 'Medicamentos Remanescentes (Sobras/Perdas)', tabName: 'QuantityRemain' },
-            { description: 'Inventario Parcial', tabName: 'partialInventory' },
-            { description: 'Inventario Geral', tabName: 'generalInventory' },
+            // { description: 'Inventario Parcial', tabName: 'partialInventory' },
+            // { description: 'Inventario Geral', tabName: 'generalInventory' },
             ],
         },
         {
