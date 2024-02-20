@@ -135,11 +135,15 @@ export default {
       createRow.push(ord);
       createRow.push(rows[row].nid);
       createRow.push(
-        rows[row].firstNames +
-          ' ' +
-          rows[row].middleNames +
-          ' ' +
-          rows[row].lastNames
+        String(
+          rows[row].firstNames +
+            ' ' +
+            rows[row].middleNames +
+            ' ' +
+            rows[row].lastNames
+        )
+          .replaceAll('null', '')
+          .replace('  ', ' ')
       );
       createRow.push(rows[row].age);
       createRow.push(rows[row].cellphone);
