@@ -14,7 +14,7 @@ const { isMobile, isOnline } = useSystemUtils();
 
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS';
-const title = 'MMMTB \n MAPA MENSAL DE MEDICAMENTOS DA TB';
+const title = 'MAPA MENSAL DE MEDICAMENTOS DA TB';
 const reportName = 'MMIA';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
@@ -89,6 +89,9 @@ export default {
     const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData);
     const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData);
     const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData);
+    const pacienteTipoTable = this.pacienteTipoTableData('XLS');
+    const fasesProfilaxiaTable = this.fasesProfilaxiaTableData('XLS');
+    const periodicidadeDaDispensaTable = this.periodicidadeDaDispensaTableData('XLS');
     const miaRegimenTotalData = this.createRegimenTotalArrayRow(
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
@@ -125,7 +128,7 @@ export default {
       },
     });
     row1.push({
-      content: 'MMMTB \n MAPA MENSAL DE MEDICAMENTOS DA TB',
+      content: 'MAPA MENSAL DE MEDICAMENTOS DA TB',
       styles: {
         halign: 'center',
         valign: 'middle',
@@ -205,18 +208,20 @@ export default {
         0: { cellWidth: 13 },
         1: { halign: 'left' },
         2: { cellWidth: 15 },
-        3: { cellWidth: 15 },
+        3: { cellWidth: 18 },
         4: { cellWidth: 16 },
         5: { cellWidth: 13 },
-        6: { cellWidth: 16 },
+        6: { cellWidth: 18 },
         7: { cellWidth: 17 },
         8: { cellWidth: 17 },
       },
       headStyles: {
         halign: 'center',
         valign: 'middle',
-        fontSize: 8,
-        fillColor: [75, 76, 77],
+        fontSize: 5,
+        fontStyle: 'bold',
+        textColor: 0,
+        fillColor: [208, 216, 252],
       },
       head: [cols],
       body: stockdata,
@@ -232,9 +237,8 @@ export default {
         fontSize: 6,
       },
       columnStyles: {
-        0: { cellWidth: 13 },
-        2: { cellWidth: 15 },
-        3: { cellWidth: 18 },
+        0: { cellWidth: 35 },
+        2: { cellWidth: 33 },
       },
       headStyles: {
         halign: 'center',
@@ -246,16 +250,18 @@ export default {
         maxCellHeight: 4,
       },
       head: [
+        [
         {
-          content: 'Fases de Tratamento\n',
+          content: 'Fases de Tratamento',
           colSpan: 2,
-          styles: { halign: 'center', fillColor: [75, 76, 77] },
+          styles: { halign: 'center', fillColor: [187, 216, 118] },
         },
         {
-          content: 'Nr. Dias\nDispensados',
-          styles: { halign: 'center', fillColor: [75, 76, 77] },
+          content: 'Nr. Dias Dispensados',
+          styles: { halign: 'center', fillColor: [187, 216, 118] },
         },
-      ],
+      ]
+    ],
       body: regimendata,
       startY: firstTableHeigth + 1,
       margin: { right: 90.1 },
@@ -263,15 +269,15 @@ export default {
 
     const secondTableHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, { // Terceira tabela (Total)
+    autoTable(doc, { // // Terceira tabela (PUs er Farmácia Ambulatório) Lado esquerdo
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
         fontSize: 6,
       },
       columnStyles: {
-        1: { cellWidth: 15 },
-        2: { cellWidth: 18 },
+        0: { cellWidth: 35 },
+        2: { cellWidth: 33 },
       },
       headStyles: {
         halign: 'center',
@@ -282,73 +288,92 @@ export default {
         maxCellHeight: 4,
       },
       body: miaRegimenTotalData,
-      startY: secondTableHeigth,
+      startY: secondTableHeigth+1,
       margin: { right: 90.1 },
     });
 
-    const hirdTableHeigth = doc.lastAutoTable.finalY;
+    const thirdTableHeigth = doc.lastAutoTable.finalY;    
 
-    autoTable(doc, {// Quarta  tabela (Linhas Terapêuticas)
+    autoTable(doc, { // Quarta  tabela ()
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
         fontSize: 6,
       },
       columnStyles: {
-        0: { fillColor: [240, 241, 242] },
-        1: { cellWidth: 15 },
-        2: { cellWidth: 18 },
+        0: { cellWidth: 35 },
+        2: { cellWidth: 33 },
       },
-      head: [
-        [
-          {
-            content: 'Linhas Terapêuticas\n',
-            colSpan: 3,
-            styles: { halign: 'center', fillColor: [75, 76, 77] },
-          },
-        ],
-      ],
       headStyles: {
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
+        fillColor: [75, 76, 77],
       },
       styles: {
         maxCellHeight: 4,
       },
-      body: miaLinesSumaryData,
-      startY: hirdTableHeigth + 1,
+      head: [
+        [
+        {
+          content: 'Faixas Etarias',
+          styles: { halign: 'center', fillColor: [187, 216, 118] },
+        },
+        {
+          content: 'Tratamento',
+          styles: { halign: 'center', fillColor: [187, 216, 118] },
+        },
+        {
+          content: 'Profilaxia',
+          styles: { halign: 'center', fillColor: [187, 216, 118] },
+        },
+      ]
+    ],
+      body: [
+        [
+        {
+          content: 'Adultos',
+          
+        },
+        {
+          content: '',
+        },
+        {
+          content: '',
+        },
+      ],
+      [
+        {
+          content: 'Criança < 25 Kg',
+        },
+        {
+          content: '',
+        },
+        {
+          content: '',
+        },
+      ],
+      [
+        {
+          content: 'Criança > 25 Kg',
+        },
+        {
+          content: '',
+        },
+        {
+          content: '',
+        },
+      ]
+    ],
+      startY: thirdTableHeigth + 1,
       margin: { right: 90.1 },
     });
 
     const fourthTableHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, {// Quinta tabela (Total Linhas)
-      theme: 'grid',
-      bodyStyles: {
-        halign: 'center',
-        fontSize: 6,
-      },
-      columnStyles: {
-        1: { cellWidth: 15 },
-        2: { cellWidth: 18 },
-      },
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 6,
-      },
-      styles: {
-        maxCellHeight: 4,
-      },
-      body: miaLinesSumaryTotalData,
-      startY: fourthTableHeigth,
-      margin: { right: 90.1 },
-    });
-
     // Fim das colunas a esquerda
 
-    autoTable(doc, {// Sexta tabela (Tipo de Doencas em TARV)
+    autoTable(doc, {// Quinta tabela ()
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
@@ -361,8 +386,7 @@ export default {
       head: [
         [
           {
-            content: 'Tipo de doentes em \nTARV',
-            colSpan: 2,
+            content: 'Quantificação dos doentes',
             styles: { halign: 'center', fillColor: [75, 76, 77] },
           },
         ],
@@ -375,32 +399,23 @@ export default {
       styles: {
         maxCellHeight: 4,
       },
-      body: miaTipoDoenteData,
-      startY: firstTableHeigth + 1,
+      body: [],
+      startY: firstTableHeigth+1,
       margin: { left: 121.1 },
     });
 
-    const sixthTableHeigth = doc.lastAutoTable.finalY;
+    const qualificacoesHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, {
+    autoTable(doc, { // 
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
         fontSize: 6,
       },
       columnStyles: {
-        0: { halign: 'left', fillColor: [240, 241, 242] },
-        1: { cellWidth: 30 },
+        0: { cellWidth: 20 },
+        2: { cellWidth: 20 },
       },
-      head: [
-        [
-          {
-            content: 'Faixa Etária dos Pacientes \nTARV',
-            colSpan: 2,
-            styles: { halign: 'center', fillColor: [75, 76, 77] },
-          },
-        ],
-      ],
       headStyles: {
         halign: 'center',
         valign: 'middle',
@@ -409,61 +424,23 @@ export default {
       styles: {
         maxCellHeight: 4,
       },
-      body: miaFaixaEtariaData,
-      startY: sixthTableHeigth + 1,
+      body: pacienteTipoTable,
+      startY: qualificacoesHeigth+1,
       margin: { left: 121.1 },
     });
 
-    const seventhTableHeigth = doc.lastAutoTable.finalY;
+    const pacienteTipoHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, {
+    autoTable(doc, { // 
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
         fontSize: 6,
       },
       columnStyles: {
-        0: { halign: 'left', fillColor: [240, 241, 242] },
-        1: { cellWidth: 30 },
+        0: { cellWidth: 20 },
+        2: { cellWidth: 20 },
       },
-      head: [
-        [
-          {
-            content: 'Profilaxia \n',
-            colSpan: 2,
-            styles: { halign: 'center', fillColor: [75, 76, 77] },
-          },
-        ],
-      ],
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 6,
-      },
-      styles: {
-        maxCellHeight: 2,
-      },
-      body: miaProfilaxiaData,
-      startY: seventhTableHeigth + 1,
-      margin: { left: 121.1 },
-    });
-
-    const eigthTableHeigth = doc.lastAutoTable.finalY;
-
-    autoTable(doc, {
-      theme: 'grid',
-      bodyStyles: {
-        halign: 'center',
-        fontSize: 6,
-      },
-      head: [
-        [
-          {
-            content: 'Tipo de Dispensa\n',
-            styles: { halign: 'center', fillColor: [75, 76, 77] },
-          },
-        ],
-      ],
       headStyles: {
         halign: 'center',
         valign: 'middle',
@@ -472,193 +449,36 @@ export default {
       styles: {
         maxCellHeight: 4,
       },
-      startY: eigthTableHeigth + 1,
+      body: fasesProfilaxiaTable,
+      startY: pacienteTipoHeigth+3,
       margin: { left: 121.1 },
     });
 
-    const ninethTableHeigth = doc.lastAutoTable.finalY;
 
-    const arrayAux = [
-      ['', 'DS', '', '', '']
-    ]
-    for (let i = 0; i < mmiadsTypeData.length; i++) {
-      
-      if(i==0) {
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push(mmiaAjusteData[0][0])
-        mmiadsTypeData[i].push(mmiaAjusteData[0][1])
-      }
-      if(i==1) {
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
-      }
-      if(i==2) {
-        mmiadsTypeData[i].push('DT')
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
-      }
-      if(i==3) {
-        mmiadsTypeData[i].push(mmiadtTypeData[0][0])
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
-      }
-      if(i==4) {
-        mmiadsTypeData[i].push(mmiadtTypeData[1][0])
-        mmiadsTypeData[i].push('DM')
-        mmiadsTypeData[i].push('Total')
-      }
-      if(i==5) {
-        mmiadsTypeData[i].push(mmiadtTypeData[2][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[0][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[0][1])
-      }
-      if(i==6) {
-        mmiadsTypeData[i].push(mmiadtTypeData[3][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[1][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[1][1])
-      }
-      arrayAux.push(mmiadsTypeData[i])
-    }
+    const fasesHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, {
+    autoTable(doc, { // 
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
-        fontSize: 6,
-      },
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
         fontSize: 6,
       },
       columnStyles: {
-        0: { cellWidth: 12, halign: 'right', fillColor: [240, 241, 242] },
-        1: { cellWidth: 10 },
+        0: { cellWidth: 20 },
+        2: { cellWidth: 20 },
+      },
+      headStyles: {
+        halign: 'center',
+        valign: 'middle',
+        fontSize: 6,
       },
       styles: {
         maxCellHeight: 4,
       },
-      body: arrayAux,
-      startY: ninethTableHeigth,
-      margin: { left: 121.1  },
-      // Adiciona o hook para condicionalmente alterar a cor de preenchimento
-      didParseCell: function (data) {
-      if (data.row.section === 'body' && (data.column.index === 1) && (data.cell.raw === 'DS')) {
-          
-          data.cell.styles.fillColor = [75, 76, 77];
-          data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 2) && (data.cell.raw === 'DT')) {
-          
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 3) && (data.cell.raw === 'DM')) {
-          
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 3) && (data.cell.raw === 'Ajuste')) {
-          
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 4) && (data.cell.raw === 'Total')) {
-            
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-     
-    };
-    }
-    
-    // willDrawCell: function (data) {
-    //   if (data.row.section === 'body' && data.column.index === 1 && data.cell.raw === 'DS') {
-    //       // data.cell.styles.fillColor = [240, 241, 242];
-    //       const text = 'DSS';
-    //       const fontSize = data.cell.styles.fontSize || 12;
-    //       const xOffset = data.cell.x + (data.cell.width / 2);
-    //       const yOffset = data.cell.y + (data.cell.height / 2);
-    //       console.log(xOffset);
-    //       console.log(yOffset);
-
-    //       doc.text(text, data.cell.x+5, yOffset+2, { angle: 90 });
-  
-    //       // doc.text(text, xOffset, yOffset, { align: 'center', valign: 'middle', angle: 90, fontSize });
-    //   }
-  // }
-  
+      body: periodicidadeDaDispensaTable,
+      startY: fasesHeigth+3,
+      margin: { left: 121.1 },
     });
-
-
-    // autoTable(doc, {
-    //   theme: 'grid',
-    //   bodyStyles: {
-    //     halign: 'center',
-    //     fontSize: 6,
-    //   },
-    //   head: [
-    //     [
-    //       {
-    //         content: 'DT\n',
-    //       },
-    //     ],
-    //   ],
-    //   headStyles: {
-    //     halign: 'center',
-    //     valign: 'middle',
-    //     fontSize: 6,
-    //     fillColor: [75, 76, 77],
-    //   },
-    //   columnStyles: {
-    //     0: { cellWidth: 10 },
-    //     1: { cellWidth: 10 },
-    //   },
-    //   styles: {
-    //     maxCellHeight: 4,
-    //   },
-    //   body: mmiadtTypeData,
-    //   startY: ninethTableHeigth,
-    //   margin: { left: 1 },
-    // });
-
-    // autoTable(doc, {
-    //   theme: 'grid',
-    //   bodyStyles: {
-    //     halign: 'center',
-    //     fontSize: 6,
-    //   },
-    //   head: [
-    //     [
-    //       {
-    //         content: 'DM\n',
-    //       },
-    //       {
-    //         content: 'Total\n',
-    //       },
-    //     ],
-    //   ],
-    //   headStyles: {
-    //     halign: 'center',
-    //     valign: 'middle',
-    //     fontSize: 6,
-    //     fillColor: [75, 76, 77],
-    //   },
-    //   columnStyles: {
-    //     0: { cellWidth: 10 },
-    //     1: { cellWidth: 10 },
-    //   },
-    //   styles: {
-    //     maxCellHeight: 2,
-    //   },
-    //   body: mmiadmTypeData,
-    //   startY: ninethTableHeigth + 29.8,
-    //   margin: { left: 153.1 },
-    // });
 
     const tiposDispensaTableY = doc.lastAutoTable.finalY;
 
@@ -675,7 +495,7 @@ export default {
         maxCellHeight: 2,
       },
       body: [['Observaçãoes:'], [' \n\n\n\n\n\n\n\n']],
-      startY: tiposDispensaTableY + 1,
+      startY: tiposDispensaTableY + 3,
       margin: { left: 121.1 },
     });
 
@@ -693,7 +513,7 @@ export default {
         maxCellHeight: 2,
       },
       body: footer,
-      startY: doc.lastAutoTable.finalY + 2,
+      startY: fourthTableHeigth + 10,
     });
     doc.setFontSize(7);
     doc.text(
@@ -1482,24 +1302,30 @@ export default {
   createArrayOfArrayRow(rows) {
     const data = [];
 
-    for (const row in rows) {
-      const createRow = [];
-      createRow.push(rows[row].fnmCode);
-      createRow.push(rows[row].drugName);
-      createRow.push(rows[row].unit + ' comp');
-      createRow.push(
-        rows[row].inventory -
-          rows[row].initialEntrance +
-          rows[row].outcomes -
-          rows[row].lossesAdjustments
-      );
-      createRow.push(rows[row].initialEntrance);
-      createRow.push(rows[row].outcomes);
-      createRow.push(rows[row].lossesAdjustments);
-      createRow.push(rows[row].inventory);
-      createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'));
+    let counter = 0
 
-      data.push(createRow);
+    for (const row in rows) {
+      counter++
+      const createRow = [];
+      if (counter < 7) {
+        createRow.push(rows[row].fnmCode);
+        createRow.push(rows[row].drugName);
+        createRow.push(rows[row].unit + ' comp');
+        createRow.push(
+          rows[row].inventory -
+            rows[row].initialEntrance +
+            rows[row].outcomes -
+            rows[row].lossesAdjustments
+        );
+        createRow.push(rows[row].initialEntrance);
+        createRow.push(rows[row].outcomes);
+        createRow.push(rows[row].lossesAdjustments);
+        createRow.push(rows[row].inventory);
+        createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'));
+        
+        data.push(createRow);
+      }
+      
     }
 
     return data;
@@ -1507,15 +1333,73 @@ export default {
   createRegimenArrayOfArrayRow(rows) {
     const data = [];
 
-    for (const row in rows) {
-      const createRow = [];
-      // createRow.push(rows[row].code); // Futuro RowSpan
-      createRow.push('rows[row].regimen');
-      createRow.push('rows[row].totalPatients');
-      createRow.push('rows[row].cumunitaryClinic');
+    // for (const row in rows) {
+      const row1 = [];
+      const row2 = [];
+      const row3 = [];
+      const row4 = [];
+      const row5 = [];
+      const row6 = [];
+      const row7 = [];
 
-      data.push(createRow);
-    }
+      const row8 = [];
+      const row9 = [];
+      const row10 = [];
+      const row11 = [];
+      const row12 = [];
+      const row13 = [];
+      const row14 = [];
+
+      // createRow.push(rows[row].code); // Futuro RowSpan
+      // createRow.push(rows[row].regimen);
+      row1.push(
+        {
+          rowSpan: 7,
+          content: 'Adulto:',
+          styles: {
+            valign: 'middle',
+            halign: 'center',
+            fontStyle: 'bold',
+            textColor: 0,
+            fillColor: [196, 213, 239]
+          },
+        }
+      );
+      row1.push({content: 'Sensível Intensiva', styles: {halign: 'left',}}, {content: ''});
+      row2.push({content: 'Sensível Manutenção', styles: {halign: 'left',}}, {content: ''});
+      row3.push({content: 'MR Intensiva', styles: {halign: 'left',}}, {content: ''});
+      row4.push({content: 'MR Manutenção', styles: {halign: 'left',}}, {content: ''});
+      row5.push({content: 'XR Indução', styles: {halign: 'left',}}, {content: ''});
+      row6.push({content: 'XR Manutenção', styles: {halign: 'left',}}, {content: ''});
+      row7.push({content: 'XR Intensiva', styles: {halign: 'left',}}, {content: ''});
+
+      row8.push(
+        {
+          rowSpan: 7,
+          content: 'Pediatrico:',
+          styles: {
+            valign: 'middle',
+            halign: 'center',
+            fontStyle: 'bold',
+            textColor: 0,
+            fillColor: [175, 202, 245]
+          },
+        }
+      );
+      row8.push({content: 'Sensível Intensiva', styles: {halign: 'left',}}, {content: ''});
+      row9.push({content: 'Sensível Manutenção', styles: {halign: 'left',}}, {content: ''});
+      row10.push({content: 'MR Intensiva', styles: {halign: 'left',}}, {content: ''});
+      row11.push({content: 'MR Manutenção', styles: {halign: 'left',}}, {content: ''});
+      row12.push({content: 'XR Indução', styles: {halign: 'left',}}, {content: ''});
+      row13.push({content: 'XR Manutenção', styles: {halign: 'left',}}, {content: ''});
+      row14.push({content: 'XR Intensiva', styles: {halign: 'left',}}, {content: ''});
+      
+
+      data.push(row1); data.push(row2); data.push(row3); data.push(row4); data.push(row5); data.push(row6); data.push(row7);
+      data.push(row8); data.push(row9); data.push(row10); data.push(row11); data.push(row12); data.push(row13); data.push(row14);
+    // }
+
+    console.log(data)
 
     return data;
   },
@@ -1595,6 +1479,182 @@ export default {
 
     return data;
   },
+
+  periodicidadeDaDispensaTableData(fileType){
+    const data = [];
+    let totalPatients = 0;
+    let cumunitaryClinic = 0;
+
+    const createRow = [];
+    const row1 = [];
+      const row2 = [];
+      const row3 = [];
+      const row4 = [];
+
+    if (fileType == 'PDF') {
+      createRow.push({
+        // colSpan: 1,
+        content: 'Total',
+        styles: { halign: 'right', fillColor: [204, 204, 204] },
+      });
+
+    } else {
+      createRow.push('Total');
+    }
+
+
+    // createRow.push(totalPatients);
+    // createRow.push(cumunitaryClinic);
+
+    row1.push(
+      {
+      rowSpan: 3,
+      content: 'Tipo de Dispensa dos Profilacticos',
+      styles: { 
+        valign: 'middle',
+        halign: 'center',
+        fontStyle: 'bold',
+        textColor: [255, 255, 255],
+        fillColor: [187, 216, 118],
+      },
+    }
+    );
+    row1.push({content: 'Periodicidade da Dispensa', styles: {halign: 'center', fillColor: [197, 159, 85], textColor: [187, 216, 118], fontStyle: 'bold', textColor: [255, 255, 255]}}, {content: 'Total', styles: {halign: 'center', fontStyle: 'bold', textColor: [187, 216, 118], fillColor: [197, 159, 85], textColor: [255, 255, 255]}});
+    row2.push({content: 'Mensal', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row3.push({content: 'Trimestral', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row4.push({content: '', styles: {halign: 'left',}}, {content: 'Total', styles: {halign: 'right',}}, {content: '', styles: {halign: 'left',}});
+
+
+    data.push(row1);
+    data.push(row2);
+    data.push(row3);
+    data.push(row4);
+
+    return data;
+  },
+
+
+  fasesProfilaxiaTableData(fileType){
+    const data = [];
+    let totalPatients = 0;
+    let cumunitaryClinic = 0;
+
+    const createRow = [];
+    const row1 = [];
+      const row2 = [];
+      const row3 = [];
+      const row4 = [];
+      const row5 = [];
+
+    if (fileType == 'PDF') {
+      createRow.push({
+        // colSpan: 1,
+        content: 'Total',
+        styles: { halign: 'right', fillColor: [204, 204, 204] },
+      });
+
+    } else {
+      createRow.push('Total');
+    }
+
+
+    // createRow.push(totalPatients);
+    // createRow.push(cumunitaryClinic);
+
+    row1.push(
+      {
+      rowSpan: 4,
+      content: 'Seguimento Profilaxias (PUs e Farmácias Públicas)',
+      styles: { 
+        valign: 'middle',
+        halign: 'center',
+        fontStyle: 'bold',
+        textColor: [255, 255, 255],
+        fillColor: [187, 216, 118],
+      },
+    }
+    );
+    row1.push({content: 'Fases Profilaxia', styles: {halign: 'center', fillColor: [197, 159, 85], textColor: [187, 216, 118], fontStyle: 'bold', textColor: [255, 255, 255]}}, {content: 'Total', styles: {halign: 'center', fontStyle: 'bold', textColor: [187, 216, 118], fillColor: [197, 159, 85], textColor: [255, 255, 255]}});
+    row2.push({content: 'Início', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row3.push({content: 'Contínua/Manutenção', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row4.push({content: 'Final/Última Dispensa', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row5.push({content: '', styles: {halign: 'left',}}, {content: 'Total', styles: {halign: 'right',}}, {content: '', styles: {halign: 'left',}});
+
+
+    data.push(row1);
+    data.push(row2);
+    data.push(row3);
+    data.push(row4);
+    data.push(row5);
+
+    return data;
+  },
+
+  pacienteTipoTableData(fileType){
+    const data = [];
+    let totalPatients = 0;
+    let cumunitaryClinic = 0;
+
+    const createRow = [];
+    const row1 = [];
+      const row2 = [];
+      const row3 = [];
+      const row4 = [];
+      const row5 = [];
+      const row6 = [];
+      const row7 = [];
+      const row8 = [];
+
+    if (fileType == 'PDF') {
+      createRow.push({
+        // colSpan: 1,
+        content: 'Total',
+        styles: { halign: 'right', fillColor: [204, 204, 204] },
+      });
+
+    } else {
+      createRow.push('Total');
+    }
+
+
+    // createRow.push(totalPatients);
+    // createRow.push(cumunitaryClinic);
+
+    row1.push(
+      {
+      rowSpan: 7,
+      content: 'Pacientes Novos no Sector da TB',
+      styles: { 
+        valign: 'middle',
+        halign: 'center',
+        fontStyle: 'bold',
+        textColor: [255, 255, 255],
+        fillColor: [187, 216, 118],
+      },
+    }
+    );
+    row1.push({content: 'Paciente/Tipo ', styles: {halign: 'center', fillColor: [197, 159, 85], textColor: [187, 216, 118], fontStyle: 'bold', textColor: [255, 255, 255]}}, {content: 'Total', styles: {halign: 'center', fontStyle: 'bold', textColor: [187, 216, 118], fillColor: [197, 159, 85], textColor: [255, 255, 255]}});
+    row2.push({content: 'Novo Adulto Sensivel', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row3.push({content: 'Novo Adulto MR', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row4.push({content: 'Novo Adulto XR', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row5.push({content: 'Nova Criança Sensivel', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row6.push({content: 'Nova Criança MR', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row7.push({content: 'Nova Criança XR', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row8.push({content: '', styles: {halign: 'left',}}, {content: 'Total', styles: {halign: 'right',}}, {content: '', styles: {halign: 'left',}});
+
+
+    data.push(row1);
+    data.push(row2);
+    data.push(row3);
+    data.push(row4);
+    data.push(row5);
+    data.push(row6);
+    data.push(row7);
+    data.push(row8);
+
+    return data;
+  },
+
   createRegimenTotalArrayRow(rows, fileType) {
     const data = [];
     let totalPatients = 0;
@@ -1607,23 +1667,66 @@ export default {
       }
     }
     const createRow = [];
+    const row1 = [];
+      const row2 = [];
+      const row3 = [];
+      const row4 = [];
+      const row5 = [];
+      const row6 = [];
+      const row7 = [];
+      const row8 = [];
+
     if (fileType == 'PDF') {
       createRow.push({
         // colSpan: 1,
         content: 'Total',
         styles: { halign: 'right', fillColor: [204, 204, 204] },
       });
+
     } else {
       createRow.push('Total');
     }
-    createRow.push(totalPatients);
-    createRow.push(cumunitaryClinic);
 
-    data.push(createRow);
+
+    // createRow.push(totalPatients);
+    // createRow.push(cumunitaryClinic);
+
+    row1.push(
+      {
+      rowSpan: 8,
+      content: 'PUs er Farmácia Ambulatório',
+      styles: { 
+        valign: 'middle',
+        halign: 'center',
+        fontStyle: 'bold',
+        textColor: 0,
+        fillColor: [175, 202, 245]
+      },
+    }
+    );
+    row1.push({content: 'Produto', styles: {halign: 'center', fillColor: [187, 216, 118], fontStyle: 'bold', textColor: [255, 255, 255]}}, {content: 'Nr Comprimidos', styles: {halign: 'center', fontStyle: 'bold', fillColor: [187, 216, 118], textColor: [255, 255, 255]}});
+    row2.push({content: 'Isoniazida 100 mg', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row3.push({content: 'Isoniazida 300 mg', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row4.push({content: 'Levofloxacina 100 mg Disp', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row5.push({content: 'Levofloxacina 250 mg Rev', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row6.push({content: '3HP (Rifapentina+Isoniazida)', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row7.push({content: 'Piridoxina 25mg', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+    row8.push({content: 'Piridoxina 50mg', styles: {halign: 'left',}}, {content: '', styles: {halign: 'left',}});
+
+
+    data.push(row1);
+    data.push(row2);
+    data.push(row3);
+    data.push(row4);
+    data.push(row5);
+    data.push(row6);
+    data.push(row7);
+    data.push(row8);
 
     return data;
   },
   createLinesSumaryArrayRow(rows, fileType) {
+    // JOAO
     const data = [];
     let totallinha1Nr = 0;
     let totallinha2Nr = 0;

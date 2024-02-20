@@ -105,7 +105,7 @@ import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagemen
 import AbsentReferredPatients from 'components/Reports/ReferralManagement/AbsentReferredPatients.vue';
 import ReceivedStock from 'components/Reports/stock/ReceivedStock.vue';
 import UsedStock from 'components/Reports/stock/UsedStock.vue';
-// import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
+import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
 import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue';
@@ -126,7 +126,7 @@ import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister
 import partialInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 import generalInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
-import MmTb from 'components/Reports/ClinicManagement/tb/MmiaTb.vue';
+import MmiaTb from 'components/Reports/ClinicManagement/tb/MmiaTb.vue';
 
 const { closeLoading, showloading } = useLoading();
 
@@ -158,8 +158,7 @@ const componentsList = {
   partialInventory,
   generalInventory,
   expectedOfDay,
-  MmTb
-
+  MmiaTb
 };
 
 const { isMobile } = useSystemUtils();

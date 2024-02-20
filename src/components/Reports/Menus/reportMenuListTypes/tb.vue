@@ -58,8 +58,8 @@
                 //     tabName: 'AbsentPatients',
                 // },
                 {
-                    description: 'Mapa Mensal de Medicamento da TB (MMTB)',
-                    tabName: 'MmTb',
+                    description: 'Mapa Mensal de Medicamentos da TB (MMIATB)',
+                    tabName: 'MmiaTb',
                 },
                 // //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                 // //  { description: 'Lista de Visitantes', tabName: 'GuestList' },

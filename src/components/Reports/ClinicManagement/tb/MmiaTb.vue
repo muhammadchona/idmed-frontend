@@ -8,7 +8,7 @@
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa Mensal de
-      Medicamento da TB (MMTB)
+      Medicamentos da TB (MMTB)
     </ListHeader>
     <ListHeader
       v-else
@@ -18,7 +18,7 @@
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Mapa
-      Mensal de Medicamento da TB (MMTB)
+      Mensal de Medicamentos da TB (MMTB)
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -47,7 +47,7 @@
 import Report from 'src/services/api/report/ReportService';
 import { ref, provide } from 'vue';
 import { LocalStorage } from 'quasar';
-import mmiaReport from 'src/services/reports/ClinicManagement/Mmia.ts';
+import mmiaReport from 'src/services/reports/ClinicManagement/tb/MmiaTb';
 
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
@@ -61,7 +61,7 @@ const { alertError } = useSwal();
 
 const serviceAux = ref(null);
 const resultFromLocalStorage = ref(false);
-const name = 'Mmia';
+const name = 'MmiaTb';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);

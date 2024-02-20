@@ -373,7 +373,7 @@ onMounted(() => {
     getProcessingStatus(reportParams.value)
     periodTypeSelect.value = reportParams.value.periodTypeView
   }
-  if (props.tabName  === 'Mmia') isMMiaReport.value = true // MMia eh so no periodo mensal
+  if (props.tabName  === 'Mmia' || props.tabName  ==='MmiaTb') isMMiaReport.value = true // MMia eh so no periodo mensal
 });
 
 const processingTerminated = computed(() => {
