@@ -212,6 +212,15 @@
                     : 1
                 }}
               </q-td>
+              <q-td auto-width key="packs" :props="props">
+                {{
+                  Math.floor(
+                    getQtyRemain(props.row, curPrescription.duration.weeks) /
+                      props.row.drug.packSize
+                  )
+                }}
+                ({{ getQtyRemain(props.row, curPrescription.duration.weeks) }})
+              </q-td>
               <q-td key="options" :props="props">
                 <q-btn
                   flat
@@ -475,7 +484,8 @@ const {
 } = useDateUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
-const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
+const { alertSucess, alertError, alertInfo, alertWarningAction, alertWarning } =
+  useSwal();
 const { getQtyPrescribed } = usePrescribedDrug();
 const { remainigDuration } = usePrescription();
 const { getQtyRemain } = usePrescribedDrug();
@@ -550,6 +560,17 @@ const columns = [
         ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
         : 1,
     label: 'Quantidade em (Frascos)',
+    sortable: false,
+  },
+  {
+    name: 'packs',
+    align: 'center',
+    style: 'width: 20px',
+    field: (row) =>
+      getQtyPrescribed(row, curPrescription.value.duration.weeks) > 0
+        ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
+        : 1,
+    label: 'Sobra em Frasco(Unidade)',
     sortable: false,
   },
   {
@@ -909,6 +930,26 @@ const validateForm = () => {
     }
   }
 };
+const checkIfExistsAnyQuanityRemainForDispense = () => {
+  return packService.checkIfExistsAnyQuanityRemainForDispense(
+    curPatientVisitDetail.value.pack.packagedDrugs
+  );
+};
+const totalRemainAcumulado = (drug) => {
+  let totalAcumulado = 0;
+  const lastPackAux = packService.getLastPackFromPatientAndDrug(patient, drug);
+  totalAcumulado = Number(lastPackAux.quantityRemain);
+  return totalAcumulado;
+};
+const totalQuantityRemainFrascos = (drug) => {
+  const total = totalRemainAcumulado(drug);
+  return Math.floor(total / drug.packSize);
+};
+//se forem 45 num packsize 30 o valor sera 15
+const totalQuantityRemainUnidades = (drug) => {
+  const valor = totalRemainAcumulado(drug) % drug.packSize;
+  return valor;
+};
 
 const allGoodvalidatedForm = () => {
   curPrescription.value.leftDuration = remainigDuration(curPrescription.value);
@@ -950,8 +991,14 @@ const allGoodvalidatedForm = () => {
   curPatientVisitDetail.value.pack = curPack.value;
   curPatientVisitDetail.value.prescription = curPrescription.value;
   curPatientVisitDetail.value.prescription_id = curPrescription.value.id;
-  curPatientVisitDetail.value.episode = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value : lastRefferalEpisode.value
-  curPatientVisitDetail.value.episode_id = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value.id : lastRefferalEpisode.value.id
+  curPatientVisitDetail.value.episode =
+    lastStartEpisode.value !== null && lastStartEpisode.value !== undefined
+      ? lastStartEpisode.value
+      : lastRefferalEpisode.value;
+  curPatientVisitDetail.value.episode_id =
+    lastStartEpisode.value !== null && lastStartEpisode.value !== undefined
+      ? lastStartEpisode.value.id
+      : lastRefferalEpisode.value.id;
 
   addPackagedDrugs();
   showServiceDrugsManagement.value = true;
@@ -997,7 +1044,6 @@ const addPackagedDrugs = () => {
   });
 };
 const generatePacks = async (packagedDrug) => {
-  packagedDrug.quantityRemain = quantityRemainAux;
   const packagedDrugStocks = [];
 
   let quantitySupplied = packagedDrug.quantitySupplied;
@@ -1075,18 +1121,19 @@ const addPatientVisitDetail = async () => {
 
   let quantityRemainAux = 0;
   curPatientVisitDetail.value.pack.packagedDrugs.forEach((packagedDrug) => {
-    if (lastPack.value !== null) {
-      lastPack.value.packagedDrugs.find((itemLastPackagedDrug) => {
-        if (packagedDrug.drug.id === itemLastPackagedDrug.drug.id) {
-          const qtyRemain = getQtyRemain(
-            packagedDrug,
-            curPrescription.value.duration.weeks
-          );
-          quantityRemainAux =
-            Number(qtyRemain) + Number(itemLastPackagedDrug.quantityRemain);
-          packagedDrug.quantityRemain = quantityRemainAux;
-        }
-      });
+    const lastPackagedDrug = packService.getLastPackFromPatientAndDrug(
+      patient,
+      packagedDrug.drug
+    );
+
+    if (lastPackagedDrug !== null) {
+      const qtyRemain = getQtyRemain(
+        packagedDrug,
+        curPrescription.value.duration.weeks
+      );
+      quantityRemainAux =
+        Number(qtyRemain) + Number(lastPackagedDrug.quantityRemain);
+      packagedDrug.quantityRemain = quantityRemainAux;
     } else {
       const qtyRemain = getQtyRemain(
         packagedDrug,
@@ -1161,6 +1208,32 @@ const addPatientVisitDetail = async () => {
   }
 };
 const allGoodValidatatedDispense = () => {
+  if (checkIfExistsAnyQuanityRemainForDispense()) {
+    let hasToshowAlertRemain = false;
+    let warningMessage =
+      'O paciente passara a ter de Sobra os medicamentos: \n ';
+    const currentPackagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
+    let index = 1;
+    for (const packagedDrug of currentPackagedDrugs) {
+      const acumulado = totalRemainAcumulado(packagedDrug.drug);
+      if (acumulado > 0) {
+        hasToshowAlertRemain = true;
+        warningMessage +=
+          index +
+          '.  ' +
+          totalQuantityRemainFrascos(packagedDrug.drug) +
+          ' frasco(s) e ' +
+          totalQuantityRemainUnidades(packagedDrug.drug) +
+          ' unidade(s) de ' +
+          packagedDrug.drug.name +
+          '\n';
+        index++;
+      }
+    }
+    if (hasToshowAlertRemain) {
+      alertWarning(warningMessage);
+    }
+  }
   validateDispense.value = true;
   curPrescription.value.leftDuration = Number(
     (Number(curPrescription.value.duration.weeks) -
@@ -1169,8 +1242,14 @@ const allGoodValidatatedDispense = () => {
   );
   curPatientVisit.value.visitDate = curPrescription.value.prescriptionDate;
   curPatientVisitDetail.value.prescription = curPrescription.value;
-  curPatientVisitDetail.value.episode = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value : lastRefferalEpisode.value;
-  curPatientVisitDetail.value.episode_id = lastStartEpisode.value !== null && lastStartEpisode.value !== undefined ? lastStartEpisode.value.id : lastRefferalEpisode.value.id;
+  curPatientVisitDetail.value.episode =
+    lastStartEpisode.value !== null && lastStartEpisode.value !== undefined
+      ? lastStartEpisode.value
+      : lastRefferalEpisode.value;
+  curPatientVisitDetail.value.episode_id =
+    lastStartEpisode.value !== null && lastStartEpisode.value !== undefined
+      ? lastStartEpisode.value.id
+      : lastRefferalEpisode.value.id;
   curPatientVisit.value.patientVisitDetails.push(curPatientVisitDetail.value);
 };
 

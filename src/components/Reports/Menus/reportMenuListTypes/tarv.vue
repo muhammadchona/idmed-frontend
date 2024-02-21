@@ -108,7 +108,10 @@ const menu = [
     menuItem: [
       { description: 'Lista de Stock Recebido', tabName: 'ReceivedStock' },
       { description: 'Lista de Stock Usado', tabName: 'UsedStock' },
-      // { description: 'Medicamentos Remanescentes (Sobras/Perdas)', tabName: 'QuantityRemain' },
+      {
+        description: 'Medicamentos Remanescentes (Sobras/Perdas)',
+        tabName: 'QuantityRemain',
+      },
       // { description: 'Inventario Parcial', tabName: 'partialInventory' },
       // { description: 'Inventario Geral', tabName: 'generalInventory' },
     ],
