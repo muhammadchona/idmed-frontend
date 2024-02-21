@@ -175,7 +175,12 @@ export default {
       });
   },
   getAllGroups() {
-    return group.query().with('groupType').with('service').get();
+    return group
+      .query()
+      .with('groupType')
+      .with('dispenseType')
+      .with('service')
+      .get();
   },
 
   getGroupById(groupId: string) {
@@ -201,6 +206,7 @@ export default {
         query.with('identifierType');
       })
       .with('groupType')
+      .with('dispenseType')
       .with('clinic', (query) => {
         query.withAllRecursive(1);
       })
@@ -215,6 +221,7 @@ export default {
     return group
       .withAll()
       .with('groupType')
+      .with('dispenseType')
       .where('endDate', null)
       .where('clinical_service_id', serviceId)
       .whereHas('members', (query) => {
