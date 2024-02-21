@@ -118,12 +118,15 @@ import clinicalServiceService from 'src/services/api/clinicalServiceService/clin
 import { useLoading } from 'src/composables/shared/loading/loading';
 
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
-// import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue'
-// import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue'
-// import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
-// import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
-// import partialInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
-// import generalInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+
+import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue'
+import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue'
+import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
+import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+import partialInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+import generalInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
+import MmiaTb from 'components/Reports/ClinicManagement/tb/MmiaTb.vue';
 
 const { closeLoading, showloading } = useLoading();
 
@@ -146,15 +149,16 @@ const componentsList = {
   PatientHistory,
   PatientHistoryPREP,
   PatientHistoryTPT,
-  NotSynchronizedPack,
-
-  // SemiannualDispensation,
-  // QuarterlyDispensation,
-  // PrepDailyRegister,
-  // TptDailyRegister,
+  NotSynchronizedPack, 
+  SemiannualDispensation,
+  QuarterlyDispensation,
+  PrepDailyRegister,
+  TptDailyRegister,
   QuantityRemain,
-  // partialInventory,
-  // generalInventory
+  partialInventory,
+  generalInventory,
+  expectedOfDay,
+  MmiaTb
 };
 
 const { isMobile } = useSystemUtils();

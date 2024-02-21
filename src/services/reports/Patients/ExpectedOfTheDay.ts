@@ -8,10 +8,10 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isMobile, isOnline } = useSystemUtils();
-const reportName = 'PacientesEmDT'
+const reportName = 'PacientesActivosNaFarmacia'
 const logoTitle =
 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
-const title = 'Lista de Pacientes em Dispensa Trimestral'
+const title = 'Lista de Pacientes Activos na Farmácia'
 const fileName = reportName.concat(
 '_' + moment(new Date()).format('DD-MM-YYYY')
 )
@@ -37,10 +37,10 @@ export default {
     // image.src = '/src/assets/MoHLogo.png'
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
-    const headerReport = [
+  const headerReport = [
     [
       {
-        content: 'Pacientes em Dispensa Trimestral',
+        content: 'Lista de Pacientes Activos na Farmácia',
         styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
         colSpan: 3,
         halign: 'center',
@@ -121,7 +121,7 @@ export default {
       'NID',
       'Nome',
       'Idade',
-      'Data da Prescrição',
+      'Contacto',
       'Tipo Paciente',
       'Linha Terapêutica',
       'Regime Terapêutico',
@@ -139,7 +139,7 @@ export default {
       createRow.push(rows[row].nid)
       createRow.push(rows[row].firstNames + ' ' + rows[row].lastNames)
       createRow.push(rows[row].age)
-      createRow.push(moment(new Date(rows[row].prescriptionDate)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].cellphone)
       createRow.push(rows[row].patientType)
       createRow.push(rows[row].therapeuticLine)
       createRow.push(rows[row].therapeuticRegimen)
@@ -150,44 +150,6 @@ export default {
       ord += 1
     }
     ord = 0
-
-    autoTable(doc, {
-      theme: 'grid',
-      bodyStyles: {
-        halign: 'center',
-        fontSize: 6,
-      },
-      columnStyles: {
-        0: { cellWidth: 50 },
-        1: { cellWidth: 50 }
-      },
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 6,
-        fillColor: [75, 76, 77],
-      },
-      styles: {
-        maxCellHeight: 4,
-      },
-      head: [
-        [{
-          content: 'Qualificação dos Pacientes',
-          colSpan: 2,
-          styles: { halign: 'center', fillColor: [75, 76, 77] , fontStyle: 'bold'},
-        }]
-      ],
-      body: [
-          [{ content: 'TIPO', styles: { halign: 'center', fillColor: [75, 76, 77] , fontStyle: 'bold', textColor: [255, 255, 255]}},{content: 'TOTAL', styles: { halign: 'center', fillColor: [75, 76, 77] , fontStyle: 'bold', textColor: [255, 255, 255]}}],
-          [{ content: 'Novos',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],  
-          [{ content: 'Manutenção',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],
-          [{ content: 'Manutenção Transporte',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],
-          [{ content: 'Cumulativo em DT',styles: { halign: 'center'}},{content: ' ',styles: { halign: 'center'}}],
-      ],
-      startY: doc.lastAutoTable.finalY + 5
-    });
-    
-
     autoTable(doc, {
       bodyStyles: {
         halign: 'center',
@@ -217,7 +179,7 @@ export default {
         const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
         doc.text(str, data.settings.margin.right, pageHeight - 10);        
       },
-      startY: doc.lastAutoTable.finalY + 5,
+      startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
       body: data
@@ -294,7 +256,7 @@ export default {
           wrapText: true
         }
 
-      cellPharm.alignment =
+    cellPharm.alignment =
       cellDistrict.alignment =
       cellProvince.alignment =
       cellStartDate.alignment =
@@ -400,7 +362,7 @@ export default {
         { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
         { name: 'Idade', totalsRowFunction: 'none', filterButton: false },
         {
-          name: 'Data da Prescrição',
+          name: 'Contacto',
           totalsRowFunction: 'none',
           filterButton: false
         },
@@ -552,7 +514,7 @@ export default {
       createRow.push(rows[row].nid)
       createRow.push(rows[row].firstNames + ' ' + rows[row].middleNames + ' ' + rows[row].lastNames)
       createRow.push(rows[row].age)
-      createRow.push(moment(new Date(rows[row].prescriptionDate)).format('DD-MM-YYYY'))
+      createRow.push(rows[row].cellphone)
       createRow.push(rows[row].patientType)
       createRow.push(rows[row].therapeuticLine)
       createRow.push(rows[row].therapeuticRegimen)

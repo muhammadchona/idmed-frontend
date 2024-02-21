@@ -353,15 +353,17 @@ const saveAllAdjustments = (inventory) => {
         adjustment.adjustedValue = Number(
           adjustment.balance - adjustment.adjustedStock.stockMoviment
         );
+        adjustment.adjustedStock.stockMoviment =
+          adjustment.adjustedStock.stockMoviment + adjustment.adjustedValue;
       } else if (inventoryStockAdjMethod.isNegativeAdjustment(adjustment)) {
         adjustment.adjustedValue = Number(
           adjustment.adjustedStock.stockMoviment - adjustment.balance
         );
+        adjustment.adjustedStock.stockMoviment =
+          adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue;
       } else {
         adjustment.adjustedValue = 0;
       }
-      adjustment.adjustedStock.stockMoviment =
-        adjustment.adjustedStock.stockMoviment + adjustment.balance;
     }.bind(this)
   );
   doSaveAll(0, inventory);

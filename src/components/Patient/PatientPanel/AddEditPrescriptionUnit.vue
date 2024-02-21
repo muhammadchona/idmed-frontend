@@ -355,7 +355,11 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement || !isNewPrescription"
+          :disable="
+            showServiceDrugsManagement ||
+            !isNewPrescription ||
+            selectedMember != null
+          "
           ref="dispenseTypeRef"
           :rules="[(val) => !!val || 'Por favor indicar o tipo de dispensa']"
           v-model="curPrescriptionDetail.dispenseType"
@@ -510,7 +514,7 @@ const curPrescriptionDetail = ref(new PrescriptionDetail({ id: uuidv4() }));
 const curPatientVisitDetail = ref(new PatientVisitDetails({ id: uuidv4() }));
 const curPack = ref(new Pack({ id: uuidv4() }));
 const validateDispense = ref(false);
-
+const submittingValidateDispense = ref(false);
 const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia', 'Outro']);
 const patientStatusOption = ref(['Inicio', 'Manutenção']);
 const showServiceDrugsManagement = ref(false);
@@ -820,9 +824,18 @@ const init = () => {
       let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
       packagedDrugEdit.drug = packagedDrug.drug;
       packagedDrugEdit.drug_id = packagedDrug.drug.id;
-      packagedDrugEdit.amtPerTime = packagedDrug.amtPerTime;
-      packagedDrugEdit.timesPerDay = packagedDrug.timesPerDay;
-      packagedDrugEdit.form = packagedDrug.form;
+      packagedDrugEdit.amtPerTime =
+        packagedDrug.amtPerTime !== 0
+          ? packagedDrug.amtPerTime
+          : packagedDrug.drug.defaultTimes;
+      packagedDrugEdit.timesPerDay =
+        packagedDrug.timesPerDay !== 0
+          ? packagedDrug.amtPerTime
+          : packagedDrug.drug.defaultTimes;
+      packagedDrugEdit.form =
+        packagedDrug.form !== null
+          ? packagedDrug.form
+          : packagedDrug.drug.defaultPeriodTreatment;
 
       curPack.value.packagedDrugs.push(packagedDrugEdit);
     });
@@ -846,6 +859,7 @@ const init = () => {
 };
 
 const validateForm = () => {
+  let error = 'Os Seguintes Medicamentos Prescritos estão inactivos: ';
   if (!reasonOutroSelected.value) {
     curPrescriptionDetail.value.reasonForUpdateDesc = '';
   }
@@ -914,6 +928,9 @@ const validateForm = () => {
       );
     } else if (curPrescription.value.prescribedDrugs.length === 0) {
       alertError('A Prescrição deve ter pelo menos um medicamento prescrito');
+    } else if (checkPrescribedDrugActive() !== '') {
+      error += checkPrescribedDrugActive();
+      alertError(error);
     } else if (lastPack.value !== null && lastPack.value !== undefined) {
       if (
         lastPack.value.nextPickUpDate > lastPack4daysAdd &&
@@ -949,6 +966,22 @@ const totalQuantityRemainFrascos = (drug) => {
 const totalQuantityRemainUnidades = (drug) => {
   const valor = totalRemainAcumulado(drug) % drug.packSize;
   return valor;
+};
+
+const checkPrescribedDrugActive = () => {
+  const prescribedDrugs = curPrescription.value.prescribedDrugs;
+
+  let drugs = '';
+  for (const prescribedDrug of prescribedDrugs) {
+    if (prescribedDrug.drug.active === false) {
+      drugs += prescribedDrug.drug.name;
+    }
+  }
+  if (drugs !== '') {
+    // error += drugs;
+    //  alertError(error);
+  }
+  return drugs;
 };
 
 const allGoodvalidatedForm = () => {
@@ -1111,7 +1144,9 @@ const checkPackageDrugQtySupplied = () => {
 
   return indexToRemove;
 };
+
 const addPatientVisitDetail = async () => {
+  submittingValidateDispense.value = true;
   let pickupDate4daysAdd = date.addToDate(
     curPatientVisitDetail.value.pack.pickupDate,
     {
@@ -1147,23 +1182,28 @@ const addPatientVisitDetail = async () => {
   const itemsSuppliedToRemove = checkPackageDrugQtySupplied();
   const itemsToRemove = await checkStockToPack();
   if (itemsSuppliedToRemove.length > 0) {
+    submittingValidateDispense.value = false;
     alertError(
       ' Existem medicamentos sem quantidade por dispensar na lista. Por favor, remova'
     );
   } else if (itemsToRemove.length > 0) {
+    submittingValidateDispense.value = false;
     alertError(' Existem medicamentos sem stock na lista. Por favor, remova');
   } else if (
     Number(curPatientVisitDetail.value.pack.weeksSupply / 4) >
     remainigDuration(curPatientVisitDetail.value.prescription)
   ) {
+    submittingValidateDispense.value = false;
     alertError(
       'O Período para o qual pretende efectuar a dispensa é maior que o período remanescente nesta prescrição [' +
         remainigDuration(curPatientVisitDetail.value.prescription) +
         ' mes(es)]'
     );
   } else if (curPatientVisitDetail.value.pack.packagedDrugs.length === 0) {
+    submittingValidateDispense.value = false;
     alertError('Deve ter pelo menos um medicamento para efectuar a dispensa');
   } else if (Number(curPatientVisitDetail.value.pack.weeksSupply) <= 0) {
+    submittingValidateDispense.value = false;
     alertError(
       'Por favor indicar o período para o qual pretende efectuar a dispensa de medicamento' +
         props.identifier.service.code
@@ -1172,6 +1212,7 @@ const addPatientVisitDetail = async () => {
     getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.pickupDate) >
     getYYYYMMDDFromJSDate(moment())
   ) {
+    submittingValidateDispense.value = false;
     alertError('A data de levantamento indicada é maior que a data corrente');
   } else if (lastPack.value !== null && lastPack.value !== undefined) {
     if (
@@ -1196,15 +1237,19 @@ const addPatientVisitDetail = async () => {
               .toDate();
           }
           allGoodValidatatedDispense();
+          submittingValidateDispense.value = false;
         } else {
           allGoodValidatatedDispense();
+          submittingValidateDispense.value = false;
         }
       });
     } else {
       allGoodValidatatedDispense();
+      submittingValidateDispense.value = false;
     }
   } else {
     allGoodValidatatedDispense();
+    submittingValidateDispense.value = false;
   }
 };
 const allGoodValidatatedDispense = () => {
@@ -1255,6 +1300,7 @@ const allGoodValidatatedDispense = () => {
 
 const removePatientVisitDetail = () => {
   validateDispense.value = false;
+  submittingValidateDispense.value = false;
   const i = curPatientVisit.value.patientVisitDetails
     .map((toRemove) => toRemove.id)
     .indexOf(curPatientVisitDetail.value.id);
@@ -1566,6 +1612,7 @@ provide('validateDispense', validateDispense);
 provide('addPatientVisitDetail', addPatientVisitDetail);
 provide('removePatientVisitDetail', removePatientVisitDetail);
 provide('submittingPrescribedDrug', submittingPrescribedDrug);
+provide('submittingValidateDispense', submittingValidateDispense);
 </script>
 
 <style lang="scss">

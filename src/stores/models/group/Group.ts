@@ -5,6 +5,7 @@ import ClinicalService from '../ClinicalService/ClinicalService';
 import Clinic from '../clinic/Clinic';
 import GroupPackHeader from './GroupPackHeader';
 import { v4 as uuidv4 } from 'uuid';
+import DispenseType from '../dispenseType/DispenseType';
 
 export default class Group extends Model {
   static entity = 'groups';
@@ -26,6 +27,7 @@ export default class Group extends Model {
       service: this.belongsTo(ClinicalService, 'clinical_service_id'),
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       packHeaders: this.hasMany(GroupPackHeader, 'group_id'),
+      dispenseType: this.belongsTo(DispenseType, 'dispenseType_id'),
     };
   }
   static piniaOptions = {
