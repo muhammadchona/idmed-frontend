@@ -149,7 +149,7 @@ const componentsList = {
   PatientHistory,
   PatientHistoryPREP,
   PatientHistoryTPT,
-  NotSynchronizedPack,
+  NotSynchronizedPack, 
   SemiannualDispensation,
   QuarterlyDispensation,
   PrepDailyRegister,

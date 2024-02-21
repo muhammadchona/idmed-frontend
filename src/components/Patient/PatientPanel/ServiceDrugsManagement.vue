@@ -22,13 +22,15 @@
           <q-tr class="text-left bg-green-2" :props="props">
             <q-th>{{ columns[0].label }}</q-th>
             <q-th>{{ columns[1].label }}</q-th>
+            <q-th>{{ columns[2].label }}</q-th>
+
+            <q-th>{{ columns[3].label }}</q-th>
             <q-th v-if="!curPatientVisitDetail.createPackLater">{{
-              columns[2].label
+              columns[4].label
             }}</q-th>
             <q-th v-if="!curPatientVisitDetail.createPackLater">{{
-              columns[3].label
+              columns[5].label
             }}</q-th>
-            <q-th>{{ columns[4].label }}</q-th>
           </q-tr>
         </template>
         <template #body="props">
@@ -74,6 +76,15 @@
               :props="props"
             >
               {{ props.row.quantitySupplied }}
+            </q-td>
+            <q-td key="quantityRemain" :props="props">
+              {{
+                Math.floor(
+                  getQtyRemain(props.row, curPrescription.duration.weeks) /
+                    props.row.drug.packSize
+                )
+              }}
+              ({{ getQtyRemain(props.row, curPrescription.duration.weeks) }})
             </q-td>
             <q-td
               :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
@@ -165,6 +176,7 @@ import { debounce } from 'lodash';
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { remainigDurationInWeeks } = usePrescription();
+const { getQtyRemain } = usePrescribedDrug();
 const columns = [
   {
     name: 'drug',
@@ -189,12 +201,20 @@ const columns = [
     sortable: false,
   },
   {
+    name: 'quantityRemain',
+    align: 'center',
+    field: 'quantityRemain',
+    label: 'Sobra em Frasco(Unidade)',
+    sortable: false,
+  },
+  {
     name: 'nextPickUpDate',
     align: 'left',
     field: 'row.toContinue',
     label: 'Próx. Levantamento',
     sortable: false,
   },
+
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 const showAddEditDrug = ref(false);

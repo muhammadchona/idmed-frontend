@@ -44,8 +44,12 @@
                         : 'Não continua'
                     }}
                   </q-td>
+                  <q-td key="quantityRemain" :props="props">
+                    {{ totalQuantityRemainFrascos(props.row.drug) }}
+                    ({{ totalUnityRemains(props.row.drug) }})
+                  </q-td>
                   <q-td
-                    :rowspan="pack.packagedDrugs.lenght"
+                    :rowspan="pack.packagedDrugs"
                     auto-width
                     key="opts"
                     :props="props"
@@ -86,7 +90,6 @@
 import { date } from 'quasar';
 
 import { inject, onMounted, provide, ref } from 'vue';
-
 //Declaration
 
 const columns = [
@@ -112,6 +115,13 @@ const columns = [
     label: 'Próximo Levantamento',
     sortable: false,
   },
+  {
+    name: 'quantityRemain',
+    align: 'center',
+    field: 'quantityRemain',
+    label: 'Sobra em Frasco(Unidade)',
+    sortable: false,
+  },
   ,
   { name: 'opts', align: 'left', label: 'Opções', sortable: false },
 ];
@@ -122,6 +132,7 @@ const bgColor = ref('bg-grey-6');
 
 //Inject
 const pack = inject('lastPackOnPrescription');
+const curIdentifier = inject('curIdentifier');
 const removePack = inject('removePack');
 
 // Methods
@@ -129,8 +140,24 @@ const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
 
-provide('bgColor', bgColor);
+const totalRemainAcumulado = (drug) => {
+  let totalAcumulado = 0;
+  pack.value.packagedDrugs.find((itemLastPackagedDrug) => {
+    if (drug.id === itemLastPackagedDrug.drug.id) {
+      totalAcumulado = Number(itemLastPackagedDrug.quantityRemain);
+    }
+  });
+  return totalAcumulado;
+};
+const totalQuantityRemainFrascos = (drug) => {
+  return Math.floor(totalRemainAcumulado(drug) / drug.packSize);
+};
 
+const totalUnityRemains = (drug) => {
+  return totalRemainAcumulado(drug) % drug.packSize;
+};
+
+provide('bgColor', bgColor);
 </script>
 
 <style></style>

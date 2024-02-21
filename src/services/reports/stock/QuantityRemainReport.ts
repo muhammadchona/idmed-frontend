@@ -11,18 +11,19 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isOnline, isMobile } = useSystemUtils();
 
-const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
+const logoTitle =
+  'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
 const title = 'Medicamentos Remanescentes (Sobras/Perdas) das dispensas';
 const reportName = 'MedicamentosRemanescentes';
 const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 const image = new Image();
-    // image.src = '/src/assets/MoHLogo.png'
-    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+// image.src = '/src/assets/MoHLogo.png'
+image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
   async downloadPDF(id, fileType, params) {
-    console.log(params)
+    console.log(params);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -34,8 +35,8 @@ export default {
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
-    
-    console.log(params)
+
+    console.log(params);
 
     const clinic = clinicService.getById(params.clinicId);
 
@@ -60,7 +61,8 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+          content:
+            'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -123,15 +125,16 @@ export default {
     doc.addImage(image, 'png', 28, 15, 10, 10);
 
     const cols = [
-      'Medicamento',
       'FNM',
-      'Saldo',
-      'Recebidos',
+      'Medicamento',
+      'Unidade',
+      'Entrada',
       'Saídas',
-      'Ajustes',
-      'Stock Actual',
+      'Saldo Existente',
+      'Sobras/Perdas',
+      'Observação',
     ];
-    
+
     let data = [];
     if (isOnline.value) {
       const rowsAux = await Report.printReport(
@@ -145,8 +148,10 @@ export default {
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       data = this.createArrayOfArrayRow(rowsAux.data);
     } else {
-      const dataAux = await QuantityRemainMobileService.localDbGetAllByReportId(id);
-      
+      const dataAux = await QuantityRemainMobileService.localDbGetAllByReportId(
+        id
+      );
+
       if (dataAux.length === 0) return 204;
       params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate);
       params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate);
@@ -162,14 +167,15 @@ export default {
         valign: 'middle',
         fontSize: 8,
       },
-      didDrawPage: function (data) 
-      {    
+      didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
         doc.setFontSize(8);
         // jsPDF 1.4+ uses getWidth, <1.4 uses .width
         const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);        
+        const pageHeight = pageSize.height
+          ? pageSize.height
+          : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);
       },
       startY: doc.lastAutoTable.finalY,
       theme: 'grid',
@@ -201,7 +207,9 @@ export default {
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       data = this.createArrayOfArrayRow(rows.data);
     } else {
-      const dataAux = await QuantityRemainMobileService.localDbGetAllByReportId(id);
+      const dataAux = await QuantityRemainMobileService.localDbGetAllByReportId(
+        id
+      );
       if (dataAux === undefined || dataAux.length === 0) return 204;
       data = this.createArrayOfArrayRow(dataAux);
     }
@@ -215,12 +223,12 @@ export default {
     // Force workbook calculation on load
     // workbook.calcProperties.fullCalcOnLoad = true
     const worksheet = workbook.addWorksheet(reportName);
-      const imageId = workbook.addImage({
-        base64: 'data:image/pngbase64,' + MOHIMAGELOG,
-        extension: 'png'
-      }) 
+    const imageId = workbook.addImage({
+      base64: 'data:image/pngbase64,' + MOHIMAGELOG,
+      extension: 'png',
+    });
     // Get Cells
-    const cellRepublica = worksheet.getCell('A8')
+    const cellRepublica = worksheet.getCell('A8');
     const cellTitle = worksheet.getCell('A9');
     const cellPharm = worksheet.getCell('A11');
     const cellDistrict = worksheet.getCell('A12');
@@ -246,11 +254,13 @@ export default {
     // Format Table Cells
     // Alignment Format
     cellRepublica.alignment =
-    cellTitle.alignment = headerRow.alignment = {
-      vertical: 'middle',
-      horizontal: 'center',
-      wrapText: true,
-    };
+      cellTitle.alignment =
+      headerRow.alignment =
+        {
+          vertical: 'middle',
+          horizontal: 'center',
+          wrapText: true,
+        };
     cellPharm.alignment =
       cellDistrict.alignment =
       cellProvince.alignment =
@@ -262,8 +272,8 @@ export default {
           wrapText: false,
         };
     // Border Format
-     cellRepublica.border =
-    cellTitle.border =
+    cellRepublica.border =
+      cellTitle.border =
       cellPharm.border =
       cellDistrictParamValue.border =
       cellDistrict.border =
@@ -281,7 +291,7 @@ export default {
           right: { style: 'thin' },
         };
     // Assign Value to Cell
-     cellRepublica.value = logoTitle
+    cellRepublica.value = logoTitle;
     cellTitle.value = title;
     cellPharmParamValue.value =
       params.clinic !== null ? params.clinic.clinicName : clinic.clinicName;
@@ -301,7 +311,7 @@ export default {
     cellStartDate.value = 'Data Início';
     cellEndDate.value = 'Data Fim';
     // merge a range of cells
-    worksheet.mergeCells('A1:A7')
+    worksheet.mergeCells('A1:A7');
     worksheet.mergeCells('A9:G9');
     worksheet.mergeCells('B11:E11');
     worksheet.mergeCells('B12:C12');
@@ -337,9 +347,9 @@ export default {
         };
     // Add Image
     worksheet.addImage(imageId, {
-        tl: { col: 0, row: 1 },
-        ext: { width: 144, height: 98 }
-      })
+      tl: { col: 0, row: 1 },
+      ext: { width: 144, height: 98 },
+    });
     // Cereate Table
     worksheet.addTable({
       name: reportName,
@@ -349,15 +359,10 @@ export default {
       style: {
         showRowStripes: false,
       },
-
       columns: [
-        { name: 'Medicamento', filterButton: false },
         { name: 'FNM', filterButton: false },
-        {
-          name: 'Saldo',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
+        { name: 'Medicamento', filterButton: false },
+        { name: 'Unidade', filterButton: false },
         {
           name: 'Recebidos',
           totalsRowFunction: 'none',
@@ -369,12 +374,17 @@ export default {
           filterButton: false,
         },
         {
-          name: 'Ajustes',
+          name: 'Saldo Existente',
           totalsRowFunction: 'none',
           filterButton: false,
         },
         {
-          name: 'Stock Actual',
+          name: 'Sobras/Perdas',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Observação',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -503,18 +513,15 @@ export default {
     const data = [];
     for (const row in rows) {
       const createRow = [];
-      createRow.push(rows[row].drugName);
       createRow.push(rows[row].fnName);
-      createRow.push(Number(rows[row].actualStock));
+      createRow.push(rows[row].drugName);
+      createRow.push(rows[row].packSize);
       createRow.push(rows[row].receivedStock);
       createRow.push(rows[row].stockIssued);
-      createRow.push(rows[row].adjustment);
-      createRow.push(
-        rows[row].actualStock +
-          Number(rows[row].receivedStock) -
-          Number(rows[row].stockIssued) -
-          Number(rows[row].adjustment)
-      );
+      createRow.push(Number(rows[row].balance));
+      createRow.push(rows[row].quantityRemain);
+      createRow.push(rows[row].notes);
+
       data.push(createRow);
     }
     return data;
