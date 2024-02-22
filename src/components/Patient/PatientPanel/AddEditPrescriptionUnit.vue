@@ -955,7 +955,9 @@ const checkIfExistsAnyQuanityRemainForDispense = () => {
 const totalRemainAcumulado = (drug) => {
   let totalAcumulado = 0;
   const lastPackAux = packService.getLastPackFromPatientAndDrug(patient, drug);
-  totalAcumulado = Number(lastPackAux.quantityRemain);
+  if (lastPackAux !== undefined && lastPackAux !== null) {
+    totalAcumulado = Number(lastPackAux.quantityRemain);
+  }
   return totalAcumulado;
 };
 const totalQuantityRemainFrascos = (drug) => {
@@ -1161,7 +1163,7 @@ const addPatientVisitDetail = async () => {
       packagedDrug.drug
     );
 
-    if (lastPackagedDrug !== null) {
+    if (lastPackagedDrug !== null && lastPackagedDrug !== undefined) {
       const qtyRemain = getQtyRemain(
         packagedDrug,
         curPrescription.value.duration.weeks
