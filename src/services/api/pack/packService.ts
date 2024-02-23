@@ -238,4 +238,30 @@ export default {
       .orderBy('pickupDate', 'desc')
       .get();
   },
+
+  getLastPackFromPatientAndDrug(patient: string, drug: string) {
+    const list = pack
+      .withAllRecursive(3)
+      .whereHas('packagedDrugs', (query) => {
+        query.where('drug_id', drug.id);
+      })
+      .orderBy('pickupDate', 'desc')
+      .first();
+    if (list != null) {
+      const foundPackagedDrug = list.packagedDrugs.find((packagedDrug) => {
+        return packagedDrug.drug.id === drug.id;
+      });
+      return foundPackagedDrug;
+    }
+  },
+
+  checkIfExistsAnyQuanityRemainForDispense(packagedDrugs: any) {
+    let counter = 0;
+    for (const pd of packagedDrugs) {
+      if (pd.quantityRemain > 0) {
+        counter += pd.quantityRemain;
+      }
+    }
+    return counter > 0;
+  },
 };
