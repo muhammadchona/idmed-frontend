@@ -76,39 +76,40 @@ export default {
       if (mmiaReport.status === 204 || mmiaReport.data.length === 0) return 204;
       mmiaData = mmiaReport.data;
       mmiaStockData = mmiaData.mmiaStockSubReportItemList;
-      mmiaRegimenData = mmiaData.mmiaRegimenSubReportList;
+      mmiaRegimenData = mmiaData.mmiaRegimenSubReportList; // A usar de forma provisoria, por causa das limitacoes do grails
+      console.log(mmiaData)
     } else {
       mmiaData = await MmiaMobileService.getDataLocalReportMmia(id);
       if (mmiaData === undefined || mmiaData.length === 0) return 204;
       mmiaStockData = await MmiaMobileService.getDataLocalReportStock(id);
-      mmiaRegimenData = await MmiaMobileService.getDataLocalReportRegimen(id);
+      mmiaRegimenData = await MmiaMobileService.getDataLocalReportRegimen(id); 
     }
 
     const stockdata = this.createArrayOfArrayRow(mmiaStockData);
     const regimendata = this.createRegimenArrayOfArrayRow(mmiaRegimenData);
-    const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData);
-    const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData);
-    const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData);
+    // const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData);
+    // const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData);
+    // const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData);
     const pacienteTipoTable = this.pacienteTipoTableData('XLS');
-    const fasesProfilaxiaTable = this.fasesProfilaxiaTableData('XLS');
+    const fasesProfilaxiaTable = this.fasesProfilaxiaTableData('XLS', mmiaRegimenData);
     const periodicidadeDaDispensaTable =
-      this.periodicidadeDaDispensaTableData('XLS');
+      this.periodicidadeDaDispensaTableData('XLS', mmiaRegimenData);
     const miaRegimenTotalData = this.createRegimenTotalArrayRow(
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
-    const miaLinesSumaryData = this.createLinesSumaryArrayRow(
-      isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
-    );
-    const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(
-      isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
-    );
-    const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData);
-    const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData);
-    const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData);
-    const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData);
+    // const miaLinesSumaryData = this.createLinesSumaryArrayRow(
+    //   isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
+    //   'XLS'
+    // );
+    // const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(
+    //   isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
+    //   'XLS'
+    // );
+    // const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData);
+    // const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData);
+    // const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData);
+    // const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData);
     const footer = this.createFotterTableRow();
 
     const month = months[new Date(mmiaData.endDate).getMonth()];
@@ -342,7 +343,7 @@ export default {
             content: '',
           },
           {
-            content: '',
+            content: mmiaRegimenData[0].totaldcline2,
           },
         ],
         [
@@ -353,7 +354,12 @@ export default {
             content: '',
           },
           {
-            content: '',
+            rowSpan: 2,
+            content: mmiaRegimenData[0].totaldcline1,
+            styles: {
+              valign: 'middle',
+              halign: 'center',
+            },
           },
         ],
         [
@@ -362,10 +368,7 @@ export default {
           },
           {
             content: '',
-          },
-          {
-            content: '',
-          },
+          }
         ],
       ],
       startY: thirdTableHeigth + 1,
@@ -1312,7 +1315,7 @@ export default {
     for (const row in rows) {
       counter++;
       const createRow = [];
-      if (counter < 7) {
+      if (counter < 10) {
         createRow.push(rows[row].fnmCode);
         createRow.push(rows[row].drugName);
         createRow.push(rows[row].unit + ' comp');
@@ -1533,7 +1536,7 @@ export default {
     return data;
   },
 
-  periodicidadeDaDispensaTableData(fileType) {
+  periodicidadeDaDispensaTableData(fileType, mmiaRegimenData) {
     const data = [];
     let totalPatients = 0;
     let cumunitaryClinic = 0;
@@ -1591,16 +1594,16 @@ export default {
     // row1.push({content: 'Periodicidade da Dispensa', styles: {halign: 'center', fillColor: [197, 159, 85], textColor: [187, 216, 118], fontStyle: 'bold', textColor: [255, 255, 255]}}, {content: 'Total', styles: {halign: 'center', fontStyle: 'bold', textColor: [187, 216, 118], fillColor: [197, 159, 85], textColor: [255, 255, 255]}});
     row2.push(
       { content: 'Mensal', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: mmiaRegimenData[0].totalline2, styles: { halign: 'center' } }
     );
     row3.push(
       { content: 'Trimestral', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: mmiaRegimenData[0].totalline1, styles: { halign: 'center' } }
     );
     row4.push(
       { content: '', styles: { halign: 'left' } },
       { content: 'Total', styles: { halign: 'right' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: mmiaRegimenData[0].totalline2 + mmiaRegimenData[0].totalline1, styles: { halign: 'center' } }
     );
 
     data.push(row1);
@@ -1611,7 +1614,7 @@ export default {
     return data;
   },
 
-  fasesProfilaxiaTableData(fileType) {
+  fasesProfilaxiaTableData(fileType, mmiaRegimenData) {
     const data = [];
     let totalPatients = 0;
     let cumunitaryClinic = 0;
@@ -1670,20 +1673,20 @@ export default {
     // row1.push({content: 'Fases Profilaxia', styles: {halign: 'center', fillColor: [197, 159, 85], textColor: [187, 216, 118], fontStyle: 'bold', textColor: [255, 255, 255]}}, {content: 'Total', styles: {halign: 'center', fontStyle: 'bold', textColor: [187, 216, 118], fillColor: [197, 159, 85], textColor: [255, 255, 255]}});
     row2.push(
       { content: 'Início', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: mmiaRegimenData[0].totaldcline3, styles: { halign: 'center' } }
     );
     row3.push(
       { content: 'Contínua/Manutenção', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: mmiaRegimenData[0].totalline3, styles: { halign: 'center' } }
     );
     row4.push(
       { content: 'Final/Última Dispensa', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: mmiaRegimenData[0].totaldcline4, styles: { halign: 'center' } }
     );
     row5.push(
       { content: '', styles: { halign: 'left' } },
       { content: 'Total', styles: { halign: 'right' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: mmiaRegimenData[0].totaldcline3 + mmiaRegimenData[0].totalline3 + mmiaRegimenData[0].totaldcline4, styles: { halign: 'center' } }
     );
 
     data.push(row1);
@@ -1903,7 +1906,6 @@ export default {
     return data;
   },
   createLinesSumaryArrayRow(rows, fileType) {
-    // JOAO
     const data = [];
     let totallinha1Nr = 0;
     let totallinha2Nr = 0;
@@ -1927,7 +1929,6 @@ export default {
     const createRow3 = [];
     if (fileType == 'PDF') {
       createRow1.push({
-        // colSpan: 1,
         content: '1as Linhas',
         styles: { halign: 'right' },
       });
