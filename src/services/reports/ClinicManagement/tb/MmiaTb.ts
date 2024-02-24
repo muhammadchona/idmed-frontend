@@ -578,14 +578,17 @@ export default {
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
+
     const miaLinesSumaryData = this.createLinesSumaryArrayRow(
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
+
     const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
+
     const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData);
     const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData);
     const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData);
@@ -691,21 +694,21 @@ export default {
 
     // add height size to Columns
     // add width size to Columns
-    colA.width = 13;
+    colA.width = 18;
     colB.width = 70;
-    colC.width = 10;
-    colD.width = 9;
+    colC.width = 35;
+    colD.width = 30;
     colE.width = 10;
-    colF.width = 9;
+    colF.width = 10;
     colG.width = 10;
     colH.width = 12;
     colI.width = 13;
 
     // Add Style
     cellTitle.font =
-      cellDistrict.font =
-      cellProvince.font =
-      cellPharm.font =
+    cellDistrict.font =
+    cellProvince.font =
+    cellPharm.font =
         {
           name: 'Arial',
           family: 2,
@@ -723,7 +726,7 @@ export default {
     // Cereate Table
     worksheet.addTable({
       name: reportName,
-      ref: 'A10',
+      ref: 'A11',
       headerRow: true,
       totalsRow: false,
       style: {
@@ -767,467 +770,488 @@ export default {
       rows: stockdata,
     });
 
-    const RegimenTableRef = Number(worksheet.lastRow.number) + 1;
-    // Cereate Table
-    worksheet.addTable({
-      name: reportName,
-      ref: 'A' + (Number(worksheet.lastRow.number) + 1),
-      headerRow: true,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'Código', totalsRowLabel: 'Totals:', filterButton: false },
-        {
-          name: 'Regime Terapêutico',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Total doentes',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Farmácia Comunitária',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-      ],
-      rows: regimendata,
-    });
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 1) +
-        ':B' +
-        (Number(worksheet.lastRow.number) + 1)
-    );
+    const endOfDrugsTableRef = Number(worksheet.lastRow.number) + 2;
 
-    const cellRegimensTotal = worksheet.getCell(
-      'B' + Number(worksheet.lastRow.number)
-    );
+    const cellFasesTratamento = worksheet.getCell('A'+Number(endOfDrugsTableRef))
+    worksheet.mergeCells('A' + (Number(endOfDrugsTableRef)) + ':B' + (Number(endOfDrugsTableRef)));
+    cellFasesTratamento.value = 'Fases de Tratamento'
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'B' + Number(worksheet.lastRow.number),
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'Total', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'toatl1', totalsRowFunction: 'none', filterButton: false },
-        { name: 'total2', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: miaRegimenTotalData,
-    });
+    const CellNumDiasDispensa = worksheet.getCell('C'+Number(endOfDrugsTableRef))
+    CellNumDiasDispensa.value = 'Nr. Dias Dispensados'
 
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 1) +
-        ':D' +
-        (Number(worksheet.lastRow.number) + 1)
-    );
+    const CellQualifDoentes = worksheet.getCell('E'+Number(endOfDrugsTableRef))
+    worksheet.mergeCells('E' + (Number(endOfDrugsTableRef)) + ':I' + (Number(endOfDrugsTableRef)));
+    CellQualifDoentes.value = 'Quantificação dos doentes'
 
-    const cellLinesHeader = worksheet.getCell(
-      'A' + Number(worksheet.lastRow.number)
-    );
+    /* ************************** */
+    const endOfLastRowTits = Number(worksheet.lastRow.number)
 
-    cellLinesHeader.value = 'Linhas Terapêuticas';
-    const linesTableRef = 'B' + (Number(worksheet.lastRow.number) + 1);
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 1) +
-        ':B' +
-        (Number(worksheet.lastRow.number) + 1)
-    );
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 1) +
-        ':B' +
-        (Number(worksheet.lastRow.number) + 1)
-    );
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 1) +
-        ':B' +
-        (Number(worksheet.lastRow.number) + 1)
-    );
-    worksheet.addTable({
-      name: reportName,
-      ref: linesTableRef,
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'Total', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'toatl1', totalsRowFunction: 'none', filterButton: false },
-        { name: 'total2', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: miaLinesSumaryData,
-    });
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 1) +
-        ':B' +
-        (Number(worksheet.lastRow.number) + 1)
-    );
-    const cellLinesTotal = worksheet.getCell(
-      'B' + Number(worksheet.lastRow.number)
-    );
-    worksheet.addTable({
-      name: reportName,
-      ref: 'B' + Number(worksheet.lastRow.number),
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'Total', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'toatl1', totalsRowFunction: 'none', filterButton: false },
-        { name: 'total2', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: miaLinesSumaryTotalData,
-    });
+    const cellAdulto = worksheet.getCell('A'+Number(endOfLastRowTits+1))
+    worksheet.mergeCells('A' + (Number(endOfLastRowTits+1)) + ':A' + (Number(endOfLastRowTits)+7));
+    cellAdulto.value = 'Adulto'
 
-    worksheet.mergeCells('E' + RegimenTableRef + ':I' + RegimenTableRef);
-    worksheet.mergeCells(
-      'E' + (RegimenTableRef + 1) + ':H' + (RegimenTableRef + 1)
-    );
-    worksheet.mergeCells(
-      'E' + (RegimenTableRef + 2) + ':H' + (RegimenTableRef + 2)
-    );
-    worksheet.mergeCells(
-      'E' + (RegimenTableRef + 3) + ':H' + (RegimenTableRef + 3)
-    );
-    worksheet.mergeCells(
-      'E' + (RegimenTableRef + 4) + ':H' + (RegimenTableRef + 4)
-    );
-    worksheet.mergeCells(
-      'E' + (RegimenTableRef + 5) + ':H' + (RegimenTableRef + 5)
-    );
+    const cellSensivelIntensiva= worksheet.getCell('B'+Number(endOfLastRowTits+1))
+    cellSensivelIntensiva.value = 'Sensível Intensiva'
 
-    const cellTipoDoenteHeader = worksheet.getCell('F' + RegimenTableRef);
+    const cellSensivelIntensivaCont= worksheet.getCell('C'+Number(endOfLastRowTits+1))
+    cellSensivelIntensivaCont.value = ''
 
-    console.log(worksheet.lastRow.number);
+    const cellSensivelManutencao = worksheet.getCell('B'+Number(endOfLastRowTits+2))
+    cellSensivelManutencao.value = 'Sensível Manutenção'
 
-    cellTipoDoenteHeader.value = 'Tipo de doentes em TARV';
+    const cellSensivelManutencaoCont = worksheet.getCell('C'+Number(endOfLastRowTits+2))
+    cellSensivelManutencaoCont.value = ''
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'H' + (RegimenTableRef + 1),
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'desc', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'value', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: miaTipoDoenteData,
-    });
+    const cellMrIntensiva = worksheet.getCell('B'+Number(endOfLastRowTits+3))
+    cellMrIntensiva.value = 'MR Intensiva'
 
-    const refFaixaEtaria = RegimenTableRef + 6;
+    const cellMrIntensivaCont = worksheet.getCell('C'+Number(endOfLastRowTits+3))
+    cellMrIntensivaCont.value = ''
 
-    const cellFaixaEtariaHeader = worksheet.getCell('E' + refFaixaEtaria);
+    const cellMrManutencao = worksheet.getCell('B'+Number(endOfLastRowTits+4))
+    cellMrManutencao.value = 'MR Manutenção'
 
-    cellFaixaEtariaHeader.value = 'Faixa Etária dos Pacientes TARV';
-    worksheet.mergeCells('E' + refFaixaEtaria + ':I' + refFaixaEtaria);
-    worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 1) + ':H' + (refFaixaEtaria + 1)
-    );
-    worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 2) + ':H' + (refFaixaEtaria + 2)
-    );
-    worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 3) + ':H' + (refFaixaEtaria + 3)
-    );
-    worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 4) + ':H' + (refFaixaEtaria + 4)
-    );
+    const cellMrManutencaoCont = worksheet.getCell('C'+Number(endOfLastRowTits+4))
+    cellMrManutencaoCont.value = ''
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'H' + (refFaixaEtaria + 1),
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'desc', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'value', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: miaFaixaEtariaData,
-    });
+    const cellInducao = worksheet.getCell('B'+Number(endOfLastRowTits+5))
+    cellInducao.value = 'XR Indução'
 
-    const refProfilaxia = refFaixaEtaria + 5;
-    const cellProfilaxiaHeader = worksheet.getCell('E' + refProfilaxia);
-    cellFaixaEtariaHeader.value = 'Faixa Etária dos Pacientes TARV';
-    worksheet.mergeCells('E' + refProfilaxia + ':I' + refProfilaxia);
-    worksheet.mergeCells(
-      'E' + (refProfilaxia + 1) + ':H' + (refProfilaxia + 1)
-    );
-    worksheet.mergeCells(
-      'E' + (refProfilaxia + 2) + ':H' + (refProfilaxia + 2)
-    );
-    worksheet.mergeCells(
-      'E' + (refProfilaxia + 3) + ':H' + (refProfilaxia + 3)
-    );
-    worksheet.mergeCells(
-      'E' + (refProfilaxia + 4) + ':H' + (refProfilaxia + 4)
-    );
+    const cellInducaoCont = worksheet.getCell('C'+Number(endOfLastRowTits+5))
+    cellInducaoCont.value = ''
 
-    cellProfilaxiaHeader.value = 'Profilaxia';
+    const cellXRManutencao = worksheet.getCell('B'+Number(endOfLastRowTits+6))
+    cellXRManutencao.value = 'XR Manutenção'
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'H' + (refProfilaxia + 1),
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'desc', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'value', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: miaProfilaxiaData,
-    });
+    const cellXRManutencaoCont = worksheet.getCell('C'+Number(endOfLastRowTits+6))
+    cellXRManutencaoCont.value = ''
 
-    const refDispenseType = refProfilaxia + 5;
-    const cellDispenseTypeHeader = worksheet.getCell('E' + refDispenseType);
-    cellDispenseTypeHeader.value = 'Tipo de Dispensa';
-    worksheet.mergeCells('E' + refDispenseType + ':I' + refDispenseType);
+    const cellXRIntensiva = worksheet.getCell('B'+Number(endOfLastRowTits+7))
+    cellXRIntensiva.value = 'XR Intensiva'
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'E' + (refDispenseType + 1),
-      headerRow: true,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: '-', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'DS', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: mmiadsTypeData,
-    });
+    const cellXRIntensivaCont = worksheet.getCell('C'+Number(endOfLastRowTits+7))
+    cellXRIntensivaCont.value = ''
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'G' + (refDispenseType + 4),
-      headerRow: true,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [{ name: 'DT', totalsRowFunction: 'none', filterButton: false }],
-      rows: mmiadtTypeData,
-    });
+    //-----------
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'H' + (refDispenseType + 6),
-      headerRow: true,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'DM', totalsRowFunction: 'none', filterButton: false },
-        { name: 'Total', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: mmiadmTypeData,
-    });
+    const cellPediatrico= worksheet.getCell('A'+Number(endOfLastRowTits+8))
+    worksheet.mergeCells('A' + (Number(endOfLastRowTits+8)) + ':A' + (Number(endOfLastRowTits)+14));
+    cellPediatrico.value = 'Pediatrico'
+    
+    const cellSensivelIntensiva1 = worksheet.getCell('B'+Number(endOfLastRowTits+8))
+    cellSensivelIntensiva1.value = 'Sensível Intensiva'
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'H' + (refDispenseType + 2),
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'ajuste', totalsRowFunction: 'none', filterButton: false },
-        { name: 'value', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: mmiaAjusteData,
-    });
-    const cellAjuste = worksheet.getCell('H' + (refDispenseType + 2));
+    const cellSensivelIntensivaCont1 = worksheet.getCell('C'+Number(endOfLastRowTits+8))
+    cellSensivelIntensivaCont1.value = ''
 
-    worksheet.mergeCells(
-      'E' + (refDispenseType + 9) + ':I' + (refDispenseType + 9)
-    );
-    worksheet.mergeCells(
-      'E' + (refDispenseType + 10) + ':I' + (refDispenseType + 10)
-    );
-    worksheet.mergeCells(
-      'E' + (refDispenseType + 11) + ':I' + (refDispenseType + 11)
-    );
-    const obs = worksheet.getCell('E' + (refDispenseType + 9));
-    obs.value = 'Observações:';
-    obs.alignment = {
-      horizontal: 'left',
-    };
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 2) +
-        ':B' +
-        (Number(worksheet.lastRow.number) + 2)
-    );
-    worksheet.mergeCells(
-      'C' +
-        Number(worksheet.lastRow.number) +
-        ':F' +
-        Number(worksheet.lastRow.number)
-    );
-    worksheet.mergeCells(
-      'G' +
-        Number(worksheet.lastRow.number) +
-        ':I' +
-        Number(worksheet.lastRow.number)
-    );
+    const cellSensivelManutencao1 = worksheet.getCell('B'+Number(endOfLastRowTits+9))
+    cellSensivelManutencao1.value = 'Sensível Manutenção'
 
-    worksheet.addTable({
-      name: reportName,
-      ref: 'B' + Number(worksheet.lastRow.number),
-      headerRow: false,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-      columns: [
-        { name: 'ajuste', totalsRowFunction: 'none', filterButton: false },
-        { name: 'visto', totalsRowFunction: 'none', filterButton: false },
-        { name: 'value', totalsRowFunction: 'none', filterButton: false },
-      ],
-      rows: footer,
-    });
+    const cellSensivelManutencaoCont1 = worksheet.getCell('C'+Number(endOfLastRowTits+9))
+    cellSensivelManutencaoCont1.value = ''
 
-    worksheet.mergeCells(
-      'A' +
-        (Number(worksheet.lastRow.number) + 1) +
-        ':I' +
-        (Number(worksheet.lastRow.number) + 2)
-    );
+    const cellMrIntensiva1 = worksheet.getCell('B'+Number(endOfLastRowTits+10))
+    cellMrIntensiva1.value = 'MR Intensiva'
 
-    const note = worksheet.getCell('A' + worksheet.lastRow.number);
-    note.value =
-      'Nota: Mapa de Preenchimento Obrigatório Mensal pela Farmácia da Unidade Sanitária \nVersão no 8 19 Nov 2019 DS TLD90 MDS e ARVs de nova geração';
-    note.alignment = {
-      horizontal: 'right',
-    };
-    // Headers style
-    cellDispenseTypeHeader.alignment =
-      cellLinesHeader.alignment =
-      cellProfilaxiaHeader.alignment =
-      cellFaixaEtariaHeader.alignment =
-      cellTipoDoenteHeader.alignment =
-        {
-          vertical: 'middle',
-          horizontal: 'center',
-          wrapText: true,
-        };
-    cellRegimensTotal.alignment = cellLinesTotal.alignment = {
-      horizontal: 'right',
-      wrapText: true,
-    };
-    const cellDS = worksheet.getCell('F' + Number(refDispenseType + 1));
-    const cellDt = worksheet.getCell('G' + Number(refDispenseType + 4));
-    const cellDM = worksheet.getCell('H' + Number(refDispenseType + 6));
-    const cellDTotal = worksheet.getCell('I' + Number(refDispenseType + 6));
+    const cellMrIntensivaCont1 = worksheet.getCell('C'+Number(endOfLastRowTits+10))
+    cellMrIntensivaCont1.value = ''
 
-    cellRegimensTotal.fill = cellLinesTotal.fill = {
+    const cellMrManutencao1 = worksheet.getCell('B'+Number(endOfLastRowTits+11))
+    cellMrManutencao1.value = 'MR Manutenção'
+
+    const cellMrManutencaoCont1 = worksheet.getCell('C'+Number(endOfLastRowTits+11))
+    cellMrManutencaoCont1.value = ''
+
+    const cellInducao1 = worksheet.getCell('B'+Number(endOfLastRowTits+12))
+    cellInducao1.value = 'XR Indução'
+
+    const cellInducaoCont1 = worksheet.getCell('C'+Number(endOfLastRowTits+12))
+    cellInducaoCont1.value = ''
+
+    const cellXRManutencao1 = worksheet.getCell('B'+Number(endOfLastRowTits+13))
+    cellXRManutencao1.value = 'XR Manutenção'
+
+    const cellXRManutencaoCont1 = worksheet.getCell('C'+Number(endOfLastRowTits+13))
+    cellXRManutencaoCont1.value = ''
+
+    const cellXRIntensiva1 = worksheet.getCell('B'+Number(endOfLastRowTits+14))
+    cellXRIntensiva1.value = 'XR Intensiva'
+
+    const cellXRIntensivaCont1 = worksheet.getCell('C'+Number(endOfLastRowTits+14))
+    cellXRIntensivaCont1.value = ''
+    
+    //-------------
+
+    const cellPacientesNovosNoSector = worksheet.getCell('E'+Number(endOfLastRowTits+1))
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+1)) + ':F' + (Number(endOfLastRowTits)+7));
+    cellPacientesNovosNoSector.value = 'Pacientes Novos no Sector da TB'
+
+    const cellPacienteTipo = worksheet.getCell('G'+Number(endOfLastRowTits+1))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+1)) + ':H' + (Number(endOfLastRowTits)+1));
+    cellPacienteTipo.value = 'Paciente/Tipo'
+
+    const cellPacienteTipoTotal = worksheet.getCell('I'+Number(endOfLastRowTits+1))
+    cellPacienteTipoTotal.value = 'Total'
+
+    const CellNovoAdultoSensivel = worksheet.getCell('G'+Number(endOfLastRowTits+2))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+2)) + ':H' + (Number(endOfLastRowTits)+2));
+    CellNovoAdultoSensivel.value = 'Novo Adulto Sensivel'
+
+    const CellNovoAdultoSensivelCont = worksheet.getCell('I'+Number(endOfLastRowTits+2))
+    CellNovoAdultoSensivelCont.value = ''
+
+    const CellNovoAdultoMR = worksheet.getCell('G'+Number(endOfLastRowTits+3))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+3)) + ':H' + (Number(endOfLastRowTits)+3));
+    CellNovoAdultoMR.value = 'Novo Adulto MR'
+
+    const CellNovoAdultoMRCont = worksheet.getCell('I'+Number(endOfLastRowTits+3))
+    CellNovoAdultoMRCont.value = ''
+
+    const CellNovoAdultoXR = worksheet.getCell('G'+Number(endOfLastRowTits+4))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+4)) + ':H' + (Number(endOfLastRowTits)+4));
+    CellNovoAdultoXR.value = 'Novo Adulto XR'
+
+    const CellNovoAdultoXRCont = worksheet.getCell('I'+Number(endOfLastRowTits+4))
+    CellNovoAdultoXRCont.value = ''
+
+    const CellNovaCriancaSensivel = worksheet.getCell('G'+Number(endOfLastRowTits+5))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+5)) + ':H' + (Number(endOfLastRowTits)+5));
+    CellNovaCriancaSensivel.value = 'Nova Criança Sensivel'
+
+    const CellNovaCriancaSensivelCont = worksheet.getCell('I'+Number(endOfLastRowTits+5))
+    CellNovaCriancaSensivelCont.value = ''
+
+    const CellNovaCriancaMR = worksheet.getCell('G'+Number(endOfLastRowTits+6))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+6)) + ':H' + (Number(endOfLastRowTits)+6));
+    CellNovaCriancaMR.value = 'Nova Criança MR'
+
+    const CellNovaCriancaMRCont = worksheet.getCell('I'+Number(endOfLastRowTits+6))
+    CellNovaCriancaMRCont.value = ''
+
+    const CellNovaCriancaXR = worksheet.getCell('G'+Number(endOfLastRowTits+7))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+7)) + ':H' + (Number(endOfLastRowTits)+7));
+    CellNovaCriancaXR.value = 'Nova Criança MR'
+
+    const CellNovaCriancaXRCont = worksheet.getCell('I'+Number(endOfLastRowTits+7))
+    CellNovaCriancaXRCont.value = ''
+
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+8)) + ':F' + (Number(endOfLastRowTits)+8));
+
+    const CellTotal1 = worksheet.getCell('G'+Number(endOfLastRowTits+8))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+8)) + ':H' + (Number(endOfLastRowTits)+8));
+    CellTotal1.value = 'Total'
+
+    const CellTotal1Cont = worksheet.getCell('I'+Number(endOfLastRowTits+8))
+    CellTotal1Cont.value = ''
+    
+    //---------
+
+    const CellSeguimentoProfilaxias = worksheet.getCell('E'+Number(endOfLastRowTits+10))
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+10)) + ':F' + (Number(endOfLastRowTits)+13));
+    CellSeguimentoProfilaxias.value = 'Seguimento Profilaxias (PUs e Farmácias Públicas)'
+
+    const CellFasesProfilaxia = worksheet.getCell('G'+Number(endOfLastRowTits+10))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+10)) + ':H' + (Number(endOfLastRowTits)+10));
+    CellFasesProfilaxia.value = 'Fases Profilaxia'
+
+    const CellFasesProfilaxiaTotal = worksheet.getCell('I'+Number(endOfLastRowTits+10))
+    CellFasesProfilaxiaTotal.value = 'Total'
+
+    const CellInicio = worksheet.getCell('G'+Number(endOfLastRowTits+11))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+11)) + ':H' + (Number(endOfLastRowTits)+11));
+    CellInicio.value = 'Início'
+
+    const CellInicioCont = worksheet.getCell('I'+Number(endOfLastRowTits+11))
+    CellInicioCont.value = mmiaRegimenData[0].totaldcline3
+
+    const CellContinuaManutencao  = worksheet.getCell('G'+Number(endOfLastRowTits+12))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+12)) + ':H' + (Number(endOfLastRowTits)+12));
+    CellContinuaManutencao.value = 'Contínua/Manutenção '
+
+    const CellContinuaManutencaoCont = worksheet.getCell('I'+Number(endOfLastRowTits+12))
+    CellContinuaManutencaoCont.value = mmiaRegimenData[0].totalline3
+
+    const CellFinalUltimaDispensa   = worksheet.getCell('G'+Number(endOfLastRowTits+13))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+13)) + ':H' + (Number(endOfLastRowTits)+13));
+    CellFinalUltimaDispensa.value = 'Final/Última Dispensa'
+
+    const CellFinalUltimaDispensaCont = worksheet.getCell('I'+Number(endOfLastRowTits+13))
+    CellFinalUltimaDispensaCont.value = mmiaRegimenData[0].totaldcline4 
+
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+14)) + ':F' + (Number(endOfLastRowTits)+14));
+
+    const CellTotal2 = worksheet.getCell('G'+Number(endOfLastRowTits+14))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+14)) + ':H' + (Number(endOfLastRowTits)+14));
+    CellTotal2.value = 'Total'
+
+    const CellTotal2Total = worksheet.getCell('I'+Number(endOfLastRowTits+14))
+    CellTotal2Total.value = mmiaRegimenData[0].totaldcline3 + mmiaRegimenData[0].totalline3 + mmiaRegimenData[0].totaldcline4
+
+    //-------------
+
+    const CellTipodeDispensadosProfilacticos = worksheet.getCell('E'+Number(endOfLastRowTits+16))
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+16)) + ':F' + (Number(endOfLastRowTits)+18));
+    CellTipodeDispensadosProfilacticos.value = 'Tipo de Dispensa dos Profilacticos'
+
+    const CellPeriodicidadedaDispensa = worksheet.getCell('G'+Number(endOfLastRowTits+16))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+16)) + ':H' + (Number(endOfLastRowTits)+16));
+    CellPeriodicidadedaDispensa.value = 'Periodicidade da Dispensa'
+
+    const CellPeriodicidadedaDispensaTotal = worksheet.getCell('I'+Number(endOfLastRowTits+16))
+    CellPeriodicidadedaDispensaTotal.value = 'Total'
+
+    const CellMensal = worksheet.getCell('G'+Number(endOfLastRowTits+17))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+17)) + ':H' + (Number(endOfLastRowTits)+17));
+    CellMensal.value = 'Mensal'
+
+    const CellMensalCont = worksheet.getCell('I'+Number(endOfLastRowTits+17))
+    CellMensalCont.value = mmiaRegimenData[0].totalline2
+
+    const CellTrimestral = worksheet.getCell('G'+Number(endOfLastRowTits+18))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+18)) + ':H' + (Number(endOfLastRowTits)+18));
+    CellTrimestral.value = 'Trimestral'
+
+    const CellTrimestralCont = worksheet.getCell('I'+Number(endOfLastRowTits+18))
+    CellTrimestralCont.value = mmiaRegimenData[0].totalline1
+
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+19)) + ':F' + (Number(endOfLastRowTits)+19));
+
+    const CellTotal3 = worksheet.getCell('G'+Number(endOfLastRowTits+19))
+    worksheet.mergeCells('G' + (Number(endOfLastRowTits+19)) + ':H' + (Number(endOfLastRowTits)+19));
+    CellTotal3.value = 'Total'
+
+    const CellTotal3Total = worksheet.getCell('I'+Number(endOfLastRowTits+19))
+    CellTotal3Total.value = mmiaRegimenData[0].totalline2 + mmiaRegimenData[0].totalline1
+
+    //----------------
+
+    const CellObs = worksheet.getCell('E'+Number(endOfLastRowTits+21))
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+21)) + ':I' + (Number(endOfLastRowTits)+21));
+    CellObs.value = 'Observaçãoes:'
+
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+22)) + ':I' + (Number(endOfLastRowTits)+31));
+
+    //----------
+    const CellPUsErFarmaciaAmbulatorio = worksheet.getCell('A'+Number(endOfLastRowTits+16))
+    worksheet.mergeCells('A' + (Number(endOfLastRowTits+16)) + ':A' + (Number(endOfLastRowTits)+23));
+    CellPUsErFarmaciaAmbulatorio.value = 'PUs er Farmácia Ambulatório'
+
+    const CellProduto = worksheet.getCell('B'+Number(endOfLastRowTits+16))
+    CellProduto.value = 'Produto'
+
+    const CellNumComprimidos = worksheet.getCell('C'+Number(endOfLastRowTits+16))
+    CellNumComprimidos.value = 'Nr Comprimidos'
+
+    const CellIsoniazida100mg = worksheet.getCell('B'+Number(endOfLastRowTits+17))
+    CellIsoniazida100mg.value = 'Isoniazida 100 mg'
+
+    const CellIsoniazida100mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+17))
+    CellIsoniazida100mgCont.value = ''
+
+    const CellIsoniazida300mg = worksheet.getCell('B'+Number(endOfLastRowTits+18))
+    CellIsoniazida300mg.value = 'Isoniazida 300 mg'
+
+    const CellIsoniazida300mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+18))
+    CellIsoniazida300mgCont.value = ''
+
+    const CellLevofloxacina100mg = worksheet.getCell('B'+Number(endOfLastRowTits+19))
+    CellLevofloxacina100mg.value = 'Levofloxacina 100 mg Disp'
+
+    const CellLevofloxacina100mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+19))
+    CellLevofloxacina100mgCont.value = ''
+
+    const CellLevofloxacina250mg = worksheet.getCell('B'+Number(endOfLastRowTits+20))
+    CellLevofloxacina250mg.value = 'Levofloxacina 250 mg Rev'
+
+    const CellLevofloxacina250mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+20))
+    CellLevofloxacina250mgCont.value = ''
+
+    const Cell3HP = worksheet.getCell('B'+Number(endOfLastRowTits+21))
+    Cell3HP.value = '3HP (Rifapentina+Isoniazida)'
+
+    const Cell3HPCont = worksheet.getCell('C'+Number(endOfLastRowTits+21))
+    Cell3HPCont.value = ''
+
+    const CellPiridoxina25mg = worksheet.getCell('B'+Number(endOfLastRowTits+22))
+    CellPiridoxina25mg.value = 'Piridoxina 25mg'
+
+    const CellPiridoxina25mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+22))
+    CellPiridoxina25mgCont.value = ''
+
+    const CellPiridoxina50mg = worksheet.getCell('B'+Number(endOfLastRowTits+23))
+    CellPiridoxina50mg.value = 'Piridoxina 50mg'
+
+    const CellPiridoxina50mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+23))
+    CellPiridoxina50mgCont.value = ''
+
+    //------------
+
+    const CellFaixasEtarias = worksheet.getCell('A'+Number(endOfLastRowTits+25))
+    CellFaixasEtarias.value = 'Faixas Etarias'
+
+    const CellTratamento = worksheet.getCell('B'+Number(endOfLastRowTits+25))
+    CellTratamento.value = 'Tratamento'
+
+    const CellProfilaxia = worksheet.getCell('C'+Number(endOfLastRowTits+25))
+    CellProfilaxia.value = 'Profilaxia'
+
+    const CellAdultos = worksheet.getCell('A'+Number(endOfLastRowTits+26))
+    CellAdultos.value = 'Adultos'
+
+    const CellAdultosTratamento = worksheet.getCell('B'+Number(endOfLastRowTits+26))
+    CellAdultosTratamento.value = ''
+
+    const CellAdultosProfilaxia = worksheet.getCell('C'+Number(endOfLastRowTits+26))
+    CellAdultosProfilaxia.value = mmiaRegimenData[0].totaldcline2
+
+    const CellMenos25kg = worksheet.getCell('A'+Number(endOfLastRowTits+27))
+    CellMenos25kg.value = 'Criança < 25 Kg'
+
+    const CellMenos25kgTratamento = worksheet.getCell('B'+Number(endOfLastRowTits+27))
+    CellMenos25kgTratamento.value = ''
+
+    const CellMenos25kgProfilaxia = worksheet.getCell('C'+Number(endOfLastRowTits+27))    
+    worksheet.mergeCells('C' + (Number(endOfLastRowTits+27)) + ':C' + (Number(endOfLastRowTits)+28));
+    CellMenos25kgProfilaxia.value = mmiaRegimenData[0].totaldcline1
+
+    const CellMais25kg = worksheet.getCell('A'+Number(endOfLastRowTits+28))
+    CellMais25kg.value = 'Criança > 25 Kg'
+
+    const CellMais25kgTratamento = worksheet.getCell('B'+Number(endOfLastRowTits+28))
+    CellMais25kgTratamento.value = ''
+     
+    //----------------
+
+    const CellElaboradoPor = worksheet.getCell('A'+Number(endOfLastRowTits+38))
+    worksheet.mergeCells('A' + (Number(endOfLastRowTits+38)) + ':B' + (Number(endOfLastRowTits)+38));
+    CellElaboradoPor.value = 'Elaborado por'
+
+    const CellVisto = worksheet.getCell('C'+Number(endOfLastRowTits+38))
+    worksheet.mergeCells('C' + (Number(endOfLastRowTits+38)) + ':D' + (Number(endOfLastRowTits)+38));
+    CellVisto.value = 'Visto'
+
+    const CellDataElaboracao = worksheet.getCell('E'+Number(endOfLastRowTits+38))
+    worksheet.mergeCells('E' + (Number(endOfLastRowTits+38)) + ':I' + (Number(endOfLastRowTits)+38));
+    CellDataElaboracao.value = 'Data de elaboração:'
+
+    const note1 = worksheet.getCell('A'+Number(endOfLastRowTits+39));
+    worksheet.mergeCells('A' + (Number(endOfLastRowTits+39)) + ':I' + (Number(endOfLastRowTits)+39));
+    note1.value =
+      'Nota: Mapa de Preenchimento Obrigatório Mensal pela Farmácia da Unidade Sanitária Versão no 8 19 Nov 2019 DS TLD90 MDS e ARVs de nova geração';
+    
+    
+    //--------STYLES
+    cellFasesTratamento.fill =
+    CellNumDiasDispensa.fill =
+    CellProduto.fill = 
+    CellNumComprimidos.fill =
+    CellFaixasEtarias.fill =
+    CellTratamento.fill =
+    CellProfilaxia.fill =
+    cellPacientesNovosNoSector.fill =
+    CellSeguimentoProfilaxias.fill =
+    CellTipodeDispensadosProfilacticos.fill =
+    {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'dedfe0' },
-      bgColor: { argb: 'dedfe0' },
+      fgColor: { argb: 'bad975' },
+      bgColor: { argb: 'bad975' },
     };
 
-    cellDTotal.fill =
-      cellDM.fill =
-      cellDS.fill =
-      cellDt.fill =
-      cellAjuste.fill =
-      cellDispenseTypeHeader.fill =
-      cellLinesHeader.fill =
-      cellProfilaxiaHeader.fill =
-      cellFaixaEtariaHeader.fill =
-      cellTipoDoenteHeader.fill =
-        {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: '4b4c4d' },
-          bgColor: { argb: '4b4c4d' },
-        };
+    CellQualifDoentes.fill =
+    {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '060606' },
+      bgColor: { argb: '060606' },
+    };
 
-    cellDispenseTypeHeader.font =
-      cellLinesHeader.font =
-      cellProfilaxiaHeader.font =
-      cellFaixaEtariaHeader.font =
-      cellDTotal.font =
-      cellDM.font =
-      cellDS.font =
-      cellDt.font =
-      cellAjuste.font =
-      cellTipoDoenteHeader.font =
+    cellPacienteTipo.fill =
+    cellPacienteTipoTotal.fill =
+    CellFasesProfilaxia.fill =
+    CellFasesProfilaxiaTotal.fill =
+    CellPeriodicidadedaDispensa.fill =
+    CellPeriodicidadedaDispensaTotal.fill =
+    {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'c49e54' },
+      bgColor: { argb: 'c49e54' },
+    };
+
+    cellAdulto.fill =
+    {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'c4d6f0' },
+      bgColor: { argb: 'c4d6f0' },
+    };
+
+    cellPediatrico.fill =
+    CellPUsErFarmaciaAmbulatorio.fill =
+    {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'b0c9f5' },
+      bgColor: { argb: 'b0c9f5' },
+    };
+
+    //-- Fonte bold
+    cellFasesTratamento.font =
+    CellNumDiasDispensa.font =
+    CellProduto.font =
+    CellNumComprimidos.font =
+    CellFaixasEtarias.font =
+    CellTratamento.font =
+    CellProfilaxia.font =
+    CellQualifDoentes.font =
         {
           name: 'Arial',
           color: { argb: 'FFFFFFFF' },
           family: 2,
-          size: 11,
+          size: 10,
           italic: false,
           bold: true,
         };
-    // Format all data cells
-    const lastRowNum =
-      worksheet.lastRow.number !== undefined ? worksheet.lastRow.number : 0;
-    const lastTableRowNum = lastRowNum;
 
-    //Loop through all table's row
-    for (let i = 10; i <= lastTableRowNum; i++) {
-      const row = worksheet.getRow(i);
+    //-- Alinhamento Central
+    cellFasesTratamento.alignment = 
+    cellAdulto.alignment =
+    cellPediatrico.alignment =
+    CellPUsErFarmaciaAmbulatorio.alignment =
+    CellAdultos.alignment =
+    CellMenos25kg.alignment =
+    CellMais25kg.alignment =
+    CellMenos25kgProfilaxia.alignment =
+    CellAdultosProfilaxia.alignment =
+    cellPacientesNovosNoSector.alignment =
+    CellSeguimentoProfilaxias.alignment =
+    CellTipodeDispensadosProfilacticos.alignment =
+    CellTotal1Cont.alignment =
+    CellQualifDoentes.alignment =
+    cellPacienteTipoTotal.alignment =
+    CellFasesProfilaxiaTotal.alignment =
+    CellPeriodicidadedaDispensaTotal.alignment =
+    CellProduto.alignment =
+    CellTratamento.alignment =
+    CellNumDiasDispensa.alignment =
+    CellNumComprimidos.alignment =
+    CellProfilaxia.alignment =
+    {
+      vertical: 'middle',
+      horizontal: 'center',
+      wrapText: true,
+    };
 
-      //Now loop through every row's cell and finally set alignment
-      row.eachCell({ includeEmpty: true }, (cell) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
-        cell.alignment = {
-          vertical: 'middle',
-          horizontal: 'center',
-          wrapText: true,
-        };
-        if (i == 10 || i == RegimenTableRef) {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: '4b4c4d' },
-            bgColor: { argb: '4b4c4d' },
-          };
-          cell.font = {
-            name: 'Arial',
-            color: { argb: 'FFFFFFFF' },
-            family: 2,
-            size: 11,
-            italic: false,
-            bold: true,
-          };
-        }
-      });
-    }
+    //-- Alinhamento Direita
+    note1.alignment = 
+    CellTotal1.alignment =
+    CellTotal2.alignment =
+    CellTotal3.alignment =
+    {
+      horizontal: 'right',
+      wrapText: true,
+    };
 
     const buffer = await workbook.xlsx.writeBuffer();
     const fileType =
@@ -1315,7 +1339,7 @@ export default {
     for (const row in rows) {
       counter++;
       const createRow = [];
-      if (counter < 10) {
+      
         createRow.push(rows[row].fnmCode);
         createRow.push(rows[row].drugName);
         createRow.push(rows[row].unit + ' comp');
@@ -1332,7 +1356,7 @@ export default {
         createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'));
 
         data.push(createRow);
-      }
+      
     }
 
     return data;

@@ -57,10 +57,10 @@
                 //     description: 'Lista de Pacientes Faltosos ao Levantamento',
                 //     tabName: 'AbsentPatients',
                 // },
-                {
-                    description: 'Mapa Mensal de Medicamentos da TB (MMIATB)',
-                    tabName: 'MmiaTb',
-                },
+                // {
+                //     description: 'Mapa Mensal de Medicamentos da TB (MMIATB)',
+                //     tabName: 'MmiaTb',
+                // },
                 // //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
                 // //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
                 // { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
