@@ -960,13 +960,13 @@ const totalRemainAcumulado = (drug) => {
   }
   return totalAcumulado;
 };
-const totalQuantityRemainFrascos = (drug) => {
-  const total = totalRemainAcumulado(drug);
-  return Math.floor(total / drug.packSize);
+const totalQuantityRemainFrascos = (packagedDrug) => {
+  const total = packagedDrug.quantityRemain;
+  return Math.floor(total / packagedDrug.drug.packSize);
 };
 //se forem 45 num packsize 30 o valor sera 15
-const totalQuantityRemainUnidades = (drug) => {
-  const valor = totalRemainAcumulado(drug) % drug.packSize;
+const totalQuantityRemainUnidades = (packagedDrug) => {
+  const valor = packagedDrug.quantityRemain % packagedDrug.drug.packSize;
   return valor;
 };
 
@@ -1258,7 +1258,7 @@ const allGoodValidatatedDispense = () => {
   if (checkIfExistsAnyQuanityRemainForDispense()) {
     let hasToshowAlertRemain = false;
     let warningMessage =
-      'O paciente passara a ter de Sobra os medicamentos: \n ';
+      'O paciente passará a ter de Sobra os medicamentos: \n\n ';
     const currentPackagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
     let index = 1;
     for (const packagedDrug of currentPackagedDrugs) {
@@ -1266,14 +1266,13 @@ const allGoodValidatatedDispense = () => {
       if (acumulado > 0) {
         hasToshowAlertRemain = true;
         warningMessage +=
-          index +
-          '.  ' +
-          totalQuantityRemainFrascos(packagedDrug.drug) +
+          '\0 ' +
+          totalQuantityRemainFrascos(packagedDrug) +
           ' frasco(s) e ' +
-          totalQuantityRemainUnidades(packagedDrug.drug) +
+          totalQuantityRemainUnidades(packagedDrug) +
           ' unidade(s) de ' +
           packagedDrug.drug.name +
-          '\n';
+          ';\n\n';
         index++;
       }
     }
