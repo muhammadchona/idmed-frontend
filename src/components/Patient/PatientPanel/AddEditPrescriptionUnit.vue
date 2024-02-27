@@ -1118,6 +1118,7 @@ const checkStockToPack = async () => {
   const packagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
 
   for (const packageDrug of packagedDrugs) {
+    console.log('Testeeeee...checkStockToPack');
     const item = await checkStock(
       packageDrug,
       curPatientVisitDetail.value.pack.weeksSupply
@@ -1364,6 +1365,7 @@ const addMedication = (prescribedDrug) => {
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
+
 const checkStock = async (prescribedDrug, weeksSupply) => {
   const qtyPrescribed = getQtyPrescribed(prescribedDrug, weeksSupply);
 
