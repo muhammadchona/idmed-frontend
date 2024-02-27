@@ -96,7 +96,7 @@ export default {
       this.periodicidadeDaDispensaTableData('XLS', mmiaRegimenData);
     const miaRegimenTotalData = this.createRegimenTotalArrayRow(
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
+      'XLS', mmiaRegimenData
     );
     // const miaLinesSumaryData = this.createLinesSumaryArrayRow(
     //   isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
@@ -576,7 +576,7 @@ export default {
     const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData);
     const miaRegimenTotalData = this.createRegimenTotalArrayRow(
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
+      'XLS', mmiaRegimenData
     );
 
     const miaLinesSumaryData = this.createLinesSumaryArrayRow(
@@ -1046,43 +1046,43 @@ export default {
     CellIsoniazida100mg.value = 'Isoniazida 100 mg'
 
     const CellIsoniazida100mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+17))
-    CellIsoniazida100mgCont.value = ''
+    CellIsoniazida100mgCont.value = Number(mmiaRegimenData[0].line1)
 
     const CellIsoniazida300mg = worksheet.getCell('B'+Number(endOfLastRowTits+18))
     CellIsoniazida300mg.value = 'Isoniazida 300 mg'
 
     const CellIsoniazida300mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+18))
-    CellIsoniazida300mgCont.value = ''
+    CellIsoniazida300mgCont.value = Number(mmiaRegimenData[0].line2)
 
     const CellLevofloxacina100mg = worksheet.getCell('B'+Number(endOfLastRowTits+19))
     CellLevofloxacina100mg.value = 'Levofloxacina 100 mg Disp'
 
     const CellLevofloxacina100mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+19))
-    CellLevofloxacina100mgCont.value = ''
+    CellLevofloxacina100mgCont.value = Number(mmiaRegimenData[0].line3)
 
     const CellLevofloxacina250mg = worksheet.getCell('B'+Number(endOfLastRowTits+20))
     CellLevofloxacina250mg.value = 'Levofloxacina 250 mg Rev'
 
     const CellLevofloxacina250mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+20))
-    CellLevofloxacina250mgCont.value = ''
+    CellLevofloxacina250mgCont.value = Number(mmiaRegimenData[0].line4)
 
     const Cell3HP = worksheet.getCell('B'+Number(endOfLastRowTits+21))
     Cell3HP.value = '3HP (Rifapentina+Isoniazida)'
 
     const Cell3HPCont = worksheet.getCell('C'+Number(endOfLastRowTits+21))
-    Cell3HPCont.value = ''
+    Cell3HPCont.value = Number(mmiaRegimenData[0].totalline4)
 
     const CellPiridoxina25mg = worksheet.getCell('B'+Number(endOfLastRowTits+22))
     CellPiridoxina25mg.value = 'Piridoxina 25mg'
 
     const CellPiridoxina25mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+22))
-    CellPiridoxina25mgCont.value = ''
+    CellPiridoxina25mgCont.value = Number(mmiaRegimenData[0].totalPatients)
 
     const CellPiridoxina50mg = worksheet.getCell('B'+Number(endOfLastRowTits+23))
     CellPiridoxina50mg.value = 'Piridoxina 50mg'
 
     const CellPiridoxina50mgCont = worksheet.getCell('C'+Number(endOfLastRowTits+23))
-    CellPiridoxina50mgCont.value = ''
+    CellPiridoxina50mgCont.value = Number(mmiaRegimenData[0].cumunitaryClinic)
 
     //------------
 
@@ -1356,7 +1356,7 @@ export default {
         createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'));
 
         data.push(createRow);
-      
+
     }
 
     return data;
@@ -1824,7 +1824,7 @@ export default {
     return data;
   },
 
-  createRegimenTotalArrayRow(rows, fileType) {
+  createRegimenTotalArrayRow(rows, fileType, mmiaRegimenData) {
     const data = [];
     let totalPatients = 0;
     let cumunitaryClinic = 0;
@@ -1891,31 +1891,31 @@ export default {
     );
     row2.push(
       { content: 'Isoniazida 100 mg', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: Number(mmiaRegimenData[0].line1), styles: { halign: 'center' } }
     );
     row3.push(
       { content: 'Isoniazida 300 mg', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: Number(mmiaRegimenData[0].line2), styles: { halign: 'center' } }
     );
     row4.push(
       { content: 'Levofloxacina 100 mg Disp', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: Number(mmiaRegimenData[0].line3), styles: { halign: 'center' } }
     );
     row5.push(
       { content: 'Levofloxacina 250 mg Rev', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: Number(mmiaRegimenData[0].line4), styles: { halign: 'center' } }
     );
     row6.push(
       { content: '3HP (Rifapentina+Isoniazida)', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: Number(mmiaRegimenData[0].totalline4), styles: { halign: 'center' } }
     );
     row7.push(
       { content: 'Piridoxina 25mg', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: Number(mmiaRegimenData[0].totalPatients), styles: { halign: 'center' } }
     );
     row8.push(
       { content: 'Piridoxina 50mg', styles: { halign: 'left' } },
-      { content: '', styles: { halign: 'left' } }
+      { content: Number(mmiaRegimenData[0].cumunitaryClinic), styles: { halign: 'center' } }
     );
 
     data.push(row1);
