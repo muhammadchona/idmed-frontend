@@ -1118,7 +1118,6 @@ const checkStockToPack = async () => {
   const packagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
 
   for (const packageDrug of packagedDrugs) {
-    console.log('Testeeeee...checkStockToPack');
     const item = await checkStock(
       packageDrug,
       curPatientVisitDetail.value.pack.weeksSupply
@@ -1261,7 +1260,6 @@ const allGoodValidatatedDispense = () => {
     let warningMessage =
       'O paciente passará a ter de Sobra os medicamentos: \n\n ';
     const currentPackagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
-    let index = 1;
     for (const packagedDrug of currentPackagedDrugs) {
       const acumulado = totalRemainAcumulado(packagedDrug.drug);
       if (acumulado > 0) {
@@ -1274,7 +1272,6 @@ const allGoodValidatatedDispense = () => {
           ' unidade(s) de ' +
           packagedDrug.drug.name +
           ';\n\n';
-        index++;
       }
     }
     if (hasToshowAlertRemain) {
