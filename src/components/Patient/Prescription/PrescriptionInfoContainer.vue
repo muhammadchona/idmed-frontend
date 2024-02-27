@@ -218,7 +218,7 @@
                     <q-btn
                       v-if="
                         !isClosed &&
-                        remainigDuration(prescription) !== 0 &&
+                        remainigDuration(prescription) > 0 &&
                         !isProvincialInstalation()
                       "
                       dense
