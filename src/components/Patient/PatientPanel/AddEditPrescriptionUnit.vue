@@ -1260,7 +1260,6 @@ const allGoodValidatatedDispense = () => {
     let warningMessage =
       'O paciente passará a ter de Sobra os medicamentos: \n\n ';
     const currentPackagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
-    let index = 1;
     for (const packagedDrug of currentPackagedDrugs) {
       const acumulado = totalRemainAcumulado(packagedDrug.drug);
       if (acumulado > 0) {
@@ -1273,7 +1272,6 @@ const allGoodValidatatedDispense = () => {
           ' unidade(s) de ' +
           packagedDrug.drug.name +
           ';\n\n';
-        index++;
       }
     }
     if (hasToshowAlertRemain) {
@@ -1364,6 +1362,7 @@ const addMedication = (prescribedDrug) => {
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
+
 const checkStock = async (prescribedDrug, weeksSupply) => {
   const qtyPrescribed = getQtyPrescribed(prescribedDrug, weeksSupply);
 

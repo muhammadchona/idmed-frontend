@@ -227,7 +227,7 @@ const nums = ref(
     .map((x, i) => i + 1)
 );
 const drugsDuration = ref('');
-const qtySuppliedFlag = ref(0);
+let qtySuppliedFlag = 0;
 const isClicked = ref(false);
 // Injection
 const curPrescription = inject('curPrescription');
@@ -296,11 +296,11 @@ const getDrugById = (drugID) => {
 const qtySupplied = async (packagedDrug) => {
   const item = await checkStock(packagedDrug);
   if (item) {
-    qtySuppliedFlag.value = packagedDrug.quantitySupplied;
+    qtySuppliedFlag = packagedDrug.quantitySupplied;
   } else {
-    qtySuppliedFlag.value = -1;
+    qtySuppliedFlag = -1;
   }
-  return qtySuppliedFlag.value;
+  return qtySuppliedFlag;
 };
 const checkStock = async (packagedDrug) => {
   packagedDrug.drug = getDrugById(packagedDrug.drug.id);
