@@ -121,7 +121,6 @@ import { computed, ref, inject, onMounted, provide } from 'vue';
     ];
 
 const changeTab = (tabName) => {
-  console.log(tabName);
   currTab.value = tabName;
   emit('changeTab', tabName, selectedService.value);
 };
