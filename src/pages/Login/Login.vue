@@ -232,7 +232,7 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.1.0</div>
+                <div class="row justify-center">Versão v.1.2.0 SNAPSHOT</div>
               </q-card-section>
             </q-card>
           </transition>
@@ -336,17 +336,17 @@ onMounted(() => {
   if (isMobile.value && localStorage.getItem('backend_url') === null) {
     popUpUrlMobile.value = true;
   }
-    $q.loading.show({
-      message: 'Carregando ...',
-      spinnerColor: 'grey-4',
-      spinner: QSpinnerBall,
-    });
-    loadSystemConfigs();
-    loadProvinceAndDistrict();
-    loadMenusFromLocalToVuex();
-    setTimeout(() => {
-      $q.loading.hide();
-    }, 600);
+  $q.loading.show({
+    message: 'Carregando ...',
+    spinnerColor: 'grey-4',
+    spinner: QSpinnerBall,
+  });
+  loadSystemConfigs();
+  loadProvinceAndDistrict();
+  loadMenusFromLocalToVuex();
+  setTimeout(() => {
+    $q.loading.hide();
+  }, 600);
 });
 
 /*
