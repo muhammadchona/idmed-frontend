@@ -23,7 +23,7 @@
     "exceljs": "^4.3.0",
     "file-saver": "^2.0.5",
     "is-online": "^10.0.0",
-    "joi": "^17.10.2",
+    "joi": "^17.12.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.28",
     "localbase": "^0.7.5",
