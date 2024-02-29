@@ -399,6 +399,12 @@ const disabelFieldSearch = () => {
   }
 };
 
+const checkFieldForEditGroup = () => {
+  if (curGroup.value.service !== null && curGroup.value.dispenseType !== null) {
+    isSearchParamDisabled.value = false;
+  }
+};
+
 const isMemberOfGroupOnService = (patient, serviceCode) => {
   let res = false;
   const members = groupMemberService.getAllFromStorage();
@@ -739,6 +745,7 @@ const init = () => {
 onMounted(() => {
   //  init()
   getGroupForEdit();
+  checkFieldForEditGroup();
   console.log(curGroup);
 });
 
