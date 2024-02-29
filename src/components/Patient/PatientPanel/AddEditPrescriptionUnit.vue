@@ -194,7 +194,7 @@
                       '   ' +
                       ' - ' +
                       props.row.timesPerDay +
-                      ' vez(es) por' +
+                      ' vez(es) por ' +
                       getDrugById(props.row.drug.id).defaultPeriodTreatment
                     : ''
                 }}
