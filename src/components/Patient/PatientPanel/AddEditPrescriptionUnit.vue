@@ -187,18 +187,16 @@
               </q-td>
               <q-td key="dosage" :props="props">
                 {{
-                  'Tomar ' +
-                    props.row.amtPerTime +
-                    ' ' +
-                    getDrugById(props.row.drug.id).form !==
-                    null && getDrugById(props.row.drug.id).form !== undefined
-                    ? getDrugById(props.row.drug.id).form.description
-                    : '' +
-                      ' ' +
+                  getDrugById(props.row.drug.id) !== null &&
+                  getDrugById(props.row.drug.id) !== undefined
+                    ? ' Toma ' +
+                      props.row.amtPerTime +
+                      '   ' +
+                      ' - ' +
                       props.row.timesPerDay +
-                      ' vez(es)' +
-                      ' por ' +
-                      props.row.form
+                      ' vez(es) por' +
+                      getDrugById(props.row.drug.id).defaultPeriodTreatment
+                    : ''
                 }}
               </q-td>
               <q-td auto-width key="packs" :props="props">

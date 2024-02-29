@@ -1,5 +1,5 @@
 {
-  "name": "org.csaude.idmed.mobile",
+  "name": "csaude.org.mz.idmed.mobile",
   "displayName": "iDMED",
   "version": "1.0.0",
   "description": "A sample Apache Cordova application that responds to the deviceready event.",
@@ -16,7 +16,6 @@
     "cordova-android": "^12.0.1",
     "cordova-plugin-device": "github:apache/cordova-plugin-device",
     "cordova-plugin-file": "github:apache/cordova-plugin-file",
-    "cordova-plugin-network-information": "github:apache/cordova-plugin-network-information",
     "cordova-plugin-splashscreen": "github:apache/cordova-plugin-splashscreen"
   },
   "cordova": {
@@ -24,12 +23,11 @@
       "android"
     ],
     "plugins": {
-      "cordova-plugin-splashscreen": {},
+      "cordova-plugin-device": {},
       "cordova-plugin-file": {
         "ANDROIDX_WEBKIT_VERSION": "1.4.0"
       },
-      "cordova-plugin-device": {},
-      "cordova-plugin-network-information": {}
+      "cordova-plugin-splashscreen": {}
     }
   }
 }
