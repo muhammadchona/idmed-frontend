@@ -630,6 +630,7 @@ const doSave = async () => {
   curGroupServiceRef.value.validate();
   curGroupCodeRef.value.validate();
   curGroupGroupTypeRef.value.validate();
+  curGroupDispenseTypeRef.value.validate();
   curGroupNameRef.value.validate();
   creationDateRef.value.validate();
   if (
