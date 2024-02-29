@@ -27,7 +27,9 @@
     </div>
     <div class="row q-mb-sm">
       <div class="col-5 text-grey-9">Tipo de Dispensa:</div>
-      <div class="col text-grey-10">{{ group.dispenseType.description }}</div>
+      <div class="col text-grey-10">
+        {{ group.dispenseType !== null ? group.dispenseType.description : '' }}
+      </div>
     </div>
     <div class="row q-mb-sm">
       <div class="col-5 text-grey-9">Data Início:</div>
