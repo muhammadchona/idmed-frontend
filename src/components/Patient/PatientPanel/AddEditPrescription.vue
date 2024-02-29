@@ -282,11 +282,7 @@ const doValidationToDispense = () => {
       const lastEpisode = episodeService.lastEpisodeByIdentifier(
         checkEpisode.patientServiceIdentifier_id
       );
-      console.log('Episode to check ', lastEpisode);
-      console.log(
-        'Episode os refferal  ',
-        isReferenceOrTransferenceEpisode(lastEpisode)
-      );
+
       if (isReferenceOrTransferenceEpisode(lastEpisode)) {
         patientVisitDetail.pack.isreferral = true;
       }
