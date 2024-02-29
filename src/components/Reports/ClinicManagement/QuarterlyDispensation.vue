@@ -52,7 +52,7 @@
     const { isOnline } = useSystemUtils();
     const { alertError } = useSwal();
   
-    const name =  'SemiannualDispensation'
+    const name =  'QuarterlyDispensation'
     const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
     const totalRecords =  ref(0)
     const qtyProcessed = ref(0)
