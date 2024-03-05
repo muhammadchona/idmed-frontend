@@ -366,7 +366,7 @@ export default {
       createRow.push(rows[row].nid);
       createRow.push(rows[row].patient);
       createRow.push(this.getFormatDDMMYYYY(rows[row].pickupDate));
-      createRow.push(this.getFormatDDMMYYYY(rows[row].returnPickupDate));
+      createRow.push(rows[row].returnPickupDate !== null && rows[row].returnPickupDate !== undefined ? this.getFormatDDMMYYYY(rows[row].returnPickupDate):' - ');
       createRow.push(this.getFormatDDMMYYYY(rows[row].dateCreated));
       createRow.push(rows[row].errorDescription);
       createRow.push(this.getFormatDDMMYYYY(rows[row].servicoClinico));
