@@ -11,13 +11,13 @@ const { notifyError } = useNotify();
 const instance = axios.create({
   baseURL: website.value
     ? process.env.API_URL
-    : sessionStorage.getItem('backend_url'),
+    : localStorage.getItem('backend_url'),
 });
 const numTries = 0;
 
 // Função para fazer o logout
 
-function logout () {
+function logout() {
   sessionStorage.removeItem('authUser');
   sessionStorage.removeItem('user');
   sessionStorage.removeItem('username');
@@ -64,7 +64,10 @@ instance.interceptors.request.use(
         // return; // Interromper a solicitação
       }
       const localuser = UsersService.getUserByUserName(String(userloged));
-      request.headers['X-Auth-Token'] = ['', sessionStorage.getItem('id_token')].join(' ');
+      request.headers['X-Auth-Token'] = [
+        '',
+        sessionStorage.getItem('id_token'),
+      ].join(' ');
     } else {
       delete request.headers.Authorization;
     }
@@ -93,7 +96,8 @@ instance.interceptors.response.use(
 
         return axios
           .post(
-            process.env.API_URL+'/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+            process.env.API_URL +
+              '/oauth/access_token?grant_type=refresh_token&refresh_token=' +
               rToken
           )
           .then(({ data }) => {
