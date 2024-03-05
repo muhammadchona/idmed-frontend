@@ -286,7 +286,7 @@
 </template>
 
 <script setup>
-import { QSpinnerBall, useQuasar } from 'quasar';
+import { QSpinnerBall, SessionStorage, useQuasar } from 'quasar';
 import UsersService from 'src/services/UsersService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import districtService from 'src/services/api/districtService/districtService';
@@ -303,6 +303,11 @@ import { LocalStorage } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import UrlChanger from 'src/components/Shared/UrlChanger.vue';
 import useNotify from 'src/composables/shared/notify/UseNotify';
+import StockService from 'src/services/api/stockService/StockService';
+import StockReferenceAdjustmentService from 'src/services/api/stockAdjustment/StockReferenceAdjustmentService';
+import StockDestructionAdjustmentService from 'src/services/api/stockAdjustment/StockDestructionAdjustmentService';
+import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
+import InventoryService from 'src/services/api/inventoryService/InventoryService';
 
 const { notifyError } = useNotify();
 const { alertSucess, alertError } = useSwal();
@@ -339,7 +344,7 @@ onMounted(() => {
   $q.loading.show({
     message: 'Carregando ...',
     spinnerColor: 'grey-4',
-    spinner: QSpinnerBall,
+    spinner: QSpinnerBall
   });
   loadSystemConfigs();
   loadProvinceAndDistrict();
@@ -347,6 +352,25 @@ onMounted(() => {
   setTimeout(() => {
     $q.loading.hide();
   }, 600);
+
+  if (!isMobile.value) {
+    UsersService.logout();
+    StockService.deleteAllFromStorage();
+    StockReferenceAdjustmentService.deleteAllFromStorage();
+    StockDestructionAdjustmentService.deleteAllFromStorage();
+    InventoryStockAdjustmentService.deleteAllFromStorage();
+    InventoryService.deleteAllFromStorage();
+    clinicService.deleteFromPinia();
+    systemConfigsService.deleteAllFromStorage();
+    SessionStorage.clear();
+    sessionStorage.setItem('user', null);
+    sessionStorage.setItem('id_token', null);
+    sessionStorage.setItem('refresh_token', null);
+    localStorage.setItem('activeTabStock', '');
+    sessionStorage.setItem('Btoa', '');
+    localStorage.setItem('currInventory', '');
+    localStorage.setItem('Btoa', '');
+  }
 });
 
 /*
@@ -419,7 +443,7 @@ const authUser = async () => {
 const loginOnline = (encodedStringBtoA) => {
   UsersService.login({
     username: username.value,
-    password: password.value,
+    password: password.value
   })
     .then((response) => {
       sessionStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10min
@@ -479,7 +503,7 @@ const loginOffline = (encodedStringBtoA) => {
       position: 'top',
       color: 'negative',
       textColor: 'white',
-      classes: 'glossy',
+      classes: 'glossy'
     });
     submitting.value = false;
   }
@@ -495,6 +519,7 @@ const loginOffline = (encodedStringBtoA) => {
 [v-cloak] {
   display: none !important;
 }
+
 #particles-js {
   position: absolute;
   width: 100%;
@@ -503,12 +528,15 @@ const loginOffline = (encodedStringBtoA) => {
   background-size: cover;
   background-position: 50% 50%;
 }
+
 .normal_gradient {
   background: linear-gradient(145deg, #00afdb 30%, #00bea4 70%);
 }
+
 .dark_gradient {
   background: linear-gradient(145deg, #014758 15%, #014b41 70%);
 }
+
 .login-form {
   position: absolute;
 }
