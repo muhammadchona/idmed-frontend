@@ -123,7 +123,7 @@
                   transition-show="flip-right"
                   transition-hide="flip-left"
                 >
-                  <strong><em> Medicamento sem stock </em></strong>
+                  <strong><em> Medicamento sem stock ou por expirar brevemente </em></strong>
                 </q-tooltip>
               </q-btn>
             </q-td>
@@ -227,7 +227,7 @@ const nums = ref(
     .map((x, i) => i + 1)
 );
 const drugsDuration = ref('');
-let qtySuppliedFlag = 0;
+const qtySuppliedFlag = ref(0);
 const isClicked = ref(false);
 // Injection
 const curPrescription = inject('curPrescription');
@@ -296,11 +296,11 @@ const getDrugById = (drugID) => {
 const qtySupplied = async (packagedDrug) => {
   const item = await checkStock(packagedDrug);
   if (item) {
-    qtySuppliedFlag = packagedDrug.quantitySupplied;
+    qtySuppliedFlag.value = packagedDrug.quantitySupplied;
   } else {
-    qtySuppliedFlag = -1;
+    qtySuppliedFlag.value = -1;
   }
-  return qtySuppliedFlag;
+  return qtySuppliedFlag.value;
 };
 const checkStock = async (packagedDrug) => {
   packagedDrug.drug = getDrugById(packagedDrug.drug.id);
