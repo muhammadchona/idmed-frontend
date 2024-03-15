@@ -40,6 +40,7 @@ instance.interceptors.request.use(
     request.headers = {
       Accept: 'application/json',
       'Cache-Control': 'no-store, no-cache',
+      'content-encoding': 'gzip',
     };
     if (
       request.url === '/province' ||
