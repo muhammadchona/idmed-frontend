@@ -88,6 +88,21 @@ export default {
         clinicalService.destroy(uuid);
       });
   },
+  getFromProvincial(offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('clinicalService/clinicalServiceFromProvicnial/' + offset)
+        .then((resp) => {
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromProvincial(offset);
+          } else {
+            this.get(0);
+            alertSucess('Lista actualizada com sucesso');
+          }
+        });
+    }
+  },
   // Mobile
   putMobile(params: string) {
     return nSQL(ClinicalService.entity)
