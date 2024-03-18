@@ -138,4 +138,14 @@ export default {
       .orderBy('firstnames')
       .get();
   },
+  getAllActiveAndNonActivedoctors() {
+    return doctor
+      .with('clinic', (query) => {
+        query.with('province');
+        query.with('district');
+        query.with('facilityType');
+      })
+      .orderBy('firstnames')
+      .get();
+  },
 };
