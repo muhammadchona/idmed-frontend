@@ -23,7 +23,6 @@
             dense
             outlined
             use-input
-            fill-input
             input-debounce="0"
             @filter="filterFnDrugs"
             ref="drugRef"
@@ -152,7 +151,6 @@ const submitting = inject('submittingPrescribedDrug');
 // Hook
 
 onMounted(() => {
-  console.log(curIdentifier.value);
   // showOnlyOfRegimen.value = hasTherapeuticalRegimen.value;
   showOnlyOfRegimen.value = true;
 });
