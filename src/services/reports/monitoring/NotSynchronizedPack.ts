@@ -42,7 +42,7 @@ export default {
       'Data Próx. Levant.',
       'Data Registo',
       'Mensagem De Erro',
-      'Servico Clinico',
+      'Serviço Clínico',
     ];
     const rows = await Report.printReportOther(
       'notSynchronizingPacksOpenMrsReport',
@@ -58,6 +58,7 @@ export default {
       margin: { top: 60 },
       bodyStyles: {
         halign: 'center',
+        fontSize: 8,
       },
       headStyles: {
         halign: 'center',
@@ -274,16 +275,6 @@ export default {
           filterButton: false,
         },
         {
-          name: 'Código Prescrição',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Data Prescriçâo',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
           name: 'Data Levant.',
           totalsRowFunction: 'none',
           filterButton: false,
@@ -295,6 +286,11 @@ export default {
         },
         {
           name: 'Data Registo',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Mensagem De Erro',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -369,7 +365,7 @@ export default {
       createRow.push(rows[row].returnPickupDate !== null && rows[row].returnPickupDate !== undefined ? this.getFormatDDMMYYYY(rows[row].returnPickupDate):' - ');
       createRow.push(this.getFormatDDMMYYYY(rows[row].dateCreated));
       createRow.push(rows[row].errorDescription);
-      createRow.push(this.getFormatDDMMYYYY(rows[row].servicoClinico));
+      createRow.push(rows[row].clinicalService);
       data.push(createRow);
     }
 

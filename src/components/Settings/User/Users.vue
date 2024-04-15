@@ -107,6 +107,7 @@ import SecUser from 'src/stores/models/userLogin/User';
 import addUserComp from 'src/components/Settings/User/AddUser.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import roleService from 'src/services/api/role/roleService';
 
 /*Variables*/
 const { closeLoading } = useLoading();
@@ -195,6 +196,11 @@ const getTooltipClass = (user) => {
 };
 const editUser = (userParam) => {
   user.value = userParam;
+  if(user.value.authorities.length === 0){
+     userParam.roles.forEach((role) => {
+       user.value.authorities.push(roleService.getByAuthority(role))
+    })
+  }
   isCreateStep.value = false;
   editMode.value = true;
   isEditStep.value = true;
@@ -211,6 +217,11 @@ const addUser = () => {
 };
 const visualizeUser = (userParam) => {
   user.value = userParam;
+  if(user.value.authorities.length === 0){
+    userParam.roles.forEach((role) => {
+      user.value.authorities.push(roleService.getByAuthority(role))
+    })
+  }
   viewMode.value = true;
   editMode.value = false;
   isEditStep.value = false;
