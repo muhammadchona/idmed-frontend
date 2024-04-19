@@ -307,14 +307,6 @@ export default {
       .orderBy('identifiers.value', 'asc')
       .get();
   },
-  getPatientSearchListWithLimitAndOffset(limit: number, offset: number) {
-    return patient
-      .query()
-      .withAllRecursive(2)
-      .orderBy('firstNames')
-      .orderBy('identifiers.value', 'asc')
-      .get();
-  },
   getPatientByClinicId(clinicId: string) {
     return (
       patient

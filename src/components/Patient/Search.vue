@@ -644,10 +644,7 @@ const patientList = computed(() => {
 const patientList = computed(() => {
   console.log(offset.value);
   console.log(limit.value);
-  return patientService.getPatientSearchListWithLimitAndOffset(
-    limit.value,
-    offset.value
-  );
+  return patientService.getPatientSearchList();
 });
 
 const localSearch = async () => {
