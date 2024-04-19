@@ -76,6 +76,14 @@ export default {
         patient.save(resp.data);
       });
   },
+
+  updateUUID(params: string, base64: string) {
+    return api()
+      .patch(`patient/${base64}`, params)
+      .then((resp) => {
+        patient.save(resp.data);
+      });
+  },
   deleteWeb(uuid: string) {
     return api()
       .delete('patient/' + uuid)
@@ -204,6 +212,9 @@ export default {
 
   async apiCheckOpenmRSisOn(hisId: string, Btoa: string) {
     return await api().get('/patient/openmrsSession/' + hisId + '/' + Btoa);
+  },
+  async countPatientSearchResult(patient: any) {
+    return await api().post('/patient/countSearch/', patient);
   },
 
   async apiSave(patient: any, isNew: boolean) {

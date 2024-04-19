@@ -28,6 +28,55 @@
 
         <div class="q-mt-lg">
           <div class="row items-center q-mb-md">
+            <q-icon name="key" size="sm" />
+            <span class="q-pl-sm text-subtitle2">UUID</span>
+          </div>
+          <q-separator color="grey-13" size="1px" />
+        </div>
+        <div class="q-mt-md">
+          <div class="row">
+            <q-input
+              label="UUID *"
+              dense
+              outlined
+              flat
+              class="col q-mr-md"
+              ref="uuidRef"
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              v-model="patientReg.hisUuid"
+              :disable="editUUID"
+              style="height: 40px"
+            />
+            <q-btn
+              @click="disableEditUUID()"
+              color="primary"
+              icon="edit"
+              flat
+              v-if="editUUID"
+              :disable="false"
+              style="height: 50px"
+            >
+              <q-tooltip class="bg-green-5">Editar UUID</q-tooltip>
+            </q-btn>
+            <q-btn
+              :loading="submitUUID"
+              color="primary"
+              icon="done"
+              flat
+              v-if="!editUUID"
+              @click="updateUUID(patientReg)"
+            />
+            <q-btn
+              color="red"
+              icon="clear"
+              flat
+              v-if="!editUUID"
+              @click="editUUID = true"
+            />
+          </div>
+        </div>
+        <div class="q-mt-lg">
+          <div class="row items-center q-mb-md">
             <q-icon name="person_outline" size="sm" />
             <span class="q-pl-sm text-subtitle2">Dados Pessoais</span>
           </div>
@@ -332,7 +381,7 @@ const patientReg = ref(new Patient({ id: uuidv4() }));
 const filterRedDistricts = ref([]);
 const filterRedPostos = ref([]);
 const filterRedBairros = ref([]);
-
+const editUUID = ref(true);
 //Ref's
 const firstNamesRef = ref(null);
 const middleNamesRef = ref(null);
@@ -357,7 +406,7 @@ const newPatient = inject('newPatient');
 const closePatient = inject('closePatient');
 const showPatientRegister = inject('showPatientRegister');
 const openMrsPatient = inject('openMrsPatient');
-
+const submitUUID = ref(false);
 // Hook
 
 onMounted(() => {
@@ -365,6 +414,31 @@ onMounted(() => {
 });
 
 // Methods
+
+const disableEditUUID = () => {
+  editUUID.value = false;
+};
+
+const updateUUID = () => {
+  submitUUID.value = true;
+  patientReg.value.clinic = {};
+  patientReg.value.clinic.id = currClinic.value.id;
+
+  patientReg.value.identifiers = {};
+  patientReg.value.patientVisits = {};
+  patientService
+    .updateUUID(patientReg.value, sessionStorage.getItem('Btoa'))
+    .then(() => {
+      alertSucess('UUID actualizado com Sucesso.');
+      submitUUID.value = false;
+      editUUID.value = true;
+    })
+    .catch((error) => {
+      alertError(error.response.data);
+      submitUUID.value = false;
+      editUUID.value = true;
+    });
+};
 
 const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
