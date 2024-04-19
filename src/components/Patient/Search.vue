@@ -143,6 +143,11 @@
             :columns="columns"
             row-key="id"
             :filter="filter"
+            :loading="loading"
+            ref="tableRef"
+            v-model:pagination="pagination"
+            binary-state-sort
+            @request="onRequest"
           >
             <template v-slot:no-data="{ icon, filter }">
               <div
@@ -273,7 +278,17 @@ const username = sessionStorage.getItem('user');
 const transferencePatientData = ref([]);
 const openMrsPatient = ref(false);
 const title = ref('Procurar ou adicionar Utentes/Pacientes');
-
+const tableRef = ref();
+const loading = ref(false);
+const limit = ref(5);
+const offset = ref(0);
+const pagination = ref({
+  sortBy: 'desc',
+  descending: false,
+  page: 1,
+  rowsPerPage: 5,
+});
+const actualPage = ref(1);
 const columns = [
   {
     name: 'identifier',
@@ -306,6 +321,7 @@ onMounted(() => {
   patientServiceIdentifier.value.value = patientId.value;
   currPatient.value.identifiers.push(patientServiceIdentifier.value);
   currPatient.value.clinic = clinic.value;
+  // tableRef.value.requestServerInteraction();
 });
 
 //Computed
@@ -316,6 +332,50 @@ const canClear = computed(() => {
     currPatient.value.lastNames !== ''
   );
 });
+
+const onRequest = async (props) => {
+  console.log(props);
+  const { page, rowsPerPage, sortBy, descending } = props.pagination;
+  // const filter = props.filter;
+  if (page !== actualPage.value) {
+    loading.value = true;
+  }
+  // actualPage.value = page;
+  console.log(actualPage.value);
+  console.log(page);
+  // emulate server
+  setTimeout(() => {
+    // update rowsCount with appropriate value
+    // pagination.value.rowsNumber = getRowsNumberCount(filter);
+
+    // get all rows if "All" (0) is selected
+    const fetchCount =
+      rowsPerPage === 0 ? pagination.value.rowsNumber : rowsPerPage;
+
+    // calculate starting row of data
+    const startRow = (page - 1) * rowsPerPage;
+    currPatient.value.limit = rowsPerPage;
+
+    currPatient.value.offset = startRow;
+    offset.value = startRow;
+    if (page !== actualPage.value) {
+      actualPage.value = page;
+      patientService.apiSearch(currPatient.value);
+    }
+
+    // clear out existing data and add new
+    // rows.value.splice(0, rows.value.length, ...returnedData);
+
+    // don't forget to update local pagination object
+    pagination.value.page = page;
+    pagination.value.rowsPerPage = rowsPerPage;
+    pagination.value.sortBy = sortBy;
+    pagination.value.descending = descending;
+    //   pagination.value.rowsNumber = 5;
+    // ...and turn of loading indicator
+    loading.value = false;
+  }, 1500);
+};
 
 // Methods
 const clearSearchParams = () => {
@@ -576,14 +636,31 @@ const loadHISDataSource = () => {
   }
 };
 
+/*
 const patientList = computed(() => {
   return patientService.getPatientSearchList();
 });
+*/
+const patientList = computed(() => {
+  console.log(offset.value);
+  console.log(limit.value);
+  return patientService.getPatientSearchListWithLimitAndOffset(
+    limit.value,
+    offset.value
+  );
+});
 
-const localSearch = () => {
+const localSearch = async () => {
   currPatient.value.identifiers[0].value = patientId.value;
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
+    const count = await patientService.countPatientSearchResult(
+      currPatient.value
+    );
+    console.log(count.data);
+    pagination.value.rowsNumber = count.data;
+    currPatient.value.limit = limit.value;
+    currPatient.value.offset = offset.value;
     patientService.apiSearch(currPatient.value);
   } else {
     patientService.get(0);
