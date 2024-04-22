@@ -24,7 +24,8 @@ export default {
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
-      format: 'a4',
+      // format: 'a4',
+      format: [205, 313],
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default i
     });
@@ -125,6 +126,7 @@ export default {
       'Data Levant.',
       'Data Prox. Levant.',
       'Sector Clínico',
+      'Utilizador',
     ];
     const rows = result;
     const data = [];
@@ -158,6 +160,7 @@ export default {
         moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
       );
       createRow.push(rows[row].clinicsector);
+      createRow.push(rows[row].idmeduser);
 
       data.push(createRow);
       ord += 1;
@@ -184,6 +187,9 @@ export default {
         7: { cellWidth: 25 },
         8: { cellWidth: 25 },
         9: { cellWidth: 20 },
+        10: { cellWidth: 20 },
+        11: { cellWidth: 20 },
+        12: { cellWidth: 20 },
       },
       didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -232,13 +238,13 @@ export default {
     const cellPharm = worksheet.getCell('A11');
     const cellDistrict = worksheet.getCell('A12');
     const cellProvince = worksheet.getCell('E12');
-    const cellStartDate = worksheet.getCell('J11');
-    const cellEndDate = worksheet.getCell('J12');
+    const cellStartDate = worksheet.getCell('L11');
+    const cellEndDate = worksheet.getCell('L12');
     const cellPharmParamValue = worksheet.getCell('B11');
     const cellDistrictParamValue = worksheet.getCell('B12');
     const cellProvinceParamValue = worksheet.getCell('F12');
-    const cellStartDateParamValue = worksheet.getCell('K11');
-    const cellEndDateParamValue = worksheet.getCell('K12');
+    const cellStartDateParamValue = worksheet.getCell('M11');
+    const cellEndDateParamValue = worksheet.getCell('M12');
 
     // Get Rows
     const headerRow = worksheet.getRow(15);
@@ -255,6 +261,8 @@ export default {
     const colI = worksheet.getColumn('I');
     const colJ = worksheet.getColumn('J');
     const colK = worksheet.getColumn('K');
+    const colL = worksheet.getColumn('L');
+    const colM = worksheet.getColumn('M');
 
     // Format Table Cells
     // Alignment Format
@@ -314,11 +322,11 @@ export default {
 
     // merge a range of cells
     // worksheet.mergeCells('A1:A7')
-    worksheet.mergeCells('A9:K10');
-    worksheet.mergeCells('B11:I11');
+    worksheet.mergeCells('A9:M10');
+    worksheet.mergeCells('B11:K11');
     worksheet.mergeCells('B12:D12');
-    worksheet.mergeCells('F12:I12');
-    worksheet.mergeCells('A13:I13');
+    worksheet.mergeCells('F12:K12');
+    worksheet.mergeCells('A13:K13');
 
     // add width size to Columns
     // add height size to Rows
@@ -337,6 +345,8 @@ export default {
     colI.width = 20;
     colJ.width = 20;
     colK.width = 20;
+    colL.width = 20;
+    colM.width = 20;
 
     // Add Style
     // cellTitle.font =
@@ -410,6 +420,11 @@ export default {
         },
         {
           name: 'Sector Clínico',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Utilizador',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -564,6 +579,7 @@ export default {
         moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
       );
       createRow.push(rows[row].clinicsector);
+      createRow.push(rows[row].idmeduser);
 
       data.push(createRow);
       ord += 1;
