@@ -1,12 +1,13 @@
 import axios, { Axios } from 'axios';
 import UsersService from 'src/services/UsersService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { LocalStorage } from 'quasar';
 import useNotify from 'src/composables/shared/notify/UseNotify';
-// import { Notify } from 'quasar';
+import { Notify } from 'quasar';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { website } = useSystemUtils();
 const { notifyError } = useNotify();
+const { closeLoading } = useLoading();
 
 const instance = axios.create({
   baseURL: website.value
@@ -89,33 +90,104 @@ instance.interceptors.response.use(
     // const rToken = localStorage.getItem('id_token')
     const rToken = sessionStorage.getItem('refresh_token');
     if (rToken != null && rToken.length > 10) {
-      if (
-        (error.response.status === 403 || error.response.status === 401) &&
-        !originalRequest._retry
-      ) {
-        originalRequest._retry = true;
+      if (error.response !== undefined) {
+        if (
+          (error.response.status === 403 || error.response.status === 401) &&
+          !originalRequest._retry
+        ) {
+          // originalRequest._retry = true;
 
-        return axios
-          .post(
-            process.env.API_URL +
-              '/oauth/access_token?grant_type=refresh_token&refresh_token=' +
-              rToken
-          )
-          .then(({ data }) => {
-            console.log(
-              '==got the following token back: ' +
-                data.access_token +
-                '___________________________________________'
-            );
-            sessionStorage.setItem('id_token', data.access_token);
-            sessionStorage.setItem('refresh_token', data.access_token);
-            //  axios.defaults.headers.common['X-Auth-Token'] = data.access_token
-            originalRequest.headers['X-Auth-Token'] = [
-              '',
-              sessionStorage.getItem('id_token'),
-            ].join(' ');
-            return axios(originalRequest);
+          // return axios
+          //   .post(
+          //     process.env.API_URL +
+          //       '/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+          //       rToken
+          //   )
+          //   .then(({ data }) => {
+          //     console.log(
+          //       '==got the following token back: ' +
+          //         data.access_token +
+          //         '___________________________________________'
+          //     );
+          //     sessionStorage.setItem('id_token', data.access_token);
+          //     sessionStorage.setItem('refresh_token', data.access_token);
+          //     //  axios.defaults.headers.common['X-Auth-Token'] = data.access_token
+          //     originalRequest.headers['X-Auth-Token'] = [
+          //       '',
+          //       sessionStorage.getItem('id_token'),
+          //     ].join(' ');
+          //     return axios(originalRequest);
+          //   })
+          //   .catch((error) => {
+          //     window.location.href = '/logout';
+          //   });
+          closeLoading();
+          Notify.create({
+            icon: 'announcement',
+            message: 'Terminou a sessão. ',
+            type: 'negative',
+            progress: true,
+            timeout: 0,
+            position: 'top',
+            color: 'negative',
+            textColor: 'white',
+            classes: 'glossy',
+            actions: [
+              {
+                label: 'Fechar',
+                color: 'yellow',
+                handler: () => {
+                  window.location.href = '/#/Logout';
+                },
+              },
+            ],
           });
+        }
+      } else {
+        closeLoading();
+        Notify.create({
+          icon: 'announcement',
+          message: 'Problemas ao conectar-se com o Servidor. ',
+          type: 'negative',
+          progress: true,
+          timeout: 0,
+          position: 'top',
+          color: 'negative',
+          textColor: 'white',
+          classes: 'glossy',
+          actions: [
+            {
+              label: 'Tentar novamente',
+              color: 'yellow',
+              handler: () => {
+                location.reload();
+              },
+            },
+          ],
+        });
+      }
+    } else {
+      if (String(error.message).includes('Network Error')) {
+        Notify.create({
+          icon: 'announcement',
+          message: 'Problemas ao conectar-se com o Servidor. ',
+          type: 'negative',
+          progress: true,
+          timeout: 0,
+          position: 'top',
+          color: 'negative',
+          textColor: 'white',
+          classes: 'glossy',
+          actions: [
+            {
+              label: 'Tentar novamente',
+              color: 'yellow',
+              handler: () => {
+                location.reload();
+              },
+            },
+          ],
+        });
       }
     }
     return Promise.reject(error);
