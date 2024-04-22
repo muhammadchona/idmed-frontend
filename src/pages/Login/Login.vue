@@ -266,7 +266,12 @@
               </q-card-section>
 
               <q-card-actions align="right" class="text-primary">
-                <q-btn color="red" label="Fechar" v-close-popup />
+                <q-btn
+                  color="red"
+                  :disable="configs === undefined || configs === null"
+                  label="Fechar"
+                  v-close-popup
+                />
               </q-card-actions>
             </q-card>
           </q-dialog>
@@ -344,7 +349,7 @@ onMounted(() => {
   $q.loading.show({
     message: 'Carregando ...',
     spinnerColor: 'grey-4',
-    spinner: QSpinnerBall
+    spinner: QSpinnerBall,
   });
   loadSystemConfigs();
   loadProvinceAndDistrict();
@@ -443,7 +448,7 @@ const authUser = async () => {
 const loginOnline = (encodedStringBtoA) => {
   UsersService.login({
     username: username.value,
-    password: password.value
+    password: password.value,
   })
     .then((response) => {
       sessionStorage.setItem('tokenExpiration', String(Date.now() + 600000)); // 10min
@@ -491,19 +496,18 @@ const loginOffline = (encodedStringBtoA) => {
     sessionStorage.setItem('username', userLoged.username);
     sessionStorage.setItem('user', userLoged.username);
     sessionStorage.setItem('Btoa', encodedStringBtoA);
-    // localStorage.setItem('sync_pass', encryption.encryptPlainText('user.sync'));
     router.push({ path: '/' });
   } else {
     Notify.create({
       icon: 'announcement',
-      message: 'Utilizador ou a senha inválida',
+      message: 'Utilizador bloqueado ou a senha inválida',
       type: 'negative',
       progress: true,
       timeout: 3000,
       position: 'top',
       color: 'negative',
       textColor: 'white',
-      classes: 'glossy'
+      classes: 'glossy',
     });
     submitting.value = false;
   }

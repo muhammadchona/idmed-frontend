@@ -75,7 +75,7 @@
                   </template>
                 </q-input>
               </div>
-              <div class="row" v-if="editMode">
+              <div class="row q-gutter-md" v-if="editMode">
                 <q-input
                   v-model="user.password"
                   dense
@@ -89,6 +89,13 @@
                   :disable="onlyView"
                   type="password"
                 >
+                  <template v-slot:append>
+                    <q-icon
+                      name="close"
+                      @click="user.password = ''"
+                      class="cursor-pointer"
+                    />
+                  </template>
                 </q-input>
               </div>
               <div class="row q-mb-md">
@@ -116,6 +123,20 @@
                   :disable="onlyView"
                   type="email"
                   label="Email"
+                />
+              </div>
+              <q-separator />
+              <div class="row q-mb-md q-mt-sm float-right">
+                <q-checkbox
+                  dense
+                  v-model="user.accountLocked"
+                  keep-color
+                  :label="
+                    user.accountLocked
+                      ? 'Utilizador Bloqueado'
+                      : 'Utilizador Activo'
+                  "
+                  :color="user.accountLocked ? 'red' : 'teal'"
                 />
               </div>
               <div class="row q-gutter-sm">
@@ -424,7 +445,6 @@ const submitUser = () => {
   user.value.clinics = selectedClinics.value;
   user.value.clinics.push(currClinic.value);
   user.value.clinicSectors = selectedClinicSectors.value;
-  user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
 
   if (user.value.contact === null || user.value.contact === undefined) {
@@ -449,6 +469,7 @@ const submitUser = () => {
         showUserRegistrationScreen.value = false;
       });
   } else {
+    console.log('User', user.value);
     userService
       .patch(user.value.id, user.value)
       .then(() => {
@@ -482,7 +503,6 @@ const codeRulesNomeCompleto = (val) => {
   }
 };
 const userNameRules = (val) => {
-
   if (val === '') {
     return 'o nome do utilizador é obrigatorio';
   } else if (val.length < 3) {
