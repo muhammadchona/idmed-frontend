@@ -19,7 +19,7 @@
         flat
       >
         <template #header="props">
-          <q-tr class="text-left bg-green-2" :props="props">
+          <q-tr class="text-center bg-green-2" :props="props">
             <q-th>{{ columns[0].label }}</q-th>
             <q-th>{{ columns[1].label }}</q-th>
             <q-th>{{ columns[2].label }}</q-th>
@@ -64,7 +64,7 @@
                     // getDrugById(props.row.drug.id).defaultTreatment +
                     props.row.timesPerDay +
                     ' vez(es) por ' +
-                    getDrugById(props.row.drug.id).defaultPeriodTreatment
+                    props.row.form
                   : ''
               }}
             </q-td>
@@ -76,15 +76,48 @@
               :props="props"
             >
               {{ props.row.quantitySupplied }}
+              <em
+                v-if="
+                  getDrugFirstLevelById(props.row.drug.id).clinicalService
+                    .code === 'TARV'
+                "
+              >
+                Frasco(s)</em
+              >
+              <em v-else
+                >{{
+                  getDrugFirstLevelById(props.row.drug.id).form.description
+                }}(s)</em
+              >
             </q-td>
             <q-td key="quantityRemain" :props="props">
-              {{
-                Math.floor(
-                  getQtyRemain(props.row, curPrescription.duration.weeks) /
-                    props.row.drug.packSize
-                )
-              }}
-              ({{ getQtyRemain(props.row, curPrescription.duration.weeks) }})
+              <em
+                v-if="
+                  getDrugFirstLevelById(props.row.drug.id).clinicalService
+                    .code === 'TARV'
+                "
+              >
+                {{
+                  Math.floor(
+                    getQtyRemain(props.row, curPrescription.duration.weeks) /
+                      props.row.drug.packSize
+                  )
+                }}
+                Frasco(s) e ({{
+                  getQtyRemain(props.row, curPrescription.duration.weeks)
+                }}) Unidades
+              </em>
+              <em v-else>
+                {{
+                  Math.floor(
+                    getQtyRemain(props.row, curPrescription.duration.weeks) /
+                      props.row.drug.packSize
+                  )
+                }}
+                {{
+                  getDrugFirstLevelById(props.row.drug.id).form.description
+                }}(s)
+              </em>
             </q-td>
             <q-td
               :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
@@ -123,7 +156,11 @@
                   transition-show="flip-right"
                   transition-hide="flip-left"
                 >
-                  <strong><em> Medicamento sem stock ou por expirar brevemente </em></strong>
+                  <strong
+                    ><em>
+                      Medicamento sem stock ou por expirar brevemente
+                    </em></strong
+                  >
                 </q-tooltip>
               </q-btn>
             </q-td>
@@ -172,11 +209,13 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import drugService from 'src/services/api/drugService/drugService';
 import { v4 as uuidv4 } from 'uuid';
 import { debounce } from 'lodash';
+import { useDrug } from 'src/composables/drug/drugMethods';
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { remainigDurationInWeeks } = usePrescription();
 const { getQtyRemain } = usePrescribedDrug();
+const { getDrugFirstLevelById } = useDrug();
 const columns = [
   {
     name: 'drug',
@@ -197,14 +236,14 @@ const columns = [
     align: 'center',
     style: 'width: 20px',
     field: 'row.quantitySupplied',
-    label: 'Quantidade em (Frascos)',
+    label: 'Quantidade',
     sortable: false,
   },
   {
     name: 'quantityRemain',
     align: 'center',
     field: 'quantityRemain',
-    label: 'Sobra em Frasco(Unidade)',
+    label: 'Sobra',
     sortable: false,
   },
   {

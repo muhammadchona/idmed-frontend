@@ -444,7 +444,7 @@
               </template>
               <template #header="props">
                 <q-tr class="text-left bg-grey-3" :props="props">
-                  <q-th style="width: 70px">{{ columns[0].label }}</q-th>
+                  <!-- <q-th style="width: 70px">{{ columns[0].label }}</q-th> -->
                   <q-th class="col">{{ columns[1].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[2].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[3].label }}</q-th>
@@ -457,9 +457,9 @@
               </template>
               <template #body="props">
                 <q-tr :props="props">
-                  <q-td key="order" :props="props">
+                  <!-- <q-td key="order" :props="props">
                     {{ index }}
-                  </q-td>
+                  </q-td> -->
                   <q-td key="drug" :props="props">
                     <q-select
                       class="col"
