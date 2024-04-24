@@ -195,7 +195,7 @@
                       ' - ' +
                       props.row.timesPerDay +
                       ' vez(es) por ' +
-                      getDrugById(props.row.drug.id).defaultPeriodTreatment
+                      props.row.form
                     : ''
                 }}
               </q-td>
@@ -209,15 +209,48 @@
                       )
                     : 1
                 }}
+                <em
+                  v-if="
+                    getDrugFirstLevelById(props.row.drug.id).clinicalService
+                      .code === 'TARV'
+                  "
+                >
+                  Frasco(s)
+                </em>
+                <em v-else
+                  >{{
+                    getDrugFirstLevelById(props.row.drug.id).form.description
+                  }}(s)</em
+                >
               </q-td>
               <q-td auto-width key="packs" :props="props">
-                {{
-                  Math.floor(
-                    getQtyRemain(props.row, curPrescription.duration.weeks) /
-                      props.row.drug.packSize
-                  )
-                }}
-                ({{ getQtyRemain(props.row, curPrescription.duration.weeks) }})
+                <em
+                  v-if="
+                    getDrugFirstLevelById(props.row.drug.id).clinicalService
+                      .code === 'TARV'
+                  "
+                >
+                  {{
+                    Math.floor(
+                      getQtyRemain(props.row, curPrescription.duration.weeks) /
+                        props.row.drug.packSize
+                    )
+                  }}
+                  Frasco(s) e ({{
+                    getQtyRemain(props.row, curPrescription.duration.weeks)
+                  }}) Unidades
+                </em>
+                <em v-else>
+                  {{
+                    Math.floor(
+                      getQtyRemain(props.row, curPrescription.duration.weeks) /
+                        props.row.drug.packSize
+                    )
+                  }}
+                  {{
+                    getDrugFirstLevelById(props.row.drug.id).form.description
+                  }}(s)
+                </em>
               </q-td>
               <q-td key="options" :props="props">
                 <q-btn
@@ -473,6 +506,7 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 
 import { v4 as uuidv4 } from 'uuid';
 import drugService from 'src/services/api/drugService/drugService';
+import { useDrug } from 'src/composables/drug/drugMethods';
 
 //props
 const props = defineProps(['identifier']);
@@ -491,6 +525,7 @@ const { alertSucess, alertError, alertInfo, alertWarningAction, alertWarning } =
 const { getQtyPrescribed } = usePrescribedDrug();
 const { remainigDuration } = usePrescription();
 const { getQtyRemain } = usePrescribedDrug();
+const { getDrugFirstLevelById } = useDrug();
 
 const expanded = ref(false);
 const submittingPrescribedDrug = reactive(ref(false));
@@ -561,7 +596,7 @@ const columns = [
       getQtyPrescribed(row, curPrescription.value.duration.weeks) > 0
         ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
         : 1,
-    label: 'Quantidade em (Frascos)',
+    label: 'Quantidade',
     sortable: false,
   },
   {
@@ -572,7 +607,7 @@ const columns = [
       getQtyPrescribed(row, curPrescription.value.duration.weeks) > 0
         ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
         : 1,
-    label: 'Sobra em Frasco(Unidade)',
+    label: 'Sobra',
     sortable: false,
   },
   {

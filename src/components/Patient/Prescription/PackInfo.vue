@@ -35,7 +35,21 @@
                     {{ props.row.drug !== null ? props.row.drug.name : '' }}
                   </q-td>
                   <q-td key="qty" :props="props">
-                    {{ props.row.quantitySupplied }} Frasco(s)
+                    {{ props.row.quantitySupplied }}
+                    <em
+                      v-if="
+                        getDrugFirstLevelById(props.row.drug.id).clinicalService
+                          .code === 'TARV'
+                      "
+                    >
+                      Frasco(s)</em
+                    >
+                    <em v-else
+                      >{{
+                        getDrugFirstLevelById(props.row.drug.id).form
+                          .description
+                      }}(s)</em
+                    >
                   </q-td>
                   <q-td auto-width key="nextPickUpDate" :props="props">
                     {{
@@ -45,8 +59,22 @@
                     }}
                   </q-td>
                   <q-td key="quantityRemain" :props="props">
-                    {{ totalQuantityRemainFrascos(props.row.drug) }}
-                    ({{ totalUnityRemains(props.row.drug) }})
+                    <em
+                      v-if="
+                        getDrugFirstLevelById(props.row.drug.id).clinicalService
+                          .code === 'TARV'
+                      "
+                    >
+                      {{ totalQuantityRemainFrascos(props.row.drug) }} Frasco(s)
+                      e ({{ totalUnityRemains(props.row.drug) }}) Unidades
+                    </em>
+                    <em v-else
+                      >{{ totalQuantityRemainFrascos(props.row.drug) }}
+                      {{
+                        getDrugFirstLevelById(props.row.drug.id).form
+                          .description
+                      }}(s)</em
+                    >
                   </q-td>
                   <q-td
                     :rowspan="pack.packagedDrugs"
@@ -88,9 +116,12 @@
 
 <script setup>
 import { date } from 'quasar';
+import { useDrug } from 'src/composables/drug/drugMethods';
 
-import { inject, onMounted, provide, ref } from 'vue';
+import { inject, provide, ref } from 'vue';
 //Declaration
+
+const { getDrugFirstLevelById } = useDrug();
 
 const columns = [
   {
@@ -119,7 +150,7 @@ const columns = [
     name: 'quantityRemain',
     align: 'center',
     field: 'quantityRemain',
-    label: 'Sobra em Frasco(Unidade)',
+    label: 'Sobra',
     sortable: false,
   },
   ,
