@@ -25,56 +25,6 @@
             label="Fonte de dados"
           />
         </div>
-
-        <div class="q-mt-lg">
-          <div class="row items-center q-mb-md">
-            <q-icon name="key" size="sm" />
-            <span class="q-pl-sm text-subtitle2">UUID</span>
-          </div>
-          <q-separator color="grey-13" size="1px" />
-        </div>
-        <div class="q-mt-md">
-          <div class="row">
-            <q-input
-              label="UUID *"
-              dense
-              outlined
-              flat
-              class="col q-mr-md"
-              ref="uuidRef"
-              :rules="[(val) => !!val || 'Por favor indicar o nome']"
-              v-model="patientReg.hisUuid"
-              :disable="editUUID"
-              style="height: 40px"
-            />
-            <q-btn
-              @click="disableEditUUID()"
-              color="primary"
-              icon="edit"
-              flat
-              v-if="editUUID"
-              :disable="false"
-              style="height: 50px"
-            >
-              <q-tooltip class="bg-green-5">Editar UUID</q-tooltip>
-            </q-btn>
-            <q-btn
-              :loading="submitUUID"
-              color="primary"
-              icon="done"
-              flat
-              v-if="!editUUID"
-              @click="updateUUID(patientReg)"
-            />
-            <q-btn
-              color="red"
-              icon="clear"
-              flat
-              v-if="!editUUID"
-              @click="editUUID = true"
-            />
-          </div>
-        </div>
         <div class="q-mt-lg">
           <div class="row items-center q-mb-md">
             <q-icon name="person_outline" size="sm" />
@@ -328,6 +278,55 @@
             </template>
           </q-input>
         </div>
+        <div class="q-mt-lg">
+          <div class="row items-center q-mb-md">
+            <q-icon name="key" size="sm" />
+            <span class="q-pl-sm text-subtitle2">UUID</span>
+          </div>
+          <q-separator color="grey-13" size="1px" />
+        </div>
+        <div class="q-mt-md">
+          <div class="row">
+            <q-input
+              label="UUID *"
+              dense
+              outlined
+              flat
+              class="col q-mr-md"
+              ref="uuidRef"
+              :rules="[(val) => !!val || 'Por favor indicar o nome']"
+              v-model="hisUUID"
+              :disable="editUUID"
+              style="height: 40px"
+            />
+            <q-btn
+              @click="disableEditUUID()"
+              color="primary"
+              icon="edit"
+              flat
+              v-if="editUUID"
+              :disable="false"
+              style="height: 50px"
+            >
+              <q-tooltip class="bg-green-5">Editar UUID</q-tooltip>
+            </q-btn>
+            <q-btn
+              :loading="submitUUID"
+              color="primary"
+              icon="done"
+              flat
+              v-if="!editUUID"
+              @click="updateUUID(patientReg)"
+            />
+            <q-btn
+              color="red"
+              icon="clear"
+              flat
+              v-if="!editUUID"
+              @click="editUUID = true"
+            />
+          </div>
+        </div>
       </q-card-section>
       <q-card-section class="q-px-md"> </q-card-section>
       <q-card-actions align="right" class="q-mb-md q-mr-sm">
@@ -396,7 +395,8 @@ const selectedDataSources = ref({
   id: -1,
   description: 'iDMED',
 });
-
+const hisUUID = ref('');
+const oldHisUUID = ref('');
 const dataSources = inject('dataSources');
 
 // Inject
@@ -411,6 +411,7 @@ const submitUUID = ref(false);
 
 onMounted(() => {
   initPatient();
+  hisUUID.value = patientReg.value.hisUuid;
 });
 
 // Methods
@@ -420,12 +421,17 @@ const disableEditUUID = () => {
 };
 
 const updateUUID = () => {
+  if (!isValidUUID(patientReg.value.hisUuid)) {
+    return alertError('O UUID digitado esta com um formato errado.');
+  }
+
   submitUUID.value = true;
   patientReg.value.clinic = {};
   patientReg.value.clinic.id = currClinic.value.id;
-
+  oldHisUUID.value = patientReg.value.hisUuid;
   patientReg.value.identifiers = {};
   patientReg.value.patientVisits = {};
+  patientReg.value.hisUUID = hisUUID.value;
   patientService
     .updateUUID(patientReg.value, sessionStorage.getItem('Btoa'))
     .then(() => {
@@ -434,6 +440,8 @@ const updateUUID = () => {
       editUUID.value = true;
     })
     .catch((error) => {
+      patientReg.value.hisUuid = oldHisUUID.value;
+      hisUUID.value = oldHisUUID.value;
       alertError(error.response.data);
       submitUUID.value = false;
       editUUID.value = true;
@@ -919,6 +927,13 @@ const bairros = computed(() => {
     return null;
   }
 });
+
+const isValidUUID = (uuidString) => {
+  const uuidRegex =
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  console.log(uuidRegex.test(uuidString));
+  return uuidRegex.test(uuidString);
+};
 </script>
 
 <style></style>
