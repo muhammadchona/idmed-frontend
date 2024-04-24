@@ -1,5 +1,5 @@
 import JsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { Column } from 'jspdf-autotable';
 import moment from 'moment';
 import saveAs from 'file-saver';
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
@@ -8,15 +8,26 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isMobile, isOnline } = useSystemUtils();
-const reportName = 'PacientesEsperadosNumDia';
+const reportName = 'RelatorioInventarioParcial';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = 'Relatório de Pacientes Esperados Num Dia';
+const title = 'Relatorio de Inventario Parcial';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
 
 export default {
+  async generateSubreport() {
+    // Create a new jsPDF instance
+    const doc = new jsPDF();
+
+    // Add content to the subreport
+    doc.text('This is a subreport PDF', 10, 10);
+
+    // Return the generated PDF document
+    return doc;
+  },
+
   async downloadPDF(province, startDate, endDate, result) {
     const clinic = clinicService.currClinic();
     const doc = new JsPDF({
@@ -40,7 +51,7 @@ export default {
     const headerReport = [
       [
         {
-          content: 'Lista de Pacientes Esperados num Dia',
+          content: 'Relatorio de Inventario Parcial',
           styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
           colSpan: 3,
           halign: 'center',
@@ -112,76 +123,170 @@ export default {
     doc.addImage(image, 'png', 28, 15, 10, 10);
 
     const cols = [
-      'ORD',
-      'NID',
-      'Nome',
-      'Data do Próximo Levantamento',
-      'Regime Terapêutico',
-      'Tipo de Dispensa',
-      'Nome da Unidade Sanitária',
+      'Ordem',
+      'Lote',
+      'Data do ajuste',
+      'Frascos Contados',
+      'Saldo',
+      'Notas',
     ];
 
     const rows = result;
-    const data = [];
+
     let ord = 1;
 
-    for (const row in rows) {
-      const createRow = [];
-      createRow.push(ord);
-      createRow.push(rows[row].nid);
-      createRow.push(
-        rows[row].firstNames +
-          ' ' +
-          rows[row].middleNames +
-          ' ' +
-          rows[row].lastNames
-      );
-      createRow.push(
-        moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY')
-      );
-      createRow.push(rows[row].therapeuticRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].clinic);
+    //const drugs = n//get all drugs
+    for (let i = 0; i < rows.length; i++) {
+      const data = [];
+      const cols1 = ['Medicamento'];
+      const data1 = [[rows[i].drugName, rows[i].drugName, 270]];
+      autoTable(doc, {
+        bodyStyles: {
+          halign: 'left',
+          fontSize: 10,
+        },
+        headStyles: {
+          halign: 'center',
+          valign: 'middle',
+          fontSize: 8,
+        },
+        columnStyles: {
+          0: { cellWidth: 270 },
+        },
+        head: [cols1],
+        body: data1,
+      });
 
-      data.push(createRow);
-      ord += 1;
+      ord = 0;
+      const rowsAux = rows[i].adjustments;
+      for (const row in rowsAux) {
+        const createRow = [];
+        createRow.push(ord);
+        createRow.push(rowsAux[row].batchNumber);
+        createRow.push(
+          moment(new Date(rowsAux[row].captureDate)).format('DD-MM-YYYY')
+        );
+        createRow.push(rowsAux[row].adjustedValue);
+        createRow.push(rowsAux[row].balance);
+        createRow.push(rowsAux[row].notes);
+
+        data.push(createRow);
+        ord += 1;
+      }
+
+      autoTable(doc, {
+        bodyStyles: {
+          halign: 'center',
+          fontSize: 8,
+        },
+        headStyles: {
+          halign: 'center',
+          valign: 'middle',
+          fontSize: 8,
+        },
+        columnStyles: {
+          0: { cellWidth: 14 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 50 },
+          3: { cellWidth: 50 },
+          4: { cellWidth: 50 },
+          5: { cellWidth: 55 },
+        },
+        didDrawPage: function (data) {
+          const str = 'Página ' + doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height
+            ? pageSize.height
+            : pageSize.getHeight();
+          doc.text(str, data.settings.margin.right, pageHeight - 10);
+        },
+        startY: doc.lastAutoTable.finalY,
+        theme: 'grid',
+        head: [cols],
+        body: data,
+      });
+
+      const resumoAdjustments = [
+        [
+          {
+            content: 'Total de frascos Contados ',
+            // colSpan: 4,
+            halign: 'center',
+            valign: 'middle',
+            fontStyle: 'bold',
+            fontSize: '14',
+            ColumnWidth: 10,
+          },
+          {
+            content: rows[i].totalAdjustedValue,
+            // colSpan: 1,
+            halign: 'right',
+            valign: 'middle',
+            fontStyle: 'bold',
+            fontSize: '14',
+            ColumnWidth: 20,
+          },
+        ],
+        [
+          {
+            content: 'Total de saldo ',
+            // colSpan: 1,
+            halign: 'center',
+            valign: 'middle',
+            fontStyle: 'bold',
+            fontSize: '14',
+            ColumnWidth: 10,
+          },
+          {
+            content: rows[i].totalBalance,
+            // colSpan: 1,
+            halign: 'center',
+            valign: 'right',
+            fontStyle: 'bold',
+            fontSize: '14',
+            ColumnWidth: 20,
+          },
+        ],
+        [
+          {
+            content: 'Total de Variação para o Med. ',
+            // colSpan: 1,
+            halign: 'left',
+            valign: 'middle',
+            fontStyle: 'bold',
+            fontSize: '14',
+            cellWidth: 10,
+          },
+          {
+            content: rows[i].totalAdjustedValue - rows[i].totalBalance,
+            // colSpan: 1,
+            halign: 'right',
+            valign: 'middle',
+            fontStyle: 'bold',
+            fontSize: '14',
+            cellWidth: 20,
+          },
+        ],
+      ];
+
+      autoTable(doc, {
+        bodyStyles: {
+          // halign: 'left',
+          // valign: 'middle',
+          fontSize: 8,
+        },
+        headStyles: {
+          halign: 'left',
+          // valign: 'middle',
+        },
+        theme: 'grid',
+        body: resumoAdjustments,
+        startY: doc.lastAutoTable.finalY,
+        tableWidth: 84,
+      });
     }
-    ord = 0;
-    autoTable(doc, {
-      bodyStyles: {
-        halign: 'center',
-        fontSize: 8,
-      },
-      headStyles: {
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 8,
-      },
-      columnStyles: {
-        0: { cellWidth: 20 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 60 },
-        3: { cellWidth: 30 },
-        4: { cellWidth: 50 },
-        5: { cellWidth: 35 },
-        6: { cellWidth: 35 },
-        7: { cellWidth: 25 },
-      },
-      didDrawPage: function (data) {
-        const str = 'Página ' + doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height
-          ? pageSize.height
-          : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);
-      },
-      startY: doc.lastAutoTable.finalY,
-      theme: 'grid',
-      head: [cols],
-      body: data,
-    });
 
     if (isOnline.value && !isMobile.value) {
       // return doc.save('PacientesActivos.pdf')
@@ -195,10 +300,8 @@ export default {
 
     // params.value.loading.loading.hide()
   },
-  async downloadExcel(province, startDate, endDate, result, params) {
+  async downloadExcel(province, startDate, endDate, result) {
     const clinic = clinicService.currClinic();
-    const rows = result;
-    const data = this.createArrayOfArrayRow(rows);
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'FGH';
@@ -218,14 +321,14 @@ export default {
     const cellTitle = worksheet.getCell('A9');
     const cellPharm = worksheet.getCell('A11');
     const cellDistrict = worksheet.getCell('A12');
-    const cellProvince = worksheet.getCell('D12');
-    const cellStartDate = worksheet.getCell('I11');
-    const cellEndDate = worksheet.getCell('I12');
+    const cellProvince = worksheet.getCell('C12');
+    const cellStartDate = worksheet.getCell('E11');
+    const cellEndDate = worksheet.getCell('E12');
     const cellPharmParamValue = worksheet.getCell('B11');
     const cellDistrictParamValue = worksheet.getCell('B12');
-    const cellProvinceParamValue = worksheet.getCell('E12');
-    const cellStartDateParamValue = worksheet.getCell('J11');
-    const cellEndDateParamValue = worksheet.getCell('J12');
+    const cellProvinceParamValue = worksheet.getCell('D12');
+    const cellStartDateParamValue = worksheet.getCell('F11');
+    const cellEndDateParamValue = worksheet.getCell('F12');
 
     // Get Rows
     const headerRow = worksheet.getRow(15);
@@ -237,10 +340,6 @@ export default {
     const colD = worksheet.getColumn('D');
     const colE = worksheet.getColumn('E');
     const colF = worksheet.getColumn('F');
-    const colG = worksheet.getColumn('G');
-    const colH = worksheet.getColumn('H');
-    const colI = worksheet.getColumn('I');
-    const colJ = worksheet.getColumn('J');
 
     // Format Table Cells
     // Alignment Format
@@ -300,11 +399,12 @@ export default {
 
     // merge a range of cells
     // worksheet.mergeCells('A1:A7')
-    worksheet.mergeCells('A9:J10');
-    worksheet.mergeCells('B11:H11');
-    worksheet.mergeCells('B12:C12');
-    worksheet.mergeCells('E12:H12');
-    worksheet.mergeCells('A13:I13');
+    worksheet.mergeCells('A9:F10');
+    // worksheet.mergeCells('B11:C11');
+    // worksheet.mergeCells('B12:C12');
+    //worksheet.mergeCells('E12:H12');
+    // worksheet.mergeCells('A13:I13');
+    worksheet.mergeCells('A15:F15');
 
     // add width size to Columns
     // add height size to Rows
@@ -312,16 +412,12 @@ export default {
 
     // add height size to Columns
     // add width size to Columns
-    colA.width = 20;
+    colA.width = 35;
     colB.width = 20;
-    colC.width = 30;
-    colD.width = 15;
+    colC.width = 20;
+    colD.width = 20;
     colE.width = 20;
-    colF.width = 15;
-    colG.width = 15;
-    colH.width = 15;
-    colI.width = 15;
-    colJ.width = 20;
+    colF.width = 30;
 
     // Add Style
     // cellTitle.font =
@@ -343,69 +439,138 @@ export default {
       tl: { col: 0, row: 1 },
       ext: { width: 144, height: 98 },
     });
+    // ;
+    const cell = worksheet.getCell('A15');
+    cell.value = 'Medicamento';
+    const rowsAux = result;
 
-    // Cereate Table
-    worksheet.addTable({
-      name: reportName,
-      ref: 'A14',
-      headerRow: true,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
+    cell.font = {
+      name: 'Arial',
+      // color: { argb: 'FFFFFFFF' },
+      family: 2,
+      size: 11,
+      italic: false,
+      bold: true,
+    };
 
-      columns: [
-        { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
-        { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
-        { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
-        { name: 'Data do Próximo Levantamento', totalsRowLabel: 'none' },
-        {
-          name: 'Regime Terapêutico',
-          totalsRowFunction: 'none',
-          filterButton: false,
+    for (let i = 0; i < rowsAux.length; i++) {
+      const lastRowNum =
+        worksheet.lastRow.number !== undefined ? worksheet.lastRow.number : 0;
+      const lastTableRowNum = lastRowNum;
+
+      const rows = rowsAux[i].adjustments;
+      const data = this.createArrayOfArrayRow(rows);
+      const refTable = i === 0 ? 'A17' : 'A' + Number(lastRowNum + 2);
+
+      if (i === 0) {
+        const cell = worksheet.getCell('A16');
+        cell.value = rowsAux[i].drugName;
+        worksheet.mergeCells('A16:F16');
+      } else {
+        const rowNumber = Number(lastRowNum + 1);
+        const cell = worksheet.getCell('A' + Number(rowNumber));
+        cell.value = rowsAux[i].drugName;
+        worksheet.mergeCells('A' + rowNumber + ' : F' + rowNumber);
+      }
+
+      // Cereate Table
+      worksheet.addTable({
+        name: reportName,
+        ref: refTable,
+        headerRow: true,
+        totalsRow: false,
+        style: {
+          showRowStripes: false,
         },
-        {
-          name: 'Tipo de Dispensa',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Nome da Unidade Sanitária',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-      ],
-      rows: data,
-    });
 
-    // Format all data cells
-    const lastRowNum =
-      worksheet.lastRow.number !== undefined ? worksheet.lastRow.number : 0;
-    const lastTableRowNum = lastRowNum;
+        columns: [
+          { name: 'Ordem', totalsRowLabel: 'none', filterButton: false },
+          {
+            name: 'Lote',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'Data do ajuste',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'Frascos Contados',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'Saldo',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
 
-    // Loop through all table's row
-    for (let i = 14; i <= lastTableRowNum; i++) {
-      const row = worksheet.getRow(i);
+          {
+            name: 'Notas',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+        ],
+        rows: data,
+      });
 
-      // Now loop through every row's cell and finally set alignment
-      row.eachCell({ includeEmpty: true }, (cell) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
-        cell.alignment = {
-          vertical: 'middle',
-          horizontal: 'center',
-          wrapText: true,
-        };
-        if (i === 14) {
+      // Format all data cells
+
+      for (let i = 14; i <= lastTableRowNum + 1; i++) {
+        const row = worksheet.getRow(i);
+
+        // Now loop through every row's cell and finally set alignment
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        });
+      }
+
+      // Loop through all table's row
+      for (let i = lastRowNum; i <= lastTableRowNum; i++) {
+        const row = worksheet.getRow(i + 1);
+        const secondRow = worksheet.getRow(i + 2);
+        secondRow.eachCell({ includeEmpty: true }, (cell) => {
           cell.fill = {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: '1fa37b' },
-            bgColor: { argb: '1fa37b' },
+            fgColor: { argb: 'dedfe0' },
+            bgColor: { argb: 'dedfe0' },
+          };
+          cell.font = {
+            name: 'Arial',
+            // color: { argb: 'FFFFFFFF' },
+            family: 2,
+            size: 11,
+            italic: false,
+            bold: true,
+          };
+        });
+
+        // Now loop through every row's cell and finally set alignment
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: 'center',
+            wrapText: true,
+          };
+
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: '4b4c4d' },
+            bgColor: { argb: '4b4c4d' },
           };
           cell.font = {
             name: 'Arial',
@@ -415,8 +580,53 @@ export default {
             italic: false,
             bold: true,
           };
-        }
-      });
+        });
+      }
+      // worksheet.insertRows(lastRowNum + 1, [[], [], []]);
+
+      const cellTotalContadosLabel = worksheet.getCell(
+        'A' + Number(lastRowNum + rows.length + 3)
+      );
+      cellTotalContadosLabel.value = 'Total de frascos Contados';
+
+      const cellTotalContadosValue = worksheet.getCell(
+        'B' + Number(lastRowNum + rows.length + 3)
+      );
+      cellTotalContadosValue.value = rowsAux[i].totalAdjustedValue;
+
+      const cellTotalSaldoLabel = worksheet.getCell(
+        'A' + Number(lastRowNum + rows.length + 4)
+      );
+      cellTotalSaldoLabel.value = 'Total de saldo';
+
+      const cellTotalSaldoValue = worksheet.getCell(
+        'B' + Number(lastRowNum + rows.length + 4)
+      );
+      cellTotalSaldoValue.value = rowsAux[i].totalBalance;
+
+      const cellVarLabel = worksheet.getCell(
+        'A' + Number(lastRowNum + rows.length + 5)
+      );
+      cellVarLabel.value = 'Total de Variação para o Med.  ';
+
+      const cellVarValue = worksheet.getCell(
+        'B' + Number(lastRowNum + rows.length + 5)
+      );
+      cellVarValue.value =
+        Number(rowsAux[i].totalAdjustedValue) - Number(rowsAux[i].totalBalance);
+
+      //Bold Text
+      cellTotalSaldoLabel.font =
+        cellTotalContadosLabel.font =
+        cellVarLabel.font =
+        cellTotalSaldoLabel.font =
+          {
+            name: 'Arial',
+            family: 2,
+            size: 11,
+            italic: false,
+            bold: true,
+          };
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -429,7 +639,7 @@ export default {
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension);
     } else {
-      const titleFile = 'PacientesActivos.xlsx';
+      const titleFile = 'RelatorioInventarioParcial.xlsx';
       saveBlob2File(titleFile, blob);
       function saveBlob2File(fileName, blob) {
         const folder = cordova.file.externalRootDirectory + 'Download';
@@ -503,20 +713,14 @@ export default {
     for (const row in rows) {
       const createRow = [];
       createRow.push(ord);
-      createRow.push(rows[row].nid);
+      createRow.push(rows[row].batchNumber);
       createRow.push(
-        rows[row].firstNames +
-          ' ' +
-          rows[row].middleNames +
-          ' ' +
-          rows[row].lastNames
+        moment(new Date(rows[row].captureDate)).format('DD-MM-YYYY')
       );
-      createRow.push(
-        moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY')
-      );
-      createRow.push(rows[row].therapeuticRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].clinic);
+      createRow.push(rows[row].adjustedValue);
+      createRow.push(rows[row].balance);
+      createRow.push(rows[row].notes);
+
       data.push(createRow);
       ord += 1;
     }

@@ -95,6 +95,7 @@ import MenuMobile from 'components/Reports/Menus/ListReportMenuMobile.vue';
 import ListReportMenu from 'components/Reports/Menus/ListReportMenu.vue';
 import ActivesInDrugStore from 'components/Reports/Patient/ActivesInDrugStore.vue';
 import GuestList from 'components/Reports/Patient/GuestList.vue';
+import PatientsWithouDispense from 'components/Reports/Patient/PatientsWihoutDispense.vue';
 import ImportedPatientList from 'components/Reports/Patient/ImportedPatientList.vue';
 import TransferedFrom from 'components/Reports/Patient/TransferedFrom.vue';
 import TransferedTo from 'components/Reports/Patient/TransferedTo.vue';
@@ -109,6 +110,8 @@ import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
 import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue';
+import AbsentPatientsDT from 'components/Reports/ClinicManagement/AbsentPatientsDT.vue';
+import AbsentPatientsDS from 'components/Reports/ClinicManagement/AbsentPatientsDS.vue';
 import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.vue';
 import PatientHistoryPREP from 'components/Reports/ClinicManagement/prep/PatientHistory.vue';
 import PatientHistoryTPT from 'components/Reports/ClinicManagement/tpt/PatientHistory.vue';
@@ -119,12 +122,12 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
 
-import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue'
-import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue'
+import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue';
+import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue';
 import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
 import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
-import partialInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
-import generalInventory from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+import partialInventory from 'components/Reports/stock/InventoryPartial.vue';
+//import generalInventory from 'components/Reports/stock/InventoryGeneral.vue';
 import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
 import MmiaTb from 'components/Reports/ClinicManagement/tpt/MmiaTb.vue';
 
@@ -133,6 +136,7 @@ const { closeLoading, showloading } = useLoading();
 const componentsList = {
   ActivesInDrugStore,
   GuestList,
+  PatientsWithouDispense,
   ImportedPatientList,
   TransferedFrom,
   TransferedTo,
@@ -141,6 +145,8 @@ const componentsList = {
   ReferredPatients,
   ReferredPatientDispenseHistory,
   AbsentPatients,
+  AbsentPatientsDT,
+  AbsentPatientsDS,
   AbsentPatientsApss,
   AbsentReferredPatients,
   ReceivedStock,
@@ -149,16 +155,16 @@ const componentsList = {
   PatientHistory,
   PatientHistoryPREP,
   PatientHistoryTPT,
-  NotSynchronizedPack, 
+  NotSynchronizedPack,
   SemiannualDispensation,
   QuarterlyDispensation,
   PrepDailyRegister,
   TptDailyRegister,
   QuantityRemain,
   partialInventory,
-  generalInventory,
+  partialInventory,
   expectedOfDay,
-  MmiaTb
+  MmiaTb,
 };
 
 const { isMobile } = useSystemUtils();
