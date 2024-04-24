@@ -1,37 +1,37 @@
 <template>
-  <div ref="filterExpectedSection">
+  <div ref="filterPatientsWithouDispenseSection">
     <ListHeader
-      :addVisible="false"
       v-if="resultFromLocalStorage"
+      :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Pacientes
-      Esperados Num Dia
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Pacientes Sem
+      Dispensa
     </ListHeader>
     <ListHeader
-      :addVisible="false"
       v-else
+      :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}:
-      Pacientes Esperados Num Dia
+      Pacientes Sem Dispensa
     </ListHeader>
     <div class="param-container">
       <q-item>
         <q-item-section class="col">
           <FiltersInput
             :id="id"
+            :clinicalService="selectedService"
+            :totalRecords="totalRecords"
+            :qtyProcessed="qtyProcessed"
             :reportType="report"
+            :progress="progress"
             :tabName="name"
             :params="params"
-            :totalRecords="totalRecords"
-            :progress="progress"
-            :qtyProcessed="qtyProcessed"
-            :clinicalService="selectedService"
             @generateReport="generateReport"
             @initReportProcessing="initReportProcessing"
           />
@@ -40,40 +40,32 @@
     </div>
   </div>
 </template>
-
 <script setup>
-import moment from 'moment';
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
-import activePatients from 'src/services/reports/Patients/ExpectedOfTheDay';
-import { ref, provide } from 'vue';
-import reportDatesParams from 'src/services/reports/ReportDatesParams';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { ref, provide, onMounted } from 'vue';
+import PatientWithoutDispenseTs from 'src/services/reports/Patients/PatientsWithoutDispense.ts';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
-import activeInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
-import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import PatientsWithoutDispense from 'src/services/reports/Patients/PatientsWithoutDispense.ts';
 
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
-const name = 'ExpectedPatients';
+const name = 'PatientsWithoutDispense';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
-const progress = ref(0.0);
-const filterExpectedSection = ref('');
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
-const report = 'EXPECTED_PATIENTS';
+const report = 'PACIENTES_SEM_DISPENSAS';
+const progress = ref(0.0);
+const filterPatientsWithouDispenseSection = ref('');
 const downloadingPdf = ref(false);
 const downloadingXls = ref(false);
-
 const isReportClosed = ref(false);
-const updateParamsOnLocalStrage = (params, isReportClosed) => {
-  if (!isReportClosed.value) LocalStorage.set(params.id, params);
-};
 
 const closeSection = (params) => {
-  filterExpectedSection.value.remove();
+  filterPatientsWithouDispenseSection.value.remove();
   if (params) {
     const paramId = params.id;
     isReportClosed.value = true;
@@ -84,25 +76,29 @@ const closeSection = (params) => {
 const serviceAux = ref(null);
 const resultFromLocalStorage = ref(false);
 
-const initReportProcessing = (params) => {
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if (!isReportClosed.value) LocalStorage.set(params.id, params);
+};
+
+const initReportProcessing = async (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
     updateParamsOnLocalStrage(params, isReportClosed);
-    Report.apiInitExpectedPatientsProcessing(params).then((resp) => {
-      getProcessingStatus(params);
-    });
+    Report.apiInitReportProcess('patientWithoutDispense', params).then(
+      (response) => {
+        getProcessingStatus(params);
+      }
+    );
   } else {
     updateParamsOnLocalStrage(params, isReportClosed);
-    const reportParams = reportDatesParams.determineStartEndDate(params);
-    activeInDrugStoreMobileService.getDataLocalDb(reportParams).then((resp) => {
-      progress.value = 100;
-      params.progress = 100;
-    });
+    // const resp = await patientWithoutDispenseService.getDataLocalDb(params);
+    //progress.value = 100;
+    //params.progress = 100;
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('expectedPatientsReport', params).then((resp) => {
+  Report.getProcessingStatus('patientWithoutDispense', params).then((resp) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
@@ -126,7 +122,7 @@ const getProcessingStatus = (params) => {
 
 const generateReport = async (id, fileType) => {
   if (isOnline.value) {
-    Report.apiPrintExpectedPatientsReport(id).then((resp) => {
+    Report.apiPrintPatientsWithoutDispenseReport(id).then((resp) => {
       if (!resp.data[0]) {
         alertError('Nao existem Dados para o periodo selecionado');
         downloadingXls.value = false;
@@ -135,18 +131,18 @@ const generateReport = async (id, fileType) => {
         const patientAux = resp.data[0];
 
         if (fileType === 'PDF') {
-          activePatients.downloadPDF(
+          PatientWithoutDispenseTs.downloadPDF(
             patientAux.province,
-            moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-            moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+            patientAux.startDate,
+            patientAux.endDate,
             resp.data
           );
           downloadingPdf.value = false;
         } else {
-          activePatients.downloadExcel(
+          PatientWithoutDispenseTs.downloadExcel(
             patientAux.province,
-            moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
-            moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+            patientAux.startDate,
+            patientAux.endDate,
             resp.data
           );
           downloadingXls.value = false;
@@ -154,11 +150,11 @@ const generateReport = async (id, fileType) => {
       }
     });
   } else {
-    const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id);
+    /* const data = await PatientsWithoutDispense.getDataLocalReport(id);
     if (data.length === 0) {
       alertError('Nao existem Dados para o periodo selecionado');
-      downloadingXls.value = false;
-      downloadingPdf.value = false;
+      downloadingXls.value = false
+            downloadingPdf.value = false
     } else {
       const patientAux = data[0];
 
@@ -177,9 +173,13 @@ const generateReport = async (id, fileType) => {
           data
         );
       }
-    }
+    } */
   }
 };
+
+onMounted(() => {
+  console.log(name);
+});
 
 provide('downloadingPdf', downloadingPdf);
 provide('downloadingXls', downloadingXls);

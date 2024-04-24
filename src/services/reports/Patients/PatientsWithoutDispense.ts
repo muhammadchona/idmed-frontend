@@ -8,10 +8,10 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isMobile, isOnline } = useSystemUtils();
-const reportName = 'PacientesEsperadosNumDia';
+const reportName = 'PacientesSemDispensa';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = 'Relatório de Pacientes Esperados Num Dia';
+const title = 'Lista de Pacientes Sem Dispensas';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
@@ -40,7 +40,7 @@ export default {
     const headerReport = [
       [
         {
-          content: 'Lista de Pacientes Esperados num Dia',
+          content: 'Lista de Pacientes Sem Dispensas',
           styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
           colSpan: 3,
           halign: 'center',
@@ -111,15 +111,7 @@ export default {
     doc.text('Serviço Nacional de Saúde ', 16, 36);
     doc.addImage(image, 'png', 28, 15, 10, 10);
 
-    const cols = [
-      'ORD',
-      'NID',
-      'Nome',
-      'Data do Próximo Levantamento',
-      'Regime Terapêutico',
-      'Tipo de Dispensa',
-      'Nome da Unidade Sanitária',
-    ];
+    const cols = ['ORD', 'NID', 'Nome', 'UUID do OpenMrs', 'Data de criacao'];
 
     const rows = result;
     const data = [];
@@ -136,12 +128,11 @@ export default {
           ' ' +
           rows[row].lastNames
       );
+
+      createRow.push(rows[row].uuidOpenMrs);
       createRow.push(
-        moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY')
+        moment(new Date(rows[row].createDate)).format('DD-MM-YYYY')
       );
-      createRow.push(rows[row].therapeuticRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].clinic);
 
       data.push(createRow);
       ord += 1;
@@ -158,14 +149,11 @@ export default {
         fontSize: 8,
       },
       columnStyles: {
-        0: { cellWidth: 20 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 60 },
-        3: { cellWidth: 30 },
-        4: { cellWidth: 50 },
-        5: { cellWidth: 35 },
-        6: { cellWidth: 35 },
-        7: { cellWidth: 25 },
+        0: { cellWidth: 14 },
+        1: { cellWidth: 50 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 75 },
+        4: { cellWidth: 75 },
       },
       didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -353,24 +341,17 @@ export default {
       style: {
         showRowStripes: false,
       },
-
       columns: [
         { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
         { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
-        { name: 'Data do Próximo Levantamento', totalsRowLabel: 'none' },
         {
-          name: 'Regime Terapêutico',
+          name: 'Uuid do openMrs',
           totalsRowFunction: 'none',
           filterButton: false,
         },
         {
-          name: 'Tipo de Dispensa',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Nome da Unidade Sanitária',
+          name: 'Data de criacao',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -429,7 +410,7 @@ export default {
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension);
     } else {
-      const titleFile = 'PacientesActivos.xlsx';
+      const titleFile = 'PaciendtesSemDispensa.xlsx';
       saveBlob2File(titleFile, blob);
       function saveBlob2File(fileName, blob) {
         const folder = cordova.file.externalRootDirectory + 'Download';
@@ -511,12 +492,10 @@ export default {
           ' ' +
           rows[row].lastNames
       );
+      createRow.push(rows[row].uuidOpenMrs);
       createRow.push(
-        moment(new Date(rows[row].nextPickUpDate)).format('DD-MM-YYYY')
+        moment(new Date(rows[row].createDate)).format('DD-MM-YYYY')
       );
-      createRow.push(rows[row].therapeuticRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].clinic);
       data.push(createRow);
       ord += 1;
     }
