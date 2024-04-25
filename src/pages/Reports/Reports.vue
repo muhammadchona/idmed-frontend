@@ -127,7 +127,7 @@ import QuarterlyDispensation from 'components/Reports/ClinicManagement/Quarterly
 import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
 import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
 import partialInventory from 'components/Reports/stock/InventoryPartial.vue';
-//import generalInventory from 'components/Reports/stock/InventoryGeneral.vue';
+import generalInventory from 'components/Reports/stock/InventoryGeneral.vue';
 import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
 import MmiaTb from 'components/Reports/ClinicManagement/tpt/MmiaTb.vue';
 
@@ -162,7 +162,7 @@ const componentsList = {
   TptDailyRegister,
   QuantityRemain,
   partialInventory,
-  partialInventory,
+  generalInventory,
   expectedOfDay,
   MmiaTb,
 };
