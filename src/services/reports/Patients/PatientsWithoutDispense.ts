@@ -2,47 +2,46 @@ import JsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
 import saveAs from 'file-saver';
-import { MOHIMAGELOG } from '../../../assets/imageBytes.ts';
+import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
 import * as ExcelJS from 'exceljs';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isMobile, isOnline } = useSystemUtils();
-
-const reportName = 'HistoricoDeLevantamento';
+const reportName = 'PacientesSemDispensa';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = 'HISTÓRICO DE LEVANTAMENTO';
+const title = 'Lista de Pacientes Sem Dispensas';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
 
-const img = new Image();
-img.src = 'data:image/png;base64,' + MOHIMAGELOG;
-
 export default {
-  async downloadPDF(province, startDate, endDate, result, tipoPacient) {
+  async downloadPDF(province, startDate, endDate, result) {
+    const clinic = clinicService.currClinic();
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
-      // format: 'a4',
-      format: [205, 313],
+      format: 'a4',
       putOnlyUsedFonts: true,
-      floatPrecision: 'smart', // or "smart", default i
+      floatPrecision: 'smart', // or "smart", default is 16
     });
     const firstObject = result[0];
-    /*
-      Fill Table
-    */
+    // const totalPagesExp = '{total_pages_count_string}'
 
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
 
+    const image = new Image();
+    // image.src = '/src/assets/MoHLogo.png'
+    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+
     const headerReport = [
       [
         {
-          content: 'HISTÓRICO DE LEVANTAMENTO',
-          styles: { minCellHeight: 25, fontSize: 12, halign: 'center' },
+          content: 'Lista de Pacientes Sem Dispensas',
+          styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
           colSpan: 3,
           halign: 'center',
           valign: 'middle',
@@ -51,7 +50,7 @@ export default {
       ],
       [
         {
-          content: 'Unidade Sanitária: ' + firstObject.clinic,
+          content: 'Unidade Sanitária: ' + clinic.clinicName,
           colSpan: 2,
           halign: 'center',
           valign: 'middle',
@@ -76,7 +75,7 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Província: ' + firstObject.province,
+          content: 'Província: ' + province,
           halign: 'center',
           valign: 'left',
           fontStyle: 'bold',
@@ -93,7 +92,6 @@ export default {
     ];
 
     autoTable(doc, {
-      //  margin: { top: 10 },
       bodyStyles: {
         halign: 'left',
         valign: 'middle',
@@ -111,23 +109,10 @@ export default {
     doc.text('República de Moçambique ', 16, 28);
     doc.text('Ministério da Saúde ', 20, 32);
     doc.text('Serviço Nacional de Saúde ', 16, 36);
-    doc.addImage(img, 'png', 28, 15, 10, 10);
+    doc.addImage(image, 'png', 28, 15, 10, 10);
 
-    const cols = [
-      'ORD',
-      'NID',
-      'Nome',
-      'Idade',
-      'Contacto',
-      tipoPacient === 'tarv' ? 'Tipo TARV' : 'Tipo Paciente',
-      'Regime Terapêutica',
-      'Tipo de Dispensa',
-      'Modo de Dispensa',
-      'Data Levant.',
-      'Data Prox. Levant.',
-      'Sector Clínico',
-      'Utilizador',
-    ];
+    const cols = ['ORD', 'NID', 'Nome', 'UUID do OpenMrs', 'Data de criacao'];
+
     const rows = result;
     const data = [];
     let ord = 1;
@@ -137,30 +122,17 @@ export default {
       createRow.push(ord);
       createRow.push(rows[row].nid);
       createRow.push(
-        String(
-          rows[row].firstNames +
-            ' ' +
-            rows[row].middleNames +
-            ' ' +
-            rows[row].lastNames
-        )
-          .replaceAll('null', '')
-          .replace('  ', ' ')
+        rows[row].firstNames +
+          ' ' +
+          rows[row].middleNames +
+          ' ' +
+          rows[row].lastNames
       );
-      createRow.push(rows[row].age);
-      createRow.push(rows[row].cellphone);
-      createRow.push(rows[row].tipoTarv);
-      createRow.push(rows[row].therapeuticalRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].dispenseMode);
+
+      createRow.push(rows[row].uuidOpenMrs);
       createRow.push(
-        moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY')
+        moment(new Date(rows[row].createDate)).format('DD-MM-YYYY')
       );
-      createRow.push(
-        moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
-      );
-      createRow.push(rows[row].clinicsector);
-      createRow.push(rows[row].idmeduser);
 
       data.push(createRow);
       ord += 1;
@@ -177,19 +149,11 @@ export default {
         fontSize: 8,
       },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 35 },
-        3: { cellWidth: 10 },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 20 },
-        6: { cellWidth: 25 },
-        7: { cellWidth: 25 },
-        8: { cellWidth: 25 },
-        9: { cellWidth: 20 },
-        10: { cellWidth: 20 },
-        11: { cellWidth: 20 },
-        12: { cellWidth: 20 },
+        0: { cellWidth: 14 },
+        1: { cellWidth: 50 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 75 },
+        4: { cellWidth: 75 },
       },
       didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -206,15 +170,21 @@ export default {
       head: [cols],
       body: data,
     });
+
     if (isOnline.value && !isMobile.value) {
-      // return doc.save('HistoricoDeLevantamento.pdf')
+      // return doc.save('PacientesActivos.pdf')
       window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output();
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
+    // params.value.loading.loading.hide()
+    // return doc.save('HistoricoDeLevantamento.pdf')
+
+    // params.value.loading.loading.hide()
   },
-  async downloadExcel(province, startDate, endDate, result, tipoPacient) {
+  async downloadExcel(province, startDate, endDate, result, params) {
+    const clinic = clinicService.currClinic();
     const rows = result;
     const data = this.createArrayOfArrayRow(rows);
 
@@ -224,11 +194,10 @@ export default {
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
-    // Force workbook calculation on load
-    // workbook.calcProperties.fullCalcOnLoad = true
+
     const worksheet = workbook.addWorksheet(reportName);
     const imageId = workbook.addImage({
-      base64: 'data:image/pngbase64,' + MOHIMAGELOG,
+      base64: 'data:image/png;base64,' + MOHIMAGELOG,
       extension: 'png',
     });
 
@@ -237,14 +206,14 @@ export default {
     const cellTitle = worksheet.getCell('A9');
     const cellPharm = worksheet.getCell('A11');
     const cellDistrict = worksheet.getCell('A12');
-    const cellProvince = worksheet.getCell('E12');
-    const cellStartDate = worksheet.getCell('L11');
-    const cellEndDate = worksheet.getCell('L12');
+    const cellProvince = worksheet.getCell('D12');
+    const cellStartDate = worksheet.getCell('I11');
+    const cellEndDate = worksheet.getCell('I12');
     const cellPharmParamValue = worksheet.getCell('B11');
     const cellDistrictParamValue = worksheet.getCell('B12');
-    const cellProvinceParamValue = worksheet.getCell('F12');
-    const cellStartDateParamValue = worksheet.getCell('M11');
-    const cellEndDateParamValue = worksheet.getCell('M12');
+    const cellProvinceParamValue = worksheet.getCell('E12');
+    const cellStartDateParamValue = worksheet.getCell('J11');
+    const cellEndDateParamValue = worksheet.getCell('J12');
 
     // Get Rows
     const headerRow = worksheet.getRow(15);
@@ -260,9 +229,6 @@ export default {
     const colH = worksheet.getColumn('H');
     const colI = worksheet.getColumn('I');
     const colJ = worksheet.getColumn('J');
-    const colK = worksheet.getColumn('K');
-    const colL = worksheet.getColumn('L');
-    const colM = worksheet.getColumn('M');
 
     // Format Table Cells
     // Alignment Format
@@ -322,11 +288,11 @@ export default {
 
     // merge a range of cells
     // worksheet.mergeCells('A1:A7')
-    worksheet.mergeCells('A9:M10');
-    worksheet.mergeCells('B11:K11');
-    worksheet.mergeCells('B12:D12');
-    worksheet.mergeCells('F12:K12');
-    worksheet.mergeCells('A13:K13');
+    worksheet.mergeCells('A9:J10');
+    worksheet.mergeCells('B11:H11');
+    worksheet.mergeCells('B12:C12');
+    worksheet.mergeCells('E12:H12');
+    worksheet.mergeCells('A13:I13');
 
     // add width size to Columns
     // add height size to Rows
@@ -337,16 +303,13 @@ export default {
     colA.width = 20;
     colB.width = 20;
     colC.width = 30;
-    colD.width = 10;
-    colE.width = 15;
-    colF.width = 20;
-    colG.width = 20;
-    colH.width = 20;
-    colI.width = 20;
+    colD.width = 15;
+    colE.width = 20;
+    colF.width = 15;
+    colG.width = 15;
+    colH.width = 15;
+    colI.width = 15;
     colJ.width = 20;
-    colK.width = 20;
-    colL.width = 20;
-    colM.width = 20;
 
     // Add Style
     // cellTitle.font =
@@ -382,49 +345,13 @@ export default {
         { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
         { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
-        { name: 'Idade', totalsRowFunction: 'none', filterButton: false },
         {
-          name: 'Contacto',
+          name: 'Uuid do openMrs',
           totalsRowFunction: 'none',
           filterButton: false,
         },
         {
-          name: tipoPacient === 'tarv' ? 'Tipo TARV' : 'Tipo Paciente',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Regime Terapêutica',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Tipo de Dispensa',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Modo de Dispensa',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'DATA LEVANT.',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'DATA PRÓX. LEVANT.',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Sector Clínico',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Utilizador',
+          name: 'Data de criacao',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -483,8 +410,7 @@ export default {
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension);
     } else {
-      const titleFile = 'HistoricoDeLevantamento.xlsx';
-      console.log('result' + titleFile);
+      const titleFile = 'PaciendtesSemDispensa.xlsx';
       saveBlob2File(titleFile, blob);
       function saveBlob2File(fileName, blob) {
         const folder = cordova.file.externalRootDirectory + 'Download';
@@ -566,21 +492,10 @@ export default {
           ' ' +
           rows[row].lastNames
       );
-      createRow.push(rows[row].age);
-      createRow.push(rows[row].cellphone);
-      createRow.push(rows[row].tipoTarv);
-      createRow.push(rows[row].therapeuticalRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].dispenseMode);
+      createRow.push(rows[row].uuidOpenMrs);
       createRow.push(
-        moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY')
+        moment(new Date(rows[row].createDate)).format('DD-MM-YYYY')
       );
-      createRow.push(
-        moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
-      );
-      createRow.push(rows[row].clinicsector);
-      createRow.push(rows[row].idmeduser);
-
       data.push(createRow);
       ord += 1;
     }
@@ -589,16 +504,7 @@ export default {
 
     return data;
   },
-
   downloadFile(fileName, fileType, blop) {
-    // console.log(blop)
-    // var pdfOutput = blop.output()
-    //  console.log(pdfOutput)
-    //  if (typeof cordova !== 'undefined') {
-    //   var blob = new Blob(materialEducativo.blop)
-    //  const bytes = new Uint8Array(materialEducativo.blop)
-    // var UTF8_STR = new Uint8Array(pdfOutput)
-    //   var BINARY_ARR = UTF8_STR.buffer
     const titleFile = fileName + fileType;
     console.log('result' + titleFile);
     saveBlob2File(titleFile, blop);

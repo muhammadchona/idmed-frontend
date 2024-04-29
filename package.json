@@ -1,9 +1,9 @@
 {
   "name": "org.csaude.idmed.frontend",
-  "version": "0.0.1",
-  "description": "FrontEnd para Sistema Inteligente de Dispensa de Medicamentos usando Vue3",
+  "version": "1.2.0",
+  "description": "Sistema Inteligente de Dispensa de Medicamentos",
   "productName": "iDMED",
-  "author": "colaconhongo <colaco.nhango@fgh.org.mz>",
+  "author": "colaco.nhongo, muhammad.chona, Ercilio.francisco, joao.mabjaia",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",

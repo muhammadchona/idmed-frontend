@@ -42,7 +42,7 @@ export default {
       firstReg = rowsAux.data[0];
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
-      
+
     } else {
       rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
       if (rowsAux.length === 0) return 204;
@@ -58,20 +58,20 @@ export default {
       } else {
         data = this.createArrayOfArrayRow(data1, service);
       }
-      
+
       const doc = new JsPDF({
         orientation: 'l',
         unit: 'mm',
         format: 'a4',
         putOnlyUsedFonts: true,
         floatPrecision: 'smart',
-      });  
-      
+      });
+
       const image = new Image();
       image.src = 'data:image/png;base64,' + MOHIMAGELOG;
       const img = new Image();
       img.src = 'data:image/png;base64,' + MOHIMAGELOG;
-      
+
       const headerReport = [
       [
         {
@@ -133,7 +133,7 @@ export default {
         },
       ],
     ];
-	
+
     const desiredDefinition = [
       [
         { content: 'NID', rowSpan: 2 },
@@ -163,7 +163,7 @@ export default {
         { content: 'Cr. Exp.' },
       ],
     ];
-     
+
 
       autoTable(doc, {
         //  margin: { top: 10 },
@@ -189,7 +189,7 @@ export default {
 
     autoTable(doc, {
       // margin: { top: 45 },
-      bodyStyles: 
+      bodyStyles:
       {
         overflow: 'linebreak',
         cellWidth: 'wrap',
@@ -199,7 +199,7 @@ export default {
         // cellPadding: 8,
         overflowColumns: 'linebreak',
       },
-      headStyles: 
+      headStyles:
       {
         valign: 'bottom',
         halign: 'center',
@@ -213,14 +213,14 @@ export default {
         4: { cellWidth: 40, fontSize: 5 },
         11: { cellWidth: 25 },
       },
-      didDrawPage: function (data) 
-      {    
+      didDrawPage: function (data)
+      {
         const str = 'Página ' + doc.internal.getNumberOfPages();
         doc.setFontSize(6);
         // jsPDF 1.4+ uses getWidth, <1.4 uses .width
         const pageSize = doc.internal.pageSize;
         const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);        
+        doc.text(str, data.settings.margin.right, pageHeight - 10);
       },
 
       theme: 'grid',
@@ -235,7 +235,7 @@ export default {
         this.downloadFile(`${fileName}_${service}`, 'pdf', pdfOutput);
       }
     }
-  }, 
+  },
   async downloadExcel(id, fileType, params) {
     const clinic = clinicService.currClinic();
 
@@ -254,7 +254,7 @@ export default {
       firstReg = rowsAux.data[0];
       params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
       params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
-      
+
     } else {
       rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
       if (rowsAux.length === 0) return 204;
@@ -285,7 +285,7 @@ export default {
 
     // Adicione uma nova planilha para cada serviço
     const worksheet = workbook.addWorksheet(nameSheet);
-   
+
     const imageId = workbook.addImage({
       base64: 'data:image/png;base64,' + MOHIMAGELOG,
       extension: 'png',
@@ -301,10 +301,10 @@ export default {
     const cellProvince = worksheet.getCell('C12');
     const cellProvinceValue = worksheet.getCell('D12');
 
-    const cellServicoServe = worksheet.getCell('F13'); 
-    const cellTipoChamada = worksheet.getCell('I13'); 
-    const cellRelatorioChamada = worksheet.getCell('K13');  
-    const cellRetornoReferencia = worksheet.getCell('Q13'); 
+    const cellServicoServe = worksheet.getCell('F13');
+    const cellTipoChamada = worksheet.getCell('I13');
+    const cellRelatorioChamada = worksheet.getCell('K13');
+    const cellRetornoReferencia = worksheet.getCell('Q13');
 
     const cellStartDate = worksheet.getCell('R11');
     const cellEndDate = worksheet.getCell('R12');
@@ -363,10 +363,10 @@ export default {
         bgColor: { argb: '1fa37b' },
       };
 
-    cellServicoServe.font = 
-    cellTipoChamada.font = 
-    cellRelatorioChamada.font = 
-    cellRetornoReferencia.font = 
+    cellServicoServe.font =
+    cellTipoChamada.font =
+    cellRelatorioChamada.font =
+    cellRetornoReferencia.font =
     {
       name: 'Arial',
       color: { argb: 'FFFFFFFF' },
@@ -378,10 +378,10 @@ export default {
 
     // Format Table Cells
     // Alignment Format
-    cellServicoServe.alignment = 
-    cellTipoChamada.alignment = 
-    cellRelatorioChamada.alignment =  
-    cellRetornoReferencia.alignment =  
+    cellServicoServe.alignment =
+    cellTipoChamada.alignment =
+    cellRelatorioChamada.alignment =
+    cellRetornoReferencia.alignment =
     cellRepublica.alignment =
       cellTitle.alignment =
       headerRow.alignment =
@@ -437,10 +437,10 @@ export default {
     cellProvince.value = 'Provincia';
     cellStartDate.value = 'Data Início';
     cellEndDate.value = 'Data Fim';
-    cellServicoServe.value = 'Serviço que Serve'; 
-    cellTipoChamada.value = 'Tipo de Chamada'; 
-    cellRelatorioChamada.value = 'Relatório da Chamada';  
-    cellRetornoReferencia.value = 'Retornos e Referências'; 
+    cellServicoServe.value = 'Serviço que Serve';
+    cellTipoChamada.value = 'Tipo de Chamada';
+    cellRelatorioChamada.value = 'Relatório da Chamada';
+    cellRetornoReferencia.value = 'Retornos e Referências';
 
     // merge a range of cells
     worksheet.mergeCells('A1:A7');
@@ -730,7 +730,7 @@ export default {
         createRow.push(rows[row].nid);
         createRow.push(rows[row].name);
         createRow.push(rows[row].idade);
-        createRow.push(rows[row].cantact);
+        createRow.push(rows[row].contact);
         createRow.push(rows[row].address);
 
         if(rows[row].servedService === 'TARV'){
@@ -752,25 +752,25 @@ export default {
         }
 
         data.push(createRow);
-      }      
+      }
     }
-    
+
     return data;
   },
 
   drawRotatedHeader(doc, header, angle, x, y) {
     const startY = y || 10; // Se y não for fornecido, use 10 como valor padrão
     const startX = x || 10; // Se x não for fornecido, use 10 como valor padrão
-  
+
     header.forEach((row, i) => {
       row.forEach((cell, j) => {
         const cellWidth = doc.getStringUnitWidth(cell.content) * doc.internal.getFontSize(); // Calcular a largura da célula
         const cellHeight = doc.internal.getLineHeight(); // Calcular a altura da célula
-  
+
         // Calcular as coordenadas da célula com rotação
         const rotatedX = startX + j * cellWidth * Math.cos(angle) + i * cellHeight * Math.sin(angle);
         const rotatedY = startY + i * cellWidth * Math.sin(angle) + j * cellHeight * Math.cos(angle);
-  
+
         doc.text(cell.content, rotatedX, rotatedY, { angle: angle });
       });
     });

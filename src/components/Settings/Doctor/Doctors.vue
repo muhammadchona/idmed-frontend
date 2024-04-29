@@ -187,7 +187,7 @@ const loadingOnTable = ref(true);
 /*Hooks*/
 const doctors = computed(() => {
   const doctorsRes = ref(null);
-  doctorsRes.value = doctorService.getAlldoctors();
+  doctorsRes.value = doctorService.getAllActiveAndNonActivedoctors();
   if (doctorsRes.value && doctorsRes.value.length >= 0) stopLoading();
 
   return doctorsRes.value;

@@ -232,7 +232,7 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.2.0 SNAPSHOT</div>
+                <div class="row justify-center">Versão v.1.2.0</div>
               </q-card-section>
             </q-card>
           </transition>
@@ -266,7 +266,12 @@
               </q-card-section>
 
               <q-card-actions align="right" class="text-primary">
-                <q-btn color="red" label="Fechar" v-close-popup />
+                <q-btn
+                  color="red"
+                  :disable="configs === undefined || configs === null"
+                  label="Fechar"
+                  v-close-popup
+                />
               </q-card-actions>
             </q-card>
           </q-dialog>
@@ -286,7 +291,7 @@
 </template>
 
 <script setup>
-import { QSpinnerBall, useQuasar } from 'quasar';
+import { QSpinnerBall, SessionStorage, useQuasar } from 'quasar';
 import UsersService from 'src/services/UsersService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import districtService from 'src/services/api/districtService/districtService';
@@ -303,6 +308,11 @@ import { LocalStorage } from 'quasar';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import UrlChanger from 'src/components/Shared/UrlChanger.vue';
 import useNotify from 'src/composables/shared/notify/UseNotify';
+import StockService from 'src/services/api/stockService/StockService';
+import StockReferenceAdjustmentService from 'src/services/api/stockAdjustment/StockReferenceAdjustmentService';
+import StockDestructionAdjustmentService from 'src/services/api/stockAdjustment/StockDestructionAdjustmentService';
+import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
+import InventoryService from 'src/services/api/inventoryService/InventoryService';
 
 const { notifyError } = useNotify();
 const { alertSucess, alertError } = useSwal();
@@ -347,6 +357,25 @@ onMounted(() => {
   setTimeout(() => {
     $q.loading.hide();
   }, 600);
+
+  if (!isMobile.value) {
+    UsersService.logout();
+    StockService.deleteAllFromStorage();
+    StockReferenceAdjustmentService.deleteAllFromStorage();
+    StockDestructionAdjustmentService.deleteAllFromStorage();
+    InventoryStockAdjustmentService.deleteAllFromStorage();
+    InventoryService.deleteAllFromStorage();
+    clinicService.deleteFromPinia();
+    systemConfigsService.deleteAllFromStorage();
+    SessionStorage.clear();
+    sessionStorage.setItem('user', null);
+    sessionStorage.setItem('id_token', null);
+    sessionStorage.setItem('refresh_token', null);
+    localStorage.setItem('activeTabStock', '');
+    sessionStorage.setItem('Btoa', '');
+    localStorage.setItem('currInventory', '');
+    localStorage.setItem('Btoa', '');
+  }
 });
 
 /*
@@ -467,12 +496,11 @@ const loginOffline = (encodedStringBtoA) => {
     sessionStorage.setItem('username', userLoged.username);
     sessionStorage.setItem('user', userLoged.username);
     sessionStorage.setItem('Btoa', encodedStringBtoA);
-    // localStorage.setItem('sync_pass', encryption.encryptPlainText('user.sync'));
     router.push({ path: '/' });
   } else {
     Notify.create({
       icon: 'announcement',
-      message: 'Utilizador ou a senha inválida',
+      message: 'Utilizador bloqueado ou a senha inválida',
       type: 'negative',
       progress: true,
       timeout: 3000,
@@ -495,6 +523,7 @@ const loginOffline = (encodedStringBtoA) => {
 [v-cloak] {
   display: none !important;
 }
+
 #particles-js {
   position: absolute;
   width: 100%;
@@ -503,12 +532,15 @@ const loginOffline = (encodedStringBtoA) => {
   background-size: cover;
   background-position: 50% 50%;
 }
+
 .normal_gradient {
   background: linear-gradient(145deg, #00afdb 30%, #00bea4 70%);
 }
+
 .dark_gradient {
   background: linear-gradient(145deg, #014758 15%, #014b41 70%);
 }
+
 .login-form {
   position: absolute;
 }

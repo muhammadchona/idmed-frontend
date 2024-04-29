@@ -43,7 +43,11 @@ const menu = [
     id: 1,
     menuItem: [
       { description: 'Activos na Farmácia', tabName: 'ActivesInDrugStore' },
-      //  { description: 'Pacientes Esperados Num Dia', tabName: 'expectedOfDay' },
+      { description: 'Pacientes Esperados Num Dia', tabName: 'expectedOfDay' },
+      {
+        description: 'Pacientes Sem dispensa',
+        tabName: 'PatientsWithouDispense',
+      },
       //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
       //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
       //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
@@ -56,6 +60,16 @@ const menu = [
       {
         description: 'Lista de Pacientes Faltosos ao Levantamento',
         tabName: 'AbsentPatients',
+      },
+      {
+        description:
+          "Lista de Pacientes Faltosos ao Levantamento de ARV's para Dispensa Trimestral",
+        tabName: 'AbsentPatientsDT',
+      },
+      {
+        description:
+          "Lista de Pacientes Faltosos ao Levantamento de ARV's para Dispensa Semestral",
+        tabName: 'AbsentPatientsDS',
       },
       {
         description: 'Mapa Mensal de Informação de ARV (MMIA)',
@@ -112,8 +126,8 @@ const menu = [
         description: 'Medicamentos Remanescentes (Sobras/Perdas)',
         tabName: 'QuantityRemain',
       },
-      // { description: 'Inventario Parcial', tabName: 'partialInventory' },
-      // { description: 'Inventario Geral', tabName: 'generalInventory' },
+      { description: 'Inventario Parcial', tabName: 'partialInventory' },
+      { description: 'Inventario Geral', tabName: 'generalInventory' },
     ],
   },
   {

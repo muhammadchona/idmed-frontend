@@ -17,17 +17,25 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
+          <div class="row q-gutter-sm">
           <q-input
             outlined
             dense
             debounce="300"
             v-model="filter"
-            placeholder="Procurar"
-          >
+            placeholder="Procurar">
             <template v-slot:append>
               <q-icon name="search" />
             </template>
           </q-input>
+          <q-btn
+            color="primary"
+            icon-right="refresh"
+            label="Actualizar Lista"
+            no-caps
+            @click="getClinicalServicesFromProvincialServer"
+          />
+          </div>
           <div class="q-pa-md q-gutter-sm">
             <q-btn
               v-if="!website"
@@ -333,6 +341,21 @@ const promptToConfirm = (clinicalServiceParam) => {
     }
   });
 };
+
+const getClinicalServicesFromProvincialServer = () => {
+  showloading();
+  clinicalServiceService
+    .getFromProvincial(0)
+    .then(() => {
+      console.log('Inicio actualizacao da lista Regimens');
+    })
+    .catch((error) => {
+      closeLoading();
+      alertError('Erro na comunicação com o Servidor Central.');
+      console.log('Erro', error);
+    });
+};
+
 /*Provides*/
 
 provide('clinicalService', clinicalService);

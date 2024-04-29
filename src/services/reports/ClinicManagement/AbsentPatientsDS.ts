@@ -2,38 +2,38 @@ import JsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
 import saveAs from 'file-saver';
-import { MOHIMAGELOG } from '../../../assets/imageBytes.ts';
 import * as ExcelJS from 'exceljs';
+import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
+import Report from 'src/services/api/report/ReportService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import AbsentPatientMobileService from 'src/services/api/report/mobile/AbsentPatientMobileService';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isMobile, isOnline } = useSystemUtils();
 
-const reportName = 'HistoricoDeLevantamento';
+const reportName = 'PacientesFaltososDS';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = 'HISTÓRICO DE LEVANTAMENTO';
+const title =
+  "Relatório de Pacientes Faltosos ao \n Levantamento de ARV's para dispensa Semestral";
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
 
-const img = new Image();
-img.src = 'data:image/png;base64,' + MOHIMAGELOG;
-
 export default {
-  async downloadPDF(province, startDate, endDate, result, tipoPacient) {
+  async downloadPDF(id, fileType, params) {
+    const clinic = clinicService.currClinic();
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
-      // format: 'a4',
-      format: [205, 313],
+      format: 'a4',
       putOnlyUsedFonts: true,
-      floatPrecision: 'smart', // or "smart", default i
+      floatPrecision: 'smart', // or "smart", default is 16
     });
-    const firstObject = result[0];
-    /*
-      Fill Table
-    */
-
+    const image = new Image();
+    // image.src = '/src/assets/MoHLogo.png'
+    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+    const width = doc.internal.pageSize.getWidth();
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
@@ -41,8 +41,8 @@ export default {
     const headerReport = [
       [
         {
-          content: 'HISTÓRICO DE LEVANTAMENTO',
-          styles: { minCellHeight: 25, fontSize: 12, halign: 'center' },
+          content: 'Faltosos ao Levantamento de ARV´s para dispensa Semestral',
+          styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
           colSpan: 3,
           halign: 'center',
           valign: 'middle',
@@ -51,7 +51,7 @@ export default {
       ],
       [
         {
-          content: 'Unidade Sanitária: ' + firstObject.clinic,
+          content: 'Unidade Sanitária: ' + clinic.clinicName,
           colSpan: 2,
           halign: 'center',
           valign: 'middle',
@@ -59,7 +59,8 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Período: ' + startDate + ' à ' + endDate,
+          content:
+            'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -69,21 +70,29 @@ export default {
       ],
       [
         {
-          content: 'Distrito: ' + firstObject.district,
+          content:
+            'Distrito: ' +
+            (params.district === null
+              ? clinic.district.description
+              : params.district.description),
           halign: 'center',
           valign: 'middle',
           fontStyle: 'bold',
           fontSize: '14',
         },
         {
-          content: 'Província: ' + firstObject.province,
+          content:
+            'Província: ' +
+            (params.province === null
+              ? clinic.province.description
+              : params.province.description),
           halign: 'center',
           valign: 'left',
           fontStyle: 'bold',
           fontSize: '14',
         },
         {
-          content: 'Ano: ' + firstObject.year,
+          content: 'Ano: ' + params.year,
           halign: 'center',
           valign: 'left',
           fontStyle: 'bold',
@@ -111,61 +120,36 @@ export default {
     doc.text('República de Moçambique ', 16, 28);
     doc.text('Ministério da Saúde ', 20, 32);
     doc.text('Serviço Nacional de Saúde ', 16, 36);
-    doc.addImage(img, 'png', 28, 15, 10, 10);
+    doc.addImage(image, 'png', 28, 15, 10, 10);
 
     const cols = [
-      'ORD',
       'NID',
-      'Nome',
-      'Idade',
+      'NOME',
+      'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
+      'Data em que Identificou o Abandono ao TARV [>59 dias faltoso] (d-m-a)',
+      'Data em que Regressou à Unidade Sanitária',
       'Contacto',
-      tipoPacient === 'tarv' ? 'Tipo TARV' : 'Tipo Paciente',
-      'Regime Terapêutica',
-      'Tipo de Dispensa',
-      'Modo de Dispensa',
-      'Data Levant.',
-      'Data Prox. Levant.',
-      'Sector Clínico',
-      'Utilizador',
     ];
-    const rows = result;
-    const data = [];
-    let ord = 1;
 
-    for (const row in rows) {
-      const createRow = [];
-      createRow.push(ord);
-      createRow.push(rows[row].nid);
-      createRow.push(
-        String(
-          rows[row].firstNames +
-            ' ' +
-            rows[row].middleNames +
-            ' ' +
-            rows[row].lastNames
-        )
-          .replaceAll('null', '')
-          .replace('  ', ' ')
-      );
-      createRow.push(rows[row].age);
-      createRow.push(rows[row].cellphone);
-      createRow.push(rows[row].tipoTarv);
-      createRow.push(rows[row].therapeuticalRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].dispenseMode);
-      createRow.push(
-        moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY')
-      );
-      createRow.push(
-        moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
-      );
-      createRow.push(rows[row].clinicsector);
-      createRow.push(rows[row].idmeduser);
-
-      data.push(createRow);
-      ord += 1;
+    let data = '';
+    let rowsAux = [];
+    let firstReg = {};
+    if (isOnline.value) {
+      const rowsAux = await Report.printReportOther('absentPatientsReport', id);
+      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
+      const firstReg = rowsAux.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux.data);
+    } else {
+      rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
+      if (rowsAux.length === 0) return 204;
+      firstReg = rowsAux[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux);
     }
-    ord = 0;
+
     autoTable(doc, {
       bodyStyles: {
         halign: 'center',
@@ -177,19 +161,11 @@ export default {
         fontSize: 8,
       },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 35 },
-        3: { cellWidth: 10 },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 20 },
-        6: { cellWidth: 25 },
-        7: { cellWidth: 25 },
-        8: { cellWidth: 25 },
-        9: { cellWidth: 20 },
-        10: { cellWidth: 20 },
-        11: { cellWidth: 20 },
-        12: { cellWidth: 20 },
+        0: { cellWidth: 40 },
+        1: { cellWidth: 55 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 55 },
+        4: { cellWidth: 40 },
       },
       didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -206,47 +182,60 @@ export default {
       head: [cols],
       body: data,
     });
+    // params.value.loading.loading.hide()
     if (isOnline.value && !isMobile.value) {
-      // return doc.save('HistoricoDeLevantamento.pdf')
+      // return doc.save('PacientesFaltosos.pdf');
       window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output();
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
   },
-  async downloadExcel(province, startDate, endDate, result, tipoPacient) {
-    const rows = result;
-    const data = this.createArrayOfArrayRow(rows);
-
+  async downloadExcel(id, fileType, params) {
+    const clinic = clinicService.currClinic();
+    let data = '';
+    let rowsAux = [];
+    let firstReg = {};
+    if (isOnline.value) {
+      const rowsAux = await Report.printReportOther('absentPatientsReport', id);
+      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
+      const firstReg = rowsAux.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux.data);
+    } else {
+      rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
+      if (rowsAux.length === 0) return 204;
+      firstReg = rowsAux[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux);
+    }
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'FGH';
     workbook.lastModifiedBy = 'FGH';
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
-    // Force workbook calculation on load
-    // workbook.calcProperties.fullCalcOnLoad = true
+
     const worksheet = workbook.addWorksheet(reportName);
     const imageId = workbook.addImage({
-      base64: 'data:image/pngbase64,' + MOHIMAGELOG,
+      base64: 'data:image/png;base64,' + MOHIMAGELOG,
       extension: 'png',
     });
 
-    // Get Cells
+    // // Get Cells
     const cellRepublica = worksheet.getCell('A8');
     const cellTitle = worksheet.getCell('A9');
     const cellPharm = worksheet.getCell('A11');
-    const cellDistrict = worksheet.getCell('A12');
-    const cellProvince = worksheet.getCell('E12');
-    const cellStartDate = worksheet.getCell('L11');
-    const cellEndDate = worksheet.getCell('L12');
     const cellPharmParamValue = worksheet.getCell('B11');
-    const cellDistrictParamValue = worksheet.getCell('B12');
-    const cellProvinceParamValue = worksheet.getCell('F12');
-    const cellStartDateParamValue = worksheet.getCell('M11');
-    const cellEndDateParamValue = worksheet.getCell('M12');
 
-    // Get Rows
+    const cellStartDate = worksheet.getCell('E11');
+    const cellEndDate = worksheet.getCell('E12');
+    const cellStartDateParamValue = worksheet.getCell('F11');
+    const cellEndDateParamValue = worksheet.getCell('F12');
+
+    // // Get Rows
     const headerRow = worksheet.getRow(15);
 
     // Get Columns
@@ -256,13 +245,6 @@ export default {
     const colD = worksheet.getColumn('D');
     const colE = worksheet.getColumn('E');
     const colF = worksheet.getColumn('F');
-    const colG = worksheet.getColumn('G');
-    const colH = worksheet.getColumn('H');
-    const colI = worksheet.getColumn('I');
-    const colJ = worksheet.getColumn('J');
-    const colK = worksheet.getColumn('K');
-    const colL = worksheet.getColumn('L');
-    const colM = worksheet.getColumn('M');
 
     // Format Table Cells
     // Alignment Format
@@ -276,8 +258,6 @@ export default {
         };
 
     cellPharm.alignment =
-      cellDistrict.alignment =
-      cellProvince.alignment =
       cellStartDate.alignment =
       cellEndDate.alignment =
         {
@@ -287,14 +267,10 @@ export default {
         };
 
     // Border Format
-    cellRepublica.border =
-      cellTitle.border =
+    // cellRepublica.border =
+    cellTitle.border =
       cellPharm.border =
-      cellDistrictParamValue.border =
-      cellDistrict.border =
       cellPharmParamValue.border =
-      cellProvince.border =
-      cellProvinceParamValue.border =
       cellStartDate.border =
       cellStartDateParamValue.border =
       cellEndDate.border =
@@ -309,49 +285,31 @@ export default {
     // Assign Value to Cell
     cellRepublica.value = logoTitle;
     cellTitle.value = title;
-    cellPharmParamValue.value = result[0].clinic;
-    cellProvinceParamValue.value = province;
-    cellDistrictParamValue.value = result[0].district;
-    cellStartDateParamValue.value = startDate;
-    cellEndDateParamValue.value = endDate;
+    cellPharmParamValue.value = clinic?.clinicName;
+    cellStartDateParamValue.value = params.startDateParam;
+    cellEndDateParamValue.value = params.endDateParam;
     cellPharm.value = 'Unidade Sanitária';
-    cellDistrict.value = 'Distrito';
-    cellProvince.value = 'Província';
     cellStartDate.value = 'Data Início';
     cellEndDate.value = 'Data Fim';
 
     // merge a range of cells
-    // worksheet.mergeCells('A1:A7')
-    worksheet.mergeCells('A9:M10');
-    worksheet.mergeCells('B11:K11');
-    worksheet.mergeCells('B12:D12');
-    worksheet.mergeCells('F12:K12');
-    worksheet.mergeCells('A13:K13');
-
-    // add width size to Columns
-    // add height size to Rows
+    worksheet.mergeCells('A1:A7');
+    worksheet.mergeCells('A9:F10');
+    worksheet.mergeCells('B11:D11');
+    worksheet.mergeCells('A12:D12');
     headerRow.height = 30;
 
     // add height size to Columns
     // add width size to Columns
-    colA.width = 20;
-    colB.width = 20;
-    colC.width = 30;
-    colD.width = 10;
-    colE.width = 15;
+    colA.width = 25;
+    colB.width = 30;
+    colC.width = 25;
+    colD.width = 25;
+    colE.width = 25;
     colF.width = 20;
-    colG.width = 20;
-    colH.width = 20;
-    colI.width = 20;
-    colJ.width = 20;
-    colK.width = 20;
-    colL.width = 20;
-    colM.width = 20;
 
     // Add Style
-    // cellTitle.font =
-    cellDistrict.font =
-      cellProvince.font =
+    cellTitle.font =
       cellStartDate.font =
       cellEndDate.font =
       cellPharm.font =
@@ -379,52 +337,26 @@ export default {
         showRowStripes: false,
       },
       columns: [
-        { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
+        // { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
         { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
-        { name: 'Idade', totalsRowFunction: 'none', filterButton: false },
+        {
+          name: 'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Data em que Identificou o Abandono ao TARV [>59 dias faltoso] (d-m-a)',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Data em que Regressou à Unidade Sanitária',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
         {
           name: 'Contacto',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: tipoPacient === 'tarv' ? 'Tipo TARV' : 'Tipo Paciente',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Regime Terapêutica',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Tipo de Dispensa',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Modo de Dispensa',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'DATA LEVANT.',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'DATA PRÓX. LEVANT.',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Sector Clínico',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Utilizador',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -474,17 +406,20 @@ export default {
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const fileType =
+    const fileTypePa =
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     const fileExtension = '.xlsx';
 
-    const blob = new Blob([buffer], { type: fileType });
+    const blob = new Blob([buffer], { type: fileTypePa });
 
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension);
     } else {
-      const titleFile = 'HistoricoDeLevantamento.xlsx';
-      console.log('result' + titleFile);
+      //   var blob = new Blob(materialEducativo.blop)
+      //  const bytes = new Uint8Array(materialEducativo.blop)
+      // var UTF8_STR = new Uint8Array(pdfOutput)
+      //   var BINARY_ARR = UTF8_STR.buffer
+      const titleFile = 'PacientesFaltosos.xlsx';
       saveBlob2File(titleFile, blob);
       function saveBlob2File(fileName, blob) {
         const folder = cordova.file.externalRootDirectory + 'Download';
@@ -514,7 +449,6 @@ export default {
         // Create a FileWriter object for our FileEntry
         fileEntry.createWriter(function (fileWriter) {
           fileWriter.onwriteend = function () {
-            console.log('Successful file write...');
             openFile();
           };
 
@@ -533,10 +467,8 @@ export default {
       }
       function openFile() {
         const strTitle = titleFile;
-        console.log('file system 44444: ' + strTitle);
         const folder =
           cordova.file.externalRootDirectory + 'Download/' + strTitle;
-        console.log('file system 2222: ' + folder);
         const documentURL = decodeURIComponent(folder);
         cordova.plugins.fileOpener2.open(
           documentURL,
@@ -553,39 +485,31 @@ export default {
   },
   createArrayOfArrayRow(rows) {
     const data = [];
-    let ord = 1;
 
     for (const row in rows) {
       const createRow = [];
-      createRow.push(ord);
       createRow.push(rows[row].nid);
+      createRow.push(rows[row].name);
       createRow.push(
-        rows[row].firstNames +
-          ' ' +
-          rows[row].middleNames +
-          ' ' +
-          rows[row].lastNames
+        moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY')
       );
-      createRow.push(rows[row].age);
-      createRow.push(rows[row].cellphone);
-      createRow.push(rows[row].tipoTarv);
-      createRow.push(rows[row].therapeuticalRegimen);
-      createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].dispenseMode);
+      const dataIdent = rows[row].dateIdentifiedAbandonment;
       createRow.push(
-        moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY')
+        dataIdent !== null && dataIdent !== ''
+          ? moment(new Date(rows[row].dateIdentifiedAbandonment)).format(
+              'DD-MM-YYYY'
+            )
+          : ''
       );
       createRow.push(
-        moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
+        rows[row].returnedPickUp !== null
+          ? moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY')
+          : ''
       );
-      createRow.push(rows[row].clinicsector);
-      createRow.push(rows[row].idmeduser);
+      createRow.push(rows[row].contact);
 
       data.push(createRow);
-      ord += 1;
     }
-    ord = 0;
-    rows = [];
 
     return data;
   },
@@ -600,7 +524,6 @@ export default {
     // var UTF8_STR = new Uint8Array(pdfOutput)
     //   var BINARY_ARR = UTF8_STR.buffer
     const titleFile = fileName + fileType;
-    console.log('result' + titleFile);
     saveBlob2File(titleFile, blop);
     function saveBlob2File(fileName, blob) {
       const folder = cordova.file.externalRootDirectory + 'Download';
@@ -630,7 +553,6 @@ export default {
       // Create a FileWriter object for our FileEntry
       fileEntry.createWriter(function (fileWriter) {
         fileWriter.onwriteend = function () {
-          console.log('Successful file write...');
           openFile();
         };
 
@@ -649,10 +571,8 @@ export default {
     }
     function openFile() {
       const strTitle = titleFile;
-      console.log('file system 44444: ' + strTitle);
       const folder =
         cordova.file.externalRootDirectory + 'Download/' + strTitle;
-      console.log('file system 2222: ' + folder);
       const documentURL = decodeURIComponent(folder);
       cordova.plugins.fileOpener2.open(documentURL, 'application/pdf', {
         error: function (e) {

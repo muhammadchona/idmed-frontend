@@ -74,9 +74,6 @@ export default {
     return api()
       .patch('healthInformationSystem/' + uuid, params)
       .then((resp) => {
-        InteroperabilityAttributeService.deleteAllFromHealthSystem(
-          resp.data.id
-        );
         healthInformationSystem.save(resp.data);
       });
   },
