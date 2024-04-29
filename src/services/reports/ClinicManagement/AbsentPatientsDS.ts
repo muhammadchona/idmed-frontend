@@ -133,20 +133,14 @@ export default {
 
     let data = '';
     let rowsAux = [];
-    let firstReg = {};
+    const firstReg = {};
     if (isOnline.value) {
       const rowsAux = await Report.printReportOther('absentPatientsReport', id);
       if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
-      const firstReg = rowsAux.data[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       data = this.createArrayOfArrayRow(rowsAux.data);
     } else {
       rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
       if (rowsAux.length === 0) return 204;
-      firstReg = rowsAux[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       data = this.createArrayOfArrayRow(rowsAux);
     }
 
