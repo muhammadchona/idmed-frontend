@@ -35,12 +35,7 @@
         </template>
         <template #body="props">
           <q-tr no-hover :props="props">
-            <div class="hidden">{{ qtySupplied(props.row) }}</div>
-            <q-td
-              :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
-              key="drug"
-              :props="props"
-            >
+            <q-td :props="props" :style="{ color: props.row.color }" key="drug">
               {{
                 getDrugById(props.row.drug.id) !== null &&
                 getDrugById(props.row.drug.id) !== undefined
@@ -49,9 +44,9 @@
               }}
             </q-td>
             <q-td
-              :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
-              key="dosage"
               :props="props"
+              :style="{ color: props.row.color }"
+              key="dosage"
             >
               {{
                 getDrugById(props.row.drug.id) !== null &&
@@ -69,11 +64,11 @@
               }}
             </q-td>
             <q-td
-              :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
+              :props="props"
+              :style="{ color: props.row.color }"
               v-if="!curPatientVisitDetail.createPackLater"
               auto-width
               key="packs"
-              :props="props"
             >
               {{ props.row.quantitySupplied }}
               <em
@@ -90,7 +85,11 @@
                 }}(s)</em
               >
             </q-td>
-            <q-td key="quantityRemain" :props="props">
+            <q-td
+              :style="{ color: props.row.color }"
+              key="quantityRemain"
+              :props="props"
+            >
               <em
                 v-if="
                   getDrugFirstLevelById(props.row.drug.id).clinicalService
@@ -120,7 +119,7 @@
               </em>
             </q-td>
             <q-td
-              :style="qtySuppliedFlag === -1 ? 'color: red' : ' color: black'"
+              :style="{ color: props.row.color }"
               v-if="!curPatientVisitDetail.createPackLater"
               key="nextPickUpDate"
               :props="props"
@@ -128,7 +127,7 @@
               <div class="row">
                 <q-toggle
                   v-model="props.row.toContinue"
-                  :disable="qtySuppliedFlag === -1 || validateDispense"
+                  :disable="props.row.color === 'red' || validateDispense"
                   label="Continua"
                 />
               </div>
@@ -143,7 +142,7 @@
                 @click="deleteRow(props.row)"
               />
               <q-btn
-                v-if="qtySuppliedFlag === -1"
+                v-if="props.row.color === 'red'"
                 flat
                 round
                 :disable="validateDispense"
@@ -196,13 +195,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { inject, onMounted, provide, reactive, ref } from 'vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue';
 import PrescriptionDrugsListHeader from 'components/Patient/Prescription/PrescriptionDrugsListHeader.vue';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
 import StockService from 'src/services/api/stockService/StockService';
-import moment from 'moment';
-import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
+
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
@@ -212,7 +210,7 @@ import { debounce } from 'lodash';
 import { useDrug } from 'src/composables/drug/drugMethods';
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
-const { alertSucess, alertError, alertInfo } = useSwal();
+const { alertError } = useSwal();
 const { remainigDurationInWeeks } = usePrescription();
 const { getQtyRemain } = usePrescribedDrug();
 const { getDrugFirstLevelById } = useDrug();
@@ -258,16 +256,8 @@ const columns = [
 ];
 const showAddEditDrug = ref(false);
 const submittingPrescribedDrug = reactive(ref(false));
-const nextPUpDate = ref('');
-const pickupDate = ref('');
-const nums = ref(
-  Array(4)
-    .fill()
-    .map((x, i) => i + 1)
-);
+
 const drugsDuration = ref('');
-const qtySuppliedFlag = ref(0);
-const isClicked = ref(false);
 // Injection
 const curPrescription = inject('curPrescription');
 const curPatientVisitDetail = inject('curPatientVisitDetail');
@@ -332,29 +322,35 @@ const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
 
-const qtySupplied = async (packagedDrug) => {
-  const item = await checkStock(packagedDrug);
-  if (item) {
-    qtySuppliedFlag.value = packagedDrug.quantitySupplied;
-  } else {
-    qtySuppliedFlag.value = -1;
-  }
-  return qtySuppliedFlag.value;
-};
-const checkStock = async (packagedDrug) => {
+const checkStock = (packagedDrug) => {
   packagedDrug.drug = getDrugById(packagedDrug.drug.id);
   const qtytoDispense = getQtyPrescribed(
     packagedDrug,
     curPack.value.weeksSupply
   );
   packagedDrug.quantitySupplied = qtytoDispense;
-  const resp = await StockService.checkStockStatus(
+  const resp = StockService.checkStockStatus(
     packagedDrug.drug.id,
     curPack.value.pickupDate,
     qtytoDispense
   );
   return resp;
 };
+
+onMounted(async () => {
+  try {
+    curPack.value.packagedDrugs.map((row) => ({
+      ...row,
+      color: row.color || '',
+    }));
+    for (let i = 0; i < curPack.value.packagedDrugs.length; i++) {
+      const isValidStock = await checkStock(curPack.value.packagedDrugs[i]);
+      curPack.value.packagedDrugs[i].color = isValidStock ? 'black' : 'red';
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+});
 
 // Computed
 provide('showAddEditDrug', showAddEditDrug);
