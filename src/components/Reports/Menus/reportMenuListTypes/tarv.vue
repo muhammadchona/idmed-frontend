@@ -139,6 +139,10 @@ const menu = [
         tabName: 'ArvDailyRegister',
       },
       {
+        description: 'Lista de Possiveis Pacientes Duplicados',
+        tabName: 'PossiblePatientDuplicates',
+      },
+      {
         description: 'Lista de Dispensas Nao Sicronizadas Para o OpenMrs',
         tabName: 'NotSynchronizedPack',
       },
