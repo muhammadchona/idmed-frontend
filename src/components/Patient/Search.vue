@@ -289,6 +289,7 @@ const pagination = ref({
   rowsPerPage: 5,
 });
 const actualPage = ref(1);
+const actualRowsPerPage = ref(5);
 const columns = [
   {
     name: 'identifier',
@@ -337,7 +338,7 @@ const onRequest = async (props) => {
   console.log(props);
   const { page, rowsPerPage, sortBy, descending } = props.pagination;
   // const filter = props.filter;
-  if (page !== actualPage.value) {
+  if (page !== actualPage.value || rowsPerPage !== actualRowsPerPage.value) {
     loading.value = true;
   }
   // actualPage.value = page;
@@ -358,8 +359,10 @@ const onRequest = async (props) => {
 
     currPatient.value.offset = startRow;
     offset.value = startRow;
-    if (page !== actualPage.value) {
+
+    if (page !== actualPage.value || rowsPerPage !== actualRowsPerPage.value) {
       actualPage.value = page;
+      actualRowsPerPage.value = rowsPerPage;
       patientService.apiSearch(currPatient.value);
     }
 
