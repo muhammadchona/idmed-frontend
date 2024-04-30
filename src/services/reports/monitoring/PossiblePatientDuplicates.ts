@@ -9,7 +9,7 @@ import moment from 'moment';
 
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = 'Registos De Erro Na Interroperabilidade Com Openmrs';
+const title = 'Lista de Possiveis Pacientes duplicados';
 const reportName = 'PossiblePatientDuplicates';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
@@ -37,20 +37,18 @@ export default {
         */
     const cols = [
       'NID',
-      'Nome',
-      'Apelido',
+      'Nome Completo',
       'Data de Nascimento',
       'Genero',
       'Vezes Contadas',
     ];
     const rows = await Report.printReportOther(
-      'notSynchronizingPacksOpenMrsReport',
+      'possiblePatientDuplicatesReport',
       params.id
     );
     if (rows.status === 204) return rows.status;
     firstReg = rows.data[0];
-    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+    console.log(rows.data);
     const data = this.createArrayOfArrayRow(rows.data);
 
     autoTable(doc, {
@@ -82,11 +80,7 @@ export default {
         );
         // doc.text('Data Início: ' + params.startDateParam, width / 2 + 98, 49)
         // doc.text('Data Fim: ' + params.endDateParam, width / 2 + 98, 57)
-        doc.text(
-          'Periodo: ' + params.startDateParam + ' à ' + params.endDateParam,
-          width / 2 + 90,
-          57
-        );
+
         // doc.line(0, 35, 400, 50);
       },
       theme: 'grid',
@@ -100,14 +94,12 @@ export default {
   async downloadExcel(params) {
     let firstReg = {};
     const rows = await Report.printReportOther(
-      'notSynchronizingPacksOpenMrsReport',
+      'possiblePatientDuplicatesReport',
       params.id
     );
     if (rows.status === 204) return rows.status;
 
     firstReg = rows.data[0];
-    params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-    params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
     const data = this.createArrayOfArrayRow(rows.data);
 
     const workbook = new ExcelJS.Workbook();
@@ -199,17 +191,8 @@ export default {
     cellTitle.value = title;
     cellPharmParamValue.value =
       params.clinic !== null ? params.clinic.clinicName : '';
-    cellStartDateParamValue.value = moment(
-      params.startDateParam,
-      'DD-MM-YYYY'
-    ).format('DD-MM-YYYY');
-    cellEndDateParamValue.value = moment(
-      params.endDateParam,
-      'DD-MM-YYYY'
-    ).format('DD-MM-YYYY');
+
     cellPharm.value = 'Farmácia';
-    cellStartDate.value = 'Data Início';
-    cellEndDate.value = 'Data Fim';
 
     // merge a range of cells
     worksheet.mergeCells('A1:A7');
@@ -266,19 +249,13 @@ export default {
         showRowStripes: false,
       },
       columns: [
-        { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
         {
           name: 'NID',
           totalsRowFunction: 'none',
           filterButton: false,
         },
         {
-          name: 'Nome',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'Apelido',
+          name: 'Nome Completo',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -358,12 +335,10 @@ export default {
     for (const row in rows) {
       const createRow = [];
       createRow.push(rows[row].nid);
-      createRow.push(rows[row].patient);
-      createRow.push(this.getFormatDDMMYYYY(rows[row].pickupDate));
-      createRow.push(this.getFormatDDMMYYYY(rows[row].returnPickupDate));
-      createRow.push(this.getFormatDDMMYYYY(rows[row].dateCreated));
-      createRow.push(rows[row].errorDescription);
-      createRow.push(this.getFormatDDMMYYYY(rows[row].servicoClinico));
+      createRow.push(rows[row].patientName);
+      createRow.push(this.getFormatDDMMYYYY(rows[row].dateOfBirth));
+      createRow.push(rows[row].gender);
+      createRow.push(rows[row].numberOfTimes);
       data.push(createRow);
     }
 

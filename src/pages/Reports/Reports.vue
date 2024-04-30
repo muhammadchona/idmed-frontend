@@ -116,6 +116,7 @@ import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.v
 import PatientHistoryPREP from 'components/Reports/ClinicManagement/prep/PatientHistory.vue';
 import PatientHistoryTPT from 'components/Reports/ClinicManagement/tpt/PatientHistory.vue';
 import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPack.vue';
+import PossiblePatientDuplicates from 'components/Reports/monitoring/PossiblePatientDuplicates.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -165,6 +166,7 @@ const componentsList = {
   generalInventory,
   expectedOfDay,
   MmiaTb,
+  PossiblePatientDuplicates,
 };
 
 const { isMobile } = useSystemUtils();
