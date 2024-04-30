@@ -105,10 +105,12 @@ const checkBox = (items, reportId, fileType) => {
       downloadingPdf.value = false;
     })
     .onCancel(() => {
-      // console.log('>>>> Cancel')
+      downloadingXls.value = false;
+      downloadingPdf.value = false;
     })
     .onDismiss(() => {
-      // console.log('I am triggered on both OK and Cancel')
+      downloadingXls.value = false;
+      downloadingPdf.value = false;
     });
 };
 const printReportInv = (id, reportId, fileType) => {

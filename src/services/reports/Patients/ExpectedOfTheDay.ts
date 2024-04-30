@@ -118,7 +118,7 @@ export default {
       'Data do Próximo Levantamento',
       'Regime Terapêutico',
       'Tipo de Dispensa',
-      'Nome da Unidade Sanitária',
+      'Sector Clinico',
     ];
 
     const rows = result;
@@ -141,7 +141,8 @@ export default {
       );
       createRow.push(rows[row].therapeuticRegimen);
       createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].clinic);
+      //  createRow.push(rows[row].clinic);
+      createRow.push(rows[row].clinicSectorName);
 
       data.push(createRow);
       ord += 1;
@@ -516,7 +517,7 @@ export default {
       );
       createRow.push(rows[row].therapeuticRegimen);
       createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].clinic);
+      createRow.push(rows[row].clinicSectorName);
       data.push(createRow);
       ord += 1;
     }

@@ -36,7 +36,7 @@ export default {
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
-    
+
     const headerReport = [
       [
         {
@@ -58,7 +58,8 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+          content:
+            'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -131,49 +132,43 @@ export default {
 
     let data = '';
     let rowsAux = [];
-    let firstReg = {};
     if (isOnline.value) {
       const rowsAux = await Report.printReportOther('absentPatientsReport', id);
       if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
-      const firstReg = rowsAux.data[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       data = this.createArrayOfArrayRow(rowsAux.data);
     } else {
       rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
       if (rowsAux.length === 0) return 204;
-      firstReg = rowsAux[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
       data = this.createArrayOfArrayRow(rowsAux);
     }
 
     autoTable(doc, {
-        bodyStyles: {
-          halign: 'center',
-          fontSize: 8,
-        },
-        headStyles: {
-          halign: 'center',
-          valign: 'middle',
-          fontSize: 8,
-        },
-        columnStyles: {
-          0: { cellWidth: 40 },
-          1: { cellWidth: 55 },
-          2: { cellWidth: 55 },
-          3: { cellWidth: 55 },
-          4: { cellWidth: 40 },
-        },
-        didDrawPage: function (data) 
-        {    
-          const str = 'Página ' + doc.internal.getNumberOfPages();
-          doc.setFontSize(8);
-          // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-          const pageSize = doc.internal.pageSize;
-          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-          doc.text(str, data.settings.margin.right, pageHeight - 10);        
-        },
+      bodyStyles: {
+        halign: 'center',
+        fontSize: 8,
+      },
+      headStyles: {
+        halign: 'center',
+        valign: 'middle',
+        fontSize: 8,
+      },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 55 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 55 },
+        4: { cellWidth: 40 },
+      },
+      didDrawPage: function (data) {
+        const str = 'Página ' + doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height
+          ? pageSize.height
+          : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);
+      },
       startY: doc.lastAutoTable.finalY,
       theme: 'grid',
       head: [cols],
@@ -281,7 +276,7 @@ export default {
 
     // Assign Value to Cell
     cellRepublica.value = logoTitle;
-    cellTitle.value = title
+    cellTitle.value = title;
     cellPharmParamValue.value = clinic?.clinicName;
     cellStartDateParamValue.value = params.startDateParam;
     cellEndDateParamValue.value = params.endDateParam;

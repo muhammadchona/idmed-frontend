@@ -58,7 +58,11 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Período: ' + startDate + ' à ' + endDate,
+          content:
+            'Período: ' +
+            moment(new Date(startDate)).format('DD-MM-YYYY') +
+            ' à ' +
+            moment(new Date(endDate)).format('DD-MM-YYYY'),
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
