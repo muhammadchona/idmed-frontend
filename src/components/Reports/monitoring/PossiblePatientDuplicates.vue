@@ -18,7 +18,7 @@
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Lista
-      de Dispensas Não Sicronizadas
+      de Possiveis Pacientes Duplicados
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -50,7 +50,7 @@ import { ref, onMounted, provide } from 'vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import NotSynchronizedPack from 'src/services/reports/monitoring/NotSynchronizedPack';
+import PossiblePatientDuplicates from 'src/services/reports/monitoring/PossiblePatientDuplicates';
 
 const { alertError } = useSwal();
 
@@ -89,18 +89,17 @@ const closeSection = (params) => {
 const initReportProcessing = (params) => {
   updateParamsOnLocalStrage(params, isReportClosed);
   progress.value = 0.001;
-  Report.apiInitReportProcess(
-    'notSynchronizingPacksOpenMrsReport',
-    params
-  ).then((response) => {
-    setTimeout(() => {
-      getProcessingStatus(params);
-    }, 3000);
-  });
+  Report.apiInitReportProcess('possiblePatientDuplicatesReport', params).then(
+    (response) => {
+      setTimeout(() => {
+        getProcessingStatus(params);
+      }, 3000);
+    }
+  );
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('notSynchronizingPacksOpenMrsReport', params).then(
+  Report.getProcessingStatus('possiblePatientDuplicatesReport', params).then(
     (resp) => {
       if (resp.data.progress > 0.001) {
         progress.value = resp.data.progress;
@@ -126,13 +125,13 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
-    NotSynchronizedPack.downloadPDF(params).then((resp) => {
+    PossiblePatientDuplicates.downloadPDF(params).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
       downloadingPdf.value = false;
     });
   } else {
-    NotSynchronizedPack.downloadExcel(params).then((resp) => {
+    PossiblePatientDuplicates.downloadExcel(params).then((resp) => {
       if (resp === 204)
         alertError('Nao existem Dados para o periodo selecionado');
       downloadingXls.value = false;
