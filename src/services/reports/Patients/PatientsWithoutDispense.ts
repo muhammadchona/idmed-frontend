@@ -282,8 +282,12 @@ export default {
     cellPharmParamValue.value = result[0].clinic;
     cellProvinceParamValue.value = province;
     cellDistrictParamValue.value = result[0].district;
-    cellStartDateParamValue.value = startDate;
-    cellEndDateParamValue.value = endDate;
+    cellStartDateParamValue.value = moment(new Date(startDate)).format(
+      'DD-MM-YYYY'
+    );
+    cellEndDateParamValue.value = moment(new Date(endDate)).format(
+      'DD-MM-YYYY'
+    );
     cellPharm.value = 'Unidade Sanitária';
     cellDistrict.value = 'Distrito';
     cellProvince.value = 'Província';

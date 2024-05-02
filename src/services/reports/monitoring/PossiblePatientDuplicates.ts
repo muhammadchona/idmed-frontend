@@ -48,7 +48,6 @@ export default {
     );
     if (rows.status === 204) return rows.status;
     firstReg = rows.data[0];
-    console.log(rows.data);
     const data = this.createArrayOfArrayRow(rows.data);
 
     autoTable(doc, {

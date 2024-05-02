@@ -88,8 +88,10 @@ const initReportProcessing = (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
     updateParamsOnLocalStrage(params, isReportClosed);
-    Report.apiInitExpectedPatientsProcessing(params).then((resp) => {
-      getProcessingStatus(params);
+    const reportParams = reportDatesParams.determineStartEndDate(params);
+
+    Report.apiInitExpectedPatientsProcessing(reportParams).then((resp) => {
+      getProcessingStatus(reportParams);
     });
   } else {
     updateParamsOnLocalStrage(params, isReportClosed);
