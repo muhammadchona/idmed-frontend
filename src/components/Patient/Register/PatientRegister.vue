@@ -438,8 +438,8 @@ const updateUUID = () => {
   patientReg.value.clinic = {};
   patientReg.value.clinic.id = currClinic.value.id;
   oldHisUUID.value = patientReg.value.hisUuid;
-  patientReg.value.identifiers = {};
-  patientReg.value.patientVisits = {};
+  // patientReg.value.identifiers = {};
+  // patientReg.value.patientVisits = {};
   patientReg.value.hisUUID = hisUUID.value;
   patientService
     .updateUUID(patientReg.value, sessionStorage.getItem('Btoa'))
