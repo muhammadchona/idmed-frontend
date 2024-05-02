@@ -129,13 +129,13 @@ const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
     QuantityRemainReport.downloadPDF(id, fileType, params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
+        alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else if (fileType === 'XLS') {
     QuantityRemainReport.downloadExcel(id, fileType, params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
+        alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
     });
   }

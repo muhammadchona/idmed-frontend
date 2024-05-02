@@ -69,7 +69,11 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Período: ' + startDate + ' à ' + endDate,
+          content:
+            'Período: ' +
+            moment(startDate).format('DD-MM-YYYY') +
+            ' à ' +
+            moment(endDate).format('DD-MM-YYYY'),
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -93,7 +97,7 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Ano: ' + firstObject.year,
+          content: 'Ano: ' + moment(endDate).year(),
           halign: 'center',
           valign: 'left',
           fontStyle: 'bold',
@@ -135,25 +139,15 @@ export default {
 
     let ord = 1;
 
-    //const drugs = n//get all drugs
     for (let i = 0; i < rows.length; i++) {
       const data = [];
-      const cols1 = ['Medicamento'];
-      const data1 = [[rows[i].drugName, rows[i].drugName, 270]];
+      const data1 = [[rows[i].drugName]];
       autoTable(doc, {
         bodyStyles: {
           halign: 'left',
           fontSize: 10,
+          fontStyle: 'bold',
         },
-        headStyles: {
-          halign: 'center',
-          valign: 'middle',
-          fontSize: 8,
-        },
-        columnStyles: {
-          0: { cellWidth: 270 },
-        },
-        head: [cols1],
         body: data1,
       });
 
@@ -184,14 +178,6 @@ export default {
           valign: 'middle',
           fontSize: 8,
         },
-        columnStyles: {
-          0: { cellWidth: 14 },
-          1: { cellWidth: 50 },
-          2: { cellWidth: 50 },
-          3: { cellWidth: 50 },
-          4: { cellWidth: 50 },
-          5: { cellWidth: 55 },
-        },
         didDrawPage: function (data) {
           const str = 'Página ' + doc.internal.getNumberOfPages();
           doc.setFontSize(8);
@@ -211,77 +197,91 @@ export default {
       const resumoAdjustments = [
         [
           {
-            content: 'Total de frascos Contados ',
+            content: 'Frascos Contados ',
+            styles: {
+              halign: 'left',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '8',
+              textColor: 0,
+            },
             // colSpan: 4,
-            halign: 'center',
-            valign: 'middle',
-            fontStyle: 'bold',
-            fontSize: '14',
             ColumnWidth: 10,
           },
           {
             content: rows[i].totalAdjustedValue,
             // colSpan: 1,
-            halign: 'right',
-            valign: 'middle',
-            fontStyle: 'bold',
-            fontSize: '14',
+            styles: {
+              halign: 'center',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '8',
+              textColor: 0,
+            },
             ColumnWidth: 20,
           },
         ],
         [
           {
-            content: 'Total de saldo ',
+            content: 'Saldo ',
             // colSpan: 1,
-            halign: 'center',
-            valign: 'middle',
-            fontStyle: 'bold',
-            fontSize: '14',
+            styles: {
+              halign: 'left',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '8',
+              textColor: 0,
+            },
             ColumnWidth: 10,
           },
           {
             content: rows[i].totalBalance,
             // colSpan: 1,
-            halign: 'center',
-            valign: 'right',
-            fontStyle: 'bold',
-            fontSize: '14',
+            styles: {
+              halign: 'center',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '8',
+              textColor: 0,
+            },
             ColumnWidth: 20,
           },
         ],
         [
           {
-            content: 'Total de Variação para o Med. ',
+            content: 'Variação para o Med. ',
             // colSpan: 1,
-            halign: 'left',
-            valign: 'middle',
-            fontStyle: 'bold',
-            fontSize: '14',
+            styles: {
+              halign: 'left',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '8',
+              textColor: 0,
+            },
             cellWidth: 10,
           },
           {
             content: rows[i].totalAdjustedValue - rows[i].totalBalance,
             // colSpan: 1,
-            halign: 'right',
-            valign: 'middle',
-            fontStyle: 'bold',
-            fontSize: '14',
+            styles: {
+              halign: 'center',
+              valign: 'middle',
+              fontStyle: 'bold',
+              fontSize: '10',
+              textColor: 0,
+            },
             cellWidth: 20,
           },
         ],
       ];
 
       autoTable(doc, {
-        bodyStyles: {
-          // halign: 'left',
-          // valign: 'middle',
-          fontSize: 8,
-        },
         headStyles: {
           halign: 'left',
           // valign: 'middle',
         },
         theme: 'grid',
+        head: [['Totais', 'Valor']],
         body: resumoAdjustments,
         startY: doc.lastAutoTable.finalY,
         tableWidth: 84,
@@ -304,8 +304,8 @@ export default {
     const clinic = clinicService.currClinic();
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'FGH';
-    workbook.lastModifiedBy = 'FGH';
+    workbook.creator = 'CSAUDE';
+    workbook.lastModifiedBy = 'CSAUDE';
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
@@ -389,8 +389,8 @@ export default {
     cellPharmParamValue.value = result[0].clinic;
     cellProvinceParamValue.value = province;
     cellDistrictParamValue.value = result[0].district;
-    cellStartDateParamValue.value = startDate;
-    cellEndDateParamValue.value = endDate;
+    cellStartDateParamValue.value = moment(startDate).format('DD-MM-YYYY');
+    cellEndDateParamValue.value = moment(endDate).format('DD-MM-YYYY');
     cellPharm.value = 'Unidade Sanitária';
     cellDistrict.value = 'Distrito';
     cellProvince.value = 'Província';

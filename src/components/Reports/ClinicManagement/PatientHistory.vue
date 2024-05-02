@@ -132,7 +132,7 @@ const generateReport = (id, fileType) => {
     Report.printReport('historicoLevantamentoReport', id, fileType).then(
       (resp) => {
         if (!resp.data[0]) {
-          alertError('Nao existem Dados para o periodo selecionado');
+          alertError('Não existem Dados para o período selecionado');
           downloadingXls.value = false;
           downloadingPdf.value = false;
         } else {

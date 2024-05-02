@@ -113,11 +113,11 @@ const checkBox = (items, reportId, fileType) => {
       downloadingPdf.value = false;
     });
 };
+
 const printReportInv = (id, reportId, fileType) => {
-  console.log('Inventory_ID: ', id);
   Report.apiPrintInventoryReport(id, reportId).then((resp) => {
     if (!resp.data[0]) {
-      alertError('Nao existem Dados para o periodo selecionado');
+      alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
       downloadingPdf.value = false;
     } else {
@@ -163,8 +163,13 @@ const initReportProcessing = async (params) => {
 
 const getInventoryList = (params, fileType) => {
   Report.getInventoryList('inventoryReport', params).then((resp) => {
-    //console.log(resp);
-    checkBox(resp.data, params, fileType);
+    if (resp.data.length === 0) {
+      alertError('Não existem Dados para o período selecionado');
+      downloadingXls.value = false;
+      downloadingPdf.value = false;
+    } else {
+      checkBox(resp.data, params, fileType);
+    }
   });
 };
 

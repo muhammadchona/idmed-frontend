@@ -1,17 +1,17 @@
 <template>
   <div ref="filterDrugStoreSection">
     <ListHeader
-    v-if="resultFromLocalStorage"
+      v-if="resultFromLocalStorage"
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Lista
-      de Dispensas Não Sicronizadas
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Lista de
+      Dispensas Não Sicronizadas
     </ListHeader>
     <ListHeader
-    v-else
+      v-else
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
@@ -26,10 +26,10 @@
           <FiltersInput
             :id="id"
             :totalRecords="totalRecords"
-              :qtyProcessed="qtyProcessed"
-              :reportType="report"
-              :tabName="name"
-              :params="params"
+            :qtyProcessed="qtyProcessed"
+            :reportType="report"
+            :tabName="name"
+            :params="params"
             :progress="progress"
             :clinicalService="selectedService"
             @generateReport="generateReport"
@@ -55,16 +55,16 @@ import NotSynchronizedPack from 'src/services/reports/monitoring/NotSynchronized
 const { alertError } = useSwal();
 
 const name = 'NotSynchronizedPack';
-const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
-const report = 'DISPENSAS_NAO_SINCRONIZADAS'
-const serviceAux = ref(null)
-const resultFromLocalStorage = ref(false)
-const downloadingPdf = ref(false)
-const downloadingXls = ref(false)
+const report = 'DISPENSAS_NAO_SINCRONIZADAS';
+const serviceAux = ref(null);
+const resultFromLocalStorage = ref(false);
+const downloadingPdf = ref(false);
+const downloadingXls = ref(false);
 
 onMounted(() => {
   if (props.params) {
@@ -72,76 +72,77 @@ onMounted(() => {
   }
 });
 
-const isReportClosed = ref(false)
+const isReportClosed = ref(false);
 const updateParamsOnLocalStrage = (params, isReportClosed) => {
-  if(!isReportClosed.value) LocalStorage.set(params.id, params)
-}
+  if (!isReportClosed.value) LocalStorage.set(params.id, params);
+};
 
 const closeSection = (params) => {
-  filterDrugStoreSection.value.remove()
-  if(params) {
-    const paramId = params.id
-    isReportClosed.value = true
-    LocalStorage.remove(paramId)
+  filterDrugStoreSection.value.remove();
+  if (params) {
+    const paramId = params.id;
+    isReportClosed.value = true;
+    LocalStorage.remove(paramId);
   }
 };
 
 const initReportProcessing = (params) => {
-  updateParamsOnLocalStrage(params, isReportClosed) 
-  progress.value = 0.001
+  updateParamsOnLocalStrage(params, isReportClosed);
+  progress.value = 0.001;
   Report.apiInitReportProcess(
     'notSynchronizingPacksOpenMrsReport',
     params
   ).then((response) => {
     setTimeout(() => {
-      getProcessingStatus(params)
+      getProcessingStatus(params);
     }, 3000);
   });
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('notSynchronizingPacksOpenMrsReport', params).then(resp => {
-    if (resp.data.progress > 0.001) {
-      progress.value = resp.data.progress;
-      if (progress.value < 100) {
-        updateParamsOnLocalStrage(params, isReportClosed) ;
-        params.progress = resp.data.progress;
-        setTimeout(() => {
-          getProcessingStatus(params)
-        }, 3000);
+  Report.getProcessingStatus('notSynchronizingPacksOpenMrsReport', params).then(
+    (resp) => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
+        if (progress.value < 100) {
+          updateParamsOnLocalStrage(params, isReportClosed);
+          params.progress = resp.data.progress;
+          setTimeout(() => {
+            getProcessingStatus(params);
+          }, 3000);
+        } else {
+          progress.value = 100;
+          params.progress = 100;
+          updateParamsOnLocalStrage(params, isReportClosed);
+        }
       } else {
-        progress.value = 100;
-        params.progress = 100;
-        updateParamsOnLocalStrage(params, isReportClosed) ;
-      }
-    } else {
-      setTimeout(() => {
-          getProcessingStatus(params)
+        setTimeout(() => {
+          getProcessingStatus(params);
         }, 3000);
+      }
     }
-  });
+  );
 };
 
 const generateReport = (id, fileType, params) => {
-  
   if (fileType === 'PDF') {
     NotSynchronizedPack.downloadPDF(params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
-        downloadingPdf.value = false
+        alertError('Não existem Dados para o período selecionado');
+      downloadingPdf.value = false;
     });
   } else {
     NotSynchronizedPack.downloadExcel(params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
-        downloadingXls.value = false
+        alertError('Não existem Dados para o período selecionado');
+      downloadingXls.value = false;
     });
   }
 };
 
-provide('downloadingPdf', downloadingPdf)
-provide('downloadingXls', downloadingXls)
-provide('serviceAux', serviceAux)
-provide('resultFromLocalStorage', resultFromLocalStorage)
-provide('getProcessingStatus',getProcessingStatus)
+provide('downloadingPdf', downloadingPdf);
+provide('downloadingXls', downloadingXls);
+provide('serviceAux', serviceAux);
+provide('resultFromLocalStorage', resultFromLocalStorage);
+provide('getProcessingStatus', getProcessingStatus);
 </script>
