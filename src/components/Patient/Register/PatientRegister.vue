@@ -336,6 +336,7 @@
           :loading="submitLoading"
           label="Submeter"
           color="primary"
+          :disable="!editUUID"
         />
       </q-card-actions>
     </form>
