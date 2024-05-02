@@ -482,9 +482,6 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
     localpatient.value.district !== undefined
       ? localpatient.value.district.province
       : null;
-  // localpatient.postoAdministrativo_id = pacienteOpenMRS.person.names[0]
-  // localpatient.bairro_id = pacienteOpenMRS.person.names[0]
-  // localpatient.clinic_id = pacienteOpenMRS.person.names[0]
   return localpatient.value;
 };
 const buildPatientIdentifierFromOpenMRS = (identifierOpenMrs) => {
@@ -623,7 +620,6 @@ const loadHISDataSource = () => {
   showloading();
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
-      // TransferenceService.checkProvincialServer();
       closeLoading();
     } else {
       checkOpenMRS(selectedDataSources.value);
@@ -639,14 +635,7 @@ const loadHISDataSource = () => {
   }
 };
 
-/*
 const patientList = computed(() => {
-  return patientService.getPatientSearchList();
-});
-*/
-const patientList = computed(() => {
-  console.log(offset.value);
-  console.log(limit.value);
   return patientService.getPatientSearchList();
 });
 
@@ -657,7 +646,6 @@ const localSearch = async () => {
     const count = await patientService.countPatientSearchResult(
       currPatient.value
     );
-    console.log(count.data);
     pagination.value.rowsNumber = count.data;
     currPatient.value.limit = limit.value;
     currPatient.value.offset = offset.value;

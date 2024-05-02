@@ -281,7 +281,7 @@
         <div class="q-mt-lg">
           <div class="row items-center q-mb-md">
             <q-icon name="key" size="sm" />
-            <span class="q-pl-sm text-subtitle2">UUID</span>
+            <span class="q-pl-sm text-subtitle2">UUID OpenMRS</span>
           </div>
           <q-separator color="grey-13" size="1px" />
         </div>
@@ -294,7 +294,6 @@
               flat
               class="col q-mr-md"
               ref="uuidRef"
-              :rules="[(val) => !!val || 'Por favor indicar o nome']"
               v-model="hisUUID"
               :disable="editUUID"
               style="height: 40px"
@@ -323,7 +322,10 @@
               icon="clear"
               flat
               v-if="!editUUID"
-              @click="editUUID = true"
+              @click="
+                editUUID = true;
+                hisUUID = patientReg.hisUuid;
+              "
             />
           </div>
         </div>
@@ -421,8 +423,14 @@ const disableEditUUID = () => {
 };
 
 const updateUUID = () => {
-  if (!isValidUUID(patientReg.value.hisUuid)) {
-    return alertError('O UUID digitado esta com um formato errado.');
+  if (hisUUID.value === null || hisUUID.value === undefined) {
+    return alertError('Por favor, indicar o UUID do paciente.');
+  }
+
+  if (!isValidUUID(hisUUID.value)) {
+    return alertError(
+      'O UUID năo coincide com formato exigido: []{8}-[]{4}-[]{4}-[]{4}-[]{12}'
+    );
   }
 
   submitUUID.value = true;
