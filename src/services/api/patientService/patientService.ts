@@ -79,7 +79,7 @@ export default {
 
   updateUUID(params: string, base64: string) {
     return api()
-      .patch(`patient/${base64}`, params)
+      .patch(`patient/updateuuid/${base64}`, params)
       .then((resp) => {
         patient.save(resp.data);
       });
