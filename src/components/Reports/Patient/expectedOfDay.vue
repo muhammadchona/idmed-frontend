@@ -128,7 +128,7 @@ const generateReport = async (id, fileType) => {
   if (isOnline.value) {
     Report.apiPrintExpectedPatientsReport(id).then((resp) => {
       if (!resp.data[0]) {
-        alertError('Nao existem Dados para o periodo selecionado');
+        alertError('Não existem Dados para o período selecionado');
         downloadingXls.value = false;
         downloadingPdf.value = false;
       } else {
@@ -156,7 +156,7 @@ const generateReport = async (id, fileType) => {
   } else {
     const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id);
     if (data.length === 0) {
-      alertError('Nao existem Dados para o periodo selecionado');
+      alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
       downloadingPdf.value = false;
     } else {

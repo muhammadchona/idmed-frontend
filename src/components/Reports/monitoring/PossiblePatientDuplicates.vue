@@ -127,13 +127,13 @@ const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
     PossiblePatientDuplicates.downloadPDF(params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
+        alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else {
     PossiblePatientDuplicates.downloadExcel(params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
+        alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
     });
   }
