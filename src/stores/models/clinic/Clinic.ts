@@ -25,6 +25,7 @@ export default class Clinic extends Model {
       active: this.attr(''),
       facilityTypeId: this.attr(''),
       syncStatus: this.attr(''),
+      parentClinic_id: this.attr(''),
       // Relationships
       facilityType: this.belongsTo(FacilityType, 'facilityTypeId'),
       province: this.belongsTo(Province, 'province_id'),
@@ -32,6 +33,8 @@ export default class Clinic extends Model {
       nationalClinic: this.belongsTo(NationalClinic, 'nationalClinic_id'),
       sectors: this.hasMany(ClinicSector, 'clinic_id'),
       patients: this.hasMany(Patient, 'patients'),
+      parentClinic: this.belongsTo(Clinic, 'parentClinic_id'),
+      subClinics: this.hasMany(Clinic, 'parentClinic_id'),
     };
   }
 

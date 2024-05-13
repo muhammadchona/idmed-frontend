@@ -192,6 +192,22 @@ export default {
       .with('facilityType')
       .with('district')
       .with('sectors')
+      .where('parentClinic_id', '')
+      .get();
+  },
+
+  getAllClinicSectors() {
+    return clinic
+      .query()
+      .with('nationalClinic')
+      .with('province')
+      .with('facilityType')
+      .with('district')
+      .with('parentClinic')
+      .with('sectors')
+      .where((clinic) => {
+        return clinic.parentClinic_id !== '';
+      })
       .get();
   },
 
@@ -276,7 +292,16 @@ export default {
       .withAllRecursive(2)
       .first();
   },
-  deleteFromPinia(){
-    return clinic.flush()
-  }
+  getActivebyClinicId(clinicId: string) {
+    return clinic
+      .query()
+      .with('facilityType')
+      .where((clinic) => {
+        return clinic.active && clinic.parentClinic_id === clinicId;
+      })
+      .get();
+  },
+  deleteFromPinia() {
+    return clinic.flush();
+  },
 };

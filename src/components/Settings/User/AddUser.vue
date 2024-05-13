@@ -152,7 +152,7 @@
                     dense
                   />
                 </div>
-                <div class="q-mb-sm">
+                <div class="q-mb-sm" v-if="isProvincial">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Farmacias"
@@ -168,7 +168,7 @@
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Sectores Clinicos"
-                    :rows="clinicSectors"
+                    :rows="selectedClinics"
                     :columns="columnsClinicSectors"
                     row-key="code"
                     v-if="onlyView"
@@ -329,7 +329,7 @@ const columnsClinicSectors = ref([
     required: true,
     label: 'Nome',
     align: 'left',
-    field: (row) => row.description,
+    field: (row) => row.clinicName,
     format: (val) => `${val}`,
     sortable: true,
   },
@@ -393,7 +393,7 @@ const users = computed(() => {
   return userService.getAllUsers();
 });
 const clinicSectors = computed(() => {
-  const allClinicSectors = clinicSectorService.getActivebyClinicId(
+  const allClinicSectors = clinicService.getActivebyClinicId(
     currClinic.value.id
   );
   return onlyView.value ? user.value.clinicSectors : allClinicSectors;
@@ -405,7 +405,7 @@ const loadUserRelations = () => {
     if (user.value.id !== null) {
       selectedRoles.value = user.value.authorities;
       selectedClinics.value = user.value.clinics;
-      selectedClinicSectors.value = user.value.clinicSectors;
+      selectedClinicSectors.value = user.value.clinics;
     }
   }
 };
@@ -442,9 +442,9 @@ const submitUser = () => {
   });
 
   user.value.roles = roless;
-  user.value.clinics = selectedClinics.value;
-  user.value.clinics.push(currClinic.value);
-  user.value.clinicSectors = selectedClinicSectors.value;
+  // user.value.clinics = selectedClinics.value;
+  // user.value.clinics.push(currClinic.value);
+  user.value.clinics = selectedClinicSectors.value;
   user.value.authorities = selectedRoles.value;
 
   if (user.value.contact === null || user.value.contact === undefined) {
