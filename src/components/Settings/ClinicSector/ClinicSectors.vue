@@ -54,7 +54,7 @@
               {{ props.row.code }}
             </q-td>
             <q-td key="description" :props="props">
-              {{ props.row.description }}
+              {{ props.row.clinicName }}
             </q-td>
             <q-td key="active" :props="props">
               {{ props.row.active ? 'Sim' : 'Nao' }}
@@ -126,6 +126,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 /*Declarations*/
 const { website } = useSystemUtils();
@@ -166,7 +167,7 @@ const isNewClinicSector = ref(false);
 const loading = ref(true);
 
 const filter = ref('');
-const clinicSector = ref(clinicSectorService.newInstanceEntity());
+const clinicSector = ref(clinicService.newInstanceEntity());
 
 /*injects*/
 const editMode = inject('editMode');
@@ -176,7 +177,7 @@ const currClinic = inject('currClinic');
 /*Hooks*/
 const clinicSectors = computed(() => {
   const clinicSecs = ref(null);
-  clinicSecs.value = clinicSectorService.getAllClinicSectors();
+  clinicSecs.value = clinicService.getAllClinicSectors();
   if (clinicSecs.value && clinicSecs.value.length >= 0) stopLoading();
   return clinicSecs.value;
 });
@@ -222,7 +223,7 @@ const editClinicSector = (clinicSectorParam) => {
 const addClinicSectorr = () => {
   isNewClinicSector.value = true;
   clinicSector.value = clinicSector.value;
-  clinicSector.value.clinic = currClinic.value;
+  clinicSector.value.parentClinic = currClinic.value;
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = false;
   viewMode.value = false;

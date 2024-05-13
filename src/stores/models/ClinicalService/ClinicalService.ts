@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Drug from '../drug/Drug';
 import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen';
 import ClinicalServiceAttributeType from '../ClinicalServiceAttributeType/ClinicalServiceAttributeType';
+import Clinic from '../clinic/Clinic';
 
 export default class ClinicalService extends Model {
   static entity = 'clinicalServices';
@@ -30,11 +31,11 @@ export default class ClinicalService extends Model {
         TherapeuticRegimen,
         'clinical_service_id'
       ),
-      clinicSectors: this.belongsToMany(
-        ClinicSector,
+      subClinics: this.belongsToMany(
+        Clinic,
         ClinicalServiceSector,
         'clinical_service_id',
-        'clinic_sector_id'
+        'clinic_id'
       ),
       drugs: this.hasMany(Drug, 'clinical_service_id'),
     };

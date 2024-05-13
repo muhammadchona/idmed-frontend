@@ -25,7 +25,7 @@
             ref="nomeRef"
             :disable="onlyView"
             class="col"
-            v-model="clinicSector.description"
+            v-model="clinicSector.clinicName"
             @input="(event) => $emit('update:name', event.target.value)"
             :rules="[(val) => !!val || 'Por favor indicar o nome']"
             lazy-rules
@@ -50,8 +50,8 @@
             outlined
             class="col"
             :disable="onlyView"
-            v-model="clinicSector.clinicSectorType"
-            :options="clinicSectorTypes"
+            v-model="clinicSector.facilityType"
+            :options="facilityTypes"
             transition-show="flip-up"
             transition-hide="flip-down"
             ref="clinicSectorRef"
@@ -69,7 +69,7 @@
             dense
             outlined
             class="col"
-            v-model="clinicSector.clinic"
+            v-model="clinicSector.parentClinic"
             :options="clinics"
             disable
             transition-show="flip-up"
@@ -104,6 +104,7 @@ import { ref, inject, onMounted, computed } from 'vue';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
+import facilityTypeService from 'src/services/api/facilityTypeService/facilityTypeService.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -149,6 +150,10 @@ const clinicSectorTypes = computed(() => {
   return clinicSectorTypeService.getAllClinicSectorTypes();
 });
 
+const facilityTypes = computed(() => {
+  return facilityTypeService.getAllFacilityTypes();
+});
+
 onMounted(() => {
   extractDatabaseCodes();
 });
@@ -181,11 +186,15 @@ const submitClinicSector = () => {
   if (isNewClinicSector.value) {
     clinicSector.value.active = true;
     clinicSector.value.uuid = uuidv4();
+    clinicSector.value.id = uuidv4();
     clinicSector.value.syncStatus = 'P';
     if (clinicSector.value.clinic !== null) {
-      clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+      //  clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+      clinicSector.value.province = clinicSector.value.parentClinic.province;
+      clinicSector.value.district = clinicSector.value.parentClinic.district;
+      // clinicSector.value.parentClinic = clinicSector.value.clinic;
     }
-    clinicSectorService
+    clinicService
       .post(clinicSector.value)
       .then(() => {
         alertSucess('Sector Clínico registado com sucesso.');
@@ -202,9 +211,12 @@ const submitClinicSector = () => {
       });
   } else {
     if (clinicSector.value.clinic !== null) {
-      clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+      clinicSector.value.parentClinic_id =
+        clinicSector.value.parentClinic_id.id;
+      clinicSector.value.province = clinicSector.value.parentClinic.province;
+      clinicSector.value.district = clinicSector.value.parentClinic.district;
     }
-    clinicSectorService
+    clinicService
       .patch(clinicSector.value.id, clinicSector.value)
       .then(() => {
         alertSucess('Sector Clínico actualizado com sucesso.');
