@@ -3,7 +3,7 @@
     <q-table
       class="col"
       dense
-      :rows="stockEntrances"
+      :rows="stockDistributors"
       :columns="columns"
       :filter="filter"
       row-key="id"
@@ -45,8 +45,8 @@
           <q-td key="orderNumber" :props="props">
             {{ props.row.orderNumber }}
           </q-td>
-          <q-td key="dateReceived" :props="props">
-            {{ formatDate(props.row.dateReceived) }}
+          <q-td key="creationDate" :props="props">
+            {{ formatDate(props.row.creationDate) }}
           </q-td>
           <q-td key="options" :props="props">
             <div class="col">
@@ -55,7 +55,7 @@
                 round
                 color="amber-8"
                 icon="reorder"
-                @click="editStockEntrance(props.row)"
+                @click="editStockDistributor(props.row)"
               >
                 <q-tooltip class="bg-amber-5">Visualizar Guia</q-tooltip>
               </q-btn>
@@ -73,7 +73,7 @@
 <script setup>
 import { date } from 'quasar';
 import { ref, computed } from 'vue';
-import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
+import stockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import { useRouter } from 'vue-router';
 
 const columns = [
@@ -92,9 +92,9 @@ const columns = [
     sortable: true,
   },
   {
-    name: 'dateReceived',
+    name: 'creationDate',
     align: 'center',
-    label: 'Data de Entrada',
+    label: 'Data de Criacao',
     sortable: false,
   },
   { name: 'options', align: 'center', label: 'Opções', sortable: false },
@@ -106,14 +106,17 @@ const loading = ref(true);
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
-const editStockEntrance = (entrance) => {
-  entrance.clinic = null;
-  localStorage.setItem('currStockEntrance', JSON.stringify(entrance.id));
-  router.push('/stock/entrance');
+const editStockDistributor = (stockDistributor) => {
+  stockDistributor.clinic = null;
+  localStorage.setItem(
+    'currStockDistributor',
+    JSON.stringify(stockDistributor.id)
+  );
+  router.push('/stock/stockDistributor');
 };
 
-const stockEntrances = computed(() => {
-  const list = StockEntranceService.getStockEntrances();
+const stockDistributors = computed(() => {
+  const list = stockDistributorService.getStockDistributorServices();
   if (list.length >= 0) {
     loading.value = false;
   }

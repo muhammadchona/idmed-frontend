@@ -38,7 +38,6 @@
         icon="add"
         class="float-right"
       >
-      
         <q-menu anchor="center middle" self="center middle">
           <q-list style="min-width: 150px">
             <q-item clickable v-close-popup>
@@ -93,11 +92,10 @@ const doneVisible = inject('doneVisible');
 const createAdjustment = inject('addNewAdjustment');
 const expandLess = inject('expandLess');
 const saveAjustment = inject('saveAjustment');
-const showAddButton = inject('showAddButton')
-const cancelAdjustment = inject('cancelAdjustment')
-const showCancel = inject('showCancel')
-const loadingSave = inject('loadingSave')
-
+const showAddButton = inject('showAddButton');
+const cancelAdjustment = inject('cancelAdjustment');
+const showCancel = inject('showCancel');
+const loadingSave = inject('loadingSave');
 
 const headerClass = ref('');
 const expanded = ref(false);
