@@ -497,9 +497,9 @@
                       v-model="props.row.clinicSector"
                       :options="clinicSectors"
                       option-value="id"
-                      option-label="name"
+                      option-label="clinicName"
                       label="Sector Clinico"
-                      @filter="filterFn"
+                      @filter="filterClinicSectors"
                       use-input
                       hide-selected
                       fill-input
@@ -656,6 +656,7 @@ const step = ref('display');
 const guiaStep = ref('display');
 const selectedStock = ref([]);
 const drugs = ref([]);
+const clinicSectors = ref([]);
 const stockList = ref([]);
 let stock = '';
 const orderNumberRef = ref('');
@@ -686,6 +687,30 @@ const filterFn = (val, update, abort) => {
         .filter((drug) => {
           return (
             drug && drug.name.toLowerCase().indexOf(val.toLowerCase()) !== -1
+          );
+        });
+    });
+  }
+};
+
+const filterClinicSectors = (val, update, abort) => {
+  const stringOptions = clinicSectorsList.value;
+  if (val === '') {
+    update(() => {
+      return (clinicSectors.value = stringOptions.map((drug) => drug));
+    });
+  } else if (stringOptions.length === 0) {
+    update(() => {
+      clinicSectors.value = [];
+    });
+  } else {
+    update(() => {
+      clinicSectors.value = stringOptions
+        .map((sector) => sector)
+        .filter((sector) => {
+          return (
+            sector &&
+            sector.clinicName.toLowerCase().indexOf(val.toLowerCase()) !== -1
           );
         });
     });
@@ -1059,6 +1084,10 @@ const currStockDistributor = computed(() => {
 
 const activeDrugs = computed(() => {
   return drugService.getActiveDrugs();
+});
+
+const clinicSectorsList = computed(() => {
+  return clinicService.getAllClinicSectors();
 });
 
 const isEditionStep = computed(() => {
