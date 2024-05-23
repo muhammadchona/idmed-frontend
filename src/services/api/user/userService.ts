@@ -155,14 +155,13 @@ export default {
         });
       })
       .with('clinicSectors', (query) => {
-        query.with('clinic', (query1) => {
+        query.with('parentClinic', (query1) => {
           query1.with('province');
           query1.with('facilityType');
           query1.with('district', (query2) => {
             query2.with('province');
           });
         });
-        query.with('clinicSectorType');
       })
       .get();
   },

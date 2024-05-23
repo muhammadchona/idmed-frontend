@@ -4,7 +4,8 @@ import StockLevel from '../stocklevel/StockLevel';
 import StockEntrance from '../stockentrance/StockEntrance';
 import StockCenter from '../stockcenter/StockCenter';
 import Drug from '../drug/Drug';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
+import { ClinicSector } from '../clinic/ClinicHierarchy';
 import PackagedDrugStock from '../packagedDrug/PackagedDrugStock';
 import { v4 as uuidv4 } from 'uuid';
 

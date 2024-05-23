@@ -144,4 +144,21 @@ export default {
       })
       .get();
   },
+
+  getFacilityTypeClinics() {
+    return facilityType
+      .query()
+      .where((query) => {
+        return query.type === 'clinic';
+      })
+      .get();
+  },
+  getFacilityTypeClinicSector() {
+    return facilityType
+      .query()
+      .where((query) => {
+        return query.type === 'clinic_sector';
+      })
+      .get();
+  },
 };

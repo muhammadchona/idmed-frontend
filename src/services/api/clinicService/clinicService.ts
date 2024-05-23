@@ -1,12 +1,12 @@
 import Province from 'src/stores/models/province/Province';
 import { useRepo } from 'pinia-orm';
-import Clinic from 'src/stores/models/clinic/Clinic';
+import { Clinic } from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
 import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { P } from 'app/dist/spa/assets/apiService.4d03f836';
+// import { P } from 'app/dist/spa/assets/apiService.4d03f836';
 
 const clinic = useRepo(Clinic);
 const { closeLoading, showloading } = useLoading();
@@ -192,7 +192,7 @@ export default {
       .with('facilityType')
       .with('district')
       .with('sectors')
-      .where('parentClinic_id', '')
+      .where('type', 'CLINIC')
       .get();
   },
 
@@ -255,7 +255,7 @@ export default {
       .where('district_id', districtId)
       .whereHas('facilityType', (query) => {
         query.where((facilityType) => {
-          return facilityType.code !== 'US';
+          return facilityType.code !== 'US' && facilityType.type === 'clinic';
         });
       })
       .orderBy('code', 'asc')

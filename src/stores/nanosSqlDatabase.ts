@@ -5,8 +5,8 @@ import District from './models/district/District';
 import City from './models/city/City';
 import Appointment from './models/appointment/Appointment';
 import AttributeType from './models/attributeType/AttributeType';
-import Clinic from './models/clinic/Clinic';
-import ClinicSector from './models/clinicSector/ClinicSector';
+import { Clinic } from './models/clinic/Clinic';
+import { ClinicSector } from './models/clinic/ClinicSector';
 import Drug from './models/drug/Drug';
 import Episode from './models/episode/Episode';
 import EpisodeType from './models/episodeType/EpisodeType';
@@ -202,13 +202,13 @@ export default {
     entitiesList.push(patientHistoryReport);
     entitiesList.push(AuditSyncronization);
     entitiesList.push(AbsentPatientReport);
-    entitiesList.push(MmiaReport)
-    entitiesList.push(MmiaStockReport)
-    entitiesList.push(MmiaRegimenSubReport)
+    entitiesList.push(MmiaReport);
+    entitiesList.push(MmiaStockReport);
+    entitiesList.push(MmiaRegimenSubReport);
     entitiesList.push(ArvDailyRegisterTempReport);
     entitiesList.push(DrugQuantityTemp);
-   entitiesList.push(ActiveInDrugStore);
-   entitiesList.push(ReferredPatientsReport)
+    entitiesList.push(ActiveInDrugStore);
+    entitiesList.push(ReferredPatientsReport);
     return entitiesList;
   },
 };

@@ -1,6 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
-import ClinicSector from 'src/stores/models/clinicSector/ClinicSector';
+import { ClinicSector } from 'src/stores/models/clinic/ClinicSector';
 import { useRepo } from 'pinia-orm';
 const clinicSector = useRepo(ClinicSector);
 export default {

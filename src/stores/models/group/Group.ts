@@ -2,7 +2,7 @@ import { Model } from 'pinia-orm';
 import GroupMember from '../groupMember/GroupMember';
 import GroupType from '../groupType/GroupType';
 import ClinicalService from '../ClinicalService/ClinicalService';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import GroupPackHeader from './GroupPackHeader';
 import { v4 as uuidv4 } from 'uuid';
 import DispenseType from '../dispenseType/DispenseType';

@@ -75,7 +75,7 @@
                   </template>
                 </q-input>
               </div>
-              <div class="row q-gutter-md" v-if="editMode">
+              <div class="row" v-if="editMode">
                 <q-input
                   v-model="user.password"
                   dense
@@ -89,13 +89,6 @@
                   :disable="onlyView"
                   type="password"
                 >
-                  <template v-slot:append>
-                    <q-icon
-                      name="close"
-                      @click="user.password = ''"
-                      class="cursor-pointer"
-                    />
-                  </template>
                 </q-input>
               </div>
               <div class="row q-mb-md">
@@ -125,20 +118,6 @@
                   label="Email"
                 />
               </div>
-              <q-separator />
-              <div class="row q-mb-md q-mt-sm float-right">
-                <q-checkbox
-                  dense
-                  v-model="user.accountLocked"
-                  keep-color
-                  :label="
-                    user.accountLocked
-                      ? 'Utilizador Bloqueado'
-                      : 'Utilizador Activo'
-                  "
-                  :color="user.accountLocked ? 'red' : 'teal'"
-                />
-              </div>
               <div class="row q-gutter-sm">
                 <div class="q-mb-sm">
                   <q-table
@@ -152,7 +131,7 @@
                     dense
                   />
                 </div>
-                <div class="q-mb-sm" v-if="isProvincial">
+                <div class="q-mb-sm">
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Farmacias"
@@ -168,7 +147,7 @@
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Sectores Clinicos"
-                    :rows="selectedClinics"
+                    :rows="clinicSectors"
                     :columns="columnsClinicSectors"
                     row-key="code"
                     v-if="onlyView"
@@ -393,7 +372,7 @@ const users = computed(() => {
   return userService.getAllUsers();
 });
 const clinicSectors = computed(() => {
-  const allClinicSectors = clinicService.getActivebyClinicId(
+  const allClinicSectors = clinicSectorService.getActivebyClinicId(
     currClinic.value.id
   );
   return onlyView.value ? user.value.clinicSectors : allClinicSectors;
@@ -405,7 +384,7 @@ const loadUserRelations = () => {
     if (user.value.id !== null) {
       selectedRoles.value = user.value.authorities;
       selectedClinics.value = user.value.clinics;
-      selectedClinicSectors.value = user.value.clinics;
+      selectedClinicSectors.value = user.value.clinicSectors;
     }
   }
 };
@@ -442,9 +421,10 @@ const submitUser = () => {
   });
 
   user.value.roles = roless;
-  // user.value.clinics = selectedClinics.value;
-  // user.value.clinics.push(currClinic.value);
-  user.value.clinics = selectedClinicSectors.value;
+  user.value.clinics = selectedClinics.value;
+  user.value.clinics.push(currClinic.value);
+  user.value.clinicSectors = selectedClinicSectors.value;
+  user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
 
   if (user.value.contact === null || user.value.contact === undefined) {
@@ -469,7 +449,6 @@ const submitUser = () => {
         showUserRegistrationScreen.value = false;
       });
   } else {
-    console.log('User', user.value);
     userService
       .patch(user.value.id, user.value)
       .then(() => {

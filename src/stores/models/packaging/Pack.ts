@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import DispenseMode from '../dispenseMode/DispenseMode';
 import GroupPack from '../group/GroupPack';
 import PackagedDrug from '../packagedDrug/PackagedDrug';

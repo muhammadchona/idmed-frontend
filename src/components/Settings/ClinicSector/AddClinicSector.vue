@@ -151,7 +151,7 @@ const clinicSectorTypes = computed(() => {
 });
 
 const facilityTypes = computed(() => {
-  return facilityTypeService.getAllFacilityTypes();
+  return facilityTypeService.getFacilityTypeClinicSector();
 });
 
 onMounted(() => {
@@ -194,7 +194,7 @@ const submitClinicSector = () => {
       clinicSector.value.district = clinicSector.value.parentClinic.district;
       // clinicSector.value.parentClinic = clinicSector.value.clinic;
     }
-    clinicService
+    clinicSectorService
       .post(clinicSector.value)
       .then(() => {
         alertSucess('Sector Clínico registado com sucesso.');
@@ -216,7 +216,7 @@ const submitClinicSector = () => {
       clinicSector.value.province = clinicSector.value.parentClinic.province;
       clinicSector.value.district = clinicSector.value.parentClinic.district;
     }
-    clinicService
+    clinicSectorService
       .patch(clinicSector.value.id, clinicSector.value)
       .then(() => {
         alertSucess('Sector Clínico actualizado com sucesso.');
