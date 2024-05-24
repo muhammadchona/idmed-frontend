@@ -17,26 +17,17 @@
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <div class="row q-gutter-sm">
-            <q-input
-              outlined
-              dense
-              debounce="300"
-              v-model="filter"
-              placeholder="Procurar"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              color="primary"
-              icon-right="refresh"
-              label="Actualizar Lista"
-              no-caps
-              @click="getClinicalServicesFromProvincialServer"
-            />
-          </div>
+          <q-input
+            outlined
+            dense
+            debounce="300"
+            v-model="filter"
+            placeholder="Procurar"
+          >
+            <template v-slot:append>
+              <q-icon name="search" />
+            </template>
+          </q-input>
           <div class="q-pa-md q-gutter-sm">
             <q-btn
               v-if="!website"
@@ -136,7 +127,6 @@ import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
-import clinicService from 'src/services/api/clinicService/clinicService';
 
 /*Declarations*/
 const { alertWarningAction, alertError, alertSucess } = useSwal();
@@ -312,7 +302,7 @@ const therapeuticRegimens = computed(() => {
   return therapeuticalRegimenService.getActiveTherapeuticalRegimens();
 });
 const clinicSectors = computed(() => {
-  return clinicService.getActivebyClinicId(currClinic.value.id);
+  return clinicSectorService.getActivebyClinicId(currClinic.value.id);
 });
 const identifierTypes = computed(() => {
   return identifierTypeService.getAllIdentifierTypes();
@@ -343,21 +333,6 @@ const promptToConfirm = (clinicalServiceParam) => {
     }
   });
 };
-
-const getClinicalServicesFromProvincialServer = () => {
-  showloading();
-  clinicalServiceService
-    .getFromProvincial(0)
-    .then(() => {
-      console.log('Inicio actualizacao da lista Regimens');
-    })
-    .catch((error) => {
-      closeLoading();
-      alertError('Erro na comunicação com o Servidor Central.');
-      console.log('Erro', error);
-    });
-};
-
 /*Provides*/
 
 provide('clinicalService', clinicalService);
