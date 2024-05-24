@@ -3,7 +3,7 @@
     <q-table
       class="col"
       dense
-      :rows="stockDistributorsList"
+      :rows="stockDistributors"
       :columns="columns"
       :filter="filter"
       row-key="id"
@@ -16,7 +16,7 @@
           style="width: 400px"
           debounce="300"
           v-model="filter"
-          placeholder="Pesquisar pela guia"
+          placeholder="Pesquisar pela ordem de distribuicao"
         >
           <template v-slot:append>
             <q-icon name="search" />
@@ -55,9 +55,9 @@
                 round
                 color="amber-8"
                 icon="reorder"
-                @click="editStockDistributor(props.row)"
+                @click="viewStockConfirmation(props.row)"
               >
-                <q-tooltip class="bg-amber-5">Visualizar Guia</q-tooltip>
+                <q-tooltip class="bg-amber-5">Visualizar Ordem</q-tooltip>
               </q-btn>
             </div>
           </q-td>
@@ -106,15 +106,16 @@ const loading = ref(true);
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
-const editStockDistributor = (stockDistributor) => {
+const viewStockConfirmation = (stockDistributor) => {
+  stockDistributor.clinic = null;
   localStorage.setItem(
-    'currStockDistributor',
+    'currStockConfirmDistributor',
     JSON.stringify(stockDistributor.id)
   );
-  router.push('/stock/stockDistributor');
+  router.push('/stock/stockConfirmation');
 };
 
-const stockDistributorsList = computed(() => {
+const stockDistributors = computed(() => {
   const list = stockDistributorService.getStockDistributorServices();
   if (list.length >= 0) {
     loading.value = false;

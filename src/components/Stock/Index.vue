@@ -12,8 +12,13 @@
         />
         <q-tab
           name="stockDistributor"
-          label="Saidas"
+          label="Distribuicao"
           @click="selectTab('stockDistributor')"
+        />
+        <q-tab
+          name="confirmDistribution"
+          label="Confirmar Distribuicao"
+          @click="selectTab('confirmDistribution')"
         />
         <div class="absolute-top-right q-mr-md">
           <q-btn
@@ -45,6 +50,10 @@
           <q-tab-panel name="stockDistributor">
             <KeepAlive> <stockDistributorTable /></KeepAlive>
           </q-tab-panel>
+
+          <q-tab-panel name="confirmDistribution">
+            <KeepAlive> <stockConfirmationTable /></KeepAlive>
+          </q-tab-panel>
         </q-tab-panels>
       </div>
     </div>
@@ -54,6 +63,7 @@
       :offset="[18, 18]"
     >
       <q-btn
+        v-if="!buttonVisible"
         class="q-mb-xl q-mr-xl"
         fab
         color="primary"
@@ -104,6 +114,7 @@ import InventoryService from 'src/services/api/inventoryService/InventoryService
 import clinicService from 'src/services/api/clinicService/clinicService';
 import drugService from 'src/services/api/drugService/drugService';
 import stockDistributorTable from 'components/Stock/stockDistributor/StockDistributorTable.vue';
+import stockConfirmationTable from 'components/Stock/stockConfirmation/StockConfirmationTable.vue';
 
 const { alertError } = useSwal();
 
@@ -155,6 +166,9 @@ onMounted(() => {
   }
 });
 
+const buttonVisible = computed(() => {
+  return tab.value === 'confirmDistribution';
+});
 const selectTab = (tabName) => {
   localStorage.setItem('activeTabStock', tabName);
   tab.value = tabName;

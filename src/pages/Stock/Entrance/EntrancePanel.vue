@@ -949,8 +949,6 @@ const doSave = (stock) => {
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic = {};
   stock.clinic.id = clinicService.currClinic().id;
-  stock.clinic = {};
-  stock.clinic.id = clinicService.currClinic().id;
   stock.center = {};
   stock.center.id = StockCenterService.getStockCenter().id;
   stock.entrance = currStockEntrance;

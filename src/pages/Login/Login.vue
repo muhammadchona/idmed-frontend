@@ -266,12 +266,7 @@
               </q-card-section>
 
               <q-card-actions align="right" class="text-primary">
-                <q-btn
-                  color="red"
-                  :disable="configs === undefined || configs === null"
-                  label="Fechar"
-                  v-close-popup
-                />
+                <q-btn color="red" label="Fechar" v-close-popup />
               </q-card-actions>
             </q-card>
           </q-dialog>

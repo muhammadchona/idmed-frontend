@@ -8,7 +8,7 @@
           :expandVisible="false"
           :mainContainer="true"
           bgColor="bg-primary"
-          >Notas da Guia
+          >Notas da Ordem
         </ListHeader>
         <div class="box-border row q-pt-sm">
           <q-input
@@ -65,40 +65,6 @@
               @click="goBack"
               size="12px"
             />
-            <q-btn
-              unelevated
-              color="orange-5"
-              class="q-ml-md col"
-              label="Editar"
-              @click="initGuiaEdition"
-              size="12px"
-            />
-            <q-btn
-              unelevated
-              color="red"
-              class="q-ml-md col"
-              label="Remover"
-              @click="removeGuia"
-              size="12px"
-            />
-          </div>
-          <div class="row q-pa-sm" v-if="isGuiaEditionStep">
-            <q-btn
-              unelevated
-              color="blue"
-              class="col"
-              label="Cancelar"
-              @click="cancelOperation"
-              size="10px"
-            />
-            <q-btn
-              unelevated
-              color="orange-5"
-              class="q-ml-md col"
-              label="Gravar"
-              @click="doSaveGuia"
-              size="10px"
-            />
           </div>
         </div>
       </div>
@@ -118,7 +84,7 @@
               class="col"
               dense
               flat
-              :rows="stockList"
+              :rows="stockObjectsList"
               :columns="columns"
               row-key="id"
             >
@@ -153,7 +119,7 @@
                       class="col"
                       dense
                       outlined
-                      :disable="!props.row.stock.enabled"
+                      :disable="!props.row.enabled"
                       ref="drug"
                       v-model="props.row.stock.drug"
                       :options="drugs"
@@ -176,6 +142,17 @@
                     </q-select>
                   </q-td>
 
+                  <q-td key="batchNumber" :props="props">
+                    <q-input
+                      outlined
+                      v-model="props.row.stock.batchNumber"
+                      :disable="!props.row.enabled"
+                      label="Lote"
+                      dense
+                      class="col"
+                    />
+                  </q-td>
+
                   <q-td key="quantity" :props="props">
                     <q-input
                       outlined
@@ -188,16 +165,6 @@
                   </q-td>
                   <q-td key="options" :props="props">
                     <div class="col">
-                      <q-btn
-                        v-if="props.row.enabled"
-                        :loading="submitting"
-                        flat
-                        dense
-                        round
-                        color="primary"
-                        icon="done"
-                        @click="validateStock(props.row)"
-                      />
                       <q-btn
                         v-if="props.row.enabled"
                         flat
@@ -215,16 +182,6 @@
                         color="orange-5"
                         icon="edit"
                         @click="initStockEdition(props.row)"
-                      />
-                      <q-btn
-                        v-if="!props.row.enabled"
-                        flat
-                        dense
-                        round
-                        color="red"
-                        icon="delete_forever"
-                        class="q-ml-sm"
-                        @click="promptStockDeletion(props.row)"
                       />
                     </div>
                     <div class="col">
@@ -265,6 +222,10 @@
             :expandVisible="false"
             :mainContainer="true"
             bgColor="bg-primary"
+            :statusVisible="true"
+            :statusTitle="statusTitle"
+            :statusColor="statusColor"
+            :statusIcon="statusIcon"
             >Notas da Guia
           </ListHeader>
           <div class="box-border q-pt-md">
@@ -318,43 +279,31 @@
               type="textarea"
             />
             <q-separator class="q-mx-sm" />
-            <div class="row q-pa-sm" v-if="isGuiaDisplayStep">
+            <div class="row q-pa-sm">
               <q-btn
                 unelevated
                 color="blue"
                 class="col"
-                label="Voltar"
-                @click="goBack"
+                label="Confirmar"
+                @click="confirmOrder"
+                v-if="status === 'P'"
               />
-              <q-btn
-                unelevated
-                color="orange-5"
-                class="q-ml-md col"
-                label="Editar"
-                @click="initGuiaEdition"
-              />
+
               <q-btn
                 unelevated
                 color="red"
                 class="q-ml-md col"
-                label="Remover"
-                @click="removeGuia"
+                label="Rejeitar"
+                @click="rejectOrder"
+                v-if="status === 'P'"
               />
-            </div>
-            <div class="row q-pa-sm" v-if="isGuiaEditionStep">
+
               <q-btn
                 unelevated
-                color="blue"
-                class="col"
-                label="Cancelar"
-                @click="cancelOperation"
-              />
-              <q-btn
-                unelevated
-                color="orange-5"
+                color="orange"
                 class="q-ml-md col"
-                label="Gravar"
-                @click="doSaveGuia"
+                label="Voltar"
+                @click="goBack"
               />
             </div>
           </div>
@@ -363,7 +312,7 @@
       <div class="col q-pt-md q-mr-lg">
         <div>
           <ListHeader
-            :addVisible="isGuiaDisplayStep"
+            :addVisible="false"
             :expandVisible="false"
             :mainContainer="true"
             @showAdd="initNewStock"
@@ -376,7 +325,7 @@
               class="col"
               dense
               flat
-              :rows="stockList"
+              :rows="stockObjectsList"
               :columns="columns"
               row-key="id"
             >
@@ -394,10 +343,7 @@
                   <q-th class="col">{{ columns[1].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[2].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[3].label }}</q-th>
-
-                  <q-th style="width: 150px; text-align: center">{{
-                    columns[4].label
-                  }}</q-th>
+                  <q-th style="width: 190px">{{ columns[4].label }}</q-th>
                 </q-tr>
               </template>
               <template #body="props">
@@ -410,9 +356,9 @@
                       class="col"
                       dense
                       outlined
-                      :disable="!props.row.enabled"
+                      :disable="true"
                       ref="drug"
-                      v-model="props.row.drug"
+                      v-model="props.row.stock.drug"
                       :options="drugs"
                       option-value="id"
                       option-label="name"
@@ -438,9 +384,9 @@
                       class="col"
                       dense
                       outlined
-                      :disable="!props.row.enabled"
+                      :disable="true"
                       ref="drug"
-                      v-model="props.row.clinic"
+                      v-model="props.row.drugDistributor.clinic"
                       :options="clinicSectors"
                       option-value="id"
                       option-label="clinicName"
@@ -461,61 +407,27 @@
                     </q-select>
                   </q-td>
 
+                  <q-td key="batchNumber" :props="props">
+                    <q-input
+                      outlined
+                      v-model="props.row.stock.batchNumber"
+                      :disable="true"
+                      label="Lote"
+                      dense
+                      class="col"
+                    />
+                  </q-td>
+
                   <q-td key="quantity" :props="props">
                     <q-input
                       v-model="props.row.quantity"
-                      :disable="!props.row.enabled"
+                      :disable="true"
                       label="Quantidade"
                       type="number"
                       dense
                       outlined
                       class="col"
                     />
-                  </q-td>
-                  <q-td key="options" :props="props">
-                    <div class="col" v-if="props.row.enabled">
-                      <q-btn
-                        v-if="props.row.enabled"
-                        :loading="submitting"
-                        flat
-                        dense
-                        round
-                        color="primary"
-                        icon="done"
-                        @click="validateStock(props.row)"
-                      />
-                      <q-btn
-                        v-if="props.row.enabled"
-                        flat
-                        dense
-                        round
-                        color="red"
-                        icon="clear"
-                        @click="cancel(props.row)"
-                      />
-                      <q-btn
-                        v-if="!props.row.enabled"
-                        flat
-                        dense
-                        round
-                        color="orange-5"
-                        icon="edit"
-                        @click="initStockEdition(props.row)"
-                      />
-                      <q-btn
-                        v-if="!props.row.enabled"
-                        flat
-                        dense
-                        round
-                        color="red"
-                        icon="delete_forever"
-                        class="q-ml-sm"
-                        @click="promptStockDeletion(props.row)"
-                      />
-                    </div>
-                    <div class="col" v-else>
-                      <q-chip color="info" text-color="white"> Em Uso </q-chip>
-                    </div>
                   </q-td>
                 </q-tr>
               </template>
@@ -552,13 +464,9 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import Drug from '../../../stores/models/drug/Drug';
 import Clinic from '../../../stores/models/clinic/Clinic';
 import { computed, onMounted, provide, ref } from 'vue';
-import { date } from 'quasar';
-import moment from 'moment';
-import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
-import { v4 as uuidv4 } from 'uuid';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 // import { v4 as uuidv4 } from 'uuid'
@@ -569,6 +477,7 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DrugDistributor from '../../../stores/models/drugDistributor/DrugDistributor';
+import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
 
 const router = useRouter();
 const dateUtils = useDateUtils();
@@ -576,6 +485,9 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
+const statusTitle = ref('Pendente');
+const statusColor = ref('orange');
+const statusIcon = ref('pending');
 const columns = [
   {
     name: 'order',
@@ -587,31 +499,28 @@ const columns = [
   },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
   { name: 'clinic', align: 'left', label: 'Sector Clinico', sortable: true },
+  { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
   { name: 'quantity', align: 'left', label: 'Quantidade', sortable: true },
-  { name: 'options', align: 'center', label: 'Opções', sortable: false },
 ];
 
 let submitting = false;
 const creationDate = ref('');
 const orderNumber = ref('');
 const notes = ref('');
+const status = ref('');
 
 const step = ref('display');
 const guiaStep = ref('display');
 const selectedStock = ref([]);
 const drugs = ref([]);
 const clinicSectors = ref([]);
-const stockList = ref([]);
+const stockObjectsList = ref([]);
 let stockDistributorBatch = '';
 const orderNumberRef = ref('');
 const notesRef = ref('');
 
 const goBack = () => {
   router.go(-1);
-};
-
-const blockDataFutura = (date) => {
-  return date >= moment(new Date()).add(28, 'd').format('YYYY/MM/DD');
 };
 
 const filterFn = (val, update, abort) => {
@@ -667,129 +576,71 @@ const init = () => {
   );
   orderNumber.value = currStockDistributor.value.orderNumber;
   notes.value = currStockDistributor.value.notes;
-};
-
-const cancelOperation = () => {
-  guiaStep.value = 'display';
-  submitting = false;
-};
-
-const doSaveGuia = () => {
-  currStockDistributor.value.dateReceived = dateUtils.getJSDateFromDDMMYYY(
-    dateReceived.value
-  ); // getJSDateFromDDMMYYY()
-  currStockDistributor.value.orderNumber = orderNumber.value;
-  currStockDistributor.value.clinic = currClinic.value;
-  currStockDistributor.value.notes = notes.value;
-
-  orderNumberRef.value.validate();
-  if (creationDate.value === '') {
-    alertError('Preencha a data de criação da guia .');
-  } else if (currStockDistributor.value.dateReceived > new Date()) {
-    alertError(
-      'A data de criação da guia não pode ser superior a data corrente.'
-    );
-  } else if (!orderNumberRef.value.hasError) {
-    if (guiaStep.value === 'create') {
-      StockDistributorService.post(currStockDistributor.value)
-        .then((resp) => {
-          currStockDistributor.value = resp.response.data;
-          guiaStep.value = 'display';
-          alertSucess('Operação efectuada com sucesso.');
-        })
-        .catch((error) => {
-          const listErrors = [];
-          if (error != null) {
-            const arrayErrors = JSON.parse(error);
-            if (arrayErrors.total == null) {
-              listErrors.push(arrayErrors.message);
-            } else {
-              arrayErrors._embedded.errors.forEach((element) => {
-                listErrors.push(element.message);
-              });
-            }
-          }
-          alertError(listErrors);
-        });
-    } else if (guiaStep.value === 'edit') {
-      const entrance = JSON.parse(
-        JSON.stringify(currStockDistributor.value, circularReferenceReplacer())
-      );
-      StockDistributorService.apiUpdate(
-        currStockDistributor.value.id,
-        entrance
-      ).then((resp) => {
-        localStorage.setItem(
-          'currStockDistributor',
-          currStockDistributor.value.id
-        );
-        guiaStep.value = 'display';
-        alertSucess('Operação efectuada com sucesso.');
-      });
-    }
-  }
-};
-
-const circularReferenceReplacer = () => {
-  const seen = new WeakSet();
-  return (_, value) => {
-    if (typeof value === 'object' && value !== null) {
-      if (seen.has(value)) {
-        return; // Break circular reference
-      }
-      seen.add(value);
-    }
-    return value;
-  };
-};
-
-const initGuiaEdition = () => {
-  if (
-    currStockDistributor.value.drugDistributors.length > 0 ||
-    stockList.value.length > 0
-  ) {
-    alertError(
-      'Não pode editar os dados da ordem, pois ja existem registos de lotes associados.'
-    );
+  status.value = currStockDistributor.value.status;
+  if (status.value === 'C') {
+    statusTitle.value = 'Confirmado';
+    statusColor.value = 'info';
+    statusIcon.value = 'check';
+  } else if (status.value === 'R') {
+    statusTitle.value = 'Rejeitado';
+    statusColor.value = 'red';
+    statusIcon.value = 'warning';
   } else {
-    guiaStep.value = 'edit';
-  }
-};
-const removeGuia = () => {
-  if (
-    currStockDistributor.value.drugDistributors.length > 0 ||
-    stockList.value.length > 0
-  ) {
-    alertError(
-      'Não pode remover esta  Ordem de distribuicao , pois ja existem registos de lotes associados.'
-    );
-  } else {
-    alertWarningAction(
-      'Deseja remover a presente Ordem de distribuicao de Stock ?',
-      'Não',
-      'Sim'
-    ).then((result) => {
-      if (result) {
-        guiaStep.value = 'delete';
-        doRemoveGuia(stockDistributorBatch);
-      }
-    });
+    statusTitle.value = 'Pendente';
+    statusColor.value = 'orange';
+    statusIcon.value = 'pending';
   }
 };
 
-const doRemoveGuia = () => {
-  StockDistributorService.delete(currStockDistributor.value.id).then((resp) => {
-    goBack();
-    alertSucess('Operação efectuada com sucesso.');
+const confirmOrder = () => {
+  alertWarningAction(
+    'Deseja Cofirmar a presente Ordem de distribuicao de Stock?',
+    'Não',
+    'Sim'
+  ).then((result) => {
+    if (result) {
+      guiaStep.value = 'delete';
+      doConfirmOrder(currStockDistributor);
+    }
   });
 };
 
-const doRemoveStock = (stock) => {
-  step.value = 'delete';
+const rejectOrder = () => {
+  alertWarningAction(
+    'Deseja rejeitar a presente Ordem de distribuicao de Stock?',
+    'Não',
+    'Sim'
+  ).then((result) => {
+    if (result) {
+      doRejectOrder(currStockDistributor);
+    }
+  });
+};
+
+const doConfirmOrder = (order) => {
   showloading();
-  DrugDistributorService.delete(stock.id)
+  StockDistributorService.updateStockDistributorStatus(order.value.id, 'C')
     .then((resp) => {
-      removeFromList(stock);
+      status.value = 'C';
+      statusTitle.value = 'Confirmado';
+      statusColor.value = 'blue';
+      statusIcon.value = 'check';
+      closeLoading();
+      alertSucess('Operação efectuada com sucesso.');
+    })
+    .catch((error) => {
+      alertError('Ocorreu um erro inesperado, contacte o administrador!');
+    });
+};
+
+const doRejectOrder = (order) => {
+  showloading();
+  StockDistributorService.updateStockDistributorStatus(order.value.id, 'R')
+    .then((resp) => {
+      status.value = 'R';
+      statusTitle.value = 'Rejeitado';
+      statusColor.value = 'red';
+      statusIcon.value = 'warning';
       closeLoading();
       alertSucess('Operação efectuada com sucesso.');
     })
@@ -813,94 +664,9 @@ const initNewStock = () => {
       clinic: new Clinic(),
       stockDistributor: currStockDistributor,
     });
-    stockList.value.push(newStock);
+    stockObjectsList.value.push(newStock);
     closeLoading();
   }
-};
-
-const isPositiveInteger = (str) => {
-  const num = Number(str);
-  if (Number.isInteger(num) && num > 0) {
-    return true;
-  }
-  if (typeof str !== 'string') {
-    return false;
-  }
-  return false;
-};
-
-const validateStock = (stock) => {
-  submitting = true;
-  stock.stock_distributor_id = currStockDistributor.value.id;
-
-  if (stock.drug.name === '') {
-    submitting = false;
-    alertError('Por favor indicar o medicamento!');
-  } else if (stock.clinic.clinicName === '') {
-    submitting = false;
-    alertError('Por favor indicar o sector clinico!');
-  } else if (!isPositiveInteger(stock.quantity)) {
-    submitting = false;
-    alertError('Por favor indicar uma quantidade válida!');
-  } else {
-    doSave(stock);
-  }
-};
-
-const doSave = (stockObj) => {
-  showloading();
-  const stock = stockObj;
-  stock.drug_id = stockObj.drug.id;
-  stock.drug = {};
-  stock.drug.id = stock.drug_id;
-  stock.stockDistributor = {};
-  stock.stockDistributor.id = stockObj.stock_distributor_id;
-
-  stock.clinic_id = stockObj.clinic.id;
-  //stock.clinic = {};
-
-  if (isCreationStep.value) {
-    submitting = false;
-    stock.id = uuidv4();
-    DrugDistributorService.post(stock)
-      .then((resp) => {
-        // stock.id = resp.response.data.id
-        submitting = false;
-        step.value = 'display';
-        alertSucess('Operação efectuada com sucesso.');
-        closeLoading();
-      })
-      .catch((error) => {
-        alertError('Ocorreu um erro inesperado');
-        console.log('ERRO: ', error);
-        closeLoading();
-      });
-  } else if (isEditionStep.value) {
-    DrugDistributorService.patch(stock.id, stock)
-      .then((resp) => {
-        //stock.id = resp.response.data.id
-        submitting = false;
-        stock.enabled = false;
-        step.value = 'display';
-        alertSucess('Operação efectuada com sucesso.');
-        closeLoading();
-      })
-      .catch((error) => {
-        alertError('Ocorreu um erro inesperado');
-        console.log('ERRO: ', error);
-        closeLoading();
-      });
-  }
-};
-
-const fetchStockDistributor = () => {
-  StockDistributorService.apiFetchById(currStockDistributor.value.id)
-    .then((resp) => {
-      currStockDistributor.value = resp.response.data;
-    })
-    .catch((error) => {
-      alertError('Ocorreu um erro inesperado');
-    });
 };
 
 const cancel = (stock) => {
@@ -916,8 +682,10 @@ const cancel = (stock) => {
 };
 
 const removeFromList = (stock) => {
-  const i = stockList.value.map((toRemove) => toRemove.id).indexOf(stock.id); // find index of your object
-  stockList.value.splice(i, 1);
+  const i = stockObjectsList.value
+    .map((toRemove) => toRemove.id)
+    .indexOf(stock.id); // find index of your object
+  stockObjectsList.value.splice(i, 1);
 };
 
 const initStockEdition = (stock) => {
@@ -932,48 +700,31 @@ const initStockEdition = (stock) => {
   }
 };
 
-const promptStockDeletion = (stock) => {
-  if (step.value === 'create' || step.value === 'edit') {
-    alertError(
-      'Por favor concluir ou cancelar a operação em curso antes de iniciar a remoção deste registo.'
-    );
-  } else {
-    alertWarningAction(
-      'Confirma a remoção do lote [' + stock.batchNumber + ']?',
-      'Não',
-      'Sim'
-    ).then((result) => {
-      if (result) {
-        doRemoveStock(stock);
-      }
-    });
-  }
-};
-
 const getCurrStockDistributor = () => {
   const distributorId = JSON.parse(
-    localStorage.getItem('currStockDistributor')
+    localStorage.getItem('currStockConfirmDistributor')
   );
-  return StockDistributorService.getStockDistributorById(distributorId);
+  const it = StockDistributorService.getStockDistributorById(distributorId);
+  return it;
 };
 
-const loadStockList = () => {
-  if (currStockDistributor.value.drugDistributors.length > 0) {
-    Object.keys(currStockDistributor.value.drugDistributors).forEach(
-      function (k) {
-        const stock = DrugDistributorService.getDrugDistributorList(
-          currStockDistributor.value.drugDistributors[k].id
-        );
-        stockList.value.push(stock);
-      }.bind(this)
+const loadstockObjectsList = () => {
+  const stocks =
+    StockDistributorBatchService.getStockDistributorBatchByStockDistributorId(
+      currStockDistributor.value.id
     );
-  }
+  Object.keys(stocks).forEach(
+    function (k) {
+      stockObjectsList.value.push(stocks[k]);
+    }.bind(this)
+  );
+
   console.log('Finished loading stock');
 };
 
 onMounted(() => {
   init();
-  loadStockList();
+  loadstockObjectsList();
   //drugs.value = activeDrugs;
 });
 

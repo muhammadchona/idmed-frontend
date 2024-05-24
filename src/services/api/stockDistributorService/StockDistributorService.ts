@@ -73,9 +73,9 @@ export default {
       return api()
         .get('stockDistributor?offset=' + offset + '&max=100')
         .then((resp) => {
-          stockDistributor.save(resp.data);
-          offset = offset + 100;
           if (resp.data.length > 0) {
+            stockDistributor.save(resp.data);
+            offset = offset + 100;
             this.get(offset);
           } else {
             closeLoading();
@@ -87,6 +87,16 @@ export default {
   apiUpdateWeb(id: any, params: any) {
     return api()
       .patch('stockDistributor/' + id, params)
+      .then((resp) => {
+        stockDistributor.save(resp.data);
+      });
+  },
+
+  updateStockDistributorStatus(idStockDistributor: any, status: any) {
+    return api()
+      .patch(
+        `stockDistributor/updateStockDistributorStatus/${idStockDistributor}/${status}`
+      )
       .then((resp) => {
         stockDistributor.save(resp.data);
       });
@@ -194,7 +204,7 @@ export default {
   getStockDistributorById(id: string) {
     return stockDistributor
       .query()
-      .with('stockDistributorBatchs')
+      .with('drugDistributors')
       .with('clinic')
       .where('id', id)
       .first();
@@ -204,7 +214,7 @@ export default {
     return stockDistributor
       .query()
       .with('clinic')
-      .with('stockDistributorBatchs')
+      .with('drugDistributors')
       .orderBy('creationDate', 'desc')
       .get();
   },

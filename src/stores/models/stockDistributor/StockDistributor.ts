@@ -1,7 +1,7 @@
 import { Model } from 'pinia-orm';
 import Clinic from '../clinic/Clinic';
-import StockDistributorBatch from '../stockDistributorBatch/StockDistributorBatch';
 import { v4 as uuidv4 } from 'uuid';
+import DrugDistributor from '../drugDistributor/DrugDistributor';
 
 export default class StockDistributor extends Model {
   static entity = 'stockDistributors';
@@ -10,15 +10,14 @@ export default class StockDistributor extends Model {
     return {
       id: this.string(() => uuidv4()),
       orderNumber: this.attr(''),
-      creation_date: this.attr(''),
+      creationDate: this.attr(''),
       syncStatus: this.attr(''),
       notes: this.attr(''),
+      clinic_id: this.attr(''),
+      status: this.attr(''),
       // relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
-      stockDistributorBatchs: this.hasMany(
-        StockDistributorBatch,
-        'stockDistributor_id'
-      ),
+      drugDistributors: this.hasMany(DrugDistributor, 'stock_distributor_id'),
     };
   }
   static piniaOptions = {

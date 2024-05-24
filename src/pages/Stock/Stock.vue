@@ -19,17 +19,23 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
+import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
+import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
+import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 onMounted(() => {
   const clinic = clinicService.currClinic();
   StockAlertService.apiGetStockAlertAll(clinic.id);
-  StockService.get(0);
+  StockService.apiGetAllByClinicIdWeb(clinic.id);
+  StockDistributorBatchService.get(0);
+  DrugDistributorService.get(0);
+  StockDistributorService.get(0);
+
   ReferedStockMovimentService.get(0);
   DestroyedStockService.get(0);
-  StockEntranceService.get(0);
   InventoryStockAdjustmentService.get(0);
   InventoryService.get(0);
-  StockEntranceService.get(0);
+  StockEntranceService.apiGetAllByClinicIdWeb(clinic.id);
 });
 </script>
 
