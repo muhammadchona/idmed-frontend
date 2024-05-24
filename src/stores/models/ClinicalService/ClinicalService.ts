@@ -1,13 +1,12 @@
 import { Model } from 'pinia-orm';
 import ClinicalServiceAttribute from '../ClinicalServiceAttribute/ClinicalServiceAttribute';
 import IdentifierType from '../identifierType/IdentifierType';
-import ClinicSector from '../clinicSector/ClinicSector';
+import { ClinicSector } from '../clinic/ClinicHierarchy';
 import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServiceSector';
 import { v4 as uuidv4 } from 'uuid';
 import Drug from '../drug/Drug';
 import TherapeuticRegimen from '../therapeuticRegimen/TherapeuticRegimen';
 import ClinicalServiceAttributeType from '../ClinicalServiceAttributeType/ClinicalServiceAttributeType';
-import Clinic from '../clinic/Clinic';
 
 export default class ClinicalService extends Model {
   static entity = 'clinicalServices';
@@ -31,11 +30,11 @@ export default class ClinicalService extends Model {
         TherapeuticRegimen,
         'clinical_service_id'
       ),
-      subClinics: this.belongsToMany(
-        Clinic,
+      clinicSectors: this.belongsToMany(
+        ClinicSector,
         ClinicalServiceSector,
         'clinical_service_id',
-        'clinic_id'
+        'clinic_sector_id'
       ),
       drugs: this.hasMany(Drug, 'clinical_service_id'),
     };

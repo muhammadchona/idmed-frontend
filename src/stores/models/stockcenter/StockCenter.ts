@@ -1,6 +1,5 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
-
+import { Clinic } from '../clinic/ClinicHierarchy';
 export default class StockCenter extends Model {
   static entity = 'stockCenters';
   static primaryKey = 'id';

@@ -6,7 +6,7 @@ import TBScreening from '../screening/TBScreening';
 import AdherenceScreening from '../screening/AdherenceScreening';
 import VitalSignsScreening from '../screening/VitalSignsScreening';
 import Patient from '../patient/Patient';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientVisit extends Model {

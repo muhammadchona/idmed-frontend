@@ -120,7 +120,7 @@
             v-model="episode.clinicSector"
             :options="clinicSerctors"
             option-value="id"
-            option-label="description"
+            option-label="clinicName"
             label="Sector Clinico *"
           />
           <q-select
@@ -284,7 +284,7 @@
               use-input
               ref="clinicSectorTypeRef"
               input-debounce="0"
-              :options="clinicSectorTypes"
+              :options="facilityTypesSectors"
               option-value="id"
               option-label="description"
               label="Tipo de Sector de Dispensa"
@@ -302,7 +302,7 @@
               v-model="selectedClinicSector"
               :options="referealClinicSectors"
               option-value="id"
-              option-label="description"
+              option-label="clinicName"
               label="Sector de Dispensa"
             />
           </div>
@@ -355,6 +355,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import facilityTypeService from 'src/services/api/facilityTypeService/facilityTypeService';
 
 //Declaration
 const {
@@ -440,13 +441,13 @@ const provinces = computed(() => {
   }
 });
 
-const clinicSectorTypes = computed(() => {
-  return clinicSectorTypeService.getAllClinicSectorTypes();
+const facilityTypesSectors = computed(() => {
+  return facilityTypeService.getFacilityTypeClinicSector();
 });
 
 const referealClinicSectors = computed(() => {
   if (selectedClinicSectorType.value === null) return [];
-  return clinicSectorService.getClinicSectorsByClinicIdSectorTypeId(
+  return clinicSectorService.getClinicSectorsByFacilityTypeId(
     currClinic.value.id,
     selectedClinicSectorType.value.id
   );

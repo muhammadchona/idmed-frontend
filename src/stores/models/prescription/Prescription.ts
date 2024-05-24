@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import Doctor from '../doctor/Doctor';
 import Duration from '../duration/Duration';
 import GroupMemberPrescription from '../group/GroupMemberPrescription';
@@ -32,9 +32,14 @@ export default class Prescription extends Model {
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       doctor: this.belongsTo(Doctor, 'doctor_id'),
       patientVisitDetails: this.hasMany(PatientVisitDetails, 'prescription_id'),
-      prescriptionDetails: this.hasMany(PrescriptionDetail, 'prescription_id').onDelete('cascade'),
+      prescriptionDetails: this.hasMany(
+        PrescriptionDetail,
+        'prescription_id'
+      ).onDelete('cascade'),
       duration: this.belongsTo(Duration, 'duration_id'),
-      prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id').onDelete('cascade'),
+      prescribedDrugs: this.hasMany(PrescribedDrug, 'prescription_id').onDelete(
+        'cascade'
+      ),
       groupMemberPrescription: this.hasMany(
         GroupMemberPrescription,
         'prescription_id'

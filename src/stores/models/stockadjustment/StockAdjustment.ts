@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import Stock from '../stock/Stock';
 import StockOperationType from '../stockoperation/StockOperationType';
 import {
@@ -44,6 +44,5 @@ export class StockAdjustment extends Model {
 
   static piniaOptions = {
     persist: true,
-  }
-
+  };
 }

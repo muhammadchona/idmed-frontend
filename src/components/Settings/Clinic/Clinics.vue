@@ -138,7 +138,7 @@ import addClinic from 'src/components/Settings/Clinic/AddClinic.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
-import Clinic from 'src/stores/models/clinic/Clinic';
+import { Clinic } from 'src/stores/models/clinic/Clinic';
 import { v4 as uuidv4 } from 'uuid';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 

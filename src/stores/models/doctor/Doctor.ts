@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import Prescription from '../prescription/Prescription';
 // import { v4 as uuidv4 } from 'uuid'
 

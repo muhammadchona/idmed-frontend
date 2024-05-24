@@ -120,7 +120,7 @@
 <script setup>
 /*imports*/
 import { ref, inject, provide, onMounted, computed } from 'vue';
-import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
+// import { ClinicSector } from '../../../stores/models/clinic/ClinicHierarchy';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
@@ -167,7 +167,7 @@ const isNewClinicSector = ref(false);
 const loading = ref(true);
 
 const filter = ref('');
-const clinicSector = ref(clinicService.newInstanceEntity());
+const clinicSector = ref(clinicSectorService.newInstanceEntity());
 
 /*injects*/
 const editMode = inject('editMode');
@@ -177,7 +177,7 @@ const currClinic = inject('currClinic');
 /*Hooks*/
 const clinicSectors = computed(() => {
   const clinicSecs = ref(null);
-  clinicSecs.value = clinicService.getAllClinicSectors();
+  clinicSecs.value = clinicSectorService.getAllClinicSectors();
   if (clinicSecs.value && clinicSecs.value.length >= 0) stopLoading();
   return clinicSecs.value;
 });
@@ -222,7 +222,8 @@ const editClinicSector = (clinicSectorParam) => {
 };
 const addClinicSectorr = () => {
   isNewClinicSector.value = true;
-  clinicSector.value = clinicSector.value;
+  clinicSector.value = clinicSectorService.newInstanceEntity();
+  // clinicSector.value = clinicSector.value;
   clinicSector.value.parentClinic = currClinic.value;
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = false;

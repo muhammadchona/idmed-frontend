@@ -1,5 +1,5 @@
 import { useRepo } from 'pinia-orm';
-import ClinicSector from 'src/stores/models/clinicSector/ClinicSector';
+import { ClinicSector } from '../../../stores/models/clinic/ClinicHierarchy';
 import api from '../apiService/apiService';
 import { useStorage } from '@vueuse/core';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -148,26 +148,23 @@ export default {
   },
 
   getClinicSectorsByClinicId(clinicId: string) {
-    return clinicSector.query().where('clinic_id', clinicId).get();
+    return clinicSector.query().where('parentClinic_id', clinicId).get();
   },
 
-  getClinicSectorsByClinicIdSectorTypeId(
-    clinicId: string,
-    sectorTypeId: string
-  ) {
+  getClinicSectorsByFacilityTypeId(clinicId: string, facilityTypeId: string) {
     return clinicSector
       .query()
-      .where('clinic_id', clinicId)
-      .where('clinic_sector_type_id', sectorTypeId)
+      .where('parentClinic_id', clinicId)
+      .where('facilityTypeId', facilityTypeId)
       .get();
   },
 
   getActivebyClinicId(clinicId: string) {
     return clinicSector
       .query()
-      .with('clinicSectorType')
+      .with('facilityType')
       .where((clinicSector) => {
-        return clinicSector.active && clinicSector.clinic_id === clinicId;
+        return clinicSector.active && clinicSector.parentClinic_id === clinicId;
       })
       .get();
   },
@@ -176,9 +173,9 @@ export default {
       .withAllRecursive(1)
       .where('active', true)
       .where((sector) => {
-        return sector.clinic_id === clinicId;
+        return sector.parentClinic_id === clinicId;
       })
-      .whereHas('clinicSectorType', (query) => {
+      .whereHas('facilityType', (query) => {
         query.where('code', 'PARAGEM_UNICA').orWhere('code', 'NORMAL');
       })
       .orderBy('code', 'asc')
