@@ -10,6 +10,16 @@
           label="Inventário"
           @click="selectTab('inventory')"
         />
+        <q-tab
+          name="stockDistributor"
+          label="Distribuicao"
+          @click="selectTab('stockDistributor')"
+        />
+        <q-tab
+          name="confirmDistribution"
+          label="Confirmar Distribuicao"
+          @click="selectTab('confirmDistribution')"
+        />
         <div class="absolute-top-right q-mr-md">
           <q-btn
             flat
@@ -36,6 +46,14 @@
               <InventoryTable />
             </KeepAlive>
           </q-tab-panel>
+
+          <q-tab-panel name="stockDistributor">
+            <KeepAlive> <stockDistributorTable /></KeepAlive>
+          </q-tab-panel>
+
+          <q-tab-panel name="confirmDistribution">
+            <KeepAlive> <stockConfirmationTable /></KeepAlive>
+          </q-tab-panel>
         </q-tab-panels>
       </div>
     </div>
@@ -45,6 +63,7 @@
       :offset="[18, 18]"
     >
       <q-btn
+        v-if="!buttonVisible"
         class="q-mb-xl q-mr-xl"
         fab
         color="primary"
@@ -58,6 +77,10 @@
     <q-dialog persistent v-model="createInventory">
       <InventoryRegister @close="createInventory = false" />
     </q-dialog>
+    <q-dialog persistent v-model="createStockDitribution">
+      <StockDistributorRegister @close="createStockDitribution = false" />
+    </q-dialog>
+
     <q-dialog v-model="alert.visible" persistent>
       <Dialog
         :type="alert.type"
@@ -73,7 +96,6 @@
 
 <script setup>
 import { ref, provide, computed, onMounted } from 'vue';
-import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 // import StockEntranceMethod from 'src/methods/stockEntrance/StockEntranceMethod';
 
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -87,9 +109,12 @@ import EntranceRegister from 'components/Stock/Entrance/EntranceRegister.vue';
 import EntranceTable from 'components/Stock/Entrance/EntranceTable.vue';
 import InventoryTable from 'components/Stock/Inventory/InventoryTable.vue';
 import InventoryRegister from 'components/Stock/Inventory/InventoryRegister.vue';
+import StockDistributorRegister from './stockDistributor/StockDistributorRegister.vue';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import drugService from 'src/services/api/drugService/drugService';
+import stockDistributorTable from 'components/Stock/stockDistributor/StockDistributorTable.vue';
+import stockConfirmationTable from 'components/Stock/stockConfirmation/StockConfirmationTable.vue';
 
 const { alertError } = useSwal();
 
@@ -101,11 +126,14 @@ const alert = ref({
 const tab = ref('stock');
 const createEntrance = ref(false);
 const createInventory = ref(false);
+const createStockDitribution = ref(false);
 const title = ref('Gestão de Stock');
 
 const addEntrada = () => {
   if (tab.value === 'entrance') {
     createEntrance.value = true;
+  } else if (tab.value === 'stockDistributor') {
+    createStockDitribution.value = true;
   } else {
     const inventory = InventoryService.getOpenInventory();
     if (inventory !== null) {
@@ -138,6 +166,9 @@ onMounted(() => {
   }
 });
 
+const buttonVisible = computed(() => {
+  return tab.value === 'confirmDistribution';
+});
 const selectTab = (tabName) => {
   localStorage.setItem('activeTabStock', tabName);
   tab.value = tabName;

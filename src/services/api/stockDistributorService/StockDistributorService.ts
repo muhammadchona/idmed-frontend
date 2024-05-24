@@ -1,5 +1,5 @@
 import { useRepo } from 'pinia-orm';
-import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
+import StockDistributor from 'src/stores/models/stockDistributor/StockDistributor';
 import api from '../apiService/apiService';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -8,7 +8,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
-const stockEntrance = useRepo(StockEntrance);
+const stockDistributor = useRepo(StockDistributor);
 
 export default {
   // Axios API call
@@ -61,9 +61,9 @@ export default {
   // WEB
   postWeb(params: string) {
     return api()
-      .post('stockEntrance', params)
+      .post('stockDistributor', params)
       .then((resp) => {
-        stockEntrance.save(resp.data);
+        stockDistributor.save(resp.data);
         return resp.data;
       });
   },
@@ -71,11 +71,11 @@ export default {
   getWeb(offset: number) {
     if (offset >= 0) {
       return api()
-        .get('stockEntrance?offset=' + offset + '&max=100')
+        .get('stockDistributor?offset=' + offset + '&max=100')
         .then((resp) => {
-          stockEntrance.save(resp.data);
-          offset = offset + 100;
           if (resp.data.length > 0) {
+            stockDistributor.save(resp.data);
+            offset = offset + 100;
             this.get(offset);
           } else {
             closeLoading();
@@ -86,24 +86,34 @@ export default {
 
   apiUpdateWeb(id: any, params: any) {
     return api()
-      .patch('stockEntrance/' + id, params)
+      .patch('stockDistributor/' + id, params)
       .then((resp) => {
-        stockEntrance.save(resp.data);
+        stockDistributor.save(resp.data);
+      });
+  },
+
+  updateStockDistributorStatus(idStockDistributor: any, status: any) {
+    return api()
+      .patch(
+        `stockDistributor/updateStockDistributorStatus/${idStockDistributor}/${status}`
+      )
+      .then((resp) => {
+        stockDistributor.save(resp.data);
       });
   },
 
   deleteWeb(id: any) {
     return api()
-      .delete('stockEntrance/' + id)
+      .delete('stockDistributor/' + id)
       .then(() => {
-        stockEntrance.destroy(id);
+        stockDistributor.destroy(id);
       });
   },
   apiFetchByIdWeb(id: string) {
     return api()
-      .get('/stockEntrance/' + id)
+      .get('/stockDistributor/' + id)
       .then((resp) => {
-        stockEntrance.save(resp.data);
+        stockDistributor.save(resp.data);
         if (resp.data.length > 0) {
           setTimeout(this.get, 2);
         }
@@ -111,101 +121,105 @@ export default {
   },
 
   async apiGetAllByClinicIdWeb(clinicId: string, offset: number, max: number) {
-    const a = await api().get(
-      '/stockEntrance/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    return await api().get(
+      '/stockDistributor/clinic/' +
+        clinicId +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
     );
-    return a;
   },
 
   //Mobile
 
   async putMobile(params: any) {
-    const resp = await nSQL('stockEntrances')
+    const resp = await nSQL('stockDistributors')
       .query('upsert', JSON.parse(JSON.stringify(params)))
       .exec();
-    stockEntrance.save(params);
+    stockDistributor.save(params);
     return resp;
   },
 
   getMobile() {
-    return nSQL('stockEntrances')
+    return nSQL('stockDistributors')
       .query('select')
       .exec()
       .then((result) => {
         console.log(result);
-        stockEntrance.save(result);
+        stockDistributor.save(result);
         //  return result
       });
   },
 
-  getByStockEntranceMobile(stockEntrance: any) {
-    return nSQL('stockEntrances')
+  getByStockDistributorMobile(stockDistributor: any) {
+    return nSQL('stockDistributors')
       .query('select')
-      .where(['stockEntrances[id]', '=', stockEntrance.id])
+      .where(['stockDistributors[id]', '=', stockDistributor.id])
       .exec()
       .then((result) => {
         console.log(result);
-        stockEntrance.save(result);
+        stockDistributor.save(result);
       });
   },
 
   async deleteMobile(id: any) {
-    const resp = await nSQL('stockEntrances')
+    const resp = await nSQL('stockDistributors')
       .query('delete')
       .where(['id', '=', id])
       .exec();
-    stockEntrance.destroy(id);
+    stockDistributor.destroy(id);
     return resp;
   },
 
   apiFetchByIdMobile(id: any) {
-    return nSQL('stockEntrances')
+    return nSQL('stockDistributors')
       .query('select')
       .where(['id', '=', id])
       .exec()
       .then((result) => {
         console.log(result);
-        stockEntrance.save(result);
+        stockDistributor.save(result);
       });
   },
 
   apiGetAllByClinicIdMobile(id: any) {
     return nSQL().onConnected(() => {
-      nSQL('stockEntrance')
+      nSQL('stockDistributor')
         .query('select')
-        .where(['stockEntrance[clinic_id]', '=', id])
+        .where(['stockDistributor[clinic_id]', '=', id])
         .exec()
         .then((result) => {
           console.log(result);
-          stockEntrance.save(result);
+          stockDistributor.save(result);
         });
     });
   },
 
   // Local Storage Pinia
   newInstanceEntity() {
-    return stockEntrance.getModel().$newInstance();
+    return stockDistributor.getModel().$newInstance();
   },
   // ****** PNIA
-  getStockEntranceById(id: string) {
-    return stockEntrance
+  getStockDistributorById(id: string) {
+    return stockDistributor
       .query()
-      .with('stocks')
+      .with('drugDistributors')
       .with('clinic')
       .where('id', id)
       .first();
   },
 
-  getStockEntrances() {
-    return stockEntrance
+  getStockDistributorServices() {
+    return stockDistributor
       .query()
       .with('clinic')
-      .with('stocks')
-      .orderBy('dateReceived', 'desc')
+      .with('drugDistributors')
+      .orderBy('creationDate', 'desc')
       .get();
   },
 
   deleteAllFromStorage() {
-    stockEntrance.flush();
+    stockDistributor.flush();
   },
 };

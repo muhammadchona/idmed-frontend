@@ -63,6 +63,12 @@ export default {
     return api().get('/stock?offset=' + offset + '&max=' + max);
   },
 
+  async apiGetAllByClinicIdWeb(clinicId: string, offset: number, max: number) {
+    return await api().get(
+      '/stock/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
+    );
+  },
+
   // PINIA
   getStockByDrug(drugId: string) {
     return stock

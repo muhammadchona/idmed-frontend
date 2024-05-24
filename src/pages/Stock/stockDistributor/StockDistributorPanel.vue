@@ -26,8 +26,8 @@
             outlined
             :disable="!isGuiaEditionStep"
             class="col q-mx-md"
-            v-model="dateReceived"
-            label="Data de Criação"
+            v-model="creationDate"
+            label="Data de Distribuição"
           >
             <q-input
               outlined
@@ -47,7 +47,7 @@
                   transition-show="scale"
                   transition-hide="scale"
                 >
-                  <q-date v-model="dateReceived" mask="DD-MM-YYYY">
+                  <q-date v-model="creationDate" mask="DD-MM-YYYY">
                     <div class="row items-center justify-end">
                       <q-btn v-close-popup label="Close" color="primary" flat />
                     </div>
@@ -153,9 +153,9 @@
                       class="col"
                       dense
                       outlined
-                      :disable="!props.row.enabled"
+                      :disable="!props.row.stock.enabled"
                       ref="drug"
-                      v-model="props.row.drug"
+                      v-model="props.row.stock.drug"
                       :options="drugs"
                       @filter="filterFn"
                       option-value="id"
@@ -175,65 +175,11 @@
                       </template>
                     </q-select>
                   </q-td>
-                  <q-td key="manufacture" :props="props">
+
+                  <q-td key="quantity" :props="props">
                     <q-input
                       outlined
-                      v-model="props.row.manufacture"
-                      :disable="!props.row.enabled"
-                      label="Fabricante"
-                      dense
-                      class="col"
-                    />
-                  </q-td>
-                  <q-td key="batchNumber" :props="props">
-                    <q-input
-                      outlined
-                      v-model="props.row.batchNumber"
-                      :disable="!props.row.enabled"
-                      label="Lote"
-                      dense
-                      class="col"
-                    />
-                  </q-td>
-                  <q-td key="expireDate" :props="props">
-                    <q-input
-                      dense
-                      :disable="!props.row.enabled"
-                      outlined
-                      class="col"
-                      v-model="props.row.auxExpireDate"
-                      ref="expireDate"
-                      label="Data de Validade"
-                    >
-                      <template v-slot:append>
-                        <q-icon name="event" class="cursor-pointer">
-                          <q-popup-proxy
-                            ref="qDateProxy"
-                            transition-show="scale"
-                            transition-hide="scale"
-                          >
-                            <q-date
-                              v-model="props.row.auxExpireDate"
-                              mask="DD-MM-YYYY"
-                            >
-                              <div class="row items-center justify-end">
-                                <q-btn
-                                  v-close-popup
-                                  label="Close"
-                                  color="primary"
-                                  flat
-                                />
-                              </div>
-                            </q-date>
-                          </q-popup-proxy>
-                        </q-icon>
-                      </template>
-                    </q-input>
-                  </q-td>
-                  <q-td key="unitsReceived" :props="props">
-                    <q-input
-                      outlined
-                      v-model="props.row.unitsReceived"
+                      v-model="props.row.quantity"
                       :disable="!props.row.enabled"
                       label="Quantidade"
                       dense
@@ -241,7 +187,7 @@
                     />
                   </q-td>
                   <q-td key="options" :props="props">
-                    <div class="col" v-if="!stockMethod.isInUse(props.row)">
+                    <div class="col">
                       <q-btn
                         v-if="props.row.enabled"
                         :loading="submitting"
@@ -281,7 +227,7 @@
                         @click="promptStockDeletion(props.row)"
                       />
                     </div>
-                    <div class="col" v-else>
+                    <div class="col">
                       <q-chip color="info" text-color="white"> Em Uso </q-chip>
                     </div>
                   </q-td>
@@ -337,7 +283,7 @@
               outlined
               :disable="!isGuiaEditionStep"
               class="col q-ma-sm"
-              v-model="dateReceived"
+              v-model="creationDate"
               label="Data de Criação"
             >
               <template v-slot:append>
@@ -347,7 +293,7 @@
                     transition-show="scale"
                     transition-hide="scale"
                   >
-                    <q-date v-model="dateReceived" mask="DD-MM-YYYY">
+                    <q-date v-model="creationDate" mask="DD-MM-YYYY">
                       <div class="row items-center justify-end">
                         <q-btn
                           v-close-popup
@@ -448,10 +394,9 @@
                   <q-th class="col">{{ columns[1].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[2].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[3].label }}</q-th>
-                  <q-th style="width: 190px">{{ columns[4].label }}</q-th>
-                  <q-th style="width: 120px">{{ columns[5].label }}</q-th>
+
                   <q-th style="width: 150px; text-align: center">{{
-                    columns[6].label
+                    columns[4].label
                   }}</q-th>
                 </q-tr>
               </template>
@@ -487,65 +432,38 @@
                       </template>
                     </q-select>
                   </q-td>
-                  <q-td key="manufacture" :props="props">
-                    <q-input
-                      v-model="props.row.manufacture"
-                      :disable="!props.row.enabled"
-                      label="Fabricante"
+
+                  <q-td key="clinic" :props="props">
+                    <q-select
+                      class="col"
                       dense
                       outlined
-                      class="col"
-                    />
-                  </q-td>
-                  <q-td key="batchNumber" :props="props">
-                    <q-input
-                      v-model="props.row.batchNumber"
                       :disable="!props.row.enabled"
-                      label="Lote"
-                      dense
-                      outlined
-                      class="col"
-                    />
-                  </q-td>
-                  <q-td key="expireDate" :props="props">
-                    <q-input
-                      dense
-                      :disable="!props.row.enabled"
-                      outlined
-                      class="col"
-                      v-model="props.row.auxExpireDate"
-                      ref="expireDate"
-                      label="Data de Validade"
+                      ref="drug"
+                      v-model="props.row.clinic"
+                      :options="clinicSectors"
+                      option-value="id"
+                      option-label="clinicName"
+                      label="Sector Clinico"
+                      @filter="filterClinicSectors"
+                      use-input
+                      hide-selected
+                      fill-input
+                      input-debounce="0"
                     >
-                      <template v-slot:append>
-                        <q-icon name="event" class="cursor-pointer">
-                          <q-popup-proxy
-                            ref="qDateProxy"
-                            transition-show="scale"
-                            transition-hide="scale"
-                          >
-                            <q-date
-                              v-model="props.row.auxExpireDate"
-                              mask="DD-MM-YYYY"
-                              :options="blockDataFutura"
-                            >
-                              <div class="row items-center justify-end">
-                                <q-btn
-                                  v-close-popup
-                                  label="Close"
-                                  color="primary"
-                                  flat
-                                />
-                              </div>
-                            </q-date>
-                          </q-popup-proxy>
-                        </q-icon>
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-grey">
+                            Sem Resultados
+                          </q-item-section>
+                        </q-item>
                       </template>
-                    </q-input>
+                    </q-select>
                   </q-td>
-                  <q-td key="unitsReceived" :props="props">
+
+                  <q-td key="quantity" :props="props">
                     <q-input
-                      v-model="props.row.unitsReceived"
+                      v-model="props.row.quantity"
                       :disable="!props.row.enabled"
                       label="Quantidade"
                       type="number"
@@ -555,7 +473,7 @@
                     />
                   </q-td>
                   <q-td key="options" :props="props">
-                    <div class="col" v-if="!stockMethod.isInUse(props.row)">
+                    <div class="col" v-if="props.row.enabled">
                       <q-btn
                         v-if="props.row.enabled"
                         :loading="submitting"
@@ -632,13 +550,12 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
 import Drug from '../../../stores/models/drug/Drug';
-import Stock from '../../../stores/models/stock/Stock';
+import Clinic from '../../../stores/models/clinic/Clinic';
 import { computed, onMounted, provide, ref } from 'vue';
 import { date } from 'quasar';
 import moment from 'moment';
-import StockService from 'src/services/api/stockService/StockService';
-import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
-import { useStock } from 'src/composables/stock/StockMethod';
+import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
+import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
@@ -651,10 +568,9 @@ import TitleBar from 'components/Shared/TitleBar.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
-import StockCenterService from 'src/services/api/stockCenterService/StockCenterService';
+import DrugDistributor from '../../../stores/models/drugDistributor/DrugDistributor';
 
 const router = useRouter();
-const stockMethod = useStock();
 const dateUtils = useDateUtils();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
@@ -670,20 +586,13 @@ const columns = [
     sortable: false,
   },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
-  { name: 'manufacture', align: 'left', label: 'Fabricante', sortable: true },
-  { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
-  {
-    name: 'expireDate',
-    align: 'left',
-    label: 'Data de Validade',
-    sortable: false,
-  },
-  { name: 'unitsReceived', align: 'left', label: 'Quantidade', sortable: true },
+  { name: 'clinic', align: 'left', label: 'Sector Clinico', sortable: true },
+  { name: 'quantity', align: 'left', label: 'Quantidade', sortable: true },
   { name: 'options', align: 'center', label: 'Opções', sortable: false },
 ];
 
 let submitting = false;
-const dateReceived = ref('');
+const creationDate = ref('');
 const orderNumber = ref('');
 const notes = ref('');
 
@@ -691,8 +600,9 @@ const step = ref('display');
 const guiaStep = ref('display');
 const selectedStock = ref([]);
 const drugs = ref([]);
+const clinicSectors = ref([]);
 const stockList = ref([]);
-let stock = '';
+let stockDistributorBatch = '';
 const orderNumberRef = ref('');
 const notesRef = ref('');
 
@@ -727,12 +637,36 @@ const filterFn = (val, update, abort) => {
   }
 };
 
+const filterClinicSectors = (val, update, abort) => {
+  const stringOptions = clinicSectorsList.value;
+  if (val === '') {
+    update(() => {
+      return (clinicSectors.value = stringOptions.map((drug) => drug));
+    });
+  } else if (stringOptions.length === 0) {
+    update(() => {
+      clinicSectors.value = [];
+    });
+  } else {
+    update(() => {
+      clinicSectors.value = stringOptions
+        .map((sector) => sector)
+        .filter((sector) => {
+          return (
+            sector &&
+            sector.clinicName.toLowerCase().indexOf(val.toLowerCase()) !== -1
+          );
+        });
+    });
+  }
+};
+
 const init = () => {
-  dateReceived.value = dateUtils.getDDMMYYYFromJSDate(
-    currStockEntrance.value.dateReceived
+  creationDate.value = dateUtils.getDDMMYYYFromJSDate(
+    currStockDistributor.value.creationDate
   );
-  orderNumber.value = currStockEntrance.value.orderNumber;
-  notes.value = currStockEntrance.value.notes;
+  orderNumber.value = currStockDistributor.value.orderNumber;
+  notes.value = currStockDistributor.value.notes;
 };
 
 const cancelOperation = () => {
@@ -741,25 +675,25 @@ const cancelOperation = () => {
 };
 
 const doSaveGuia = () => {
-  currStockEntrance.value.dateReceived = dateUtils.getJSDateFromDDMMYYY(
+  currStockDistributor.value.dateReceived = dateUtils.getJSDateFromDDMMYYY(
     dateReceived.value
   ); // getJSDateFromDDMMYYY()
-  currStockEntrance.value.orderNumber = orderNumber.value;
-  currStockEntrance.value.clinic = currClinic.value;
-  currStockEntrance.value.notes = notes.value;
+  currStockDistributor.value.orderNumber = orderNumber.value;
+  currStockDistributor.value.clinic = currClinic.value;
+  currStockDistributor.value.notes = notes.value;
 
   orderNumberRef.value.validate();
-  if (dateReceived.value === '') {
+  if (creationDate.value === '') {
     alertError('Preencha a data de criação da guia .');
-  } else if (currStockEntrance.value.dateReceived > new Date()) {
+  } else if (currStockDistributor.value.dateReceived > new Date()) {
     alertError(
       'A data de criação da guia não pode ser superior a data corrente.'
     );
   } else if (!orderNumberRef.value.hasError) {
     if (guiaStep.value === 'create') {
-      StockEntranceService.post(currStockEntrance.value)
+      StockDistributorService.post(currStockDistributor.value)
         .then((resp) => {
-          currStockEntrance.value = resp.response.data;
+          currStockDistributor.value = resp.response.data;
           guiaStep.value = 'display';
           alertSucess('Operação efectuada com sucesso.');
         })
@@ -779,15 +713,19 @@ const doSaveGuia = () => {
         });
     } else if (guiaStep.value === 'edit') {
       const entrance = JSON.parse(
-        JSON.stringify(currStockEntrance.value, circularReferenceReplacer())
+        JSON.stringify(currStockDistributor.value, circularReferenceReplacer())
       );
-      StockEntranceService.apiUpdate(currStockEntrance.value.id, entrance).then(
-        (resp) => {
-          localStorage.setItem('currStockEntrance', currStockEntrance.value.id);
-          guiaStep.value = 'display';
-          alertSucess('Operação efectuada com sucesso.');
-        }
-      );
+      StockDistributorService.apiUpdate(
+        currStockDistributor.value.id,
+        entrance
+      ).then((resp) => {
+        localStorage.setItem(
+          'currStockDistributor',
+          currStockDistributor.value.id
+        );
+        guiaStep.value = 'display';
+        alertSucess('Operação efectuada com sucesso.');
+      });
     }
   }
 };
@@ -806,35 +744,41 @@ const circularReferenceReplacer = () => {
 };
 
 const initGuiaEdition = () => {
-  if (currStockEntrance.value.stocks.length > 0 || stockList.value.length > 0) {
+  if (
+    currStockDistributor.value.drugDistributors.length > 0 ||
+    stockList.value.length > 0
+  ) {
     alertError(
-      'Não pode editar os dados da guia, pois ja existem registos de lotes associados.'
+      'Não pode editar os dados da ordem, pois ja existem registos de lotes associados.'
     );
   } else {
     guiaStep.value = 'edit';
   }
 };
 const removeGuia = () => {
-  if (currStockEntrance.value.stocks.length > 0 || stockList.value.length > 0) {
+  if (
+    currStockDistributor.value.drugDistributors.length > 0 ||
+    stockList.value.length > 0
+  ) {
     alertError(
-      'Não pode remover esta guia, pois ja existem registos de lotes associados.'
+      'Não pode remover esta  Ordem de distribuicao , pois ja existem registos de lotes associados.'
     );
   } else {
     alertWarningAction(
-      'Deseja remover a presente guia de entrada de stock?',
+      'Deseja remover a presente Ordem de distribuicao de Stock ?',
       'Não',
       'Sim'
     ).then((result) => {
       if (result) {
         guiaStep.value = 'delete';
-        doRemoveGuia(stock);
+        doRemoveGuia(stockDistributorBatch);
       }
     });
   }
 };
 
 const doRemoveGuia = () => {
-  StockEntranceService.delete(currStockEntrance.value.id).then((resp) => {
+  StockDistributorService.delete(currStockDistributor.value.id).then((resp) => {
     goBack();
     alertSucess('Operação efectuada com sucesso.');
   });
@@ -843,7 +787,7 @@ const doRemoveGuia = () => {
 const doRemoveStock = (stock) => {
   step.value = 'delete';
   showloading();
-  StockService.delete(stock.id)
+  DrugDistributorService.delete(stock.id)
     .then((resp) => {
       removeFromList(stock);
       closeLoading();
@@ -863,14 +807,11 @@ const initNewStock = () => {
     closeLoading();
   } else {
     step.value = 'create';
-    const center = StockCenterService.getStockCenter();
-    center.clinic = clinicService.currClinic();
-    const newStock = new Stock({
+    const newStock = new DrugDistributor({
       drug: new Drug(),
-      center: center,
       enabled: true,
-      clinic: clinicService.currClinic(),
-      entrance: currStockEntrance,
+      clinic: new Clinic(),
+      stockDistributor: currStockDistributor,
     });
     stockList.value.push(newStock);
     closeLoading();
@@ -890,79 +831,41 @@ const isPositiveInteger = (str) => {
 
 const validateStock = (stock) => {
   submitting = true;
-  stock.expireDate = dateUtils.getJSDateFromDDMMYYY(stock.auxExpireDate);
-  stock.entrance_id = currStockEntrance.value.id;
+  stock.stock_distributor_id = currStockDistributor.value.id;
+
   if (stock.drug.name === '') {
     submitting = false;
     alertError('Por favor indicar o medicamento!');
-  } else if (stock.manufacture === '') {
+  } else if (stock.clinic.clinicName === '') {
     submitting = false;
-    alertError('Por favor indicar o fabricante!');
-  } else if (stock.batchNumber === '') {
-    submitting = false;
-    alertError('Por favor indicar o lote!');
-  } else if (StockService.isBatchNumberExists(stock) && step.value !== 'edit') {
-    alertError(
-      ' O lote introduzido para esta guia Já  existe, por favor registe um lote válido!'
-    );
-  } else if (!date.isValid(stock.expireDate)) {
-    submitting = false;
-    alertError('Por favor indicar uma data de validade válida!');
-  } else if (
-    stock.expireDate.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
-  ) {
-    submitting = false;
-    alertError('A data de validade não pode ser anterior a data corrente!');
-  } else if (!isPositiveInteger(stock.unitsReceived)) {
+    alertError('Por favor indicar o sector clinico!');
+  } else if (!isPositiveInteger(stock.quantity)) {
     submitting = false;
     alertError('Por favor indicar uma quantidade válida!');
-  } else if (!(stock.expireDate instanceof Date)) {
-    alertError('A data de validade é inválida!');
-  } else if (stock.expireDate <= moment(new Date()).add(28, 'd')) {
-    submitting = false;
-
-    alertError(
-      'O medicamento não deve expirar em menos de 28 dias, Por favor indique uma data de validade válida!'
-    );
   } else {
-    if (stock.expireDate <= moment(new Date()).add(91, 'd')) {
-      alertWarningAction(
-        ' O stock especificado irá expirar em menos de 3 meses. Deseja continuar',
-        'Não',
-        'Sim'
-      ).then((result) => {
-        if (result) {
-          doSave(stock);
-        }
-      });
-
-      // displayAlert('confirmation', ' O stock especificado irá expirar em menos de 3 meses. Deseja continuar')
-    } else {
-      doSave(stock);
-    }
+    doSave(stock);
   }
 };
 
-const doSave = (stock) => {
+const doSave = (stockObj) => {
   showloading();
+  const stock = stockObj;
+  stock.drug_id = stockObj.drug.id;
+  stock.drug = {};
+  stock.drug.id = stock.drug_id;
+  stock.stockDistributor = {};
+  stock.stockDistributor.id = stockObj.stock_distributor_id;
 
-  stock.stockMoviment = stock.unitsReceived;
-  stock.clinic = {};
-  stock.clinic.id = clinicService.currClinic().id;
-  stock.center = {};
-  stock.center.id = StockCenterService.getStockCenter().id;
-  stock.entrance = currStockEntrance;
-  stock.enabled = false;
-  // const entrance = currStockEntrance.value
-  stock.entrance_id = currStockEntrance.value.id;
-  // stock.entrance = entrance
+  stock.clinic_id = stockObj.clinic.id;
+  //stock.clinic = {};
+
   if (isCreationStep.value) {
+    submitting = false;
     stock.id = uuidv4();
-    StockService.post(stock)
+    DrugDistributorService.post(stock)
       .then((resp) => {
         // stock.id = resp.response.data.id
         submitting = false;
-        stock.enabled = false;
         step.value = 'display';
         alertSucess('Operação efectuada com sucesso.');
         closeLoading();
@@ -973,7 +876,7 @@ const doSave = (stock) => {
         closeLoading();
       });
   } else if (isEditionStep.value) {
-    StockService.patch(stock.id, stock)
+    DrugDistributorService.patch(stock.id, stock)
       .then((resp) => {
         //stock.id = resp.response.data.id
         submitting = false;
@@ -990,10 +893,10 @@ const doSave = (stock) => {
   }
 };
 
-const fetchStockEntrance = () => {
-  StockEntranceService.apiFetchById(currStockEntrance.value.id)
+const fetchStockDistributor = () => {
+  StockDistributorService.apiFetchById(currStockDistributor.value.id)
     .then((resp) => {
-      currStockEntrance.value = resp.response.data;
+      currStockDistributor.value = resp.response.data;
     })
     .catch((error) => {
       alertError('Ocorreu um erro inesperado');
@@ -1005,8 +908,7 @@ const cancel = (stock) => {
     stock.drug = selectedStock.value.drug;
     stock.expireDate = selectedStock.value.expireDate;
     stock.batchNumber = selectedStock.value.batchNumber;
-    stock.unitsReceived = selectedStock.value.unitsReceived;
-    stock.enabled = false;
+    stock.quantity = selectedStock.value.unitsReceived;
   } else if (isCreationStep.value) {
     removeFromList(stock);
   }
@@ -1048,19 +950,20 @@ const promptStockDeletion = (stock) => {
   }
 };
 
-const getCurrStockEntrance = () => {
-  const stockEntrId = JSON.parse(localStorage.getItem('currStockEntrance'));
-  return StockEntranceService.getStockEntranceById(stockEntrId);
+const getCurrStockDistributor = () => {
+  const distributorId = JSON.parse(
+    localStorage.getItem('currStockDistributor')
+  );
+  return StockDistributorService.getStockDistributorById(distributorId);
 };
 
 const loadStockList = () => {
-  if (currStockEntrance.value.stocks.length > 0) {
-    Object.keys(currStockEntrance.value.stocks).forEach(
+  if (currStockDistributor.value.drugDistributors.length > 0) {
+    Object.keys(currStockDistributor.value.drugDistributors).forEach(
       function (k) {
-        const stock = StockService.getStockList(
-          currStockEntrance.value.stocks[k].id
+        const stock = DrugDistributorService.getDrugDistributorList(
+          currStockDistributor.value.drugDistributors[k].id
         );
-        stock.auxExpireDate = dateUtils.getDDMMYYYFromJSDate(stock.expireDate);
         stockList.value.push(stock);
       }.bind(this)
     );
@@ -1074,12 +977,16 @@ onMounted(() => {
   //drugs.value = activeDrugs;
 });
 
-const currStockEntrance = computed(() => {
-  return getCurrStockEntrance();
+const currStockDistributor = computed(() => {
+  return getCurrStockDistributor();
 });
 
 const activeDrugs = computed(() => {
   return drugService.getActiveDrugs();
+});
+
+const clinicSectorsList = computed(() => {
+  return clinicService.getAllClinicSectors();
 });
 
 const isEditionStep = computed(() => {
