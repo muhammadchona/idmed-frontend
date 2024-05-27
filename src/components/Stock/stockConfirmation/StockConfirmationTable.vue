@@ -72,7 +72,7 @@
 
 <script setup>
 import { date } from 'quasar';
-import { ref, computed } from 'vue';
+import { ref, computed, inject } from 'vue';
 import stockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import { useRouter } from 'vue-router';
 
@@ -102,6 +102,7 @@ const columns = [
 const filter = ref('');
 const router = useRouter();
 const loading = ref(true);
+const clinic = inject('currClinic');
 
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
@@ -116,7 +117,9 @@ const viewStockConfirmation = (stockDistributor) => {
 };
 
 const stockDistributors = computed(() => {
-  const list = stockDistributorService.getStockDistributorServices();
+  const list = stockDistributorService.getStockDistributorConfirmation(
+    '8a8a823b81900fee018190163i0c0001'
+  );
   if (list.length >= 0) {
     loading.value = false;
   }

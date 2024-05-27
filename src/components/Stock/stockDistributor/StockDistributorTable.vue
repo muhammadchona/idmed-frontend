@@ -48,6 +48,7 @@
           <q-td key="creationDate" :props="props">
             {{ formatDate(props.row.creationDate) }}
           </q-td>
+
           <q-td key="options" :props="props">
             <div class="col">
               <q-btn
@@ -72,7 +73,7 @@
 
 <script setup>
 import { date } from 'quasar';
-import { ref, computed } from 'vue';
+import { ref, computed, inject } from 'vue';
 import stockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import { useRouter } from 'vue-router';
 
@@ -97,11 +98,19 @@ const columns = [
     label: 'Data de Criacao',
     sortable: false,
   },
+  {
+    name: 'status',
+    align: 'center',
+    label: 'Estado',
+    field: (row) => row.orderNumber,
+    sortable: true,
+  },
   { name: 'options', align: 'center', label: 'Opções', sortable: false },
 ];
 const filter = ref('');
 const router = useRouter();
 const loading = ref(true);
+const clinic = inject('currClinic');
 
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
@@ -115,7 +124,9 @@ const editStockDistributor = (stockDistributor) => {
 };
 
 const stockDistributorsList = computed(() => {
-  const list = stockDistributorService.getStockDistributorServices();
+  const list = stockDistributorService.getStockDistributorServices(
+    clinic.value.id
+  );
   if (list.length >= 0) {
     loading.value = false;
   }

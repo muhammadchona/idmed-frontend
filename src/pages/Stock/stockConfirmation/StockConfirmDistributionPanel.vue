@@ -222,10 +222,6 @@
             :expandVisible="false"
             :mainContainer="true"
             bgColor="bg-primary"
-            :statusVisible="true"
-            :statusTitle="statusTitle"
-            :statusColor="statusColor"
-            :statusIcon="statusIcon"
             >Notas da Guia
           </ListHeader>
           <div class="box-border q-pt-md">
@@ -282,24 +278,6 @@
             <div class="row q-pa-sm">
               <q-btn
                 unelevated
-                color="blue"
-                class="col"
-                label="Confirmar"
-                @click="confirmOrder"
-                v-if="status === 'P'"
-              />
-
-              <q-btn
-                unelevated
-                color="red"
-                class="q-ml-md col"
-                label="Rejeitar"
-                @click="rejectOrder"
-                v-if="status === 'P'"
-              />
-
-              <q-btn
-                unelevated
                 color="orange"
                 class="q-ml-md col"
                 label="Voltar"
@@ -344,6 +322,9 @@
                   <q-th style="width: 190px">{{ columns[2].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[3].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[4].label }}</q-th>
+                  <q-th style="width: 150px; text-align: center">{{
+                    columns[4].label
+                  }}</q-th>
                 </q-tr>
               </template>
               <template #body="props">
@@ -429,6 +410,52 @@
                       class="col"
                     />
                   </q-td>
+
+                  <q-td key="options" :props="props">
+                    <div class="col" v-if="props.row.enabled">
+                      <q-btn
+                        v-if="props.row.enabled"
+                        :loading="submitting"
+                        flat
+                        dense
+                        round
+                        color="primary"
+                        icon="done"
+                        @click="validateStock(props.row)"
+                      />
+                      <q-btn
+                        v-if="props.row.enabled"
+                        flat
+                        dense
+                        round
+                        color="red"
+                        icon="clear"
+                        @click="cancel(props.row)"
+                      />
+                      <q-btn
+                        v-if="!props.row.enabled"
+                        flat
+                        dense
+                        round
+                        color="orange-5"
+                        icon="edit"
+                        @click="initStockEdition(props.row)"
+                      />
+                      <q-btn
+                        v-if="!props.row.enabled"
+                        flat
+                        dense
+                        round
+                        color="red"
+                        icon="delete_forever"
+                        class="q-ml-sm"
+                        @click="promptStockDeletion(props.row)"
+                      />
+                    </div>
+                    <div class="col" v-else>
+                      <q-chip color="info" text-color="white"> Em Uso </q-chip>
+                    </div>
+                  </q-td>
                 </q-tr>
               </template>
             </q-table>
@@ -485,9 +512,7 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
-const statusTitle = ref('Pendente');
-const statusColor = ref('orange');
-const statusIcon = ref('pending');
+
 const columns = [
   {
     name: 'order',
@@ -501,6 +526,7 @@ const columns = [
   { name: 'clinic', align: 'left', label: 'Sector Clinico', sortable: true },
   { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
   { name: 'quantity', align: 'left', label: 'Quantidade', sortable: true },
+  { name: 'options', align: 'center', label: 'Opções', sortable: false },
 ];
 
 let submitting = false;
@@ -576,20 +602,6 @@ const init = () => {
   );
   orderNumber.value = currStockDistributor.value.orderNumber;
   notes.value = currStockDistributor.value.notes;
-  status.value = currStockDistributor.value.status;
-  if (status.value === 'C') {
-    statusTitle.value = 'Confirmado';
-    statusColor.value = 'info';
-    statusIcon.value = 'check';
-  } else if (status.value === 'R') {
-    statusTitle.value = 'Rejeitado';
-    statusColor.value = 'red';
-    statusIcon.value = 'warning';
-  } else {
-    statusTitle.value = 'Pendente';
-    statusColor.value = 'orange';
-    statusIcon.value = 'pending';
-  }
 };
 
 const confirmOrder = () => {
