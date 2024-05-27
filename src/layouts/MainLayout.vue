@@ -22,12 +22,16 @@
                 style="font-family: 'Gill Sans'; font-size: 25px"
                 >{{
                   currClinic !== null
-                    ? currClinic.clinicName
+                    ? currClinic.parentClinic_id !== undefined
+                      ? currClinic.parentClinic.clinicName +
+                        ' - ' +
+                        currClinic.clinicName
+                      : currClinic.clinicName
                     : currProvince !== null
                     ? 'Provincia - ' + currProvince.description
                     : ''
-                }}</q-item-label
-              >
+                }}
+              </q-item-label>
             </q-item-section>
           </q-toolbar-title>
           <q-tabs

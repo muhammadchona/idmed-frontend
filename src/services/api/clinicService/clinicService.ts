@@ -6,6 +6,7 @@ import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { SessionStorage } from 'quasar';
 // import { P } from 'app/dist/spa/assets/apiService.4d03f836';
 
 const clinic = useRepo(Clinic);
@@ -178,7 +179,13 @@ export default {
 
   /*PINIA*/
   currClinic() {
-    return clinic.withAllRecursive(2).where('mainClinic', true).first();
+    const clinicSectorUser = SessionStorage.getItem('clinic_sector_users');
+    if (clinicSectorUser === null || clinicSectorUser.includes('NORMAL')) {
+      return clinic.withAllRecursive(2).where('mainClinic', true).first();
+    } else {
+      console.log(this.getByCode(clinicSectorUser));
+      return this.getByCode(clinicSectorUser);
+    }
   },
 
   savePinia(clin: any) {
@@ -288,6 +295,15 @@ export default {
       .query()
       .where((clinic) => {
         return clinic.id === id;
+      })
+      .withAllRecursive(2)
+      .first();
+  },
+  getByCode(code: string) {
+    return clinic
+      .query()
+      .where((clinic) => {
+        return clinic.code === code;
       })
       .withAllRecursive(2)
       .first();
