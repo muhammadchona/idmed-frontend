@@ -1087,7 +1087,7 @@ const addPackagedDrugs = () => {
 
     if (lastPack.value !== null) {
       lastPack.value.packagedDrugs.find((item) => {
-        if (item.drug.id === packagedDrug.drug.id) {
+        if (item.drug_id === packagedDrug.drug_id) {
           const qtyRemain = getQtyRemain(
             packagedDrug,
             curPrescription.value.duration.weeks

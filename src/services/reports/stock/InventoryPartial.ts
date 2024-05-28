@@ -130,8 +130,8 @@ export default {
       'Ordem',
       'Lote',
       'Data do ajuste',
+      'Saldo Inicial',
       'Frascos Contados',
-      'Saldo',
       'Notas',
     ];
 
@@ -151,7 +151,7 @@ export default {
         body: data1,
       });
 
-      ord = 0;
+      ord = 1;
       const rowsAux = rows[i].adjustments;
       for (const row in rowsAux) {
         const createRow = [];
@@ -160,8 +160,8 @@ export default {
         createRow.push(
           moment(new Date(rowsAux[row].captureDate)).format('DD-MM-YYYY')
         );
-        createRow.push(rowsAux[row].adjustedValue);
         createRow.push(rowsAux[row].balance);
+        createRow.push(rowsAux[row].adjustedValue);
         createRow.push(rowsAux[row].notes);
 
         data.push(createRow);
@@ -197,7 +197,7 @@ export default {
       const resumoAdjustments = [
         [
           {
-            content: 'Frascos Contados ',
+            content: 'Saldo Actual',
             styles: {
               halign: 'left',
               valign: 'middle',
@@ -223,7 +223,7 @@ export default {
         ],
         [
           {
-            content: 'Saldo ',
+            content: 'Saldo Inicial',
             // colSpan: 1,
             styles: {
               halign: 'left',
@@ -496,16 +496,15 @@ export default {
             filterButton: false,
           },
           {
-            name: 'Frascos Contados',
+            name: 'Saldo Inicial',
             totalsRowFunction: 'none',
             filterButton: false,
           },
           {
-            name: 'Saldo',
+            name: 'Frascos Contados',
             totalsRowFunction: 'none',
             filterButton: false,
           },
-
           {
             name: 'Notas',
             totalsRowFunction: 'none',
@@ -587,7 +586,7 @@ export default {
       const cellTotalContadosLabel = worksheet.getCell(
         'A' + Number(lastRowNum + rows.length + 3)
       );
-      cellTotalContadosLabel.value = 'Total de frascos Contados';
+      cellTotalContadosLabel.value = 'Saldo Actual';
 
       const cellTotalContadosValue = worksheet.getCell(
         'B' + Number(lastRowNum + rows.length + 3)
@@ -597,7 +596,7 @@ export default {
       const cellTotalSaldoLabel = worksheet.getCell(
         'A' + Number(lastRowNum + rows.length + 4)
       );
-      cellTotalSaldoLabel.value = 'Total de saldo';
+      cellTotalSaldoLabel.value = 'Saldo Inicial';
 
       const cellTotalSaldoValue = worksheet.getCell(
         'B' + Number(lastRowNum + rows.length + 4)
@@ -717,8 +716,8 @@ export default {
       createRow.push(
         moment(new Date(rows[row].captureDate)).format('DD-MM-YYYY')
       );
-      createRow.push(rows[row].adjustedValue);
       createRow.push(rows[row].balance);
+      createRow.push(rows[row].adjustedValue);
       createRow.push(rows[row].notes);
 
       data.push(createRow);

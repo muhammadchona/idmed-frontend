@@ -265,7 +265,6 @@ export default {
     return patientServiceIdentifier
       .withAll()
       .where((patientService) => {
-        console.log(patientService);
         return patientService.patient_id === patientId;
       })
       .orderBy('startDate', 'desc')

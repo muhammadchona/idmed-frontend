@@ -38,14 +38,12 @@ export default {
       floatPrecision: 'smart', // or "smart", default is 16
     });
     const firstObject = result[0];
-    // const totalPagesExp = '{total_pages_count_string}'
 
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
 
     const image = new Image();
-    // image.src = '/src/assets/MoHLogo.png'
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
     const headerReport = [
@@ -130,8 +128,8 @@ export default {
       'Ordem',
       'Lote',
       'Data do ajuste',
+      'Saldo Inicial',
       'Frascos Contados',
-      'Saldo',
       'Notas',
     ];
 
@@ -151,7 +149,7 @@ export default {
         body: data1,
       });
 
-      ord = 0;
+      ord = 1;
       const rowsAux = rows[i].adjustments;
       for (const row in rowsAux) {
         const createRow = [];
@@ -160,8 +158,8 @@ export default {
         createRow.push(
           moment(new Date(rowsAux[row].captureDate)).format('DD-MM-YYYY')
         );
-        createRow.push(rowsAux[row].adjustedValue);
         createRow.push(rowsAux[row].balance);
+        createRow.push(rowsAux[row].adjustedValue);
         createRow.push(rowsAux[row].notes);
 
         data.push(createRow);
@@ -181,7 +179,6 @@ export default {
         didDrawPage: function (data) {
           const str = 'Página ' + doc.internal.getNumberOfPages();
           doc.setFontSize(8);
-          // jsPDF 1.4+ uses getWidth, <1.4 uses .width
           const pageSize = doc.internal.pageSize;
           const pageHeight = pageSize.height
             ? pageSize.height
@@ -197,7 +194,7 @@ export default {
       const resumoAdjustments = [
         [
           {
-            content: 'Frascos Contados ',
+            content: 'Saldo Actual ',
             styles: {
               halign: 'left',
               valign: 'middle',
@@ -205,12 +202,10 @@ export default {
               fontSize: '8',
               textColor: 0,
             },
-            // colSpan: 4,
             ColumnWidth: 10,
           },
           {
             content: rows[i].totalAdjustedValue,
-            // colSpan: 1,
             styles: {
               halign: 'center',
               valign: 'middle',
@@ -223,8 +218,7 @@ export default {
         ],
         [
           {
-            content: 'Saldo ',
-            // colSpan: 1,
+            content: 'Saldo Inicial',
             styles: {
               halign: 'left',
               valign: 'middle',
@@ -236,7 +230,6 @@ export default {
           },
           {
             content: rows[i].totalBalance,
-            // colSpan: 1,
             styles: {
               halign: 'center',
               valign: 'middle',
@@ -250,7 +243,6 @@ export default {
         [
           {
             content: 'Variação para o Med. ',
-            // colSpan: 1,
             styles: {
               halign: 'left',
               valign: 'middle',
@@ -262,7 +254,6 @@ export default {
           },
           {
             content: rows[i].totalAdjustedValue - rows[i].totalBalance,
-            // colSpan: 1,
             styles: {
               halign: 'center',
               valign: 'middle',
@@ -278,7 +269,6 @@ export default {
       autoTable(doc, {
         headStyles: {
           halign: 'center',
-          // valign: 'middle',
         },
         theme: 'grid',
         head: [['Totais', 'Valor']],
@@ -289,16 +279,12 @@ export default {
     }
 
     if (isOnline.value && !isMobile.value) {
-      // return doc.save('PacientesActivos.pdf')
       window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output();
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
-    // params.value.loading.loading.hide()
-    // return doc.save('HistoricoDeLevantamento.pdf')
 
-    // params.value.loading.loading.hide()
   },
   async downloadExcel(province, startDate, endDate, result) {
     const clinic = clinicService.currClinic();
@@ -398,12 +384,7 @@ export default {
     cellEndDate.value = 'Data Fim';
 
     // merge a range of cells
-    // worksheet.mergeCells('A1:A7')
     worksheet.mergeCells('A9:F10');
-    // worksheet.mergeCells('B11:C11');
-    // worksheet.mergeCells('B12:C12');
-    //worksheet.mergeCells('E12:H12');
-    // worksheet.mergeCells('A13:I13');
     worksheet.mergeCells('A15:F15');
 
     // add width size to Columns
@@ -420,7 +401,6 @@ export default {
     colF.width = 30;
 
     // Add Style
-    // cellTitle.font =
     cellDistrict.font =
       cellProvince.font =
       cellStartDate.font =
@@ -439,14 +419,12 @@ export default {
       tl: { col: 0, row: 1 },
       ext: { width: 144, height: 98 },
     });
-    // ;
     const cell = worksheet.getCell('A15');
     cell.value = 'Medicamento';
     const rowsAux = result;
 
     cell.font = {
       name: 'Arial',
-      // color: { argb: 'FFFFFFFF' },
       family: 2,
       size: 11,
       italic: false,
@@ -506,16 +484,16 @@ export default {
             filterButton: false,
           },
           {
-            name: 'Frascos Contados',
-            totalsRowFunction: 'none',
-            filterButton: false,
-          },
-          {
-            name: 'Saldo',
+            name: 'Saldo Inicial',
             totalsRowFunction: 'none',
             filterButton: false,
           },
 
+          {
+            name: 'Frascos Contados',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
           {
             name: 'Notas',
             totalsRowFunction: 'none',
@@ -554,7 +532,6 @@ export default {
           };
           cell.font = {
             name: 'Arial',
-            // color: { argb: 'FFFFFFFF' },
             family: 2,
             size: 11,
             italic: false,
@@ -592,12 +569,11 @@ export default {
           };
         });
       }
-      // worksheet.insertRows(lastRowNum + 1, [[], [], []]);
 
       const cellTotalContadosLabel = worksheet.getCell(
         'A' + Number(lastRowNum + rows.length + 3)
       );
-      cellTotalContadosLabel.value = 'Total de frascos Contados';
+      cellTotalContadosLabel.value = 'Saldo Actual';
 
       const cellTotalContadosValue = worksheet.getCell(
         'B' + Number(lastRowNum + rows.length + 3)
@@ -607,7 +583,7 @@ export default {
       const cellTotalSaldoLabel = worksheet.getCell(
         'A' + Number(lastRowNum + rows.length + 4)
       );
-      cellTotalSaldoLabel.value = 'Total de saldo';
+      cellTotalSaldoLabel.value = 'Saldo Inicial';
 
       const cellTotalSaldoValue = worksheet.getCell(
         'B' + Number(lastRowNum + rows.length + 4)
@@ -653,12 +629,10 @@ export default {
       saveBlob2File(titleFile, blob);
       function saveBlob2File(fileName, blob) {
         const folder = cordova.file.externalRootDirectory + 'Download';
-        //  var folder = 'Download'
         window.resolveLocalFileSystemURL(
           folder,
           function (dirEntry) {
             createFile(dirEntry, fileName, blob);
-            // $q.loading.hide()
           },
           onErrorLoadFs
         );
@@ -727,8 +701,8 @@ export default {
       createRow.push(
         moment(new Date(rows[row].captureDate)).format('DD-MM-YYYY')
       );
-      createRow.push(rows[row].adjustedValue);
       createRow.push(rows[row].balance);
+      createRow.push(rows[row].adjustedValue);
       createRow.push(rows[row].notes);
 
       data.push(createRow);
@@ -745,12 +719,10 @@ export default {
     saveBlob2File(titleFile, blop);
     function saveBlob2File(fileName, blob) {
       const folder = cordova.file.externalRootDirectory + 'Download';
-      //  var folder = 'Download'
       window.resolveLocalFileSystemURL(
         folder,
         function (dirEntry) {
           createFile(dirEntry, fileName, blob);
-          // $q.loading.hide()
         },
         onErrorLoadFs
       );

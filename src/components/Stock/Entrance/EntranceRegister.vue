@@ -48,11 +48,8 @@
                 </q-icon>
               </template>
             </q-input>
-
-
           </div>
           <div class="row">
-
             <q-input
               outlined
               v-model="stockEntrance.notes"
@@ -60,8 +57,8 @@
               ref="notesRef"
               dense
               class="col"
-              type="textarea" />
-
+              type="textarea"
+            />
           </div>
         </div>
       </q-card-section>
@@ -78,7 +75,7 @@ import StockEntrance from '../../../stores/models/stockentrance/StockEntrance';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import {  reactive, provide, ref } from 'vue';
+import { reactive, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { v4 as uuidv4 } from 'uuid';
@@ -92,46 +89,59 @@ const { showloading, closeLoading } = useLoading();
 let stockEntrance = reactive(new StockEntrance({ dateReceived: new Date() }));
 const dateReceived = ref(dateUtils.getDDMMYYYFromJSDate(new Date()));
 const orderNumberRef = ref(null);
-const notesRef = ref(null)
+const notesRef = ref(null);
 const router = useRouter();
 const { alertError } = useSwal();
 
 /*
   Methods
 */
+
+const verifyStockNumber = (orderNumber) => {
+  return StockEntranceService.getStockEntranceByNumber(
+    String(orderNumber).trim()
+  );
+};
+
 const submitForm = () => {
   showloading();
   stockEntrance.dateReceived = dateUtils.getJSDateFromDDMMYYY(
     dateReceived.value
   );
-  if (stockEntrance.dateReceived > new Date()) {
+
+  if (
+    verifyStockNumber(stockEntrance.orderNumber) !== null &&
+    verifyStockNumber(stockEntrance.orderNumber) !== undefined
+  ) {
+    alertError('O número da Guia não pode ser vazio e deve ser único.');
+    closeLoading();
+  } else if (stockEntrance.dateReceived > new Date()) {
     alertError(
       'A data de criação da guia não pode ser superior a data corrente.'
     );
+    closeLoading();
   } else {
     orderNumberRef.value.validate();
     if (!orderNumberRef.value.hasError) {
-        stockEntrance.clinic = clinicService.currClinic();
-        stockEntrance.clinic_id = clinicService.currClinic().id
-        stockEntrance.id = uuidv4();
-        StockEntranceService.post(stockEntrance)
-          .then((resp) => {
-            stockEntrance.clinic = null
-            localStorage.setItem(
-              'currStockEntrance',
-              JSON.stringify(stockEntrance.id)
-            );
-            closeLoading();
-            router.push('/stock/entrance');
-            //$emit('close')
-          })
-         .catch((error) => {
-            console.log('ERRO: ', error);
-            closeLoading();
-            alertError(
-              'Ocorreu um erro inesperado, contacte o administrador!'
-            );
-          });
+      stockEntrance.clinic = clinicService.currClinic();
+      stockEntrance.clinic_id = clinicService.currClinic().id;
+      stockEntrance.id = uuidv4();
+      StockEntranceService.post(stockEntrance)
+        .then((resp) => {
+          stockEntrance.clinic = null;
+          localStorage.setItem(
+            'currStockEntrance',
+            JSON.stringify(stockEntrance.id)
+          );
+          closeLoading();
+          router.push('/stock/entrance');
+          //$emit('close')
+        })
+        .catch((error) => {
+          console.log('ERRO: ', error);
+          closeLoading();
+          alertError('Ocorreu um erro inesperado, contacte o administrador!');
+        });
     }
   }
 };

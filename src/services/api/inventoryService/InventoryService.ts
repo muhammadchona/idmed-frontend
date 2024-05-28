@@ -4,6 +4,7 @@ import Inventory from 'src/stores/models/stockinventory/Inventory';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import moment from 'moment';
 
 const { closeLoading, showloading } = useLoading();
 
@@ -107,6 +108,19 @@ export default {
   },
   getInvnetoryById(id: string) {
     return inventory.query().withAllRecursive(4).where('id', id).first();
+  },
+  getInvnetoryWithValidStockById(id: string) {
+    return inventory.query().withAllRecursive(4).where('id', id).first();
+  },
+
+  getGeneralInventoryByDate(inventoryDate: Date) {
+    return inventory
+      .query()
+      .where('startDate', (value: Date) => {
+        return moment(value, 'YYYY-MM-DD').diff(moment(inventoryDate)) === 0;
+      })
+      .where('generic', true)
+      .first();
   },
 
   //Mobile

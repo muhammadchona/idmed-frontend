@@ -79,7 +79,6 @@ import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 const { getDDMMYYYFromJSDate } = useDateUtils();
 
 const group = inject('group');
-console.log(group);
 const emit = defineEmits(['editGroup', 'desintagrateGroup']);
 </script>
 
