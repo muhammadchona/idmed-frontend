@@ -36,8 +36,6 @@
                   : ' color: black'
               "
             >
-              <!--q-td key="order" :props="props">
-              </q-td-->
               <q-td key="id" :props="props">
                 {{ props.row.NID }}
               </q-td>
@@ -143,8 +141,6 @@
           </template>
           <template #body="props">
             <q-tr :props="props">
-              <!--q-td key="order" :props="props">
-              </q-td-->
               <q-td key="id" :props="props">
                 {{ usePatient().preferedIdentifier(props.row.patient).value }}
               </q-td>
@@ -268,28 +264,20 @@ import {
   watch,
 } from 'vue';
 import Group from '../../../stores/models/group/Group';
-import { SessionStorage } from 'quasar';
-import Prescription from '../../../stores/models/prescription/Prescription';
 import moment from 'moment';
-import PatientVisitDetails from '../../../stores/models/patientVisitDetails/PatientVisitDetails';
 import episodeService from 'src/services/api/episode/episodeService';
 import packService from 'src/services/api/pack/packService';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import patientService from 'src/services/api/patientService/patientService';
-// import packService from 'src/services/api/pack/packService';
 import { useGroup } from 'src/composables/group/groupMethods';
 import { useGroupMember } from 'src/composables/group/groupMemberMethods';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import ListHeader from 'components/Shared/ListHeader.vue';
-import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import addEditPrescription from 'components/Groups/AddMemberPrescription.vue';
-import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
-import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescription/groupMemberPrescriptionService';
 
 const columns = [
@@ -339,8 +327,6 @@ const desintagrateGroup = inject('desintagrateGroup');
 const loadMemberInfoToShowByGroupId = inject('loadMemberInfoToShowByGroupId');
 const groupMembersNew = inject('groupMembersNew');
 const loadMemberInfoByMember2 = inject('loadMemberInfoByMember2');
-// const loadedPrescriptionInfo = ref(false);
-//const membersInfoLoaded = inject('membersInfoLoaded');
 const newPrescription = inject('newPrescription');
 const loadedPrescriptionInfo = inject('loadedPrescriptionInfo');
 const getGroupMembers = inject('getGroupMembers');
@@ -349,16 +335,11 @@ watch(
   () => membersInfoLoaded.value,
   (oldp, newp) => {
     if (oldp !== newp) {
-      //  closeLoading();
     }
   }
 );
 
-const emit = defineEmits([
-  'addMember',
-  'desintagrateGroup',
-  // 'newPrescription'
-]);
+const emit = defineEmits(['addMember', 'desintagrateGroup']);
 
 const addMember = () => {
   emit('addMember');
@@ -392,7 +373,6 @@ const removeMember = (row) => {
   if (!isOnline) {
     selectedMember.value = row;
     if (members.value.length === 1) {
-      // step = 'desintagrate'
       alertWarningAction(
         'Nota: Ao remover este membro o grupo será desintegrado. Continuar?'
       ).then((result) => {
@@ -401,7 +381,6 @@ const removeMember = (row) => {
         }
       });
     } else {
-      // this.step = 'memberRemotion'
       alertWarningAction(
         'Confirma a remoção do membro [' +
           usePatient().fullName(row.patient) +
@@ -415,7 +394,6 @@ const removeMember = (row) => {
   } else {
     selectedMember.value = groupMemberService.getMemberById(row.groupMemberId);
     if (useGroup().getActiveMemberRows(groupMembersNew.value).length === 1) {
-      // step = 'desintagrate'
       alertWarningAction(
         'Nota: Ao remover este membro o grupo será desintegrado. Continuar?'
       ).then((result) => {
@@ -424,7 +402,6 @@ const removeMember = (row) => {
         }
       });
     } else {
-      // this.step = 'memberRemotion'
       alertWarningAction(
         'Confirma a remoção do membro [' + row.fullName + '], deste grupo?'
       ).then((result) => {
@@ -460,15 +437,8 @@ const loadMembers = () => {
   if (useGroup().isDesintegrated(selectedGroup)) {
     members.value = allMembers.value;
   }
-  // members.value = members.value.filter((member) => {
-  //  return useGroupMember().isActive(member);
-  // });
+
   members.value.forEach((member) => {
-    /*
-    if (member.patient.identifiers === undefined) {
-      member.patient = patientService.getPatienWithstByID(member.patient.id);
-    }
-    */
     if (member.patient.identifiers !== undefined) {
       member.patient.identifiers[0].episodes[0] =
         lastStartEpisodeWithPrescription(member.patient.identifiers[0].id);
@@ -483,34 +453,9 @@ const loadMembers = () => {
               .pack.id
           );
       }
-      /*
-      if (
-        member.patient.identifiers[0].episodes[0] !== null &&
-        useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
-          .prescription !== null
-      ) {
-
-            const prescription = Prescription.query()
-                                          .with('prescriptionDetails')
-                                          .with('duration')
-                                          .with(['prescribedDrugs.drug.form', 'prescribedDrugs.drug.clinicalService.identifierType'])
-                                          .with('doctor')
-                                          .with('patientVisitDetails.*')
-                                          .where('id', member.patient.identifiers[0].episodes[0].lastVisit().prescription.id)
-                                          .first()
-          prescription.patientVisitDetails = PatientVisitDetails.query().withAll().where('prescription_id', prescription.id).get()
-          member.patient.identifiers[0].episodes[0].lastVisit().prescription = prescription
-
-        console.log(
-          useEpisode().lastVisit(member.patient.identifiers[0].episodes[0])
-            .prescription
-        );
-      }
-      */
     }
   });
   if (!isOnline) return members.value;
-  // closeLoading();
   return groupMembersNew.value;
 };
 
@@ -519,11 +464,7 @@ const lastStartEpisodeWithPrescription = (identifierId) => {
 };
 
 onMounted(() => {
-  // showloading();
   if (!isOnline) getGroupMembers();
-  // getGroupMembers();
-  // closeLoading();
-  console.log(groupMembersNew);
 });
 
 const dataFechComplete = computed(() => {
@@ -538,7 +479,6 @@ const loadedMembers = computed({
 });
 
 const loadedMembersInfo = computed(() => {
-  console.log(loadedPrescriptionInfo.value);
   return loadedPrescriptionInfo.value;
 });
 
@@ -547,7 +487,6 @@ provide('loadMemberInfoToShowByGroupId', loadMemberInfoToShowByGroupId);
 provide('isNewPrescription', isNewPrescription);
 provide('selectedMember', selectedMember);
 provide('showAddPrescription', showAddPrescription);
-// provide('closePrescriptionOption', closePrescriptionOption);
 </script>
 
 <style lang="scss">

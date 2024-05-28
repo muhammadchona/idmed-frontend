@@ -111,6 +111,7 @@ import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 import { computed, inject, onMounted, ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import patientService from 'src/services/api/patientService/patientService';
 
 //Declatarion
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
@@ -176,9 +177,8 @@ const submitForm = () => {
 };
 
 const idadePaciente = computed(() => {
-  return idadeCalculator(
-    getDDMMYYYFromJSDate(curIdentifier.patient.dateOfBirth)
-  );
+  const paciente = patientService.getById(curIdentifier.patient_id);
+  return idadeCalculator(getDDMMYYYFromJSDate(paciente.dateOfBirth));
 });
 
 const getDrugs = computed(() => {

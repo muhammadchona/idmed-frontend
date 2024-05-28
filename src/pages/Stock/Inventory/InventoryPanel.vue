@@ -53,7 +53,7 @@
               </template>
             </q-input>
             <q-separator class="q-mx-sm" />
-            <div class="row q-pa-sm">
+            <div class="row q-pa-sm" v-if="currInventory !== null">
               <q-btn
                 unelevated
                 color="blue"
@@ -190,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, provide } from 'vue';
+import { ref, computed, onMounted, provide, reactive } from 'vue';
 import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/InventoryStockAdjustment';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
@@ -211,6 +211,7 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
 import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
 import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
+import { v4 as uuidv4 } from 'uuid';
 
 const { isMobile, isOnline } = useSystemUtils();
 const inventoryMethod = useInventory();
@@ -218,6 +219,7 @@ const router = useRouter();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertWarningAction } = useSwal();
 const inventoryStockAdjMethod = useInventoryStockAdjustment();
+const inventoryTemp = reactive(ref());
 
 let step = 'display';
 
@@ -297,6 +299,25 @@ const doProcessAndClose = async () => {
     inventory.open = false;
   }
   inventory.adjustments = currInventory.value.adjustments;
+
+  if (
+    inventory.adjustments.length <= 0 ||
+    inventory.adjustments === null ||
+    inventory.adjustments === undefined
+  ) {
+    inventory.adjustments = inventoryTemp.value.adjustments;
+  }else{
+    if(inventory.adjustments.length !== inventoryTemp.value.adjustments.length){
+      inventory.adjustments = inventoryTemp.value.adjustments;
+    }
+  }
+
+  inventory.adjustments.forEach((adjustment) => {
+    if (adjustment.id === null) {
+      adjustment.id = uuidv4();
+    }
+  });
+
   saveAllAdjustments(inventory);
 };
 
@@ -475,14 +496,19 @@ const currInventory = computed(() => {
 
 onMounted(() => {
   closeLoading();
+  inventoryTemp.value = currInventory.value;
 });
 
 const drugs = computed(() => {
-  if (currInventory.value.generic) {
-    return drugService.getDrugsWithValidStockInList();
+  if (currInventory.value !== null) {
+    if (currInventory.value.generic) {
+      return drugService.getDrugsWithValidStockInList();
+    } else {
+      const selectedDrugs = localStorage.getItem('selectedDrugs').split(',');
+      return drugService.getDrugsFromListId(selectedDrugs);
+    }
   } else {
-    const selectedDrugs = localStorage.getItem('selectedDrugs').split(',');
-    return drugService.getDrugsFromListId(selectedDrugs);
+    return [];
   }
 });
 
@@ -493,6 +519,7 @@ const inventoryType = computed(() => {
 });
 
 provide('title', title);
+provide('currInventory', currInventory);
 </script>
 
 <style lang="scss">
