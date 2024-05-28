@@ -4,7 +4,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import useNotify from 'src/composables/shared/notify/UseNotify';
 import { Notify } from 'quasar';
 import { useLoading } from 'src/composables/shared/loading/loading';
-
+import eventBus from '../../../utils/eventbus';
 const { website } = useSystemUtils();
 const { notifyError } = useNotify();
 const { closeLoading } = useLoading();
@@ -168,6 +168,7 @@ instance.interceptors.response.use(
       }
     } else {
       if (String(error.message).includes('Network Error')) {
+        eventBus.emit('notification', true);
         Notify.create({
           icon: 'announcement',
           message: 'Problemas ao conectar-se com o Servidor. ',

@@ -266,7 +266,12 @@
               </q-card-section>
 
               <q-card-actions align="right" class="text-primary">
-                <q-btn color="red" label="Fechar" v-close-popup />
+                <q-btn
+                  color="red"
+                  label="Fechar"
+                  v-close-popup
+                  :disable="isOpen"
+                />
               </q-card-actions>
             </q-card>
           </q-dialog>
@@ -294,7 +299,7 @@ import menuService from 'src/services/api/menu/menuService';
 import provinceService from 'src/services/api/provinceService/provinceService';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import bcrypt from 'bcryptjs';
@@ -308,7 +313,7 @@ import StockReferenceAdjustmentService from 'src/services/api/stockAdjustment/St
 import StockDestructionAdjustmentService from 'src/services/api/stockAdjustment/StockDestructionAdjustmentService';
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
-
+import eventBus from '../../utils/eventbus';
 const { notifyError } = useNotify();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -328,7 +333,7 @@ const isPwd = ref(true);
 const submitting = ref(false);
 const notice = ref(true);
 const popUpUrlMobile = ref(false);
-
+const isOpen = ref(false);
 /*
 Hook
 */
@@ -371,8 +376,15 @@ onMounted(() => {
     localStorage.setItem('currInventory', '');
     localStorage.setItem('Btoa', '');
   }
+  eventBus.on('notification', (notificationIsOpen) => {
+    isOpen.value = notificationIsOpen;
+  });
+  console.log(isOpen.value);
 });
 
+onBeforeUnmount(() => {
+  eventBus.off('notification');
+});
 /*
 Computed
 */
