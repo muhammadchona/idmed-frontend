@@ -214,6 +214,10 @@ const clinic = computed(() => {
   return clinicService.currClinic();
 });
 
+const isClinicSector = computed(() => {
+  return clinicService.isClinicSector(clinic.value);
+});
+
 const menusVisible = (name) => {
   const menus = sessionStorage.getItem('role_menus');
   if (menus !== null)
@@ -237,6 +241,8 @@ onMounted(() => {
       }, 5000);
     }
   }
+  console.log(clinic.value);
+  console.log(isClinicSector.value);
 });
 
 watch(clinic, () => {
