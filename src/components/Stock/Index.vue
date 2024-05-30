@@ -11,11 +11,13 @@
           @click="selectTab('inventory')"
         />
         <q-tab
+          v-if="!isClinicSector"
           name="stockDistributor"
           label="Distribuicao"
           @click="selectTab('stockDistributor')"
         />
         <q-tab
+          v-if="isClinicSector"
           name="confirmDistribution"
           label="Confirmar Distribuicao"
           @click="selectTab('confirmDistribution')"
@@ -95,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, provide, computed, onMounted } from 'vue';
+import { ref, provide, computed, onMounted, inject } from 'vue';
 // import StockEntranceMethod from 'src/methods/stockEntrance/StockEntranceMethod';
 
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -128,6 +130,8 @@ const createEntrance = ref(false);
 const createInventory = ref(false);
 const createStockDitribution = ref(false);
 const title = ref('Gestão de Stock');
+const currClinic = inject('currClinic');
+const isClinicSector = ref('');
 
 const addEntrada = () => {
   if (tab.value === 'entrance') {
@@ -164,6 +168,9 @@ onMounted(() => {
   } else {
     tab.value = activeTabStock;
   }
+  isClinicSector.value = clinicService.isClinicSector(
+    clinicService.currClinic()
+  );
 });
 
 const buttonVisible = computed(() => {
@@ -173,6 +180,7 @@ const selectTab = (tabName) => {
   localStorage.setItem('activeTabStock', tabName);
   tab.value = tabName;
 };
+
 provide('currClinic', clinic);
 provide('activeDrugs', activeDrugs);
 provide('isCharts', false);
