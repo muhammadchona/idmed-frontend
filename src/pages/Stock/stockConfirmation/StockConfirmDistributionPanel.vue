@@ -392,10 +392,10 @@
 
                 <tr v-show="props.expand">
                   <th></th>
-                  <th></th>
-                  <th></th>
+                  <th align="left"><b>Fornecedor</b></th>
                   <th align="left"><b>Lote</b></th>
                   <th align="left"><b>Quantidade</b></th>
+                  <th align="left"><b>Data de Validade</b></th>
                 </tr>
 
                 <q-tr
@@ -404,15 +404,13 @@
                   v-show="props.expand"
                 >
                   <q-td> </q-td>
-                  <q-td> </q-td>
-                  <q-td> </q-td>
-
-                  <q-td key="batchNumber">
-                    {{ col.stock.batchNumber }}
-                  </q-td>
-
+                  <q-td key="manufacture">{{ col.stock.manufacture }} </q-td>
+                  <q-td key="batchNumber"> {{ col.stock.batchNumber }}</q-td>
                   <q-td key="quantity">
                     {{ col.quantity }}
+                  </q-td>
+                  <q-td key="expireDate">
+                    {{ formatDate(col.stock.expireDate) }}
                   </q-td>
                 </q-tr>
               </template>
@@ -453,7 +451,7 @@ import StockDistributorService from 'src/services/api/stockDistributorService/St
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-
+import { date } from 'quasar';
 // import { v4 as uuidv4 } from 'uuid'
 
 // components
@@ -462,7 +460,6 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DrugDistributor from '../../../stores/models/drugDistributor/DrugDistributor';
-import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 const router = useRouter();
@@ -497,9 +494,7 @@ const step = ref('display');
 const guiaStep = ref('display');
 const selectedStock = ref([]);
 const drugs = ref([]);
-const clinicSectors = ref([]);
 const drugDistributorList = ref([]);
-let stockDistributorBatch = '';
 const orderNumberRef = ref('');
 const notesRef = ref('');
 
@@ -693,6 +688,10 @@ const isCreationStep = computed(() => {
 const isGuiaEditionStep = computed(() => {
   return guiaStep.value === 'edit';
 });
+
+const formatDate = (dateString) => {
+  return date.formatDate(dateString, 'DD-MM-YYYY');
+};
 
 const isGuiaDisplayStep = computed(() => {
   return guiaStep.value === 'display';
