@@ -92,16 +92,6 @@ export default {
       });
   },
 
-  updateStockDistributorStatus(idStockDistributor: any, status: any) {
-    return api()
-      .patch(
-        `stockDistributor/updateStockDistributorStatus/${idStockDistributor}/${status}`
-      )
-      .then((resp) => {
-        stockDistributor.save(resp.data);
-      });
-  },
-
   deleteWeb(id: any) {
     return api()
       .delete('stockDistributor/' + id)
@@ -210,15 +200,27 @@ export default {
       .first();
   },
 
-  getStockDistributorServices() {
+  getStockDistributorServices(clinicId: any) {
     return stockDistributor
       .query()
       .with('clinic')
       .with('drugDistributors')
+      .where('clinic_id', clinicId)
       .orderBy('creationDate', 'desc')
       .get();
   },
 
+  getStockDistributorConfirmation(clinicId: any) {
+    return stockDistributor
+      .query()
+      .with('clinic')
+      .with('drugDistributors')
+      .whereHas('drugDistributors', (query) => {
+        query.where('clinic_id', clinicId);
+      })
+      .orderBy('creationDate', 'desc')
+      .get();
+  },
   deleteAllFromStorage() {
     stockDistributor.flush();
   },

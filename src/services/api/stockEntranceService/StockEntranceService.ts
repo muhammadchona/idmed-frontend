@@ -111,10 +111,26 @@ export default {
   },
 
   async apiGetAllByClinicIdWeb(clinicId: string, offset: number, max: number) {
-    const a = await api().get(
-      '/stockEntrance/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
-    );
-    return a;
+    if (offset >= 0) {
+      return api()
+        .get(
+          '/stockEntrance/clinic/' +
+            clinicId +
+            '?offset=' +
+            offset +
+            '&max=' +
+            max
+        )
+        .then((resp) => {
+          if (resp.data.length > 0) {
+            stockEntrance.save(resp.data);
+            offset = offset + 100;
+            this.apiGetAllByClinicIdWeb(clinicId, offset, max);
+          } else {
+            closeLoading();
+          }
+        });
+    }
   },
 
   //Mobile

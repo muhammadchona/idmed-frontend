@@ -17,6 +17,7 @@ export default class DrugDistributor extends Model {
       clinic_id: this.attr(''),
       syncStatus: this.attr(''),
       enabled: this.boolean(false),
+      status: this.attr(''),
       // relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       stockDistributor: this.belongsTo(

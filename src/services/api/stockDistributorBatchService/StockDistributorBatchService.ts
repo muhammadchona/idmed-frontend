@@ -119,11 +119,11 @@ export default {
       .first();
   },
 
-  getStockDistributorBatchByStockDistributorId(stockDistributorId: string) {
+  getStockDistributorBatchByDrugDistributorId(drugDistributorId: string) {
     return stockDistributorBatch
       .query()
       .withAllRecursive(3)
-      .where('stock_distributor_id', stockDistributorId)
+      .where('drug_distributor_id', drugDistributorId)
       .get();
   },
 

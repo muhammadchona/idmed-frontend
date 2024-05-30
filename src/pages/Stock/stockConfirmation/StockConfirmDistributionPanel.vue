@@ -84,7 +84,7 @@
               class="col"
               dense
               flat
-              :rows="stockObjectsList"
+              :rows="drugDistributorList"
               :columns="columns"
               row-key="id"
             >
@@ -171,7 +171,7 @@
                         dense
                         round
                         color="red"
-                        icon="clear"
+                        icon="done"
                         @click="cancel(props.row)"
                       />
                       <q-btn
@@ -222,10 +222,6 @@
             :expandVisible="false"
             :mainContainer="true"
             bgColor="bg-primary"
-            :statusVisible="true"
-            :statusTitle="statusTitle"
-            :statusColor="statusColor"
-            :statusIcon="statusIcon"
             >Notas da Guia
           </ListHeader>
           <div class="box-border q-pt-md">
@@ -282,24 +278,6 @@
             <div class="row q-pa-sm">
               <q-btn
                 unelevated
-                color="blue"
-                class="col"
-                label="Confirmar"
-                @click="confirmOrder"
-                v-if="status === 'P'"
-              />
-
-              <q-btn
-                unelevated
-                color="red"
-                class="q-ml-md col"
-                label="Rejeitar"
-                @click="rejectOrder"
-                v-if="status === 'P'"
-              />
-
-              <q-btn
-                unelevated
                 color="orange"
                 class="q-ml-md col"
                 label="Voltar"
@@ -325,7 +303,7 @@
               class="col"
               dense
               flat
-              :rows="stockObjectsList"
+              :rows="drugDistributorList"
               :columns="columns"
               row-key="id"
             >
@@ -339,7 +317,7 @@
               </template>
               <template #header="props">
                 <q-tr class="text-left bg-grey-3" :props="props">
-                  <!-- <q-th style="width: 70px">{{ columns[0].label }}</q-th> -->
+                  <q-th style="width: 70px">{{}}</q-th>
                   <q-th class="col">{{ columns[1].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[2].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[3].label }}</q-th>
@@ -351,83 +329,88 @@
                   <!-- <q-td key="order" :props="props">
                     {{ index }}
                   </q-td> -->
+
+                  <q-td auto-width>
+                    <q-btn
+                      size="sm"
+                      color="primary"
+                      round
+                      dense
+                      @click="props.expand = !props.expand"
+                      :icon="props.expand ? 'remove' : 'add'"
+                    />
+                  </q-td>
+
                   <q-td key="drug" :props="props">
-                    <q-select
-                      class="col"
-                      dense
-                      outlined
-                      :disable="true"
-                      ref="drug"
-                      v-model="props.row.stock.drug"
-                      :options="drugs"
-                      option-value="id"
-                      option-label="name"
-                      label="Medicamento"
-                      @filter="filterFn"
-                      use-input
-                      hide-selected
-                      fill-input
-                      input-debounce="0"
-                    >
-                      <template v-slot:no-option>
-                        <q-item>
-                          <q-item-section class="text-grey">
-                            Sem Resultados
-                          </q-item-section>
-                        </q-item>
-                      </template>
-                    </q-select>
+                    {{ props.row.drug.name }}
                   </q-td>
-
                   <q-td key="clinic" :props="props">
-                    <q-select
-                      class="col"
-                      dense
-                      outlined
-                      :disable="true"
-                      ref="drug"
-                      v-model="props.row.drugDistributor.clinic"
-                      :options="clinicSectors"
-                      option-value="id"
-                      option-label="clinicName"
-                      label="Sector Clinico"
-                      @filter="filterClinicSectors"
-                      use-input
-                      hide-selected
-                      fill-input
-                      input-debounce="0"
-                    >
-                      <template v-slot:no-option>
-                        <q-item>
-                          <q-item-section class="text-grey">
-                            Sem Resultados
-                          </q-item-section>
-                        </q-item>
-                      </template>
-                    </q-select>
+                    {{ props.row.clinic.clinicName }}
                   </q-td>
-
-                  <q-td key="batchNumber" :props="props">
-                    <q-input
-                      outlined
-                      v-model="props.row.stock.batchNumber"
-                      :disable="true"
-                      label="Lote"
-                      dense
-                      class="col"
-                    />
-                  </q-td>
-
                   <q-td key="quantity" :props="props">
-                    <q-input
-                      v-model="props.row.quantity"
-                      :disable="true"
-                      label="Quantidade"
-                      type="number"
-                      dense
-                      outlined
-                      class="col"
-                    />
+                    {{ props.row.quantity }}
+                  </q-td>
+
+                  <q-td key="options" :props="props">
+                    <div class="col" v-if="props.row.status === 'P'">
+                      <q-btn
+                        :loading="submitting"
+                        flat
+                        size="md"
+                        dense
+                        round
+                        color="primary"
+                        icon="done"
+                        @click="confirmRecord(props.row)"
+                      />
+
+                      <q-btn
+                        size="md"
+                        flat
+                        dense
+                        round
+                        color="orange-5"
+                        icon="clear"
+                        @click="rejectRecord(props.row)"
+                      />
+                    </div>
+                    <div class="col" v-else-if="props.row.status === 'C'">
+                      <q-chip color="green" text-color="white">
+                        Confirmado
+                      </q-chip>
+                    </div>
+                    <div class="col" v-else-if="props.row.status === 'R'">
+                      <q-chip color="orange" text-color="white">
+                        Rejeitado
+                      </q-chip>
+                    </div>
+                    <div class="col" v-else-if="props.row.status === 'A'">
+                      <q-chip color="red" text-color="white"> Anulado </q-chip>
+                    </div>
+                  </q-td>
+                </q-tr>
+
+                <tr v-show="props.expand">
+                  <th></th>
+                  <th align="left"><b>Fornecedor</b></th>
+                  <th align="left"><b>Lote</b></th>
+                  <th align="left"><b>Quantidade</b></th>
+                  <th align="left"><b>Data de Validade</b></th>
+                </tr>
+
+                <q-tr
+                  v-for="col in props.row.stockDistributorBatchs"
+                  :key="col.id"
+                  v-show="props.expand"
+                >
+                  <q-td> </q-td>
+                  <q-td key="manufacture">{{ col.stock.manufacture }} </q-td>
+                  <q-td key="batchNumber"> {{ col.stock.batchNumber }}</q-td>
+                  <q-td key="quantity">
+                    {{ col.quantity }}
+                  </q-td>
+                  <q-td key="expireDate">
+                    {{ formatDate(col.stock.expireDate) }}
                   </q-td>
                 </q-tr>
               </template>
@@ -468,7 +451,7 @@ import StockDistributorService from 'src/services/api/stockDistributorService/St
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-
+import { date } from 'quasar';
 // import { v4 as uuidv4 } from 'uuid'
 
 // components
@@ -477,7 +460,7 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DrugDistributor from '../../../stores/models/drugDistributor/DrugDistributor';
-import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
+import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 const router = useRouter();
 const dateUtils = useDateUtils();
@@ -485,9 +468,7 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
-const statusTitle = ref('Pendente');
-const statusColor = ref('orange');
-const statusIcon = ref('pending');
+
 const columns = [
   {
     name: 'order',
@@ -499,23 +480,21 @@ const columns = [
   },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
   { name: 'clinic', align: 'left', label: 'Sector Clinico', sortable: true },
-  { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
+  // { name: 'batchNumber', align: 'left', label: 'Lote', sortable: true },
   { name: 'quantity', align: 'left', label: 'Quantidade', sortable: true },
+  { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 
 let submitting = false;
 const creationDate = ref('');
 const orderNumber = ref('');
 const notes = ref('');
-const status = ref('');
 
 const step = ref('display');
 const guiaStep = ref('display');
 const selectedStock = ref([]);
 const drugs = ref([]);
-const clinicSectors = ref([]);
-const stockObjectsList = ref([]);
-let stockDistributorBatch = '';
+const drugDistributorList = ref([]);
 const orderNumberRef = ref('');
 const notesRef = ref('');
 
@@ -546,85 +525,47 @@ const filterFn = (val, update, abort) => {
   }
 };
 
-const filterClinicSectors = (val, update, abort) => {
-  const stringOptions = clinicSectorsList.value;
-  if (val === '') {
-    update(() => {
-      return (clinicSectors.value = stringOptions.map((drug) => drug));
-    });
-  } else if (stringOptions.length === 0) {
-    update(() => {
-      clinicSectors.value = [];
-    });
-  } else {
-    update(() => {
-      clinicSectors.value = stringOptions
-        .map((sector) => sector)
-        .filter((sector) => {
-          return (
-            sector &&
-            sector.clinicName.toLowerCase().indexOf(val.toLowerCase()) !== -1
-          );
-        });
-    });
-  }
-};
-
 const init = () => {
   creationDate.value = dateUtils.getDDMMYYYFromJSDate(
     currStockDistributor.value.creationDate
   );
   orderNumber.value = currStockDistributor.value.orderNumber;
   notes.value = currStockDistributor.value.notes;
-  status.value = currStockDistributor.value.status;
-  if (status.value === 'C') {
-    statusTitle.value = 'Confirmado';
-    statusColor.value = 'info';
-    statusIcon.value = 'check';
-  } else if (status.value === 'R') {
-    statusTitle.value = 'Rejeitado';
-    statusColor.value = 'red';
-    statusIcon.value = 'warning';
-  } else {
-    statusTitle.value = 'Pendente';
-    statusColor.value = 'orange';
-    statusIcon.value = 'pending';
-  }
 };
 
-const confirmOrder = () => {
+const confirmRecord = (record) => {
+  // alert(record);
+  console.log(record);
   alertWarningAction(
-    'Deseja Cofirmar a presente Ordem de distribuicao de Stock?',
+    'Deseja Cofirmar a presente distribuicao de Stock?',
     'Não',
     'Sim'
   ).then((result) => {
     if (result) {
       guiaStep.value = 'delete';
-      doConfirmOrder(currStockDistributor);
+      doConfirmRecord(record);
     }
   });
 };
 
-const rejectOrder = () => {
+const rejectRecord = (record) => {
   alertWarningAction(
-    'Deseja rejeitar a presente Ordem de distribuicao de Stock?',
+    'Deseja rejeitar a presente distribuicao de Stock?',
     'Não',
     'Sim'
   ).then((result) => {
     if (result) {
-      doRejectOrder(currStockDistributor);
+      doRejectRecord(record);
     }
   });
 };
 
-const doConfirmOrder = (order) => {
+const doConfirmRecord = (record) => {
   showloading();
-  StockDistributorService.updateStockDistributorStatus(order.value.id, 'C')
+  record.enabled = false;
+  record.status = 'C';
+  DrugDistributorService.updateDrugDistributorStatus(record, 'C')
     .then((resp) => {
-      status.value = 'C';
-      statusTitle.value = 'Confirmado';
-      statusColor.value = 'blue';
-      statusIcon.value = 'check';
       closeLoading();
       alertSucess('Operação efectuada com sucesso.');
     })
@@ -633,14 +574,12 @@ const doConfirmOrder = (order) => {
     });
 };
 
-const doRejectOrder = (order) => {
+const doRejectRecord = (record) => {
   showloading();
-  StockDistributorService.updateStockDistributorStatus(order.value.id, 'R')
+  record.enabled = false;
+  record.status = 'R';
+  DrugDistributorService.updateDrugDistributorStatus(record, 'R')
     .then((resp) => {
-      status.value = 'R';
-      statusTitle.value = 'Rejeitado';
-      statusColor.value = 'red';
-      statusIcon.value = 'warning';
       closeLoading();
       alertSucess('Operação efectuada com sucesso.');
     })
@@ -664,7 +603,7 @@ const initNewStock = () => {
       clinic: new Clinic(),
       stockDistributor: currStockDistributor,
     });
-    stockObjectsList.value.push(newStock);
+    drugDistributorList.value.push(newStock);
     closeLoading();
   }
 };
@@ -682,10 +621,10 @@ const cancel = (stock) => {
 };
 
 const removeFromList = (stock) => {
-  const i = stockObjectsList.value
+  const i = drugDistributorList.value
     .map((toRemove) => toRemove.id)
     .indexOf(stock.id); // find index of your object
-  stockObjectsList.value.splice(i, 1);
+  drugDistributorList.value.splice(i, 1);
 };
 
 const initStockEdition = (stock) => {
@@ -709,17 +648,15 @@ const getCurrStockDistributor = () => {
 };
 
 const loadstockObjectsList = () => {
-  const stocks =
-    StockDistributorBatchService.getStockDistributorBatchByStockDistributorId(
-      currStockDistributor.value.id
-    );
+  const stocks = DrugDistributorService.getDrugDistributorList(
+    currStockDistributor.value.id
+  );
+  console.log('Finished loading stock: ' + stocks);
   Object.keys(stocks).forEach(
     function (k) {
-      stockObjectsList.value.push(stocks[k]);
+      drugDistributorList.value.push(stocks[k]);
     }.bind(this)
   );
-
-  console.log('Finished loading stock');
 };
 
 onMounted(() => {
@@ -751,6 +688,10 @@ const isCreationStep = computed(() => {
 const isGuiaEditionStep = computed(() => {
   return guiaStep.value === 'edit';
 });
+
+const formatDate = (dateString) => {
+  return date.formatDate(dateString, 'DD-MM-YYYY');
+};
 
 const isGuiaDisplayStep = computed(() => {
   return guiaStep.value === 'display';

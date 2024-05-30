@@ -114,6 +114,7 @@ const submitForm = () => {
       stockDistributor.clinic = clinicService.currClinic();
       stockDistributor.clinic_id = clinicService.currClinic().id;
       stockDistributor.id = uuidv4();
+      stockDistributor.status = 'P';
       stockDistributorService
         .post(stockDistributor)
         .then((resp) => {

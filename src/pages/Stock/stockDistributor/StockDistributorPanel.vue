@@ -228,7 +228,7 @@
                       />
                     </div>
                     <div class="col">
-                      <q-chip color="info" text-color="white"> Em Uso </q-chip>
+                      <!--q-chip color="info" text-color="white"> Em Uso </q-chip-->
                     </div>
                   </q-td>
                 </q-tr>
@@ -394,9 +394,11 @@
                   <q-th class="col">{{ columns[1].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[2].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[3].label }}</q-th>
-
                   <q-th style="width: 150px; text-align: center">{{
                     columns[4].label
+                  }}</q-th>
+                  <q-th style="width: 150px; text-align: center">{{
+                    columns[5].label
                   }}</q-th>
                 </q-tr>
               </template>
@@ -472,8 +474,28 @@
                       class="col"
                     />
                   </q-td>
-                  <q-td key="options" :props="props">
-                    <div class="col" v-if="props.row.enabled">
+                  <q-td
+                    key="status"
+                    :props="props"
+                    style="width: 150px; text-align: center"
+                  >
+                    <q-chip
+                      square
+                      :color="getOrderColor(props.row.status)"
+                      text-color="white"
+                      v-if="isEstadoVisible(props.row.status)"
+                      >{{ getOrderStatus(props.row.status) }}
+                    </q-chip>
+                  </q-td>
+                  <q-td
+                    key="options"
+                    :props="props"
+                    style="width: 150px; text-align: center"
+                  >
+                    <div
+                      class="col"
+                      v-if="isEditOptionsVisible(props.row.status)"
+                    >
                       <q-btn
                         v-if="props.row.enabled"
                         :loading="submitting"
@@ -493,7 +515,7 @@
                         icon="clear"
                         @click="cancel(props.row)"
                       />
-                      <q-btn
+                      <!--q-btn
                         v-if="!props.row.enabled"
                         flat
                         dense
@@ -501,9 +523,11 @@
                         color="orange-5"
                         icon="edit"
                         @click="initStockEdition(props.row)"
-                      />
+                      /-->
                       <q-btn
-                        v-if="!props.row.enabled"
+                        v-if="
+                          props.row.status !== 'R' && props.row.status !== ''
+                        "
                         flat
                         dense
                         round
@@ -514,7 +538,7 @@
                       />
                     </div>
                     <div class="col" v-else>
-                      <q-chip color="info" text-color="white"> Em Uso </q-chip>
+                      <!--q-chip color="info" text-color="white"> Em Uso </q-chip-->
                     </div>
                   </q-td>
                 </q-tr>
@@ -588,6 +612,7 @@ const columns = [
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: true },
   { name: 'clinic', align: 'left', label: 'Sector Clinico', sortable: true },
   { name: 'quantity', align: 'left', label: 'Quantidade', sortable: true },
+  { name: 'status', align: 'left', label: 'Estado', sortable: true },
   { name: 'options', align: 'center', label: 'Opções', sortable: false },
 ];
 
@@ -606,12 +631,20 @@ let stockDistributorBatch = '';
 const orderNumberRef = ref('');
 const notesRef = ref('');
 
+const status = ref('');
+const isDeleteVisible = ref(false);
+
 const goBack = () => {
   router.go(-1);
 };
 
-const blockDataFutura = (date) => {
-  return date >= moment(new Date()).add(28, 'd').format('YYYY/MM/DD');
+const isEstadoVisible = (status) => {
+  return status !== '';
+};
+
+const isEditOptionsVisible = (status) => {
+  const aux = status === 'P' || status === 'R' || status === '';
+  return aux;
 };
 
 const filterFn = (val, update, abort) => {
@@ -784,12 +817,17 @@ const doRemoveGuia = () => {
   });
 };
 
-const doRemoveStock = (stock) => {
-  step.value = 'delete';
+const doRemoveStock = (record) => {
+  status.value = 'A';
+  step.value = 'display';
+  record.enabled = false;
+  record.status = 'A';
+
   showloading();
-  DrugDistributorService.delete(stock.id)
+  DrugDistributorService.updateDrugDistributorStatus(record, 'A')
     .then((resp) => {
-      removeFromList(stock);
+      step.value = 'display';
+      // loadStockList();
       closeLoading();
       alertSucess('Operação efectuada com sucesso.');
     })
@@ -813,6 +851,8 @@ const initNewStock = () => {
       clinic: new Clinic(),
       stockDistributor: currStockDistributor,
     });
+    status.value = 'P';
+
     stockList.value.push(newStock);
     closeLoading();
   }
@@ -832,6 +872,7 @@ const isPositiveInteger = (str) => {
 const validateStock = (stock) => {
   submitting = true;
   stock.stock_distributor_id = currStockDistributor.value.id;
+  stock.status = 'P';
 
   if (stock.drug.name === '') {
     submitting = false;
@@ -867,6 +908,7 @@ const doSave = (stockObj) => {
         // stock.id = resp.response.data.id
         submitting = false;
         step.value = 'display';
+        stock.enabled = false;
         alertSucess('Operação efectuada com sucesso.');
         closeLoading();
       })
@@ -891,16 +933,6 @@ const doSave = (stockObj) => {
         closeLoading();
       });
   }
-};
-
-const fetchStockDistributor = () => {
-  StockDistributorService.apiFetchById(currStockDistributor.value.id)
-    .then((resp) => {
-      currStockDistributor.value = resp.response.data;
-    })
-    .catch((error) => {
-      alertError('Ocorreu um erro inesperado');
-    });
 };
 
 const cancel = (stock) => {
@@ -939,7 +971,11 @@ const promptStockDeletion = (stock) => {
     );
   } else {
     alertWarningAction(
-      'Confirma a remoção do lote [' + stock.batchNumber + ']?',
+      'Confirma a anulação da distribuição [' +
+        stock.drug.name +
+        '] com quantidade [' +
+        stock.quantity +
+        ']?',
       'Não',
       'Sim'
     ).then((result) => {
@@ -958,10 +994,11 @@ const getCurrStockDistributor = () => {
 };
 
 const loadStockList = () => {
+  stockList.value = [];
   if (currStockDistributor.value.drugDistributors.length > 0) {
     Object.keys(currStockDistributor.value.drugDistributors).forEach(
       function (k) {
-        const stock = DrugDistributorService.getDrugDistributorList(
+        const stock = DrugDistributorService.getDrugDistributorById(
           currStockDistributor.value.drugDistributors[k].id
         );
         stockList.value.push(stock);
@@ -969,6 +1006,36 @@ const loadStockList = () => {
     );
   }
   console.log('Finished loading stock');
+};
+
+const getOrderStatus = (status) => {
+  if (status === 'P') {
+    //statusColor.value = 'orange';
+    return 'Pendente';
+  } else if (status === 'C') {
+    //statusColor.value = 'green';
+    return 'Confirmado';
+  } else if (status === 'R') {
+    //statusColor.value = 'red';
+    return 'Rejeitado';
+  } else if (status === 'A') {
+    return 'Anulado';
+  }
+};
+
+const getOrderColor = (status) => {
+  if (status === 'P') {
+    //statusColor.value = ;
+    return 'orange';
+  } else if (status === 'C') {
+    //statusColor.value =;
+    return 'green';
+  } else if (status === 'R') {
+    //statusColor.value = ;
+    return 'red';
+  } else if (status === 'A') {
+    return 'red';
+  }
 };
 
 onMounted(() => {
