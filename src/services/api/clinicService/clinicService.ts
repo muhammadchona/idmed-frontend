@@ -183,7 +183,6 @@ export default {
     if (clinicSectorUser === null || clinicSectorUser.includes('NORMAL')) {
       return clinic.withAllRecursive(2).where('mainClinic', true).first();
     } else {
-      console.log(this.getByCode(clinicSectorUser));
       return this.getByCode(clinicSectorUser);
     }
   },
@@ -319,5 +318,9 @@ export default {
   },
   deleteFromPinia() {
     return clinic.flush();
+  },
+
+  isClinicSector(currClinic: Clinic) {
+    return currClinic && !!currClinic.parentClinic_id;
   },
 };
