@@ -26,16 +26,17 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 onMounted(() => {
   const clinic = clinicService.currClinic();
   StockAlertService.apiGetStockAlertAll(clinic.id);
-  StockService.apiGetAllByClinicIdWeb(clinic.id);
+
   StockDistributorBatchService.get(0);
   DrugDistributorService.get(0);
   StockDistributorService.get(0);
+  StockService.apiGetAllByClinicIdWeb(clinic.id, 0);
 
   ReferedStockMovimentService.get(0);
   DestroyedStockService.get(0);
   InventoryStockAdjustmentService.get(0);
   InventoryService.get(0);
-  StockEntranceService.apiGetAllByClinicIdWeb(clinic.id);
+  StockEntranceService.apiGetAllByClinicId(clinic.id, 0, 100);
 });
 </script>
 

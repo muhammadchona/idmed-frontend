@@ -63,10 +63,20 @@ export default {
     return api().get('/stock?offset=' + offset + '&max=' + max);
   },
 
-  async apiGetAllByClinicIdWeb(clinicId: string, offset: number, max: number) {
-    return await api().get(
-      '/stock/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
-    );
+  async apiGetAllByClinicIdWeb(clinicId: string, offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('/stock/clinic/' + clinicId + '?offset=' + offset + '&max=100')
+        .then((resp) => {
+          if (resp.data.length > 0) {
+            stock.save(resp.data);
+            offset = offset + 100;
+            this.apiGetAllByClinicIdWeb(clinicId, offset);
+          } else {
+            closeLoading();
+          }
+        });
+    }
   },
 
   // PINIA

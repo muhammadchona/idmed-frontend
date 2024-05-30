@@ -92,16 +92,6 @@ export default {
       });
   },
 
-  updateStockDistributorStatus(idStockDistributor: any, status: any) {
-    return api()
-      .patch(
-        `stockDistributor/updateStockDistributorStatus/${idStockDistributor}/${status}`
-      )
-      .then((resp) => {
-        stockDistributor.save(resp.data);
-      });
-  },
-
   deleteWeb(id: any) {
     return api()
       .delete('stockDistributor/' + id)

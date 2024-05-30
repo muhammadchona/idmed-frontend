@@ -68,7 +68,7 @@ export default {
 
   // PINIA
 
-  getDrugDistributorList(id: string) {
+  getDrugDistributorById(id: string) {
     return drugDistributor.query().withAllRecursive().where('id', id).first();
   },
 
@@ -170,5 +170,24 @@ export default {
   // Local Storage Pinia
   deleteAllFromStorage() {
     drugDistributor.flush();
+  },
+
+  updateDrugDistributorStatus(record: any, status: any) {
+    return api()
+      .patch(
+        `drugDistributor/updateDrugDistributorStatus/${record.id}/${status}`
+      )
+      .then((resp) => {
+        drugDistributor.save(record);
+        return resp.data;
+      });
+  },
+
+  getDrugDistributorList(stockDistributorId: string) {
+    return drugDistributor
+      .query()
+      .withAllRecursive(3)
+      .where('stock_distributor_id', stockDistributorId)
+      .get();
   },
 };
