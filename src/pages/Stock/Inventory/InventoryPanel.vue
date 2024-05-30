@@ -306,8 +306,10 @@ const doProcessAndClose = async () => {
     inventory.adjustments === undefined
   ) {
     inventory.adjustments = inventoryTemp.value.adjustments;
-  }else{
-    if(inventory.adjustments.length !== inventoryTemp.value.adjustments.length){
+  } else {
+    if (
+      inventory.adjustments.length !== inventoryTemp.value.adjustments.length
+    ) {
       inventory.adjustments = inventoryTemp.value.adjustments;
     }
   }
@@ -317,7 +319,6 @@ const doProcessAndClose = async () => {
       adjustment.id = uuidv4();
     }
   });
-
   saveAllAdjustments(inventory);
 };
 
@@ -387,8 +388,20 @@ const saveAllAdjustments = (inventory) => {
       }
     }.bind(this)
   );
-  doSaveAll(0, inventory);
+  // doSaveAll(0, inventory);
+  closeClassInventory(inventory);
 };
+
+const closeClassInventory = (inventory) => {
+  InventoryService.apiClose(inventory.id).then((resp) => {
+    step = 'display';
+    InventoryService.closeInventoryPinia(inventory);
+    StockAlertService.apiGetStockAlertAll(clinicService.currClinic().id);
+    closeLoading();
+    alertSucess('Operação efectuada com sucesso.');
+  });
+};
+
 const doSaveAll = (i, inventory) => {
   const adjustments = inventory.adjustments;
 
@@ -403,6 +416,7 @@ const doSaveAll = (i, inventory) => {
       InventoryStockAdjustmentService.apiFetchById(adjustments[i].id).then(
         (resp1) => {
           if (resp1.data !== null && resp1.data !== '') {
+            console.log('Faz update adjuste');
             const adjustment = adjustments[i];
             adjustment.adjustedStock.adjustments = [];
             InventoryStockAdjustmentService.patch(
@@ -413,6 +427,7 @@ const doSaveAll = (i, inventory) => {
               setTimeout(doSaveAll(i, inventory), 2);
             });
           } else {
+            console.log('Faz Post adjuste');
             InventoryStockAdjustmentService.post(adjustments[i]).then(
               (resp) => {
                 i = i + 1;
@@ -421,9 +436,10 @@ const doSaveAll = (i, inventory) => {
             );
           }
           if (i === adjustments.length - 1) {
+            console.log('Faz update Inventario');
             inventory.open = false;
             inventory.endDate = new Date();
-            InventoryService.patch(inventory.id, inventory).then((resp) => {
+            InventoryService.apiClose(inventory.id).then((resp) => {
               step = 'display';
               InventoryService.closeInventoryPinia(inventory);
               StockAlertService.apiGetStockAlertAll(
@@ -432,6 +448,15 @@ const doSaveAll = (i, inventory) => {
               closeLoading();
               alertSucess('Operação efectuada com sucesso.');
             });
+            // InventoryService.patch(inventory.id, inventory).then((resp) => {
+            //   step = 'display';
+            //   InventoryService.closeInventoryPinia(inventory);
+            //   StockAlertService.apiGetStockAlertAll(
+            //     clinicService.currClinic().id
+            //   );
+            //   closeLoading();
+            //   alertSucess('Operação efectuada com sucesso.');
+            // });
           }
         }
       );
@@ -501,11 +526,31 @@ onMounted(() => {
 
 const drugs = computed(() => {
   if (currInventory.value !== null) {
+    if (!currInventory.value.open) {
+      const adjustedDrugs = [];
+      currInventory.value.adjustments.forEach((adjustment) => {
+        adjustedDrugs.push(adjustment.adjustedStock.drug_id);
+      });
+      return drugService.getDrugsFromListId(adjustedDrugs);
+    }
+
     if (currInventory.value.generic) {
       return drugService.getDrugsWithValidStockInList();
     } else {
-      const selectedDrugs = localStorage.getItem('selectedDrugs').split(',');
-      return drugService.getDrugsFromListId(selectedDrugs);
+      if (
+        localStorage.getItem('selectedDrugs') !== null &&
+        localStorage.getItem('selectedDrugs') !== undefined
+      ) {
+        const selectedDrugs = localStorage.getItem('selectedDrugs').split(',');
+
+        return drugService.getDrugsFromListId(selectedDrugs);
+      } else {
+        const adjustedDrugs = [];
+        currInventory.value.adjustments.forEach((adjustment) => {
+          adjustedDrugs.push(adjustment.adjustedStock.drug_id);
+        });
+        return drugService.getDrugsFromListId(adjustedDrugs);
+      }
     }
   } else {
     return [];
