@@ -7,7 +7,7 @@ import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 import District from 'src/stores/models/district/District';
 import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
-import ClinicSector from 'src/stores/models/clinicSector/ClinicSector';
+import { ClinicSector } from 'src/stores/models/clinic/ClinicSector';
 import IdentifierType from 'src/stores/models/identifierType/IdentifierType';
 import EpisodeType from 'src/stores/models/episodeType/EpisodeType';
 import StartStopReason from 'src/stores/models/startStopReason/StartStopReason';
