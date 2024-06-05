@@ -8,67 +8,81 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 const { closeLoading, showloading } = useLoading();
 
-
 const { isMobile, isOnline } = useSystemUtils();
-const destroyedStockRepo = useRepo(destroyedStock)
-
+const destroyedStockRepo = useRepo(destroyedStock);
 
 export default {
   // Axios API call
 
   post(params: any) {
     if (!isOnline.value) {
-     return this.putMobile(params);
+      return this.putMobile(params);
     } else {
-     return this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
-
     if (!isOnline.value) {
-     return this.getMobile();
+      return this.getMobile();
     } else {
       return this.getWeb(offset);
     }
-   },
-  patch( params: any) {
+  },
+  patch(params: any) {
     if (!isOnline.value) {
       return this.putMobile(params);
     } else {
-      return this.apiUpdateWeb( params);
-    }
-     },
-
-  async delete(id: string) {
-    if (isOnline.value ) {
-      return this.deleteMobile(id);
-    } else {
-     return  this.deleteWeb(id);
+      return this.apiUpdateWeb(params);
     }
   },
 
+  async delete(id: string) {
+    if (isOnline.value) {
+      return this.deleteMobile(id);
+    } else {
+      return this.deleteWeb(id);
+    }
+  },
 
   postWeb(params: string) {
     return api()
       .post('destroyedStock', params)
       .then((resp) => {
         destroyedStockRepo.save(resp.data);
-      })
+      });
   },
 
   getWeb(offset: number) {
     if (offset >= 0) {
       return api()
-      .get('destroyedStock?offset=' + offset)
+        .get('destroyedStock?offset=' + offset)
         .then((resp) => {
           destroyedStockRepo.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset);
           } else {
-            closeLoading()
+            closeLoading();
           }
-        })
+        });
+    }
+  },
+
+  getAllByClinic(clinicId: any, offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get(
+          'destroyedStock/clinic/' + clinicId + '?offset=' + offset + '&max=100'
+        )
+        .then((resp) => {
+          destroyedStockRepo.save(resp.data);
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.get(offset);
+          } else {
+            closeLoading();
+          }
+        });
     }
   },
   deleteWeb(id: any) {
@@ -79,53 +93,61 @@ export default {
       });
   },
   async apiUpdateWeb(destroyedStock: any) {
-    return await  api().patch('/destroyedStock', destroyedStock);
+    return await api().patch('/destroyedStock', destroyedStock);
   },
-// Mobile
+  // Mobile
 
+  async putMobile(params: any) {
+    const resp = await nSQL('destroyedStocks')
+      .query('upsert', JSON.parse(JSON.stringify(params)))
+      .exec();
+    destroyedStockRepo.save(params);
+    return resp;
+  },
 
-async putMobile (params: any) {
-  const resp = await nSQL('destroyedStocks').query('upsert',
-  JSON.parse( JSON.stringify(params))
- ).exec()
- destroyedStockRepo.save(params);
- return resp
-},
+  getMobile() {
+    return nSQL().onConnected(() => {
+      nSQL('destroyedStocks')
+        .query('select')
+        .exec()
+        .then((result) => {
+          console.log(result);
+          destroyedStockRepo.save(result);
+          return result;
+        });
+    });
+  },
 
-getMobile () {
-return nSQL().onConnected(() => {
-  nSQL('destroyedStocks').query('select').exec().then(result => {
-   console.log(result)
-   destroyedStockRepo.save(result)
-    return result
-   })
- })
-},
+  getBystockMobile(stock: any) {
+    return nSQL().onConnected(() => {
+      nSQL('destroyedStocks')
+        .query('select')
+        .where(['stocks[id]', '=', stock.id])
+        .exec()
+        .then((result) => {
+          console.log(result);
+          destroyedStockRepo.save(result);
+        });
+    });
+  },
 
-getBystockMobile (stock: any) {
-return nSQL().onConnected(() => {
- nSQL('destroyedStocks').query('select').where(['stocks[id]', '=', stock.id]).exec().then(result => {
-   console.log(result)
-   destroyedStockRepo.save(result)
- })
-})
-},
+  async deleteMobile(id: any) {
+    const resp = await nSQL('destroyedStocks')
+      .query('delete')
+      .where(['id', '=', id])
+      .exec();
+    destroyedStockRepo.destroy(id);
+    return resp;
+  },
 
-async deleteMobile (id: any) {
-const resp = await  nSQL('destroyedStocks').query('delete').where(['id', '=', id]).exec()
-destroyedStockRepo.destroy(id)
-return resp
-},
-
-async localDbGetAll () {
-  return nSQL(this.entity).query('select').exec().then(result => {
-    console.log(result)
-   // DestroyedStock.insertOrUpdate({ data: result })
-    return result
-    })
-}
-
- 
-  
-
+  async localDbGetAll() {
+    return nSQL(this.entity)
+      .query('select')
+      .exec()
+      .then((result) => {
+        console.log(result);
+        // DestroyedStock.insertOrUpdate({ data: result })
+        return result;
+      });
+  },
 };

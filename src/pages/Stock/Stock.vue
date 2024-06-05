@@ -30,12 +30,12 @@ onMounted(() => {
   StockDistributorBatchService.get(0);
   DrugDistributorService.get(0);
   StockDistributorService.get(0);
-  StockService.apiGetAllByClinicIdWeb(clinic.id, 0);
+  StockService.get(0, clinic.id);
 
-  ReferedStockMovimentService.get(0);
-  DestroyedStockService.get(0);
-  InventoryStockAdjustmentService.get(0);
-  InventoryService.get(0);
+  ReferedStockMovimentService.getAllByClinic(clinic.id, 0);
+  DestroyedStockService.getAllByClinic(clinic.id, 0);
+  InventoryStockAdjustmentService.getAllByClinic(clinic.id, 0);
+  InventoryService.getAllByClinic(clinic.id, 0);
   StockEntranceService.apiGetAllByClinicId(clinic.id, 0, 100);
 });
 </script>

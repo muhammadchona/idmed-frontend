@@ -159,6 +159,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import StockService from 'src/services/api/stockService/StockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isOnline } = useSystemUtils();
 
@@ -245,7 +246,7 @@ const prepareInit = () => {
 
 const getValidStocks = (drug) => {
   closeLoading();
-  return StockService.getValidStockByDrug(drug);
+  return StockService.getValidStockByDrug(drug, clinicService.currClinic().id);
 };
 
 const initNewAdjustment = (stock, drug, i) => {

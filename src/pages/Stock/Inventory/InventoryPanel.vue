@@ -449,7 +449,10 @@ const retriveRelatedDrug = (adjustment, drugList) => {
     );
   }
   const drug = drugService.getDrugById(adjustment.adjustedStock.drug_id);
-  if (drugList.length <= 0 && StockService.getValidStockByDrug(drug)) {
+  if (
+    drugList.length <= 0 &&
+    StockService.getValidStockByDrug(drug, clinicService.currClinic().id)
+  ) {
     drugList.push(drug);
   } else {
     Object.keys(drugList).forEach(function (i) {
@@ -479,7 +482,9 @@ onMounted(() => {
 
 const drugs = computed(() => {
   if (currInventory.value.generic) {
-    return drugService.getDrugsWithValidStockInList();
+    return drugService.getDrugsWithValidStockInList(
+      clinicService.currClinic().id
+    );
   } else {
     const selectedDrugs = localStorage.getItem('selectedDrugs').split(',');
     return drugService.getDrugsFromListId(selectedDrugs);

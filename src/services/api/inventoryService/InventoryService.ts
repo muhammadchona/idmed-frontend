@@ -174,6 +174,22 @@ export default {
     }
   },
 
+  getAllByClinic(clinicId: any, offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get('inventory/clinic/' + clinicId + '?offset=' + offset + '&max=100')
+        .then((resp) => {
+          inventory.save(resp.data);
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.get(offset);
+          } else {
+            closeLoading();
+          }
+        });
+    }
+  },
+
   apiUpdateWeb(id: any, params: any) {
     return api()
       .patch('inventory/' + id, params)
