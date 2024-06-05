@@ -21,11 +21,11 @@ export default {
       return this.postWeb(params);
     }
   },
-  get(offset: number) {
+  get(offset: number, clincId: any) {
     if (!isOnline.value) {
       return this.getMobile();
     } else {
-      return this.getWeb(offset);
+      return this.getWeb(offset, clincId);
     }
   },
   patch(id: string, params: any) {
@@ -80,9 +80,10 @@ export default {
   },
 
   // PINIA
-  getStockByDrug(drugId: string) {
+  getStockByDrug(drugId: string, clinicId: any) {
     return stock
       .where('drug_id', drugId)
+      .where('clinic_id', clinicId)
       .orderBy('expireDate', 'desc')
       .orderBy('stockMoviment', 'desc')
       .get();
@@ -100,9 +101,10 @@ export default {
       .get();
   },
 
-  getValidStockByDrug(drug: any) {
-    return stock
+  getValidStockByDrug(drug: any, clinicId: any) {
+    const stocks = stock
       .where('drug_id', drug.id)
+      .where('clinic_id', clinicId)
       .where((stock) => {
         return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
           moment().format('YYYY-MM-DD')
@@ -110,6 +112,7 @@ export default {
       })
       .orderBy('expireDate', 'desc')
       .get();
+    return stocks;
   },
 
   getValidStock() {
@@ -178,15 +181,24 @@ export default {
       });
   },
 
-  getWeb(offset: number) {
+  getWeb(offset: number, clinicId: any) {
     if (offset >= 0) {
       return api()
         .get('stock?offset=' + offset + '&max=100')
         .then((resp) => {
-          stock.save(resp.data);
+          const stocksResp = resp.data;
+          stocksResp.forEach((stockItem) => {
+            if (stockItem.clinic.id !== clinicId) {
+              stockItem.entrance = null;
+              stock.save(stockItem);
+            } else {
+              stock.save(stockItem);
+            }
+          });
+
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.get(offset);
+            this.get(offset, clinicId);
           } else {
             closeLoading();
           }

@@ -593,6 +593,7 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DrugDistributor from '../../../stores/models/drugDistributor/DrugDistributor';
+import StockService from 'src/services/api/stockService/StockService';
 
 const router = useRouter();
 const dateUtils = useDateUtils();
@@ -869,10 +870,9 @@ const isPositiveInteger = (str) => {
   return false;
 };
 
-const validateStock = (stock) => {
+const validateStock = async (stock) => {
   submitting = true;
   stock.stock_distributor_id = currStockDistributor.value.id;
-  stock.status = 'P';
 
   if (stock.drug.name === '') {
     submitting = false;
@@ -884,7 +884,20 @@ const validateStock = (stock) => {
     submitting = false;
     alertError('Por favor indicar uma quantidade válida!');
   } else {
-    doSave(stock);
+    const hasStock = await StockService.checkStockStatus(
+      stock.drug.id,
+      currStockDistributor.value.creationDate,
+      stock.quantity
+    );
+    if (hasStock) {
+      doSave(stock);
+    } else {
+      submitting = false;
+      closeLoading();
+      alertError(
+        'O medicamento não possui quantidade suficiente para a distribuição!'
+      );
+    }
   }
 };
 
@@ -896,6 +909,7 @@ const doSave = (stockObj) => {
   stock.drug.id = stock.drug_id;
   stock.stockDistributor = {};
   stock.stockDistributor.id = stockObj.stock_distributor_id;
+  stock.status = 'P';
 
   stock.clinic_id = stockObj.clinic.id;
   //stock.clinic = {};
@@ -909,6 +923,7 @@ const doSave = (stockObj) => {
         submitting = false;
         step.value = 'display';
         stock.enabled = false;
+
         alertSucess('Operação efectuada com sucesso.');
         closeLoading();
       })

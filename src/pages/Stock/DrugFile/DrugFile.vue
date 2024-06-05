@@ -363,7 +363,9 @@ const drug = computed(() => {
 });
 
 const stocks = (drug) => {
-  return StockService.getStockByDrug(drug.id);
+  const clinic = clinicService.currClinic();
+  const stocks = StockService.getStockByDrug(drug.id, clinic.id);
+  return stocks;
 };
 
 const drugFile = () => {
