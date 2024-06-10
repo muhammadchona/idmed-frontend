@@ -81,7 +81,7 @@ export default {
   getDrugsFromListId(drugListId: []) {
     return drug.query().withAllRecursive(1).find(drugListId);
   },
-  getDrugsWithValidStockInList(clinicId: any) {
+  getDrugsWithValidStockInList() {
     return drug
       .query()
       .withAllRecursive(1)
@@ -91,7 +91,6 @@ export default {
             moment().format('YYYY-MM-DD')
           );
         });
-        query.where('clinicId', clinicId);
         query.orderBy('expireDate', 'asc');
       })
       .get();
