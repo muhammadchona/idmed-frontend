@@ -259,13 +259,13 @@ const init = () => {
       lastPack.value.nextPickUpDate !== null &&
       lastPack.value.nextPickUpDate !== undefined
     ) {
-      curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+      curPack.value.pickupDate = getDDMMYYYFromJSDate(moment());
       curPack.value.weeksSupply = lastPack.value.weeksSupply;
       drugsDuration.value = durationService.getDurationByWeeks(
         curPack.value.weeksSupply
       );
     } else {
-      curPack.value.pickupDate = curPrescription.value.prescriptionDate;
+      curPack.value.pickupDate = getDDMMYYYFromJSDate(moment());
       curPack.value.weeksSupply = curPrescription.value.duration.weeks;
       drugsDuration.value = curPrescription.value.duration;
     }
