@@ -292,11 +292,13 @@ const generateDrugEventSummary = async () => {
     drugEventList.value = await drugFileService.getDrugFileSummary(drug.value);
     loading.value = false;
   } else {
-    drugFileService.apiGetDrugSummary(clinic.id, drug.value.id).then((resp) => {
-      const t = resp.data;
-      drugEventList.value = t;
-      loading.value = false;
-    });
+    drugFileService
+      .apiGetDrugSummary(clinic.id, localStorage.getItem('selectedDrug'))
+      .then((resp) => {
+        const t = resp.data;
+        drugEventList.value = t;
+        loading.value = false;
+      });
   }
 };
 
