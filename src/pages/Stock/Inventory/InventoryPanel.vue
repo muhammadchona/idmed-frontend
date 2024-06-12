@@ -299,13 +299,14 @@ const doProcessAndClose = async () => {
     inventory.open = false;
   }
   inventory.adjustments = currInventory.value.adjustments;
-
+  let hasAdjustments = true;
   if (
     inventory.adjustments.length <= 0 ||
     inventory.adjustments === null ||
     inventory.adjustments === undefined
   ) {
     inventory.adjustments = inventoryTemp.value.adjustments;
+    hasAdjustments = false;
   } else {
     if (
       inventory.adjustments.length !== inventoryTemp.value.adjustments.length
@@ -319,7 +320,7 @@ const doProcessAndClose = async () => {
       adjustment.id = uuidv4();
     }
   });
-  saveAllAdjustments(inventory);
+  saveAllAdjustments(inventory, hasAdjustments);
 };
 
 const doSaveAdjustment = (i) => {
@@ -336,60 +337,18 @@ const doSaveAdjustment = (i) => {
 
 // acualiza os stock movement
 
-const saveAllAdjustments = (inventory) => {
+const saveAllAdjustments = (inventory, hasAdjustments) => {
   showloading();
-  Object.keys(inventory.adjustments).forEach(
-    function (k) {
-      const adjustment = inventory.adjustments[k];
-      adjustment.adjustedStock = StockService.getStockById(
-        adjustment.adjustedStock.id
-      );
-      let operation = null;
-      if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
-        operation =
-          StockOperationTypeService.getStockOperatinTypeByCode(
-            'AJUSTE_POSETIVO'
-          );
-      } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
-        operation =
-          StockOperationTypeService.getStockOperatinTypeByCode(
-            'AJUSTE_NEGATIVO'
-          );
-      } else {
-        operation =
-          StockOperationTypeService.getStockOperatinTypeByCode('SEM_AJUSTE');
-      }
-      adjustment.captureDate = new Date();
-      adjustment.operation = operation;
-      adjustment.clinic = {};
-      adjustment.clinic.id = clinicService.currClinic().id;
-      adjustment.adjustedStock.clinic = {};
-      adjustment.adjustedStock.clinic.id = clinicService.currClinic().id;
-      adjustment.inventory.clinic = {};
-      adjustment.inventory = {};
-      adjustment.inventory.id = inventory.id;
-      adjustment.clinic_id = clinicService.currClinic().id;
-      adjustment.finalised = true;
 
-      if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
-        adjustment.adjustedValue = Number(
-          adjustment.balance - adjustment.adjustedStock.stockMoviment
-        );
-        adjustment.adjustedStock.stockMoviment =
-          adjustment.adjustedStock.stockMoviment + adjustment.adjustedValue;
-      } else if (inventoryStockAdjMethod.isNegativeAdjustment(adjustment)) {
-        adjustment.adjustedValue = Number(
-          adjustment.adjustedStock.stockMoviment - adjustment.balance
-        );
-        adjustment.adjustedStock.stockMoviment =
-          adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue;
-      } else {
-        adjustment.adjustedValue = 0;
-      }
-    }.bind(this)
-  );
-  // doSaveAll(0, inventory);
-  closeClassInventory(inventory);
+  if (!hasAdjustments) {
+    console.log('INICIOU ADJUS');
+    doSaveAll(0, inventory).then(() => {
+      closeClassInventory(inventory);
+      console.log('FECHOU');
+    });
+  } else {
+    closeClassInventory(inventory);
+  }
 };
 
 const closeClassInventory = (inventory) => {
@@ -402,67 +361,64 @@ const closeClassInventory = (inventory) => {
   });
 };
 
-const doSaveAll = (i, inventory) => {
-  const adjustments = inventory.adjustments;
-
-  if (adjustments[i] !== undefined) {
-    if (adjustments[i].balance.length <= 0 || isNaN(adjustments[i].balance)) {
-      closeLoading();
-      alertError(
-        'error',
-        'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
-      );
+const doSaveAll = async (i, inventory) => {
+  const adjustment = inventory.adjustments[i];
+  if (adjustment !== undefined) {
+    let operation = null;
+    if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
+      operation =
+        StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_POSETIVO');
+    } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
+      operation =
+        StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_NEGATIVO');
     } else {
-      InventoryStockAdjustmentService.apiFetchById(adjustments[i].id).then(
-        (resp1) => {
-          if (resp1.data !== null && resp1.data !== '') {
-            console.log('Faz update adjuste');
-            const adjustment = adjustments[i];
-            adjustment.adjustedStock.adjustments = [];
-            InventoryStockAdjustmentService.patch(
-              adjustment.id,
-              adjustment
-            ).then((resp) => {
-              i = i + 1;
-              setTimeout(doSaveAll(i, inventory), 2);
-            });
-          } else {
-            console.log('Faz Post adjuste');
-            InventoryStockAdjustmentService.post(adjustments[i]).then(
-              (resp) => {
-                i = i + 1;
-                setTimeout(doSaveAll(i, inventory), 2);
-              }
-            );
-          }
-          if (i === adjustments.length - 1) {
-            console.log('Faz update Inventario');
-            inventory.open = false;
-            inventory.endDate = new Date();
-            InventoryService.apiClose(inventory.id).then((resp) => {
-              step = 'display';
-              InventoryService.closeInventoryPinia(inventory);
-              StockAlertService.apiGetStockAlertAll(
-                clinicService.currClinic().id
-              );
-              closeLoading();
-              alertSucess('Operação efectuada com sucesso.');
-            });
-            // InventoryService.patch(inventory.id, inventory).then((resp) => {
-            //   step = 'display';
-            //   InventoryService.closeInventoryPinia(inventory);
-            //   StockAlertService.apiGetStockAlertAll(
-            //     clinicService.currClinic().id
-            //   );
-            //   closeLoading();
-            //   alertSucess('Operação efectuada com sucesso.');
-            // });
-          }
-        }
-      );
+      operation =
+        StockOperationTypeService.getStockOperatinTypeByCode('SEM_AJUSTE');
     }
-  } else {
-    step = 'display';
+    adjustment.captureDate = new Date();
+    adjustment.operation = operation;
+    adjustment.clinic = {};
+    adjustment.clinic.id = clinicService.currClinic().id;
+    adjustment.adjustedStock.clinic = {};
+    adjustment.adjustedStock.clinic.id = clinicService.currClinic().id;
+    adjustment.inventory.clinic = {};
+    adjustment.inventory = {};
+    adjustment.inventory.id = inventory.id;
+    adjustment.clinic_id = clinicService.currClinic().id;
+    adjustment.finalised = true;
+
+    if (inventoryStockAdjMethod.isPosetiveAdjustment(adjustment)) {
+      adjustment.adjustedValue = Number(
+        adjustment.balance - adjustment.adjustedStock.stockMoviment
+      );
+      adjustment.adjustedStock.stockMoviment =
+        adjustment.adjustedStock.stockMoviment + adjustment.adjustedValue;
+    } else if (inventoryStockAdjMethod.isNegativeAdjustment(adjustment)) {
+      adjustment.adjustedValue = Number(
+        adjustment.adjustedStock.stockMoviment - adjustment.balance
+      );
+      adjustment.adjustedStock.stockMoviment =
+        adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue;
+    } else {
+      adjustment.adjustedValue = 0;
+    }
+
+    if (adjustment !== undefined) {
+      if (adjustment.balance.length <= 0 || isNaN(adjustment.balance)) {
+        closeLoading();
+        alertError(
+          'error',
+          'Por favor indicar um Numero Valido para o campo Quantidade Contada.'
+        );
+      } else {
+        console.log('Faz Post adjuste');
+        const resp = await InventoryStockAdjustmentService.post(adjustment);
+        i = i + 1;
+        await doSaveAll(i, inventory);
+      }
+    } else {
+      step = 'display';
+    }
   }
 };
 
@@ -535,7 +491,10 @@ const drugs = computed(() => {
     }
 
     if (currInventory.value.generic) {
-      return drugService.getDrugsWithValidStockInList();
+      const listaDrugs = drugService.getDrugsWithValidStockInList(
+        clinicService.currClinic().id
+      );
+      return listaDrugs;
     } else {
       if (
         localStorage.getItem('selectedDrugs') !== null &&
