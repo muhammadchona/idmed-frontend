@@ -440,7 +440,7 @@ const updateUUID = () => {
   oldHisUUID.value = patientReg.value.hisUuid;
   // patientReg.value.identifiers = {};
   // patientReg.value.patientVisits = {};
-  patientReg.value.hisUUID = hisUUID.value;
+  patientReg.value.hisUuid = hisUUID.value;
   patientService
     .updateUUID(patientReg.value, sessionStorage.getItem('Btoa'))
     .then(() => {
@@ -449,6 +449,7 @@ const updateUUID = () => {
       editUUID.value = true;
     })
     .catch((error) => {
+      console.log('ERROR ', error);
       patientReg.value.hisUuid = oldHisUUID.value;
       hisUUID.value = oldHisUUID.value;
       alertError(error.response.data);
@@ -724,15 +725,13 @@ const doSave = async () => {
     patientReg.value.syncStatus = 'U';
     patientReg.value.identifiers = {};
     patientReg.value.patientVisits = {};
+    oldHisUUID.value = patientReg.value.hisUuid;
+    if (hisUUID.value !== null && hisUUID.value !== undefined) {
+      patientReg.value.hisUuid = hisUUID.value;
+    }
     patientService
       .patch(patientReg.value.id, patientReg.value)
       .then(() => {
-        // if (
-        //   transferencePatientData !== undefined &&
-        //   transferencePatientData.length > 0
-        // ) {
-        //   doPatientTranference(resp);
-        // } else {
         alertSucess('Dados do paciente Actualizados com sucesso.');
         closePatient();
         showPatientRegister.value = false;
@@ -742,6 +741,7 @@ const doSave = async () => {
       })
       .catch((error) => {
         let listErrors = [];
+        patientReg.value.hisUuid = oldHisUUID.value;
         submitLoading.value = false;
         if (error.request !== undefined && error.request.status !== 0) {
           const arrayErrors = JSON.parse(error.request.response);
@@ -940,7 +940,6 @@ const bairros = computed(() => {
 const isValidUUID = (uuidString) => {
   const uuidRegex =
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-  console.log(uuidRegex.test(uuidString));
   return uuidRegex.test(uuidString);
 };
 </script>

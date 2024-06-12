@@ -114,7 +114,6 @@ const checkBox = (items, reportId, fileType) => {
     });
 };
 const printReportInv = (id, reportId, fileType) => {
-  console.log('Inventory_ID: ', id);
   Report.apiPrintInventoryReport(id, reportId).then((resp) => {
     if (!resp.data[0]) {
       alertError('Não existem Dados para o período selecionado');
