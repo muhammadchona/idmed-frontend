@@ -14,6 +14,8 @@ export default class StockEntrance extends Model {
       clinic_id: this.attr(''),
       syncStatus: this.attr(''),
       notes: this.attr(''),
+      creationDate: this.attr(''),
+      isDistribution: this.attr(''),
       // relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       stocks: this.hasMany(Stock, 'entrance_id'),
