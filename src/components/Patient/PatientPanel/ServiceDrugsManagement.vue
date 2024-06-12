@@ -64,8 +64,8 @@
               }}
             </q-td>
             <q-td
-              :props="props"
               :style="{ color: props.row.color }"
+              :props="props"
               v-if="!curPatientVisitDetail.createPackLater"
               auto-width
               key="packs"
@@ -195,7 +195,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted, provide, reactive, ref } from 'vue';
+import { inject, onMounted, provide, reactive, ref, watch } from 'vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue';
 import PrescriptionDrugsListHeader from 'components/Patient/Prescription/PrescriptionDrugsListHeader.vue';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
@@ -257,6 +257,7 @@ const columns = [
 const showAddEditDrug = ref(false);
 const submittingPrescribedDrug = reactive(ref(false));
 
+const qtySuppliedFlag = ref(0);
 const drugsDuration = ref('');
 // Injection
 const curPrescription = inject('curPrescription');
@@ -322,22 +323,23 @@ const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
 
-const checkStock = (packagedDrug) => {
+const checkStock = async (packagedDrug) => {
   packagedDrug.drug = getDrugById(packagedDrug.drug.id);
   const qtytoDispense = getQtyPrescribed(
     packagedDrug,
     curPack.value.weeksSupply
   );
   packagedDrug.quantitySupplied = qtytoDispense;
-  const resp = StockService.checkStockStatus(
+  const resp = await StockService.checkStockStatus(
     packagedDrug.drug.id,
     curPack.value.pickupDate,
     qtytoDispense
   );
+  qtySuppliedFlag.value = resp;
   return resp;
 };
 
-onMounted(async () => {
+const checkStockList = async () => {
   try {
     curPack.value.packagedDrugs.map((row) => ({
       ...row,
@@ -350,7 +352,20 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching data:', error);
   }
+};
+
+onMounted(async () => {
+  checkStockList();
 });
+
+watch(
+  () => curPack.value.weeksSupply,
+  async (oldp, newp) => {
+    if (oldp !== newp) {
+      checkStockList();
+    }
+  }
+);
 
 // Computed
 provide('showAddEditDrug', showAddEditDrug);
