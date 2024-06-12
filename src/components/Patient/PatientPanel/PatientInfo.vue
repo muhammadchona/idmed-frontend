@@ -133,6 +133,7 @@ import mergeDuplicates from 'src/components/Patient/PatientPanel/MergeDuplicateP
 import { inject, onMounted, provide, ref, computed, reactive } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
 
 // Declaration
 const {
@@ -191,6 +192,9 @@ const closeMergePatient = () => {
 };
 
 // Computed
+const dataSources = computed(() => {
+  return healthInformationSystemService.getAllActive();
+});
 const disableEditButton = computed(() => {
   if (patient.value !== null) {
     if (hasNoObitOrTransferedForEpisode(patient.value)) {
@@ -209,6 +213,7 @@ provide('patient', patient);
 provide('openMrsPatient', openMrsPatient);
 provide('showPatientRegister', showPatientRegister);
 provide('closeMergePatient', closeMergePatient);
+provide('dataSources', dataSources);
 </script>
 
 <style lang="scss">
