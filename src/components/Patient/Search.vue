@@ -527,6 +527,8 @@ const editPatient = (patient) => {
 };
 const saveOpenMRSPatient = (patient) => {
   showloading();
+  patient.limit = limit.value;
+  patient.offset = offset.value;
   patientService
     .apiSearch(patient)
     .then((resp) => {
