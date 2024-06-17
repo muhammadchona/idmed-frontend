@@ -507,6 +507,7 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 import { v4 as uuidv4 } from 'uuid';
 import drugService from 'src/services/api/drugService/drugService';
 import { useDrug } from 'src/composables/drug/drugMethods';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 //props
 const props = defineProps(['identifier']);
@@ -1405,7 +1406,8 @@ const checkStock = async (prescribedDrug, weeksSupply) => {
   const resp = await StockService.checkStockStatus(
     prescribedDrug.drug.id,
     prescrDate,
-    qtyPrescribed
+    qtyPrescribed,
+    clinicService.currClinic().id
   );
   return resp;
 };

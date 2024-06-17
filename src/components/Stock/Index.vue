@@ -15,13 +15,18 @@
           name="stockDistributor"
           label="Distribuicao"
           @click="selectTab('stockDistributor')"
-        />
+        >
+        </q-tab>
         <q-tab
           v-if="isClinicSector"
           name="confirmDistribution"
           label="Confirmar Distribuicao"
           @click="selectTab('confirmDistribution')"
-        />
+        >
+          <q-badge color="red" floating transparent>
+            {{ stockDistributionCount }}
+          </q-badge>
+        </q-tab>
         <div class="absolute-top-right q-mr-md">
           <q-btn
             flat
@@ -158,6 +163,11 @@ const clinic = computed(() => {
 });
 const activeDrugs = computed(() => {
   return drugService.getActiveDrugs();
+});
+
+const stockDistributionCount = computed(() => {
+  const counter = localStorage.getItem('stockDistributionCount');
+  return counter;
 });
 
 onMounted(() => {

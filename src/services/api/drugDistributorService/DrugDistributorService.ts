@@ -66,24 +66,6 @@ export default {
     return api().get('/drugDistributor?offset=' + offset + '&max=' + max);
   },
 
-  // PINIA
-
-  getDrugDistributorById(id: string) {
-    return drugDistributor.query().withAllRecursive().where('id', id).first();
-  },
-
-  getStockDistributorById(id: string) {
-    return (
-      drugDistributor
-        .query()
-        //Stock.query()
-        .with('drug')
-        .with('clinic')
-        .with('stockDistributor')
-        .where('id', id)
-        .first()
-    );
-  },
   // Web
   postWeb(params: string) {
     return api()
@@ -123,6 +105,35 @@ export default {
       .then(() => {
         drugDistributor.destroy(id);
       });
+  },
+
+  getDistributionsByStatus(clinicSectorId: any, status: any) {
+    return api()
+      .get(
+        `drugDistributor/getDistributionsByStatus/${clinicSectorId}/${status}`
+      )
+      .then((resp) => {
+        return resp.data;
+      });
+  },
+
+  // PINIA
+
+  getDrugDistributorById(id: string) {
+    return drugDistributor.query().withAllRecursive().where('id', id).first();
+  },
+
+  getStockDistributorById(id: string) {
+    return (
+      drugDistributor
+        .query()
+        //Stock.query()
+        .with('drug')
+        .with('clinic')
+        .with('stockDistributor')
+        .where('id', id)
+        .first()
+    );
   },
 
   //Mobile

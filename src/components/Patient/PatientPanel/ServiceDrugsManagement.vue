@@ -208,6 +208,7 @@ import drugService from 'src/services/api/drugService/drugService';
 import { v4 as uuidv4 } from 'uuid';
 import { debounce } from 'lodash';
 import { useDrug } from 'src/composables/drug/drugMethods';
+import clinicService from 'src/services/api/clinicService/clinicService';
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertError } = useSwal();
@@ -267,6 +268,7 @@ const addPatientVisitDetail = inject('addPatientVisitDetail');
 const removePatientVisitDetail = inject('removePatientVisitDetail');
 const curIdentifier = inject('curIdentifier');
 const submittingValidateDispense = inject('submittingValidateDispense');
+
 //Methods
 const deleteRow = (row) => {
   const i = curPack.value.packagedDrugs
@@ -332,7 +334,8 @@ const checkStock = (packagedDrug) => {
   const resp = StockService.checkStockStatus(
     packagedDrug.drug.id,
     curPack.value.pickupDate,
-    qtytoDispense
+    qtytoDispense,
+    clinicService.currClinic().id
   );
   return resp;
 };

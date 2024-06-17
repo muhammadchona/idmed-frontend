@@ -74,7 +74,16 @@
               name="stock"
               icon="shopping_cart"
               label="Stock"
-            />
+            >
+              <q-badge
+                color="red"
+                floating
+                transparent
+                v-if="stockDistributionCount > 0"
+              >
+                {{ stockDistributionCount }}
+              </q-badge>
+            </q-route-tab>
             <q-route-tab
               v-if="menusVisible('Dashboard')"
               exact
@@ -178,7 +187,14 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, onBeforeUnmount } from 'vue';
+import {
+  computed,
+  onMounted,
+  ref,
+  onBeforeUnmount,
+  provide,
+  onBeforeMount,
+} from 'vue';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -186,6 +202,7 @@ import { sendData } from 'src/services/SendInfo';
 import useNotify from 'src/composables/shared/notify/UseNotify';
 import provinceService from 'src/services/api/provinceService/provinceService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 const { website } = useSystemUtils();
 const { isProvincialInstalation } = useSystemConfig();
@@ -199,6 +216,7 @@ const mobile = ref(false);
 const { notifyError } = useNotify();
 const { isOnline } = useSystemUtils();
 const { getPatientsToSend, getGroupsToSend } = sendData();
+const stockDistributionCount = ref(0);
 
 const logoutTimer = ref(null);
 
@@ -278,6 +296,11 @@ const currClinic = computed(() => {
   return clinicService.currClinic();
 });
 
+/*
+const stockDistributionCount = computed(() => {
+  return localStorage.getItem('stockDistributionCount');
+});
+*/
 const currProvince = computed(() => {
   const instalationType = systemConfigsService.getInstallationType();
   if (instalationType.value === 'PROVINCIAL') {
@@ -300,4 +323,5 @@ const sync = async () => {
   getGroupsToSend();
   getPatientsToSend();
 };
+provide('stockDistributionCount', stockDistributionCount);
 </script>
