@@ -185,13 +185,6 @@ const showAdd = () => {
     alertError('A data do próximo levantamento é inválida');
   } else if (drugsDuration.value === '') {
     alertError('Por favor indicar a duração da medicação a dispensar.');
-    // } else if (
-    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) <
-    //   curPatientVisitDetail.value.prescription.prescriptionDate
-    // ) {
-    //   alertError(
-    //     'A data de levantamento indicada é menor que a data da prescrição'
-    //   );
   } else if (
     extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
     moment().format('YYYY-MM-DD')
@@ -206,15 +199,6 @@ const showAdd = () => {
     alertError(
       'A data do levantamento é maior que a data do próximo levantamento'
     );
-    // } else if (
-    //   newPickUpDate !== '' &&
-    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) < newPickUpDate.value
-    // ) {
-    //   alertError(
-    //     'A data de levantamento não pode ser anterior a ' +
-    //       getDDMMYYYFromJSDate(newPickUpDate.value) +
-    //       ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.'
-    //   );
   } else {
     showAddEditDrug.value = true;
   }
@@ -259,13 +243,13 @@ const init = () => {
       lastPack.value.nextPickUpDate !== null &&
       lastPack.value.nextPickUpDate !== undefined
     ) {
-      curPack.value.pickupDate = getDDMMYYYFromJSDate(moment());
+      curPack.value.pickupDate = getYYYYMMDDFromJSDate(moment());
       curPack.value.weeksSupply = lastPack.value.weeksSupply;
       drugsDuration.value = durationService.getDurationByWeeks(
         curPack.value.weeksSupply
       );
     } else {
-      curPack.value.pickupDate = getDDMMYYYFromJSDate(moment());
+      curPack.value.pickupDate = getYYYYMMDDFromJSDate(moment());
       curPack.value.weeksSupply = curPrescription.value.duration.weeks;
       drugsDuration.value = curPrescription.value.duration;
     }
@@ -277,6 +261,10 @@ const init = () => {
 
 const getDDMMYYYFromJSDate = (jsDate) => {
   return moment(jsDate).local().format('DD-MM-YYYY');
+};
+
+const getYYYYMMDDFromJSDate = (jsDate) => {
+  return moment(jsDate).local().format('YYYY-MM-DD');
 };
 
 // Provide
