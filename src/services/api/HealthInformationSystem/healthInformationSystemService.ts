@@ -4,12 +4,13 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import InteroperabilityAttribute from 'src/stores/models/interoperabilityAttribute/InteroperabilityAttribute';
 import InteroperabilityAttributeService from '../InteroperabilityAttribute/InteroperabilityAttributeService';
 
 const healthInformationSystem = useRepo(HealthInformationSystem);
 const interoperabilityAttributeRepo = useRepo(InteroperabilityAttribute);
+const healthInformationSystemDexie = HealthInformationSystem.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -85,22 +86,29 @@ export default {
       });
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(healthInformationSystem.use?.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[healthInformationSystemDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         healthInformationSystem.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inesperado nesta operação.');
+      });
+  },
+  putMobile(params: string) {
+    return db[healthInformationSystemDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        healthInformationSystem.save(JSON.parse(params));
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inesperado nesta operação.');
       });
   },
   getMobile() {
-    return nSQL(healthInformationSystem.use?.entity)
-      .query('select')
-      .exec()
+    return db[healthInformationSystemDexie]
+      .toArray()
       .then((rows: any) => {
         healthInformationSystem.save(rows);
       })
@@ -109,10 +117,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(healthInformationSystem.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[healthInformationSystemDexie]
+      .delete(paramsId)
       .then(() => {
         healthInformationSystem.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

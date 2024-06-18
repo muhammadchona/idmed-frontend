@@ -2,11 +2,12 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Prescription from 'src/stores/models/prescription/Prescription';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const prescription = useRepo(Prescription);
+const prescriptionDexie = Prescription.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -80,17 +81,23 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[prescriptionDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescription.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(Prescription.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        prescription.save(resp[0].affectedRows);
+    return db[prescriptionDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescription.save(JSON.parse(JSON.stringify(params)));
       });
   },
   async getMobile() {
     try {
-      const rows = await nSQL(Prescription.entity).query('select').exec();
+      const rows = await db[prescriptionDexie].toArray();
       prescription.save(rows);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -99,10 +106,7 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(Prescription.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
+      await db[prescriptionDexie].delete(paramsId);
       prescription.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {

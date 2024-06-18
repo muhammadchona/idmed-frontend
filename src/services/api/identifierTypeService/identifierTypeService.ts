@@ -4,9 +4,10 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import IdentifierType from 'src/stores/models/identifierType/IdentifierType';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const identifierType = useRepo(IdentifierType);
+const identifierTypeDexie = IdentifierType.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -83,23 +84,29 @@ export default {
       });
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(IdentifierType.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[identifierTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         identifierType.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[identifierTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        identifierType.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(IdentifierType.entity)
-      .query('select')
-      .exec()
+    return db[identifierTypeDexie]
+      .toArray()
       .then((rows: any) => {
         identifierType.save(rows);
       })
@@ -109,10 +116,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(IdentifierType.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[identifierTypeDexie]
+      .delete(paramsId)
       .then(() => {
         identifierType.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

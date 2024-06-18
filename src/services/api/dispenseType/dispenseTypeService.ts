@@ -2,10 +2,12 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import DispenseType from 'src/stores/models/dispenseType/DispenseType';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from '../../../stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
 
 const dispenseType = useRepo(DispenseType);
+const dispenseTypeDexie = DispenseType.entity;
 
 export default {
   // Axios API call

@@ -194,6 +194,7 @@ const submitClinicSector = () => {
       clinicSector.value.district = clinicSector.value.parentClinic.district;
       // clinicSector.value.parentClinic = clinicSector.value.clinic;
     }
+
     clinicSectorService
       .post(clinicSector.value)
       .then(() => {

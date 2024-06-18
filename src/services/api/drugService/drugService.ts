@@ -3,7 +3,7 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import Drug from 'src/stores/models/drug/Drug';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
@@ -13,6 +13,7 @@ const { isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 const drug = useRepo(Drug);
+const drugDexie = Drug.entity;
 
 export default {
   async post(params: string) {

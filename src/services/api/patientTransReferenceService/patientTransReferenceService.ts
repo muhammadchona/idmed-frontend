@@ -4,9 +4,10 @@ import PatientTransReference from 'src/stores/models/transreference/PatientTrans
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const patientTransReference = useRepo(PatientTransReference);
+const patientTransReferenceDexie = PatientTransReference.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -80,21 +81,26 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientTransReferenceDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientTransReference.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(patientTransReference.use?.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        patientTransReference.save(resp[0].affectedRows);
+    return db[patientTransReferenceDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientTransReference.save(JSON.parse(JSON.stringify(params)));
       })
       .catch((error: any) => {
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(patientTransReference.use?.entity)
-      .query('select')
-      .exec()
+    return db[patientTransReferenceDexie]
+      .toArray()
       .then((rows: any) => {
         patientTransReference.save(rows);
       })
@@ -104,10 +110,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(patientTransReference.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[patientTransReferenceDexie]
+      .delete(paramsId)
       .then(() => {
         patientTransReference.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

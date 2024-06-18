@@ -62,7 +62,7 @@ export function useOnline() {
 
     clinicalServiceService.get(0);
 
-    clinicSectorService.get(0);
+    clinicSectorService.getClinicSectorsDexie();
 
     clinicalServiceAttributeTypeService.get(0);
 

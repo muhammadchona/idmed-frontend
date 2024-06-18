@@ -7,8 +7,11 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 import { v4 as uuidv4 } from 'uuid';
+import db from '../../../stores/dexie';
 
 const clinicSector = useRepo(ClinicSector);
+
+const dexiTable = ClinicSector.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -17,9 +20,9 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
-      return this.postWeb(params);
+      return this.addMobile(params);
     }
   },
   get(offset: number) {
@@ -40,7 +43,7 @@ export default {
     if (isMobile && !isOnline) {
       this.deleteMobile(uuid);
     } else {
-      this.deleteWeb(uuid);
+      this.deleteMobile(uuid);
     }
   },
   // WEB
@@ -89,13 +92,26 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    showloading();
+    return db[dexiTable]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        clinicSector.save(params);
+        // alertSucess('O Registo foi efectuado com sucesso');
+        closeLoading();
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
     showloading();
-    return nSQL(clinicSector.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[dexiTable]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        clinicSector.save(JSON.parse(params));
+        clinicSector.save(params);
         // alertSucess('O Registo foi efectuado com sucesso');
         closeLoading();
       })
@@ -106,9 +122,8 @@ export default {
   },
   getMobile() {
     showloading();
-    return nSQL(clinicSector.use?.entity)
-      .query('select')
-      .exec()
+    return db[dexiTable]
+      .toArray()
       .then((rows: any) => {
         clinicSector.save(rows);
         closeLoading();
@@ -119,10 +134,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(clinicSector.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[dexiTable]
+      .delete(paramsId)
       .then(() => {
         clinicSector.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -186,5 +199,31 @@ export default {
   },
   getClinicSectorSlimByCode(code: string) {
     return clinicSector.query().where('code', code).first();
+  },
+
+  async getClinicSectorsDexie() {
+    // const dexiDatabase1 = ClinicSector.entity;
+    try {
+      const clinicSectors = await db[dexiTable].toArray();
+
+      /*
+      const clinicSectors = await db[dexiTable]
+        .where('code')
+        .equalsIgnoreCase('TesteDex')
+        .first();
+        */
+      clinicSector.save(clinicSectors);
+      console.log(clinicSectors);
+      // Fetch associated patients for each appointment
+      /*
+      const appointmentsWithPatients = await Promise.all(clinicSectors.map(async (clinicSector) => {
+        const patient = await db.patients.get(appointment.patientId);
+        return { ...appointment, patient };
+        */
+      return clinicSectors;
+      // console.log('Appointments with patients:', appointmentsWithPatients);
+    } catch (error) {
+      console.error('Failed to get appointments:', error);
+    }
   },
 };
