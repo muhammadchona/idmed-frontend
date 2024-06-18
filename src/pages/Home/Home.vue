@@ -192,13 +192,14 @@ import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, watch, inject } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -208,6 +209,8 @@ const { loadSettingParams, loadPatientData } = useOnline();
 
 const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
 const { alertWarningTitle } = useSwal();
+
+const stockDistributionCount = inject('stockDistributionCount');
 let codeExecuted = false;
 
 const clinic = computed(() => {
@@ -217,6 +220,18 @@ const clinic = computed(() => {
 const isClinicSector = computed(() => {
   return clinicService.isClinicSector(clinic.value);
 });
+
+const getStockDistributionCount = (clinic) => {
+  DrugDistributorService.getDistributionsByStatus(clinic.id, 'P').then(
+    (list) => {
+      stockDistributionCount.value = list.length;
+      localStorage.setItem(
+        'stockDistributionCount',
+        stockDistributionCount.value
+      );
+    }
+  );
+};
 
 const menusVisible = (name) => {
   const menus = sessionStorage.getItem('role_menus');
@@ -259,6 +274,7 @@ watch(clinic, () => {
         );
       }
     });
+    getStockDistributionCount(clinic.value);
   }
 });
 </script>

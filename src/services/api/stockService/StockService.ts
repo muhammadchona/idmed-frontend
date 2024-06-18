@@ -205,7 +205,12 @@ export default {
         });
     }
   },
-  async checkStockStatus(idPrescribedDrug: any, date: any, qtyPrescribed: any) {
+  async checkStockStatus(
+    idPrescribedDrug: any,
+    date: any,
+    qtyPrescribed: any,
+    clinicId: any
+  ) {
     if (isOnline) {
       if (date !== '') {
         return api()
@@ -215,7 +220,9 @@ export default {
               '/' +
               date +
               '/' +
-              qtyPrescribed
+              qtyPrescribed +
+              '/' +
+              clinicId
           )
           .then((resp) => {
             closeLoading();

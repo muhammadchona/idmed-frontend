@@ -446,7 +446,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 import Drug from '../../../stores/models/drug/Drug';
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { computed, onMounted, provide, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref } from 'vue';
 import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
@@ -468,6 +468,7 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
+const stockDistributionCount = inject('stockDistributionCount');
 
 const columns = [
   {
@@ -563,10 +564,11 @@ const rejectRecord = (record) => {
 const doConfirmRecord = (record) => {
   showloading();
   record.enabled = false;
-  record.status = 'C';
+  record.status = 'C'; //confirmed
   DrugDistributorService.updateDrugDistributorStatus(record, 'C')
     .then((resp) => {
       closeLoading();
+      getStockDistributionCount(currClinic.value);
       alertSucess('Operação efectuada com sucesso.');
     })
     .catch((error) => {
@@ -577,15 +579,28 @@ const doConfirmRecord = (record) => {
 const doRejectRecord = (record) => {
   showloading();
   record.enabled = false;
-  record.status = 'R';
+  record.status = 'R'; //rejected
   DrugDistributorService.updateDrugDistributorStatus(record, 'R')
     .then((resp) => {
       closeLoading();
+      getStockDistributionCount(currClinic.value);
       alertSucess('Operação efectuada com sucesso.');
     })
     .catch((error) => {
       alertError('Ocorreu um erro inesperado, contacte o administrador!');
     });
+};
+
+const getStockDistributionCount = (clinic) => {
+  DrugDistributorService.getDistributionsByStatus(clinic.id, 'P').then(
+    (list) => {
+      stockDistributionCount.value = list.length;
+      localStorage.setItem(
+        'stockDistributionCount',
+        stockDistributionCount.value
+      );
+    }
+  );
 };
 
 const initNewStock = () => {

@@ -575,7 +575,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 
 import Drug from '../../../stores/models/drug/Drug';
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { computed, onMounted, provide, ref } from 'vue';
+import { computed, onMounted, provide, ref, inject } from 'vue';
 import { date } from 'quasar';
 import moment from 'moment';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
@@ -633,7 +633,7 @@ const orderNumberRef = ref('');
 const notesRef = ref('');
 
 const status = ref('');
-const isDeleteVisible = ref(false);
+const stockDistributionCount = inject('stockDistributionCount');
 
 const goBack = () => {
   router.go(-1);
@@ -828,7 +828,15 @@ const doRemoveStock = (record) => {
   DrugDistributorService.updateDrugDistributorStatus(record, 'A')
     .then((resp) => {
       step.value = 'display';
-      // loadStockList();
+
+      if (!!currClinic.value) {
+        DrugDistributorService.getDistributionsByStatus(
+          currClinic.value.id,
+          'P'
+        ).then((list) => {
+          stockDistributionCount.value = list.length;
+        });
+      }
       closeLoading();
       alertSucess('Operação efectuada com sucesso.');
     })
@@ -887,7 +895,8 @@ const validateStock = async (stock) => {
     const hasStock = await StockService.checkStockStatus(
       stock.drug.id,
       currStockDistributor.value.creationDate,
-      stock.quantity
+      stock.quantity,
+      clinicService.currClinic().id
     );
     if (hasStock) {
       doSave(stock);
@@ -909,7 +918,7 @@ const doSave = (stockObj) => {
   stock.drug.id = stock.drug_id;
   stock.stockDistributor = {};
   stock.stockDistributor.id = stockObj.stock_distributor_id;
-  stock.status = 'P';
+  stock.status = 'P'; //Pending
 
   stock.clinic_id = stockObj.clinic.id;
   //stock.clinic = {};
