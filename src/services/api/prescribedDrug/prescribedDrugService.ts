@@ -3,9 +3,10 @@ import api from '../apiService/apiService';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const prescribedDrug = useRepo(PrescribedDrug);
+const prescribedDrugDexie = PrescribedDrug.entity;
 
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -13,7 +14,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -78,18 +79,23 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[prescribedDrugDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescribedDrug.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PrescribedDrug.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        prescribedDrug.save(resp[0].affectedRows);
+    return db[prescribedDrugDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescribedDrug.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
-    return nSQL(prescribedDrug.use?.entity)
-      .query('select')
-      .exec()
+    return db[prescribedDrugDexie]
+      .toArray()
       .then((rows: any) => {
         prescribedDrug.save(rows);
       })
@@ -99,10 +105,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(prescribedDrug.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[prescribedDrugDexie]
+      .delete(paramsId)
       .then(() => {
         prescribedDrug.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

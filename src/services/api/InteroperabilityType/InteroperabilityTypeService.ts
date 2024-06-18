@@ -4,9 +4,10 @@ import InteroperabilityType from 'src/stores/models/interoperabilityType/Interop
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const interoperabilityType = useRepo(InteroperabilityType);
+const interoperabilityTypeDexie = InteroperabilityType.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -92,10 +93,9 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(interoperabilityType.use?.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[interoperabilityTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         interoperabilityType.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -105,10 +105,19 @@ export default {
         console.log(error);
       });
   },
+  putMobile(params: string) {
+    return db[interoperabilityTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        interoperabilityType.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   getMobile() {
-    return nSQL(interoperabilityType.use?.entity)
-      .query('select')
-      .exec()
+    return db[interoperabilityTypeDexie]
+      .toArray()
       .then((rows: any) => {
         interoperabilityType.save(rows);
       })
@@ -118,10 +127,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(interoperabilityType.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[interoperabilityTypeDexie]
+      .delete(paramsId)
       .then(() => {
         interoperabilityType.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

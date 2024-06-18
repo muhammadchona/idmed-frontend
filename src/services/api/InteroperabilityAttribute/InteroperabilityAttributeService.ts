@@ -1,4 +1,4 @@
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import InteroperabilityAttribute from 'src/stores/models/interoperabilityAttribute/InteroperabilityAttribute';
@@ -7,6 +7,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const interoperabilityAttribute = useRepo(InteroperabilityAttribute);
+const interoperabilityAttributeDexie = InteroperabilityAttribute.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -95,10 +96,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[interoperabilityAttributeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        interoperabilityAttribute.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(interoperabilityAttribute.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[interoperabilityAttributeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         interoperabilityAttribute.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -109,9 +121,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(interoperabilityAttribute.use?.entity)
-      .query('select')
-      .exec()
+    return db[interoperabilityAttributeDexie]
+      .toArray()
       .then((rows: any) => {
         interoperabilityAttribute.save(rows);
       })
@@ -121,10 +132,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(interoperabilityAttribute.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[interoperabilityAttributeDexie]
+      .delete(paramsId)
       .then(() => {
         interoperabilityAttribute.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -149,7 +158,7 @@ export default {
   saveLocalStorage(params: any) {
     return interoperabilityAttribute.save(params);
   },
-  deleteAllFromHealthSystem(healthInformationSysytemId: String) {
+  deleteAllFromHealthSystem(healthInformationSysytemId: string) {
     const attributes = interoperabilityAttribute
       .where('healthInformationSystem_id', healthInformationSysytemId)
       .get();

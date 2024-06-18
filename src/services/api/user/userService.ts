@@ -5,10 +5,11 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const secUserRepo = useRepo(SecUser);
+const secUserDexie = SecUser.entity;
 const clinicSectorUsersRepo = useRepo(ClinicSectorUsers);
 const secUserRoleRepo = useRepo(SecUserRole);
 
@@ -91,10 +92,19 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[secUserDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        secUserRepo.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(secUserRepo.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[secUserDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         secUserRepo.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -105,9 +115,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(secUserRepo.use?.entity)
-      .query('select')
-      .exec()
+    return db[secUserDexie]
+      .toArray()
       .then((rows: any) => {
         secUserRepo.save(rows);
       })
@@ -117,10 +126,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(secUserRepo.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[secUserDexie]
+      .delete(paramsId)
       .then(() => {
         secUserRepo.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

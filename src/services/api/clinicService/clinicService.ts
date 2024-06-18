@@ -2,14 +2,15 @@ import Province from 'src/stores/models/province/Province';
 import { useRepo } from 'pinia-orm';
 import { Clinic } from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
-import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { SessionStorage } from 'quasar';
-// import { P } from 'app/dist/spa/assets/apiService.4d03f836';
+import db from '../../../stores/dexie';
 
 const clinic = useRepo(Clinic);
+const clinicDexie = Clinic.entity;
+
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -17,7 +18,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -92,10 +93,19 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[clinicDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        clinic.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(Clinic.entity)
-      .query('upsert', params)
-      .exec()
+    return db[clinicDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         clinic.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -106,9 +116,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(Clinic.entity)
-      .query('select')
-      .exec()
+    return db[clinicDexie]
+      .toArray()
       .then((rows: any) => {
         clinic.save(rows);
       })
@@ -117,10 +126,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(Clinic.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[clinicDexie]
+      .delete(paramsId)
       .then(() => {
         clinic.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

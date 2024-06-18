@@ -1,12 +1,13 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import VitalSignsScreening from 'src/stores/models/screening/VitalSignsScreening';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const vitalSignsScreening = useRepo(VitalSignsScreening);
+const vitalSignsScreeningDexie = VitalSignsScreening.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -80,18 +81,28 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[vitalSignsScreeningDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        vitalSignsScreening.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(VitalSignsScreening.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        vitalSignsScreening.save(resp[0].affectedRows);
+    return db[vitalSignsScreeningDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        vitalSignsScreening.save(JSON.parse(params));
       });
   },
   getMobile() {
-    return nSQL(VitalSignsScreening.entity)
-      .query('select')
-      .exec()
+    return db[vitalSignsScreeningDexie]
+      .toArray()
       .then((rows: any) => {
         vitalSignsScreening.save(rows);
       })
@@ -101,10 +112,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(VitalSignsScreening.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[vitalSignsScreeningDexie]
+      .delete(paramsId)
       .then(() => {
         vitalSignsScreening.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

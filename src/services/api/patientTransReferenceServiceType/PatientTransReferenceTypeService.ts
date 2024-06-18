@@ -4,9 +4,10 @@ import PatientTransReferenceType from 'src/stores/models/transreference/PatientT
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const patientTransReferenceType = useRepo(PatientTransReferenceType);
+const patientTransReferenceTypeDexie = PatientTransReferenceType.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -95,10 +96,16 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientTransReferenceTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientTransReferenceType.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(patientTransReferenceType.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[patientTransReferenceTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         patientTransReferenceType.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -109,9 +116,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(patientTransReferenceType.use?.entity)
-      .query('select')
-      .exec()
+    return db[patientTransReferenceTypeDexie]
+      .toArray()
       .then((rows: any) => {
         patientTransReferenceType.save(rows);
       })
@@ -121,10 +127,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(patientTransReferenceType.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[patientTransReferenceTypeDexie]
+      .delete(paramsId)
       .then(() => {
         patientTransReferenceType.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

@@ -4,9 +4,11 @@ import DispenseMode from 'src/stores/models/dispenseMode/DispenseMode';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const dispenseMode = useRepo(DispenseMode);
+const dispenseModeDexie = DispenseMode.entity;
+
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -14,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -91,10 +93,19 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[dispenseModeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        dispenseMode.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(DispenseMode.entity)
-      .query('upsert', params)
-      .exec()
+    return db[dispenseModeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         dispenseMode.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -105,9 +116,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(DispenseMode.entity)
-      .query('select')
-      .exec()
+    return db[dispenseModeDexie]
+      .toArray()
       .then((rows: any) => {
         dispenseMode.save(rows);
       })
@@ -116,20 +126,18 @@ export default {
         console.log(error);
       });
   },
-  async localDbGetById(id) {
-    return nSQL(DispenseMode.entity)
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((result) => {
-        return result[0];
+  async localDbGetById(id: string) {
+    return db[dispenseModeDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first()
+      .then((result: any) => {
+        return result;
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(DispenseMode.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[dispenseModeDexie]
+      .delete(paramsId)
       .then(() => {
         dispenseMode.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

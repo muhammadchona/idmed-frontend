@@ -4,9 +4,10 @@ import Pack from 'src/stores/models/packaging/Pack';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const pack = useRepo(Pack);
+const packDexie = Pack.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -80,18 +81,19 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[packDexie].add(JSON.parse(JSON.stringify(params))).then(() => {
+      pack.save(JSON.parse(JSON.stringify(params)));
+    });
+  },
   putMobile(params: string) {
-    return nSQL(Pack.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        pack.save(resp[0].affectedRows);
-      });
+    return db[packDexie].put(JSON.parse(JSON.stringify(params))).then(() => {
+      pack.save(JSON.parse(JSON.stringify(params)));
+    });
   },
   getMobile() {
-    return nSQL(Pack.entity)
-      .query('select')
-      .exec()
+    return db[packDexie]
+      .toArray()
       .then((rows: any) => {
         pack.save(rows);
       })
@@ -101,10 +103,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(Pack.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[packDexie]
+      .delete(paramsId)
       .then(() => {
         pack.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -136,7 +136,7 @@ export default {
           max
       )
       .then((resp) => {
-        nSQL(Pack.entity).query('upsert', resp.data).exec();
+        this.addMobile(resp.data);
         pack.save(resp.data);
       });
   },

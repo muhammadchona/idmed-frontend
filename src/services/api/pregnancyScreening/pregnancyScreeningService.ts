@@ -3,9 +3,10 @@ import api from '../apiService/apiService';
 import PregnancyScreening from 'src/stores/models/screening/PregnancyScreening';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const pregnancyScreening = useRepo(PregnancyScreening);
+const pregnancyScreeningDexie = PregnancyScreening.entity;
 
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -13,7 +14,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -78,18 +79,23 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[pregnancyScreeningDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        pregnancyScreening.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PregnancyScreening.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        pregnancyScreening.save(resp[0].affectedRows);
+    return db[pregnancyScreeningDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        pregnancyScreening.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
-    return nSQL(PregnancyScreening.entity)
-      .query('select')
-      .exec()
+    return db[pregnancyScreeningDexie]
+      .toArray()
       .then((rows: any) => {
         pregnancyScreening.save(rows);
       })
@@ -99,10 +105,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(PregnancyScreening.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[pregnancyScreeningDexie]
+      .delete(paramsId)
       .then(() => {
         pregnancyScreening.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

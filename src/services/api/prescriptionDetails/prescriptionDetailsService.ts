@@ -1,12 +1,13 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import PrescriptionDetails from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const prescriptionDetails = useRepo(PrescriptionDetails);
+const prescriptionDetailsDexie = PrescriptionDetails.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -80,19 +81,24 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[prescriptionDetailsDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescriptionDetails.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PrescriptionDetails.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        prescriptionDetails.save(resp[0].affectedRows);
+    return db[prescriptionDetailsDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescriptionDetails.save(JSON.parse(JSON.stringify(params)));
       });
   },
 
   getMobile() {
-    return nSQL(prescriptionDetails.use?.entity)
-      .query('select')
-      .exec()
+    return db[prescriptionDetailsDexie]
+      .toArray()
       .then((rows: any) => {
         prescriptionDetails.save(rows);
       })
@@ -102,10 +108,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(prescriptionDetails.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[prescriptionDetailsDexie]
+      .delete(paramsId)
       .then(() => {
         prescriptionDetails.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');

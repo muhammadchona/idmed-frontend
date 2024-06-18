@@ -4,11 +4,12 @@ import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import moment from 'moment';
 import dispenseTypeService from '../dispenseType/dispenseTypeService';
 
 const patientVisit = useRepo(PatientVisit);
+const patientVisitDexie = PatientVisit.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -17,7 +18,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -82,35 +83,40 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientVisitDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientVisit.save(params);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PatientVisit.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        patientVisit.save(resp[0].affectedRows);
+    return db[patientVisitDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientVisit.save(JSON.parse(JSON.stringify(params)));
       });
   },
   async getMobile() {
     try {
-      const rows = await nSQL(PatientVisit.entity).query('select').exec();
+      const rows = await db[patientVisitDexie].toArray();
       if (rows.length === 0) {
         api()
           .get('patientVisit?offset=0&max=700')
           .then((resp) => {
-            this.putMobile(resp.data);
+            this.addMobile(resp.data);
           });
       } else {
-        rows.forEach((row) => {
+        rows.forEach((row: any) => {
           //   console.log(row);
           //   row.patientVisitDetails = [];
-          row.patientVisitDetails.forEach((rowDetails) => {
+          row.patientVisitDetails.forEach((rowDetails: any) => {
             // rowDetails.episode = null;
             // rowDetails.pack = null;
             // rowDetails.prescription = null;
             // rowDetails.clinic = null;
             rowDetails.patientVisit = null;
           });
-          console.log(row);
           patientVisit.save(row);
         });
         //  patientVisit.save(rows);
@@ -122,10 +128,7 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(PatientVisit.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
+      await db[patientVisitDexie].delete(paramsId);
       patientVisit.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
@@ -180,11 +183,12 @@ export default {
   },
 
   async getLocalDbPatientVisitsToSync() {
-    return nSQL(PatientVisit.entity)
-      .query('select')
-      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
-      .exec()
-      .then((result) => {
+    return db[patientVisitDexie]
+      .where('syncStatus')
+      .equalsIgnoreCase('R')
+      .or('syncStatus')
+      .equalsIgnoreCase('U')
+      .then((result: any) => {
         return result;
       });
   },
@@ -259,23 +263,20 @@ export default {
   // Reports
 
   async getPatientNSql() {
-    return nSQL(PatientVisit.entity)
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        //  return result
-      });
+    return db[patientVisitDexie].toArray().then((result: any) => {
+      console.log(result);
+      //  return result
+    });
   },
 
   async getPatientVIsitNSqlByPatient(patient: any) {
-    return nSQL(PatientVisit.entity)
-      .query('select')
-      .where(['patient[id]', '=', patient.id])
-      .exec()
-      .then((result) => {
+    return db[patientVisitDexie]
+      .where('id')
+      .equalsIgnoreCase(patient.id)
+      .first()
+      .then((result: any) => {
         console.log(result);
-        result[0].patientVisitDetails.forEach((pvd) => {
+        result.patientVisitDetails.forEach((pvd: any) => {
           if (pvd.prescription !== undefined)
             Prescription.insertOrUpdate({ data: pvd.prescription });
           if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack });
@@ -283,6 +284,8 @@ export default {
       });
   },
 
+  // to check How to do it with Dexie
+  /*
   async getVisits() {
     nSQL().onConnected(() => {
       nSQL(PatientVisit.entity)
@@ -295,30 +298,24 @@ export default {
         });
     });
   },
+*/
 
   async localDbGetPacks() {
     const packList = [];
-    return nSQL('patientVisits')
-      .query('select', ['patientVisitDetails'])
-      .exec()
-      .then((result) => {
-        for (const pvd of result) {
-          for (const pvdObj of pvd.patientVisitDetails) {
-            packList.push(pvdObj.pack);
-          }
+    return db[patientVisitDexie].toArray().then((result: any) => {
+      for (const pvd of result) {
+        for (const pvdObj of pvd.patientVisitDetails) {
+          packList.push(pvdObj.pack);
         }
-        return packList;
-      });
+      }
+      return packList;
+    });
   },
 
   async localDbGetAllPatientVisit() {
-    return nSQL('patientVisits')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log('PATIENTVISIT: ', result);
-        return result;
-      });
+    return db[patientVisitDexie].toArray().then((result: any) => {
+      return result;
+    });
   },
 
   async countPacksByDispenseTypeAndServiceOnPeriod(
@@ -328,31 +325,28 @@ export default {
     endDate: any
   ) {
     let counter = 0;
-    return nSQL('patientVisits')
-      .query('select')
-      .exec()
-      .then((result) => {
-        for (const pv of result) {
-          for (const pvd of pv.patientVisitDetails) {
-            if (pvd.pack !== undefined) {
-              const pickupDate = moment(pvd.pack.pickupDate);
-              const dispenseTypeId =
-                pvd.prescription.prescriptionDetails[0].dispenseType
-                  .identifierType;
-              const codeDispenseType =
-                dispenseTypeService.getById(dispenseTypeId);
-              if (
-                pickupDate >= startDate &&
-                pickupDate <= endDate &&
-                pvd.episode.patientServiceIdentifier.service.id === service &&
-                codeDispenseType.code === dispenseType
-              ) {
-                counter++;
-              }
+    return db[patientVisitDexie].toArray().then((result) => {
+      for (const pv of result) {
+        for (const pvd of pv.patientVisitDetails) {
+          if (pvd.pack !== undefined) {
+            const pickupDate = moment(pvd.pack.pickupDate);
+            const dispenseTypeId =
+              pvd.prescription.prescriptionDetails[0].dispenseType
+                .identifierType;
+            const codeDispenseType =
+              dispenseTypeService.getById(dispenseTypeId);
+            if (
+              pickupDate >= startDate &&
+              pickupDate <= endDate &&
+              pvd.episode.patientServiceIdentifier.service.id === service &&
+              codeDispenseType.code === dispenseType
+            ) {
+              counter++;
             }
           }
         }
-        return counter;
-      });
+      }
+      return counter;
+    });
   },
 };

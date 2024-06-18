@@ -4,8 +4,10 @@ import AttributeType from 'src/stores/models/attributeType/AttributeType';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const attributeType = useRepo(AttributeType);
+const attributeTypeDexie = AttributeType.entity;
 
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -13,7 +15,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -88,12 +90,23 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(AttributeType.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[attributeTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        attributeType.save(JSON.parse(params));
+        attributeType.save(params);
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[attributeTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        attributeType.save(params);
         // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
@@ -102,9 +115,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(AttributeType.entity)
-      .query('select')
-      .exec()
+    return db[attributeTypeDexie]
+      .toArray()
       .then((rows: any) => {
         attributeType.save(rows);
       })
@@ -114,10 +126,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(AttributeType.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[attributeTypeDexie]
+      .delete(paramsId)
       .then(() => {
         attributeType.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
