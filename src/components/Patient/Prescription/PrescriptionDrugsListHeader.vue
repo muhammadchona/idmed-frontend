@@ -239,6 +239,7 @@ const init = () => {
     );
     drugsDuration.value = curPrescription.value.duration;
   } else {
+    pickupDate.value = getYYYYMMDDFromJSDate(moment());
     if (
       lastPack.value.nextPickUpDate !== null &&
       lastPack.value.nextPickUpDate !== undefined
