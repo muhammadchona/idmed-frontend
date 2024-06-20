@@ -850,8 +850,8 @@ const init = () => {
       delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
     });
     curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
-    curPack.value.packDate = lastPack.value.nextPickUpDate;
-    curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+    // curPack.value.packDate = lastPack.value.nextPickUpDate;
+    // curPack.value.pickupDate = lastPack.value.nextPickUpDate;
 
     lastPack.value.packagedDrugs.forEach((packagedDrug) => {
       let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
@@ -1090,7 +1090,8 @@ const addPackagedDrugs = () => {
         if (item.drug_id === packagedDrug.drug_id) {
           const qtyRemain = getQtyRemain(
             packagedDrug,
-            curPrescription.value.duration.weeks
+            lastPack.value.weeksSupply
+            //          curPrescription.value.duration.weeks
           );
           quantityRemainAux = Number(qtyRemain) + Number(item.quantityRemain);
           packagedDrug.quantityRemain = quantityRemainAux;
@@ -1099,12 +1100,11 @@ const addPackagedDrugs = () => {
     } else {
       const qtyRemain = getQtyRemain(
         packagedDrug,
-        curPrescription.value.duration.weeks
+        curPack.value.weeksSupply
+        //     curPrescription.value.duration.weeks
       );
-      // quantityRemainAux = qtyRemain + packagedDrug.quantityRemain;
       packagedDrug.quantityRemain = qtyRemain;
     }
-    // hereeeeeee
     prescribedDrug.quantityRemain = quantityRemainAux;
     packagedDrug.quantityRemain = quantityRemainAux;
 
@@ -1115,7 +1115,6 @@ const generatePacks = async (packagedDrug) => {
   const packagedDrugStocks = [];
 
   let quantitySupplied = packagedDrug.quantitySupplied;
-  //getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(
   const pickupDate = curPack.value.pickupDate;
   StockService.getValidStockByDrugAndPickUpDateOnline(
     packagedDrug.drug.id,
@@ -1199,7 +1198,8 @@ const addPatientVisitDetail = async () => {
     if (lastPackagedDrug !== null && lastPackagedDrug !== undefined) {
       const qtyRemain = getQtyRemain(
         packagedDrug,
-        curPrescription.value.duration.weeks
+        curPatientVisitDetail.value.pack.weeksSupply
+        //  curPrescription.value.duration.weeks
       );
       quantityRemainAux =
         Number(qtyRemain) + Number(lastPackagedDrug.quantityRemain);
@@ -1207,9 +1207,9 @@ const addPatientVisitDetail = async () => {
     } else {
       const qtyRemain = getQtyRemain(
         packagedDrug,
-        curPrescription.value.duration.weeks
+        curPatientVisitDetail.value.pack.weeksSupply
+        // curPrescription.value.duration.weeks
       );
-
       packagedDrug.quantityRemain = qtyRemain;
     }
   });

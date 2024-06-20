@@ -260,6 +260,7 @@ const submitClinicalService = () => {
   showloading();
   loadingStep.value = true;
   clinicalService.value.active = true;
+  clinicalService.value.drugs = [];
   clinicalService.value.clinicSectors.forEach((clinicSector) => {
     clinicSector.clinicSectorType = {};
     clinicSector.clinicSectorType.id = clinicSector.clinic_sector_type_id;

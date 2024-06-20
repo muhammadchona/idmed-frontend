@@ -363,6 +363,8 @@ const onRequest = async (props) => {
     if (page !== actualPage.value || rowsPerPage !== actualRowsPerPage.value) {
       actualPage.value = page;
       actualRowsPerPage.value = rowsPerPage;
+      currPatient.value.limit = limit.value;
+      currPatient.value.offset = offset.value;
       patientService.apiSearch(currPatient.value);
     }
 
