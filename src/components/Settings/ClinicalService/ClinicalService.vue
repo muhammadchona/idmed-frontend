@@ -18,23 +18,24 @@
         </template>
         <template v-slot:top-right>
           <div class="row q-gutter-sm">
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Procurar">
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-          <q-btn
-            color="primary"
-            icon-right="refresh"
-            label="Actualizar Lista"
-            no-caps
-            @click="getClinicalServicesFromProvincialServer"
-          />
+            <q-input
+              outlined
+              dense
+              debounce="300"
+              v-model="filter"
+              placeholder="Procurar"
+            >
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-btn
+              color="primary"
+              icon-right="refresh"
+              label="Actualizar Lista"
+              no-caps
+              @click="getClinicalServicesFromProvincialServer"
+            />
           </div>
           <div class="q-pa-md q-gutter-sm">
             <q-btn
@@ -263,14 +264,15 @@ const submitClinicalService = () => {
     clinicSector.clinicSectorType = {};
     clinicSector.clinicSectorType.id = clinicSector.clinic_sector_type_id;
   });
-
+  /*
   clinicalService.value.therapeuticRegimens.forEach((therapeuticalRegimen) => {
     therapeuticalRegimen.drugs = [];
     therapeuticalRegimen.clinicalService = {};
     therapeuticalRegimen.clinicalService.id =
       therapeuticalRegimen.clinical_service_id;
   });
-
+  */
+  clinicalService.value.therapeuticRegimens = [];
   if (isNewClinicalService.value) {
     clinicalServiceService
       .post(clinicalService.value)

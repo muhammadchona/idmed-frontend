@@ -171,11 +171,10 @@
               <div class="q-pa-md">
                 <q-table
                   title="Regimes Terapêuticos"
-                  :rows="therapeuticRegimenList"
+                  :rows="clinicalService.therapeuticRegimens"
                   :columns="columnsRegimen"
                   :filter="filter2"
                   row-key="code"
-                  selection="multiple"
                   v-model:selected="clinicalService.therapeuticRegimens"
                   class="my-sticky-header-table"
                   dense
