@@ -157,9 +157,6 @@ const initReportProcessing = async (params) => {
     });
   } else {
     updateParamsOnLocalStrage(params, isReportClosed);
-    // const resp = await patientWithoutDispenseService.getDataLocalDb(params);
-    //progress.value = 100;
-    //params.progress = 100;
   }
 };
 
@@ -201,35 +198,6 @@ const getProcessingStatus = (params) => {
 const generateReport = async (id, fileType) => {
   if (isOnline.value) {
     getInventoryList(id, fileType);
-    // alert('testee');
-    // viewInvenvtories.value = true;
-    /*  Report.apiPrintInventoryReport(id).then((resp) => {
-      if (!resp.data[0]) {
-        alertError('Não existem Dados para o período selecionado');
-        downloadingXls.value = false;
-        downloadingPdf.value = false;
-      } else {
-        const patientAux = resp.data[0];
-
-        if (fileType === 'PDF') {
-          InventoryPartialTS.downloadPDF(
-            patientAux.province,
-            patientAux.startDate,
-            patientAux.endDate,
-            resp.data
-          );
-          downloadingPdf.value = false;
-        } else {
-          InventoryPartialTS.downloadExcel(
-            patientAux.province,
-            patientAux.startDate,
-            patientAux.endDate,
-            resp.data
-          );
-          downloadingXls.value = false;
-        }
-      }
-    }); */
   } else {
   }
 };
