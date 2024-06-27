@@ -2,7 +2,7 @@ import JsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import * as ExcelJS from 'exceljs';
-import { MOHIMAGELOG } from 'src/assets/imageBytes.ts'
+import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
 import drugFileService from 'src/services/api/drugFile/drugFileService';
 import Report from 'src/services/api/report/ReportService';
 import StockReceivedReport from 'src/stores/models/report/stock/StockReceivedReport';
@@ -14,7 +14,8 @@ import moment from 'moment';
 
 const { isMobile, isOnline } = useSystemUtils();
 
-const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n CENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS '
+const logoTitle =
+  'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n CENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS ';
 const title = 'Ficha do Medicamento';
 const reportName = 'FichaDoMedicamento';
 const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
@@ -22,9 +23,7 @@ const clinic = clinicService.currClinic();
 const data = [];
 
 export default {
-
   async downloadPDF(fileTypeParam, drugEventList, drug, stocks) {
-
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -82,15 +81,14 @@ export default {
       ],
       [
         {
-          content:
-            'Distrito: ' + clinic.district.description,
+          content: 'Distrito: ' + clinic.district.description,
           halign: 'center',
           valign: 'middle',
           fontStyle: 'bold',
           fontSize: '14',
         },
         {
-          content: 'Província: ' + clinic.province.description ,
+          content: 'Província: ' + clinic.province.description,
           halign: 'center',
           valign: 'left',
           fontStyle: 'bold',
@@ -104,12 +102,13 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Data do relatório: ' + moment(new Date()).format('DD-MM-YYYY'),
+          content:
+            'Data do relatório: ' + moment(new Date()).format('DD-MM-YYYY'),
           halign: 'center',
           valign: 'left',
           fontStyle: 'bold',
           fontSize: '14',
-        }
+        },
       ],
     ];
 
@@ -138,68 +137,71 @@ export default {
     /*
       RESUMO DE STOCK
     */
-      const desiredDefinition = [
-        [
-          { content: 'RESUMO DE STOCK', colSpan: 8 },
-        ],
-        [
-          { content: 'PERIODO DE MOVIMENTO' },
-          { content: 'MOVIMENTO' },
-          { content: 'ENTRADAS' },
-          { content: 'SAÍDAS' },
-          { content: 'AJUSTE POSITIVO (+)' },
-          { content: 'AJUSTE NEGATIVO (-)' },
-          { content: 'PERDAS' },
-          { content: 'SALDOS' },
-        ],
-      ];
+    const desiredDefinition = [
+      [{ content: 'RESUMO DE STOCK', colSpan: 8 }],
+      [
+        { content: 'PERIODO DE MOVIMENTO' },
+        { content: 'MOVIMENTO' },
+        { content: 'ENTRADAS' },
+        { content: 'SAÍDAS' },
+        { content: 'AJUSTE POSITIVO (+)' },
+        { content: 'AJUSTE NEGATIVO (-)' },
+        { content: 'PERDAS' },
+        { content: 'SALDOS' },
+      ],
+    ];
 
-      const data1 = this.createArrayOfArrayRowForResumo(drugEventList.value);
+    const data1 = this.createArrayOfArrayRowForResumo(drugEventList.value);
 
-      autoTable(doc, {
-        // margin: { top: 45 },
-        bodyStyles:
-        {
-          overflow: 'linebreak',
-          cellWidth: 'wrap',
-          valign: 'middle',
-          // font: 'arial',
-          fontSize: 6,
-          // cellPadding: 8,
-          overflowColumns: 'linebreak',
-        },
-        headStyles:
-        {
-          valign: 'bottom',
-          halign: 'center',
-          fontSize: 6,
-          lineWidth: 0.5,
-          lineColor: [230, 230, 230],
-          fillColor: [255, 255, 255],
-          textColor: [96, 96, 96],
-        },
-        didDrawPage: function (data)
-        {
-          const str = 'Página ' + doc.internal.getNumberOfPages();
-          doc.setFontSize(6);
-          // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-          const pageSize = doc.internal.pageSize;
-          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-          doc.text(str, data.settings.margin.right, pageHeight - 10);
-        },
+    autoTable(doc, {
+      // margin: { top: 45 },
+      bodyStyles: {
+        overflow: 'linebreak',
+        cellWidth: 'wrap',
+        valign: 'middle',
+        // font: 'arial',
+        fontSize: 6,
+        // cellPadding: 8,
+        overflowColumns: 'linebreak',
+      },
+      headStyles: {
+        valign: 'bottom',
+        halign: 'center',
+        fontSize: 6,
+        lineWidth: 0.5,
+        lineColor: [230, 230, 230],
+        fillColor: [255, 255, 255],
+        textColor: [96, 96, 96],
+      },
+      didDrawPage: function (data) {
+        const str = 'Página ' + doc.internal.getNumberOfPages();
+        doc.setFontSize(6);
+        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height
+          ? pageSize.height
+          : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);
+      },
 
-        theme: 'grid',
-        head: desiredDefinition,
-        body: data1,
+      theme: 'grid',
+      head: desiredDefinition,
+      body: data1,
     });
 
     /*
       LOTES
     */
 
-    const stocksOrdenadosPorExpireDateDesc = this.filtrarEOrdenarObjetos(stocks);
+    const stocksOrdenadosPorExpireDateDesc =
+      this.filtrarEOrdenarObjetos(stocks);
 
-    this.imprimirAoTerminar(stocksOrdenadosPorExpireDateDesc, doc, fileTypeParam, '');
+    this.imprimirAoTerminar(
+      stocksOrdenadosPorExpireDateDesc,
+      doc,
+      fileTypeParam,
+      ''
+    );
   },
 
   async downloadExcel(fileTypeParam, drugEventList, drug, stocks) {
@@ -270,68 +272,73 @@ export default {
     const colJ = worksheet.getColumn('J');
 
     worksheet.getCell('A13').fill =
-    worksheet.getCell('B13').fill =
-    worksheet.getCell('C13').fill =
-    worksheet.getCell('D13').fill =
-    worksheet.getCell('E13').fill =
-    worksheet.getCell('F13').fill =
-    worksheet.getCell('G13').fill =
-    worksheet.getCell('H13').fill =
-      {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '1fa37b' },
-        bgColor: { argb: '1fa37b' },
-      };
+      worksheet.getCell('B13').fill =
+      worksheet.getCell('C13').fill =
+      worksheet.getCell('D13').fill =
+      worksheet.getCell('E13').fill =
+      worksheet.getCell('F13').fill =
+      worksheet.getCell('G13').fill =
+      worksheet.getCell('H13').fill =
+        {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: '1fa37b' },
+          bgColor: { argb: '1fa37b' },
+        };
 
     // Alignment Format
     cellResumoTitle.alignment =
-    cellRepublica.alignment =
-    cellTitle.alignment = headerRow.alignment = {
-      vertical: 'middle',
-      horizontal: 'center',
-      wrapText: true,
-    };
+      cellRepublica.alignment =
+      cellTitle.alignment =
+      headerRow.alignment =
+        {
+          vertical: 'middle',
+          horizontal: 'center',
+          wrapText: true,
+        };
     cellPharm.alignment =
-    cellDistrict.alignment =
-    cellProvince.alignment =
-    cellMedicamento.alignment =
-    cellDataReport.alignment =
-      {
-        vertical: 'middle',
-        horizontal: 'left',
-        wrapText: false,
-      };
+      cellDistrict.alignment =
+      cellProvince.alignment =
+      cellMedicamento.alignment =
+      cellDataReport.alignment =
+        {
+          vertical: 'middle',
+          horizontal: 'left',
+          wrapText: false,
+        };
     // Border Format
     cellRepublica.border =
-    cellTitle.border =
-    cellPharm.border =
-    cellDistrictValue.border =
-    cellDistrict.border =
-    cellPharmParamValue.border =
-    cellProvince.border =
-    cellProvinceValue.border =
-    cellMedicamento.border =
-    cellMedicamentoValue.border =
-    cellDataReport.border =
-    cellDataReportValue.border =
-      {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      };
+      cellTitle.border =
+      cellPharm.border =
+      cellDistrictValue.border =
+      cellDistrict.border =
+      cellPharmParamValue.border =
+      cellProvince.border =
+      cellProvinceValue.border =
+      cellMedicamento.border =
+      cellMedicamentoValue.border =
+      cellDataReport.border =
+      cellDataReportValue.border =
+        {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
     // Assign Value to Cell
     cellRepublica.value = logoTitle;
     cellTitle.value = title;
-    cellPharmParamValue.value = clinic.clinicName !== null ? clinic.clinicName : '';
-    cellProvinceValue.value = clinic.province !== null ? clinic.province.description : '';
-    cellDistrictValue.value = clinic.district !== null ? clinic.district.description : '';
+    cellPharmParamValue.value =
+      clinic.clinicName !== null ? clinic.clinicName : '';
+    cellProvinceValue.value =
+      clinic.province !== null ? clinic.province.description : '';
+    cellDistrictValue.value =
+      clinic.district !== null ? clinic.district.description : '';
     cellUnidadeValue.value = drug.value.packSize;
-    cellFnmValue.value = drug.value.fnmCode
+    cellFnmValue.value = drug.value.fnmCode;
     cellFnm.value = 'FNM';
     cellResumoTitle.value = 'RESUMO';
-    cellUnidade.value = 'Unidade'
+    cellUnidade.value = 'Unidade';
     cellMedicamentoValue.value = drug.value.name;
     cellDataReportValue.value = moment(new Date()).format('DD-MM-YYYY');
     cellPharm.value = 'Farmácia';
@@ -362,13 +369,12 @@ export default {
     colJ.width = 20;
 
     // Add Style
-    cellResumoTitle.font =
-      {
-        name: 'Arial',
-        color: { argb: 'FFFFFFFF' },
-        family: 2,
-        size: 10,
-      };
+    cellResumoTitle.font = {
+      name: 'Arial',
+      color: { argb: 'FFFFFFFF' },
+      family: 2,
+      size: 10,
+    };
     // Add Image
     // Add Image
     worksheet.addImage(imageId, {
@@ -426,21 +432,24 @@ export default {
       rows: data,
     });
 
-    const stocksOrdenadosPorExpireDateDesc = this.filtrarEOrdenarObjetos(stocks);
+    const stocksOrdenadosPorExpireDateDesc =
+      this.filtrarEOrdenarObjetos(stocks);
 
-    this.imprimirAoTerminar(stocksOrdenadosPorExpireDateDesc, worksheet, fileTypeParam, workbook);
-
-
+    this.imprimirAoTerminar(
+      stocksOrdenadosPorExpireDateDesc,
+      worksheet,
+      fileTypeParam,
+      workbook
+    );
   },
 
-
   createArrayOfArrayRowForResumo(rows) {
-    let counter = 0
+    let counter = 0;
     const dataa = [];
     for (const row in rows) {
-      counter++
+      counter++;
       const createRow = [];
-      createRow.push(rows[row].month+', '+ parseInt(rows[row].year));
+      createRow.push(rows[row].month + ', ' + parseInt(rows[row].year));
       createRow.push(rows[row].moviment);
       createRow.push(rows[row].incomes);
       createRow.push(rows[row].outcomes);
@@ -450,7 +459,7 @@ export default {
       createRow.push(rows[row].balance);
 
       dataa.push(createRow);
-      if(counter === 3) break;
+      if (counter === 3) break;
     }
     return dataa;
   },
@@ -459,7 +468,7 @@ export default {
     const dataa = [];
     for (const lote in lotes) {
       const createRow = [];
-      createRow.push(lotes[lote].numLote)
+      createRow.push(lotes[lote].numLote);
       createRow.push(moment(lotes[lote].eventDate).format('DD-MM-YYYY'));
       createRow.push(lotes[lote].moviment);
       createRow.push(lotes[lote].incomes);
@@ -468,7 +477,8 @@ export default {
       createRow.push(lotes[lote].negativeAdjustment);
       createRow.push(lotes[lote].loses);
       createRow.push(lotes[lote].balance);
-      createRow.push(moment(lotes[lote].validade).format('DD-MM-YYYY'));
+      createRow.push(lotes[lote].validade);
+      //createRow.push(moment(lotes[lote].validade).format('DD-MM-YYYY'));
 
       dataa.push(createRow);
     }
@@ -476,287 +486,297 @@ export default {
     return dataa;
   },
 
-  async imprimirAoTerminar(stocksOrdenadosPorExpireDateDesc, docOrWorksheet, fileTypeParam, workbook) {
+  async imprimirAoTerminar(
+    stocksOrdenadosPorExpireDateDesc,
+    docOrWorksheet,
+    fileTypeParam,
+    workbook
+  ) {
     const promises = [];
-    const lotesPersonalisados = []
-    for(const stockk in stocksOrdenadosPorExpireDateDesc) {
-        const stock1 = []
-        stock1.push(stocksOrdenadosPorExpireDateDesc[stockk])
+    const lotesPersonalisados = [];
+    for (const stockk in stocksOrdenadosPorExpireDateDesc) {
+      const stock1 = [];
+      stock1.push(stocksOrdenadosPorExpireDateDesc[stockk]);
 
-        const promise = drugFileService.apiGetDrugBatchSummary(stock1[0].clinic_id, stock1[0].id).then((resp) => {
+      const promise = drugFileService
+        .apiGetDrugBatchSummary(stock1[0].clinic_id, stock1[0].id)
+        .then((resp) => {
           const lotesDoStock = resp.data;
 
           for (let i = 0; i < lotesDoStock.length; i++) {
             // Adicionar os atributos "numLote" e "validade" a cada objeto
-            lotesDoStock[i].numLote = stocksOrdenadosPorExpireDateDesc[stockk].batchNumber;
-            lotesDoStock[i].validade = moment(stocksOrdenadosPorExpireDateDesc[stockk].expireDate).format('DD-MM-YYYY');
+            lotesDoStock[i].numLote =
+              stocksOrdenadosPorExpireDateDesc[stockk].batchNumber;
+            lotesDoStock[i].validade = moment(
+              stocksOrdenadosPorExpireDateDesc[stockk].expireDate
+            ).format('DD-MM-YYYY');
           }
-          const lotesOrdenados = this.ordenaPorMovimentoDesc(lotesDoStock)
+          const lotesOrdenados = this.ordenaPorMovimentoDesc(lotesDoStock);
           for (let i = 0; i < lotesOrdenados.length; i++) {
-            lotesPersonalisados.push(lotesOrdenados[i])
+            lotesPersonalisados.push(lotesOrdenados[i]);
           }
-
-      });
+        });
       promises.push(promise);
     }
 
     await Promise.all(promises);
-    const data2Result = this.createArrayOfArrayRowForLote(this.ordenaPorMovimentoDesc1(lotesPersonalisados))
-    if (fileTypeParam === 'PDF'){
-          const desiredDefinition1 = [
-            [
-              { content: 'LOTES', colSpan: 10 },
-            ],
-            [
-              { content: 'NR. DO LOTE'},
-              { content: 'DATA DE MOVIMENTO'},
-              { content: 'MOVIMENTO' },
-              { content: 'ENTRADA' },
-              { content: 'SAÍDA' },
-              { content: 'AJUSTE POSITIVO (+)' },
-              { content: 'AJUSTE NEGATIVO (-)' },
-              { content: 'PERDAS' },
-              { content: 'SALDO' },
-              { content: 'VALIDADE' },
-            ],
-          ];
-
-          autoTable(docOrWorksheet, {
-            // margin: { top: 45 },
-            bodyStyles:
-            {
-              overflow: 'linebreak',
-              cellWidth: 'wrap',
-              valign: 'middle',
-              // font: 'arial',
-              fontSize: 6,
-              // cellPadding: 8,
-              overflowColumns: 'linebreak',
-            },
-            headStyles:
-            {
-              valign: 'bottom',
-              halign: 'center',
-              fontSize: 6,
-              lineWidth: 0.5,
-              lineColor: [230, 230, 230],
-              fillColor: [255, 255, 255],
-              textColor: [96, 96, 96],
-            },
-
-            theme: 'grid',
-            head: desiredDefinition1,
-            body: data2Result,
-        });
-    if (isOnline.value && !isMobile.value) {
-      // return docOrWorksheet.save(fileName.concat('.pdf'));
-      window.open(docOrWorksheet.output('bloburl'));
-    } else {
-      const pdfOutput = docOrWorksheet.output();
-      this.downloadFile(fileName, 'pdf', pdfOutput);
-    }
-  } else {
-    docOrWorksheet.mergeCells(
-      'A' +
-        (Number(docOrWorksheet.lastRow.number) + 1) +
-        ':J' +
-        (Number(docOrWorksheet.lastRow.number) + 1)
+    const data2Result = this.createArrayOfArrayRowForLote(
+      this.ordenaPorMovimentoDesc1(lotesPersonalisados)
     );
+    if (fileTypeParam === 'PDF') {
+      const desiredDefinition1 = [
+        [{ content: 'LOTES', colSpan: 10 }],
+        [
+          { content: 'NR. DO LOTE' },
+          { content: 'DATA DE MOVIMENTO' },
+          { content: 'MOVIMENTO' },
+          { content: 'ENTRADA' },
+          { content: 'SAÍDA' },
+          { content: 'AJUSTE POSITIVO (+)' },
+          { content: 'AJUSTE NEGATIVO (-)' },
+          { content: 'PERDAS' },
+          { content: 'SALDO' },
+          { content: 'VALIDADE' },
+        ],
+      ];
 
-    const cellLotesTitle = docOrWorksheet.getCell('A' + (Number(docOrWorksheet.lastRow.number)))
-    cellLotesTitle.value = 'LOTES'
-    cellLotesTitle.fill =
-    {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '1fa37b' },
-      bgColor: { argb: '1fa37b' },
-    };
-    cellLotesTitle.font = {
-      name: 'Arial',
-      color: { argb: 'FFFFFFFF' },
-      family: 2,
-      size: 10,
-      italic: false,
-    };
+      autoTable(docOrWorksheet, {
+        // margin: { top: 45 },
+        bodyStyles: {
+          overflow: 'linebreak',
+          cellWidth: 'wrap',
+          valign: 'middle',
+          // font: 'arial',
+          fontSize: 6,
+          // cellPadding: 8,
+          overflowColumns: 'linebreak',
+        },
+        headStyles: {
+          valign: 'bottom',
+          halign: 'center',
+          fontSize: 6,
+          lineWidth: 0.5,
+          lineColor: [230, 230, 230],
+          fillColor: [255, 255, 255],
+          textColor: [96, 96, 96],
+        },
 
-
-    // Format all data cells
-    const lastRowNum =  docOrWorksheet.lastRow.number !== undefined ? docOrWorksheet.lastRow.number : 0;
-    const lastTableRowNum = lastRowNum;
-    // Loop through all table's row
-    for (let i = 14; i <= lastTableRowNum; i++) {
-      const row = docOrWorksheet.getRow(i);
-      row.height = 30;
-      // Now loop through every row's cell and finally set alignment
-      row.eachCell({ includeEmpty: true }, (cell) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
-        cell.alignment = {
-          vertical: 'middle',
-          horizontal: 'center',
-          wrapText: true,
-        };
-        if (i === 13) {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: '1fa37b' },
-            bgColor: { argb: '1fa37b' },
-          };
-          cell.font = {
-            name: 'Arial',
-            color: { argb: 'FFFFFFFF' },
-            family: 2,
-            size: 10,
-            italic: false,
-          };
-        }
+        theme: 'grid',
+        head: desiredDefinition1,
+        body: data2Result,
       });
-    }
-
-    // Cereate Table LOTES
-    docOrWorksheet.addTable({
-      name: reportName,
-      ref: 'A' + (Number(docOrWorksheet.lastRow.number) + 1),
-      headerRow: true,
-      totalsRow: false,
-      style: {
-        showRowStripes: false,
-      },
-
-      columns: [
-        { name: 'NR. DO LOTE', filterButton: false },
-        { name: 'DATA DO MOVIMENTO', filterButton: false },
-        {
-          name: 'MOVIMENTO',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'ENTRADAS',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'SAÍDAS',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'AJUSTE POSITIVO (+) ',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'AJUSTE NEGATIVO (-) ',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'PERDAS',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'SALDOS',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-        {
-          name: 'VALIDADE',
-          totalsRowFunction: 'none',
-          filterButton: false,
-        },
-      ],
-      rows: data2Result,
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const fileType =
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    const fileExtension = '.xlsx';
-    const blob = new Blob([buffer], { type: fileType });
-
-    if (isOnline.value && !isMobile.value) {
-      saveAs(blob, fileName + fileExtension);
+      if (isOnline.value && !isMobile.value) {
+        // return docOrWorksheet.save(fileName.concat('.pdf'));
+        window.open(docOrWorksheet.output('bloburl'));
+      } else {
+        const pdfOutput = docOrWorksheet.output();
+        this.downloadFile(fileName, 'pdf', pdfOutput);
+      }
     } else {
-      //   var blob = new Blob(materialEducativo.blop)
-      //  const bytes = new Uint8Array(materialEducativo.blop)
-      // var UTF8_STR = new Uint8Array(pdfOutput)
-      //   var BINARY_ARR = UTF8_STR.buffer
-      const titleFile = 'StockRecebido.xlsx';
-      console.log('result' + titleFile);
-      saveBlob2File(titleFile, blob);
-      function saveBlob2File(fileName, blob) {
-        const folder = cordova.file.externalRootDirectory + 'Download';
-        //  var folder = 'Download'
-        window.resolveLocalFileSystemURL(
-          folder,
-          function (dirEntry) {
-            createFile(dirEntry, fileName, blob);
-            // $q.loading.hide()
-          },
-          onErrorLoadFs
-        );
-      }
-      function createFile(dirEntry, fileName, blob) {
-        // Creates a new file
-        dirEntry.getFile(
-          fileName,
-          { create: true, exclusive: false },
-          function (fileEntry) {
-            writeFile(fileEntry, blob);
-          },
-          onErrorCreateFile
-        );
-      }
+      docOrWorksheet.mergeCells(
+        'A' +
+          (Number(docOrWorksheet.lastRow.number) + 1) +
+          ':J' +
+          (Number(docOrWorksheet.lastRow.number) + 1)
+      );
 
-      function writeFile(fileEntry, dataObj) {
-        // Create a FileWriter object for our FileEntry
-        fileEntry.createWriter(function (fileWriter) {
-          fileWriter.onwriteend = function () {
-            console.log('Successful file write...');
-            openFile();
-          };
+      const cellLotesTitle = docOrWorksheet.getCell(
+        'A' + Number(docOrWorksheet.lastRow.number)
+      );
+      cellLotesTitle.value = 'LOTES';
+      cellLotesTitle.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '1fa37b' },
+        bgColor: { argb: '1fa37b' },
+      };
+      cellLotesTitle.font = {
+        name: 'Arial',
+        color: { argb: 'FFFFFFFF' },
+        family: 2,
+        size: 10,
+        italic: false,
+      };
 
-          fileWriter.onerror = function (error) {
-            console.log('Failed file write: ' + error);
+      // Format all data cells
+      const lastRowNum =
+        docOrWorksheet.lastRow.number !== undefined
+          ? docOrWorksheet.lastRow.number
+          : 0;
+      const lastTableRowNum = lastRowNum;
+      // Loop through all table's row
+      for (let i = 14; i <= lastTableRowNum; i++) {
+        const row = docOrWorksheet.getRow(i);
+        row.height = 30;
+        // Now loop through every row's cell and finally set alignment
+        row.eachCell({ includeEmpty: true }, (cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
           };
-          fileWriter.write(dataObj);
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: 'center',
+            wrapText: true,
+          };
+          if (i === 13) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: '1fa37b' },
+              bgColor: { argb: '1fa37b' },
+            };
+            cell.font = {
+              name: 'Arial',
+              color: { argb: 'FFFFFFFF' },
+              family: 2,
+              size: 10,
+              italic: false,
+            };
+          }
         });
       }
-      function onErrorLoadFs(error) {
-        console.log(error);
-      }
 
-      function onErrorCreateFile(error) {
-        console.log('errorr: ' + error.toString());
-      }
-      function openFile() {
-        const strTitle = titleFile;
-        console.log('file system 44444: ' + strTitle);
-        const folder =
-          cordova.file.externalRootDirectory + 'Download/' + strTitle;
-        console.log('file system 2222: ' + folder);
-        const documentURL = decodeURIComponent(folder);
-        cordova.plugins.fileOpener2.open(
-          documentURL,
-          'application/vnd.ms-excel',
+      // Cereate Table LOTES
+      docOrWorksheet.addTable({
+        name: reportName,
+        ref: 'A' + (Number(docOrWorksheet.lastRow.number) + 1),
+        headerRow: true,
+        totalsRow: false,
+        style: {
+          showRowStripes: false,
+        },
+
+        columns: [
+          { name: 'NR. DO LOTE', filterButton: false },
+          { name: 'DATA DO MOVIMENTO', filterButton: false },
           {
-            error: function (e) {
-              console.log('file system open3333366: ' + e + documentURL);
+            name: 'MOVIMENTO',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'ENTRADAS',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'SAÍDAS',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'AJUSTE POSITIVO (+) ',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'AJUSTE NEGATIVO (-) ',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'PERDAS',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'SALDOS',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+          {
+            name: 'VALIDADE',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
+        ],
+        rows: data2Result,
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const fileType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const fileExtension = '.xlsx';
+      const blob = new Blob([buffer], { type: fileType });
+
+      if (isOnline.value && !isMobile.value) {
+        saveAs(blob, fileName + fileExtension);
+      } else {
+        //   var blob = new Blob(materialEducativo.blop)
+        //  const bytes = new Uint8Array(materialEducativo.blop)
+        // var UTF8_STR = new Uint8Array(pdfOutput)
+        //   var BINARY_ARR = UTF8_STR.buffer
+        const titleFile = 'StockRecebido.xlsx';
+        console.log('result' + titleFile);
+        saveBlob2File(titleFile, blob);
+        function saveBlob2File(fileName, blob) {
+          const folder = cordova.file.externalRootDirectory + 'Download';
+          //  var folder = 'Download'
+          window.resolveLocalFileSystemURL(
+            folder,
+            function (dirEntry) {
+              createFile(dirEntry, fileName, blob);
+              // $q.loading.hide()
             },
-            success: function () {},
-          }
-        );
+            onErrorLoadFs
+          );
+        }
+        function createFile(dirEntry, fileName, blob) {
+          // Creates a new file
+          dirEntry.getFile(
+            fileName,
+            { create: true, exclusive: false },
+            function (fileEntry) {
+              writeFile(fileEntry, blob);
+            },
+            onErrorCreateFile
+          );
+        }
+
+        function writeFile(fileEntry, dataObj) {
+          // Create a FileWriter object for our FileEntry
+          fileEntry.createWriter(function (fileWriter) {
+            fileWriter.onwriteend = function () {
+              console.log('Successful file write...');
+              openFile();
+            };
+
+            fileWriter.onerror = function (error) {
+              console.log('Failed file write: ' + error);
+            };
+            fileWriter.write(dataObj);
+          });
+        }
+        function onErrorLoadFs(error) {
+          console.log(error);
+        }
+
+        function onErrorCreateFile(error) {
+          console.log('errorr: ' + error.toString());
+        }
+        function openFile() {
+          const strTitle = titleFile;
+          console.log('file system 44444: ' + strTitle);
+          const folder =
+            cordova.file.externalRootDirectory + 'Download/' + strTitle;
+          console.log('file system 2222: ' + folder);
+          const documentURL = decodeURIComponent(folder);
+          cordova.plugins.fileOpener2.open(
+            documentURL,
+            'application/vnd.ms-excel',
+            {
+              error: function (e) {
+                console.log('file system open3333366: ' + e + documentURL);
+              },
+              success: function () {},
+            }
+          );
+        }
       }
     }
-  }
   },
 
   // Método para filtrar e ordenar os objetos
@@ -764,7 +784,7 @@ export default {
     const dataAtual = moment();
 
     // Filtra os objetos que não expiraram
-    const objetosNaoExpirados = stocks.filter(objeto =>
+    const objetosNaoExpirados = stocks.filter((objeto) =>
       moment(objeto.expireDate).isAfter(dataAtual)
     );
 
@@ -782,17 +802,17 @@ export default {
       moment(b.eventDate).diff(moment(a.eventDate))
     );
 
-    return objetosOrdenados
+    return objetosOrdenados;
   },
   ordenaPorMovimentoDesc1(arrayDeObjetos) {
     // Usar o método sort() para ordenar os objetos com base na propriedade eventDate
-    arrayDeObjetos.sort(function(a, b) {
-        // Converter as datas para objetos Date para facilitar a comparação
-        const dataA = new Date(a.eventDate);
-        const dataB = new Date(b.eventDate);
+    arrayDeObjetos.sort(function (a, b) {
+      // Converter as datas para objetos Date para facilitar a comparação
+      const dataA = new Date(a.eventDate);
+      const dataB = new Date(b.eventDate);
 
-        // Comparar as datas e retornar o resultado da comparação
-        return dataB - dataA;
+      // Comparar as datas e retornar o resultado da comparação
+      return dataB - dataA;
     });
 
     // Retornar o array ordenado

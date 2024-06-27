@@ -140,7 +140,6 @@ const loadedPrescriptionInfo = inject('loadedPrescriptionInfo');
 const getGroupMembers = inject('getGroupMembers');
 //Hook
 onMounted(() => {
-  console.log(isNewPrescription.value);
   init();
 });
 

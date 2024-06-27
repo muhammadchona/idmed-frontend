@@ -61,6 +61,21 @@ export default {
     return await api().post('/activePatientReport/initReportProcess', params);
   },
 
+  async apiInitExpectedPatientsProcessing(params: any) {
+    return await api().post(
+      '/expectedPatientsReport/initReportProcess',
+      params
+    );
+  },
+
+  async apiInitInventoryReportProcessing(params: any) {
+    return await api().post('/inventoryReport/initReportProcess', params);
+  },
+
+  async getInventoryList(controller: any, reportId: string) {
+    return await api().get(`/${controller}/getInventoryList/${reportId}`);
+  },
+
   async apiInitReferredPatientsProcessing(params: any) {
     return await api().post(
       '/referredPatientsReport/initReportProcess',
@@ -162,6 +177,27 @@ export default {
 
   apiPrintActivePatientReport(reportId: any) {
     return api().get(`/activePatientReport/printReport/${reportId}`, {
+      responseType: 'json',
+    });
+  },
+
+  apiPrintExpectedPatientsReport(reportId: any) {
+    return api().get(`/expectedPatientsReport/printReport/${reportId}`, {
+      responseType: 'json',
+    });
+  },
+
+  apiPrintInventoryReport(inventoryId: any, reportId: any) {
+    return api().get(
+      `/inventoryReport/printReportByInventoryId/${inventoryId}/${reportId}`,
+      {
+        responseType: 'json',
+      }
+    );
+  },
+
+  apiPrintPatientsWithoutDispenseReport(reportId: any) {
+    return api().get(`/patientWithoutDispense/printReport/${reportId}`, {
       responseType: 'json',
     });
   },

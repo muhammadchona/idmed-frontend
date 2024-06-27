@@ -78,7 +78,6 @@
                   props.row.open ? 'Abrir Inventário' : 'Visualizar Inventário'
                 }}</q-tooltip>
               </q-btn>
-
               <q-btn
                 :loading="submittingDetails"
                 flat
@@ -176,7 +175,7 @@ const showInventoryDetails = (inventory) => {
   inventoryDetail.value = inventory;
   // localStorage.setItem('currInventoryDetails', inventory);
   // const lista = inventoryDetailsMethod.getInventoryDetailsById(inventory);
-  //console.log('Lista: ', lista);
+  // console.log('Lista: ', lista);
   // clinic.value = clinicParam;
   // viewMode.value = true;
   // editMode.value = false;

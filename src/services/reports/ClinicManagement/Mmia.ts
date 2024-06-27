@@ -90,19 +90,23 @@ export default {
     const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData);
     const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData);
     const miaRegimenTotalData = this.createRegimenTotalArrayRow(
+      mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
     const miaLinesSumaryData = this.createLinesSumaryArrayRow(
+      mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
     const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(
+      mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
     const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData);
     const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData);
+    const mmiadbTypeData = this.createMmiaDispenseTypeDBArrayRow(mmiaData);
     const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData);
     const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData);
     const footer = this.createFotterTableRow();
@@ -232,7 +236,8 @@ export default {
 
     const firstTableHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, { // Segunda tabela (Regime Terapêutico) Lado esquerdo
+    autoTable(doc, {
+      // Segunda tabela (Regime Terapêutico) Lado esquerdo
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
@@ -260,7 +265,8 @@ export default {
 
     const secondTableHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, { // Terceira tabela (Total)
+    autoTable(doc, {
+      // Terceira tabela (Total)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
@@ -285,7 +291,8 @@ export default {
 
     const hirdTableHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, {// Quarta  tabela (Linhas Terapêuticas)
+    autoTable(doc, {
+      // Quarta  tabela (Linhas Terapêuticas)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
@@ -320,7 +327,8 @@ export default {
 
     const fourthTableHeigth = doc.lastAutoTable.finalY;
 
-    autoTable(doc, {// Quinta tabela (Total Linhas)
+    autoTable(doc, {
+      // Quinta tabela (Total Linhas)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
@@ -345,7 +353,8 @@ export default {
 
     // Fim das colunas a esquerda
 
-    autoTable(doc, {// Sexta tabela (Tipo de Doencas em TARV)
+    autoTable(doc, {
+      // Sexta tabela (Tipo de Doencas em TARV)
       theme: 'grid',
       bodyStyles: {
         halign: 'center',
@@ -474,48 +483,51 @@ export default {
     });
 
     const ninethTableHeigth = doc.lastAutoTable.finalY;
-
-    const arrayAux = [
-      ['', 'DS', '', '', '']
-    ]
+    const arrayAux = [['', 'DS', '', '', '', '']];
     for (let i = 0; i < mmiadsTypeData.length; i++) {
-      
-      if(i==0) {
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push(mmiaAjusteData[0][0])
-        mmiadsTypeData[i].push(mmiaAjusteData[0][1])
+      if (i == 0) {
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push(mmiaAjusteData[0][0]);
+        mmiadsTypeData[i].push(mmiaAjusteData[0][1]);
       }
-      if(i==1) {
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
+      if (i == 1) {
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push('');
       }
-      if(i==2) {
-        mmiadsTypeData[i].push('DT')
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
+      if (i == 2) {
+        mmiadsTypeData[i].push('DT');
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push('');
       }
-      if(i==3) {
-        mmiadsTypeData[i].push(mmiadtTypeData[0][0])
-        mmiadsTypeData[i].push('')
-        mmiadsTypeData[i].push('')
+      if (i == 3) {
+        mmiadsTypeData[i].push(mmiadtTypeData[0][0]);
+        mmiadsTypeData[i].push('DB');
+        mmiadsTypeData[i].push('');
+        mmiadsTypeData[i].push('');
       }
-      if(i==4) {
-        mmiadsTypeData[i].push(mmiadtTypeData[1][0])
-        mmiadsTypeData[i].push('DM')
-        mmiadsTypeData[i].push('Total')
+      if (i == 4) {
+        mmiadsTypeData[i].push(mmiadtTypeData[1][0]);
+        mmiadsTypeData[i].push(mmiadbTypeData[0][0]);
+        mmiadsTypeData[i].push('DM');
+        mmiadsTypeData[i].push('Total');
       }
-      if(i==5) {
-        mmiadsTypeData[i].push(mmiadtTypeData[2][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[0][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[0][1])
+      if (i == 5) {
+        mmiadsTypeData[i].push(mmiadtTypeData[2][0]);
+        mmiadsTypeData[i].push(mmiadbTypeData[1][0]);
+        mmiadsTypeData[i].push(mmiadmTypeData[0][0]);
+        mmiadsTypeData[i].push(mmiadmTypeData[0][1]);
       }
-      if(i==6) {
-        mmiadsTypeData[i].push(mmiadtTypeData[3][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[1][0])
-        mmiadsTypeData[i].push(mmiadmTypeData[1][1])
+      if (i == 6) {
+        mmiadsTypeData[i].push(mmiadtTypeData[3][0]);
+        mmiadsTypeData[i].push(mmiadbTypeData[2][0]);
+        mmiadsTypeData[i].push(mmiadmTypeData[1][0]);
+        mmiadsTypeData[i].push(mmiadmTypeData[1][1]);
       }
-      arrayAux.push(mmiadsTypeData[i])
+      arrayAux.push(mmiadsTypeData[i]);
     }
 
     autoTable(doc, {
@@ -538,124 +550,59 @@ export default {
       },
       body: arrayAux,
       startY: ninethTableHeigth,
-      margin: { left: 121.1  },
+      margin: { left: 121.1 },
       // Adiciona o hook para condicionalmente alterar a cor de preenchimento
       didParseCell: function (data) {
-      if (data.row.section === 'body' && (data.column.index === 1) && (data.cell.raw === 'DS')) {
-          
+        if (
+          data.row.section === 'body' &&
+          data.column.index === 1 &&
+          data.cell.raw === 'DS'
+        ) {
           data.cell.styles.fillColor = [75, 76, 77];
           data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 2) && (data.cell.raw === 'DT')) {
-          
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 3) && (data.cell.raw === 'DM')) {
-          
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 3) && (data.cell.raw === 'Ajuste')) {
-          
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-        
-      };
-      if (data.row.section === 'body' && (data.column.index === 4) && (data.cell.raw === 'Total')) {
-            
-        data.cell.styles.fillColor = [75, 76, 77];
-        data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
-     
-    };
-    }
-    
-    // willDrawCell: function (data) {
-    //   if (data.row.section === 'body' && data.column.index === 1 && data.cell.raw === 'DS') {
-    //       // data.cell.styles.fillColor = [240, 241, 242];
-    //       const text = 'DSS';
-    //       const fontSize = data.cell.styles.fontSize || 12;
-    //       const xOffset = data.cell.x + (data.cell.width / 2);
-    //       const yOffset = data.cell.y + (data.cell.height / 2);
-    //       console.log(xOffset);
-    //       console.log(yOffset);
-
-    //       doc.text(text, data.cell.x+5, yOffset+2, { angle: 90 });
-  
-    //       // doc.text(text, xOffset, yOffset, { align: 'center', valign: 'middle', angle: 90, fontSize });
-    //   }
-  // }
-  
+        }
+        if (
+          data.row.section === 'body' &&
+          data.column.index === 2 &&
+          data.cell.raw === 'DT'
+        ) {
+          data.cell.styles.fillColor = [75, 76, 77];
+          data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        }
+        if (
+          data.row.section === 'body' &&
+          data.column.index === 3 &&
+          data.cell.raw === 'DB'
+        ) {
+          data.cell.styles.fillColor = [75, 76, 77];
+          data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        }
+        if (
+          data.row.section === 'body' &&
+          data.column.index === 4 &&
+          data.cell.raw === 'DM'
+        ) {
+          data.cell.styles.fillColor = [75, 76, 77];
+          data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        }
+        if (
+          data.row.section === 'body' &&
+          data.column.index === 3 &&
+          data.cell.raw === 'Ajuste'
+        ) {
+          data.cell.styles.fillColor = [75, 76, 77];
+          data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        }
+        if (
+          data.row.section === 'body' &&
+          data.column.index === 5 &&
+          data.cell.raw === 'Total'
+        ) {
+          data.cell.styles.fillColor = [75, 76, 77];
+          data.cell.styles.textColor = [255, 255, 255]; // Cor branca para o texto
+        }
+      },
     });
-
-
-    // autoTable(doc, {
-    //   theme: 'grid',
-    //   bodyStyles: {
-    //     halign: 'center',
-    //     fontSize: 6,
-    //   },
-    //   head: [
-    //     [
-    //       {
-    //         content: 'DT\n',
-    //       },
-    //     ],
-    //   ],
-    //   headStyles: {
-    //     halign: 'center',
-    //     valign: 'middle',
-    //     fontSize: 6,
-    //     fillColor: [75, 76, 77],
-    //   },
-    //   columnStyles: {
-    //     0: { cellWidth: 10 },
-    //     1: { cellWidth: 10 },
-    //   },
-    //   styles: {
-    //     maxCellHeight: 4,
-    //   },
-    //   body: mmiadtTypeData,
-    //   startY: ninethTableHeigth,
-    //   margin: { left: 1 },
-    // });
-
-    // autoTable(doc, {
-    //   theme: 'grid',
-    //   bodyStyles: {
-    //     halign: 'center',
-    //     fontSize: 6,
-    //   },
-    //   head: [
-    //     [
-    //       {
-    //         content: 'DM\n',
-    //       },
-    //       {
-    //         content: 'Total\n',
-    //       },
-    //     ],
-    //   ],
-    //   headStyles: {
-    //     halign: 'center',
-    //     valign: 'middle',
-    //     fontSize: 6,
-    //     fillColor: [75, 76, 77],
-    //   },
-    //   columnStyles: {
-    //     0: { cellWidth: 10 },
-    //     1: { cellWidth: 10 },
-    //   },
-    //   styles: {
-    //     maxCellHeight: 2,
-    //   },
-    //   body: mmiadmTypeData,
-    //   startY: ninethTableHeigth + 29.8,
-    //   margin: { left: 153.1 },
-    // });
 
     const tiposDispensaTableY = doc.lastAutoTable.finalY;
 
@@ -698,7 +645,6 @@ export default {
       15,
       doc.lastAutoTable.finalY + 5
     );
-    
 
     // Footer
     const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -744,19 +690,23 @@ export default {
     const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData);
     const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData);
     const miaRegimenTotalData = this.createRegimenTotalArrayRow(
+      mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
     const miaLinesSumaryData = this.createLinesSumaryArrayRow(
+      mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
     const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(
+      mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
       'XLS'
     );
     const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData);
     const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData);
+    const mmiadbTypeData = this.createMmiaDispenseTypeDBArrayRow(mmiaData);
     const mmiadmTypeData = this.createMmiaDispenseTypeDMArrayRow(mmiaData);
     const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData);
     const footer = this.createFotterTableRow();
@@ -1083,8 +1033,6 @@ export default {
 
     const cellTipoDoenteHeader = worksheet.getCell('F' + RegimenTableRef);
 
-    console.log(worksheet.lastRow.number);
-
     cellTipoDoenteHeader.value = 'Tipo de doentes em TARV';
 
     worksheet.addTable({
@@ -1177,7 +1125,7 @@ export default {
 
     worksheet.addTable({
       name: reportName,
-      ref: 'E' + (refDispenseType + 1),
+      ref: 'D' + (refDispenseType + 1),
       headerRow: true,
       totalsRow: false,
       style: {
@@ -1192,7 +1140,7 @@ export default {
 
     worksheet.addTable({
       name: reportName,
-      ref: 'G' + (refDispenseType + 4),
+      ref: 'F' + (refDispenseType + 4),
       headerRow: true,
       totalsRow: false,
       style: {
@@ -1200,6 +1148,18 @@ export default {
       },
       columns: [{ name: 'DT', totalsRowFunction: 'none', filterButton: false }],
       rows: mmiadtTypeData,
+    });
+
+    worksheet.addTable({
+      name: reportName,
+      ref: 'G' + (refDispenseType + 5),
+      headerRow: true,
+      totalsRow: false,
+      style: {
+        showRowStripes: false,
+      },
+      columns: [{ name: 'DB', totalsRowFunction: 'none', filterButton: false }],
+      rows: mmiadbTypeData,
     });
 
     worksheet.addTable({
@@ -1310,8 +1270,9 @@ export default {
       horizontal: 'right',
       wrapText: true,
     };
-    const cellDS = worksheet.getCell('F' + Number(refDispenseType + 1));
-    const cellDt = worksheet.getCell('G' + Number(refDispenseType + 4));
+    const cellDS = worksheet.getCell('E' + Number(refDispenseType + 1));
+    const cellDt = worksheet.getCell('F' + Number(refDispenseType + 4));
+    const cellDb = worksheet.getCell('G' + Number(refDispenseType + 5));
     const cellDM = worksheet.getCell('H' + Number(refDispenseType + 6));
     const cellDTotal = worksheet.getCell('I' + Number(refDispenseType + 6));
 
@@ -1326,6 +1287,7 @@ export default {
       cellDM.fill =
       cellDS.fill =
       cellDt.fill =
+      cellDb.fill =
       cellAjuste.fill =
       cellDispenseTypeHeader.fill =
       cellLinesHeader.fill =
@@ -1347,6 +1309,7 @@ export default {
       cellDM.font =
       cellDS.font =
       cellDt.font =
+      cellDb.font =
       cellAjuste.font =
       cellTipoDoenteHeader.font =
         {
@@ -1592,35 +1555,37 @@ export default {
 
     return data;
   },
-  createRegimenTotalArrayRow(rows, fileType) {
+  createRegimenTotalArrayRow(generalRows, rows, fileType) {
     const data = [];
     let totalPatients = 0;
     let cumunitaryClinic = 0;
 
     for (const row in rows) {
-      if (rows[row].code !== 'TDF+3TC PrEP') {
-        totalPatients += rows[row].totalPatients;
-        cumunitaryClinic += rows[row].cumunitaryClinic;
-      }
+      totalPatients += rows[row].totalPatients;
+      cumunitaryClinic += rows[row].cumunitaryClinic;
     }
     const createRow = [];
     if (fileType == 'PDF') {
       createRow.push({
-        // colSpan: 1,
         content: 'Total',
         styles: { halign: 'right', fillColor: [204, 204, 204] },
       });
     } else {
       createRow.push('Total');
     }
-    createRow.push(totalPatients);
+    createRow.push(
+      totalPatients -
+        generalRows.totalPacientesPPE -
+        generalRows.totalPacientesPREP -
+        generalRows.totalpacientesCE
+    );
     createRow.push(cumunitaryClinic);
 
     data.push(createRow);
 
     return data;
   },
-  createLinesSumaryArrayRow(rows, fileType) {
+  createLinesSumaryArrayRow(generalRows, rows, fileType) {
     const data = [];
     let totallinha1Nr = 0;
     let totallinha2Nr = 0;
@@ -1630,14 +1595,12 @@ export default {
     let totallinha3DC = 0;
 
     for (const row in rows) {
-      if (rows[row].code !== 'TDF+3TC PrEP') {
-        totallinha1Nr += rows[row].totalline1;
-        totallinha1DC += rows[row].totaldcline1;
-        totallinha2Nr += rows[row].totalline2;
-        totallinha2DC += rows[row].totaldcline2;
-        totallinha3Nr += rows[row].totalline3;
-        totallinha3DC += rows[row].totaldcline3;
-      }
+      totallinha1Nr += rows[row].totalline1;
+      totallinha1DC += rows[row].totaldcline1;
+      totallinha2Nr += rows[row].totalline2;
+      totallinha2DC += rows[row].totaldcline2;
+      totallinha3Nr += rows[row].totalline3;
+      totallinha3DC += rows[row].totaldcline3;
     }
     const createRow1 = [];
     const createRow2 = [];
@@ -1663,7 +1626,12 @@ export default {
     } else {
       createRow2.push('2as Linhas');
     }
-    createRow2.push(totallinha2Nr);
+    createRow2.push(
+      totallinha2Nr -
+        generalRows.totalPacientesPPE -
+        generalRows.totalPacientesPREP -
+        generalRows.totalpacientesCE
+    );
     createRow2.push(totallinha2DC);
 
     if (fileType == 'PDF') {
@@ -1684,20 +1652,18 @@ export default {
 
     return data;
   },
-  createLinesSumaryTotalArrayRow(rows, fileType) {
+  createLinesSumaryTotalArrayRow(generalRows, rows, fileType) {
     const data = [];
     let totallinhaNr = 0;
     let totallinhaDC = 0;
 
     for (const row in rows) {
-      if (rows[row].code !== 'TDF+3TC PrEP') {
-        totallinhaNr +=
-          rows[row].totalline1 + rows[row].totalline2 + rows[row].totalline3;
-        totallinhaDC +=
-          rows[row].totaldcline1 +
-          rows[row].totaldcline2 +
-          rows[row].totaldcline3;
-      }
+      totallinhaNr +=
+        rows[row].totalline1 + rows[row].totalline2 + rows[row].totalline3;
+      totallinhaDC +=
+        rows[row].totaldcline1 +
+        rows[row].totaldcline2 +
+        rows[row].totaldcline3;
     }
     const createRow1 = [];
     if (fileType == 'PDF') {
@@ -1709,7 +1675,12 @@ export default {
     } else {
       createRow1.push('Total');
     }
-    createRow1.push(totallinhaNr);
+    createRow1.push(
+      totallinhaNr -
+        generalRows.totalPacientesPPE -
+        generalRows.totalPacientesPREP -
+        generalRows.totalpacientesCE
+    );
     createRow1.push(totallinhaDC);
 
     data.push(createRow1);
@@ -1774,6 +1745,22 @@ export default {
 
     return data;
   },
+  createMmiaDispenseTypeDBArrayRow(rows) {
+    const data = [];
+    const createRow6 = [];
+    const createRow7 = [];
+    const createRow8 = [];
+
+    createRow6.push(rows.dbM1);
+    createRow7.push(rows.dbM0);
+    createRow8.push(rows.dbM1 + rows.dbM0);
+
+    data.push(createRow6);
+    data.push(createRow7);
+    data.push(createRow8);
+
+    return data;
+  },
   createMmiaDispenseTypeDMArrayRow(rows) {
     const data = [];
 
@@ -1781,13 +1768,15 @@ export default {
     const createRow8 = [];
 
     createRow5.push(rows.dM);
-    createRow5.push(rows.dM + rows.dsM0 + rows.dtM0);
+    createRow5.push(rows.dM + rows.dsM0 + rows.dtM0 + rows.dbM0);
     createRow8.push(rows.dM);
     createRow8.push(
       rows.dM +
         rows.dtM2 +
         rows.dtM1 +
         rows.dtM0 +
+        rows.dbM0 +
+        rows.dbM1 +
         rows.dsM5 +
         rows.dsM4 +
         rows.dsM3 +
@@ -1813,13 +1802,15 @@ export default {
           rows.dtM2 +
           rows.dtM1 +
           rows.dtM0 +
+          rows.dbM0 +
+          rows.dbM1 +
           rows.dsM5 +
           rows.dsM4 +
           rows.dsM3 +
           rows.dsM2 +
           rows.dsM1 +
           rows.dsM0) /
-          (rows.dM + rows.dsM0 + rows.dtM0)) *
+          (rows.dM + rows.dsM0 + rows.dtM0 + rows.dbM0)) *
           100
       ) + '%'
     );
@@ -1848,14 +1839,6 @@ export default {
   },
 
   downloadFile(fileName, fileType, blop) {
-    // console.log(blop)
-    // var pdfOutput = blop.output()
-    //  console.log(pdfOutput)
-    //  if (typeof cordova !== 'undefined') {
-    //   var blob = new Blob(materialEducativo.blop)
-    //  const bytes = new Uint8Array(materialEducativo.blop)
-    // var UTF8_STR = new Uint8Array(pdfOutput)
-    //   var BINARY_ARR = UTF8_STR.buffer
     var titleFile = fileName + fileType;
     console.log('result' + titleFile);
     saveBlob2File(titleFile, blop);

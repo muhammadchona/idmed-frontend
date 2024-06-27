@@ -75,6 +75,7 @@
         bg-color="white"
         style="margin: 2px; width: 200px"
         ref="nextPickupDateRef"
+        @update:model-value="setNextPickupDate()"
       >
         <template v-slot:append>
           <q-icon name="event" class="cursor-pointer">
@@ -83,7 +84,11 @@
               transition-show="scale"
               transition-hide="scale"
             >
-              <q-date v-model="nextPDate" mask="DD-MM-YYYY">
+              <q-date
+                v-model="nextPDate"
+                mask="DD-MM-YYYY"
+                @update:model-value="setNextPickupDate()"
+              >
                 <div class="row items-center justify-end">
                   <q-btn v-close-popup label="Close" color="primary" flat />
                 </div>
@@ -180,13 +185,6 @@ const showAdd = () => {
     alertError('A data do próximo levantamento é inválida');
   } else if (drugsDuration.value === '') {
     alertError('Por favor indicar a duração da medicação a dispensar.');
-    // } else if (
-    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) <
-    //   curPatientVisitDetail.value.prescription.prescriptionDate
-    // ) {
-    //   alertError(
-    //     'A data de levantamento indicada é menor que a data da prescrição'
-    //   );
   } else if (
     extractHyphenDateFromDMYConvertYMD(pickupDate.value) >
     moment().format('YYYY-MM-DD')
@@ -201,15 +199,6 @@ const showAdd = () => {
     alertError(
       'A data do levantamento é maior que a data do próximo levantamento'
     );
-    // } else if (
-    //   newPickUpDate !== '' &&
-    //   extractHyphenDateFromDMYConvertYMD(pickupDate.value) < newPickUpDate.value
-    // ) {
-    //   alertError(
-    //     'A data de levantamento não pode ser anterior a ' +
-    //       getDDMMYYYFromJSDate(newPickUpDate.value) +
-    //       ', pois na data indicada o paciente ainda possui medicamntos da dispensa anterior.'
-    //   );
   } else {
     showAddEditDrug.value = true;
   }
@@ -234,6 +223,12 @@ const determineNextPickUpDate = (pickupDate, weeks) => {
     curPack.value.weeksSupply = weeks;
   }
 };
+const setNextPickupDate = () => {
+  curPack.value.nextPickUpDate = extractHyphenDateFromDMYConvertYMD(
+    nextPDate.value
+  );
+};
+
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'YYYY-MM-DD');
 };
@@ -244,17 +239,18 @@ const init = () => {
     );
     drugsDuration.value = curPrescription.value.duration;
   } else {
+    pickupDate.value = getYYYYMMDDFromJSDate(moment());
     if (
       lastPack.value.nextPickUpDate !== null &&
       lastPack.value.nextPickUpDate !== undefined
     ) {
-      curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+      curPack.value.pickupDate = getYYYYMMDDFromJSDate(moment());
       curPack.value.weeksSupply = lastPack.value.weeksSupply;
       drugsDuration.value = durationService.getDurationByWeeks(
         curPack.value.weeksSupply
       );
     } else {
-      curPack.value.pickupDate = curPrescription.value.prescriptionDate;
+      curPack.value.pickupDate = getYYYYMMDDFromJSDate(moment());
       curPack.value.weeksSupply = curPrescription.value.duration.weeks;
       drugsDuration.value = curPrescription.value.duration;
     }
@@ -266,6 +262,10 @@ const init = () => {
 
 const getDDMMYYYFromJSDate = (jsDate) => {
   return moment(jsDate).local().format('DD-MM-YYYY');
+};
+
+const getYYYYMMDDFromJSDate = (jsDate) => {
+  return moment(jsDate).local().format('YYYY-MM-DD');
 };
 
 // Provide

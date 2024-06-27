@@ -236,7 +236,7 @@ const prepareInit = () => {
       initNewAdjustment(stock, drug, i);
       i = i + 1;
     });
-    closeLoading();
+    // closeLoading();
   } else if (stockList.length === i) {
     closeLoading();
   }
@@ -276,6 +276,7 @@ const initNewAdjustment = (stock, drug, i) => {
   newAdjustment.adjustedStock.clinic.id = stock.clinic_id;
   newAdjustment.inventory = {};
   newAdjustment.inventory.id = inventory.id;
+  // newAdjustment.id = uuidv4();
   inventory.adjustments.push(newAdjustment);
   adjustments.value.push(newAdjustment);
 };
@@ -346,7 +347,7 @@ const doSave = async (adjustment, contagem) => {
             }
           );
         } else {
-          console.log('Ajuste Pastch', adjustment);
+          console.log('Ajuste Patch', adjustment);
           await InventoryStockAdjustmentService.patch(
             adjustment.id,
             adjustment

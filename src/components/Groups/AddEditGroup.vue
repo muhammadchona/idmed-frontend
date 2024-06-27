@@ -18,7 +18,7 @@
                 class="col"
                 ref="curGroupServiceRef"
                 dense
-                :disable="isMemberEditionStep"
+                :disable="isMemberEditionStep || isEditStep"
                 outlined
                 :options="clinicServices"
                 v-model="curGroup.service"
@@ -28,6 +28,7 @@
                 :rules="[
                   (val) => !!val || 'Por favor indicar o Serviço de Saúde',
                 ]"
+                @update:model-value="disabelFieldSearch()"
               />
               <q-input
                 outlined
@@ -92,6 +93,22 @@
                 label="Tipo *"
                 :rules="[(val) => !!val || 'Por favor indicar o Tipo do Grupo']"
               />
+              <q-select
+                class="col q-ml-md"
+                ref="curGroupDispenseTypeRef"
+                dense
+                :disable="isMemberEditionStep || isEditStep"
+                outlined
+                :options="dispenseTypes"
+                v-model="curGroup.dispenseType"
+                option-value="id"
+                option-label="description"
+                label="Tipo de Dispensa *"
+                :rules="[
+                  (val) => !!val || 'Por favor indicar o Tipo de dispensa',
+                ]"
+                @update:model-value="disabelFieldSearch()"
+              />
               <q-input
                 dense
                 outlined
@@ -142,7 +159,7 @@
               v-model="searchParam"
               label="Pesquisar por Identificador/Nome"
               style="width: 400px"
-              :disable="curGroup.service === null"
+              :disable="isSearchParamDisabled"
               class="q-mt-md"
               dense
             >
@@ -159,7 +176,7 @@
               square
               color="primary"
               icon="search"
-              :disable="curGroup.service === null"
+              :disable="false"
             >
               <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
             </q-btn>
@@ -305,6 +322,7 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 import groupService from 'src/services/api/group/groupService';
 import { v4 as uuidv4 } from 'uuid';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import dispenseTypeService from 'src/services/api/dispenseType/dispenseTypeService';
 const columns = [
   { name: 'id', align: 'left', label: 'Identificador', sortable: false },
   { name: 'name', align: 'left', label: 'Nome', sortable: false },
@@ -326,6 +344,8 @@ const clinic = inject('clinic');
 const loadMemberInfoToShowByGroupId = inject('loadMemberInfoToShowByGroupId');
 const curGroup = ref(new Group({ id: uuidv4(), members: [] }));
 const searchParam = ref('');
+const initialGroupService = ref('');
+const initialGroupDispenseType = ref('');
 const step = inject('step');
 const clinicServices = computed(() =>
   clinicalServiceService.getAllClinicalServices()
@@ -333,12 +353,16 @@ const clinicServices = computed(() =>
 
 const groupTypes = computed(() => groupTypeService.getAllFromStorage());
 
+const dispenseTypes = computed(() =>
+  dispenseTypeService.getAllForGroupDispense()
+);
+
 const isCreateStep = computed(() => step.value === 'create');
 // const isCreateStep = true
 
 const isEditStep = computed(() => step.value === 'edit');
 // const isEditStep = false
-const isMemberEditionStep = computed(() => step === 'addMember');
+const isMemberEditionStep = computed(() => step.value === 'addMember');
 const submitting = ref(false);
 
 //Ref's
@@ -347,7 +371,39 @@ const curGroupCodeRef = ref(null);
 const curGroupNameRef = ref(null);
 const curGroupGroupTypeRef = ref(null);
 const creationDateRef = ref(null);
+const curGroupDispenseTypeRef = ref(null);
+
 const getGroupMembers = inject('getGroupMembers');
+
+const isSearchParamDisabled = ref(true);
+
+const disabelFieldSearch = () => {
+  if (curGroup.value.service !== null && curGroup.value.dispenseType !== null) {
+    if (initialGroupService.value !== curGroup.value.service.code) {
+      initialGroupService.value = curGroup.value.service.code;
+    }
+    if (initialGroupDispenseType.value !== curGroup.value.service.code) {
+      initialGroupDispenseType.value = curGroup.value.dispenseType.code;
+    }
+    isSearchParamDisabled.value = false;
+    if (
+      (initialGroupService.value !== curGroup.value.service.code ||
+        initialGroupDispenseType.value !== curGroup.value.service.code) &&
+      curGroup.value.members.length !== 0
+    ) {
+      curGroup.value.members = [];
+      searchResults.value = [];
+    }
+  } else {
+    isSearchParamDisabled.value = true;
+  }
+};
+
+const checkFieldForEditGroup = () => {
+  if (curGroup.value.service !== null && curGroup.value.dispenseType !== null) {
+    isSearchParamDisabled.value = false;
+  }
+};
 
 const isMemberOfGroupOnService = (patient, serviceCode) => {
   let res = false;
@@ -548,7 +604,11 @@ const addPatient = (patient) => {
       closeLoading();
     } else {
       groupService
-        .apiValidateBeforeAdd(patient.id, curGroup.value.service.code)
+        .apiValidateBeforeAdd(
+          patient.id,
+          curGroup.value.service.code,
+          curGroup.value.dispenseType.code
+        )
         .then((resp) => {
           if (resp.data === 'Accepted') {
             curGroup.value.members.push(initNewMember(patient));
@@ -570,6 +630,7 @@ const doSave = async () => {
   curGroupServiceRef.value.validate();
   curGroupCodeRef.value.validate();
   curGroupGroupTypeRef.value.validate();
+  curGroupDispenseTypeRef.value.validate();
   curGroupNameRef.value.validate();
   creationDateRef.value.validate();
   if (
@@ -685,6 +746,8 @@ const init = () => {
 onMounted(() => {
   //  init()
   getGroupForEdit();
+  checkFieldForEditGroup();
+  console.log(curGroup);
 });
 
 watch(

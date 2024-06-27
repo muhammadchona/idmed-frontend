@@ -64,10 +64,9 @@ export default {
         if (error.response) {
           Notify.create({
             icon: 'announcement',
-            message: 'Utilizador ou a senha inválida',
+            message: error.response.data.message,
             type: 'negative',
             progress: true,
-            timeout: 3000,
             position: 'top',
             color: 'negative',
             textColor: 'white',

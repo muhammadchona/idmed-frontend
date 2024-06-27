@@ -56,7 +56,7 @@
           :rules="[(val) => val != null || ' Por favor indique o período']"
           lazy-rules
           label="Período *"
-          :disable="initProcessing"
+          :disable="initProcessing || isPossiblePatientDuplicateReport"
         />
 
         <div
@@ -308,8 +308,8 @@ const quarterlyPeriod = ref('');
 const semesterPeriod = ref('');
 const annualPeriod = ref('');
 const submitForm = ref('');
-const downloadingXls = inject('downloadingXls')
-const downloadingPdf = inject('downloadingPdf')
+const downloadingXls = inject('downloadingXls');
+const downloadingPdf = inject('downloadingPdf');
 
 const reportParams = ref({
   id: null,
@@ -332,10 +332,11 @@ const reportParams = ref({
   startDate: null,
   endDate: null,
   online: true,
-  tabName: null
+  tabName: null,
 });
 
-const isMMiaReport = ref(false)
+const isMMiaReport = ref(false);
+const isPossiblePatientDuplicateReport = ref(false);
 
 const periodTypeList = ref([
   { id: 1, description: 'Especifico', code: 'SPECIFIC' },
@@ -343,43 +344,66 @@ const periodTypeList = ref([
   { id: 3, description: 'Trimestral', code: 'QUARTER' },
   { id: 4, description: 'Semestral', code: 'SEMESTER' },
   { id: 5, description: 'Anual', code: 'ANNUAL' },
+  { id: 6, description: 'N/A', code: 'NOT_APPLICABLE' },
 ]);
 
 const filteredPeriodTypes = computed(() => {
-      if (isMMiaReport.value) {
-        // Se isMMiaReport for verdadeiro, retornar apenas o período "Mensal"
-        return periodTypeList.value.filter((periodType) => periodType.code === 'MONTH');
-      } else {
-        // Se isMMiaReport for falso, retornar a lista completa de tipos de período
-        return periodTypeList.value;
-      }
-    });
+  if (isMMiaReport.value) {
+    // Se isMMiaReport for verdadeiro, retornar apenas o período "Mensal"
+    return periodTypeList.value.filter(
+      (periodType) => periodType.code === 'MONTH'
+    );
+  }
+  if (isPossiblePatientDuplicateReport.value) {
+    return periodTypeList.value.filter(
+      (periodType) => periodType.code === 'NOT_APPLICABLE'
+    );
+  } else {
+    // Se isMMiaReport for falso, retornar a lista completa de tipos de período
+    return periodTypeList.value.filter(
+      (periodType) => periodType.code !== 'NOT_APPLICABLE'
+    );
+  }
+});
 
 const initProcessing = ref(false);
 const errorCountAux = 0;
-const retrievingFromLocalStore = ref(false)
+const retrievingFromLocalStore = ref(false);
 
 const periodTypeSelect = ref(null);
 
-const getProcessingStatus = inject('getProcessingStatus')
+const getProcessingStatus = inject('getProcessingStatus');
 
 onMounted(() => {
   reportProcessing.value = initProcessing.value;
   initParams();
   if (props.params) {
-    initProcessing.value = true
-    retrievingFromLocalStore.value = true
+    initProcessing.value = true;
+    retrievingFromLocalStore.value = true;
     reportParams.value = props.params;
-    getProcessingStatus(reportParams.value)
-    periodTypeSelect.value = reportParams.value.periodTypeView
+    getProcessingStatus(reportParams.value);
+    periodTypeSelect.value = reportParams.value.periodTypeView;
   }
-  if (props.tabName  === 'Mmia') isMMiaReport.value = true // MMia eh so no periodo mensal
+  if (props.tabName === 'Mmia' || props.tabName === 'MmiaTb')
+    isMMiaReport.value = true; // MMia eh so no periodo mensal
+  if (
+    props.tabName === 'PossiblePatientDuplicates' ||
+    props.tabName === 'PossiblePatientDuplicates'
+  ) {
+    isPossiblePatientDuplicateReport.value = true;
+    periodTypeSelect.value = periodTypeList.value.filter(
+      (periodType) => periodType.code === 'NOT_APPLICABLE'
+    )[0];
+    reportParams.value.period = periodTypeSelect.value.id;
+    reportParams.value.periodTypeView = periodTypeSelect.value;
+    periodTypeSelect.value = periodTypeSelect.value;
+  }
 });
 
 const processingTerminated = computed(() => {
-  if(retrievingFromLocalStore.value) {
+  if (retrievingFromLocalStore.value) {
     return props.params.progress >= 100;
-  } else{
+  } else {
     return props.progress >= 100;
   }
 });
@@ -387,9 +411,9 @@ const processingTerminated = computed(() => {
 const processingInitiated = computed(() => {
   if (retrievingFromLocalStore.value) {
     return props.params.progress == 0.001;
-  } else{
-    return props.progress == 0.001
-  } 
+  } else {
+    return props.progress == 0.001;
+  }
 });
 
 const progressStatus = computed(() => {
@@ -535,7 +559,11 @@ const saveParams = () => {
 };
 
 const generateReport = (fileType) => {
-  if (fileType === 'PDF') { downloadingPdf.value = true } else { downloadingXls.value = true }
+  if (fileType === 'PDF') {
+    downloadingPdf.value = true;
+  } else {
+    downloadingXls.value = true;
+  }
   $emit('generateReport', props.id, fileType, reportParams.value);
 };
 
@@ -555,12 +583,11 @@ const getWidthDateByPlatform = () => {
   }
 };
 
-
-provide('initProcessing', initProcessing)
-provide('errorCount', errorCount)
-provide('setSelectedPeriod', setSelectedPeriod)
-provide('setSelectedYear', setSelectedYear)
-provide('reportParams', reportParams)
+provide('initProcessing', initProcessing);
+provide('errorCount', errorCount);
+provide('setSelectedPeriod', setSelectedPeriod);
+provide('setSelectedYear', setSelectedYear);
+provide('reportParams', reportParams);
 </script>
 
 <style>

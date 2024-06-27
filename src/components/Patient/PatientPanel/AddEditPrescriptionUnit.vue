@@ -187,18 +187,16 @@
               </q-td>
               <q-td key="dosage" :props="props">
                 {{
-                  'Tomar ' +
-                    props.row.amtPerTime +
-                    ' ' +
-                    getDrugById(props.row.drug.id).form !==
-                    null && getDrugById(props.row.drug.id).form !== undefined
-                    ? getDrugById(props.row.drug.id).form.description
-                    : '' +
-                      ' ' +
+                  getDrugById(props.row.drug.id) !== null &&
+                  getDrugById(props.row.drug.id) !== undefined
+                    ? ' Toma ' +
+                      props.row.amtPerTime +
+                      '   ' +
+                      ' - ' +
                       props.row.timesPerDay +
-                      ' vez(es)' +
-                      ' por ' +
+                      ' vez(es) por ' +
                       props.row.form
+                    : ''
                 }}
               </q-td>
               <q-td auto-width key="packs" :props="props">
@@ -211,6 +209,48 @@
                       )
                     : 1
                 }}
+                <em
+                  v-if="
+                    getDrugFirstLevelById(props.row.drug.id).clinicalService
+                      .code === 'TARV'
+                  "
+                >
+                  Frasco(s)
+                </em>
+                <em v-else
+                  >{{
+                    getDrugFirstLevelById(props.row.drug.id).form.description
+                  }}(s)</em
+                >
+              </q-td>
+              <q-td auto-width key="packs" :props="props">
+                <em
+                  v-if="
+                    getDrugFirstLevelById(props.row.drug.id).clinicalService
+                      .code === 'TARV'
+                  "
+                >
+                  {{
+                    Math.floor(
+                      getQtyRemain(props.row, curPrescription.duration.weeks) /
+                        props.row.drug.packSize
+                    )
+                  }}
+                  Frasco(s) e ({{
+                    getQtyRemain(props.row, curPrescription.duration.weeks)
+                  }}) Unidades
+                </em>
+                <em v-else>
+                  {{
+                    Math.floor(
+                      getQtyRemain(props.row, curPrescription.duration.weeks) /
+                        props.row.drug.packSize
+                    )
+                  }}
+                  {{
+                    getDrugFirstLevelById(props.row.drug.id).form.description
+                  }}(s)
+                </em>
               </q-td>
               <q-td key="options" :props="props">
                 <q-btn
@@ -346,7 +386,11 @@
           input-debounce="0"
           dense
           outlined
-          :disable="showServiceDrugsManagement || !isNewPrescription"
+          :disable="
+            showServiceDrugsManagement ||
+            !isNewPrescription ||
+            selectedMember != null
+          "
           ref="dispenseTypeRef"
           :rules="[(val) => !!val || 'Por favor indicar o tipo de dispensa']"
           v-model="curPrescriptionDetail.dispenseType"
@@ -462,6 +506,7 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 
 import { v4 as uuidv4 } from 'uuid';
 import drugService from 'src/services/api/drugService/drugService';
+import { useDrug } from 'src/composables/drug/drugMethods';
 
 //props
 const props = defineProps(['identifier']);
@@ -475,10 +520,12 @@ const {
 } = useDateUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
-const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
+const { alertSucess, alertError, alertInfo, alertWarningAction, alertWarning } =
+  useSwal();
 const { getQtyPrescribed } = usePrescribedDrug();
 const { remainigDuration } = usePrescription();
 const { getQtyRemain } = usePrescribedDrug();
+const { getDrugFirstLevelById } = useDrug();
 
 const expanded = ref(false);
 const submittingPrescribedDrug = reactive(ref(false));
@@ -549,7 +596,18 @@ const columns = [
       getQtyPrescribed(row, curPrescription.value.duration.weeks) > 0
         ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
         : 1,
-    label: 'Quantidade em (Frascos)',
+    label: 'Quantidade',
+    sortable: false,
+  },
+  {
+    name: 'packs',
+    align: 'center',
+    style: 'width: 20px',
+    field: (row) =>
+      getQtyPrescribed(row, curPrescription.value.duration.weeks) > 0
+        ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
+        : 1,
+    label: 'Sobra',
     sortable: false,
   },
   {
@@ -792,16 +850,25 @@ const init = () => {
       delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
     });
     curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
-    curPack.value.packDate = lastPack.value.nextPickUpDate;
-    curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+    // curPack.value.packDate = lastPack.value.nextPickUpDate;
+    // curPack.value.pickupDate = lastPack.value.nextPickUpDate;
 
     lastPack.value.packagedDrugs.forEach((packagedDrug) => {
       let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
       packagedDrugEdit.drug = packagedDrug.drug;
       packagedDrugEdit.drug_id = packagedDrug.drug.id;
-      packagedDrugEdit.amtPerTime = packagedDrug.amtPerTime;
-      packagedDrugEdit.timesPerDay = packagedDrug.timesPerDay;
-      packagedDrugEdit.form = packagedDrug.form;
+      packagedDrugEdit.amtPerTime =
+        packagedDrug.amtPerTime !== 0
+          ? packagedDrug.amtPerTime
+          : packagedDrug.drug.defaultTimes;
+      packagedDrugEdit.timesPerDay =
+        packagedDrug.timesPerDay !== 0
+          ? packagedDrug.amtPerTime
+          : packagedDrug.drug.defaultTimes;
+      packagedDrugEdit.form =
+        packagedDrug.form !== null
+          ? packagedDrug.form
+          : packagedDrug.drug.defaultPeriodTreatment;
 
       curPack.value.packagedDrugs.push(packagedDrugEdit);
     });
@@ -913,6 +980,28 @@ const validateForm = () => {
     }
   }
 };
+const checkIfExistsAnyQuanityRemainForDispense = () => {
+  return packService.checkIfExistsAnyQuanityRemainForDispense(
+    curPatientVisitDetail.value.pack.packagedDrugs
+  );
+};
+const totalRemainAcumulado = (drug) => {
+  let totalAcumulado = 0;
+  const lastPackAux = packService.getLastPackFromPatientAndDrug(patient, drug);
+  if (lastPackAux !== undefined && lastPackAux !== null) {
+    totalAcumulado = Number(lastPackAux.quantityRemain);
+  }
+  return totalAcumulado;
+};
+const totalQuantityRemainFrascos = (packagedDrug) => {
+  const total = packagedDrug.quantityRemain;
+  return Math.floor(total / packagedDrug.drug.packSize);
+};
+//se forem 45 num packsize 30 o valor sera 15
+const totalQuantityRemainUnidades = (packagedDrug) => {
+  const valor = packagedDrug.quantityRemain % packagedDrug.drug.packSize;
+  return valor;
+};
 
 const checkPrescribedDrugActive = () => {
   const prescribedDrugs = curPrescription.value.prescribedDrugs;
@@ -998,10 +1087,11 @@ const addPackagedDrugs = () => {
 
     if (lastPack.value !== null) {
       lastPack.value.packagedDrugs.find((item) => {
-        if (item.drug.id === packagedDrug.drug.id) {
+        if (item.drug_id === packagedDrug.drug_id) {
           const qtyRemain = getQtyRemain(
             packagedDrug,
-            curPrescription.value.duration.weeks
+            lastPack.value.weeksSupply
+            //          curPrescription.value.duration.weeks
           );
           quantityRemainAux = Number(qtyRemain) + Number(item.quantityRemain);
           packagedDrug.quantityRemain = quantityRemainAux;
@@ -1010,12 +1100,11 @@ const addPackagedDrugs = () => {
     } else {
       const qtyRemain = getQtyRemain(
         packagedDrug,
-        curPrescription.value.duration.weeks
+        curPack.value.weeksSupply
+        //     curPrescription.value.duration.weeks
       );
-      // quantityRemainAux = qtyRemain + packagedDrug.quantityRemain;
       packagedDrug.quantityRemain = qtyRemain;
     }
-    // hereeeeeee
     prescribedDrug.quantityRemain = quantityRemainAux;
     packagedDrug.quantityRemain = quantityRemainAux;
 
@@ -1023,11 +1112,9 @@ const addPackagedDrugs = () => {
   });
 };
 const generatePacks = async (packagedDrug) => {
-  packagedDrug.quantityRemain = quantityRemainAux;
   const packagedDrugStocks = [];
 
   let quantitySupplied = packagedDrug.quantitySupplied;
-  //getYYYYMMDDFromJSDate(getDateFromHyphenDDMMYYYY(
   const pickupDate = curPack.value.pickupDate;
   StockService.getValidStockByDrugAndPickUpDateOnline(
     packagedDrug.drug.id,
@@ -1103,24 +1190,26 @@ const addPatientVisitDetail = async () => {
 
   let quantityRemainAux = 0;
   curPatientVisitDetail.value.pack.packagedDrugs.forEach((packagedDrug) => {
-    if (lastPack.value !== null) {
-      lastPack.value.packagedDrugs.find((itemLastPackagedDrug) => {
-        if (packagedDrug.drug.id === itemLastPackagedDrug.drug.id) {
-          const qtyRemain = getQtyRemain(
-            packagedDrug,
-            curPrescription.value.duration.weeks
-          );
-          quantityRemainAux =
-            Number(qtyRemain) + Number(itemLastPackagedDrug.quantityRemain);
-          packagedDrug.quantityRemain = quantityRemainAux;
-        }
-      });
+    const lastPackagedDrug = packService.getLastPackFromPatientAndDrug(
+      patient,
+      packagedDrug.drug
+    );
+
+    if (lastPackagedDrug !== null && lastPackagedDrug !== undefined) {
+      const qtyRemain = getQtyRemain(
+        packagedDrug,
+        curPatientVisitDetail.value.pack.weeksSupply
+        //  curPrescription.value.duration.weeks
+      );
+      quantityRemainAux =
+        Number(qtyRemain) + Number(lastPackagedDrug.quantityRemain);
+      packagedDrug.quantityRemain = quantityRemainAux;
     } else {
       const qtyRemain = getQtyRemain(
         packagedDrug,
-        curPrescription.value.duration.weeks
+        curPatientVisitDetail.value.pack.weeksSupply
+        // curPrescription.value.duration.weeks
       );
-
       packagedDrug.quantityRemain = qtyRemain;
     }
   });
@@ -1199,6 +1288,29 @@ const addPatientVisitDetail = async () => {
   }
 };
 const allGoodValidatatedDispense = () => {
+  if (checkIfExistsAnyQuanityRemainForDispense()) {
+    let hasToshowAlertRemain = false;
+    let warningMessage =
+      'O paciente passará a ter de Sobra os medicamentos: \n\n ';
+    const currentPackagedDrugs = curPatientVisitDetail.value.pack.packagedDrugs;
+    for (const packagedDrug of currentPackagedDrugs) {
+      const acumulado = totalRemainAcumulado(packagedDrug.drug);
+      if (acumulado > 0) {
+        hasToshowAlertRemain = true;
+        warningMessage +=
+          '\0 ' +
+          totalQuantityRemainFrascos(packagedDrug) +
+          ' frasco(s) e ' +
+          totalQuantityRemainUnidades(packagedDrug) +
+          ' unidade(s) de ' +
+          packagedDrug.drug.name +
+          ';\n\n';
+      }
+    }
+    if (hasToshowAlertRemain) {
+      alertWarning(warningMessage);
+    }
+  }
   validateDispense.value = true;
   curPrescription.value.leftDuration = Number(
     (Number(curPrescription.value.duration.weeks) -
@@ -1283,6 +1395,7 @@ const addMedication = (prescribedDrug) => {
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
+
 const checkStock = async (prescribedDrug, weeksSupply) => {
   const qtyPrescribed = getQtyPrescribed(prescribedDrug, weeksSupply);
 

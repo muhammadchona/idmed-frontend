@@ -1,17 +1,17 @@
 <template>
   <div ref="filterDrugStoreSection">
     <ListHeader
-    v-if="resultFromLocalStorage"
+      v-if="resultFromLocalStorage"
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}:
-      Referidos Faltosos ao levantamento
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Referidos
+      Faltosos ao levantamento
     </ListHeader>
     <ListHeader
-    v-else
+      v-else
       :addVisible="false"
       :mainContainer="true"
       :closeVisible="true"
@@ -55,17 +55,17 @@ const { alertError } = useSwal();
 const { isOnline } = useSystemUtils();
 
 const name = 'AbsentReferredPatients';
-const props = defineProps(['selectedService', 'menuSelected', 'id', 'params'])
+const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const report = 'REFERIDOS_FALTOSOS_AO_LEVANTAMENTO';
 const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
-const downloadingPdf = ref(false)
-const downloadingXls = ref(false)
+const downloadingPdf = ref(false);
+const downloadingXls = ref(false);
 
-const serviceAux = ref(null)
-const resultFromLocalStorage = ref(false)
+const serviceAux = ref(null);
+const resultFromLocalStorage = ref(false);
 
 onMounted(() => {
   if (props.params) {
@@ -73,82 +73,80 @@ onMounted(() => {
   }
 });
 
-const isReportClosed = ref(false)
-  const updateParamsOnLocalStrage = (params, isReportClosed) => {
-    if(!isReportClosed.value) LocalStorage.set(params.id, params)
-  }
+const isReportClosed = ref(false);
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if (!isReportClosed.value) LocalStorage.set(params.id, params);
+};
 
 const closeSection = (params) => {
   filterDrugStoreSection.value.remove();
-  if(params) {
-    const paramId = params.id
-    isReportClosed.value = true
-    LocalStorage.remove(paramId)
+  if (params) {
+    const paramId = params.id;
+    isReportClosed.value = true;
+    LocalStorage.remove(paramId);
   }
 };
 
 const initReportProcessing = (params) => {
-  progress.value = 0.001
-    if (isOnline.value) {
-      updateParamsOnLocalStrage(params, isReportClosed) 
-      Report.apiInitReportProcess('referredPatientsReport', params).then(
-        (response) => {
-          setTimeout(() => {
-            getProcessingStatus(params)
-          }, 3000);
-        }
-      )
-    } else {
-      // Mobile to be implemented            
-    }
+  progress.value = 0.001;
+  if (isOnline.value) {
+    updateParamsOnLocalStrage(params, isReportClosed);
+    Report.apiInitReportProcess('referredPatientsReport', params).then(
+      (response) => {
+        setTimeout(() => {
+          getProcessingStatus(params);
+        }, 3000);
+      }
+    );
+  } else {
+    // Mobile to be implemented
+  }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {  
+  Report.getProcessingStatus('referredPatientsReport', params).then((resp) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
-        updateParamsOnLocalStrage(params, isReportClosed) ;
+        updateParamsOnLocalStrage(params, isReportClosed);
         params.progress = resp.data.progress;
         setTimeout(() => {
-          getProcessingStatus(params)
+          getProcessingStatus(params);
         }, 3000);
       } else {
         progress.value = 100;
         params.progress = 100;
-        updateParamsOnLocalStrage(params, isReportClosed) ;
+        updateParamsOnLocalStrage(params, isReportClosed);
       }
     } else {
       setTimeout(() => {
-          getProcessingStatus(params)
-        }, 3000);
+        getProcessingStatus(params);
+      }, 3000);
     }
   });
 };
 
 const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
-  absentReferredPatients.downloadPDF(params).then((resp) => {
+    absentReferredPatients.downloadPDF(params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
-        downloadingPdf.value = false
+        alertError('Não existem Dados para o período selecionado');
+      downloadingPdf.value = false;
     });
-    
   } else {
     absentReferredPatients.downloadExcel(params).then((resp) => {
       if (resp === 204)
-        alertError('Nao existem Dados para o periodo selecionado');
-        downloadingXls.value = false
+        alertError('Não existem Dados para o período selecionado');
+      downloadingXls.value = false;
     });
-    
   }
 };
 
-provide('downloadingPdf', downloadingPdf)
-provide('downloadingXls', downloadingXls)
-provide('serviceAux', serviceAux)
-provide('resultFromLocalStorage', resultFromLocalStorage)
-provide('getProcessingStatus',getProcessingStatus)
+provide('downloadingPdf', downloadingPdf);
+provide('downloadingXls', downloadingXls);
+provide('serviceAux', serviceAux);
+provide('resultFromLocalStorage', resultFromLocalStorage);
+provide('getProcessingStatus', getProcessingStatus);
 </script>
 
 <style lang="scss" scoped>

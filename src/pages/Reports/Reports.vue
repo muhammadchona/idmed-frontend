@@ -47,7 +47,7 @@
             style="max-width: 500px"
             v-if="!isMobile"
           >
-            <ListReportMenu @changeTab="changeTab" v-if="!isMobile"/>
+            <ListReportMenu @changeTab="changeTab" v-if="!isMobile" />
             <!-- <ListReportMenuTPT @changeTab="changeTab" v-if="!isMobile && codeServicoActual == 'TPT'" /> -->
           </div>
           <div class="col q-mr-sm panel q-pa-sm">
@@ -95,6 +95,7 @@ import MenuMobile from 'components/Reports/Menus/ListReportMenuMobile.vue';
 import ListReportMenu from 'components/Reports/Menus/ListReportMenu.vue';
 import ActivesInDrugStore from 'components/Reports/Patient/ActivesInDrugStore.vue';
 import GuestList from 'components/Reports/Patient/GuestList.vue';
+import PatientsWithouDispense from 'components/Reports/Patient/PatientsWihoutDispense.vue';
 import ImportedPatientList from 'components/Reports/Patient/ImportedPatientList.vue';
 import TransferedFrom from 'components/Reports/Patient/TransferedFrom.vue';
 import TransferedTo from 'components/Reports/Patient/TransferedTo.vue';
@@ -105,22 +106,38 @@ import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagemen
 import AbsentReferredPatients from 'components/Reports/ReferralManagement/AbsentReferredPatients.vue';
 import ReceivedStock from 'components/Reports/stock/ReceivedStock.vue';
 import UsedStock from 'components/Reports/stock/UsedStock.vue';
+import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
 import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
 import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
-import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue'
+import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue';
+import AbsentPatientsDT from 'components/Reports/ClinicManagement/AbsentPatientsDT.vue';
+import AbsentPatientsDS from 'components/Reports/ClinicManagement/AbsentPatientsDS.vue';
 import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.vue';
 import PatientHistoryPREP from 'components/Reports/ClinicManagement/prep/PatientHistory.vue';
 import PatientHistoryTPT from 'components/Reports/ClinicManagement/tpt/PatientHistory.vue';
 import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPack.vue';
+import PossiblePatientDuplicates from 'components/Reports/monitoring/PossiblePatientDuplicates.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+
+// NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
+
+import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue';
+import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue';
+import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
+import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
+import partialInventory from 'components/Reports/stock/InventoryPartial.vue';
+import generalInventory from 'components/Reports/stock/InventoryGeneral.vue';
+import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
+import MmiaTb from 'components/Reports/ClinicManagement/tpt/MmiaTb.vue';
 
 const { closeLoading, showloading } = useLoading();
 
 const componentsList = {
   ActivesInDrugStore,
   GuestList,
+  PatientsWithouDispense,
   ImportedPatientList,
   TransferedFrom,
   TransferedTo,
@@ -129,6 +146,8 @@ const componentsList = {
   ReferredPatients,
   ReferredPatientDispenseHistory,
   AbsentPatients,
+  AbsentPatientsDT,
+  AbsentPatientsDS,
   AbsentPatientsApss,
   AbsentReferredPatients,
   ReceivedStock,
@@ -138,6 +157,16 @@ const componentsList = {
   PatientHistoryPREP,
   PatientHistoryTPT,
   NotSynchronizedPack,
+  SemiannualDispensation,
+  QuarterlyDispensation,
+  PrepDailyRegister,
+  TptDailyRegister,
+  QuantityRemain,
+  partialInventory,
+  generalInventory,
+  expectedOfDay,
+  MmiaTb,
+  PossiblePatientDuplicates,
 };
 
 const { isMobile } = useSystemUtils();
@@ -164,16 +193,16 @@ const thumbStyle = {
   opacity: 0.75,
 };
 
-const servicoActual = ref(null)
-const codeServicoActual = ref('TARV')
+const servicoActual = ref(null);
+const codeServicoActual = ref('TARV');
 
 const components = ref([]);
 // const headerClass = 'list-header';
 // const bgColor = 'bg-primary';
 
-onMounted(() => {  
+onMounted(() => {
   const array = LocalStorage.getAllKeys();
-  if(array.length > 0) showloading();
+  if (array.length > 0) showloading();
   for (let index = 0; index < array.length; index++) {
     // check if is uuid
     if (array[index].substring(0, 6) === 'report') {
@@ -185,8 +214,8 @@ onMounted(() => {
       changeTab(item.tabName, selectedService, item);
     }
 
-    if(index === (array.length) - 1) closeLoading()
-  }  
+    if (index === array.length - 1) closeLoading();
+  }
 });
 
 const changeTab = (tabName, selectedService, params) => {
@@ -197,7 +226,7 @@ const changeTab = (tabName, selectedService, params) => {
     clinicalService: selectedService,
     params: params,
   };
-  
+
   components.value.push(comp);
 };
 
@@ -211,8 +240,8 @@ const clinic = computed(() => {
 
 provide('currClinic', clinic);
 provide('title', title);
-provide('servicoActual', servicoActual)
-provide('codeServicoActual', codeServicoActual)
+provide('servicoActual', servicoActual);
+provide('codeServicoActual', codeServicoActual);
 </script>
 
 <style lang="scss">

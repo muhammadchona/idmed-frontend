@@ -27,6 +27,9 @@
           <div v-else-if="codeServicoActual === 'PREP'">
             <prep @changeTab="changeTab" />
           </div>
+          <div v-else-if="codeServicoActual === 'TB'">
+            <tb @changeTab="changeTab" />
+          </div>
 
           <div v-else class="vertical-middle">
             <q-banner rounded class="bg-orange-1 text-left text-orange-10">
@@ -50,6 +53,7 @@ import { computed, ref, inject } from 'vue'
 import tarv from './reportMenuListTypes/tarv.vue';
 import tpt from './reportMenuListTypes/tpt.vue';
 import prep from './reportMenuListTypes/prep.vue';
+import tb from './reportMenuListTypes/tb.vue';
 const emit = defineEmits(['changeTab'])
 
 const currTab = ref('');

@@ -156,8 +156,14 @@ export default {
   },
   */
 
-  async apiValidateBeforeAdd(patientId: string, code: string) {
-    return await api().get(`/groupInfo/validadePatient/${patientId}/${code}`);
+  async apiValidateBeforeAdd(
+    patientId: string,
+    code: string,
+    dispenseTypeCode: string
+  ) {
+    return await api().get(
+      `/groupInfo/validadePatient/${patientId}/${code}/${dispenseTypeCode}`
+    );
   },
   async getLocalDbGroupsToSync() {
     return nSQL(Group.entity)
@@ -169,7 +175,12 @@ export default {
       });
   },
   getAllGroups() {
-    return group.query().with('groupType').with('service').get();
+    return group
+      .query()
+      .with('groupType')
+      .with('dispenseType')
+      .with('service')
+      .get();
   },
 
   getGroupById(groupId: string) {
@@ -195,6 +206,7 @@ export default {
         query.with('identifierType');
       })
       .with('groupType')
+      .with('dispenseType')
       .with('clinic', (query) => {
         query.withAllRecursive(1);
       })
@@ -209,6 +221,7 @@ export default {
     return group
       .withAll()
       .with('groupType')
+      .with('dispenseType')
       .where('endDate', null)
       .where('clinical_service_id', serviceId)
       .whereHas('members', (query) => {

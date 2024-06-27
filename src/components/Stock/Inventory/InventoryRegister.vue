@@ -193,14 +193,26 @@ const submitForm = () => {
     loadingIventory.value = false;
     alertError(
       'A data de inicio do inventário não pode ser anterior a data de fecho do útimo inventário registado [' +
-        dateUtils.getDDMMYYYFromJSDate(endDateLast) +
+        endDateLast +
         ']'
     );
   } else if (
     currInventory.value.generic &&
     currInventory.value.generic === 'true'
   ) {
-    initInventory();
+    if (
+      verifyGeneralInventoryExist(
+        dateUtils.getYYYYMMDDFromJSDate(
+          dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
+        )
+      )
+    ) {
+      closeLoading();
+      loadingIventory.value = false;
+      alertError('Ja existe um inventário na data seleccionada.');
+    } else {
+      initInventory();
+    }
   } else {
     if (selected.value.length <= 0) {
       closeLoading();
@@ -209,9 +221,28 @@ const submitForm = () => {
         'Por favor, selecione pelo menos um medicamento para o inventário.'
       );
     } else {
-      initInventory();
+      if (
+        verifyGeneralInventoryExist(
+          dateUtils.getYYYYMMDDFromJSDate(
+            dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
+          )
+        )
+      ) {
+        closeLoading();
+        loadingIventory.value = false;
+        alertError('Ja existe um inventário geral na data seleccionada.');
+      } else {
+        initInventory();
+      }
     }
   }
+};
+
+const verifyGeneralInventoryExist = (inventoryDate) => {
+  return inventoryService.getGeneralInventoryByDate(inventoryDate) !== null &&
+    inventoryService.getGeneralInventoryByDate(inventoryDate) !== undefined
+    ? true
+    : false;
 };
 
 const initInventory = () => {

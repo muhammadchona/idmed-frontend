@@ -25,7 +25,6 @@
             label="Fonte de dados"
           />
         </div>
-
         <div class="q-mt-lg">
           <div class="row items-center q-mb-md">
             <q-icon name="person_outline" size="sm" />
@@ -279,6 +278,57 @@
             </template>
           </q-input>
         </div>
+        <div class="q-mt-lg">
+          <div class="row items-center q-mb-md">
+            <q-icon name="key" size="sm" />
+            <span class="q-pl-sm text-subtitle2">UUID OpenMRS</span>
+          </div>
+          <q-separator color="grey-13" size="1px" />
+        </div>
+        <div class="q-mt-md">
+          <div class="row">
+            <q-input
+              label="UUID *"
+              dense
+              outlined
+              flat
+              class="col q-mr-md"
+              ref="uuidRef"
+              v-model="hisUUID"
+              :disable="editUUID"
+              style="height: 40px"
+            />
+            <q-btn
+              @click="disableEditUUID()"
+              color="primary"
+              icon="edit"
+              flat
+              v-if="editUUID"
+              :disable="false"
+              style="height: 50px"
+            >
+              <q-tooltip class="bg-green-5">Editar UUID</q-tooltip>
+            </q-btn>
+            <q-btn
+              :loading="submitUUID"
+              color="primary"
+              icon="done"
+              flat
+              v-if="!editUUID"
+              @click="updateUUID(patientReg)"
+            />
+            <q-btn
+              color="red"
+              icon="clear"
+              flat
+              v-if="!editUUID"
+              @click="
+                editUUID = true;
+                hisUUID = patientReg.hisUuid;
+              "
+            />
+          </div>
+        </div>
       </q-card-section>
       <q-card-section class="q-px-md"> </q-card-section>
       <q-card-actions align="right" class="q-mb-md q-mr-sm">
@@ -288,6 +338,7 @@
           :loading="submitLoading"
           label="Submeter"
           color="primary"
+          :disable="!editUUID"
         />
       </q-card-actions>
     </form>
@@ -332,7 +383,7 @@ const patientReg = ref(new Patient({ id: uuidv4() }));
 const filterRedDistricts = ref([]);
 const filterRedPostos = ref([]);
 const filterRedBairros = ref([]);
-
+const editUUID = ref(true);
 //Ref's
 const firstNamesRef = ref(null);
 const middleNamesRef = ref(null);
@@ -347,7 +398,8 @@ const selectedDataSources = ref({
   id: -1,
   description: 'iDMED',
 });
-
+const hisUUID = ref('');
+const oldHisUUID = ref('');
 const dataSources = inject('dataSources');
 
 // Inject
@@ -357,14 +409,54 @@ const newPatient = inject('newPatient');
 const closePatient = inject('closePatient');
 const showPatientRegister = inject('showPatientRegister');
 const openMrsPatient = inject('openMrsPatient');
-
+const submitUUID = ref(false);
 // Hook
 
 onMounted(() => {
   initPatient();
+  hisUUID.value = patientReg.value.hisUuid;
 });
 
 // Methods
+
+const disableEditUUID = () => {
+  editUUID.value = false;
+};
+
+const updateUUID = () => {
+  if (hisUUID.value === null || hisUUID.value === undefined) {
+    return alertError('Por favor, indicar o UUID do paciente.');
+  }
+
+  if (!isValidUUID(hisUUID.value)) {
+    return alertError(
+      'O UUID năo coincide com formato exigido: []{8}-[]{4}-[]{4}-[]{4}-[]{12}'
+    );
+  }
+
+  submitUUID.value = true;
+  patientReg.value.clinic = {};
+  patientReg.value.clinic.id = currClinic.value.id;
+  oldHisUUID.value = patientReg.value.hisUuid;
+  // patientReg.value.identifiers = {};
+  // patientReg.value.patientVisits = {};
+  patientReg.value.hisUuid = hisUUID.value;
+  patientService
+    .updateUUID(patientReg.value, sessionStorage.getItem('Btoa'))
+    .then(() => {
+      alertSucess('UUID actualizado com Sucesso.');
+      submitUUID.value = false;
+      editUUID.value = true;
+    })
+    .catch((error) => {
+      console.log('ERROR ', error);
+      patientReg.value.hisUuid = oldHisUUID.value;
+      hisUUID.value = oldHisUUID.value;
+      alertError(error.response.data);
+      submitUUID.value = false;
+      editUUID.value = true;
+    });
+};
 
 const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
@@ -633,15 +725,13 @@ const doSave = async () => {
     patientReg.value.syncStatus = 'U';
     patientReg.value.identifiers = {};
     patientReg.value.patientVisits = {};
+    oldHisUUID.value = patientReg.value.hisUuid;
+    if (hisUUID.value !== null && hisUUID.value !== undefined) {
+      patientReg.value.hisUuid = hisUUID.value;
+    }
     patientService
       .patch(patientReg.value.id, patientReg.value)
       .then(() => {
-        // if (
-        //   transferencePatientData !== undefined &&
-        //   transferencePatientData.length > 0
-        // ) {
-        //   doPatientTranference(resp);
-        // } else {
         alertSucess('Dados do paciente Actualizados com sucesso.');
         closePatient();
         showPatientRegister.value = false;
@@ -651,6 +741,7 @@ const doSave = async () => {
       })
       .catch((error) => {
         let listErrors = [];
+        patientReg.value.hisUuid = oldHisUUID.value;
         submitLoading.value = false;
         if (error.request !== undefined && error.request.status !== 0) {
           const arrayErrors = JSON.parse(error.request.response);
@@ -845,6 +936,12 @@ const bairros = computed(() => {
     return null;
   }
 });
+
+const isValidUUID = (uuidString) => {
+  const uuidRegex =
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  return uuidRegex.test(uuidString);
+};
 </script>
 
 <style></style>

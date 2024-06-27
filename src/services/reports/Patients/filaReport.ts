@@ -1,3 +1,4 @@
+import { clinicService } from 'src/services/api/clinicService/clinicService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
@@ -197,8 +198,13 @@ function createDrugQuantitySuppliedArrayOfArrayRow(rows: any) {
   const data = [];
 
   for (const row in rows) {
+    let qtyInUnit = 'Frasco(s)';
+    if (rows[row].drug.clinicalService.code !== 'TARV') {
+      qtyInUnit = rows[row].drug.form.description + '(s)';
+    }
+
     const createRow = [];
-    createRow.push(rows[row].quantitySupplied + ' Frasco(s)');
+    createRow.push(rows[row].quantitySupplied + ' ' + qtyInUnit);
     data.push(createRow);
   }
 
@@ -223,7 +229,7 @@ function createDrugDosageArrayOfArrayRow(rows: any) {
             ? rows[row].timesPerDay
             : rows[row].drug.defaultTreatment
         ) +
-        ' Vez(es) por '.concat(rows[row].drug.defaultPeriodTreatment)
+        ' Vez(es) por '.concat(rows[row].form)
     );
     data.push(createRow);
   }
