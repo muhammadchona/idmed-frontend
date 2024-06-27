@@ -158,9 +158,14 @@ export default {
         createRow.push(
           moment(new Date(rowsAux[row].captureDate)).format('DD-MM-YYYY')
         );
+        createRow.push(
+          String(rowsAux[row].operation_type).includes('AJUSTE_POSETIVO')
+            ? rowsAux[row].balance - rowsAux[row].adjustedValue
+            : rowsAux[row].balance + rowsAux[row].adjustedValue
+        );
         createRow.push(rowsAux[row].balance);
-        createRow.push(rowsAux[row].adjustedValue);
         createRow.push(rowsAux[row].notes);
+        createRow.push(rowsAux[row].operation_type);
 
         data.push(createRow);
         ord += 1;
@@ -205,7 +210,7 @@ export default {
             ColumnWidth: 10,
           },
           {
-            content: rows[i].totalAdjustedValue,
+            content: rows[i].totalBalance,
             styles: {
               halign: 'center',
               valign: 'middle',
@@ -229,7 +234,9 @@ export default {
             ColumnWidth: 10,
           },
           {
-            content: rows[i].totalBalance,
+            content: String(rows[i].operation_type).includes('AJUSTE_POSETIVO')
+              ? rows[i].totalBalance + rows[i].totalAdjustedValue
+              : rows[i].totalBalance - rows[i].totalAdjustedValue,
             styles: {
               halign: 'center',
               valign: 'middle',
@@ -253,7 +260,7 @@ export default {
             cellWidth: 10,
           },
           {
-            content: rows[i].totalAdjustedValue - rows[i].totalBalance,
+            content: rows[i].totalAdjustedValue,
             styles: {
               halign: 'center',
               valign: 'middle',
@@ -284,7 +291,6 @@ export default {
       const pdfOutput = doc.output();
       this.downloadFile(fileName, 'pdf', pdfOutput);
     }
-
   },
   async downloadExcel(province, startDate, endDate, result) {
     const clinic = clinicService.currClinic();
@@ -578,7 +584,7 @@ export default {
       const cellTotalContadosValue = worksheet.getCell(
         'B' + Number(lastRowNum + rows.length + 3)
       );
-      cellTotalContadosValue.value = rowsAux[i].totalAdjustedValue;
+      cellTotalContadosValue.value = Number(rowsAux[i].totalBalance);
 
       const cellTotalSaldoLabel = worksheet.getCell(
         'A' + Number(lastRowNum + rows.length + 4)
@@ -588,8 +594,13 @@ export default {
       const cellTotalSaldoValue = worksheet.getCell(
         'B' + Number(lastRowNum + rows.length + 4)
       );
-      cellTotalSaldoValue.value = rowsAux[i].totalBalance;
-
+      cellTotalSaldoValue.value = String(rowsAux[i].operation_type).includes(
+        'AJUSTE_POSETIVO'
+      )
+        ? Number(rowsAux[i].totalBalance) +
+          Number(rowsAux[i].totalAdjustedValue)
+        : Number(rowsAux[i].totalBalance) -
+          Number(rowsAux[i].totalAdjustedValue);
       const cellVarLabel = worksheet.getCell(
         'A' + Number(lastRowNum + rows.length + 5)
       );
@@ -598,8 +609,7 @@ export default {
       const cellVarValue = worksheet.getCell(
         'B' + Number(lastRowNum + rows.length + 5)
       );
-      cellVarValue.value =
-        Number(rowsAux[i].totalAdjustedValue) - Number(rowsAux[i].totalBalance);
+      cellVarValue.value = Number(rowsAux[i].totalAdjustedValue);
 
       //Bold Text
       cellTotalSaldoLabel.font =
@@ -701,8 +711,13 @@ export default {
       createRow.push(
         moment(new Date(rows[row].captureDate)).format('DD-MM-YYYY')
       );
+      createRow.push(
+        String(rows[row].operation_type).includes('AJUSTE_POSETIVO')
+          ? rows[row].balance - rows[row].adjustedValue
+          : rows[row].balance + rows[row].adjustedValue
+      );
       createRow.push(rows[row].balance);
-      createRow.push(rows[row].adjustedValue);
+
       createRow.push(rows[row].notes);
 
       data.push(createRow);
