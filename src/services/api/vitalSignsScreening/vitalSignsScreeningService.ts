@@ -123,6 +123,17 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[vitalSignsScreeningDexie]
+      .bulkAdd(params)
+      .then(() => {
+        vitalSignsScreening.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
   async apiGetAll(offset: number, max: number) {
     return await api().get(
       '/vitalSignsScreening?offset=' + offset + '&max=' + max

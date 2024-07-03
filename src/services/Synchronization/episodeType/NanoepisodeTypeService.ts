@@ -1,9 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import EpisodeType from 'src/stores/models/episodeType/EpisodeType';
-import { useRepo } from 'pinia-orm';
-
-const episodeType = useRepo(EpisodeType);
+import episodeTypeService from 'src/services/api/episodeType/episodeTypeService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -11,8 +7,7 @@ export default {
       return await api()
         .get('episodeType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(EpisodeType.entity).query('upsert', resp.data).exec();
-          episodeType.save(resp.data);
+          episodeTypeService.addBulkMobile(resp.data);
           console.log('Data synced from backend: EpisodeType');
           offset = offset + 100;
           if (resp.data.length > 0) {

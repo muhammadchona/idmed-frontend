@@ -147,6 +147,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[dispenseModeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        dispenseMode.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll() {
     return await api().get('/dispenseMode');
   },

@@ -11,7 +11,7 @@ import db from '../../../stores/dexie';
 
 const clinicSector = useRepo(ClinicSector);
 
-const dexiTable = ClinicSector.entity;
+const clinicSectorDexie = ClinicSector.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -94,7 +94,7 @@ export default {
   // Mobile
   addMobile(params: string) {
     showloading();
-    return db[dexiTable]
+    return db[clinicSectorDexie]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         clinicSector.save(params);
@@ -108,7 +108,7 @@ export default {
   },
   putMobile(params: string) {
     showloading();
-    return db[dexiTable]
+    return db[clinicSectorDexie]
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         clinicSector.save(params);
@@ -122,7 +122,7 @@ export default {
   },
   getMobile() {
     showloading();
-    return db[dexiTable]
+    return db[clinicSectorDexie]
       .toArray()
       .then((rows: any) => {
         clinicSector.save(rows);
@@ -134,7 +134,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return db[dexiTable]
+    return db[clinicSectorDexie]
       .delete(paramsId)
       .then(() => {
         clinicSector.destroy(paramsId);
@@ -142,6 +142,16 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: string) {
+    return db[clinicSectorDexie]
+      .bulkAdd(params)
+      .then(() => {
+        clinicSector.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
@@ -204,7 +214,7 @@ export default {
   async getClinicSectorsDexie() {
     // const dexiDatabase1 = ClinicSector.entity;
     try {
-      const clinicSectors = await db[dexiTable].toArray();
+      const clinicSectors = await db[clinicSectorDexie].toArray();
 
       /*
       const clinicSectors = await db[dexiTable]

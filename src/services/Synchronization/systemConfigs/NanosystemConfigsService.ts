@@ -2,6 +2,7 @@ import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
 import { useRepo } from 'pinia-orm';
+import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 const systemConfigs = useRepo(SystemConfigs);
 
 export default {
@@ -10,8 +11,7 @@ export default {
       return await api()
         .get('systemConfigs?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(SystemConfigs.entity).query('upsert', resp.data).exec();
-          systemConfigs.save(resp.data);
+          systemConfigsService.addBulkMobile(resp.data);
           console.log('Data synced from backend: SystemConfigs');
           offset = offset + 100;
           if (resp.data.length > 0) {

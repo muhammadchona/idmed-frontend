@@ -1,5 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import { ClinicSector } from 'src/stores/models/clinic/ClinicSector';
 import { useRepo } from 'pinia-orm';
 const clinicSector = useRepo(ClinicSector);
@@ -9,8 +9,7 @@ export default {
       return await api()
         .get('clinicSector?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(ClinicSector.entity).query('upsert', resp.data).exec();
-          clinicSector.save(resp.data);
+          clinicSectorService.addBulkMobile(resp.data);
           console.log('Data synced from backend: ClinicSector');
           offset = offset + 100;
           if (resp.data.length > 0) {

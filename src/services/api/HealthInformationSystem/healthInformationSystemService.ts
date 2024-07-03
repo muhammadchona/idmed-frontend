@@ -127,6 +127,17 @@ export default {
         // alertError('Aconteceu um erro inesperado nesta operação.');
       });
   },
+  addBulkMobile(params: any) {
+    return db[healthInformationSystemDexie]
+      .bulkAdd(params)
+      .then(() => {
+        healthInformationSystem.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
   async apiFetchById(id: string) {
     return await api().get(`/healthInformationSystem/${id}`);
   },

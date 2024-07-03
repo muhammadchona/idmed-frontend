@@ -128,6 +128,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: string) {
+    return db[startStopReasonDexie]
+      .bulkAdd(params)
+      .then(() => {
+        startStopReason.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);
   },

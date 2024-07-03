@@ -138,6 +138,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[districtDexie]
+      .bulkAdd(params)
+      .then(() => {
+        district.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
 
   async apiGetAll(offset: number, max: number) {
     return await api().get('/district?offset=' + offset + '&max=' + max);

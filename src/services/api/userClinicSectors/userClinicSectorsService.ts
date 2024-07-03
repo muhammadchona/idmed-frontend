@@ -140,6 +140,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[userClinicSectorDexie]
+      .bulkAdd(params)
+      .then(() => {
+        userClinicSector.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return userClinicSector.getModel().$newInstance();

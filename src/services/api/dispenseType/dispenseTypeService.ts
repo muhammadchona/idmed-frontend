@@ -45,6 +45,49 @@ export default {
   async apiFetchById(id: string) {
     return await api().get(`/dispenseType/${id}`);
   },
+  addMobile(params: string) {
+    return db[dispenseTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        dispenseType.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  getMobile() {
+    return db[dispenseTypeDexie]
+      .toArray()
+      .then((rows: any) => {
+        dispenseType.save(rows);
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[dispenseTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        dispenseType.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[dispenseTypeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        dispenseType.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return dispenseType.getModel().$newInstance();

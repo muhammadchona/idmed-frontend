@@ -114,7 +114,7 @@ export default {
       });
   },
   getMobile() {
-    return db[doctorDexie]
+    return db[durationDexie]
       .toArray()
       .then((rows: any) => {
         duration.save(rows);
@@ -129,6 +129,16 @@ export default {
       .delete(paramsId)
       .then(() => {
         duration.destroy(paramsId);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[durationDexie]
+      .bulkAdd(params)
+      .then(() => {
+        duration.save(params);
       })
       .catch((error: any) => {
         console.log(error);

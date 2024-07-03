@@ -140,6 +140,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[secUserRoleDexie]
+      .bulkAdd(params)
+      .then(() => {
+        secUserRoleRepo.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiSave(secUserRole: string) {
     return await this.post(secUserRole);
   },

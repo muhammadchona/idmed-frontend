@@ -108,7 +108,7 @@ export default {
       });
   },
   getMobile() {
-    return db[provinceDexie]
+    return db[provincialServerDexie]
       .toArray()
       .then((rows: any) => {
         provincialServer.save(rows);
@@ -119,7 +119,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return db[provinceDexie]
+    return db[provincialServerDexie]
       .delete(paramsId)
       .then(() => {
         provincialServer.destroy(paramsId);
@@ -127,6 +127,16 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[provincialServerDexie]
+      .bulkAdd(params)
+      .then(() => {
+        provincialServer.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

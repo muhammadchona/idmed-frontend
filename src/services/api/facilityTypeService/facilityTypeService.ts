@@ -140,6 +140,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[facilityTypeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        facilityType.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
 
   /*Pinia Methods*/
   getAllFacilityTypes() {

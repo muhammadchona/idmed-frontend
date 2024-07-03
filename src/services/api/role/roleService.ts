@@ -146,7 +146,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[roleDexie]
+      .bulkAdd(params)
+      .then(() => {
+        role.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll() {
     return await api().get('/role');
   },

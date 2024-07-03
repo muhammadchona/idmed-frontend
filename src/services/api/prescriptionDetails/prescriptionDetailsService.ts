@@ -119,6 +119,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[prescriptionDetailsDexie]
+      .bulkAdd(params)
+      .then(() => {
+        prescriptionDetails.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAllByPrescriptionId(prescriptionId: string) {
     return await api()
       .get('/prescriptionDetail/prescription/' + prescriptionId)

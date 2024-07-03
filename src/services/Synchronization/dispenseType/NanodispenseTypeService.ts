@@ -1,9 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import DispenseType from 'src/stores/models/dispenseType/DispenseType';
-import { useRepo } from 'pinia-orm';
-
-const dispenseType = useRepo(DispenseType);
+import dispenseTypeService from 'src/services/api/dispenseType/dispenseTypeService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -11,8 +7,7 @@ export default {
       return await api()
         .get('dispenseType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(DispenseType.entity).query('upsert', resp.data).exec();
-          dispenseType.save(resp.data);
+          dispenseTypeService.addBulkMobile(resp.data);
           console.log('Data synced from backend: DispenseType');
           offset = offset + 100;
           if (resp.data.length > 0) {

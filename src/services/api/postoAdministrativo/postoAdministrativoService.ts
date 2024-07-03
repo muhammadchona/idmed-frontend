@@ -140,6 +140,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[postoAdministrativoDexie]
+      .bulkAdd(params)
+      .then(() => {
+        postoAdministrativo.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiFetchById(id: string) {
     return await api().get(`/postoAdministrativo/${id}`);
   },

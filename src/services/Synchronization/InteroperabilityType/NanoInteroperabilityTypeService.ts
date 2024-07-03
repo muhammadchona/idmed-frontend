@@ -1,9 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import InteroperabilityType from 'src/stores/models/interoperabilityType/InteroperabilityType';
-import { useRepo } from 'pinia-orm';
-
-const interoperabilityType = useRepo(InteroperabilityType);
+import InteroperabilityAttributeService from 'src/services/api/InteroperabilityAttribute/InteroperabilityAttributeService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -11,8 +7,7 @@ export default {
       return await api()
         .get('interoperabilityType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(InteroperabilityType.entity).query('upsert', resp.data).exec();
-          interoperabilityType.save(resp.data);
+          InteroperabilityAttributeService.addBulkMobile(resp.data);
           console.log('Data synced from backend: InteroperabilityType');
           offset = offset + 100;
           if (resp.data.length > 0) {

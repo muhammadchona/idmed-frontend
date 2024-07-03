@@ -137,6 +137,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[secUserDexie]
+      .bulkAdd(params)
+      .then(() => {
+        secUserRepo.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);
   },

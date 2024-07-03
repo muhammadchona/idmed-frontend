@@ -136,6 +136,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[userRoleDexie]
+      .bulkAdd(params)
+      .then(() => {
+        userRole.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return userRole.getModel().$newInstance();

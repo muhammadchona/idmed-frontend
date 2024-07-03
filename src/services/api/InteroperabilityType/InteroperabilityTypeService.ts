@@ -138,7 +138,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[interoperabilityTypeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        interoperabilityType.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);
   },

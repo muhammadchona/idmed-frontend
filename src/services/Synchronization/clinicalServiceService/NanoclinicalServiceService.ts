@@ -1,5 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 
 export default {
@@ -8,7 +9,7 @@ export default {
       return await api()
         .get('clinicalService?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(ClinicalService.entity).query('upsert', resp.data).exec();
+          clinicalServiceService.addBulkMobile(resp.data);
           console.log('Data synced from backend: ClinicalService');
           offset = offset + 100;
           if (resp.data.length > 0) {

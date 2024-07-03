@@ -136,6 +136,16 @@ export default {
         // alertError('Aconteceu um erro inesperado nesta operação.');
       });
   },
+  addBulkMobile(params: string) {
+    return db[clinicDexie]
+      .bulkAdd(params)
+      .then(() => {
+        clinic.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Methods
   apiFetchById(id: string) {
     return api().get(`/clinic/${id}`);

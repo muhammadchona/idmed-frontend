@@ -23,11 +23,14 @@ export default {
     }
   },
   get(offset: number) {
+    /*
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       return this.getWeb(offset);
     }
+    */
+    this.getMobile();
   },
   patch(uuid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -112,6 +115,7 @@ export default {
     try {
       const rows = await db[patientDexie].toArray();
       patient.save(rows);
+      return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -227,6 +231,16 @@ export default {
     }
   },
 
+  addBulkMobile(params: string) {
+    return db[patientDexie]
+      .bulkAdd(params)
+      .then(() => {
+        patient.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiUpdate(patient: any) {
     return await this.patch(patient.id, patient);
   },
@@ -240,8 +254,12 @@ export default {
     return await api().get('/patient/clinicSector/' + clinicSectorId);
   },
   async doPatientsBySectorGet() {
+    const data = await clinicSectorService.getMobile();
+    const data2 = clinicSectorService.getAllClinicSectors();
+    console.log(data);
+    console.log(data2);
     const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
-      localStorage.getItem('clinic_sector_users')
+      sessionStorage.getItem('clinic_sector_users')
     );
     if (clinicSectorUser === null || clinicSectorUser === undefined) {
       alertError(
@@ -254,7 +272,7 @@ export default {
     const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
     console.log('PacientesSector' + resp.data);
     // alertSucess(resp.data);
-    this.addMobile(resp.data);
+    this.addBulkMobile(resp.data);
     return resp;
   },
 

@@ -141,6 +141,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[systemConfigsDexie]
+      .bulkAdd(params)
+      .then(() => {
+        systemConfigs.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiFetchById(id: any) {
     return await api().get(`/systemConfigs/${id}`);
   },

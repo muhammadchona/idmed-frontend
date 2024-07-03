@@ -7,6 +7,9 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import db from '../../../stores/dexie';
 import moment from 'moment';
 import dispenseTypeService from '../dispenseType/dispenseTypeService';
+import patientService from '../patientService/patientService';
+import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
+import clinicService from '../clinicService/clinicService';
 
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = PatientVisit.entity;
@@ -135,6 +138,16 @@ export default {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+  addBulkMobile(params: any) {
+    return db[patientVisitDexie]
+      .bulkAdd(params)
+      .then(() => {
+        patientVisit.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisit/${id}`);
@@ -348,5 +361,27 @@ export default {
       }
       return counter;
     });
+  },
+
+  async doPatientVisitServiceBySectorGet() {
+    const patients = await patientService.getMobile();
+    const ids = patients.map((pat: any) => pat.id);
+    const clinicSector = clinicService.currClinic();
+    console.log(ids);
+    ids.push(clinicSector);
+    const visits = await api().post(
+      '/patientVisitDetails/getAllByPatientIds/',
+      ids
+    );
+    patientVisitDetailsService.addBulkMobile(visits.data);
+
+    const idsVisit = visits.data.map((vis: any) => vis.patientVisitId);
+    console.log(idsVisit);
+
+    const patientVisits = await api().post(
+      '/patientVisit/getAllByVisitIds/',
+      idsVisit
+    );
+    console.log(patientVisits);
   },
 };

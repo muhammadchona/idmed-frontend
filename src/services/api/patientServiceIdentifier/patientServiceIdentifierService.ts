@@ -99,6 +99,7 @@ export default {
     try {
       const rows = await db[patientServiceIdentifierDexie].toArray();
       patientServiceIdentifier.save(rows);
+      return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -113,6 +114,16 @@ export default {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+  addBulkMobile(params: any) {
+    return db[patientServiceIdentifierDexie]
+      .bulkAdd(params)
+      .then(() => {
+        patientServiceIdentifier.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
   async apiSave(identifier: any, isNew: boolean) {
     if (isNew) {

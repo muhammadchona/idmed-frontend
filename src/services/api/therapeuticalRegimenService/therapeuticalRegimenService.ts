@@ -153,6 +153,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[therapeuticRegimenDexie]
+      .bulkAdd(params)
+      .then(() => {
+        therapeuticRegimen.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return therapeuticRegimen.getModel().$newInstance();
