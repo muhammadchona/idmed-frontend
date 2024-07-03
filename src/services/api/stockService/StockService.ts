@@ -5,18 +5,20 @@ import moment from 'moment';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from '../../../stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
 
 const stock = useRepo(Stock);
+const stockDexie = Stock.entity;
 
 export default {
   // Axios API call
   post(params: any) {
     if (!isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -43,6 +45,26 @@ export default {
       return this.deleteWeb(id);
     }
   },
+
+  async getFromBackEnd(offset: number) {
+    if (offset >= 0) {
+      return await api()
+        .get('stock?offset=' + offset + '&max=100')
+        .then((resp) => {
+          stock.addBulkMobile(resp.data);
+          console.log('Data synced from backend: stock');
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromBackEnd(offset);
+          }
+        })
+        .catch((error) => {
+          console.error('Error syncing data from backend:', error);
+          console.log(error);
+        });
+    }
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return stock.getModel().$newInstance();
@@ -268,98 +290,121 @@ export default {
   },
 
   //Mobile
-  async putMobile(params: any) {
-    const resp = await nSQL('stocks')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    stock.save(params);
-    return resp;
+
+  addMobile(params: string) {
+    return db[stockDexie].add(JSON.parse(JSON.stringify(params))).then(() => {
+      stock.save(JSON.parse(JSON.stringify(params)));
+    });
   },
 
-  getMobile() {
-    return nSQL().onConnected(() => {
-      nSQL('stocks')
-        .query('select')
-        .exec()
-        .then((result) => {
-          console.log(result);
-          stock.save(result);
-          return result;
-        });
+  async putMobile(params: any) {
+    return db[stockDexie].put(JSON.parse(JSON.stringify(params))).then(() => {
+      stock.save(JSON.parse(JSON.stringify(params)));
     });
+  },
+
+  async getMobile() {
+    try {
+      const rows = await db[stockDexie].toArray();
+      stock.save(rows);
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 
   getBystockMobile(stock: any) {
-    return nSQL().onConnected(() => {
-      nSQL('stocks')
-        .query('select')
-        .where(['stocks[id]', '=', stock.id])
-        .exec()
-        .then((result) => {
-          console.log(result);
-          stock.save(result);
-        });
-    });
-  },
-
-  async deleteMobile(id: any) {
-    const resp = await nSQL('stocks')
-      .query('delete')
-      .where(['id', '=', id])
-      .exec();
-    stock.destroy(id);
-    return resp;
-  },
-
-  localDbGetAll() {
-    return nSQL('stocks')
-      .query('select')
-      .exec()
-      .then((result) => {
-        return result;
+    return db[stockDexie]
+      .where('id')
+      .equalsIgnoreCase(stock.id)
+      .first()
+      .then((rows: any) => {
+        stock.save(rows);
+        return rows;
       });
   },
 
+  async deleteMobile(id: any) {
+    try {
+      await db[stockDexie].delete(id);
+      stock.destroy(id);
+      // alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+
+  async localDbGetAll() {
+    try {
+      const rows = await db[stockDexie].toArray();
+      stock.save(rows);
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+
   localDbGetUsedStock(reportParams: any) {
-    return nSQL('stocks')
-      .query('select')
-      .where(['drug.clinicalService.id', '=', reportParams.clinicalService])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        return result;
+    return db[stockDexie]
+      .where('drug.clinicalService.id')
+      .equalsIgnoreCase(reportParams.clinicalService)
+      .then((rows: any) => {
+        stock.save(rows);
+        return rows;
       });
   },
 
   localDbGetById(stock: any) {
-    return nSQL('stocks')
-      .query('select')
-      .where(['id', '=', stock.id])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        // Stock.insert({ data: result })
-        return result[0];
+    return db[stockDexie]
+      .where('id')
+      .equalsIgnoreCase(stock.id)
+      .then((rows: any) => {
+        stock.save(rows);
+        return rows;
       });
   },
 
   localDbGetByStockEntranceId(stockEntrance: any) {
-    return nSQL('stocks')
-      .query('select')
-      .where(['stocks[entrance_id]', '=', stockEntrance.id])
-      .exec()
-      .then((result) => {
-        return result;
+    return db[stockDexie]
+      .where('entrance_id')
+      .equalsIgnoreCase(stockEntrance.id)
+      .then((rows: any) => {
+        stock.save(rows);
+        return rows;
       });
   },
 
   localDbGetByDrug(drug: any) {
-    return nSQL('stocks')
-      .query('select')
-      .where(['drug_id', '=', drug.id])
-      .exec()
-      .then((result) => {
-        return result;
+    return db[stockDexie]
+      .where('drug_id')
+      .equalsIgnoreCase(drug.id)
+      .then((rows: any) => {
+        stock.save(rows);
+        return rows;
+      });
+  },
+
+  async hasStockMobile(drug: any) {
+    try {
+      const rows = await db[stockDexie]
+        .where('drug_id')
+        .equalsIgnoreCase(drug.id)
+        .toArray();
+      return rows.length > 0;
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+  addBulkMobile(params: string) {
+    return db[stockDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stock.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
       });
   },
 

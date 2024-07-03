@@ -7,12 +7,13 @@ import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import encryption from 'src/services/Encryption';
 import { useOnline } from 'src/composables/shared/loadParams/online';
-import patientService from './api/patientService/patientService';
+import db from 'src/stores/dexie';
 
 const userLogin = useRepo(UserLogin);
 const userRoles = useRepo(UserRole);
 const { isMobile, isOnline } = useSystemUtils();
 const { deleteStorageInfo } = useOnline();
+const userLoginDexie = UserLogin.entity;
 
 export default {
   logout() {
@@ -51,7 +52,7 @@ export default {
       .post('/login', params)
       .then((resp) => {
         if (isMobile.value) {
-          this.putMobile(resp.data);
+          this.addMobile(resp.data);
           localStorage.setItem(
             'sync_pass',
             encryption.encryptPlainText('user.sync')
@@ -138,28 +139,30 @@ export default {
   },
 
   // Mobile
-  putMobile(params: string) {
-    return nSQL(UserLogin.entity)
-      .query('upsert', params)
-      .exec()
+
+  addMobile(params: string) {
+    return db[userLoginDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        userLogin.save(params);
-      })
-      .catch((error: any) => {
-        console.log(error);
+        userLogin.save(JSON.parse(JSON.stringify(params)));
       });
-    0;
   },
-  getMobile() {
-    return nSQL(UserLogin.entity)
-      .query('select')
-      .exec()
-      .then((rows: any) => {
-        userLogin.save(rows);
-        return rows;
-      })
-      .catch((error: any) => {
-        console.log(error);
+
+  putMobile(params: string) {
+    return db[userLoginDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        userLogin.save(JSON.parse(JSON.stringify(params)));
       });
+  },
+  async getMobile() {
+    try {
+      const rows = await db[userLoginDexie].toArray();
+      userLogin.save(rows);
+      return rows;
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 };

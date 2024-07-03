@@ -4,11 +4,13 @@ import api from '../apiService/apiService';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from 'src/stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
 const stockDistributor = useRepo(StockDistributor);
+const stockDistributorDexie = StockDistributor.entity;
 
 export default {
   // Axios API call
@@ -123,67 +125,93 @@ export default {
 
   //Mobile
 
-  async putMobile(params: any) {
-    const resp = await nSQL('stockDistributors')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    stockDistributor.save(params);
-    return resp;
-  },
-
-  getMobile() {
-    return nSQL('stockDistributors')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        stockDistributor.save(result);
-        //  return result
+  //Mobile
+  async addMobile(params: any) {
+    return db[stockDistributorDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        stockDistributor.save(JSON.parse(JSON.stringify(params)));
       });
   },
 
-  getByStockDistributorMobile(stockDistributor: any) {
-    return nSQL('stockDistributors')
-      .query('select')
-      .where(['stockDistributors[id]', '=', stockDistributor.id])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        stockDistributor.save(result);
+  async getFromBackEnd(offset: number) {
+    if (offset >= 0) {
+      return await api()
+        .get('stockEntrance?offset=' + offset + '&max=100')
+        .then((resp) => {
+          stockDistributor.addBulkMobile(resp.data);
+          console.log('Data synced from backend: stockEntrance');
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromBackEnd(offset);
+          }
+        })
+        .catch((error) => {
+          console.error('Error syncing data from backend:', error);
+          console.log(error);
+        });
+    }
+  },
+  //mobile
+  addBulkMobile(params: string) {
+    return db[stockDistributorDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stockDistributor.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
       });
+  },
+
+  async getMobile() {
+    try {
+      const rows = await db[stockDistributorDexie].toArray();
+      stockDistributor.save(rows);
+      return rows;
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 
   async deleteMobile(id: any) {
-    const resp = await nSQL('stockDistributors')
-      .query('delete')
-      .where(['id', '=', id])
-      .exec();
-    stockDistributor.destroy(id);
-    return resp;
+    try {
+      await db[stockDistributorDexie].delete(id);
+      stockDistributor.destroy(id);
+      // alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 
-  apiFetchByIdMobile(id: any) {
-    return nSQL('stockDistributors')
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        stockDistributor.save(result);
+  async putMobile(params: any) {
+    return db[stockDistributorDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        stockDistributor.save(JSON.parse(JSON.stringify(params)));
       });
   },
 
-  apiGetAllByClinicIdMobile(id: any) {
-    return nSQL().onConnected(() => {
-      nSQL('stockDistributor')
-        .query('select')
-        .where(['stockDistributor[clinic_id]', '=', id])
-        .exec()
-        .then((result) => {
-          console.log(result);
-          stockDistributor.save(result);
-        });
-    });
+  apiFetchByIdMobile(id: any) {
+    return db[stockDistributorDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .then((rows: any) => {
+        stockDistributor.save(rows);
+        return rows;
+      });
+  },
+
+  apiGetAllByClinicIdMobile(clinicId: any) {
+    return db[stockDistributorDexie]
+      .where('clinic_id')
+      .equalsIgnoreCase(clinicId)
+      .then((rows: any) => {
+        stockDistributor.save(rows);
+        return rows;
+      });
   },
 
   // Local Storage Pinia
