@@ -4,11 +4,13 @@ import { InventoryStockAdjustment } from 'src/stores/models/stockadjustment/Inve
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from '../../../stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
 const inventoryStockAdjustment = useRepo(InventoryStockAdjustment);
+const inventoryStockAdjustmentDexie = InventoryStockAdjustment.entity;
 
 export default {
   // Axios API call
@@ -147,72 +149,104 @@ export default {
   //Mobile
 
   async putMobile(params: any) {
-    const resp = await nSQL('inventoryStockAdjustments')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    inventoryStockAdjustment.save(params);
-    return resp;
+    return db[inventoryStockAdjustmentDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        inventoryStockAdjustment.save(JSON.parse(JSON.stringify(params)));
+      });
   },
 
-  getMobile() {
-    return nSQL('inventoryStockAdjustments')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        inventoryStockAdjustment.save(result);
-        //  return result
-      });
+  async getMobile() {
+    try {
+      const rows = await db[inventoryStockAdjustmentDexie].toArray();
+      inventoryStockAdjustment.save(rows);
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 
   async deleteMobile(id: any) {
-    const resp = await nSQL('inventoryStockAdjustments')
-      .query('delete')
-      .where(['id', '=', id])
-      .exec();
-    inventoryStockAdjustment.destroy(id);
-    return resp;
+    try {
+      await db[inventoryStockAdjustmentDexie].delete(id);
+      inventoryStockAdjustment.destroy(id);
+      // alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 
   async apiFetchByIdMobile(id: any) {
-    let resp = null;
-    await nSQL('inventoryStockAdjustments')
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((result) => {
-        resp = result;
-        inventoryStockAdjustment.save(result);
+    return db[inventoryStockAdjustmentDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .then((rows: any) => {
+        inventoryStockAdjustment.save(rows);
+        return rows;
       });
-    return resp;
   },
 
   async apiGetAdjustmentsByInventoryIdMobile(id: any) {
-    const resp = await nSQL('inventoryStockAdjustments')
-      .query('select')
-      .where(['inventory_id', '=', id])
-      .exec();
-    if (resp.length > 0) {
-      inventoryStockAdjustment.save(resp);
-    }
-    return resp;
-  },
-  async apiGetAllMobile() {
-    const resp = await nSQL('inventoryStockAdjustments').query('select').exec();
-    /* if (resp.length>0) {
-    inventoryStockAdjustment.save( resp )
-  }*/
-    return resp;
-  },
-  async localDbGetAll() {
-    return nSQL('inventoryStockAdjustments')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        return result;
+    return db[inventoryStockAdjustmentDexie]
+      .where('inventory_id')
+      .equalsIgnoreCase(id)
+      .then((rows: any) => {
+        inventoryStockAdjustment.save(rows);
+        return rows;
       });
   },
+  async apiGetAllMobile() {
+    try {
+      const rows = await db[inventoryStockAdjustmentDexie].toArray();
+      inventoryStockAdjustment.save(rows);
+      return rows;
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+  async localDbGetAll() {
+    try {
+      const rows = await db[inventoryStockAdjustmentDexie].toArray();
+      inventoryStockAdjustment.save(rows);
+      return rows;
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+
+  async getFromBackEnd(offset: number) {
+    if (offset >= 0) {
+      return await api()
+        .get('inventoryStockAdjustment?offset=' + offset + '&max=100')
+        .then((resp) => {
+          inventoryStockAdjustment.addBulkMobile(resp.data);
+          console.log('Data synced from backend: inventoryStockAdjustment');
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromBackEnd(offset);
+          }
+        })
+        .catch((error) => {
+          console.error('Error syncing data from backend:', error);
+          console.log(error);
+        });
+    }
+  },
+
+  addBulkMobile(params: string) {
+    return db[inventoryStockAdjustmentDexie]
+      .bulkAdd(params)
+      .then(() => {
+        inventoryStockAdjustment.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
   // Local Storage Pinia
   deleteAllFromStorage() {
     inventoryStockAdjustment.flush();

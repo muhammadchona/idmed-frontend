@@ -17,13 +17,11 @@ export default {
 
   get(offset: number) {
     if (!isOnline.value) {
-      return db[stockOperationDexie]
-        .add(JSON.parse(JSON.stringify(params)))
-        .then((result: any) => {
-          console.log(result);
-          stockOperationRepo.save(result);
-          return result;
-        });
+      return db[stockOperationDexie].toArray().then((result: any) => {
+        console.log(result);
+        stockOperationRepo.save(result);
+        return result;
+      });
     } else {
       if (offset >= 0) {
         showloading();
@@ -41,6 +39,37 @@ export default {
           });
       }
     }
+  },
+
+  async getFromBackEnd(offset: number) {
+    if (offset >= 0) {
+      return await api()
+        .get('stockOperationType?offset=' + offset + '&max=100')
+        .then((resp) => {
+          if (resp.data.length > 0) {
+            this.addBulkMobile(resp.data);
+            console.log('Data synced from backend: stockOperationType');
+            offset = offset + 100;
+            this.getFromBackEnd(offset);
+          }
+        })
+        .catch((error) => {
+          console.error('Error syncing data from backend:', error);
+          console.log(error);
+        });
+    }
+  },
+
+  //mobile
+  addBulkMobile(params: string) {
+    return db[stockOperationDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stockOperationRepo.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
 
   async apiGetAll(offset: number, max: number) {
