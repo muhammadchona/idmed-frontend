@@ -116,6 +116,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[pregnancyScreeningDexie]
+      .bulkAdd(params)
+      .then(() => {
+        pregnancyScreening.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return await api().get(
       '/pregnancyScreening?offset=' + offset + '&max=' + max

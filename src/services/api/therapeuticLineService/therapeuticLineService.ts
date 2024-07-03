@@ -136,6 +136,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[therapeuticLineDexie]
+      .bulkAdd(params)
+      .then(() => {
+        therapeuticLine.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   getById(id: string) {
     return therapeuticLine
       .query()

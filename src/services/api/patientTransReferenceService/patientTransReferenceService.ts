@@ -121,6 +121,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[patientTransReferenceDexie]
+      .bulkAdd(params)
+      .then(() => {
+        patientTransReference.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return await api().get(
       '/patientTransReference?offset=' + offset + '&max=' + max

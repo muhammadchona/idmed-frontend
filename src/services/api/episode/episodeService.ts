@@ -134,6 +134,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[episodeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        episode.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiSave(episodeParams: any, isNew: boolean) {
     if (isNew) {
       return await this.post(episodeParams);
@@ -345,7 +355,7 @@ export default {
   async doEpisodesBySectorGet() {
     console.log('user_sector' + localStorage.getItem('clinic_sector_users'));
     const clinicSectorUser = clinicSectorService.getClinicSectorSlimByCode(
-      localStorage.getItem('clinic_sector_users')
+      sessionStorage.getItem('clinic_sector_users')
     );
     this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {
       if (resp.data.length > 0) {

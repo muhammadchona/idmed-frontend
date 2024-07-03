@@ -141,7 +141,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[clinicalServiceAttributeTypeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        clinicalServiceAttributeType.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return clinicalServiceAttributeType.getModel().$newInstance();

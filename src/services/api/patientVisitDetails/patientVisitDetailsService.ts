@@ -115,6 +115,16 @@ export default {
       console.log(error);
     }
   },
+  async addBulkMobile(params: string) {
+    return db[patientVisitDetailsDexie]
+      .bulkAdd(params)
+      .then(() => {
+        patientVisitDetails.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisitDetails/${id}`);
   },

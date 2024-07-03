@@ -139,6 +139,16 @@ export default {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
+  },
+  addBulkMobile(params: any) {
+    return db[roleMenuDexie]
+      .bulkAdd(params)
+      .then(() => {
+        roleMenu.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   }, // Local Storage Pinia
   newInstanceEntity() {
     return roleMenu.getModel().$newInstance();

@@ -114,7 +114,7 @@ export default {
       });
   },
   getMobile() {
-    return db[attributeTypeDexie]
+    return db[localidadeDexie]
       .toArray()
       .then((rows: any) => {
         localidade.save(rows);
@@ -125,7 +125,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return db[attributeTypeDexie]
+    return db[localidadeDexie]
       .delete(paramsId)
       .then(() => {
         localidade.destroy(paramsId);
@@ -133,6 +133,16 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[localidadeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        localidade.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

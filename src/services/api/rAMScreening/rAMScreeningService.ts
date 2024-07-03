@@ -82,21 +82,21 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return db[provincialServerDexie]
+    return db[rAMScreeningDexie]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         rAMScreening.save(JSON.parse(JSON.stringify(params)));
       });
   },
   putMobile(params: string) {
-    return db[provincialServerDexie]
+    return db[rAMScreeningDexie]
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         rAMScreening.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
-    return db[provincialServerDexie]
+    return db[rAMScreeningDexie]
       .toArray()
       .then((rows: any) => {
         rAMScreening.save(rows);
@@ -107,7 +107,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return db[provincialServerDexie]
+    return db[rAMScreeningDexie]
       .delete(paramsId)
       .then(() => {
         rAMScreening.destroy(paramsId);
@@ -115,6 +115,16 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[rAMScreeningDexie]
+      .bulkAdd(params)
+      .then(() => {
+        rAMScreening.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

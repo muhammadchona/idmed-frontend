@@ -138,7 +138,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[packagedDrugStockDexie]
+      .bulkAdd(params)
+      .then(() => {
+        packagedDrugStock.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll() {
     return await api().get('/packagedDrugStock?offset=' + 0 + '&max=' + 200);
   },

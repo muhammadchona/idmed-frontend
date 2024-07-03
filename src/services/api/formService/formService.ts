@@ -140,6 +140,17 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[formDexie]
+      .bulkAdd(params)
+      .then(() => {
+        form.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
   /*Pinia Methods*/
   getAllForms() {
     return form.query().withAll().get();

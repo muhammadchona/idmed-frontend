@@ -114,6 +114,16 @@ export default {
       console.log(error);
     }
   },
+  addBulkMobile(params: any) {
+    return db[prescriptionDexie]
+      .bulkAdd(params)
+      .then(() => {
+        prescription.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
 
   async apiSave(prescriptionObject: any) {
     return await this.post(prescriptionObject);
@@ -136,8 +146,7 @@ export default {
           max
       )
       .then((resp) => {
-        nSQL(Prescription.entity).query('upsert', resp.data).exec();
-        prescription.save(resp.data);
+        this.addBulkMobile(resp.data);
       });
   },
 

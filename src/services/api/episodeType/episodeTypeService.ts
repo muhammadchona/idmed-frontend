@@ -138,6 +138,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[episodeTypeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        episodeType.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);
   },

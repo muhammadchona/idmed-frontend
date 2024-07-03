@@ -130,6 +130,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: string) {
+    return db[spetialPrescriptionMotiveDexie]
+      .bulkAdd(params)
+      .then(() => {
+        spetialPrescriptionMotive.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);
   },

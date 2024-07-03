@@ -128,7 +128,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[doctorDexie]
+      .bulkAdd(params)
+      .then(() => {
+        doctor.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return doctor.getModel().$newInstance();

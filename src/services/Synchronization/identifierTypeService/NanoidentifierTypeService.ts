@@ -1,9 +1,6 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import IdentifierType from 'src/stores/models/identifierType/IdentifierType';
-import { useRepo } from 'pinia-orm';
-
-const identifierType = useRepo(IdentifierType);
+// import db from '../../../stores/dexie';
+import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -11,8 +8,7 @@ export default {
       return await api()
         .get('identifierType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(IdentifierType.entity).query('upsert', resp.data).exec();
-          identifierType.save(resp.data);
+          identifierTypeService.addBulkMobile(resp.data);
           console.log('Data synced from backend: IdentifierType');
           offset = offset + 100;
           if (resp.data.length > 0) {

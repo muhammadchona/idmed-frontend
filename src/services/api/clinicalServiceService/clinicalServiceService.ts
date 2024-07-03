@@ -150,6 +150,16 @@ export default {
         // console.log(error);
       });
   },
+  addBulkMobile(params: string) {
+    return db[clinicalServiceDexie]
+      .bulkAdd(params)
+      .then(() => {
+        clinicalService.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async localDbGetById(id: any) {
     return db[clinicalServiceDexie]
       .where('id')

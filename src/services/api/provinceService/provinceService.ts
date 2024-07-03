@@ -130,6 +130,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[provinceDexie]
+      .bulkAdd(params)
+      .then(() => {
+        province.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiFetchById(id: string) {
     return await api().get(`/province/${id}`);
   },

@@ -76,6 +76,27 @@ export default {
     await api().delete('drug/' + id);
     drug.destroy(id);
   },
+  getMobile() {
+    return db[drugDexie]
+      .toArray()
+      .then((rows: any) => {
+        drug.save(rows);
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[drugDexie]
+      .bulkAdd(params)
+      .then(() => {
+        drug.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   getActiveDrugs() {
     return drug.query().withAllRecursive(1).where('active', true).get();
   },

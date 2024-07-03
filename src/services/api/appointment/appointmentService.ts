@@ -6,7 +6,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import db from '../../../stores/dexie';
 
 const appointment = useRepo(Appointment);
-const dexiTable = Appointment.entity;
+const appointmenDexie = Appointment.entity;
 
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -80,7 +80,7 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return db[dexiTable]
+    return db[appointmenDexie]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         appointment.save(params);
@@ -92,7 +92,7 @@ export default {
       });
   },
   putMobile(params: string) {
-    return db[dexiTable]
+    return db[appointmenDexie]
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         appointment.save(params);
@@ -104,7 +104,7 @@ export default {
       });
   },
   getMobile() {
-    return db[dexiTable]
+    return db[appointmenDexie]
       .toArray()
       .then((rows: any) => {
         appointment.save(rows);
@@ -115,7 +115,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return db[dexiTable]
+    return db[appointmenDexie]
       .delete(paramsId)
       .then(() => {
         appointment.destroy(paramsId);
@@ -123,6 +123,16 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: string) {
+    return db[appointmenDexie]
+      .bulkAdd(params)
+      .then(() => {
+        appointment.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

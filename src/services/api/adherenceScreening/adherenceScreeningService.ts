@@ -7,7 +7,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
 
 const adherenceScreening = useRepo(AdherenceScreening);
-const dexiTable = AdherenceScreening.entity;
+const adherenceScreeningDexi = AdherenceScreening.entity;
 
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -83,7 +83,7 @@ export default {
   // Mobile
   addMobile(params: string) {
     showloading();
-    return db[dexiTable]
+    return db[adherenceScreeningDexi]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         adherenceScreening.save(params);
@@ -97,7 +97,7 @@ export default {
   },
   patchMobile(params: string) {
     showloading();
-    return db[dexiTable]
+    return db[adherenceScreeningDexi]
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         adherenceScreening.save(params);
@@ -111,7 +111,7 @@ export default {
   },
   getMobile() {
     showloading();
-    return db[dexiTable]
+    return db[adherenceScreeningDexi]
       .toArray()
       .then((rows: any) => {
         adherenceScreening.save(rows);
@@ -123,7 +123,7 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return db[dexiTable]
+    return db[adherenceScreeningDexi]
       .delete(paramsId)
       .then(() => {
         adherenceScreening.destroy(paramsId);
@@ -131,6 +131,16 @@ export default {
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: string) {
+    return db[adherenceScreeningDexi]
+      .bulkAdd(params)
+      .then(() => {
+        adherenceScreening.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

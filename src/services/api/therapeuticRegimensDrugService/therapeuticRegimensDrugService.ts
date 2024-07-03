@@ -136,4 +136,14 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[therapeuticRegimensDrugDexie]
+      .bulkAdd(params)
+      .then(() => {
+        therapeuticRegimensDrug.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
 };

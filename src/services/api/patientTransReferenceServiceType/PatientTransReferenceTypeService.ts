@@ -138,6 +138,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[patientTransReferenceTypeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        patientTransReferenceType.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return await api().get(
       '/patientTransReferenceType?offset=' + offset + '&max=' + max

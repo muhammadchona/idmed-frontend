@@ -1,5 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
+import therapeuticRegimensDrugService from 'src/services/api/therapeuticRegimensDrugService/therapeuticRegimensDrugService';
 import TherapeuticRegimensDrug from 'src/stores/models/TherapeuticRegimensDrug/TherapeuticRegimensDrug';
 
 export default {
@@ -8,9 +9,7 @@ export default {
       return await api()
         .get('therapeuticRegimensDrug?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(TherapeuticRegimensDrug.entity)
-            .query('upsert', resp.data)
-            .exec();
+          therapeuticRegimensDrugService.addBulkMobile(resp.data);
           console.log('Data synced from backend: TherapeuticRegimensDrug');
           offset = offset + 100;
           if (resp.data.length > 0) {

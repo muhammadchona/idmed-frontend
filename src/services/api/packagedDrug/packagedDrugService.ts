@@ -105,6 +105,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[packagedDrugDexie]
+      .bulkAdd(params)
+      .then(() => {
+        packagedDrug.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   getAllByPackIdMobile(packId: any) {
     return db[packagedDrugDexie]
       .where('pack_id')

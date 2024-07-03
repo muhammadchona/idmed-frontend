@@ -143,6 +143,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[interoperabilityAttributeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        interoperabilityAttribute.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return await api().get(
       '/interoperabilityAttribute?offset=' + offset + '&max=' + max

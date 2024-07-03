@@ -135,6 +135,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[menuDexie]
+      .bulkAdd(params)
+      .then(() => {
+        menu.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll() {
     return await api().get('/menu');
   },

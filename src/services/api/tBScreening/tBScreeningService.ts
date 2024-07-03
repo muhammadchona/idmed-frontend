@@ -121,6 +121,16 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[tBScreeningDexie]
+      .bulkAdd(params)
+      .then(() => {
+        tBScreening.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);
   },

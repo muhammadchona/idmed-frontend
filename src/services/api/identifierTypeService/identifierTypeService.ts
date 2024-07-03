@@ -127,6 +127,17 @@ export default {
         console.log(error);
       });
   },
+
+  addBulkMobile(params: string) {
+    return db[identifierTypeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        identifierType.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return identifierType.getModel().$newInstance();
