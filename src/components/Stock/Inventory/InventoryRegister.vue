@@ -198,7 +198,7 @@ const submitForm = () => {
     );
   } else if (
     currInventory.value.generic &&
-    currInventory.value.generic === 'true'
+    currInventory.value.generic === true
   ) {
     initInventory();
   } else {
@@ -227,7 +227,7 @@ const initInventory = () => {
     selected.value.forEach((drug) => {
       selectedLocalDrugsId.push(drug.id);
     });
-  if (currInventory.value.generic !== 'true')
+  if (currInventory.value.generic !== true)
     localStorage.setItem('selectedDrugs', selectedLocalDrugsId);
 
   inventoryService.post(currInventory.value).then((resp) => {
@@ -238,7 +238,7 @@ const initInventory = () => {
 };
 
 const isGeneric = computed(() => {
-  return currInventory.value.generic !== 'true';
+  return currInventory.value.generic !== true;
 });
 
 const activeDrugs = computed(() => {
@@ -246,7 +246,7 @@ const activeDrugs = computed(() => {
 });
 
 onMounted(() => {
-  currInventory.value.generic = 'true';
+  currInventory.value.generic = true;
   if (
     currInventory.value.startDate === null ||
     currInventory.value.startDate === undefined

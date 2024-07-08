@@ -97,7 +97,7 @@ export default {
     return db[clinicDexie]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        clinic.save(JSON.parse(params));
+        clinic.save(params);
       })
       .catch((error: any) => {
         console.log(error);
@@ -107,7 +107,7 @@ export default {
     return db[clinicDexie]
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        clinic.save(JSON.parse(params));
+        clinic.save(params);
         // alertSucess('O Registo foi efectuado com sucesso');
         closeLoading();
       })

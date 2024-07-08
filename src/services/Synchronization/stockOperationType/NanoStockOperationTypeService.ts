@@ -1,7 +1,5 @@
-import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import StockOperationType from 'src/stores/models/stockoperation/StockOperationType';
 import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
+import api from '../../api/apiService/apiService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -9,11 +7,10 @@ export default {
       return await api()
         .get('stockOperationType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(StockOperationType.entity).query('upsert', resp.data).exec();
-          StockOperationTypeService.savePinia(resp.data)
-          console.log('Data synced from backend: StockOperationType');
-          offset = offset + 100;
           if (resp.data.length > 0) {
+            StockOperationTypeService.addBulkMobile(resp.data);
+            console.log('Data synced from backend: stockOperationType');
+            offset = offset + 100;
             this.getFromBackEnd(offset);
           }
         })

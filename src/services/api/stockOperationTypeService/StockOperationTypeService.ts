@@ -17,13 +17,11 @@ export default {
 
   get(offset: number) {
     if (!isOnline.value) {
-      return db[stockOperationDexie]
-        .add(JSON.parse(JSON.stringify(params)))
-        .then((result: any) => {
-          console.log(result);
-          stockOperationRepo.save(result);
-          return result;
-        });
+      return db[stockOperationDexie].toArray().then((result: any) => {
+        console.log(result);
+        stockOperationRepo.save(result);
+        return result;
+      });
     } else {
       if (offset >= 0) {
         showloading();
@@ -41,6 +39,18 @@ export default {
           });
       }
     }
+  },
+
+  //mobile
+  addBulkMobile(params: string) {
+    return db[stockOperationDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stockOperationRepo.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
 
   async apiGetAll(offset: number, max: number) {

@@ -962,6 +962,7 @@ const doSave = (stock) => {
   stock.center.id = StockCenterService.getStockCenter().id;
   stock.entrance = currStockEntrance;
   stock.enabled = false;
+  stock.drug_id = stock.drug.id;
   // const entrance = currStockEntrance.value
   stock.entrance_id = currStockEntrance.value.id;
   // stock.entrance = entrance

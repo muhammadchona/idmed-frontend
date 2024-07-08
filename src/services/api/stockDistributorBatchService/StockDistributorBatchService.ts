@@ -5,18 +5,20 @@ import moment from 'moment';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from '../../../stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
 
 const stockDistributorBatch = useRepo(StockDistributorBatch);
+const stockDistributorBatchDexie = StockDistributorBatch.entity;
 
 export default {
   // Axios API call
   post(params: any) {
     if (!isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -144,44 +146,52 @@ export default {
   },
 
   //Mobile
-  async putMobile(params: any) {
-    const resp = await nSQL('stockDistributorBatchs')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    stockDistributorBatch.save(params);
-    return resp;
-  },
-
-  getMobile() {
-    return nSQL().onConnected(() => {
-      nSQL('stockDistributorBatchs')
-        .query('select')
-        .exec()
-        .then((result) => {
-          console.log(result);
-          stockDistributorBatch.save(result);
-          return result;
-        });
-    });
-  },
-
-  localDbGetAll() {
-    return nSQL('stockDistributorBatchs')
-      .query('select')
-      .exec()
-      .then((result) => {
-        return result;
+  async addMobile(params: any) {
+    return db[stockDistributorBatchDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        stockDistributorBatch.save(JSON.parse(JSON.stringify(params)));
       });
   },
 
-  localDbGetUsedStock(reportParams: any) {
-    return nSQL('stockDistributorBatchs')
-      .query('select')
-      .where(['drug.clinicalService.id', '=', reportParams.clinicalService])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        return result;
+  async getMobile() {
+    try {
+      const rows = await db[stockDistributorBatchDexie].toArray();
+      stockDistributorBatch.save(rows);
+      return rows;
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+
+  async getFromBackEnd(offset: number) {
+    if (offset >= 0) {
+      return await api()
+        .get('stockDistributorBatch?offset=' + offset + '&max=100')
+        .then((resp) => {
+          stockDistributorBatch.addBulkMobile(resp.data);
+          console.log('Data synced from backend: stockDistributorBatch');
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromBackEnd(offset);
+          }
+        })
+        .catch((error) => {
+          console.error('Error syncing data from backend:', error);
+          console.log(error);
+        });
+    }
+  },
+  //mobile
+  addBulkMobile(params: string) {
+    return db[stockDistributorBatchDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stockDistributorBatch.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
       });
   },
 

@@ -7,7 +7,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import db from '../../../stores/dexie';
 
 const clinicalServiceAttributeType = useRepo(ClinicalServiceAttributeType);
-const clinicalServiceAttributeTypeDexie = clinicalServiceAttributeType.entity;
+const clinicalServiceAttributeTypeDexie = ClinicalServiceAttributeType.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
