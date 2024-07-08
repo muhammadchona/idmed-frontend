@@ -149,7 +149,7 @@ export default {
     return db[clinicSectorDexie]
       .bulkAdd(params)
       .then(() => {
-        clinicSector.save(JSON.parse(params));
+        clinicSector.save(params);
       })
       .catch((error: any) => {
         console.log(error);

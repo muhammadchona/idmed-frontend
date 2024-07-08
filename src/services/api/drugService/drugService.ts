@@ -101,7 +101,8 @@ export default {
     return drug.query().withAllRecursive(1).where('active', true).get();
   },
   getDrugsFromListId(drugListId: []) {
-    return drug.query().withAllRecursive(1).find(drugListId);
+    const item = drug.query().withAllRecursive(1).find(drugListId);
+    return item;
   },
   getDrugsWithValidStockInList() {
     return drug

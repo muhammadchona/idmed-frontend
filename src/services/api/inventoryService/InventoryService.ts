@@ -4,8 +4,10 @@ import Inventory from 'src/stores/models/stockinventory/Inventory';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { nSQL } from 'nano-sql';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from 'src/stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
+const inventoryDexie = Inventory.entity;
 
 const inventory = useRepo(Inventory);
 const { isMobile, isOnline } = useSystemUtils();
@@ -14,7 +16,7 @@ export default {
   // Axios API call
   async post(params: string) {
     if (!isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -109,46 +111,6 @@ export default {
     return inventory.query().withAllRecursive(4).where('id', id).first();
   },
 
-  //Mobile
-  async putMobile(params: any) {
-    const resp = await nSQL('inventorys')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    inventory.save(params);
-    return resp;
-  },
-
-  getMobile() {
-    return nSQL('inventorys')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        inventory.save(result);
-        //  return result
-      });
-  },
-
-  async deleteMobile(id: any) {
-    const resp = await nSQL('inventorys')
-      .query('delete')
-      .where(['id', '=', id])
-      .exec();
-    inventory.destroy(id);
-    return resp;
-  },
-
-  apiFetchByIdMobile(id: any) {
-    return nSQL('inventorys')
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        inventory.save(result);
-      });
-  },
-
   // WEB
   postWeb(params: string) {
     return api()
@@ -216,5 +178,53 @@ export default {
   // Local Storage Pinia
   deleteAllFromStorage() {
     inventory.flush();
+  },
+
+  //Mobile
+  addMobile(params: string) {
+    return db[inventoryDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        inventory.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
+
+  async getMobile() {
+    try {
+      const rows = await db[inventoryDexie].toArray();
+      inventory.save(rows);
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+
+  async putMobile(params: any) {
+    return db[inventoryDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        inventory.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
+
+  async deleteMobile(id: any) {
+    try {
+      await db[inventoryDexie].delete(id);
+      inventory.destroy(id);
+      // alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
+  },
+
+  apiFetchByIdMobile(id: any) {
+    return db[inventoryDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .then((rows: any) => {
+        inventory.save(rows);
+        return rows;
+      });
   },
 };

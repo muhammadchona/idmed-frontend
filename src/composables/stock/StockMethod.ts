@@ -2,6 +2,8 @@ import packService from 'src/services/api/pack/packService';
 import { date } from 'quasar';
 import { nSQL } from 'nano-sql';
 import { v4 as uuidv4 } from 'uuid';
+import StockService from 'src/services/api/stockService/StockService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 
 export function useStock() {
   function isInUse(stock: any) {
@@ -26,42 +28,34 @@ export function useStock() {
 
   // Drug File
 
-  function localDbGetStockBalanceByDrug(drug: any) {
+  async function localDbGetStockBalanceByDrug(drug: any) {
     let balance = 0;
-    return nSQL('stocks')
-      .query('select')
-      .where(['drug_id', '=', drug.id])
-      .exec()
-      .then((result) => {
-        for (const item of result) {
-          balance += Number(item.stockMoviment);
-          // Stock.insert({ data: result })
-        }
-        return balance;
-      });
+    const result = await StockService.getStocksByDrugIdMobile(drug.id);
+    for (const item of result) {
+      balance += Number(item.stockMoviment);
+      // Stock.insert({ data: result })
+    }
+    return balance;
   }
 
-  function localDbGetQuantitySuppliedByDrug(drug: any) {
+  async function localDbGetQuantitySuppliedByDrug(drug: any) {
+    const result = await patientVisitService.getMobile();
     let drugQuantitySupplied = 0;
-    return nSQL('patientVisits')
-      .query('select', ['patientVisitDetails'])
-      .exec()
-      .then((result) => {
-        for (const pvd of result) {
-          for (const pvdObj of pvd.patientVisitDetails) {
-            // if (pvd.pack.pickupDate > new Date()) {
-            if (pvdObj.pack !== undefined) {
-              for (const pcd of pvdObj.pack.packagedDrugs) {
-                if (pcd.drug_id === drug.id) {
-                  drugQuantitySupplied += Number(pcd.quantitySupplied);
-                }
-              }
+
+    for (const pvd of result) {
+      for (const pvdObj of pvd.patientVisitDetails) {
+        // if (pvd.pack.pickupDate > new Date()) {
+        if (pvdObj.pack !== undefined) {
+          for (const pcd of pvdObj.pack.packagedDrugs) {
+            if (pcd.drug_id === drug.id) {
+              drugQuantitySupplied += Number(pcd.quantitySupplied);
             }
           }
-          // }
         }
-        return drugQuantitySupplied;
-      });
+      }
+      // }
+    }
+    return drugQuantitySupplied;
   }
   // Resumo por drug
 
