@@ -195,7 +195,7 @@
 </template>
 
 <script setup>
-import { inject, onMounted, provide, reactive, ref } from 'vue';
+import { inject, onMounted, provide, reactive, ref, watch } from 'vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue';
 import PrescriptionDrugsListHeader from 'components/Patient/Prescription/PrescriptionDrugsListHeader.vue';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
@@ -209,6 +209,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { debounce } from 'lodash';
 import { useDrug } from 'src/composables/drug/drugMethods';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+const { isOnline } = useSystemUtils();
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertError } = useSwal();
@@ -258,6 +260,7 @@ const columns = [
 const showAddEditDrug = ref(false);
 const submittingPrescribedDrug = reactive(ref(false));
 
+const qtySuppliedFlag = ref(0);
 const drugsDuration = ref('');
 // Injection
 const curPrescription = inject('curPrescription');
@@ -324,23 +327,44 @@ const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
 };
 
-const checkStock = (packagedDrug) => {
-  packagedDrug.drug = getDrugById(packagedDrug.drug.id);
-  const qtytoDispense = getQtyPrescribed(
-    packagedDrug,
-    curPack.value.weeksSupply
-  );
-  packagedDrug.quantitySupplied = qtytoDispense;
-  const resp = StockService.checkStockStatus(
-    packagedDrug.drug.id,
-    curPack.value.pickupDate,
-    qtytoDispense,
-    clinicService.currClinic().id
-  );
-  return resp;
+const checkStock = async (packagedDrug) => {
+  if (isOnline.value) {
+    packagedDrug.drug = getDrugById(packagedDrug.drug.id);
+    const qtytoDispense = getQtyPrescribed(
+      packagedDrug,
+      curPack.value.weeksSupply
+    );
+    packagedDrug.quantitySupplied = qtytoDispense;
+    const resp = await StockService.checkStockStatus(
+      packagedDrug.drug.id,
+      curPack.value.pickupDate,
+      qtytoDispense,
+      'F6056DBA-2B70-4270-BCF8-5204909FD134'
+    );
+    qtySuppliedFlag.value = resp;
+    return resp;
+  } else {
+    const stocks = StockService.getStockByDrug(packagedDrug.drug.id);
+    console.log(stocks);
+    const validStock = stocks.filter((item) => {
+      return moment(item.expireDate) >= moment(curPack.value.pickupDate);
+    });
+    if (validStock.length <= 0) {
+      return false;
+    } else {
+      validStock.forEach((item) => {
+        qtyInStock = Number(qtyInStock + item.stockMoviment);
+      });
+      if (qtyInStock < qtytoDispense) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  }
 };
 
-onMounted(async () => {
+const checkStockList = async () => {
   try {
     curPack.value.packagedDrugs.map((row) => ({
       ...row,
@@ -353,7 +377,20 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching data:', error);
   }
+};
+
+onMounted(async () => {
+  checkStockList();
 });
+
+watch(
+  () => curPack.value.weeksSupply,
+  async (oldp, newp) => {
+    if (oldp !== newp) {
+      checkStockList();
+    }
+  }
+);
 
 // Computed
 provide('showAddEditDrug', showAddEditDrug);

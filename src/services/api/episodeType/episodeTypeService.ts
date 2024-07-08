@@ -140,7 +140,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[episodeTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         episodeType.save(params);
       })

@@ -248,6 +248,8 @@ import districtService from 'src/services/api/districtService/districtService';
 import { v4 as uuidv4 } from 'uuid';
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import episodeService from 'src/services/api/episode/episodeService';
+import drugService from 'src/services/api/drugService/drugService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -563,22 +565,42 @@ const closePatient = () => {
 
 const goToPatientPanel = async (patient) => {
   showloading();
-  // Delete all Except this patient
   deleteStorageWithoutPatientInfo();
   await patientService.deleteAllExceptIdFromStorage(patient.id);
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
-  await patientService.getPatientByID(currPatient.value.id);
-  // Rest Calls
-  await patientServiceIdentifierService.apiGetAllByPatientId(
+  if (isMobile.value && !isOnline.value) {
+    await patientServiceIdentifierService.getMobile();
+    await episodeService.getMobile();
+    await prescriptionService.getMobile();
+    await patientVisitDetailsService.getMobile();
+    await packService.getMobile();
+    await drugService.getMobile();
+    await clinicalServiceService.getMobile();
+  } else {
+    localStorage.setItem('patientuuid', currPatient.value.id);
+    await patientService.getPatientByID(currPatient.value.id);
+    // Rest Calls
+    await patientServiceIdentifierService.apiGetAllByPatientId(
+      currPatient.value.id
+    );
+    await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
+    await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
+      currPatient.value.id
+    );
+    await prescriptionService.apiGetByPatientId(currPatient.value.id);
+    await packService.apiGetByPatientId(currPatient.value.id);
+  }
+  // Delete all Except this patient
+  /*
+  const patientVisits = await patientVisitService.apiGetAllByPatientId(
     currPatient.value.id
   );
-  await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
-  await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
-    currPatient.value.id
+  const resp = await patientVisitDetailsService.getMobileByPatientVisitIds(
+    patientVisits
   );
-  await prescriptionService.apiGetByPatientId(currPatient.value.id);
-  await packService.apiGetByPatientId(currPatient.value.id);
+  */
+
   router.push('/patientpanel/');
 };
 

@@ -117,7 +117,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[patientServiceIdentifierDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         patientServiceIdentifier.save(params);
       })

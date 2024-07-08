@@ -136,9 +136,9 @@ export default {
         // alertError('Aconteceu um erro inesperado nesta operação.');
       });
   },
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
     return db[clinicDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         clinic.save(params);
       })

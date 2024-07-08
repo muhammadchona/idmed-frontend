@@ -136,7 +136,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[durationDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         duration.save(params);
       })

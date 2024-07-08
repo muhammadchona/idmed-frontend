@@ -118,7 +118,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[pregnancyScreeningDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         pregnancyScreening.save(params);
       })

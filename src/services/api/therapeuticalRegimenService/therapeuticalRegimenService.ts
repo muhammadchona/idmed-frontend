@@ -155,7 +155,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[therapeuticRegimenDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         therapeuticRegimen.save(params);
       })

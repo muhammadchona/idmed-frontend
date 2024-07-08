@@ -143,7 +143,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[clinicalServiceAttributeTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         clinicalServiceAttributeType.save(params);
       })

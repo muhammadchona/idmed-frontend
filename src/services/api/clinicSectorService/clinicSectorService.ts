@@ -145,9 +145,9 @@ export default {
         console.log(error);
       });
   },
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
     return db[clinicSectorDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         clinicSector.save(params);
       })

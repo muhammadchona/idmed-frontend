@@ -136,7 +136,7 @@ export default {
   },
   addBulkMobile(params: string) {
     return db[adherenceScreeningDexi]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         adherenceScreening.save(params);
       })

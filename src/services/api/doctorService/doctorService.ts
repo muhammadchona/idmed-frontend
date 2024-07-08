@@ -130,7 +130,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[doctorDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         doctor.save(params);
       })

@@ -142,7 +142,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[facilityTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         facilityType.save(params);
       })
@@ -158,7 +158,7 @@ export default {
   getAllFacilityTypesWithoutUS() {
     return facilityType
       .query()
-      .where((query) => {
+      .where((query: any) => {
         return query.code != 'US';
       })
       .get();
@@ -167,7 +167,7 @@ export default {
   getFacilityTypeClinics() {
     return facilityType
       .query()
-      .where((query) => {
+      .where((query: any) => {
         return query.type === 'clinic';
       })
       .get();
@@ -175,9 +175,29 @@ export default {
   getFacilityTypeClinicSector() {
     return facilityType
       .query()
-      .where((query) => {
+      .where((query: any) => {
         return query.type === 'clinic_sector';
       })
       .get();
+  },
+  getFacilityTypeClinicSectorForDC() {
+    return facilityType
+      .query()
+      .where((query: any) => {
+        return (
+          query.type === 'clinic_sector' &&
+          query.code !== 'PARAGEM_UNICA' &&
+          query.code !== 'PROVEDOR'
+        );
+      })
+      .get();
+  },
+  getFacilityTypeParagemUnica() {
+    return facilityType
+      .query()
+      .where((query: any) => {
+        return query.code === 'PARAGEM_UNICA';
+      })
+      .first();
   },
 };

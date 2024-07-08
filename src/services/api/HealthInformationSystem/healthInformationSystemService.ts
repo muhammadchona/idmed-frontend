@@ -129,7 +129,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[healthInformationSystemDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         healthInformationSystem.save(params);
       })

@@ -80,7 +80,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[dispenseTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         dispenseType.save(params);
       })

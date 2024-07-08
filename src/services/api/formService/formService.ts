@@ -142,7 +142,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[formDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         form.save(params);
       })

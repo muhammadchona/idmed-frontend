@@ -128,11 +128,11 @@ export default {
       });
   },
 
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
     return db[identifierTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
-        identifierType.save(JSON.parse(params));
+        identifierType.save(params);
       })
       .catch((error: any) => {
         console.log(error);

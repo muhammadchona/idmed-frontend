@@ -145,7 +145,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[interoperabilityAttributeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         interoperabilityAttribute.save(params);
       })

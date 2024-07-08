@@ -150,11 +150,11 @@ export default {
         // console.log(error);
       });
   },
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
     return db[clinicalServiceDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
-        clinicalService.save(JSON.parse(params));
+        clinicalService.save(params);
       })
       .catch((error: any) => {
         console.log(error);

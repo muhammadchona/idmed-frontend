@@ -143,7 +143,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[systemConfigsDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         systemConfigs.save(params);
       })
