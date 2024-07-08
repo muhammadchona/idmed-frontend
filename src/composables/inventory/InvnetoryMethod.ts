@@ -1,12 +1,10 @@
 import { useDateUtils } from '../shared/dateUtils/dateUtils';
 import moment from 'moment';
-const dateUtils = useDateUtils()
+const dateUtils = useDateUtils();
 
 export function useInventory() {
-
-
   function getInventoryType(inventory: any) {
-    if (inventory.generic) {
+    if (inventory.generic === true || inventory.generic === 'true') {
       return 'Geral';
     } else {
       return 'Parcial';
@@ -22,18 +20,17 @@ export function useInventory() {
   }
 
   function getformatedUTCDate(inventory: any) {
-    return moment.utc(inventory.startDate).local().format('DD-MM-YYYY')
+    return moment.utc(inventory.startDate).local().format('DD-MM-YYYY');
   }
 
   function getFormatedStartDate(inventory: any) {
     return dateUtils.formatDate(inventory.startDate);
   }
 
- function  getFormatedEndDate(inventory: any) {
+  function getFormatedEndDate(inventory: any) {
     return dateUtils.formatDate(inventory.endDate);
   }
 
- 
   function getInventoryStatus(inventory: any) {
     if (inventory.open) {
       return 'Aberto';
@@ -42,8 +39,7 @@ export function useInventory() {
     }
   }
 
-
-  function circularReferenceReplacer () {
+  function circularReferenceReplacer() {
     const seen = new WeakSet();
     return (_, value) => {
       if (typeof value === 'object' && value !== null) {
@@ -54,8 +50,7 @@ export function useInventory() {
       }
       return value;
     };
-  };
-
+  }
 
   function getClassName() {
     return 'inventory';
@@ -68,8 +63,6 @@ export function useInventory() {
     getFormatedStartDate,
     getInventoryStatus,
     circularReferenceReplacer,
-    getformatedUTCDate
-  }
-  
-
-};
+    getformatedUTCDate,
+  };
+}

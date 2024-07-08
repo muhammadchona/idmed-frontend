@@ -10,11 +10,12 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
 import StockService from '../stockService/StockService';
 import patientVisitService from '../patientVisit/patientVisitService';
+import StockMethods from 'src/methods/stock/StockMethods';
 
 const { showloading, closeLoading } = useLoading();
 
 const stockMethod = useStock();
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 const stockAlert = useRepo(StockAlert);
 const stockAlertDexie = StockAlert.entity;
 
@@ -68,7 +69,7 @@ export default {
       });
   },
   async apiGetStockAlertAll(clinicId: string) {
-    if (!isOnline.value) {
+    if (isMobile.value) {
       const response = await this.localDbGetStockAlertMobile();
       stockAlert.save(response);
       return response;
@@ -159,7 +160,7 @@ export default {
         const stockAlert = new StockAlert();
         const balance = await stockMethod.localDbGetStockBalanceByDrug(drug);
         const drugQuantitySupplied =
-          await patientVisitService.getQuantitySuppliedByDrugMobile(drug);
+          await stockMethod.localDbGetQuantitySuppliedByDrug(drug);
         stockAlert.id = drug.id;
         stockAlert.balance = balance;
         stockAlert.drugName = drug.name;

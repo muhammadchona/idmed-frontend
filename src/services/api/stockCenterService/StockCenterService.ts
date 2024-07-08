@@ -100,7 +100,7 @@ export default {
     return db[stockCenterDexie]
       .bulkAdd(params)
       .then(() => {
-        stockCenter.save(JSON.parse(params));
+        stockCenter.save(params);
       })
       .catch((error: any) => {
         console.log(error);

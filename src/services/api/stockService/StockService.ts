@@ -51,7 +51,7 @@ export default {
       return await api()
         .get('stock?offset=' + offset + '&max=100')
         .then((resp) => {
-          stock.addBulkMobile(resp.data);
+          this.addBulkMobile(resp.data);
           console.log('Data synced from backend: stock');
           offset = offset + 100;
           if (resp.data.length > 0) {
@@ -324,6 +324,16 @@ export default {
       });
   },
 
+  async getStocksByDrugIdMobile(drugId: any) {
+    return db[stockDexie]
+      .where('drug_id')
+      .equalsIgnoreCase(drugId)
+      .toArray()
+      .then((rows: any) => {
+        return rows;
+      });
+  },
+
   async deleteMobile(id: any) {
     try {
       await db[stockDexie].delete(id);
@@ -388,7 +398,7 @@ export default {
   async hasStockMobile(drug: any) {
     try {
       const rows = await db[stockDexie]
-        .where('drug_id')
+        .where('[drug.id]')
         .equalsIgnoreCase(drug.id)
         .toArray();
       return rows.length > 0;

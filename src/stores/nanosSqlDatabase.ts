@@ -106,6 +106,9 @@ import ArvDailyRegisterTempReport from './models/report/monitoring/ArvDailyRegis
 import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
 import ActiveInDrugStore from './models/report/patient/ActiveInDrugStore';
 import DrugQuantityTemp from './models/report/monitoring/DrugQuantityTemp';
+import StockDistributor from './models/stockDistributor/StockDistributor';
+import StockDistributorBatch from './models/stockDistributorBatch/StockDistributorBatch';
+import DrugDistributor from './models/drugDistributor/DrugDistributor';
 //import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils';
 // import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore';
 
@@ -209,6 +212,10 @@ export default {
     entitiesList.push(DrugQuantityTemp);
     entitiesList.push(ActiveInDrugStore);
     entitiesList.push(ReferredPatientsReport);
+    entitiesList.push(StockDistributor);
+    entitiesList.push(StockDistributorBatch);
+    entitiesList.push(DrugDistributor);
+
     return entitiesList;
   },
 };

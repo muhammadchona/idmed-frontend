@@ -191,6 +191,7 @@ export default {
     return db[inventoryStockAdjustmentDexie]
       .where('inventory_id')
       .equalsIgnoreCase(id)
+      .toArray()
       .then((rows: any) => {
         inventoryStockAdjustment.save(rows);
         return rows;

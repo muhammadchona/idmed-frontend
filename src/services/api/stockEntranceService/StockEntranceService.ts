@@ -67,7 +67,7 @@ export default {
       return await api()
         .get('stockEntrance?offset=' + offset + '&max=100')
         .then((resp) => {
-          stockEntrance.addBulkMobile(resp.data);
+          this.addBulkMobile(resp.data);
           console.log('Data synced from backend: stockEntrance');
           offset = offset + 100;
           if (resp.data.length > 0) {
@@ -79,6 +79,17 @@ export default {
           console.log(error);
         });
     }
+  },
+
+  addBulkMobile(params: string) {
+    return db[stockEntranceDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stockEntrance.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
 
   // WEB

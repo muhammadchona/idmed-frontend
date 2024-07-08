@@ -11,6 +11,7 @@ import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetai
 import prescriptionService from '../prescription/prescriptionService';
 import patientVisitService from '../patientVisit/patientVisitService';
 import packService from '../pack/packService';
+import clinicService from '../clinicService/clinicService';
 
 const episode = useRepo(Episode);
 const episodeDexie = Episode.entity;
@@ -353,8 +354,9 @@ export default {
   },
 
   async doEpisodesBySectorGet() {
+    await clinicService.getMobile();
     console.log('user_sector' + localStorage.getItem('clinic_sector_users'));
-    const clinicSectorUser = clinicSectorService.getClinicSectorSlimByCode(
+    const clinicSectorUser = clinicService.getByCode(
       sessionStorage.getItem('clinic_sector_users')
     );
     this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {

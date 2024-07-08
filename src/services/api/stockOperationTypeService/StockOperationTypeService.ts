@@ -41,31 +41,12 @@ export default {
     }
   },
 
-  async getFromBackEnd(offset: number) {
-    if (offset >= 0) {
-      return await api()
-        .get('stockOperationType?offset=' + offset + '&max=100')
-        .then((resp) => {
-          if (resp.data.length > 0) {
-            this.addBulkMobile(resp.data);
-            console.log('Data synced from backend: stockOperationType');
-            offset = offset + 100;
-            this.getFromBackEnd(offset);
-          }
-        })
-        .catch((error) => {
-          console.error('Error syncing data from backend:', error);
-          console.log(error);
-        });
-    }
-  },
-
   //mobile
   addBulkMobile(params: string) {
     return db[stockOperationDexie]
       .bulkAdd(params)
       .then(() => {
-        stockOperationRepo.save(JSON.parse(params));
+        stockOperationRepo.save(params);
       })
       .catch((error: any) => {
         console.log(error);
