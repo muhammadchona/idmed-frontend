@@ -106,10 +106,12 @@ export function useOffline() {
     NanopackagedDrugService.getFromBackEnd(0);
     NanoprescribedDrugService.getFromBackEnd(0);
     */
+    await NanodrugService.getFromBackEnd(0);
     await NanoclinicSectorService.getFromBackEnd(0);
-    await NanoclinicSectorTypeService.getFromBackEnd(0);
+    // await NanoclinicSectorTypeService.getFromBackEnd(0);
     await patientService.doPatientsBySectorGet();
-    await episodeService.doEpisodesBySectorGet();
+    // await episodeService.doEpisodesBySectorGet();
+    await patientVisitService.doPatientVisitServiceBySectorGet();
   }
 
   function deleteStorageInfo() {

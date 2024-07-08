@@ -143,7 +143,7 @@ export default {
     return db[clinicalServiceAttributeDexie]
       .bulkAdd(params)
       .then(() => {
-        clinicalServiceAttribute.save(JSON.parse(params));
+        clinicalServiceAttribute.save(params);
       })
       .catch((error: any) => {
         console.log(error);

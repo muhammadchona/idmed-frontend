@@ -142,7 +142,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[postoAdministrativoDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         postoAdministrativo.save(params);
       })

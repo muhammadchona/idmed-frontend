@@ -11,6 +11,7 @@ import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetai
 import prescriptionService from '../prescription/prescriptionService';
 import patientVisitService from '../patientVisit/patientVisitService';
 import packService from '../pack/packService';
+import ChunkArray from 'src/utils/ChunkArray';
 
 const episode = useRepo(Episode);
 const episodeDexie = Episode.entity;
@@ -397,5 +398,22 @@ export default {
         // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
       }
     });
+  },
+
+  async getEpisodeByIds(episodeIds: any) {
+    const limit = 10; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(episodeIds, limit, offset);
+
+    const allEpisodes = [];
+
+    for (const chunk of chunks) {
+      const episodes = await api().post('/episode/getAllByEpisodeIds/', chunk);
+
+      allEpisodes.push(...episodes.data);
+    }
+
+    this.addBulkMobile(allEpisodes);
   },
 };

@@ -130,11 +130,11 @@ export default {
         console.log(error);
       });
   },
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
     return db[spetialPrescriptionMotiveDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
-        spetialPrescriptionMotive.save(JSON.parse(params));
+        spetialPrescriptionMotive.save(params);
       })
       .catch((error: any) => {
         console.log(error);

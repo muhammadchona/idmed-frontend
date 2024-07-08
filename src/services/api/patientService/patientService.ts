@@ -231,11 +231,11 @@ export default {
     }
   },
 
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
     return db[patientDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
-        patient.save(JSON.parse(params));
+        patient.save(params);
       })
       .catch((error: any) => {
         console.log(error);
@@ -250,8 +250,19 @@ export default {
       '/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
     );
   },
-  async apiGetPatientsByClinicSectorId(clinicSectorId: string) {
-    return await api().get('/patient/clinicSector/' + clinicSectorId);
+  async apiGetPatientsByClinicSectorId(
+    clinicSectorId: string,
+    offset: number,
+    max: number
+  ) {
+    return await api().get(
+      '/patient/clinicSector/' +
+        clinicSectorId +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
+    );
   },
   async doPatientsBySectorGet() {
     const data = await clinicSectorService.getMobile();
@@ -269,11 +280,37 @@ export default {
 
     console.log('sector' + clinicSectorUser);
     console.log('sectorId' + clinicSectorUser.id);
-    const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
-    console.log('PacientesSector' + resp.data);
+    const resp = await this.fetchAllPatientsByClinicSectorId(
+      clinicSectorUser.id
+    );
+    console.log('PacientesSector' + resp);
     // alertSucess(resp.data);
-    this.addBulkMobile(resp.data);
+    this.addBulkMobile(resp);
     return resp;
+  },
+
+  async fetchAllPatientsByClinicSectorId(clinicSectorId: any) {
+    let offset = 0;
+    const max = 15; // You can adjust this number based on your API's limits
+    let allPatients = [];
+    let hasMorePatients = true;
+
+    while (hasMorePatients) {
+      const response = await this.apiGetPatientsByClinicSectorId(
+        clinicSectorId,
+        offset,
+        max
+      );
+      const patients = response.data;
+      if (patients.length > 0) {
+        allPatients.push(...patients);
+        offset += patients.length;
+      } else {
+        hasMorePatients = false;
+      }
+    }
+
+    return allPatients;
   },
 
   async apiSyncPatient(patient: any) {

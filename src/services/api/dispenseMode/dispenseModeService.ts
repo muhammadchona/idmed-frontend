@@ -149,7 +149,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[dispenseModeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         dispenseMode.save(params);
       })

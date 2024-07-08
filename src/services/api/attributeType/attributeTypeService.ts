@@ -139,7 +139,7 @@ export default {
   },
   addBulkMobile(params: string) {
     return db[attributeTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         attributeType.save(params);
       })

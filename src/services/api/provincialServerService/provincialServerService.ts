@@ -132,7 +132,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[provincialServerDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         provincialServer.save(params);
       })

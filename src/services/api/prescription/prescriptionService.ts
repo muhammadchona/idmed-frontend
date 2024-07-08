@@ -5,6 +5,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import db from '../../../stores/dexie';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import ChunkArray from 'src/utils/ChunkArray';
 
 const prescription = useRepo(Prescription);
 const prescriptionDexie = Prescription.entity;
@@ -116,7 +117,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[prescriptionDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         prescription.save(params);
       })
@@ -224,5 +225,27 @@ export default {
 
   removeFromStorage(prescriptionId: string) {
     return prescription.destroy(prescriptionId);
+  },
+
+  async getPrescriptionsByIds(prescriptionIds: any) {
+    const limit = 10; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(
+      prescriptionIds,
+      limit,
+      offset
+    );
+
+    const allPrescriptions = [];
+
+    for (const chunk of chunks) {
+      const prescriptions = await api().post(
+        '/prescription/getAllByPrescriptionIds/',
+        chunk
+      );
+      allPrescriptions.push(...prescriptions.data);
+    }
+    this.addBulkMobile(allPrescriptions);
   },
 };

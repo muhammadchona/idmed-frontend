@@ -137,7 +137,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[menuDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         menu.save(params);
       })

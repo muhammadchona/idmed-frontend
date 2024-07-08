@@ -128,11 +128,11 @@ export default {
         console.log(error);
       });
   },
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
     return db[startStopReasonDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
-        startStopReason.save(JSON.parse(params));
+        startStopReason.save(params);
       })
       .catch((error: any) => {
         console.log(error);

@@ -140,7 +140,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[districtDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         district.save(params);
       })

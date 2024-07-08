@@ -306,6 +306,23 @@
               label="Sector de Dispensa"
             />
           </div>
+          <div class="row" v-if="isSectorReferenceEpisode">
+            <q-select
+              class="col"
+              dense
+              outlined
+              :disable="episode.id !== null && isEditStep"
+              ref="referealClinicSectorRef"
+              :rules="[
+                (val) => !!val || 'Por favor indicar o sector de dispensa.',
+              ]"
+              v-model="selectedClinicSector"
+              :options="referealClinicSectorsRSC"
+              option-value="id"
+              option-label="clinicName"
+              label="Sector de Dispensa"
+            />
+          </div>
           <div class="row">
             <q-input
               v-model="closureEpisode.notes"
@@ -442,7 +459,7 @@ const provinces = computed(() => {
 });
 
 const facilityTypesSectors = computed(() => {
-  return facilityTypeService.getFacilityTypeClinicSector();
+  return facilityTypeService.getFacilityTypeClinicSectorForDC();
 });
 
 const referealClinicSectors = computed(() => {
@@ -450,6 +467,15 @@ const referealClinicSectors = computed(() => {
   return clinicSectorService.getClinicSectorsByFacilityTypeId(
     currClinic.value.id,
     selectedClinicSectorType.value.id
+  );
+});
+
+const referealClinicSectorsRSC = computed(() => {
+  const facilityType = facilityTypeService.getFacilityTypeParagemUnica();
+  console.log(facilityType);
+  return clinicSectorService.getClinicSectorsByFacilityTypeId(
+    currClinic.value.id,
+    facilityType.id
   );
 });
 
@@ -500,6 +526,18 @@ const isTransferenceEpisode = computed(() => {
   return closureEpisode.value.startStopReason.code === 'TRANSFERIDO_PARA';
 });
 
+const isSectorReferenceEpisode = computed(() => {
+  if (closureEpisode.value === null || closureEpisode.value === undefined)
+    return false;
+  if (
+    closureEpisode.value.startStopReason === null ||
+    closureEpisode.value.startStopReason === undefined
+  )
+    return false;
+  return (
+    closureEpisode.value.startStopReason.code === 'REFERIDO_SECTOR_CLINICO'
+  );
+});
 const identifierstartDate = computed(() => {
   return getDDMMYYYFromJSDate(curIdentifier.value.startDate);
 });
@@ -818,7 +856,9 @@ const doSave = async () => {
             if (
               closureEpisode.value.startStopReason.code ===
                 'TRANSFERIDO_PARA' ||
-              closureEpisode.value.startStopReason.code === 'OBITO'
+              closureEpisode.value.startStopReason.code === 'OBITO' ||
+              closureEpisode.value.startStopReason.code ===
+                'REFERIDO_SECTOR_CLINICO'
             ) {
               curIdentifier.value.patient.identifiers.forEach((identifiers) => {
                 patientServiceIdentifierService.apiFetchById(identifiers.id);

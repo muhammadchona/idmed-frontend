@@ -5,6 +5,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import db from '../../../stores/dexie';
+import ChunkArray from 'src/utils/ChunkArray';
 
 const pack = useRepo(Pack);
 const packDexie = Pack.entity;
@@ -114,7 +115,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[packDexie]
+      .bulkPut(params)
+      .then(() => {
+        pack.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiSave(pack: any) {
     return await api().post('/pack', pack);
   },
@@ -263,5 +273,21 @@ export default {
       }
     }
     return counter > 0;
+  },
+
+  async getPacksByIds(packIds: any) {
+    const limit = 10; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(packIds, limit, offset);
+
+    const allPacks = [];
+
+    for (const chunk of chunks) {
+      const packs = await api().post('/pack/getAllByPackIds/', chunk);
+
+      allPacks.push(...packs.data);
+    }
+    this.addBulkMobile(allPacks);
   },
 };

@@ -140,7 +140,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[interoperabilityTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         interoperabilityType.save(params);
       })

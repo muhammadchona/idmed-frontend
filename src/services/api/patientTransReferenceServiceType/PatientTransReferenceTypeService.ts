@@ -140,7 +140,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[patientTransReferenceTypeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         patientTransReferenceType.save(params);
       })

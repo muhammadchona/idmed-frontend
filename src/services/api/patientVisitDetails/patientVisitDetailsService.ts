@@ -115,11 +115,11 @@ export default {
       console.log(error);
     }
   },
-  async addBulkMobile(params: string) {
+  async addBulkMobile(params: any) {
     return db[patientVisitDetailsDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
-        patientVisitDetails.save(JSON.parse(params));
+        patientVisitDetails.save(params);
       })
       .catch((error: any) => {
         console.log(error);
@@ -189,15 +189,11 @@ export default {
   },
 
   async apiGetPatientVisitDetailsByPatientId(patientId: string) {
-    if (isMobile && !isOnline) {
-      this.get(0);
-    } else {
-      return await api()
-        .get('patientVisitDetails/patientId/' + patientId)
-        .then((resp) => {
-          patientVisitDetails.save(resp.data);
-        });
-    }
+    return await api()
+      .get('patientVisitDetails/patientId/' + patientId)
+      .then((resp) => {
+        patientVisitDetails.save(resp.data);
+      });
   },
 
   async apiGetAllofPrecription(prescriptionId: string) {
@@ -217,6 +213,14 @@ export default {
         patientVisitDetails.save(resp.data);
         return resp;
       });
+  },
+
+  async getMobileByPatientVisitIds(patientVisitIds: string) {
+    const rows = await db[patientVisitDetailsDexie]
+      .where('patientVisitId')
+      .anyOf(patientVisitIds);
+    patientVisitDetails.save(rows);
+    return rows;
   },
   // Local Storage Pinia
   newInstanceEntity() {
