@@ -25,15 +25,15 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   post(params: string) {
-    /*
     if (isMobile.value && !isOnline.value) {
       return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
-*/
-    params.syncStatus = 'R';
-    return this.addMobile(params);
+
+    //  params.syncStatus = 'R';
+    // return this.addMobile(params);
+    // return this.postWeb(params);
   },
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
@@ -110,34 +110,11 @@ export default {
       });
   },
   async getMobile() {
-    try {
-      const rows = await db[patientVisitDexie].toArray();
-      if (rows.length === 0) {
-        api()
-          .get('patientVisit?offset=0&max=700')
-          .then((resp) => {
-            this.addMobile(resp.data);
-          });
-      } else {
-        rows.forEach((row: any) => {
-          //   console.log(row);
-          //   row.patientVisitDetails = [];
-          row.patientVisitDetails.forEach((rowDetails: any) => {
-            // rowDetails.episode = null;
-            // rowDetails.pack = null;
-            // rowDetails.prescription = null;
-            // rowDetails.clinic = null;
-            rowDetails.patientVisit = null;
-          });
-          patientVisit.save(row);
-        });
-        //  patientVisit.save(rows);
-      }
-    } catch (error) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+    const rows = await db[patientVisitDexie].toArray();
+    patientVisit.save(rows);
+    return rows;
   },
+
   async deleteMobile(paramsId: string) {
     try {
       await db[patientVisitDexie].delete(paramsId);
@@ -224,6 +201,7 @@ export default {
       .equalsIgnoreCase('R')
       .or('syncStatus')
       .equalsIgnoreCase('U')
+      .toArray()
       .then((result: any) => {
         return result;
       });

@@ -323,7 +323,8 @@ export default {
       .equalsIgnoreCase('R')
       .or('syncStatus')
       .equalsIgnoreCase('U')
-      .then((result) => {
+      .toArray()
+      .then((result: []) => {
         return result;
       });
   },

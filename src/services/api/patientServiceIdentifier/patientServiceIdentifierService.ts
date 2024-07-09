@@ -200,12 +200,13 @@ export default {
     if (identifier.syncStatus === 'U') await this.apiUpdate(identifier);
   },
   async getLocalDbPatientServiceIdentifierToSync() {
-    return db[patientDexie]
+    return db[patientServiceIdentifierDexie]
       .where('syncStatus')
       .equalsIgnoreCase('R')
       .or('syncStatus')
       .equalsIgnoreCase('U')
-      .then((result) => {
+      .toArray()
+      .then((result: any) => {
         return result;
       });
   },
@@ -266,7 +267,7 @@ export default {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
   },
   localDbGetById(id: string) {
-    return db[patientDexie]
+    return db[patientServiceIdentifierDexie]
       .where('id')
       .equalsIgnoreCase(id)
       .first()
