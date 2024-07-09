@@ -249,7 +249,7 @@ const menusVisible = (name) => {
       return true;
     }
 };
-/*
+
 onMounted(() => {
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
@@ -260,35 +260,6 @@ onMounted(() => {
       loadSettingParamsToOffline();
       setTimeout(() => {
         loadPatientDataToOffline();
-      }, 5000);
-    }
-  }
-  console.log(clinic.value);
-  console.log(isClinicSector.value);
-});
-*/
-
-onMounted(() => {
-  /*
-  clinicSectorService.getMobile();
-  clinicService.getMobile();
-  NanoStockCenterService.getFromBackEnd(0);
-  NanoStockOperationTypeService.getFromBackEnd(0);
-
-  */
-  loadSettingParamsToOffline();
-  stockEntranceService.getFromBackEnd(0);
-  stockService.getFromBackEnd(0);
-  episodeService.doEpisodesBySectorGet();
-  if (!website.value || (isMobile.value && isOnline.value)) {
-    showloading();
-    loadSettingParams();
-  } else {
-    if (patientService.getAllFromStorage().length <= 0) {
-      showloading();
-      //   loadSettingParamsToOffline();
-      setTimeout(() => {
-        //   loadPatientDataToOffline();
       }, 5000);
     }
   }
