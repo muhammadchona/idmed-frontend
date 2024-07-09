@@ -120,11 +120,6 @@ const submitForm = () => {
     alertError('O número da Guia não pode ser vazio e deve ser único.');
     closeLoading();
   } else if (stockEntrance.dateReceived > new Date()) {
-  stockEntrance.creationDate = dateUtils.getDateFromHyphenDDMMYYYYWithTime(
-    creationDate.value
-  );
-
-  if (stockEntrance.dateReceived > new Date()) {
     alertError(
       'A data de criação da guia não pode ser superior a data corrente.'
     );
@@ -153,7 +148,6 @@ const submitForm = () => {
         });
     }
   }
-}
 };
 provide('stockEntrance', stockEntrance);
 </script>
