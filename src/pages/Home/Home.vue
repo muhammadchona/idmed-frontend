@@ -200,13 +200,6 @@ import InventoryService from 'src/services/api/inventoryService/InventoryService
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
-import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
-import NanoStockCenterService from 'src/services/Synchronization/stockCenter/NanoStockCenterService';
-import NanoStockOperationTypeService from 'src/services/Synchronization/stockOperationType/NanoStockOperationTypeService';
-import stockService from 'src/services/api/stockService/StockService';
-import stockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
-
-import episodeService from 'src/services/api/episode/episodeService';
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
