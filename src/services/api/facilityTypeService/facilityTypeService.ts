@@ -4,9 +4,10 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const facilityType = useRepo(FacilityType);
+const facilityTypeDexie = FacilityType.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -92,10 +93,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[facilityTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        facilityType.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(FacilityType.entity)
-      .query('upsert', params)
-      .exec()
+    return db[facilityTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         facilityType.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -106,9 +118,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(FacilityType.entity)
-      .query('select')
-      .exec()
+    return db[facilityTypeDexie]
+      .toArray()
       .then((rows: any) => {
         facilityType.save(rows);
       })
@@ -118,16 +129,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(FacilityType.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[facilityTypeDexie]
+      .delete(paramsId)
       .then(() => {
         facilityType.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[facilityTypeDexie]
+      .bulkPut(params)
+      .then(() => {
+        facilityType.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
@@ -139,9 +158,46 @@ export default {
   getAllFacilityTypesWithoutUS() {
     return facilityType
       .query()
-      .where((query) => {
+      .where((query: any) => {
         return query.code != 'US';
       })
       .get();
+  },
+
+  getFacilityTypeClinics() {
+    return facilityType
+      .query()
+      .where((query: any) => {
+        return query.type === 'clinic';
+      })
+      .get();
+  },
+  getFacilityTypeClinicSector() {
+    return facilityType
+      .query()
+      .where((query: any) => {
+        return query.type === 'clinic_sector';
+      })
+      .get();
+  },
+  getFacilityTypeClinicSectorForDC() {
+    return facilityType
+      .query()
+      .where((query: any) => {
+        return (
+          query.type === 'clinic_sector' &&
+          query.code !== 'PARAGEM_UNICA' &&
+          query.code !== 'PROVEDOR'
+        );
+      })
+      .get();
+  },
+  getFacilityTypeParagemUnica() {
+    return facilityType
+      .query()
+      .where((query: any) => {
+        return query.code === 'PARAGEM_UNICA';
+      })
+      .first();
   },
 };

@@ -1,5 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
+import roleService from 'src/services/api/role/roleService';
 import Role from 'src/stores/models/userLogin/Role';
 
 export default {
@@ -8,7 +9,7 @@ export default {
       return await api()
         .get('role?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(Role.entity).query('upsert', resp.data).exec();
+          roleService.addBulkMobile(resp.data);
           console.log('Data synced from backend: Role');
           offset = offset + 100;
           if (resp.data.length > 0) {

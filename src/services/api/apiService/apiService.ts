@@ -10,9 +10,7 @@ const { notifyError } = useNotify();
 const { closeLoading } = useLoading();
 
 const instance = axios.create({
-  baseURL: website.value
-    ? process.env.API_URL
-    : localStorage.getItem('backend_url'),
+  baseURL: website.value ? process.env.API_URL : process.env.API_URL,
 });
 const numTries = 0;
 

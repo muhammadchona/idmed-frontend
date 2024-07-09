@@ -167,6 +167,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useGroupMemberPrescription } from 'src/composables/group/groupMemberPrescriptionMethods';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
+import clinicService from 'src/services/api/clinicService/clinicService';
 // import isOnline from 'is-online';
 
 const {
@@ -481,7 +482,8 @@ const checkStock = async (curPack, prescribedDrug) => {
   const resp = await StockService.checkStockStatus(
     prescribedDrug.drug.id,
     prescrDate,
-    qtyPrescribed
+    qtyPrescribed,
+    clinicService.currClinic().id
   );
   return resp;
 };

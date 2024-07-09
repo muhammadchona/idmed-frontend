@@ -6,13 +6,18 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicSectorService from '../clinicSectorService/clinicSectorService';
 import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
 import prescriptionService from '../prescription/prescriptionService';
 import patientVisitService from '../patientVisit/patientVisitService';
 import packService from '../pack/packService';
+import ChunkArray from 'src/utils/ChunkArray';
+import clinicService from '../clinicService/clinicService';
+
 
 const episode = useRepo(Episode);
+const episodeDexie = Episode.entity;
+
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -20,7 +25,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -85,22 +90,34 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[episodeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        episode.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(Episode.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        episode.save(resp[0].affectedRows);
+    return db[episodeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        episode.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
       });
   },
   async getMobile() {
     try {
-      const rows = await nSQL(Episode.entity).query('select').exec();
+      const rows = await db[episodeDexie].toArray();
       if (rows.length === 0) {
         api()
           .get('episode?offset=0&max=700')
           .then((resp) => {
-            this.putMobile(resp.data);
+            this.addMobile(resp.data);
           });
       } else {
         episode.save(rows);
@@ -111,17 +128,24 @@ export default {
     }
   },
   async deleteMobile(paramsId: string) {
-    try {
-      await nSQL(Episode.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
-      episode.destroy(paramsId);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+    return db[episodeDexie]
+      .delete(paramsId)
+      .then(() => {
+        episode.destroy(paramsId);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[episodeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        episode.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
   async apiSave(episodeParams: any, isNew: boolean) {
     if (isNew) {
@@ -184,11 +208,13 @@ export default {
   },
 
   async getLocalDbEpisodesToSync() {
-    return nSQL(Episode.entity)
-      .query('select')
-      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
-      .exec()
-      .then((result) => {
+    return await db[episodeDexie]
+      .where('syncStatus')
+      .equalsIgnoreCase('R')
+      .or('syncStatus')
+      .equalsIgnoreCase('U')
+      .sortBy('syncStatus')
+      .then((result: any) => {
         return result;
       });
   },
@@ -329,10 +355,12 @@ export default {
       .first();
   },
 
+
   async doEpisodesBySectorGet() {
+    await clinicService.getMobile();
     console.log('user_sector' + localStorage.getItem('clinic_sector_users'));
-    const clinicSectorUser = clinicSectorService.getClinicSectorSlimByCode(
-      localStorage.getItem('clinic_sector_users')
+    const clinicSectorUser = clinicService.getByCode(
+      sessionStorage.getItem('clinic_sector_users')
     );
     this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {
       if (resp.data.length > 0) {
@@ -374,5 +402,22 @@ export default {
         // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
       }
     });
+  },
+
+  async getEpisodeByIds(episodeIds: any) {
+    const limit = 10; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(episodeIds, limit, offset);
+
+    const allEpisodes = [];
+
+    for (const chunk of chunks) {
+      const episodes = await api().post('/episode/getAllByEpisodeIds/', chunk);
+
+      allEpisodes.push(...episodes.data);
+    }
+
+    this.addBulkMobile(allEpisodes);
   },
 };

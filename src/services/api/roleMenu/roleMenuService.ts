@@ -1,12 +1,13 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import RoleMenu from 'src/stores/models/userLogin/RoleMenu';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const roleMenu = useRepo(RoleMenu);
+const roleMenuDexie = RoleMenu.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -92,10 +93,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[roleMenuDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        roleMenu.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(roleMenu.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[roleMenuDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         roleMenu.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -106,9 +118,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(roleMenu.use?.entity)
-      .query('select')
-      .exec()
+    return db[roleMenuDexie]
+      .toArray()
       .then((rows: any) => {
         roleMenu.save(rows);
       })
@@ -118,16 +129,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(roleMenu.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[roleMenuDexie]
+      .delete(paramsId)
       .then(() => {
         roleMenu.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[roleMenuDexie]
+      .bulkAdd(params)
+      .then(() => {
+        roleMenu.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   }, // Local Storage Pinia

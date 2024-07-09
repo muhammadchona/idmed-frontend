@@ -3,10 +3,11 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import TherapeuticLine from 'src/stores/models/therapeuticLine/TherapeuticLine';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const therapeuticLine = useRepo(TherapeuticLine);
+const therapeuticLineDexie = TherapeuticLine.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -92,23 +93,29 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(TherapeuticLine.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[therapeuticLineDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         therapeuticLine.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[therapeuticLineDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        therapeuticLine.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(TherapeuticLine.entity)
-      .query('select')
-      .exec()
+    return db[therapeuticLineDexie]
+      .toArray()
       .then((rows: any) => {
         therapeuticLine.save(rows);
       })
@@ -118,16 +125,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(TherapeuticLine.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[therapeuticLineDexie]
+      .delete(paramsId)
       .then(() => {
         therapeuticLine.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[therapeuticLineDexie]
+      .bulkPut(params)
+      .then(() => {
+        therapeuticLine.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

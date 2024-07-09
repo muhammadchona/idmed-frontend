@@ -88,6 +88,7 @@ Declarations
 const { showloading, closeLoading } = useLoading();
 let stockEntrance = reactive(new StockEntrance({ dateReceived: new Date() }));
 const dateReceived = ref(dateUtils.getDDMMYYYFromJSDate(new Date()));
+const creationDate = ref(dateUtils.getDDMMYYYFromJSDate(new Date()));
 const orderNumberRef = ref(null);
 const notesRef = ref(null);
 const router = useRouter();
@@ -105,10 +106,13 @@ const verifyStockNumber = (orderNumber) => {
 
 const submitForm = () => {
   showloading();
-  stockEntrance.dateReceived = dateUtils.getJSDateFromDDMMYYY(
+  stockEntrance.dateReceived = dateUtils.getDateFromHyphenDDMMYYYYWithTime(
     dateReceived.value
   );
 
+  stockEntrance.creationDate = dateUtils.getDateFromHyphenDDMMYYYYWithTime(
+    creationDate.value
+  );
   if (
     verifyStockNumber(stockEntrance.orderNumber) !== null &&
     verifyStockNumber(stockEntrance.orderNumber) !== undefined
@@ -116,6 +120,11 @@ const submitForm = () => {
     alertError('O número da Guia não pode ser vazio e deve ser único.');
     closeLoading();
   } else if (stockEntrance.dateReceived > new Date()) {
+  stockEntrance.creationDate = dateUtils.getDateFromHyphenDDMMYYYYWithTime(
+    creationDate.value
+  );
+
+  if (stockEntrance.dateReceived > new Date()) {
     alertError(
       'A data de criação da guia não pode ser superior a data corrente.'
     );
@@ -144,6 +153,7 @@ const submitForm = () => {
         });
     }
   }
+}
 };
 provide('stockEntrance', stockEntrance);
 </script>

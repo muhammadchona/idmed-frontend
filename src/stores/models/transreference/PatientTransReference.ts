@@ -1,6 +1,6 @@
 import { Model } from 'pinia-orm';
 import PatientTransReferenceType from './PatientTransReferenceType';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import Patient from '../patient/Patient';
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier';
 import { v4 as uuidv4 } from 'uuid';

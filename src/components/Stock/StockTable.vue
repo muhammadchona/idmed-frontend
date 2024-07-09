@@ -1,7 +1,7 @@
 <template>
   <div>
     <q-table
-    :loading="loading"
+      :loading="loading"
       :class="headerClass"
       dense
       :rows="rows"
@@ -56,7 +56,7 @@
         <q-tr :props="props">
           <q-td key="order" :props="props" v-if="false"> </q-td>
           <q-td key="drug" :props="props">
-            {{!isOnline ?  props.row.drug.name  : props.row.drug   }}
+            {{ !isOnline ? props.row.drug.name : props.row.drug }}
           </q-td>
           <q-td key="avgConsuption" :props="props">
             {{ props.row.avgConsuption }}
@@ -94,13 +94,19 @@
         <q-inner-loading showing color="primary" />
       </template>
     </q-table>
-
-
   </div>
 </template>
 
-<script setup >
-import { ref, computed, inject, provide, reactive, onMounted, onBeforeMount } from 'vue';
+<script setup>
+import {
+  ref,
+  computed,
+  inject,
+  provide,
+  reactive,
+  onMounted,
+  onBeforeMount,
+} from 'vue';
 
 import drugService from 'src/services/api/drugService/drugService';
 import { useRouter } from 'vue-router';
@@ -109,12 +115,11 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isMobile, isOnline } = useSystemUtils();
-const loadingDrugFile = ref(false)
-
+const loadingDrugFile = ref(false);
 
 const router = useRouter();
 const { showloading, closeLoading } = useLoading();
-const loading= ref(true)
+const loading = ref(true);
 const columns = [
   {
     name: 'order',
@@ -170,12 +175,12 @@ provide('drug', drug);
 const clinic = inject('currClinic');
 
 const openDrugFile = (drugInfo) => {
-  loadingDrugFile.value = true
+  loadingDrugFile.value = true;
   drug.value = drugService.getDrugById(drugInfo.id);
   localStorage.setItem('selectedDrug', drug.value.id);
 
   router.push('/stock/drugFile');
- // loadingDrugFile.value = false
+  // loadingDrugFile.value = false
 };
 
 const getStyleIfCharts = () => {
@@ -185,7 +190,6 @@ const getStyleIfCharts = () => {
     return '';
   }
 };
-
 
 const getConsuptionRelatedColor = (state) => {
   if (state === 'Sem Consumo') {
@@ -199,15 +203,13 @@ const getConsuptionRelatedColor = (state) => {
   }
 };
 
-
 const rows = computed(() => {
- const list = StockAlertService.getStockAlertsByClinic();
- if (list.length>0) {
-  loading.value = false
- }
- return list
- });
-
+  const list = StockAlertService.getStockAlertsByClinic();
+  if (list.length >= 0) {
+    loading.value = false;
+  }
+  return list;
+});
 </script>
 <style lang="sass" scoped>
 .my-sticky-header-table

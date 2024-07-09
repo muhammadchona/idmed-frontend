@@ -1,7 +1,7 @@
 import api from '../apiService/apiService';
 import stockOperationType from 'src/stores/models/stockoperation/StockOperationType';
 import { useRepo } from 'pinia-orm';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
@@ -10,21 +10,17 @@ const { closeLoading, showloading } = useLoading();
 const { isMobile, isOnline } = useSystemUtils();
 
 const stockOperationRepo = useRepo(stockOperationType);
+const stockOperationDexie = stockOperationType.entity;
 
 export default {
   // Axios API call static async
 
   get(offset: number) {
     if (!isOnline.value) {
-      return nSQL().onConnected(() => {
-        nSQL('stockOperationTypes')
-          .query('select')
-          .exec()
-          .then((result) => {
-            console.log(result);
-            stockOperationRepo.save(result);
-            return result;
-          });
+      return db[stockOperationDexie].toArray().then((result: any) => {
+        console.log(result);
+        stockOperationRepo.save(result);
+        return result;
       });
     } else {
       if (offset >= 0) {
@@ -43,6 +39,18 @@ export default {
           });
       }
     }
+  },
+
+  //mobile
+  addBulkMobile(params: string) {
+    return db[stockOperationDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stockOperationRepo.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
 
   async apiGetAll(offset: number, max: number) {

@@ -5,10 +5,11 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const secUserRepo = useRepo(SecUser);
+const secUserDexie = SecUser.entity;
 const clinicSectorUsersRepo = useRepo(ClinicSectorUsers);
 const secUserRoleRepo = useRepo(SecUserRole);
 
@@ -19,7 +20,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -91,10 +92,19 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[secUserDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        secUserRepo.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(secUserRepo.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[secUserDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         secUserRepo.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -105,9 +115,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(secUserRepo.use?.entity)
-      .query('select')
-      .exec()
+    return db[secUserDexie]
+      .toArray()
       .then((rows: any) => {
         secUserRepo.save(rows);
       })
@@ -117,16 +126,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(secUserRepo.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[secUserDexie]
+      .delete(paramsId)
       .then(() => {
         secUserRepo.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[secUserDexie]
+      .bulkAdd(params)
+      .then(() => {
+        secUserRepo.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
@@ -155,14 +172,13 @@ export default {
         });
       })
       .with('clinicSectors', (query) => {
-        query.with('clinic', (query1) => {
+        query.with('parentClinic', (query1) => {
           query1.with('province');
           query1.with('facilityType');
           query1.with('district', (query2) => {
             query2.with('province');
           });
         });
-        query.with('clinicSectorType');
       })
       .get();
   },

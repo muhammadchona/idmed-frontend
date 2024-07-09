@@ -1,6 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import SecUserRole from 'src/stores/models/userLogin/SecUserRole';
+import secUserRoleService from 'src/services/api/secUserRole/secUserRoleService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,7 +7,7 @@ export default {
       return await api()
         .get('secUserRole?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(SecUserRole.entity).query('upsert', resp.data).exec();
+          secUserRoleService.addBulkMobile(resp.data);
           console.log('Data synced from backend: SecUserRole');
           offset = offset + 100;
           if (resp.data.length > 0) {

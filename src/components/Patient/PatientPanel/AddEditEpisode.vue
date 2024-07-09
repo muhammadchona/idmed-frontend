@@ -120,7 +120,7 @@
             v-model="episode.clinicSector"
             :options="clinicSerctors"
             option-value="id"
-            option-label="description"
+            option-label="clinicName"
             label="Sector Clinico *"
           />
           <q-select
@@ -284,7 +284,7 @@
               use-input
               ref="clinicSectorTypeRef"
               input-debounce="0"
-              :options="clinicSectorTypes"
+              :options="facilityTypesSectors"
               option-value="id"
               option-label="description"
               label="Tipo de Sector de Dispensa"
@@ -302,7 +302,24 @@
               v-model="selectedClinicSector"
               :options="referealClinicSectors"
               option-value="id"
-              option-label="description"
+              option-label="clinicName"
+              label="Sector de Dispensa"
+            />
+          </div>
+          <div class="row" v-if="isSectorReferenceEpisode">
+            <q-select
+              class="col"
+              dense
+              outlined
+              :disable="episode.id !== null && isEditStep"
+              ref="referealClinicSectorRef"
+              :rules="[
+                (val) => !!val || 'Por favor indicar o sector de dispensa.',
+              ]"
+              v-model="selectedClinicSector"
+              :options="referealClinicSectorsRSC"
+              option-value="id"
+              option-label="clinicName"
               label="Sector de Dispensa"
             />
           </div>
@@ -355,6 +372,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import facilityTypeService from 'src/services/api/facilityTypeService/facilityTypeService';
 
 //Declaration
 const {
@@ -440,15 +458,24 @@ const provinces = computed(() => {
   }
 });
 
-const clinicSectorTypes = computed(() => {
-  return clinicSectorTypeService.getAllClinicSectorTypes();
+const facilityTypesSectors = computed(() => {
+  return facilityTypeService.getFacilityTypeClinicSectorForDC();
 });
 
 const referealClinicSectors = computed(() => {
   if (selectedClinicSectorType.value === null) return [];
-  return clinicSectorService.getClinicSectorsByClinicIdSectorTypeId(
+  return clinicSectorService.getClinicSectorsByFacilityTypeId(
     currClinic.value.id,
     selectedClinicSectorType.value.id
+  );
+});
+
+const referealClinicSectorsRSC = computed(() => {
+  const facilityType = facilityTypeService.getFacilityTypeParagemUnica();
+  console.log(facilityType);
+  return clinicSectorService.getClinicSectorsByFacilityTypeId(
+    currClinic.value.id,
+    facilityType.id
   );
 });
 
@@ -499,6 +526,18 @@ const isTransferenceEpisode = computed(() => {
   return closureEpisode.value.startStopReason.code === 'TRANSFERIDO_PARA';
 });
 
+const isSectorReferenceEpisode = computed(() => {
+  if (closureEpisode.value === null || closureEpisode.value === undefined)
+    return false;
+  if (
+    closureEpisode.value.startStopReason === null ||
+    closureEpisode.value.startStopReason === undefined
+  )
+    return false;
+  return (
+    closureEpisode.value.startStopReason.code === 'REFERIDO_SECTOR_CLINICO'
+  );
+});
 const identifierstartDate = computed(() => {
   return getDDMMYYYFromJSDate(curIdentifier.value.startDate);
 });
@@ -817,7 +856,9 @@ const doSave = async () => {
             if (
               closureEpisode.value.startStopReason.code ===
                 'TRANSFERIDO_PARA' ||
-              closureEpisode.value.startStopReason.code === 'OBITO'
+              closureEpisode.value.startStopReason.code === 'OBITO' ||
+              closureEpisode.value.startStopReason.code ===
+                'REFERIDO_SECTOR_CLINICO'
             ) {
               curIdentifier.value.patient.identifiers.forEach((identifiers) => {
                 patientServiceIdentifierService.apiFetchById(identifiers.id);

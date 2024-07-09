@@ -3,7 +3,7 @@ import Episode from '../episode/Episode';
 import Pack from '../packaging/Pack';
 import Prescription from '../prescription/Prescription';
 import PatientVisit from '../patientVisit/PatientVisit';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientVisitDetails extends Model {

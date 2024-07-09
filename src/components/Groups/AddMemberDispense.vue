@@ -218,6 +218,7 @@ import formService from 'src/services/api/formService/formService';
 import { v4 as uuidv4 } from 'uuid';
 import StockService from 'src/services/api/stockService/StockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import clinicService from 'src/services/api/clinicService/clinicService';
 const columns = [
   { name: 'order', align: 'left', label: 'Ordem', sortable: false },
   { name: 'drug', align: 'left', label: 'Medicamento', sortable: false },
@@ -324,7 +325,8 @@ const checkStock = async (packagedDrug) => {
     resp = await StockService.checkStockStatus(
       packagedDrug.drug.id,
       pickupDate.value,
-      quantitySupplied
+      quantitySupplied,
+      clinicService.currClinic().id
     );
   }
 

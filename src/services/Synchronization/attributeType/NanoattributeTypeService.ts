@@ -1,5 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
+import attributeTypeService from 'src/services/api/attributeType/attributeTypeService';
 import AttributeType from 'src/stores/models/attributeType/AttributeType';
 
 export default {
@@ -8,7 +9,7 @@ export default {
       return await api()
         .get('attributeType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(AttributeType.entity).query('upsert', resp.data).exec();
+          attributeTypeService.addBulkMobile(resp.data);
           console.log('Data synced from backend: AttributeType');
           offset = offset + 100;
           if (resp.data.length > 0) {

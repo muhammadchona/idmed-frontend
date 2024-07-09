@@ -1,11 +1,12 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import UserRoles from 'src/stores/models/userLogin/UserRole';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const userRole = useRepo(UserRoles);
+const userRoleDexie = UserRoles.entity;
 
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -13,7 +14,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -88,10 +89,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[userRoleDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        userRole.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(userRole.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[userRoleDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         userRole.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -102,9 +114,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(userRole.use?.entity)
-      .query('select')
-      .exec()
+    return db[userRoleDexie]
+      .toArray()
       .then((rows: any) => {
         userRole.save(rows);
       })
@@ -114,16 +125,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(userRole.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[userRoleDexie]
+      .delete(paramsId)
       .then(() => {
         userRole.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[userRoleDexie]
+      .bulkAdd(params)
+      .then(() => {
+        userRole.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

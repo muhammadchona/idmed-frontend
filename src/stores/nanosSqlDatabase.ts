@@ -5,8 +5,8 @@ import District from './models/district/District';
 import City from './models/city/City';
 import Appointment from './models/appointment/Appointment';
 import AttributeType from './models/attributeType/AttributeType';
-import Clinic from './models/clinic/Clinic';
-import ClinicSector from './models/clinicSector/ClinicSector';
+import { Clinic } from './models/clinic/Clinic';
+import { ClinicSector } from './models/clinic/ClinicSector';
 import Drug from './models/drug/Drug';
 import Episode from './models/episode/Episode';
 import EpisodeType from './models/episodeType/EpisodeType';
@@ -106,6 +106,9 @@ import ArvDailyRegisterTempReport from './models/report/monitoring/ArvDailyRegis
 import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
 import ActiveInDrugStore from './models/report/patient/ActiveInDrugStore';
 import DrugQuantityTemp from './models/report/monitoring/DrugQuantityTemp';
+import StockDistributor from './models/stockDistributor/StockDistributor';
+import StockDistributorBatch from './models/stockDistributorBatch/StockDistributorBatch';
+import DrugDistributor from './models/drugDistributor/DrugDistributor';
 //import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils';
 // import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore';
 
@@ -202,13 +205,17 @@ export default {
     entitiesList.push(patientHistoryReport);
     entitiesList.push(AuditSyncronization);
     entitiesList.push(AbsentPatientReport);
-    entitiesList.push(MmiaReport)
-    entitiesList.push(MmiaStockReport)
-    entitiesList.push(MmiaRegimenSubReport)
+    entitiesList.push(MmiaReport);
+    entitiesList.push(MmiaStockReport);
+    entitiesList.push(MmiaRegimenSubReport);
     entitiesList.push(ArvDailyRegisterTempReport);
     entitiesList.push(DrugQuantityTemp);
-   entitiesList.push(ActiveInDrugStore);
-   entitiesList.push(ReferredPatientsReport)
+    entitiesList.push(ActiveInDrugStore);
+    entitiesList.push(ReferredPatientsReport);
+    entitiesList.push(StockDistributor);
+    entitiesList.push(StockDistributorBatch);
+    entitiesList.push(DrugDistributor);
+
     return entitiesList;
   },
 };

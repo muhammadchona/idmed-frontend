@@ -4,9 +4,11 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const form = useRepo(Form);
+const formDexie = Form.entity;
+
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -14,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -91,10 +93,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[formDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        form.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(Form.entity)
-      .query('upsert', params)
-      .exec()
+    return db[formDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         form.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -105,9 +118,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(Form.entity)
-      .query('select')
-      .exec()
+    return db[formDexie]
+      .toArray()
       .then((rows: any) => {
         form.save(rows);
       })
@@ -117,10 +129,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(Form.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[formDexie]
+      .delete(paramsId)
       .then(() => {
         form.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -130,6 +140,17 @@ export default {
         console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[formDexie]
+      .bulkPut(params)
+      .then(() => {
+        form.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
   /*Pinia Methods*/
   getAllForms() {
     return form.query().withAll().get();

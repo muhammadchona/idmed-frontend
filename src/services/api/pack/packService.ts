@@ -4,9 +4,11 @@ import Pack from 'src/stores/models/packaging/Pack';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
+import ChunkArray from 'src/utils/ChunkArray';
 
 const pack = useRepo(Pack);
+const packDexie = Pack.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +17,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -80,18 +82,19 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[packDexie].add(JSON.parse(JSON.stringify(params))).then(() => {
+      pack.save(JSON.parse(JSON.stringify(params)));
+    });
+  },
   putMobile(params: string) {
-    return nSQL(Pack.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        pack.save(resp[0].affectedRows);
-      });
+    return db[packDexie].put(JSON.parse(JSON.stringify(params))).then(() => {
+      pack.save(JSON.parse(JSON.stringify(params)));
+    });
   },
   getMobile() {
-    return nSQL(Pack.entity)
-      .query('select')
-      .exec()
+    return db[packDexie]
+      .toArray()
       .then((rows: any) => {
         pack.save(rows);
       })
@@ -101,10 +104,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(Pack.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[packDexie]
+      .delete(paramsId)
       .then(() => {
         pack.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -114,7 +115,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[packDexie]
+      .bulkPut(params)
+      .then(() => {
+        pack.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiSave(pack: any) {
     return await api().post('/pack', pack);
   },
@@ -136,7 +146,7 @@ export default {
           max
       )
       .then((resp) => {
-        nSQL(Pack.entity).query('upsert', resp.data).exec();
+        this.addMobile(resp.data);
         pack.save(resp.data);
       });
   },
@@ -263,5 +273,21 @@ export default {
       }
     }
     return counter > 0;
+  },
+
+  async getPacksByIds(packIds: any) {
+    const limit = 10; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(packIds, limit, offset);
+
+    const allPacks = [];
+
+    for (const chunk of chunks) {
+      const packs = await api().post('/pack/getAllByPackIds/', chunk);
+
+      allPacks.push(...packs.data);
+    }
+    this.addBulkMobile(allPacks);
   },
 };

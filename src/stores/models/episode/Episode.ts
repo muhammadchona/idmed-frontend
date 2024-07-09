@@ -1,6 +1,6 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
-import ClinicSector from '../clinicSector/ClinicSector';
+import { Clinic } from '../clinic/ClinicHierarchy';
+import { ClinicSector } from '../clinic/ClinicHierarchy';
 import EpisodeType from '../episodeType/EpisodeType';
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier';
 import PatientVisitDetails from '../patientVisitDetails/PatientVisitDetails';

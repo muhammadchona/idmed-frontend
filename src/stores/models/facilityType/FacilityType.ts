@@ -9,6 +9,7 @@ export default class FacilityType extends Model {
       id: this.string(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
+      type: this.attr(''),
     };
   }
   static piniaOptions = {

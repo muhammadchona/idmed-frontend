@@ -3,10 +3,11 @@ import Province from 'src/stores/models/province/Province';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const province = useRepo(Province);
+const provinceDexie = Province.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -92,23 +93,23 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(province.use?.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[provinceDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        province.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
+        province.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
+  putMobile(params: string) {
+    return db[provinceDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        province.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
-    return nSQL(province.use?.entity)
-      .query('select')
-      .exec()
+    return db[provinceDexie]
+      .toArray()
       .then((rows: any) => {
         province.save(rows);
       })
@@ -118,16 +119,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(province.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[provinceDexie]
+      .delete(paramsId)
       .then(() => {
         province.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[provinceDexie]
+      .bulkPut(params)
+      .then(() => {
+        province.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

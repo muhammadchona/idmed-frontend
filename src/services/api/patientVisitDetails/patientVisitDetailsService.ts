@@ -4,10 +4,11 @@ import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVi
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import clinicalServiceService from '../clinicalServiceService/clinicalServiceService';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
+const patientVisitDetailsDexie = PatientVisitDetails.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -81,19 +82,23 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientVisitDetailsDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientVisitDetails.save(params);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PatientVisitDetails.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        patientVisitDetails.save(resp[0].affectedRows);
+    return db[patientVisitDetailsDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientVisitDetails.save(params);
       });
   },
   async getMobile() {
     try {
-      const rows = await nSQL(PatientVisitDetails.entity)
-        .query('select')
-        .exec();
+      const rows = await db[patientVisitDetailsDexie].toArray();
       patientVisitDetails.save(rows);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -102,16 +107,23 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(PatientVisitDetails.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
+      await db[patientVisitDetailsDexie].delete(paramsId);
       patientVisitDetails.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+  async addBulkMobile(params: any) {
+    return db[patientVisitDetailsDexie]
+      .bulkPut(params)
+      .then(() => {
+        patientVisitDetails.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisitDetails/${id}`);
@@ -147,7 +159,7 @@ export default {
           max
       )
       .then((resp) => {
-        nSQL(PatientVisitDetails.entity).query('upsert', resp.data).exec();
+        db[patientVisitDetailsDexie].add(JSON.parse(JSON.stringify(resp.data)));
         patientVisitDetails.save(resp.data);
       });
   },
@@ -177,15 +189,11 @@ export default {
   },
 
   async apiGetPatientVisitDetailsByPatientId(patientId: string) {
-    if (isMobile && !isOnline) {
-      this.get(0);
-    } else {
-      return await api()
-        .get('patientVisitDetails/patientId/' + patientId)
-        .then((resp) => {
-          patientVisitDetails.save(resp.data);
-        });
-    }
+    return await api()
+      .get('patientVisitDetails/patientId/' + patientId)
+      .then((resp) => {
+        patientVisitDetails.save(resp.data);
+      });
   },
 
   async apiGetAllofPrecription(prescriptionId: string) {
@@ -205,6 +213,14 @@ export default {
         patientVisitDetails.save(resp.data);
         return resp;
       });
+  },
+
+  async getMobileByPatientVisitIds(patientVisitIds: string) {
+    const rows = await db[patientVisitDetailsDexie]
+      .where('patientVisitId')
+      .anyOf(patientVisitIds);
+    patientVisitDetails.save(rows);
+    return rows;
   },
   // Local Storage Pinia
   newInstanceEntity() {

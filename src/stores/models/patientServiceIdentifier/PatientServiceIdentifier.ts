@@ -3,7 +3,7 @@ import Episode from '../episode/Episode';
 import IdentifierType from '../identifierType/IdentifierType';
 import Patient from '../patient/Patient';
 import ClinicalService from '../ClinicalService/ClinicalService';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientServiceIdentifier extends Model {

@@ -1,6 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import PatientTransReferenceType from 'src/stores/models/transreference/PatientTransReferenceType';
+import PatientTransReferenceTypeService from 'src/services/api/patientTransReferenceServiceType/PatientTransReferenceTypeService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,9 +7,7 @@ export default {
       return await api()
         .get('patientTransReferenceType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(PatientTransReferenceType.entity)
-            .query('upsert', resp.data)
-            .exec();
+          PatientTransReferenceTypeService.addBulkMobile(resp.data);
           console.log('Data synced from backend: PatientTransReferenceType');
           offset = offset + 100;
           if (resp.data.length > 0) {

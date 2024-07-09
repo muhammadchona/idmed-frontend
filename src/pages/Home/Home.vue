@@ -192,13 +192,21 @@ import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, watch, inject } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
+import NanoStockCenterService from 'src/services/Synchronization/stockCenter/NanoStockCenterService';
+import NanoStockOperationTypeService from 'src/services/Synchronization/stockOperationType/NanoStockOperationTypeService';
+import stockService from 'src/services/api/stockService/StockService';
+import stockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
+
+import episodeService from 'src/services/api/episode/episodeService';
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -208,11 +216,29 @@ const { loadSettingParams, loadPatientData } = useOnline();
 
 const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
 const { alertWarningTitle } = useSwal();
+
+const stockDistributionCount = inject('stockDistributionCount');
 let codeExecuted = false;
 
 const clinic = computed(() => {
   return clinicService.currClinic();
 });
+
+const isClinicSector = computed(() => {
+  return clinicService.isClinicSector(clinic.value);
+});
+
+const getStockDistributionCount = (clinic) => {
+  DrugDistributorService.getDistributionsByStatus(clinic.id, 'P').then(
+    (list) => {
+      stockDistributionCount.value = list.length;
+      localStorage.setItem(
+        'stockDistributionCount',
+        stockDistributionCount.value
+      );
+    }
+  );
+};
 
 const menusVisible = (name) => {
   const menus = sessionStorage.getItem('role_menus');
@@ -223,7 +249,7 @@ const menusVisible = (name) => {
       return true;
     }
 };
-
+/*
 onMounted(() => {
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
@@ -237,6 +263,37 @@ onMounted(() => {
       }, 5000);
     }
   }
+  console.log(clinic.value);
+  console.log(isClinicSector.value);
+});
+*/
+
+onMounted(() => {
+  /*
+  clinicSectorService.getMobile();
+  clinicService.getMobile();
+  NanoStockCenterService.getFromBackEnd(0);
+  NanoStockOperationTypeService.getFromBackEnd(0);
+
+  */
+  loadSettingParamsToOffline();
+  stockEntranceService.getFromBackEnd(0);
+  stockService.getFromBackEnd(0);
+  episodeService.doEpisodesBySectorGet();
+  if (!website.value || (isMobile.value && isOnline.value)) {
+    showloading();
+    loadSettingParams();
+  } else {
+    if (patientService.getAllFromStorage().length <= 0) {
+      showloading();
+      //   loadSettingParamsToOffline();
+      setTimeout(() => {
+        //   loadPatientDataToOffline();
+      }, 5000);
+    }
+  }
+  console.log(clinic.value);
+  console.log(isClinicSector.value);
 });
 
 watch(clinic, () => {
@@ -253,6 +310,7 @@ watch(clinic, () => {
         );
       }
     });
+    getStockDistributionCount(clinic.value);
   }
 });
 </script>

@@ -1,12 +1,13 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import UserClinics from 'src/stores/models/userLogin/UserClinic';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const userClinic = useRepo(UserClinics);
+const userClinicDexie = UserClinics.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -92,10 +93,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[userClinicDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        userClinic.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(userClinic.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[userClinicDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         userClinic.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -106,9 +118,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(userClinic.use?.entity)
-      .query('select')
-      .exec()
+    return db[userClinicDexie]
+      .toArray()
       .then((rows: any) => {
         userClinic.save(rows);
       })
@@ -118,16 +129,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(userClinic.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[userClinicDexie]
+      .delete(paramsId)
       .then(() => {
         userClinic.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[userClinicDexie]
+      .bulkAdd(params)
+      .then(() => {
+        userClinic.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

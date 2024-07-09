@@ -114,7 +114,7 @@ const editStockEntrance = (entrance) => {
 
 const stockEntrances = computed(() => {
   const list = StockEntranceService.getStockEntrances();
-  if (list.length > 0) {
+  if (list.length >= 0) {
     loading.value = false;
   }
   return list;

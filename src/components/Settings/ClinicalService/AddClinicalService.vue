@@ -268,7 +268,7 @@ const columnsSectors = [
     required: true,
     label: 'Nome',
     align: 'left',
-    field: (row) => row.description,
+    field: (row) => row.clinicName,
     format: (val) => `${val}`,
     sortable: true,
   },

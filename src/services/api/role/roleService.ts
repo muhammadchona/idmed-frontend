@@ -4,11 +4,12 @@ import Role from 'src/stores/models/userLogin/Role';
 import RoleMenu from 'src/stores/models/userLogin/RoleMenu';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const role = useRepo(Role);
 const roleMenuRepo = useRepo(RoleMenu);
+const roleDexie = Role.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -98,10 +99,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[roleDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        role.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(role.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[roleDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         role.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -112,9 +124,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(role.use?.entity)
-      .query('select')
-      .exec()
+    return db[roleDexie]
+      .toArray()
       .then((rows: any) => {
         role.save(rows);
       })
@@ -124,10 +135,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(role.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[roleDexie]
+      .delete(paramsId)
       .then(() => {
         role.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -137,7 +146,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[roleDexie]
+      .bulkAdd(params)
+      .then(() => {
+        role.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiGetAll() {
     return await api().get('/role');
   },

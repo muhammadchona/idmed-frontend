@@ -381,6 +381,7 @@
                 @click="goBack"
               />
               <q-btn
+                v-if="!currStockEntrance.isDistribution"
                 unelevated
                 color="orange-5"
                 class="q-ml-md col"
@@ -388,6 +389,7 @@
                 @click="initGuiaEdition"
               />
               <q-btn
+                v-if="!currStockEntrance.isDistribution"
                 unelevated
                 color="red"
                 class="q-ml-md col"
@@ -555,7 +557,13 @@
                     />
                   </q-td>
                   <q-td key="options" :props="props">
-                    <div class="col" v-if="!stockMethod.isInUse(props.row)">
+                    <div
+                      class="col"
+                      v-if="
+                        !stockMethod.isInUse(props.row) &&
+                        !currStockEntrance.isDistribution
+                      "
+                    >
                       <q-btn
                         v-if="props.row.enabled"
                         :loading="submitting"
@@ -660,6 +668,7 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
 const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
+const isClinicSector = ref('');
 const columns = [
   {
     name: 'order',
@@ -949,12 +958,11 @@ const doSave = (stock) => {
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic = {};
   stock.clinic.id = clinicService.currClinic().id;
-  stock.clinic = {};
-  stock.clinic.id = clinicService.currClinic().id;
   stock.center = {};
   stock.center.id = StockCenterService.getStockCenter().id;
   stock.entrance = currStockEntrance;
   stock.enabled = false;
+  stock.drug_id = stock.drug.id;
   // const entrance = currStockEntrance.value
   stock.entrance_id = currStockEntrance.value.id;
   // stock.entrance = entrance
@@ -1073,7 +1081,6 @@ const loadStockList = () => {
 onMounted(() => {
   init();
   loadStockList();
-  //drugs.value = activeDrugs;
 });
 
 const currStockEntrance = computed(() => {

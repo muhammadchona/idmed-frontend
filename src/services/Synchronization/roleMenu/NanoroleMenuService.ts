@@ -1,6 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import RoleMenu from 'src/stores/models/userLogin/RoleMenu';
+import roleMenuService from 'src/services/api/roleMenu/roleMenuService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,7 +7,7 @@ export default {
       return await api()
         .get('roleMenu?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(RoleMenu.entity).query('upsert', resp.data).exec();
+          roleMenuService.addBulkMobile(resp.data);
           console.log('Data synced from backend: RoleMenu');
           offset = offset + 100;
           if (resp.data.length > 0) {

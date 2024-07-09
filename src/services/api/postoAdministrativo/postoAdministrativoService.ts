@@ -4,9 +4,10 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const postoAdministrativo = useRepo(PostoAdministrativo);
+const postoAdministrativoDexie = PostoAdministrativo.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -92,10 +93,21 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[postoAdministrativoDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        postoAdministrativo.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(postoAdministrativo.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[postoAdministrativoDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         postoAdministrativo.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -106,9 +118,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(postoAdministrativo.use?.entity)
-      .query('select')
-      .exec()
+    return db[postoAdministrativoDexie]
+      .toArray()
       .then((rows: any) => {
         postoAdministrativo.save(rows);
       })
@@ -118,16 +129,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(postoAdministrativo.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[postoAdministrativoDexie]
+      .delete(paramsId)
       .then(() => {
         postoAdministrativo.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[postoAdministrativoDexie]
+      .bulkPut(params)
+      .then(() => {
+        postoAdministrativo.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

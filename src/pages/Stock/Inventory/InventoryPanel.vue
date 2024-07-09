@@ -181,7 +181,10 @@
           style="height: 750px"
         >
           <span v-for="drug in drugs" :key="drug.id">
-            <AdjustmentTable :drug="drug" :inventory="currInventory" />
+            <AdjustmentTable
+              :drugFromInventoryPanel="drug"
+              :inventory="currInventory"
+            />
           </span>
         </q-scroll-area>
       </div>
@@ -286,17 +289,19 @@ const closeInventory = () => {
 };
 
 const doProcessAndClose = async () => {
-  const inventory = await InventoryService.apiFetchByIdWeb(
-    currInventory.value.id
-  );
+  let inventory = {};
 
-  if (!isOnline.value) {
-    adjustments =
+  if (isMobile.value) {
+    inventory = InventoryService.getInvnetoryById(currInventory.value.id);
+    /* inventory.adjustments =
       await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(
         inventory.id
       );
     inventory.adjustments = [];
+    */
     inventory.open = false;
+  } else {
+    inventory = await InventoryService.apiFetchByIdWeb(currInventory.value.id);
   }
   inventory.adjustments = currInventory.value.adjustments;
   let hasAdjustments = true;
@@ -341,10 +346,8 @@ const saveAllAdjustments = (inventory, hasAdjustments) => {
   showloading();
 
   if (!hasAdjustments) {
-    console.log('INICIOU ADJUS');
     doSaveAll(0, inventory).then(() => {
       closeClassInventory(inventory);
-      console.log('FECHOU');
     });
   } else {
     closeClassInventory(inventory);
@@ -352,13 +355,29 @@ const saveAllAdjustments = (inventory, hasAdjustments) => {
 };
 
 const closeClassInventory = (inventory) => {
-  InventoryService.apiClose(inventory.id).then((resp) => {
-    step = 'display';
-    InventoryService.closeInventoryPinia(inventory);
-    StockAlertService.apiGetStockAlertAll(clinicService.currClinic().id);
-    closeLoading();
-    alertSucess('Operação efectuada com sucesso.');
-  });
+  if (!isMobile.value) {
+    InventoryService.apiClose(inventory.id).then((resp) => {
+      step = 'display';
+      InventoryService.closeInventoryPinia(inventory);
+      StockAlertService.apiGetStockAlertAll(clinicService.currClinic().id);
+      closeLoading();
+      alertSucess('Operação efectuada com sucesso.');
+    });
+  } else {
+    inventory.open = false;
+    inventory.endDate = new Date();
+    inventory.adjustments.forEach((item) => {
+      item.finalised = true;
+      const adjustedStock = item.adjustedStock;
+      adjustedStock.stockMoviment = item.balance;
+      StockService.putMobile(adjustedStock);
+    });
+    InventoryService.putMobile(inventory).then(() => {
+      InventoryService.closeInventoryPinia(inventory);
+      closeLoading();
+      alertSucess('Operação efectuada com sucesso.');
+    });
+  }
 };
 
 const doSaveAll = async (i, inventory) => {
@@ -451,7 +470,10 @@ const retriveRelatedDrug = (adjustment, drugList) => {
     );
   }
   const drug = drugService.getDrugById(adjustment.adjustedStock.drug_id);
-  if (drugList.length <= 0 && StockService.getValidStockByDrug(drug)) {
+  if (
+    drugList.length <= 0 &&
+    StockService.getValidStockByDrug(drug, clinicService.currClinic().id)
+  ) {
     drugList.push(drug);
   } else {
     Object.keys(drugList).forEach(function (i) {
@@ -490,7 +512,10 @@ const drugs = computed(() => {
       return drugService.getDrugsFromListId(adjustedDrugs);
     }
 
-    if (currInventory.value.generic) {
+    if (
+      currInventory.value.generic === 'true' ||
+      currInventory.value.generic === true
+    ) {
       const listaDrugs = drugService.getDrugsWithValidStockInList(
         clinicService.currClinic().id
       );

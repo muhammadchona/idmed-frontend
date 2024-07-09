@@ -2,11 +2,13 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Prescription from 'src/stores/models/prescription/Prescription';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import ChunkArray from 'src/utils/ChunkArray';
 
 const prescription = useRepo(Prescription);
+const prescriptionDexie = Prescription.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -80,17 +82,23 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[prescriptionDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescription.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(Prescription.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        prescription.save(resp[0].affectedRows);
+    return db[prescriptionDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        prescription.save(JSON.parse(JSON.stringify(params)));
       });
   },
   async getMobile() {
     try {
-      const rows = await nSQL(Prescription.entity).query('select').exec();
+      const rows = await db[prescriptionDexie].toArray();
       prescription.save(rows);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -99,16 +107,23 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(Prescription.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
+      await db[prescriptionDexie].delete(paramsId);
       prescription.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+  addBulkMobile(params: any) {
+    return db[prescriptionDexie]
+      .bulkPut(params)
+      .then(() => {
+        prescription.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
 
   async apiSave(prescriptionObject: any) {
@@ -132,8 +147,7 @@ export default {
           max
       )
       .then((resp) => {
-        nSQL(Prescription.entity).query('upsert', resp.data).exec();
-        prescription.save(resp.data);
+        this.addBulkMobile(resp.data);
       });
   },
 
@@ -211,5 +225,27 @@ export default {
 
   removeFromStorage(prescriptionId: string) {
     return prescription.destroy(prescriptionId);
+  },
+
+  async getPrescriptionsByIds(prescriptionIds: any) {
+    const limit = 10; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(
+      prescriptionIds,
+      limit,
+      offset
+    );
+
+    const allPrescriptions = [];
+
+    for (const chunk of chunks) {
+      const prescriptions = await api().post(
+        '/prescription/getAllByPrescriptionIds/',
+        chunk
+      );
+      allPrescriptions.push(...prescriptions.data);
+    }
+    this.addBulkMobile(allPrescriptions);
   },
 };

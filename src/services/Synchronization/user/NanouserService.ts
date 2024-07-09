@@ -1,5 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
+import userService from 'src/services/api/user/userService';
 import User from 'src/stores/models/userLogin/User';
 
 export default {
@@ -8,7 +9,7 @@ export default {
       return await api()
         .get('secUser?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(User.entity).query('upsert', resp.data).exec();
+          userService.addBulkMobile(resp.data);
           console.log('Data synced from backend: User');
           offset = offset + 100;
           if (resp.data.length > 0) {

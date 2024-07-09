@@ -1,6 +1,6 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
-import ClinicSector from '../clinicSector/ClinicSector';
+import { Clinic } from '../clinic/ClinicHierarchy';
+import { ClinicSector } from '../clinic/ClinicHierarchy';
 import UserClinics from './UserClinic';
 import ClinicSectorUsers from './ClinicSectorUsers';
 export default class User extends Model {

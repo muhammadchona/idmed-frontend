@@ -5,7 +5,7 @@ import PatientAttribute from '../patientAttribute/PatientAttribute';
 import PatientServiceIdentifier from '../patientServiceIdentifier/PatientServiceIdentifier';
 import Province from '../province/Province';
 import District from '../district/District';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import PostoAdministrativo from '../PostoAdministrativo/PostoAdministrativo';
 import Localidade from '../Localidade/Localidade';
 import PatientVisit from '../patientVisit/PatientVisit';
@@ -38,7 +38,7 @@ export default class Patient extends Model {
       bairro_id: this.string(''),
       clinic_id: this.string(''),
       syncStatus: this.string(''),
-      hisSyncStatus:  this.attr(''),
+      hisSyncStatus: this.attr(''),
       hisProvider: this.string(''),
 
       // Relationships

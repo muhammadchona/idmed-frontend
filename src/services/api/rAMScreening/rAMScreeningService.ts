@@ -2,11 +2,13 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import RAMScreening from 'src/stores/models/screening/RAMScreening';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const rAMScreening = useRepo(RAMScreening);
+const rAMScreeningDexie = RAMScreening.entity;
+
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -79,18 +81,23 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[rAMScreeningDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        rAMScreening.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(RAMScreening.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        rAMScreening.save(resp[0].affectedRows);
+    return db[rAMScreeningDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        rAMScreening.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
-    return nSQL(RAMScreening.entity)
-      .query('select')
-      .exec()
+    return db[rAMScreeningDexie]
+      .toArray()
       .then((rows: any) => {
         rAMScreening.save(rows);
       })
@@ -100,16 +107,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(RAMScreening.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[rAMScreeningDexie]
+      .delete(paramsId)
       .then(() => {
         rAMScreening.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[rAMScreeningDexie]
+      .bulkAdd(params)
+      .then(() => {
+        rAMScreening.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

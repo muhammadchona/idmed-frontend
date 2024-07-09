@@ -1,5 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
+import postoAdministrativoService from 'src/services/api/postoAdministrativo/postoAdministrativoService';
 import PostoAdministrativo from 'src/stores/models/PostoAdministrativo/PostoAdministrativo';
 
 export default {
@@ -8,7 +9,7 @@ export default {
       return await api()
         .get('postoAdministrativo?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(PostoAdministrativo.entity).query('upsert', resp.data).exec();
+          postoAdministrativoService.addBulkMobile(resp.data);
           console.log('Data synced from backend: PostoAdministrativo');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -52,6 +52,7 @@ import { ref, onMounted, computed, inject } from 'vue';
 import StockService from 'src/services/api/stockService/StockService';
 import drugService from 'src/services/api/drugService/drugService';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { closeLoading, showloading } = useLoading();
 const inventoryDetail = inject('inventoryDetail');
@@ -126,7 +127,10 @@ const retriveRelatedDrug = (adjustment, drugList) => {
     );
   }
   const drug = drugService.getDrugById(adjustment.adjustedStock.drug_id);
-  if (drugList.length <= 0 && StockService.getValidStockByDrug(drug)) {
+  if (
+    drugList.length <= 0 &&
+    StockService.getValidStockByDrug(drug, clinicService.currClinic().id)
+  ) {
     drugList.push(drug);
   } else {
     Object.keys(drugList).forEach(function (i) {

@@ -1,6 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import ClinicalServiceAttributeType from 'src/stores/models/ClinicalServiceAttributeType/ClinicalServiceAttributeType';
+import clinicalServiceAttributeService from 'src/services/api/clinicalServiceAttributeService/clinicalServiceAttributeService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,9 +7,7 @@ export default {
       return await api()
         .get('clinicalServiceAttributeType?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(ClinicalServiceAttributeType.entity)
-            .query('upsert', resp.data)
-            .exec();
+          clinicalServiceAttributeService.addBulkMobile(resp.data);
           console.log('Data synced from backend: clinicalServiceAttributeType');
           offset = offset + 100;
           if (resp.data.length > 0) {

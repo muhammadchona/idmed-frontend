@@ -2,10 +2,12 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import DispenseType from 'src/stores/models/dispenseType/DispenseType';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from '../../../stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
 
 const dispenseType = useRepo(DispenseType);
+const dispenseTypeDexie = DispenseType.entity;
 
 export default {
   // Axios API call
@@ -42,6 +44,49 @@ export default {
 
   async apiFetchById(id: string) {
     return await api().get(`/dispenseType/${id}`);
+  },
+  addMobile(params: string) {
+    return db[dispenseTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        dispenseType.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  getMobile() {
+    return db[dispenseTypeDexie]
+      .toArray()
+      .then((rows: any) => {
+        dispenseType.save(rows);
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[dispenseTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        dispenseType.save(JSON.parse(params));
+        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[dispenseTypeDexie]
+      .bulkPut(params)
+      .then(() => {
+        dispenseType.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {

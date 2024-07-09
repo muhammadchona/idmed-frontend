@@ -4,10 +4,11 @@ import api from '../apiService/apiService';
 import Patient from 'src/stores/models/patient/Patient';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import clinicSectorService from '../clinicSectorService/clinicSectorService';
 
 const patient = useRepo(Patient);
+const patientDexie = Patient.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -16,17 +17,20 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
   },
   get(offset: number) {
+    /*
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       return this.getWeb(offset);
     }
+    */
+    this.getMobile();
   },
   patch(uuid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -97,43 +101,45 @@ export default {
     );
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientDexie].add(JSON.parse(JSON.stringify(params))).then(() => {
+      patient.save(JSON.parse(JSON.stringify(params)));
+    });
+  },
   putMobile(params: string) {
-    return nSQL(Patient.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        patient.save(resp[0].affectedRows);
-      });
+    return db[patientDexie].add(JSON.parse(JSON.stringify(params))).then(() => {
+      patient.save(JSON.parse(JSON.stringify(params)));
+    });
   },
   async getMobile() {
     try {
-      const rows = await nSQL(Patient.entity).query('select').exec();
+      const rows = await db[patientDexie].toArray();
       patient.save(rows);
+      return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   async deleteMobile(paramsId: string) {
-    try {
-      await nSQL(patient.use?.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
-      patient.destroy(paramsId);
-      alertSucess('O Registo foi removido com sucesso');
-    } catch (error) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+    return db[patientDexie]
+      .delete(paramsId)
+      .then(() => {
+        patient.destroy(paramsId);
+        alertSucess('O Registo foi removido com sucesso');
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
   },
   apiFetchById(id: string) {
     if (isMobile.value && !isOnline.value) {
-      return nSQL(Patient.entity)
-        .query('select')
-        .where(['id', '=', id])
-        .exec()
-        .then((rows) => {
+      return db[patientDexie]
+        .where('id')
+        .equalsIgnoreCase(id)
+        .first()
+        .then((rows: any) => {
           patient.save(rows);
           return rows;
         });
@@ -225,6 +231,16 @@ export default {
     }
   },
 
+  addBulkMobile(params: any) {
+    return db[patientDexie]
+      .bulkPut(params)
+      .then(() => {
+        patient.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async apiUpdate(patient: any) {
     return await this.patch(patient.id, patient);
   },
@@ -234,12 +250,27 @@ export default {
       '/patient/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
     );
   },
-  async apiGetPatientsByClinicSectorId(clinicSectorId: string) {
-    return await api().get('/patient/clinicSector/' + clinicSectorId);
+  async apiGetPatientsByClinicSectorId(
+    clinicSectorId: string,
+    offset: number,
+    max: number
+  ) {
+    return await api().get(
+      '/patient/clinicSector/' +
+        clinicSectorId +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
+    );
   },
   async doPatientsBySectorGet() {
+    const data = await clinicSectorService.getMobile();
+    const data2 = clinicSectorService.getAllClinicSectors();
+    console.log(data);
+    console.log(data2);
     const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
-      localStorage.getItem('clinic_sector_users')
+      sessionStorage.getItem('clinic_sector_users')
     );
     if (clinicSectorUser === null || clinicSectorUser === undefined) {
       alertError(
@@ -249,11 +280,37 @@ export default {
 
     console.log('sector' + clinicSectorUser);
     console.log('sectorId' + clinicSectorUser.id);
-    const resp = await this.apiGetPatientsByClinicSectorId(clinicSectorUser.id);
-    console.log('PacientesSector' + resp.data);
+    const resp = await this.fetchAllPatientsByClinicSectorId(
+      clinicSectorUser.id
+    );
+    console.log('PacientesSector' + resp);
     // alertSucess(resp.data);
-    this.putMobile(resp.data);
+    this.addBulkMobile(resp);
     return resp;
+  },
+
+  async fetchAllPatientsByClinicSectorId(clinicSectorId: any) {
+    let offset = 0;
+    const max = 15; // You can adjust this number based on your API's limits
+    let allPatients = [];
+    let hasMorePatients = true;
+
+    while (hasMorePatients) {
+      const response = await this.apiGetPatientsByClinicSectorId(
+        clinicSectorId,
+        offset,
+        max
+      );
+      const patients = response.data;
+      if (patients.length > 0) {
+        allPatients.push(...patients);
+        offset += patients.length;
+      } else {
+        hasMorePatients = false;
+      }
+    }
+
+    return allPatients;
   },
 
   async apiSyncPatient(patient: any) {
@@ -261,10 +318,11 @@ export default {
     if (patient.syncStatus === 'U') await this.apiSave(patient, false);
   },
   async getLocalDbPatientsToSync() {
-    return nSQL(Patient.entity)
-      .query('select')
-      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
-      .exec()
+    return db[patientDexie]
+      .where('syncStatus')
+      .equalsIgnoreCase('R')
+      .or('syncStatus')
+      .equalsIgnoreCase('U')
       .then((result) => {
         return result;
       });
@@ -365,21 +423,24 @@ export default {
       .where('id', id)
       .first();
   },
-  getPatientByParams(patientParam: any) {
-    return nSQL(patient.use?.entity)
-      .query('select')
-      .where([
-        ['firstNames', 'LIKE', '%' + patientParam.firstNames + '%'],
-        'OR',
-        ['lastNames', 'LIKE', '%' + patientParam.lastNames + '%'],
-        'OR',
-        [
-          'identifiers.value',
-          'LIKE',
-          '%' + patientParam.identifiers[0].value + '%',
-        ],
-      ])
-      .exec();
+  async getPatientByParams(patientParam: any) {
+    const results = await db[patientDexie]
+      .filter((patient: Patient) => {
+        const firstNamesMatch = patient.firstNames.includes(
+          patientParam.firstNames
+        );
+        const lastNamesMatch = patient.lastNames.includes(
+          patientParam.lastNames
+        );
+        const identifierMatch = patient.identifiers.some((identifier) =>
+          identifier.value.includes(patientParam.identifiers[0].value)
+        );
+
+        return firstNamesMatch || lastNamesMatch || identifierMatch;
+      })
+      .toArray();
+
+    return results;
   },
 
   getById(id: string) {
@@ -392,13 +453,13 @@ export default {
   },
 
   async getPatientByIdMobile(id: string) {
-    return nSQL(Patient.entity)
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((rows) => {
-        console.log('PACIENTES: ', rows);
-        return rows;
+    return db[patientDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first()
+      .then((row: any) => {
+        console.log('PACIENTES: ', row);
+        return row;
       });
   },
 };
