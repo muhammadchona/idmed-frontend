@@ -293,12 +293,6 @@ const doProcessAndClose = async () => {
 
   if (isMobile.value) {
     inventory = InventoryService.getInvnetoryById(currInventory.value.id);
-    /* inventory.adjustments =
-      await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(
-        inventory.id
-      );
-    inventory.adjustments = [];
-    */
     inventory.open = false;
   } else {
     inventory = await InventoryService.apiFetchByIdWeb(currInventory.value.id);
@@ -321,6 +315,7 @@ const doProcessAndClose = async () => {
   }
 
   inventory.adjustments.forEach((adjustment) => {
+    adjustment.finalised = true;
     if (adjustment.id === null) {
       adjustment.id = uuidv4();
     }
@@ -367,6 +362,7 @@ const closeClassInventory = (inventory) => {
     inventory.open = false;
     inventory.endDate = new Date();
     inventory.adjustments.forEach((item) => {
+      item.inventory_id = inventory.id;
       item.finalised = true;
       const adjustedStock = item.adjustedStock;
       adjustedStock.stockMoviment = item.balance;
@@ -403,6 +399,8 @@ const doSaveAll = async (i, inventory) => {
     adjustment.inventory.clinic = {};
     adjustment.inventory = {};
     adjustment.inventory.id = inventory.id;
+    adjustment.inventory_id = inventory.id;
+    adjustment.adjusted_stock_id = adjustment.adjustedStock.id;
     adjustment.clinic_id = clinicService.currClinic().id;
     adjustment.finalised = true;
 
@@ -438,17 +436,6 @@ const doSaveAll = async (i, inventory) => {
     } else {
       step = 'display';
     }
-  }
-};
-
-const doSaveAdjustmentMobile = (i) => {
-  if (processAdjustment[i] !== undefined && processAdjustment[i] !== null) {
-    InventoryStockAdjustment.localDbUpdate(processAdjustment[i]).then(
-      (invStkAdj) => {
-        i = i + 1;
-        setTimeout(doSaveAdjustmentMobile(i), 2);
-      }
-    );
   }
 };
 

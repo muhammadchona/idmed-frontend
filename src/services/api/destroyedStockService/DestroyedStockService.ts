@@ -5,11 +5,14 @@ import destroyedStock from 'src/stores/models/stockdestruction/DestroyedStock';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from 'src/stores/dexie';
+import DestroyedStock from 'src/stores/models/stockdestruction/DestroyedStock';
 
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
 const destroyedStockRepo = useRepo(destroyedStock);
+const destroyedStockDexie = DestroyedStock.entity;
 
 export default {
   // Axios API call
@@ -97,25 +100,41 @@ export default {
   },
   // Mobile
 
+  addMobile(params: string) {
+    return db[destroyedStockDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        destroyedStockRepo.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
+
   async putMobile(params: any) {
-    const resp = await nSQL('destroyedStocks')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    destroyedStockRepo.save(params);
-    return resp;
+    return db[destroyedStockDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        destroyedStockRepo.save(JSON.parse(JSON.stringify(params)));
+      });
   },
 
   getMobile() {
-    return nSQL().onConnected(() => {
-      nSQL('destroyedStocks')
-        .query('select')
-        .exec()
-        .then((result) => {
-          console.log(result);
-          destroyedStockRepo.save(result);
-          return result;
-        });
-    });
+    return db[destroyedStockDexie]
+      .toArray()
+      .then((rows: any) => {
+        destroyedStockRepo.save(rows);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
+  getDestroyedStocksMobile() {
+    const rows = db[destroyedStockDexie].toArray();
+    return rows;
+  },
+
+  async getReferedStockMovimentsMobile() {
+    const rows = await db[destroyedStockDexie].toArray();
+    return rows;
   },
 
   getBystockMobile(stock: any) {

@@ -7,6 +7,8 @@ import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
+import InventoryStockAdjustmentService from '../stockAdjustment/InventoryStockAdjustmentService';
+import StockService from '../stockService/StockService';
 
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -60,12 +62,11 @@ export default {
     }
   },
   async getInventoryDrugs(id: string) {
-    return api()
-      .get('drug/getInventoryDrugs/' + id)
-      .then((resp) => {
-        closeLoading();
-        return resp.data;
-      });
+    if (isOnline.value) {
+      return await this.getInventoryDrugsWeb(id);
+    } else {
+      return await this.getInventoryDrugsMobile(id);
+    }
   },
   async patch(id: string, params: string) {
     const resp = await api().patch('drug/' + id, params);
@@ -76,6 +77,17 @@ export default {
     await api().delete('drug/' + id);
     drug.destroy(id);
   },
+
+  async getInventoryDrugsWeb(id: any) {
+    return api()
+      .get('drug/getInventoryDrugs/' + id)
+      .then((resp) => {
+        closeLoading();
+        return resp.data;
+      });
+  },
+
+  //Mobile
   getMobile() {
     return db[drugDexie]
       .toArray()
@@ -86,6 +98,32 @@ export default {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
+  },
+
+  async getDrugsByIds(drugIds: any) {
+    return await db[drugDexie].where('id').anyOf(drugIds).toArray();
+  },
+
+  async getInventoryDrugsMobile(inventoryId: any) {
+    // Step 1: Query StockAdjustments table for the given inventory ID
+    const adjustments =
+      await InventoryStockAdjustmentService.apiGetAdjustmentsByInventoryIdMobile(
+        inventoryId
+      );
+    const adjustedStockIds = adjustments.map((adj) => adj.adjustedStock.id);
+    const stocks = await StockService.getStocksByIds(adjustedStockIds);
+
+    const drugIds = stocks.map((stock) => stock.drug.id);
+    const drugs = await this.getDrugsByIds(drugIds);
+    const drugMap = new Map();
+    drugs.forEach((drug) => {
+      const key = `${drug.fnmCode}-${drug.name}-${drug.id}`;
+      if (!drugMap.has(key)) {
+        drugMap.set(key, drug);
+      }
+    });
+
+    return Array.from(drugMap.values());
   },
   addBulkMobile(params: any) {
     return db[drugDexie]

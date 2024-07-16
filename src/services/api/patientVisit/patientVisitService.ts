@@ -115,6 +115,18 @@ export default {
     return rows;
   },
 
+  async getPatientVisitMobile() {
+    const rows = await db[patientVisitDexie].toArray();
+    const records = rows.filter(
+      (row) =>
+        row.syncStatus !== undefined &&
+        row.syncStatus !== null &&
+        row.syncStatus !== ''
+    );
+
+    return records;
+  },
+
   async deleteMobile(paramsId: string) {
     try {
       await db[patientVisitDexie].delete(paramsId);
@@ -384,7 +396,7 @@ export default {
       };
 
       const visitDetails = await api().post(
-        `patientVisitDetails/getAllByPatientIds/`,
+        'patientVisitDetails/getAllByPatientIds/',
         listParams
       );
 
