@@ -4,12 +4,14 @@ import api from '../apiService/apiService';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from 'src/stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
 
 const referedStockMoviment = useRepo(ReferedStockMoviment);
+const referedStockMovimentDexie = ReferedStockMoviment.entity;
 
 export default {
   // Axios API call
@@ -125,25 +127,35 @@ export default {
 
   // MOBILE
 
+  addMobile(params: string) {
+    return db[referedStockMovimentDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        referedStockMoviment.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
+
   async putMobile(params: any) {
-    const resp = await nSQL('referedStockMoviments')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    referedStockMoviment.save(params);
-    return resp;
+    return db[referedStockMovimentDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        referedStockMoviment.save(JSON.parse(JSON.stringify(params)));
+      });
   },
 
   getMobile() {
-    return nSQL().onConnected(() => {
-      nSQL('referedStockMoviments')
-        .query('select')
-        .exec()
-        .then((result) => {
-          console.log(result);
-          referedStockMoviment.save(result);
-          return result;
-        });
-    });
+    return db[referedStockMovimentDexie]
+      .toArray()
+      .then((rows: any) => {
+        referedStockMoviment.save(rows);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  async getReferedStockMovimentsMobile() {
+    const rows = await db[referedStockMovimentDexie].toArray();
+    return rows;
   },
 
   getBystockMobile(stock: any) {

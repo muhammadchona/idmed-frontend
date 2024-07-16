@@ -29,17 +29,6 @@
             v-model="dateReceived"
             label="Data de Criação"
           >
-            <q-input
-              outlined
-              v-model="notes"
-              label="Notas"
-              ref="notesRef"
-              :disable="!isGuiaEditionStep"
-              dense
-              class="col"
-              type="textarea"
-            />
-
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy
@@ -56,6 +45,17 @@
               </q-icon>
             </template>
           </q-input>
+
+          <q-input
+            outlined
+            v-model="notes"
+            label="Notas"
+            ref="notesRef"
+            :disable="!isGuiaEditionStep"
+            dense
+            class="col"
+          />
+
           <div class="row q-mx-sm items-center" v-if="isGuiaDisplayStep">
             <q-btn
               unelevated
@@ -361,6 +361,7 @@
                 </q-icon>
               </template>
             </q-input>
+
             <q-input
               outlined
               v-model="notes"
@@ -654,7 +655,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 // import { v4 as uuidv4 } from 'uuid'
 
-// components
+// componentsgetFromBackEnd
 import TitleBar from 'components/Shared/TitleBar.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';

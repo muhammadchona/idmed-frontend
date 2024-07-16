@@ -166,6 +166,11 @@ export default {
     }
   },
 
+  async getInventoryStockAdjustmentMobile() {
+    const rows = await db[inventoryStockAdjustmentDexie].toArray();
+    return rows;
+  },
+
   async deleteMobile(id: any) {
     try {
       await db[inventoryStockAdjustmentDexie].delete(id);
@@ -188,14 +193,9 @@ export default {
   },
 
   async apiGetAdjustmentsByInventoryIdMobile(id: any) {
-    return db[inventoryStockAdjustmentDexie]
-      .where('inventory_id')
-      .equalsIgnoreCase(id)
-      .toArray()
-      .then((rows: any) => {
-        inventoryStockAdjustment.save(rows);
-        return rows;
-      });
+    const rows = await db[inventoryStockAdjustmentDexie].toArray();
+    const data = rows.filter((row) => row.inventory && row.inventory.id === id);
+    return data;
   },
   async apiGetAllMobile() {
     try {

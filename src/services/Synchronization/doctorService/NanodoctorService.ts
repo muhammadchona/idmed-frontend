@@ -1,4 +1,4 @@
-import districtService from 'src/services/api/districtService/districtService';
+import doctorService from 'src/services/api/doctorService/doctorService';
 import api from '../../api/apiService/apiService';
 
 export default {
@@ -7,7 +7,7 @@ export default {
       return await api()
         .get('doctor?offset=' + offset + '&max=100')
         .then((resp) => {
-          districtService.addBulkMobile(resp.data);
+          doctorService.addBulkMobile(resp.data);
           console.log('Data synced from backend: Doctor');
           offset = offset + 100;
           if (resp.data.length > 0) {

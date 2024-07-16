@@ -7,10 +7,12 @@ import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import Stock from '../stockService/StockService';
 import { useStock } from 'src/composables/stock/StockMethod';
+import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 
 const stockMethod = useStock();
 
 const { isMobile, isOnline } = useSystemUtils();
+const dateUtils = useDateUtils();
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
@@ -78,16 +80,34 @@ export default {
 
   calculateBalance(records: any) {
     let balance = 0;
-    records.forEach((item) => {
-      const current =
-        Number(item.incomes) -
-        Number(item.outcomes) +
-        Number(item.posetiveAdjustment) -
-        Number(item.negativeAdjustment) -
-        Number(item.loses);
-      balance = Number(current) + Number(balance);
-      item.balance = balance;
-    });
+
+    for (let i = 0; i < records.length; i++) {
+      if (i > 0) {
+        const current =
+          Number(records[i].incomes) -
+          Number(records[i].outcomes) +
+          Number(records[i].posetiveAdjustment) -
+          Number(records[i].negativeAdjustment) -
+          Number(records[i].loses);
+
+        balance = Number(records[i - 1].balance) + Number(current);
+        records[i].balance = balance;
+      } else {
+        const current =
+          Number(records[i].incomes) -
+          Number(records[i].outcomes) +
+          Number(records[i].posetiveAdjustment) -
+          Number(records[i].negativeAdjustment) -
+          Number(records[i].loses);
+
+        balance = Number(current) + Number(balance);
+        records[i].balance = balance;
+      }
+      if (records[i].month !== undefined) {
+        records[i].month = dateUtils.getMonthName(records[i].month);
+      }
+    }
+
     return records;
   },
 
@@ -120,9 +140,9 @@ export default {
     list = list.sort((a, b) => {
       const d1 = new Date(a.eventDate);
       const d2 = new Date(b.eventDate);
-      return d2 - d1;
+      return d1 - d2;
     });
-    return this.calculateBalance(list, 0);
+    return this.calculateBalance(list, 0).reverse();
   },
 
   async getDrugFileSummaryBatch(stockId: any) {
@@ -156,8 +176,8 @@ export default {
     list = list.sort((a, b) => {
       const d1 = new Date(a.eventDate);
       const d2 = new Date(b.eventDate);
-      return d2 - d1;
+      return d1 - d2;
     });
-    return this.calculateBalance(list);
+    return this.calculateBalance(list).reverse();
   },
 };

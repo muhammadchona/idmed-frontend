@@ -11,14 +11,14 @@
           @click="selectTab('inventory')"
         />
         <q-tab
-          v-if="!isClinicSector"
+          v-if="!isClinicSector && isOnline"
           name="stockDistributor"
           label="Distribuicao"
           @click="selectTab('stockDistributor')"
         >
         </q-tab>
         <q-tab
-          v-if="isClinicSector"
+          v-if="isClinicSector && isOnline"
           name="confirmDistribution"
           label="Confirmar Distribuicao"
           @click="selectTab('confirmDistribution')"
@@ -122,7 +122,9 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import drugService from 'src/services/api/drugService/drugService';
 import stockDistributorTable from 'components/Stock/stockDistributor/StockDistributorTable.vue';
 import stockConfirmationTable from 'components/Stock/stockConfirmation/StockConfirmationTable.vue';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
+const { isMobile, isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 
 const alert = ref({

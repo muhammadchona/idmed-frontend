@@ -61,16 +61,23 @@ export default {
     }
   },
 
-  async getFromBackEnd(offset: number) {
+  async getFromBackEnd(offset: number, clinicId: string) {
     if (offset >= 0) {
       return await api()
-        .get('stockEntrance?offset=' + offset + '&max=100')
+        .get(
+          '/stockEntrance/clinic/' +
+            clinicId +
+            '?offset=' +
+            offset +
+            '&max=' +
+            100
+        )
         .then((resp) => {
           this.addBulkMobile(resp.data);
           console.log('Data synced from backend: stockEntrance');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset);
+            this.getFromBackEnd(offset, clinicId);
           }
         })
         .catch((error) => {
@@ -80,11 +87,15 @@ export default {
     }
   },
 
+  async getStockEntrancesByIds(entranceIds: any) {
+    return db[stockEntranceDexie].where('id').anyOf(entranceIds).toArray();
+  },
+
   addBulkMobile(params: string) {
     return db[stockEntranceDexie]
       .bulkAdd(params)
       .then(() => {
-        stockEntrance.save(JSON.parse(params));
+        stockEntrance.save(params);
       })
       .catch((error: any) => {
         console.log(error);

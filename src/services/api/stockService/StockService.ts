@@ -46,16 +46,16 @@ export default {
     }
   },
 
-  async getFromBackEnd(offset: number) {
+  async getFromBackEnd(offset: number, clinicId: any) {
     if (offset >= 0) {
       return await api()
-        .get('stock?offset=' + offset + '&max=100')
+        .get('/stock/clinic/' + clinicId + '?offset=' + offset + '&max=100')
         .then((resp) => {
           this.addBulkMobile(resp.data);
           console.log('Data synced from backend: stock');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset);
+            this.getFromBackEnd(offset, clinicId);
           }
         })
         .catch((error) => {
@@ -127,11 +127,7 @@ export default {
     const stocks = stock
       .where('drug_id', drug.id)
       .where('clinic_id', clinicId)
-      .where((stock) => {
-        return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
-          moment().format('YYYY-MM-DD')
-        );
-      })
+
       .orderBy('expireDate', 'desc')
       .get();
     return stocks;
@@ -313,25 +309,22 @@ export default {
     }
   },
 
-  getBystockMobile(stock: any) {
-    return db[stockDexie]
+  async getStocksByIds(stockIds: any) {
+    return db[stockDexie].where('id').anyOf(stockIds).toArray();
+  },
+
+  async getBystockMobile(stockId: any) {
+    const stocks = await db[stockDexie]
       .where('id')
-      .equalsIgnoreCase(stock.id)
-      .first()
-      .then((rows: any) => {
-        stock.save(rows);
-        return rows;
-      });
+      .equalsIgnoreCase(stockId)
+      .toArray();
+    return stocks;
   },
 
   async getStocksByDrugIdMobile(drugId: any) {
-    return db[stockDexie]
-      .where('drug_id')
-      .equalsIgnoreCase(drugId)
-      .toArray()
-      .then((rows: any) => {
-        return rows;
-      });
+    const rows = await db[stockDexie].toArray();
+    const data = rows.filter((row) => row.drug && row.drug.id === drugId);
+    return data;
   },
 
   async deleteMobile(id: any) {
@@ -395,13 +388,11 @@ export default {
       });
   },
 
-  async hasStockMobile(drug: any) {
+  async hasStockMobile(drugg: any) {
     try {
-      const rows = await db[stockDexie]
-        .where('[drug.id]')
-        .equalsIgnoreCase(drug.id)
-        .toArray();
-      return rows.length > 0;
+      const rows = await db[stockDexie].toArray();
+      const stocks = rows.filter((row) => row.drug && row.drug.id === drugg.id);
+      return stocks.length > 0;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -411,7 +402,7 @@ export default {
     return db[stockDexie]
       .bulkAdd(params)
       .then(() => {
-        stock.save(JSON.parse(params));
+        stock.save(params);
       })
       .catch((error: any) => {
         console.log(error);
