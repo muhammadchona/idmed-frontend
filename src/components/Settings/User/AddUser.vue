@@ -176,6 +176,12 @@
           </q-step>
           <q-step :name="3" title="Farmacias/Sectores Clinicos">
             <div class="q-mb-md" v-if="isProvincial">
+              <q-input
+                outlined
+                v-model="filter"
+                placeholder="Search..."
+                class="q-mb-md"
+              />
               <q-table
                 title="Farmacias"
                 :rows="clinics"
@@ -186,6 +192,7 @@
                 class="my-sticky-header-table"
                 rows-per-page-options="7"
                 dense
+                :filter="filter"
               >
               </q-table>
             </div>
@@ -332,7 +339,7 @@ const isCreateStep = inject('isCreateStep');
 const user = inject('selectedUser');
 const configs = inject('configs');
 const showUserRegistrationScreen = inject('showUserRegistrationScreen');
-
+const filter = ref('');
 /*Hooks*/
 onMounted(() => {
   loadUserRelations();
@@ -340,10 +347,10 @@ onMounted(() => {
   extractDatabaseCodes();
   if (configs.value.value === 'LOCAL') {
     isProvincial.value = false;
-    user.value.clinics[0] = currClinic.value;
+    //   user.value.clinics[0] = currClinic.value;
   } else {
     isProvincial.value = true;
-    selectedClinics.value[0] = currClinic.value;
+    // selectedClinics.value[0] = currClinic.value;
   }
 });
 
@@ -366,6 +373,7 @@ const userRoles = computed(() => {
 });
 
 const clinics = computed(() => {
+  console.log(clinicService.getAllClinics());
   return clinicService.getAllClinics();
 });
 const users = computed(() => {
@@ -375,7 +383,9 @@ const clinicSectors = computed(() => {
   const allClinicSectors = clinicSectorService.getActivebyClinicId(
     currClinic.value.id
   );
-  return onlyView.value ? user.value.clinicSectors : allClinicSectors;
+  return onlyView.value
+    ? user.value.clinics.filter((cli) => cli.type === 'CLINIC_SECTOR')
+    : allClinicSectors;
 });
 
 /*Methods*/
@@ -383,8 +393,14 @@ const loadUserRelations = () => {
   if (user.value !== null && user.value !== undefined) {
     if (user.value.id !== null) {
       selectedRoles.value = user.value.authorities;
-      selectedClinics.value = user.value.clinics;
-      selectedClinicSectors.value = user.value.clinicSectors;
+      selectedClinics.value = user.value.clinics.filter(
+        (cli) => cli.type === 'CLINIC'
+      );
+      selectedClinicSectors.value = user.value.clinics.filter(
+        (cli) => cli.type === 'CLINIC_SECTOR'
+      );
+      // selectedClinicSectors.value = user.value.clinicSectors;
+      console.log(selectedClinicSectors.value);
     }
   }
 };
@@ -402,7 +418,10 @@ const goToNextStep = () => {
       stepper.value.next();
     }
   } else if (step.value === 3) {
-    if (selectedClinicSectors.value.length <= 0) {
+    if (
+      selectedClinicSectors.value.length <= 0 &&
+      selectedClinics.value.length <= 0
+    ) {
       alertError(
         'Por Favor, seleccione pelo menos uma Farmácia para dar Acesso.'
       );
@@ -421,9 +440,13 @@ const submitUser = () => {
   });
 
   user.value.roles = roless;
-  user.value.clinics = selectedClinics.value;
-  user.value.clinics.push(currClinic.value);
-  user.value.clinicSectors = selectedClinicSectors.value;
+  if (configs.value.value === 'LOCAL') {
+    user.value.clinics.push(currClinic.value);
+  } else {
+    user.value.clinics = selectedClinics.value;
+  }
+  //user.value.clinicSectors = selectedClinicSectors.value;
+  user.value.clinics.push(...selectedClinicSectors.value);
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
 

@@ -184,7 +184,7 @@ const provinces = computed(() => {
 
 const facilityTypes = computed(() => {
   if (isProvincialInstalation()) {
-    return facilityTypeService.getAllFacilityTypesWithoutUS();
+    return facilityTypeService.getFacilityTypeClinics();
   } else {
     return facilityTypeService.getAllFacilityTypes();
   }

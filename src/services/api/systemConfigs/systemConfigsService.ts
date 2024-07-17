@@ -22,11 +22,7 @@ export default {
     }
   },
   get(offset: number) {
-    if (
-      isMobile.value &&
-      !isOnline.value &&
-      this.getAllFromStorage().length < 0
-    ) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);

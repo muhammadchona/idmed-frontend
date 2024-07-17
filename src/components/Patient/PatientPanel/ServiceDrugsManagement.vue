@@ -210,7 +210,8 @@ import { debounce } from 'lodash';
 import { useDrug } from 'src/composables/drug/drugMethods';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-const { isOnline } = useSystemUtils();
+import moment from 'moment';
+const { isOnline, isMobile, website } = useSystemUtils();
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertError } = useSwal();
@@ -328,13 +329,13 @@ const getDrugById = (drugID) => {
 };
 
 const checkStock = async (packagedDrug) => {
+  const qtytoDispense = getQtyPrescribed(
+    packagedDrug,
+    curPack.value.weeksSupply
+  );
+  packagedDrug.drug = getDrugById(packagedDrug.drug.id);
+  packagedDrug.quantitySupplied = qtytoDispense;
   if (isOnline.value) {
-    packagedDrug.drug = getDrugById(packagedDrug.drug.id);
-    const qtytoDispense = getQtyPrescribed(
-      packagedDrug,
-      curPack.value.weeksSupply
-    );
-    packagedDrug.quantitySupplied = qtytoDispense;
     const resp = await StockService.checkStockStatus(
       packagedDrug.drug.id,
       curPack.value.pickupDate,
@@ -344,7 +345,11 @@ const checkStock = async (packagedDrug) => {
     qtySuppliedFlag.value = resp;
     return resp;
   } else {
-    const stocks = StockService.getStockByDrug(packagedDrug.drug.id);
+    let qtyInStock = 0;
+    const stocks = await StockService.getStockByDrug(
+      packagedDrug.drug.id,
+      clinicService.currClinic().id
+    );
     console.log(stocks);
     const validStock = stocks.filter((item) => {
       return moment(item.expireDate) >= moment(curPack.value.pickupDate);

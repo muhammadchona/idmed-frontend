@@ -60,7 +60,11 @@
               label="Pacientes/Utentes"
             />
             <q-route-tab
-              v-if="menusVisible('Grupos') && !isProvincialInstalation()"
+              v-if="
+                menusVisible('Grupos') &&
+                !isProvincialInstalation() &&
+                !isPharmacyDDD()
+              "
               exact
               :to="'/group/search'"
               name="groups"
@@ -68,7 +72,7 @@
               label="Grupos"
             />
             <q-route-tab
-              v-if="menusVisible('Stock') && !isProvincialInstalation()"
+              v-if="menusVisible('Stock')"
               exact
               :to="'/stock'"
               name="stock"
@@ -113,7 +117,8 @@
                 menusVisible('Migração') &&
                 activateMigration &&
                 website &&
-                !isProvincialInstalation()
+                !isProvincialInstalation() &&
+                !isPharmacyDDD()
               "
               exact
               :to="'/migration'"
@@ -122,7 +127,11 @@
               label="Migração"
             />
             <q-route-tab
-              v-if="menusVisible('DCProvedor') && !isProvincialInstalation()"
+              v-if="
+                menusVisible('DCProvedor') &&
+                !isProvincialInstalation() &&
+                !isPharmacyDDD()
+              "
               exact
               :to="'/loadfiledc'"
               name="migration"
@@ -155,7 +164,7 @@
                   </q-item-label>
                 </q-item-section>
               </q-item>
-              <q-item clickable v-if="mobile">
+              <q-item clickable v-if="website">
                 <q-item-section avatar clickable @click="sync()">
                   <q-avatar icon="sync"> </q-avatar>
                 </q-item-section>
@@ -205,7 +214,7 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 const { website } = useSystemUtils();
-const { isProvincialInstalation } = useSystemConfig();
+const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
 const userInfoOpen = ref(false);
 const onMainClick = ref('');
 const onItemClick = ref('');
@@ -320,7 +329,7 @@ const menusVisible = (name) => {
 };
 
 const sync = async () => {
-  getGroupsToSend();
+  // getGroupsToSend();
   getPatientsToSend();
 };
 provide('stockDistributionCount', stockDistributionCount);

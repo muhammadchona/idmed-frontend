@@ -153,7 +153,7 @@ export function sendData() {
           console.log(error);
         });
     } else {
-      getGroupsToSend();
+      // getGroupsToSend();
     }
   }
 

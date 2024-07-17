@@ -81,7 +81,7 @@
             <div class="row q-my-md">
               <q-space />
               <q-btn
-                v-if="!showEndDetails"
+                v-if="!showEndDetails && !isPharmacyDDD()"
                 unelevated
                 color="orange-5"
                 label="Editar"
@@ -89,7 +89,7 @@
                 class="float-right"
               />
               <q-btn
-                v-if="!showEndDetails"
+                v-if="!showEndDetails && !isPharmacyDDD()"
                 unelevated
                 color="red"
                 label="Fechar"
@@ -163,7 +163,7 @@ const props = defineProps(['identifierId', 'serviceId']);
 
 // Declaration
 const { hasVisits, isCloseEpisode, isDCReferenceEpisode } = useEpisode();
-const { isProvincialInstalation } = useSystemConfig();
+const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
 const { canBeEdited } = usePatientServiceIdentifier();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { preferedIdentifierValue, fullName } = usePatient();

@@ -138,7 +138,7 @@
             v-model="episode.clinicSector"
             :options="mobileClinicSector"
             option-value="id"
-            option-label="description"
+            option-label="clinicName"
             label="Sector Clinico *"
           />
           <q-input
@@ -268,7 +268,7 @@
               :rules="[
                 (val) => !!val || 'Por favor indicar o destino do paciente.',
               ]"
-              v-model="closureEpisode.referralClinic"
+              v-model="selectedClinicSector"
               :options="referralClinics"
               option-value="id"
               option-label="clinicName"
@@ -549,7 +549,8 @@ const clinicSerctors = computed(() => {
 });
 
 const mobileClinicSector = computed(() => {
-  const clinicSectorCode = localStorage.getItem('clinic_sector_users');
+  const clinicSectorCode = localStorage.getItem('clinicUsers');
+  console.log(clinicSectorService.getClinicSectorByCode(clinicSectorCode));
   return clinicSectorService.getClinicSectorByCode(clinicSectorCode);
 });
 
@@ -810,11 +811,13 @@ const doSave = async () => {
     episode.value.patientVisitDetails = [];
     episode.value.patientServiceIdentifier = {};
     episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
+    episode.value.patientServiceIdentifier_id = curIdentifier.value.id;
   } else {
     episode.value.clinicSector_id = episode.value.clinicSector.id;
     const clinicSectorId = episode.value.clinicSector.id;
     episode.value.clinicSector = {};
     episode.value.clinicSector.id = clinicSectorId;
+    episode.value.clinicSector_id = clinicSectorId;
     episode.value.clinic = {};
     episode.value.clinic.id = currClinic.value.id;
     episode.value.episodeDate = isClosingEpisode.value
@@ -823,15 +826,19 @@ const doSave = async () => {
     episode.value.patientVisitDetails = [];
     closureEpisode.value.patientServiceIdentifier = {};
     closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
+    closureEpisode.value.patientServiceIdentifier_id = curIdentifier.value.id;
     episode.value.patientVisitDetails = [];
     episode.value.patientServiceIdentifier = {};
     episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
+    episode.value.patientServiceIdentifier_id = curIdentifier.value.id;
     if (isClosingEpisode.value) {
       episode.value.isLast = false;
       closureEpisode.value.clinicSector =
         selectedClinicSector.value !== null
           ? selectedClinicSector.value
           : episode.value.clinicSector;
+      closureEpisode.value.clinicSector_id =
+        closureEpisode.value.clinicSector.id;
       closureEpisode.value.isLast = true;
       closureEpisode.value.episodeType =
         episodeTypeService.getEpisodeTypeByCode('FIM');

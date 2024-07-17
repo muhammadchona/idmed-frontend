@@ -15,6 +15,7 @@ import packService from '../pack/packService';
 import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
 import episodeService from '../episode/episodeService';
 import ChunkArray from 'src/utils/ChunkArray';
+import useNotify from 'src/composables/shared/notify/UseNotify';
 
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = PatientVisit.entity;
@@ -22,6 +23,7 @@ const patientVisitDexie = PatientVisit.entity;
 const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+const { notifySuccess } = useNotify();
 
 export default {
   post(params: string) {
@@ -31,8 +33,8 @@ export default {
       return this.postWeb(params);
     }
 
-    //  params.syncStatus = 'R';
-    // return this.addMobile(params);
+    // params.syncStatus = 'R';
+    //return this.addMobile(params);
     // return this.postWeb(params);
   },
   get(offset: number) {
@@ -164,22 +166,21 @@ export default {
   },
 
   async apiGetAllByPatientId(patientId: string) {
-    /*
     if (isMobile.value && !isOnline.value) {
-      db[patientVisitDexie]
+      const resp = await db[patientVisitDexie]
         .where('patientId')
         .equalsIgnoreCase(patientId)
-        .then((result: any) => {
-          patientVisit.save(result);
-          return result;
-        });
+        .toArray();
+      patientVisit.save(resp);
+      return resp;
     } else {
       const resp = await api().get('/patientVisit/patient/' + patientId);
       patientVisit.save(resp.data);
+      return resp.data;
     }
-    */
-    const resp = await api().get('/patientVisit/patient/' + patientId);
-    patientVisit.save(resp.data);
+
+    //  const resp = await api().get('/patientVisit/patient/' + patientId);
+    // patientVisit.save(resp.data);
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
@@ -384,7 +385,7 @@ export default {
     console.log(ids);
     // ids.push(clinicSector);
 
-    const limit = 10; // Define your limit
+    const limit = 100; // Define your limit
     const offset = 0; // Define your offset
 
     const chunks = ChunkArray.chunkArrayWithOffset(ids, limit, offset);
@@ -428,7 +429,14 @@ export default {
 
     const episodes = await episodeService.getEpisodeByIds(episodeIds);
     console.log(episodes);
+    const resp = await this.apiGetAllLastWithScreeningOfClinic(
+      clinicSector.id,
+      0,
+      100
+    );
+    this.addBulkMobile(resp.data);
     closeLoading();
+    notifySuccess('Carregamento de Dispensas Terminado');
     /*
     const idsVisit = visits.data.map((vis: any) => vis.patientVisitId);
     const idsPrescription = visits.data.map((vis: any) => vis.prescriptionId);

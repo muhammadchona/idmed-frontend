@@ -227,8 +227,18 @@ export default {
     return prescription.destroy(prescriptionId);
   },
 
+  async getAllMobileByIds(prescriptionIds: any) {
+    const resp = await db[prescriptionDexie]
+      .where('id')
+      .anyOf(prescriptionIds)
+      .toArray();
+
+    prescription.save(resp);
+    return resp;
+  },
+
   async getPrescriptionsByIds(prescriptionIds: any) {
-    const limit = 10; // Define your limit
+    const limit = 100; // Define your limit
     const offset = 0;
 
     const chunks = ChunkArray.chunkArrayWithOffset(

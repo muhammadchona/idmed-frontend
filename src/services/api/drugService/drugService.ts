@@ -24,26 +24,30 @@ export default {
     alertSucess('O Registo foi efectuado com sucesso');
   },
   get(offset: number) {
-    if (offset >= 0) {
-      // showloading();
-      return (
-        api()
-          .get('drug?offset=' + offset + '&max=100', {
-            onDownloadProgress(progressEvent) {
-              // showloading();
-            },
-          })
-          // .get('drug?offset=' + offset + '&max=100')
-          .then((resp) => {
-            drug.save(resp.data);
-            offset = offset + 100;
-            if (resp.data.length > 0) {
-              this.get(offset);
-            } else {
-              closeLoading();
-            }
-          })
-      );
+    if (isMobile.value && !isOnline.value) {
+      this.getMobile();
+    } else {
+      if (offset >= 0) {
+        // showloading();
+        return (
+          api()
+            .get('drug?offset=' + offset + '&max=100', {
+              onDownloadProgress(progressEvent) {
+                // showloading();
+              },
+            })
+            // .get('drug?offset=' + offset + '&max=100')
+            .then((resp) => {
+              drug.save(resp.data);
+              offset = offset + 100;
+              if (resp.data.length > 0) {
+                this.get(offset);
+              } else {
+                closeLoading();
+              }
+            })
+        );
+      }
     }
   },
   getFromProvincial(offset: number) {
