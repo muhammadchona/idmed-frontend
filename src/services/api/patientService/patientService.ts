@@ -6,6 +6,15 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import db from '../../../stores/dexie';
 import clinicSectorService from '../clinicSectorService/clinicSectorService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import clinicService from '../clinicService/clinicService';
+import useNotify from 'src/composables/shared/notify/UseNotify';
+import patientVisitService from '../patientVisit/patientVisitService';
+import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
+import episodeService from '../episode/episodeService';
+import prescriptionService from '../prescription/prescriptionService';
+import packService from '../pack/packService';
+import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
 
 const patient = useRepo(Patient);
 const patientDexie = Patient.entity;
@@ -13,6 +22,8 @@ const patientDexie = Patient.entity;
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
+const { notifySuccess } = useNotify();
 
 export default {
   post(params: string) {
@@ -269,29 +280,39 @@ export default {
     const data2 = clinicSectorService.getAllClinicSectors();
     console.log(data);
     console.log(data2);
-    const clinicSectorUser = clinicSectorService.getClinicSectorByCode(
-      sessionStorage.getItem('clinic_sector_users')
-    );
+    let clinicSectorUser;
+    if (isPharmacyDDD(clinicService.currClinic())) {
+      clinicSectorUser = clinicService.currClinic();
+    } else {
+      clinicSectorUser = clinicSectorService.getClinicSectorByCode(
+        localStorage.getItem('clinicUsers')
+      );
+    }
+
     if (clinicSectorUser === null || clinicSectorUser === undefined) {
       alertError(
         'O Utilizador logado nao pertence a nenhum sector clinico , não terá informação carregada do Servidor'
       );
     }
 
-    console.log('sector' + clinicSectorUser);
-    console.log('sectorId' + clinicSectorUser.id);
     const resp = await this.fetchAllPatientsByClinicSectorId(
       clinicSectorUser.id
     );
-    console.log('PacientesSector' + resp);
+    // console.log('PacientesSector' + resp);
     // alertSucess(resp.data);
+    /*
+    resp.forEach((p1) => {
+      console.log(p1.id);
+      this.addMobile(p1);
+    });*/
     this.addBulkMobile(resp);
+    notifySuccess('Carregamento de Pacientes Terminado');
     return resp;
   },
 
   async fetchAllPatientsByClinicSectorId(clinicSectorId: any) {
     let offset = 0;
-    const max = 15; // You can adjust this number based on your API's limits
+    const max = 100; // You can adjust this number based on your API's limits
     let allPatients = [];
     let hasMorePatients = true;
 
@@ -462,5 +483,40 @@ export default {
         console.log('PACIENTES: ', row);
         return row;
       });
+  },
+
+  async getPatientMobileWithAllByPatientId(patient: any) {
+    const patientServices =
+      await patientServiceIdentifierService.getAllMobileByPatientId(patient.id);
+
+    const patientServicesIds = patientServices.map((pat: any) => pat.id);
+
+    await episodeService.getAllMobileByPatientServiceIds(patientServicesIds);
+    const patientVisits = await patientVisitService.apiGetAllByPatientId(
+      patient.id
+    );
+    console.log(patientVisits);
+
+    const ids = patientVisits.map((pat: any) => pat.id);
+    const patientVisitDetails =
+      await patientVisitDetailsService.getAllMobileByVisitId(ids);
+    console.log(patientVisitDetails);
+    // const epsiodeIds = patientVisitDetails.map((pat: any) => pat.episode.id);
+    const episodeIds = patient.identifiers.flatMap((data1: any) =>
+      data1.episodes.map((episode: any) => episode.id)
+    );
+    const prescriptionIds = patientVisitDetails.map(
+      (pat: any) => pat.prescription.id
+    );
+    const packIds = patientVisitDetails.map((pat: any) => pat.pack.id);
+    const epsiodes = await episodeService.getAllMobileByIds(episodeIds);
+    console.log(epsiodes);
+
+    const prescriptions = await prescriptionService.getAllMobileByIds(
+      prescriptionIds
+    );
+    console.log(prescriptions);
+    const packs = await packService.getAllMobileByIds(packIds);
+    console.log(packs);
   },
 };

@@ -425,7 +425,7 @@ import clinicSectorService from 'src/services/api/clinicSectorService/clinicSect
 import { usePatientVisitDetail } from 'src/composables/patient/patientVisitDetailsMethods';
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import { v4 as uuidv4 } from 'uuid';
-
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 // Declaration
 const { hasPreferedId } = usePatient();
 const { hasVisits } = useEpisode();
@@ -442,6 +442,7 @@ const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { fullName, age } = usePatient();
 const { lastPack } = usePatientVisitDetail();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
+const { isMobile, isOnline } = useSystemUtils();
 const submitting = ref(false);
 const identifierstartDate = ref('');
 const identifier = ref(new PatientServiceIdentifier({ id: uuidv4() }));
@@ -833,6 +834,19 @@ const doSave = async () => {
       ).value;
   }
 
+  if (isMobile.value && !isOnline.value) {
+    if (
+      identifier.value.syncStatus === '' ||
+      identifier.value.syncStatus === 'R'
+    ) {
+      identifier.value.syncStatus = 'R';
+    } else if (identifier.value.syncStatus === 'S') {
+      identifier.value.syncStatus = 'U';
+    }
+    identifier.value.patient_id = patient.value.id;
+    identifier.value.service_id = identifier.value.service.id;
+    identifier.value.identifier_type_id = identifier.value.identifierType.id;
+  }
   await patientServiceIdentifierService
     .apiSave(identifier.value, isCreateStep.value)
     .then((resp) => {

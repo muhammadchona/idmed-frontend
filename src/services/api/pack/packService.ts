@@ -275,8 +275,15 @@ export default {
     return counter > 0;
   },
 
+  async getAllMobileByIds(packIds: any) {
+    const resp = await db[packDexie].where('id').anyOf(packIds).toArray();
+
+    pack.save(resp);
+    return resp;
+  },
+
   async getPacksByIds(packIds: any) {
-    const limit = 10; // Define your limit
+    const limit = 100; // Define your limit
     const offset = 0;
 
     const chunks = ChunkArray.chunkArrayWithOffset(packIds, limit, offset);

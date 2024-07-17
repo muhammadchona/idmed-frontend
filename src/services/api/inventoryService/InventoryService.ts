@@ -72,7 +72,7 @@ export default {
   },
 
   async isInventoryPeriod(clinicId: any) {
-    if (isOnline) {
+    if (isOnline.value) {
       return api()
         .get('inventory/isInventoryPeriod/' + clinicId)
         .then((resp) => {

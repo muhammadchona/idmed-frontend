@@ -14,7 +14,6 @@ import packService from '../pack/packService';
 import ChunkArray from 'src/utils/ChunkArray';
 import clinicService from '../clinicService/clinicService';
 
-
 const episode = useRepo(Episode);
 const episodeDexie = Episode.entity;
 
@@ -94,7 +93,7 @@ export default {
     return db[episodeDexie]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        episode.save(JSON.parse(params));
+        episode.save(params);
       })
       .catch((error: any) => {
         console.log(error);
@@ -139,7 +138,7 @@ export default {
   },
   addBulkMobile(params: any) {
     return db[episodeDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         episode.save(params);
       })
@@ -218,6 +217,23 @@ export default {
         return result;
       });
   },
+  async getAllMobileByIds(episodeIds: any) {
+    const resp = await db[episodeDexie].where('id').anyOf(episodeIds).toArray();
+
+    episode.save(resp);
+    return resp;
+  },
+
+  async getAllMobileByPatientServiceIds(patientServiceIds: []) {
+    const resp = await db[episodeDexie]
+      .where('patientServiceIdentifier_id')
+      .anyOf(patientServiceIds)
+      .toArray();
+
+    episode.save(resp);
+    return resp;
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return episode.getModel().$newInstance();
@@ -355,12 +371,11 @@ export default {
       .first();
   },
 
-
   async doEpisodesBySectorGet() {
     await clinicService.getMobile();
     console.log('user_sector' + localStorage.getItem('clinic_sector_users'));
     const clinicSectorUser = clinicService.getByCode(
-      sessionStorage.getItem('clinic_sector_users')
+      sessionStorage.getItem('clinicUsers')
     );
     this.apiGetLastByClinicSectorId(clinicSectorUser.id).then(async (resp) => {
       if (resp.data.length > 0) {
@@ -398,14 +413,12 @@ export default {
           }
           closeLoading();
         });
-        // offset = offset + max
-        // setTimeout(this.doEpisodesGet(clinicId, offset, max), 2)
       }
     });
   },
 
   async getEpisodeByIds(episodeIds: any) {
-    const limit = 10; // Define your limit
+    const limit = 100; // Define your limit
     const offset = 0;
 
     const chunks = ChunkArray.chunkArrayWithOffset(episodeIds, limit, offset);

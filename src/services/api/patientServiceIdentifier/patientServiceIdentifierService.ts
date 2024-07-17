@@ -125,6 +125,14 @@ export default {
         console.log(error);
       });
   },
+  async getAllMobileByPatientId(patientId: string) {
+    const resp = await db[patientServiceIdentifierDexie]
+      .where('patient_id')
+      .equalsIgnoreCase(patientId)
+      .toArray();
+    patientServiceIdentifier.save(resp);
+    return resp;
+  },
   async apiSave(identifier: any, isNew: boolean) {
     if (isNew) {
       return await this.post(identifier);

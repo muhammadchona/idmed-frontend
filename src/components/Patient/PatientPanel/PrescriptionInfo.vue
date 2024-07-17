@@ -43,7 +43,8 @@ const {
   hasNoObitOrTransferedForEpisode,
 } = usePatient();
 const { website, isDeskTop, isMobile } = useSystemUtils();
-const { isProvincialInstalation } = useSystemConfig();
+const { isProvincialInstalation, isProvincialInstalationDDD } =
+  useSystemConfig();
 const { closeLoading, showloading } = useLoading();
 const showAddPrescription = ref(false);
 const isNewPrescription = ref(false);

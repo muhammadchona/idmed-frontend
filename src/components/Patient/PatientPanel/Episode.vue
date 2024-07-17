@@ -81,8 +81,8 @@
                 class="col text-grey-8"
               >
                 {{
-                  currEpisode.referralClinic !== null
-                    ? currEpisode.referralClinic.clinicName
+                  currEpisode.clinicSector !== null
+                    ? currEpisode.clinicSector.clinicName
                     : ''
                 }}
               </div>
@@ -119,7 +119,7 @@
             v-if="props.isLast && isLastEpisode && !isCloseEpisode(currEpisode)"
           >
             <q-btn
-              v-if="canEdit"
+              v-if="canEdit && !isPharmacyDDD()"
               @click="removeEpisode"
               dense
               unelevated
@@ -128,7 +128,7 @@
               class="float-right q-ml-md"
             />
             <q-btn
-              v-if="!canEdit"
+              v-if="!canEdit && !isPharmacyDDD()"
               @click="closeEpisode"
               dense
               unelevated
@@ -137,7 +137,7 @@
               class="float-right q-ml-md"
             />
             <q-btn
-              v-if="canEdit"
+              v-if="canEdit && !isPharmacyDDD()"
               @click="editEpisode"
               dense
               unelevated
@@ -165,6 +165,7 @@ import AddEditEpisode from 'components/Patient/PatientPanel/AddEditEpisode.vue';
 import { computed, provide, inject, ref } from 'vue';
 // import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import packService from 'src/services/api/pack/packService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const {
   isReferenceEpisode,
@@ -175,6 +176,7 @@ const {
   isStartEpisode,
 } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
+const { isPharmacyDDD } = useSystemConfig();
 //Props
 const props = defineProps(['episodeId', 'isLast']);
 //Inject

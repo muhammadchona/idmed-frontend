@@ -102,7 +102,9 @@ export default {
   },
 
   // PINIA
-  getStockByDrug(drugId: string, clinicId: any) {
+  async getStockByDrug(drugId: string, clinicId: any) {
+    await this.getMobile();
+    console.log(stock.all());
     return stock
       .where('drug_id', drugId)
       .where('clinic_id', clinicId)
@@ -233,7 +235,7 @@ export default {
     qtyPrescribed: any,
     clinicId: any
   ) {
-    if (isOnline) {
+    if (isOnline.value) {
       if (date !== '') {
         return api()
           .get(
@@ -255,7 +257,7 @@ export default {
       }
     } else {
       let qtyInStock = 0;
-      const stocks = this.getStockByDrug(idPrescribedDrug);
+      const stocks = await this.getStockByDrug(idPrescribedDrug, clinicId);
       const validStock = stocks.filter((item) => {
         return moment(item.expireDate) >= moment(date);
       });

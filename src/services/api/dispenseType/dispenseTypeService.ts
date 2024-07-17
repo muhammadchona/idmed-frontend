@@ -3,11 +3,12 @@ import api from '../apiService/apiService';
 import DispenseType from 'src/stores/models/dispenseType/DispenseType';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
-
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 const { closeLoading, showloading } = useLoading();
 
 const dispenseType = useRepo(DispenseType);
 const dispenseTypeDexie = DispenseType.entity;
+const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   // Axios API call
@@ -16,18 +17,22 @@ export default {
     dispenseType.save(resp.data);
   },
   get(offset: number) {
-    if (offset >= 0) {
-      return api()
-        .get('dispenseType?offset=' + offset + '&max=100')
-        .then((resp) => {
-          dispenseType.save(resp.data);
-          offset = offset + 100;
-          if (resp.data.length > 0) {
-            this.get(offset);
-          } else {
-            closeLoading();
-          }
-        });
+    if (isMobile.value && !isOnline.value) {
+      this.getMobile();
+    } else {
+      if (offset >= 0) {
+        return api()
+          .get('dispenseType?offset=' + offset + '&max=100')
+          .then((resp) => {
+            dispenseType.save(resp.data);
+            offset = offset + 100;
+            if (resp.data.length > 0) {
+              this.get(offset);
+            } else {
+              closeLoading();
+            }
+          });
+      }
     }
   },
   async patch(id: number, params: string) {

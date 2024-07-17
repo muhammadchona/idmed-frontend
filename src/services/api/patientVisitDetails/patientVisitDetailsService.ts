@@ -125,6 +125,16 @@ export default {
         console.log(error);
       });
   },
+
+  async getAllMobileByVisitId(visitIds: []) {
+    const resp = await db[patientVisitDetailsDexie]
+      .where('patientVisitId')
+      .anyOf(visitIds)
+      .toArray();
+
+    patientVisitDetails.save(resp);
+    return resp;
+  },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisitDetails/${id}`);
   },

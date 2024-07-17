@@ -203,11 +203,15 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
-const { isProvincialInstalation } = useSystemConfig();
+const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
 
 const { loadSettingParams, loadPatientData } = useOnline();
 
-const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
+const {
+  loadPatientDataToOffline,
+  loadSettingParamsToOffline,
+  loadSettingParamsInOfflineMode,
+} = useOffline();
 const { alertWarningTitle } = useSwal();
 
 const stockDistributionCount = inject('stockDistributionCount');
@@ -219,6 +223,10 @@ const clinic = computed(() => {
 
 const isClinicSector = computed(() => {
   return clinicService.isClinicSector(clinic.value);
+});
+
+const isPrivatePharmacy = computed(() => {
+  return clinicService.isPrivatePharmacy(clinic.value);
 });
 
 const getStockDistributionCount = (clinic) => {
@@ -243,7 +251,9 @@ const menusVisible = (name) => {
     }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // await loadSettingParams();
+  /*
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
     loadSettingParams();
@@ -256,8 +266,40 @@ onMounted(() => {
       }, 5000);
     }
   }
-  console.log(clinic.value);
+  */
+  /*
+  setTimeout(() => {
+    console.log(isOnline.value);
+    if (isPharmacyDDD(clinic.value)) {
+      showloading();
+      // loadSettingParamsToOffline();
+      setTimeout(() => {
+        //   loadPatientDataToOffline();
+      }, 5000);
+    }
+  }, 1000);
+
   console.log(isClinicSector.value);
+  // console.log(isPrivatePharmacy.value);
+  */
+  console.log(isOnline.value);
+  if (website.value || (isMobile.value && isOnline.value)) {
+    showloading();
+    loadSettingParams();
+  } else {
+    await patientService.getMobile();
+    console.log(patientService.getAllFromStorage().length);
+    if (patientService.getAllFromStorage().length <= 0) {
+      showloading();
+      loadSettingParamsToOffline();
+      //  loadSettingParamsInOfflineMode();
+      setTimeout(() => {
+        loadPatientDataToOffline();
+      }, 5000);
+    } else {
+      loadSettingParams();
+    }
+  }
 });
 
 watch(clinic, () => {
@@ -274,7 +316,7 @@ watch(clinic, () => {
         );
       }
     });
-    getStockDistributionCount(clinic.value);
+    // getStockDistributionCount(clinic.value);
   }
 });
 </script>

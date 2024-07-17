@@ -196,11 +196,12 @@ export default {
 
   /*PINIA*/
   currClinic() {
-    const clinicSectorUser = SessionStorage.getItem('clinic_sector_users');
-    if (clinicSectorUser === null || clinicSectorUser.includes('NORMAL')) {
+    const clinicUser = localStorage.getItem('clinicUsers');
+    // const pharmacyUser = SessionStorage.getItem('clinicUsers');
+    if (clinicUser === 'undefined' || clinicUser.includes('NORMAL')) {
       return clinic.withAllRecursive(2).where('mainClinic', true).first();
-    } else {
-      return this.getByCode(clinicSectorUser);
+    } else if (clinicUser !== null) {
+      return this.getByCode(clinicUser);
     }
   },
 
@@ -339,5 +340,9 @@ export default {
 
   isClinicSector(currClinic: Clinic) {
     return currClinic && !!currClinic.parentClinic_id;
+  },
+
+  isPrivatePharmacy(currClinic: Clinic) {
+    return currClinic && currClinic.facilityType.code == 'FP';
   },
 };
