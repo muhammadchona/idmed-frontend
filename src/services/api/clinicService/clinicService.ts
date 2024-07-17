@@ -198,7 +198,11 @@ export default {
   currClinic() {
     const clinicUser = localStorage.getItem('clinicUsers');
     // const pharmacyUser = SessionStorage.getItem('clinicUsers');
-    if (clinicUser === 'undefined' || clinicUser.includes('NORMAL')) {
+    if (
+      clinicUser === 'undefined' ||
+      clinicUser === '' ||
+      clinicUser.includes('NORMAL')
+    ) {
       return clinic.withAllRecursive(2).where('mainClinic', true).first();
     } else if (clinicUser !== null) {
       return this.getByCode(clinicUser);
