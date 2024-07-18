@@ -102,9 +102,7 @@ export default {
   },
 
   // PINIA
-  async getStockByDrug(drugId: string, clinicId: any) {
-    await this.getMobile();
-    console.log(stock.all());
+  getStockByDrug(drugId: string, clinicId: any) {
     return stock
       .where('drug_id', drugId)
       .where('clinic_id', clinicId)
@@ -420,14 +418,21 @@ export default {
       });
   },
 
-  getValidStockByDrugAndPickUpDateOnline(drugId: string, pickupDate: any) {
-    return api()
-      .get('stock/getValidStocks/' + drugId + '/' + pickupDate)
-      .then((resp) => {
-        closeLoading();
-        stock.save(resp.data);
-        return resp.data;
-      });
+  async getValidStockByDrugAndPickUpDateOnline(
+    drugId: string,
+    pickupDate: any
+  ) {
+    if (isMobile.value && !isOnline.value) {
+      return this.getValidStockByDrugAndPickUpDate(drugId, pickupDate);
+    } else {
+      return api()
+        .get('stock/getValidStocks/' + drugId + '/' + pickupDate)
+        .then((resp) => {
+          closeLoading();
+          stock.save(resp.data);
+          return resp.data;
+        });
+    }
   },
 
   // Local Storage Pinia

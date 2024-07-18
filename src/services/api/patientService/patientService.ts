@@ -276,11 +276,9 @@ export default {
     );
   },
   async doPatientsBySectorGet() {
-    const data = await clinicSectorService.getMobile();
     const data2 = clinicSectorService.getAllClinicSectors();
-    console.log(data);
-    console.log(data2);
-    let clinicSectorUser;
+    let clinicSectorUser = clinicService.currClinic();
+    /*
     if (isPharmacyDDD(clinicService.currClinic())) {
       clinicSectorUser = clinicService.currClinic();
     } else {
@@ -288,7 +286,7 @@ export default {
         localStorage.getItem('clinicUsers')
       );
     }
-
+*/
     if (clinicSectorUser === null || clinicSectorUser === undefined) {
       alertError(
         'O Utilizador logado nao pertence a nenhum sector clinico , não terá informação carregada do Servidor'
@@ -298,13 +296,7 @@ export default {
     const resp = await this.fetchAllPatientsByClinicSectorId(
       clinicSectorUser.id
     );
-    // console.log('PacientesSector' + resp);
-    // alertSucess(resp.data);
-    /*
-    resp.forEach((p1) => {
-      console.log(p1.id);
-      this.addMobile(p1);
-    });*/
+
     this.addBulkMobile(resp);
     notifySuccess('Carregamento de Pacientes Terminado');
     return resp;

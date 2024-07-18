@@ -574,25 +574,17 @@ const goToPatientPanel = async (patient) => {
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
   // localStorage.setItem('patientuuid', currPatient.value.id);
-  /*
-  await patientServiceIdentifierService.getMobile();
-  await episodeService.getMobile();
-  await prescriptionService.getMobile();
-  await patientVisitDetailsService.getMobile();
-  await patientVisitService.getMobile();
-  await packService.getMobile();
-  //  await drugService.getMobile();
-  // await clinicalServiceService.getMobile();
-*/
-
   if (isMobile.value && !isOnline.value) {
-    //   await patientServiceIdentifierService.getMobile();
-    //  await episodeService.getMobile();
-    // await prescriptionService.getMobile();
-    //  await patientVisitDetailsService.getMobile();
-    //  await packService.getMobile();
-    // await drugService.getMobile();
-    // await clinicalServiceService.getMobile();
+    /*
+    await patientService.getMobile();
+    await patientServiceIdentifierService.getMobile();
+    await episodeService.getMobile();
+    await prescriptionService.getMobile();
+    await patientVisitDetailsService.getMobile();
+    await packService.getMobile();
+    await drugService.getMobile();
+    await clinicalServiceService.getMobile();
+    */
     await patientService.getPatientMobileWithAllByPatientId(currPatient.value);
   } else {
     localStorage.setItem('patientuuid', currPatient.value.id);
