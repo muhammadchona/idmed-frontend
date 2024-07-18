@@ -368,8 +368,7 @@ onMounted(() => {
 
 const stocks = (drug) => {
   const clinic = clinicService.currClinic();
-  const stocks = StockService.getStockByDrug(drug.id, clinic.id);
-  return stocks;
+  return StockService.getStockByDrugAndClinic(drug.id, clinic.id);
 };
 
 const drugFile = () => {
