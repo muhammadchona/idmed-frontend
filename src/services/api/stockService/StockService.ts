@@ -409,14 +409,21 @@ export default {
       });
   },
 
-  getValidStockByDrugAndPickUpDateOnline(drugId: string, pickupDate: any) {
-    return api()
-      .get('stock/getValidStocks/' + drugId + '/' + pickupDate)
-      .then((resp) => {
-        closeLoading();
-        stock.save(resp.data);
-        return resp.data;
-      });
+  async getValidStockByDrugAndPickUpDateOnline(
+    drugId: string,
+    pickupDate: any
+  ) {
+    if (isMobile.value && !isOnline.value) {
+      return this.getValidStockByDrugAndPickUpDate(drugId, pickupDate);
+    } else {
+      return api()
+        .get('stock/getValidStocks/' + drugId + '/' + pickupDate)
+        .then((resp) => {
+          closeLoading();
+          stock.save(resp.data);
+          return resp.data;
+        });
+    }
   },
 
   // Local Storage Pinia
