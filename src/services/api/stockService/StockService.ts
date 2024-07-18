@@ -102,9 +102,7 @@ export default {
   },
 
   // PINIA
-  async getStockByDrug(drugId: string, clinicId: any) {
-    await this.getMobile();
-    console.log(stock.all());
+  getStockByDrug(drugId: string, clinicId: any) {
     return stock
       .where('drug_id', drugId)
       .where('clinic_id', clinicId)
