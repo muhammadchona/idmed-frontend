@@ -166,9 +166,10 @@ export default {
     }
   },
 
-  async getInventoryStockAdjustmentMobile() {
+  async getAllFinalizedInventoryStockAdjustmentMobile() {
     const rows = await db[inventoryStockAdjustmentDexie].toArray();
-    return rows;
+    const data = rows.filter((row) => row.inventory && row.finalised === true);
+    return data;
   },
 
   async deleteMobile(id: any) {

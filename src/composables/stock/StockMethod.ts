@@ -218,7 +218,7 @@ export function useStock() {
 
     // Query inventoryStockAdjustments table to get all records
     const result =
-      await InventoryStockAdjustmentService.getInventoryStockAdjustmentMobile();
+      await InventoryStockAdjustmentService.getAllFinalizedInventoryStockAdjustmentMobile();
 
     // Process the result
     for (const adjustment of result) {
@@ -328,7 +328,34 @@ export function useStock() {
       recordFileList.push(recordFile);
     }
 
-    return recordFileList;
+    const resultList = [];
+    recordFileList.reduce((res, recordFile) => {
+      const key = `${recordFile.year}-${recordFile.month}`;
+      if (!res[key]) {
+        res[key] = {
+          id: recordFile.id,
+          year: recordFile.year,
+          month: recordFile.month,
+          posetiveAdjustment: 0,
+          negativeAdjustment: 0,
+          eventDate: recordFile.creationDate,
+          moviment: 'Entrada de Stock',
+          orderNumber: '',
+          incomes: 0,
+          outcomes: 0,
+          loses: recordFile.loses,
+          balance: recordFile.balance,
+          code: recordFile.code,
+          stockId: recordFile.stockId,
+          notes: recordFile.notes,
+        };
+        resultList.push(res[key]);
+      }
+      res[key].incomes += recordFile.incomes;
+      return res;
+    }, {});
+
+    return resultList;
   }
 
   async function getPacksDrugFile(drug: any) {
@@ -366,7 +393,34 @@ export function useStock() {
       }
     }
 
-    return recordFileList;
+    const resultList = [];
+    recordFileList.reduce((res, recordFile) => {
+      const key = `${recordFile.year}-${recordFile.month}`;
+      if (!res[key]) {
+        res[key] = {
+          id: recordFile.id,
+          year: recordFile.year,
+          month: recordFile.month,
+          posetiveAdjustment: 0,
+          negativeAdjustment: 0,
+          eventDate: recordFile.creationDate,
+          moviment: 'Saidas',
+          orderNumber: '',
+          incomes: 0,
+          outcomes: 0,
+          loses: recordFile.loses,
+          balance: recordFile.balance,
+          code: recordFile.code,
+          stockId: recordFile.stockId,
+          notes: recordFile.notes,
+        };
+        resultList.push(res[key]);
+      }
+      res[key].outcomes += recordFile.outcomes;
+      return res;
+    }, {});
+
+    return resultList;
   }
 
   // Resumo por Stock
@@ -397,7 +451,38 @@ export function useStock() {
       /*
        */
     }
-    return recordFileList;
+
+    const resultList = [];
+
+    recordFileList.reduce((res, recordFile) => {
+      const keyDate = dateUtils.getDDMMYYYFromJSDate(recordFile.eventDate);
+      const key = `${keyDate}`;
+
+      if (!res[key]) {
+        res[key] = {
+          id: recordFile.id,
+          year: recordFile.year,
+          month: recordFile.month,
+          code: recordFile.code,
+          posetiveAdjustment: 0,
+          negativeAdjustment: 0,
+          eventDate: recordFile.eventDate,
+          moviment: recordFile.moviment,
+          orderNumber: '',
+          incomes: 0,
+          outcomes: 0,
+          loses: 0,
+          balance: recordFile.balance,
+          stockId: recordFile.stockId,
+          notes: recordFile.notes,
+        };
+        resultList.push(res[key]);
+      }
+      res[key].loses += recordFile.loses;
+      return res;
+    }, {});
+
+    return resultList;
   }
 
   async function getAdjustmentsDrugFileBatch(stockId: any) {
@@ -434,13 +519,50 @@ export function useStock() {
 
           recordFile.notes = '';
           recordFile.loses = 0;
+          recordFile.code = adjustment.operation.code;
           recordFileList.push(recordFile);
         }
       }
       /*
        */
     }
-    return recordFileList;
+
+    const resultList = [];
+    recordFileList.reduce((res, recordFile) => {
+      const keyDate = dateUtils.getDDMMYYYFromJSDate(recordFile.eventDate);
+      const key = `${keyDate}`;
+
+      if (!res[key]) {
+        res[key] = {
+          id: recordFile.id,
+          year: recordFile.year,
+          month: recordFile.month,
+          code: recordFile.code,
+          posetiveAdjustment: 0,
+          negativeAdjustment: 0,
+          eventDate: recordFile.eventDate,
+          moviment: recordFile.moviment,
+          orderNumber: '',
+          incomes: 0,
+          outcomes: 0,
+          loses: recordFile.loses,
+          balance: recordFile.balance,
+          stockId: recordFile.stockId,
+          notes: recordFile.notes,
+        };
+        resultList.push(res[key]);
+      }
+
+      if (recordFile.code === 'AJUSTE_POSETIVO') {
+        res[key].posetiveAdjustment += recordFile.posetiveAdjustment;
+      } else if (recordFile.code === 'AJUSTE_NEGATIVO') {
+        res[key].negativeAdjustment += recordFile.negativeAdjustment;
+      }
+
+      return res;
+    }, {});
+
+    return resultList;
   }
 
   async function getInventoryAdjustmentsDrugFileBatch(stockId: any) {
@@ -448,7 +570,7 @@ export function useStock() {
 
     // Query inventoryStockAdjustments table to get all records
     const result =
-      await InventoryStockAdjustmentService.getInventoryStockAdjustmentMobile();
+      await InventoryStockAdjustmentService.getAllFinalizedInventoryStockAdjustmentMobile();
 
     for (const adjustment of result) {
       const recordFile = {};
@@ -475,7 +597,37 @@ export function useStock() {
         recordFileList.push(recordFile);
       }
     }
-    return recordFileList;
+
+    const resultList = [];
+    recordFileList.reduce((res, recordFile) => {
+      const keyDate = dateUtils.getDDMMYYYFromJSDate(recordFile.eventDate);
+      const key = `${keyDate}`;
+      if (!res[key]) {
+        res[key] = {
+          id: recordFile.id,
+          year: recordFile.year,
+          month: recordFile.month,
+          posetiveAdjustment: 0,
+          negativeAdjustment: 0,
+          eventDate: recordFile.eventDate,
+          moviment: 'Inventário',
+          orderNumber: '',
+          incomes: 0,
+          outcomes: 0,
+          loses: recordFile.loses,
+          balance: recordFile.balance,
+          code: recordFile.code,
+          stockId: recordFile.stockId,
+          notes: recordFile.notes,
+        };
+        resultList.push(res[key]);
+      }
+      res[key].posetiveAdjustment += recordFile.posetiveAdjustment;
+      res[key].negativeAdjustment += recordFile.negativeAdjustment;
+      return res;
+    }, {});
+
+    return resultList;
   }
 
   async function getEntrancesDrugFileBatch(stockId: string) {
@@ -524,7 +676,35 @@ export function useStock() {
       }
     }
 
-    return recordFileList;
+    const resultList = [];
+    recordFileList.reduce((res, recordFile) => {
+      const keyDate = dateUtils.getDDMMYYYFromJSDate(recordFile.eventDate);
+      const key = `${keyDate}`;
+      if (!res[key]) {
+        res[key] = {
+          id: recordFile.id,
+          year: recordFile.year,
+          month: recordFile.month,
+          posetiveAdjustment: 0,
+          negativeAdjustment: 0,
+          eventDate: recordFile.creationDate,
+          moviment: 'Entrada de Stock',
+          orderNumber: '',
+          incomes: 0,
+          outcomes: 0,
+          loses: recordFile.loses,
+          balance: recordFile.balance,
+          code: recordFile.code,
+          stockId: recordFile.stockId,
+          notes: recordFile.notes,
+        };
+        resultList.push(res[key]);
+      }
+      res[key].incomes += recordFile.incomes;
+      return res;
+    }, {});
+
+    return resultList;
   }
 
   async function getPacksDrugFileBatch(stockId: any) {
@@ -563,7 +743,36 @@ export function useStock() {
         // }
       }
     }
-    return recordFileList;
+
+    const resultList = [];
+    recordFileList.reduce((res, recordFile) => {
+      const keyDate = dateUtils.getDDMMYYYFromJSDate(recordFile.eventDate);
+      const key = `${keyDate}`;
+      if (!res[key]) {
+        res[key] = {
+          id: recordFile.id,
+          year: recordFile.year,
+          month: recordFile.month,
+          posetiveAdjustment: 0,
+          negativeAdjustment: 0,
+          eventDate: recordFile.creationDate,
+          moviment: 'Saidas',
+          orderNumber: '',
+          incomes: 0,
+          outcomes: 0,
+          loses: recordFile.loses,
+          balance: recordFile.balance,
+          code: recordFile.code,
+          stockId: recordFile.stockId,
+          notes: recordFile.notes,
+        };
+        resultList.push(res[key]);
+      }
+      res[key].outcomes += recordFile.outcomes;
+      return res;
+    }, {});
+
+    return resultList;
   }
 
   return {
