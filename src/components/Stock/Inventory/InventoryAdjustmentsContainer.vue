@@ -288,12 +288,18 @@ const saveAdjustments = () => {
     if (adjustment.adjustedStock.drug.id === drug.id) {
       conta++;
       let operation = null;
-      if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
+      if (
+        Number(adjustment.balance) >
+        Number(adjustment.adjustedStock.stockMoviment)
+      ) {
         operation =
           StockOperationTypeService.getStockOperatinTypeByCode(
             'AJUSTE_POSETIVO'
           );
-      } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
+      } else if (
+        Number(adjustment.balance) <
+        Number(adjustment.adjustedStock.stockMoviment)
+      ) {
         operation =
           StockOperationTypeService.getStockOperatinTypeByCode(
             'AJUSTE_NEGATIVO'

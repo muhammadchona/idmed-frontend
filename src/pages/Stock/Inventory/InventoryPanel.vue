@@ -367,9 +367,12 @@ const closeClassInventory = (inventory) => {
       const adjustedStock = item.adjustedStock;
       adjustedStock.stockMoviment = item.balance;
       StockService.putMobile(adjustedStock);
+      InventoryStockAdjustmentService.putMobile(item);
     });
+    inventory.open = false;
+    inventory.endDate = new Date();
     InventoryService.putMobile(inventory).then(() => {
-      InventoryService.closeInventoryPinia(inventory);
+      //InventoryService.closeInventoryPinia(inventory);
       closeLoading();
       alertSucess('Operação efectuada com sucesso.');
     });
@@ -380,7 +383,10 @@ const doSaveAll = async (i, inventory) => {
   const adjustment = inventory.adjustments[i];
   if (adjustment !== undefined) {
     let operation = null;
-    if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
+    if (
+      Number(adjustment.balance) >
+      Number(adjustment.adjustedStock.stockMoviment)
+    ) {
       operation =
         StockOperationTypeService.getStockOperatinTypeByCode('AJUSTE_POSETIVO');
     } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
@@ -415,7 +421,8 @@ const doSaveAll = async (i, inventory) => {
         adjustment.adjustedStock.stockMoviment - adjustment.balance
       );
       adjustment.adjustedStock.stockMoviment =
-        adjustment.adjustedStock.stockMoviment - adjustment.adjustedValue;
+        Number(adjustment.adjustedStock.stockMoviment) -
+        Number(adjustment.adjustedValue);
     } else {
       adjustment.adjustedValue = 0;
     }
