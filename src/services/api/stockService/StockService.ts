@@ -102,17 +102,7 @@ export default {
   },
 
   // PINIA
-  getStockByDrugAndClinic(drugId: string, clinicId: any) {
-    return stock
-      .where('drug_id', drugId)
-      .where('clinic_id', clinicId)
-      .orderBy('expireDate', 'desc')
-      .orderBy('stockMoviment', 'desc')
-      .get();
-  },
-
-  async getStockByDrug(drugId: string, clinicId: any) {
-    await this.getMobile();
+  getStockByDrug(drugId: string, clinicId: any) {
     return stock
       .where('drug_id', drugId)
       .where('clinic_id', clinicId)
