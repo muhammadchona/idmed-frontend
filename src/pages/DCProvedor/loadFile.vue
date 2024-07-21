@@ -50,7 +50,7 @@
               v-model="selectedClinicSector"
               :options="referealClinicSectors"
               option-value="id"
-              option-label="description"
+              option-label="clinicName"
               label="Sector de Dispensa"
               :disable="submitSend"
             >
@@ -320,7 +320,7 @@ const clinicSectorTypes = computed(() => {
 });
 const referealClinicSectors = computed(() => {
   if (selectedClinicSectorType.value === null) return [];
-  return clinicSectorService.getClinicSectorsByClinicIdSectorTypeId(
+  return clinicSectorService.getClinicSectorsByFacilityTypeId(
     currClinic.value.id,
     selectedClinicSectorType.value.id
   );

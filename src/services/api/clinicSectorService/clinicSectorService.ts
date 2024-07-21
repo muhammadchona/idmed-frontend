@@ -182,6 +182,14 @@ export default {
       .get();
   },
 
+  getClinicSectorsByIdAndFacilityTypeId(id: string, facilityTypeId: string) {
+    return clinicSector
+      .query()
+      .where('id', id)
+      .where('facilityTypeId', facilityTypeId)
+      .get();
+  },
+
   getActivebyClinicId(clinicId: string) {
     return clinicSector
       .query()

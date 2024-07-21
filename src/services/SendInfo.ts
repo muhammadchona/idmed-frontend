@@ -3,10 +3,12 @@ import groupService from './api/group/groupService';
 import patientService from './api/patientService/patientService';
 import patientServiceIdentifierService from './api/patientServiceIdentifier/patientServiceIdentifierService';
 import patientVisitService from './api/patientVisit/patientVisitService';
-
+import useNotify from 'src/composables/shared/notify/UseNotify';
+const { notifySuccess, notifyInfo } = useNotify();
 export function sendData() {
   // function sendDataToBackEnd() {
   function getPatientsToSend() {
+    notifyInfo('Envio dos Dados do Paciente Iniciado');
     patientService
       .getLocalDbPatientsToSync()
       .then((patientsToSync) => {
@@ -154,6 +156,7 @@ export function sendData() {
         });
     } else {
       // getGroupsToSend();
+      notifySuccess('Envio de Dados do Paciente Terminado');
     }
   }
 

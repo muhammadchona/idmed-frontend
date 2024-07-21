@@ -100,23 +100,7 @@ export function useOffline() {
   }
 
   async function loadPatientDataToOffline() {
-    /*
-    NanopatientService.getFromBackEnd(0);
-    NanopatientAttributeService.getFromBackEnd(0);
-    NanopatientServiceIdentifierService.getFromBackEnd(0);
-    NanopatientVisitService.getFromBackEnd(0);
-    NanopatientVisitDetailsService.getFromBackEnd(0);
-    NanoepisodeService.getFromBackEnd(0);
-    NanopackService.getFromBackEnd(0);
-    NanoprescriptionService.getFromBackEnd(0);
-    NanoprescriptionDetailsService.getFromBackEnd(0);
-    NanopackagedDrugService.getFromBackEnd(0);
-    NanoprescribedDrugService.getFromBackEnd(0);
-    */
-
-    // await NanoclinicSectorTypeService.getFromBackEnd(0);
     await patientService.doPatientsBySectorGet();
-    // await episodeService.doEpisodesBySectorGet();
     await patientVisitService.doPatientVisitServiceBySectorGet();
   }
 
