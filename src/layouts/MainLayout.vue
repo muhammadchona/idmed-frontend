@@ -164,7 +164,7 @@
                   </q-item-label>
                 </q-item-section>
               </q-item>
-              <q-item clickable v-if="website">
+              <q-item clickable v-if="mobile">
                 <q-item-section avatar clickable @click="sync()">
                   <q-avatar icon="sync"> </q-avatar>
                 </q-item-section>
@@ -212,6 +212,7 @@ import useNotify from 'src/composables/shared/notify/UseNotify';
 import provinceService from 'src/services/api/provinceService/provinceService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
+import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 
 const { website } = useSystemUtils();
 const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
@@ -225,6 +226,11 @@ const mobile = ref(false);
 const { notifyError } = useNotify();
 const { isOnline } = useSystemUtils();
 const { getPatientsToSend, getGroupsToSend } = sendData();
+const {
+  loadPatientDataToOffline,
+  loadSettingParamsToOffline,
+  loadSettingParamsInOfflineMode,
+} = useOffline();
 const stockDistributionCount = ref(0);
 
 const logoutTimer = ref(null);
@@ -331,6 +337,8 @@ const menusVisible = (name) => {
 const sync = async () => {
   // getGroupsToSend();
   getPatientsToSend();
+  loadSettingParamsToOffline();
+  loadPatientDataToOffline();
 };
 provide('stockDistributionCount', stockDistributionCount);
 </script>

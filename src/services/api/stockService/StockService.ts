@@ -251,7 +251,7 @@ export default {
       }
     } else {
       let qtyInStock = 0;
-      const stocks = await this.getStockByDrug(idPrescribedDrug, clinicId);
+      const stocks = this.getStockByDrug(idPrescribedDrug, clinicId);
       const validStock = stocks.filter((item) => {
         return moment(item.expireDate) >= moment(date);
       });

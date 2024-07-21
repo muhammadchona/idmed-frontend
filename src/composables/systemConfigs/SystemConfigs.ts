@@ -1,5 +1,6 @@
 import clinicService from 'src/services/api/clinicService/clinicService';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
+import { LocalStorage } from 'quasar';
 
 export function useSystemConfig() {
   function isProvincialInstalation() {
@@ -18,15 +19,15 @@ export function useSystemConfig() {
   }
 
   function isPharmacyDDD() {
-    /*
-    console.log(clinicService.currClinic());
-    const mode = clinicService.isPrivatePharmacy(clinicService.currClinic());
-    if (mode === null) {
+    const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
+
+    if (
+      userFacilityTypeCode === null ||
+      userFacilityTypeCode !== 'FP' ||
+      userFacilityTypeCode !== 'FC'
+    ) {
       return false;
-    }
-    return mode;
-    */
-    return false;
+    } else return true;
   }
 
   function isProvincialInstalationDDD() {

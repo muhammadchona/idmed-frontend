@@ -28,8 +28,22 @@ export default function useNotify() {
     });
   };
 
+  const notifyInfo = (messageParam) => {
+    Notify.create({
+      icon: 'info',
+      message: messageParam,
+      type: 'info',
+      progress: true,
+      timeout: 5000,
+      position: 'top',
+      color: 'info',
+      textColor: 'white',
+      classes: 'glossy',
+    });
+  };
   return {
     notifySuccess,
     notifyError,
+    notifyInfo,
   };
 }
