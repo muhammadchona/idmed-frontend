@@ -360,7 +360,7 @@ export function useStock() {
 
   async function getPacksDrugFile(drug: any) {
     const recordFileList = [];
-    let drugQuantitySupplied = 0;
+    const drugQuantitySupplied = 0;
     const result = await patientVisitService.getPatientVisitMobile();
 
     for (const pvd of result) {
@@ -369,7 +369,7 @@ export function useStock() {
           for (const pcd of pvdObj.pack.packagedDrugs) {
             if (pcd.drug.id === drug.id) {
               const recordFile = {};
-              drugQuantitySupplied += Number(pcd.quantitySupplied);
+              // drugQuantitySupplied += Number(pcd.quantitySupplied);
               recordFile.id = uuidv4();
               recordFile.eventDate = pvdObj.pack.pickupDate;
               recordFile.year = new Date(pvdObj.pack.pickupDate).getFullYear();
@@ -379,7 +379,7 @@ export function useStock() {
               recordFile.moviment = 'Saídas';
               recordFile.orderNumber = '';
               recordFile.incomes = 0;
-              recordFile.outcomes = drugQuantitySupplied;
+              recordFile.outcomes = Number(pcd.quantitySupplied);
               recordFile.posetiveAdjustment = 0;
               recordFile.negativeAdjustment = 0;
               recordFile.loses = 0;
@@ -687,7 +687,7 @@ export function useStock() {
           month: recordFile.month,
           posetiveAdjustment: 0,
           negativeAdjustment: 0,
-          eventDate: recordFile.creationDate,
+          eventDate: recordFile.eventDate,
           moviment: 'Entrada de Stock',
           orderNumber: '',
           incomes: 0,
@@ -709,7 +709,7 @@ export function useStock() {
 
   async function getPacksDrugFileBatch(stockId: any) {
     const recordFileList = [];
-    let drugQuantitySupplied = 0;
+    const drugQuantitySupplied = 0;
 
     const result = await patientVisitService.getPatientVisitMobile();
 
@@ -721,14 +721,14 @@ export function useStock() {
             for (const pcdStockObj of pcd.packagedDrugStocks) {
               if (pcdStockObj.stock.id === stockId) {
                 const recordFile = {};
-                drugQuantitySupplied += Number(pcd.quantitySupplied);
+                //drugQuantitySupplied += Number(pcd.quantitySupplied);
                 recordFile.stockId = pcdStockObj.stock.id;
                 recordFile.id = uuidv4();
                 recordFile.eventDate = pvdObj.pack.pickupDate;
                 recordFile.moviment = 'Saídas';
                 recordFile.orderNumber = '';
                 recordFile.incomes = 0;
-                recordFile.outcomes = drugQuantitySupplied;
+                recordFile.outcomes = pcd.quantitySupplied;
                 recordFile.posetiveAdjustment = 0;
                 recordFile.negativeAdjustment = 0;
                 recordFile.loses = 0;
@@ -755,7 +755,7 @@ export function useStock() {
           month: recordFile.month,
           posetiveAdjustment: 0,
           negativeAdjustment: 0,
-          eventDate: recordFile.creationDate,
+          eventDate: recordFile.eventDate,
           moviment: 'Saidas',
           orderNumber: '',
           incomes: 0,

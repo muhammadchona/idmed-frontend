@@ -142,7 +142,7 @@ export default {
       const d2 = new Date(b.eventDate);
       return d1 - d2;
     });
-    return this.calculateBalance(list, 0).reverse();
+    return this.calculateBalance(list).reverse();
   },
 
   async getDrugFileSummaryBatch(stockId: any) {
