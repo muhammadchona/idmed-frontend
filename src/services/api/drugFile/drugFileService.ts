@@ -112,7 +112,7 @@ export default {
   },
 
   async getDrugFileSummary(drug: any) {
-    let list = [];
+    const list = [];
     const entrances = await stockMethod.getEntrancesDrugFile(drug);
     entrances.forEach((item) => {
       list.push(item);
@@ -137,16 +137,16 @@ export default {
       list.push(item);
     });
 
-    list = list.sort((a, b) => {
+    /*  list = list.sort((a, b) => {
       const d1 = new Date(a.eventDate);
       const d2 = new Date(b.eventDate);
       return d1 - d2;
-    });
+    });*/
     return this.calculateBalance(list).reverse();
   },
 
   async getDrugFileSummaryBatch(stockId: any) {
-    let list = [];
+    const list = [];
     const entrances = await stockMethod.getEntrancesDrugFileBatch(stockId);
     entrances.forEach((item) => {
       list.push(item);
@@ -173,11 +173,11 @@ export default {
     inventoryAdjustments.forEach((item) => {
       list.push(item);
     });
-    list = list.sort((a, b) => {
+    /* list = list.sort((a, b) => {
       const d1 = new Date(a.eventDate);
       const d2 = new Date(b.eventDate);
       return d1 - d2;
-    });
+    });*/
     return this.calculateBalance(list).reverse();
   },
 };
