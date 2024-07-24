@@ -374,7 +374,7 @@ const userRoles = computed(() => {
 
 const clinics = computed(() => {
   console.log(clinicService.getAllClinics());
-  return clinicService.getAllClinics();
+  return clinicService.getAllClinicsAndClinicSectors();
 });
 const users = computed(() => {
   return userService.getAllUsers();
@@ -442,11 +442,13 @@ const submitUser = () => {
   user.value.roles = roless;
   if (configs.value.value === 'LOCAL') {
     user.value.clinics.push(currClinic.value);
+    user.value.clinics.push(...selectedClinicSectors.value);
   } else {
     user.value.clinics = selectedClinics.value;
   }
   //user.value.clinicSectors = selectedClinicSectors.value;
-  user.value.clinics.push(...selectedClinicSectors.value);
+  // if (configs.value.value === 'LOCAL')
+
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
 

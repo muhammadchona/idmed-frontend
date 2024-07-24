@@ -103,7 +103,7 @@ export default {
     return db[episodeDexie]
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        episode.save(JSON.parse(params));
+        episode.save(params);
       })
       .catch((error: any) => {
         console.log(error);
@@ -202,8 +202,8 @@ export default {
   },
 
   async syncEpisode(episode: any) {
-    if (episode.syncStatus === 'R') await this.apiSave(episode, true);
-    if (episode.syncStatus === 'U') await this.apiUpdate(episode);
+    if (episode.syncStatus === 'R') await this.postWeb(episode);
+    if (episode.syncStatus === 'U') await this.patchWeb(episode.id, episode);
   },
 
   async getLocalDbEpisodesToSync() {

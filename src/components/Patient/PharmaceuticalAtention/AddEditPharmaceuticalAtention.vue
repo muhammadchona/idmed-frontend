@@ -264,7 +264,7 @@ const { alertSucess, alertError } = useSwal();
 const { age, fullName, hasIdentifiers, getOldestIdentifier, isMale } =
   usePatient();
 const { getDDMMYYYFromJSDate, getJSDateFromDDMMYYY } = useDateUtils();
-const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
+const { isProvincialInstalation } = useSystemConfig();
 const { isMobile, isOnline } = useSystemUtils();
 const patientVisit = ref(new PatientVisit({ id: uuidv4() }));
 const vitalSignsScreening = ref(new VitalSignsScreening({ id: uuidv4() }));
@@ -566,13 +566,8 @@ const goToNextStep = async () => {
           ? patientVisit.value.ramScreenings.push(rAMScreening.value)
           : (patientVisit.value.ramScreenings[0] = rAMScreening.value);
 
-      if (isPharmacyDDD()) {
-        patientVisit.value.clinic = clinicService.currClinic();
-        patientVisit.value.clinic_id = clinicService.currClinic().id;
-      } else {
-        patientVisit.value.clinic = patient.value.clinic;
-        patientVisit.value.clinic_id = patient.value.clinic.id;
-      }
+      patientVisit.value.clinic = patient.value.clinic;
+      patientVisit.value.clinic_id = patient.value.clinic.id;
 
       patientVisit.value.patient = patient.value;
       patientVisit.value.visitDate = getJSDateFromDDMMYYY(visitDate.value);
@@ -588,15 +583,13 @@ const goToNextStep = async () => {
       if (patientVisit.value.ramScreenings.length > 1)
         patientVisit.value.ramScreenings.pop();
 
-      if (isPharmacyDDD()) {
-        patientVisit.value.clinic = {};
-        patientVisit.value.clinic.id = clinicService.currClinic().id;
-      } else {
-        patientVisit.value.clinic = {};
-        patientVisit.value.clinic.id = patient.value.clinic_id;
-      }
+      patientVisit.value.clinic = {};
+      patientVisit.value.clinic.id = patient.value.clinic_id;
+
       patientVisit.value.patient = {};
       patientVisit.value.patient.id = patient.value.id;
+      patientVisit.value.patient_id = patient.value.id;
+      patientVisit.value.patientId = patient.value.id;
 
       if (isMobile.value && !isOnline.value) {
         if (

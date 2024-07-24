@@ -204,8 +204,9 @@ export default {
     }
   },
   async syncPatientServiceIdentifier(identifier: any) {
-    if (identifier.syncStatus === 'R') await this.apiSave(identifier, true);
-    if (identifier.syncStatus === 'U') await this.apiUpdate(identifier);
+    if (identifier.syncStatus === 'R') await this.postWeb(identifier);
+    if (identifier.syncStatus === 'U')
+      await this.patchWeb(identifier.id, identifier);
   },
   async getLocalDbPatientServiceIdentifierToSync() {
     return db[patientServiceIdentifierDexie]

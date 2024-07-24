@@ -115,11 +115,13 @@ export default {
   addMobile(params: string) {
     return db[patientDexie].add(JSON.parse(JSON.stringify(params))).then(() => {
       patient.save(JSON.parse(JSON.stringify(params)));
+      return params;
     });
   },
   putMobile(params: string) {
-    return db[patientDexie].add(JSON.parse(JSON.stringify(params))).then(() => {
+    return db[patientDexie].put(JSON.parse(JSON.stringify(params))).then(() => {
       patient.save(JSON.parse(JSON.stringify(params)));
+      return params;
     });
   },
   async getMobile() {
@@ -275,6 +277,16 @@ export default {
         max
     );
   },
+
+  async apiGetAllPatientsIsAbandonmentForAPE(offset: number, max: number) {
+    return await api().get(
+      '/patient/ape/getAllPatientsIsAbandonment' +
+        '?offset=' +
+        offset +
+        '&max=' +
+        max
+    );
+  },
   async doPatientsBySectorGet() {
     const data2 = clinicSectorService.getAllClinicSectors();
     let clinicSectorUser = clinicService.currClinic();
@@ -326,6 +338,37 @@ export default {
     return allPatients;
   },
 
+  async fetchAllPatientsForAPE() {
+    let offset = 0;
+    const max = 100; // You can adjust this number based on your API's limits
+    let allPatients = [];
+    let hasMorePatients = true;
+
+    while (hasMorePatients) {
+      const response = await this.apiGetAllPatientsIsAbandonmentForAPE(
+        offset,
+        max
+      );
+      const patients = response.data;
+      if (patients.length > 0) {
+        allPatients.push(...patients);
+        offset += patients.length;
+      } else {
+        hasMorePatients = false;
+      }
+    }
+
+    return allPatients;
+  },
+
+  async doPatientsForAPIGet() {
+    const resp = await this.fetchAllPatientsForAPE();
+
+    this.addBulkMobile(resp);
+    notifySuccess('Carregamento de Pacientes Terminado');
+    return resp;
+  },
+
   async apiSyncPatient(patient: any) {
     if (patient.syncStatus === 'R') await this.apiSave(patient, true);
     if (patient.syncStatus === 'U') await this.apiSave(patient, false);
@@ -342,8 +385,8 @@ export default {
       });
   },
   async syncPatient(patient: any) {
-    if (patient.syncStatus === 'R') await this.apiSave(patient, true);
-    if (patient.syncStatus === 'U') await this.apiSave(patient, false);
+    if (patient.syncStatus === 'R') await this.postWeb(patient);
+    if (patient.syncStatus === 'U') await this.patchWeb(patient.id, patient);
   },
   // Local Storage Pinia
   newInstanceEntity() {

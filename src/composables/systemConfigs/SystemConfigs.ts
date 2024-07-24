@@ -7,7 +7,16 @@ export function useSystemConfig() {
     const instalationType = systemConfigsService.getInstallationType();
 
     if (instalationType !== null && instalationType !== undefined) {
-      return instalationType.value === 'PROVINCIAL' && !isPharmacyDDD();
+      return instalationType.value === 'PROVINCIAL';
+    } else return false;
+  }
+  function isProvincialInstalationPharmacysMode() {
+    const instalationType = systemConfigsService.getInstallationType();
+
+    if (instalationType !== null && instalationType !== undefined) {
+      return (
+        instalationType.value === 'PROVINCIAL' && isPharmacyDDDOrAPEOrDCP()
+      );
     } else return false;
   }
   function localProvincialInstalationCode() {
@@ -18,29 +27,70 @@ export function useSystemConfig() {
     } else return '';
   }
 
-  function isPharmacyDDD() {
+  function isPharmacyDDDOrAPEOrDCP() {
     const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
 
-    if (
-      userFacilityTypeCode === null ||
-      userFacilityTypeCode !== 'FP' ||
-      userFacilityTypeCode !== 'FC'
-    ) {
-      return false;
-    } else return true;
+    return (
+      userFacilityTypeCode === 'FP' ||
+      userFacilityTypeCode === 'FC' ||
+      userFacilityTypeCode === 'APE' ||
+      userFacilityTypeCode === 'PROVEDOR'
+    );
   }
 
-  function isProvincialInstalationDDD() {
+  function isOnlyPharmacyDDDO() {
+    const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
+
+    return userFacilityTypeCode === 'FP' || userFacilityTypeCode === 'FC';
+  }
+  function isOnlyComunitaryDispense() {
+    const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
+
+    return (
+      userFacilityTypeCode === 'CLINICA_MOVEL' ||
+      userFacilityTypeCode === 'BRIGADA_MOVEL' ||
+      userFacilityTypeCode === 'APE' ||
+      userFacilityTypeCode === 'PROVEDOR'
+    );
+  }
+
+  function isMobileClinic() {
+    const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
+
+    return (
+      userFacilityTypeCode === 'CLINICA_MOVEL' ||
+      userFacilityTypeCode === 'BRIGADA_MOVEL'
+    );
+  }
+
+  function isDCP() {
+    const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
+
+    return userFacilityTypeCode === 'PROVEDOR';
+  }
+
+  function isUserAPE() {
+    const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
+
+    return userFacilityTypeCode && userFacilityTypeCode === 'APE';
+  }
+
+  function isProvincialInstalationMobileClinic() {
     const instalationType = systemConfigsService.getInstallationType();
 
     if (instalationType !== null && instalationType !== undefined) {
-      return instalationType.value === 'PROVINCIAL' && isPharmacyDDD();
+      return instalationType.value === 'PROVINCIAL' && isMobileClinic();
     } else return false;
   }
   return {
     isProvincialInstalation,
     localProvincialInstalationCode,
-    isPharmacyDDD,
-    isProvincialInstalationDDD,
+    isMobileClinic,
+    isProvincialInstalationMobileClinic,
+    isProvincialInstalationPharmacysMode,
+    isUserAPE,
+    isPharmacyDDDOrAPEOrDCP,
+    isOnlyPharmacyDDDO,
+    isOnlyComunitaryDispense,
   };
 }

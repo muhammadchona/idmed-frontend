@@ -543,9 +543,17 @@ const identifierstartDate = computed(() => {
 });
 
 const clinicSerctors = computed(() => {
-  return clinicSectorService.getActiveUSClinicSectorByClinic(
+  const allClinicSectors = clinicSectorService.getActiveUSClinicSectorByClinic(
     curIdentifier.value.clinic_id
   );
+  if (patient.value.gender === 'Masculino') {
+    let clinicSectorsMale = [];
+    clinicSectorsMale = allClinicSectors.filter((sector) => {
+      return sector.code !== 'CPN';
+    });
+    return clinicSectorsMale;
+  }
+  return allClinicSectors;
 });
 
 const mobileClinicSector = computed(() => {

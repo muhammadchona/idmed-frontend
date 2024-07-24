@@ -207,7 +207,11 @@
           <q-page-sticky
             position="bottom-right"
             :offset="[18, 18]"
-            v-if="!isProvincialInstalation()"
+            v-if="
+              !isProvincialInstalation() ||
+              !isProvincialInstalationPharmacysMode() ||
+              isProvincialInstalationMobileClinic()
+            "
           >
             <q-btn
               class="q-mb-xl q-mr-xl"
@@ -257,7 +261,11 @@ const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
 const { website, isOnline, isDeskTop, isMobile } = useSystemUtils();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { deleteStorageWithoutPatientInfo } = useOnline();
-const { isProvincialInstalation } = useSystemConfig();
+const {
+  isProvincialInstalation,
+  isProvincialInstalationPharmacysMode,
+  isProvincialInstalationMobileClinic,
+} = useSystemConfig();
 
 //Declaration
 
