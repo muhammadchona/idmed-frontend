@@ -4,7 +4,7 @@
       :loading="loading"
       :class="headerClass"
       dense
-      :rows="rows"
+      :rows="rowsAux"
       :columns="columns"
       :filter="filter"
       row-key="id"
@@ -106,6 +106,7 @@ import {
   reactive,
   onMounted,
   onBeforeMount,
+  watch,
 } from 'vue';
 
 import drugService from 'src/services/api/drugService/drugService';
@@ -172,7 +173,7 @@ const headerClass = ref('');
 const title = ref('');
 const drug = reactive(ref(null));
 provide('drug', drug);
-const clinic = inject('currClinic');
+const rows = ref([]);
 
 const openDrugFile = (drugInfo) => {
   loadingDrugFile.value = true;
@@ -194,7 +195,7 @@ const getStyleIfCharts = () => {
 const getConsuptionRelatedColor = (state) => {
   if (state === 'Sem Consumo') {
     return 'blue';
-  } else if (state === 'Ruptura de Stock') {
+  } else if (state === 'Roptura de Stock') {
     return 'red';
   } else if (state === 'Acima do Consumo Máximo') {
     return 'info';
@@ -203,9 +204,10 @@ const getConsuptionRelatedColor = (state) => {
   }
 };
 
-const rows = computed(() => {
+const rowsAux = computed(() => {
   const list = StockAlertService.getStockAlertsByClinic();
-  if (list.length >= 0) {
+  // const isExec = Boolean(localStorage.getItem('stockAlertExecuted'));
+  if (list.length > 0) {
     loading.value = false;
   }
   return list;

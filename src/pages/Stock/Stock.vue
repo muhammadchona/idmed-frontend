@@ -24,8 +24,11 @@ import StockDistributorBatchService from 'src/services/api/stockDistributorBatch
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 onMounted(() => {
+  localStorage.setItem('stockAlertExecuted', false);
   const clinic = clinicService.currClinic();
-  StockAlertService.apiGetStockAlertAll(clinic.id);
+  StockAlertService.apiGetStockAlertAll(clinic.id).then(() => {
+    localStorage.setItem('stockAlertExecuted', true);
+  });
 
   StockDistributorBatchService.get(0);
   DrugDistributorService.get(0);
