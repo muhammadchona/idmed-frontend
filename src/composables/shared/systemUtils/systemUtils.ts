@@ -47,7 +47,7 @@ export function useSystemUtils() {
     return (
       !clinicUsers ||
       clinicUsers.includes('NORMAL') ||
-      userFacilityTypeCodes.some(
+      userFacilityTypeCodes.every(
         (code) => userFacilityTypeCode && userFacilityTypeCode.includes(code)
       )
     );

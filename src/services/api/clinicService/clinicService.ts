@@ -5,6 +5,7 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { SessionStorage } from 'quasar';
 import db from '../../../stores/dexie';
 
@@ -14,6 +15,7 @@ const clinicDexie = Clinic.entity;
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
 
 export default {
   async post(params: string) {
@@ -198,15 +200,17 @@ export default {
   currClinic() {
     const clinicUser = localStorage.getItem('clinicUsers');
     // const pharmacyUser = SessionStorage.getItem('clinicUsers');
+    console.log(isProvincialInstalation());
     if (
-      clinicUser === 'undefined' ||
-      clinicUser === '' ||
+      (clinicUser === 'undefined' && !isProvincialInstalation()) ||
+      (clinicUser === '' && !isProvincialInstalation()) ||
       clinicUser.includes('NORMAL')
     ) {
       return clinic.withAllRecursive(2).where('mainClinic', true).first();
-    } else if (clinicUser !== null) {
+    } else if (clinicUser !== null && clinicUser !== '') {
       return this.getByCode(clinicUser);
     }
+    return null;
   },
 
   savePinia(clin: any) {
@@ -236,6 +240,17 @@ export default {
       .where((clinic) => {
         return clinic.parentClinic_id !== '';
       })
+      .get();
+  },
+
+  getAllClinicsAndClinicSectors() {
+    return clinic
+      .query()
+      .with('nationalClinic')
+      .with('province')
+      .with('facilityType')
+      .with('district')
+      .with('sectors')
       .get();
   },
 

@@ -5,7 +5,12 @@
       :bg-color="bgColor"
       :main-container="mainContainer"
       :expanded="expandLess"
-      :add-visible="showAddButton && !isProvincialInstalation()"
+      :add-visible="
+        showAddButton &&
+        (!isProvincialInstalation() ||
+          isProvincialInstalationPharmacysMode() ||
+          isProvincialInstalationMobileClinic())
+      "
       :expand-visible="false"
       :addButtonActions="addButtonActions"
     />
@@ -37,7 +42,11 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 //Declaration
 const { website } = useSystemUtils();
-const { isProvincialInstalation } = useSystemConfig();
+const {
+  isProvincialInstalation,
+  isProvincialInstalationPharmacysMode,
+  isProvincialInstalationMobileClinic,
+} = useSystemConfig();
 const {
   hasEpisodes,
   hasOneAndClosedIdentifier,

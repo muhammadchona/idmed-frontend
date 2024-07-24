@@ -36,8 +36,17 @@
                   <q-th v-if="!isMale(patient)">{{ columns[2].label }}</q-th>
                   <q-th>{{ columns[3].label }}</q-th>
                   <q-th>{{ columns[4].label }}</q-th>
-                  <q-th>{{ columns[5].label }}</q-th>
-                  <q-th v-if="patient.isLast">{{ columns[5].label }}</q-th>
+                  <q-th v-if="!isProvincialInstalation()">{{
+                    columns[5].label
+                  }}</q-th>
+                  <q-th
+                    v-if="
+                      (patient.isLast && !isProvincialInstalation()) ||
+                      isProvincialInstalationPharmacysMode() ||
+                      isProvincialInstalationMobileClinic()
+                    "
+                    >{{ columns[5].label }}</q-th
+                  >
                 </q-tr>
               </template>
 
@@ -136,7 +145,16 @@
                       label="Sem Rastreio"
                     />
                   </q-td>
-                  <q-td auto-width key="opts" :props="props">
+                  <q-td
+                    auto-width
+                    key="opts"
+                    :props="props"
+                    v-if="
+                      !isProvincialInstalation() ||
+                      isProvincialInstalationPharmacysMode() ||
+                      isProvincialInstalationMobileClinic()
+                    "
+                  >
                     <div class="col">
                       <q-btn
                         flat
@@ -235,12 +253,18 @@ import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { isMale } = usePatient();
 const { formatDate } = useDateUtils();
 const { closeLoading, showloading } = useLoading();
 const { website } = useSystemUtils();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
+const {
+  isProvincialInstalation,
+  isProvincialInstalationPharmacysMode,
+  isProvincialInstalationMobileClinic,
+} = useSystemConfig();
 
 const columns = [
   {

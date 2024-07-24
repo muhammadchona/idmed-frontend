@@ -60,11 +60,7 @@
               label="Pacientes/Utentes"
             />
             <q-route-tab
-              v-if="
-                menusVisible('Grupos') &&
-                !isProvincialInstalation() &&
-                !isPharmacyDDD()
-              "
+              v-if="menusVisible('Grupos') && !isProvincialInstalation()"
               exact
               :to="'/group/search'"
               name="groups"
@@ -72,7 +68,12 @@
               label="Grupos"
             />
             <q-route-tab
-              v-if="menusVisible('Stock')"
+              v-if="
+                menusVisible('Stock') &&
+                (!isProvincialInstalation() ||
+                  isProvincialInstalationPharmacysMode() ||
+                  isProvincialInstalationMobileClinic)
+              "
               exact
               :to="'/stock'"
               name="stock"
@@ -117,8 +118,7 @@
                 menusVisible('Migração') &&
                 activateMigration &&
                 website &&
-                !isProvincialInstalation() &&
-                !isPharmacyDDD()
+                !isProvincialInstalation()
               "
               exact
               :to="'/migration'"
@@ -127,11 +127,7 @@
               label="Migração"
             />
             <q-route-tab
-              v-if="
-                menusVisible('DCProvedor') &&
-                !isProvincialInstalation() &&
-                !isPharmacyDDD()
-              "
+              v-if="menusVisible('DCProvedor') && !isProvincialInstalation()"
               exact
               :to="'/loadfiledc'"
               name="migration"
@@ -215,7 +211,11 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 
 const { website } = useSystemUtils();
-const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
+const {
+  isProvincialInstalation,
+  isProvincialInstalationPharmacysMode,
+  isProvincialInstalationMobileClinic,
+} = useSystemConfig();
 const userInfoOpen = ref(false);
 const onMainClick = ref('');
 const onItemClick = ref('');
@@ -337,8 +337,6 @@ const menusVisible = (name) => {
 const sync = async () => {
   // getGroupsToSend();
   getPatientsToSend();
-  loadSettingParamsToOffline();
-  loadPatientDataToOffline();
 };
 provide('stockDistributionCount', stockDistributionCount);
 </script>

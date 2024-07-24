@@ -16,6 +16,10 @@ import patientServiceIdentifierService from '../patientServiceIdentifier/patient
 import episodeService from '../episode/episodeService';
 import ChunkArray from 'src/utils/ChunkArray';
 import useNotify from 'src/composables/shared/notify/UseNotify';
+import StockService from '../stockService/StockService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+
+const { isUserAPE } = useSystemConfig();
 
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = PatientVisit.entity;
@@ -97,10 +101,20 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
+  addMobile(params: any) {
     return db[patientVisitDexie]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
+        params.patientVisitDetails.forEach((pvd) => {
+          pvd.pack.packagedDrugs.forEach((pcd) => {
+            pcd.packagedDrugStocks.forEach((pcs) => {
+              const stock = StockService.getStockById(pcs.stock.id);
+              stock.stockMoviment -= pcd.quantitySupplied;
+              //  pcd.packagedDrugStocks.for
+              StockService.patch(stock.id, stock);
+            });
+          });
+        });
         patientVisit.save(params);
       });
   },
@@ -169,6 +183,8 @@ export default {
     if (isMobile.value && !isOnline.value) {
       const resp = await db[patientVisitDexie]
         .where('patientId')
+        .equalsIgnoreCase(patientId)
+        .or('patient_id')
         .equalsIgnoreCase(patientId)
         .toArray();
       patientVisit.save(resp);
@@ -395,11 +411,18 @@ export default {
         ids: chunk,
         clinicSector: clinicSector,
       };
-
-      const visitDetails = await api().post(
-        'patientVisitDetails/getAllByPatientIds/',
-        listParams
-      );
+      let visitDetails;
+      if (isUserAPE()) {
+        visitDetails = await api().post(
+          '/patientVisitDetails/getLastAllByPatientIds/',
+          listParams
+        );
+      } else {
+        visitDetails = await api().post(
+          'patientVisitDetails/getAllByPatientIds/',
+          listParams
+        );
+      }
 
       allVisits.push(...visitDetails.data);
     }
@@ -429,12 +452,10 @@ export default {
 
     const episodes = await episodeService.getEpisodeByIds(episodeIds);
     console.log(episodes);
-    const resp = await this.apiGetAllLastWithScreeningOfClinic(
-      clinicSector.id,
-      0,
-      100
+    const visitScreening = await this.getPatientVisitWithScreeningByPatientIds(
+      ids
     );
-    this.addBulkMobile(resp.data);
+    //  this.addBulkMobile(resp.data);
     closeLoading();
     notifySuccess('Carregamento de Dispensas Terminado');
     /*
@@ -499,4 +520,24 @@ export default {
     return result;
   },
   */
+
+  async getPatientVisitWithScreeningByPatientIds(patientIds: any) {
+    const limit = 100; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(patientIds, limit, offset);
+
+    const allVisits = [];
+
+    for (const chunk of chunks) {
+      const visitWithScreening = await api().post(
+        '/patientVisit/getAllLastWithScreeningByPatientIds/',
+        chunk
+      );
+
+      allVisits.push(...visitWithScreening.data);
+    }
+
+    this.addBulkMobile(allVisits);
+  },
 };

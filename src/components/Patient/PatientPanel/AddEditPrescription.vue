@@ -177,7 +177,7 @@ import patientServiceIdentifierService from 'src/services/api/patientServiceIden
 import { v4 as uuidv4 } from 'uuid';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import episodeService from 'src/services/api/episode/episodeService';
-
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 // Declaration
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
   useDateUtils();
@@ -189,7 +189,7 @@ const selected_model = ref([]);
 const submitting = ref(false);
 const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
 const { isReferenceOrTransferenceEpisode } = useEpisode();
-
+const { isOnlyPharmacyDDDO, isOnlyComunitaryDispense } = useSystemConfig();
 //Inject
 const patient = inject('patient');
 const closePrescriptionOption = inject('closePrescriptionOption');
@@ -233,6 +233,13 @@ const init = () => {
   curPatientVisit.value.patient = patient.value;
   curPatientVisit.value.patient_id = patient.value.id;
   curPatientVisit.value.patientVisitDetails = [];
+
+  if (isOnlyPharmacyDDDO()) {
+    mds.value = 'DD_';
+  }
+  if (isOnlyComunitaryDispense()) {
+    mds.value = 'DC_';
+  }
 };
 
 const doValidationToDispense = () => {

@@ -119,7 +119,7 @@
             v-if="props.isLast && isLastEpisode && !isCloseEpisode(currEpisode)"
           >
             <q-btn
-              v-if="canEdit && !isPharmacyDDD()"
+              v-if="canEdit && !isPharmacyDDDOrAPEOrDCP()"
               @click="removeEpisode"
               dense
               unelevated
@@ -128,7 +128,7 @@
               class="float-right q-ml-md"
             />
             <q-btn
-              v-if="!canEdit && !isPharmacyDDD()"
+              v-if="!canEdit && !isPharmacyDDDOrAPEOrDCP()"
               @click="closeEpisode"
               dense
               unelevated
@@ -137,7 +137,7 @@
               class="float-right q-ml-md"
             />
             <q-btn
-              v-if="canEdit && !isPharmacyDDD()"
+              v-if="canEdit && !isPharmacyDDDOrAPEOrDCP()"
               @click="editEpisode"
               dense
               unelevated
@@ -176,7 +176,7 @@ const {
   isStartEpisode,
 } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
-const { isPharmacyDDD } = useSystemConfig();
+const { isPharmacyDDDOrAPEOrDCP } = useSystemConfig();
 //Props
 const props = defineProps(['episodeId', 'isLast']);
 //Inject

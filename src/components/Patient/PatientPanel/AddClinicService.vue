@@ -800,12 +800,7 @@ const doSave = async () => {
     }
     closureEpisode.value.clinicSector.clinic = {};
     closureEpisode.value.clinicSector.clinic.id = currClinic.value.id;
-    closureEpisode.value.clinicSector.clinicSectorType =
-      clinicSectorTypeService.getClinicSectorTypesById(
-        closureEpisode.value.clinicSector.clinic_sector_type_id
-      );
-    closureEpisode.value.clinicSector.clinic_sector_type_id =
-      closureEpisode.value.clinicSector.clinicSectorType.id;
+
     identifier.value.episodes.push(closureEpisode.value);
   }
   if (isCreateStep.value) {
@@ -1024,7 +1019,8 @@ const stopReasons = computed(() => {
       reason.code !== 'REFERIDO_DC' &&
       reason.code !== 'REFERIDO_PARA' &&
       reason.code !== 'ABANDONO' &&
-      reason.code !== 'VOLTOU_A_SER_REFERIDO_PARA'
+      reason.code !== 'VOLTOU_A_SER_REFERIDO_PARA' &&
+      reason.code !== 'REFERIDO_SECTOR_CLINICO'
     );
   });
   return resonList;
