@@ -22,7 +22,7 @@ export default {
     if (isMobile.value && !isOnline.value) {
       this.addMobile(params);
     } else {
-      return this.addMobile(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {

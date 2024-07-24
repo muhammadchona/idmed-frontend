@@ -99,7 +99,7 @@
           </q-tr>
         </template>
       </q-table>
-      <div class="absolute-bottom" v-if="website && !isProvincialInstalation()">
+      <div class="absolute-bottom" v-if="website">
         <q-page-sticky position="bottom-right" :offset="[18, 18]">
           <q-btn
             size="xl"

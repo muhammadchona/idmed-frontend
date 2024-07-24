@@ -71,7 +71,7 @@
             class="col"
             v-model="clinicSector.parentClinic"
             :options="clinics"
-            disable
+            :disable="!isProvincialInstalation() || onlyView"
             transition-show="flip-up"
             transition-hide="flip-down"
             ref="clinicRef"
@@ -108,10 +108,11 @@ import facilityTypeService from 'src/services/api/facilityTypeService/facilityTy
 import { v4 as uuidv4 } from 'uuid';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
-
+const { isProvincialInstalation } = useSystemConfig();
 /*Declarations*/
 const databaseCodes = ref([]);
 const submitting = ref(false);
@@ -143,7 +144,11 @@ const clinics = computed(() => {
 });
 
 const clinicSectors = computed(() => {
-  return clinicSectorService.getClinicSectorsByClinicId(currClinic.value.id);
+  if (isProvincialInstalation()) {
+    return clinicSectorService.getAllClinicSectors();
+  } else {
+    return clinicSectorService.getClinicSectorsByClinicId(currClinic.value.id);
+  }
 });
 
 const clinicSectorTypes = computed(() => {
