@@ -416,10 +416,10 @@
                       ref="drug"
                       v-model="props.row.drug"
                       :options="drugs"
+                      @filter="filterFn"
                       option-value="id"
                       option-label="name"
                       label="Medicamento"
-                      @filter="filterFn"
                       use-input
                       hide-selected
                       fill-input
@@ -441,7 +441,7 @@
                       dense
                       outlined
                       :disable="!props.row.enabled"
-                      ref="drug"
+                      ref="clinic"
                       v-model="props.row.clinic"
                       :options="clinicSectors"
                       option-value="id"
@@ -594,6 +594,7 @@ import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DrugDistributor from '../../../stores/models/drugDistributor/DrugDistributor';
 import StockService from 'src/services/api/stockService/StockService';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 
 const router = useRouter();
 const dateUtils = useDateUtils();
@@ -910,17 +911,16 @@ const validateStock = async (stock) => {
   }
 };
 
-const doSave = (stockObj) => {
+const doSave = (stock) => {
   showloading();
-  const stock = stockObj;
-  stock.drug_id = stockObj.drug.id;
+  stock.drug_id = stock.drug.id;
   stock.drug = {};
   stock.drug.id = stock.drug_id;
   stock.stockDistributor = {};
-  stock.stockDistributor.id = stockObj.stock_distributor_id;
+  stock.stockDistributor.id = stock.stock_distributor_id;
   stock.status = 'P'; //Pending
 
-  stock.clinic_id = stockObj.clinic.id;
+  stock.clinic_id = stock.clinic.id;
   //stock.clinic = {};
 
   if (isCreationStep.value) {
@@ -928,6 +928,7 @@ const doSave = (stockObj) => {
     stock.id = uuidv4();
     DrugDistributorService.post(stock)
       .then((resp) => {
+        loadStockList();
         // stock.id = resp.response.data.id
         submitting = false;
         step.value = 'display';
@@ -1077,7 +1078,7 @@ const activeDrugs = computed(() => {
 });
 
 const clinicSectorsList = computed(() => {
-  return clinicService.getAllClinicSectors();
+  return clinicSectorService.getActivebyClinicId(currClinic.value.id);
 });
 
 const isEditionStep = computed(() => {

@@ -22,7 +22,7 @@ export default {
     }
   },
 
-  get(offset: number) {
+  async get(offset: number) {
     if (!isOnline.value) {
       this.getMobile();
     } else {
@@ -70,7 +70,7 @@ export default {
       });
   },
 
-  getWeb(offset: number) {
+  async getWeb(offset: number) {
     if (offset >= 0) {
       return api()
         .get('stockDistributor?offset=' + offset + '&max=100')

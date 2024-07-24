@@ -115,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, provide } from 'vue';
+import { ref, onMounted, computed, provide, inject, watch } from 'vue';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import { useInventory } from 'src/composables/inventory/InvnetoryMethod';
 import { useRouter } from 'vue-router';
@@ -125,14 +125,13 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import inventoryDetails from 'components/Stock/Inventory/InventoryDetails.vue';
 import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/InventoryStockAdjustmentMethod';
 
-const inventoryDetailsMethod = useInventoryStockAdjustment();
-
 const submitting = ref(false);
 const submittingDetails = ref(false);
 const inventoryMethod = useInventory();
 const { isMobile, isOnline } = useSystemUtils();
 const { showloading, closeLoading } = useLoading();
 const loading = ref(true);
+const isExecutedInventory = inject('isExecutedInventory');
 
 const columns = [
   {
@@ -191,10 +190,21 @@ onMounted(() => {
 
 const inventories = computed(() => {
   const list = InventoryService.getInventories();
-  if (list.length >= 0) {
+  if (
+    list.length > 0 ||
+    (list.length === 0 && isExecutedInventory.value === true)
+  ) {
     loading.value = false;
   }
   return list;
+});
+
+watch((isExecutedInventory) => {
+  if (isExecutedInventory.value === 'true') {
+    loading.value = false;
+  } else {
+    loading.value = true;
+  }
 });
 
 provide('inventoryDetail', inventoryDetail);

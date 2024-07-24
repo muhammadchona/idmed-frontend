@@ -22,22 +22,38 @@ import StockEntranceService from 'src/services/api/stockEntranceService/StockEnt
 import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
+import { ref, provide } from 'vue';
+const isExecutedStockAlert = ref(false);
+const isExecutedInventory = ref(false);
+const isExecutedEntrance = ref(false);
+const isExecutedDistributor = ref(false);
 
 onMounted(() => {
   const clinic = clinicService.currClinic();
-  StockAlertService.apiGetStockAlertAll(clinic.id);
-
+  StockAlertService.apiGetStockAlertAll(clinic.id).then(() => {
+    isExecutedStockAlert.value = true;
+  });
   StockDistributorBatchService.get(0);
   DrugDistributorService.get(0);
-  StockDistributorService.get(0);
+  StockDistributorService.get(0).then(() => {
+    isExecutedDistributor.value = true;
+  });
   StockService.get(0, clinic.id);
 
   ReferedStockMovimentService.getAllByClinic(clinic.id, 0);
   DestroyedStockService.getAllByClinic(clinic.id, 0);
   InventoryStockAdjustmentService.getAllByClinic(clinic.id, 0);
-  InventoryService.getAllByClinic(clinic.id, 0);
-  StockEntranceService.apiGetAllByClinicId(clinic.id, 0, 100);
+  InventoryService.getAllByClinic(clinic.id, 0).then(() => {
+    isExecutedInventory.value = true;
+  });
+  StockEntranceService.apiGetAllByClinicId(clinic.id, 0, 100).then(() => {
+    isExecutedEntrance.value = true;
+  });
 });
+provide('isExecutedStockAlert', isExecutedStockAlert);
+provide('isExecutedInventory', isExecutedInventory);
+provide('isExecutedEntrance', isExecutedEntrance);
+provide('isExecutedDistributor', isExecutedDistributor);
 </script>
 
 <style></style>
