@@ -117,6 +117,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isMobile, isOnline } = useSystemUtils();
 const loadingDrugFile = ref(false);
+const isExecutedStockAlert = inject('isExecutedStockAlert');
 
 const router = useRouter();
 const { showloading, closeLoading } = useLoading();
@@ -206,11 +207,21 @@ const getConsuptionRelatedColor = (state) => {
 
 const rowsAux = computed(() => {
   const list = StockAlertService.getStockAlertsByClinic();
-  // const isExec = Boolean(localStorage.getItem('stockAlertExecuted'));
-  if (list.length > 0) {
+  if (
+    list.length > 0 ||
+    (list.length === 0 && isExecutedStockAlert.value === true)
+  ) {
     loading.value = false;
   }
   return list;
+});
+
+watch((isExecutedStockAlert) => {
+  if (isExecutedStockAlert.value === 'true') {
+    loading.value = false;
+  } else {
+    loading.value = true;
+  }
 });
 </script>
 <style lang="sass" scoped>
