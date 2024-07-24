@@ -30,12 +30,9 @@ const isExecutedDistributor = ref(false);
 
 onMounted(() => {
   const clinic = clinicService.currClinic();
-  setTimeout(() => {
-    StockAlertService.apiGetStockAlertAll(clinic.id).then(() => {
-      isExecutedStockAlert.value = true;
-    });
-  }, 5000);
-
+  StockAlertService.apiGetStockAlertAll(clinic.id).then(() => {
+    isExecutedStockAlert.value = true;
+  });
   StockDistributorBatchService.get(0);
   DrugDistributorService.get(0);
   StockDistributorService.get(0).then(() => {
