@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted } from 'vue';
+import { onBeforeMount, onMounted, ref, provide } from 'vue';
 
 import Index from 'src/components/Stock/Index.vue';
 
@@ -22,7 +22,8 @@ import StockEntranceService from 'src/services/api/stockEntranceService/StockEnt
 import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
-import { ref, provide } from 'vue';
+import stockLevelService from 'src/services/api/stockLevelService/stockLevelService';
+
 const isExecutedStockAlert = ref(false);
 const isExecutedInventory = ref(false);
 const isExecutedEntrance = ref(false);
@@ -39,6 +40,7 @@ onMounted(() => {
     isExecutedDistributor.value = true;
   });
   StockService.get(0, clinic.id);
+  stockLevelService.get(0);
 
   ReferedStockMovimentService.getAllByClinic(clinic.id, 0);
   DestroyedStockService.getAllByClinic(clinic.id, 0);
