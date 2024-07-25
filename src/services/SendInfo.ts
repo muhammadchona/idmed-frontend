@@ -144,7 +144,7 @@ export function sendData() {
     const patientVisit = patientVisitToSync[i];
     if (patientVisit !== undefined) {
       await patientVisitService
-        .apiSave(patientVisit)
+        .postWeb(patientVisit)
         .then((resp) => {
           i = i + 1;
           patientVisit.syncStatus = 'S';
