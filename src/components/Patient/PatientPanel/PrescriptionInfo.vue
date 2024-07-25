@@ -4,7 +4,12 @@
       :addButtonActions="newPrescriptionOption"
       :mainContainer="true"
       bgColor="bg-primary"
-      :add-visible="showAddPrescriptionButton && !isProvincialInstalation()"
+      :add-visible="
+        showAddPrescriptionButton &&
+        (!isProvincialInstalation() ||
+          isProvincialInstalationPharmacysMode() ||
+          isProvincialInstalationMobileClinic())
+      "
       :expandVisible="false"
       :title="title"
     />
@@ -43,7 +48,11 @@ const {
   hasNoObitOrTransferedForEpisode,
 } = usePatient();
 const { website, isDeskTop, isMobile } = useSystemUtils();
-const { isProvincialInstalation } = useSystemConfig();
+const {
+  isProvincialInstalation,
+  isProvincialInstalationPharmacysMode,
+  isProvincialInstalationMobileClinic,
+} = useSystemConfig();
 const { closeLoading, showloading } = useLoading();
 const showAddPrescription = ref(false);
 const isNewPrescription = ref(false);

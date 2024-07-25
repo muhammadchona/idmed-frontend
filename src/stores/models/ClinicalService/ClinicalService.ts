@@ -1,7 +1,7 @@
 import { Model } from 'pinia-orm';
 import ClinicalServiceAttribute from '../ClinicalServiceAttribute/ClinicalServiceAttribute';
 import IdentifierType from '../identifierType/IdentifierType';
-import ClinicSector from '../clinicSector/ClinicSector';
+import { ClinicSector } from '../clinic/ClinicHierarchy';
 import ClinicalServiceSector from '../ClinicalServiceClinicSector/ClinicalServiceSector';
 import { v4 as uuidv4 } from 'uuid';
 import Drug from '../drug/Drug';

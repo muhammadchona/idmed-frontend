@@ -3,10 +3,11 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import SystemConfigs from 'src/stores/models/systemConfigs/SystemConfigs';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const systemConfigs = useRepo(SystemConfigs);
+const systemConfigsDexie = SystemConfigs.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -21,11 +22,7 @@ export default {
     }
   },
   get(offset: number) {
-    if (
-      isMobile.value &&
-      !isOnline.value &&
-      this.getAllFromStorage().length < 0
-    ) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
@@ -97,23 +94,29 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(SystemConfigs.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[systemConfigsDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         systemConfigs.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[systemConfigsDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        systemConfigs.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(SystemConfigs.entity)
-      .query('select')
-      .exec()
+    return db[systemConfigsDexie]
+      .toArray()
       .then((rows: any) => {
         systemConfigs.save(rows);
       })
@@ -123,16 +126,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(SystemConfigs.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[systemConfigsDexie]
+      .delete(paramsId)
       .then(() => {
         systemConfigs.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[systemConfigsDexie]
+      .bulkPut(params)
+      .then(() => {
+        systemConfigs.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

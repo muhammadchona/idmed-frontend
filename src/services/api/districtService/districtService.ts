@@ -4,9 +4,10 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const district = useRepo(District);
+const districtDexie = District.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -92,10 +93,19 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[districtDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        district.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(District.entity)
-      .query('upsert', params)
-      .exec()
+    return db[districtDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         district.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -106,9 +116,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(District.entity)
-      .query('select')
-      .exec()
+    return db[districtDexie]
+      .toArray()
       .then((rows: any) => {
         district.save(rows);
       })
@@ -118,16 +127,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(District.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[districtDexie]
+      .delete(JSON.parse(paramsId))
       .then(() => {
         district.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[districtDexie]
+      .bulkPut(params)
+      .then(() => {
+        district.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
@@ -150,10 +167,6 @@ export default {
       .first();
   },
   getDistrictById(id: string) {
-    return district
-      .query()
-      .with('province')
-      .where('id', id)
-      .first();
+    return district.query().with('province').where('id', id).first();
   },
 };

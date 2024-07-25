@@ -4,23 +4,42 @@ import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import moment from 'moment';
 import dispenseTypeService from '../dispenseType/dispenseTypeService';
+import patientService from '../patientService/patientService';
+import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
+import clinicService from '../clinicService/clinicService';
+import prescriptionService from '../prescription/prescriptionService';
+import packService from '../pack/packService';
+import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
+import episodeService from '../episode/episodeService';
+import ChunkArray from 'src/utils/ChunkArray';
+import useNotify from 'src/composables/shared/notify/UseNotify';
+import StockService from '../stockService/StockService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+
+const { isUserAPE } = useSystemConfig();
 
 const patientVisit = useRepo(PatientVisit);
+const patientVisitDexie = PatientVisit.entity;
 
-const { closeLoading } = useLoading();
+const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+const { notifySuccess } = useNotify();
 
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
+
+    // params.syncStatus = 'R';
+    //return this.addMobile(params);
+    // return this.postWeb(params);
   },
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
@@ -82,56 +101,67 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: any) {
+    return db[patientVisitDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        params.patientVisitDetails.forEach((pvd) => {
+          pvd.pack.packagedDrugs.forEach((pcd) => {
+            pcd.packagedDrugStocks.forEach((pcs) => {
+              const stock = StockService.getStockById(pcs.stock.id);
+              stock.stockMoviment -= pcd.quantitySupplied;
+              //  pcd.packagedDrugStocks.for
+              StockService.patch(stock.id, stock);
+            });
+          });
+        });
+        patientVisit.save(params);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PatientVisit.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        patientVisit.save(resp[0].affectedRows);
+    return db[patientVisitDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientVisit.save(JSON.parse(JSON.stringify(params)));
       });
   },
   async getMobile() {
-    try {
-      const rows = await nSQL(PatientVisit.entity).query('select').exec();
-      if (rows.length === 0) {
-        api()
-          .get('patientVisit?offset=0&max=700')
-          .then((resp) => {
-            this.putMobile(resp.data);
-          });
-      } else {
-        rows.forEach((row) => {
-          //   console.log(row);
-          //   row.patientVisitDetails = [];
-          row.patientVisitDetails.forEach((rowDetails) => {
-            // rowDetails.episode = null;
-            // rowDetails.pack = null;
-            // rowDetails.prescription = null;
-            // rowDetails.clinic = null;
-            rowDetails.patientVisit = null;
-          });
-          console.log(row);
-          patientVisit.save(row);
-        });
-        //  patientVisit.save(rows);
-      }
-    } catch (error) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
-      console.log(error);
-    }
+    const rows = await db[patientVisitDexie].toArray();
+    patientVisit.save(rows);
+    return rows;
   },
+
+  async getPatientVisitMobile() {
+    const rows = await db[patientVisitDexie].toArray();
+    const records = rows.filter(
+      (row) =>
+        row.syncStatus !== undefined &&
+        row.syncStatus !== null &&
+        row.syncStatus !== ''
+    );
+
+    return records;
+  },
+
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(PatientVisit.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
+      await db[patientVisitDexie].delete(paramsId);
       patientVisit.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+  addBulkMobile(params: any) {
+    return db[patientVisitDexie]
+      .bulkPut(params)
+      .then(() => {
+        patientVisit.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
   },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisit/${id}`);
@@ -150,8 +180,23 @@ export default {
   },
 
   async apiGetAllByPatientId(patientId: string) {
-    const resp = await api().get('/patientVisit/patient/' + patientId);
-    patientVisit.save(resp.data);
+    if (isMobile.value && !isOnline.value) {
+      const resp = await db[patientVisitDexie]
+        .where('patientId')
+        .equalsIgnoreCase(patientId)
+        .or('patient_id')
+        .equalsIgnoreCase(patientId)
+        .toArray();
+      patientVisit.save(resp);
+      return resp;
+    } else {
+      const resp = await api().get('/patientVisit/patient/' + patientId);
+      patientVisit.save(resp.data);
+      return resp.data;
+    }
+
+    //  const resp = await api().get('/patientVisit/patient/' + patientId);
+    // patientVisit.save(resp.data);
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
@@ -180,11 +225,13 @@ export default {
   },
 
   async getLocalDbPatientVisitsToSync() {
-    return nSQL(PatientVisit.entity)
-      .query('select')
-      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
-      .exec()
-      .then((result) => {
+    return db[patientVisitDexie]
+      .where('syncStatus')
+      .equalsIgnoreCase('R')
+      .or('syncStatus')
+      .equalsIgnoreCase('U')
+      .toArray()
+      .then((result: any) => {
         return result;
       });
   },
@@ -259,23 +306,20 @@ export default {
   // Reports
 
   async getPatientNSql() {
-    return nSQL(PatientVisit.entity)
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        //  return result
-      });
+    return db[patientVisitDexie].toArray().then((result: any) => {
+      console.log(result);
+      //  return result
+    });
   },
 
   async getPatientVIsitNSqlByPatient(patient: any) {
-    return nSQL(PatientVisit.entity)
-      .query('select')
-      .where(['patient[id]', '=', patient.id])
-      .exec()
-      .then((result) => {
+    return db[patientVisitDexie]
+      .where('id')
+      .equalsIgnoreCase(patient.id)
+      .first()
+      .then((result: any) => {
         console.log(result);
-        result[0].patientVisitDetails.forEach((pvd) => {
+        result.patientVisitDetails.forEach((pvd: any) => {
           if (pvd.prescription !== undefined)
             Prescription.insertOrUpdate({ data: pvd.prescription });
           if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack });
@@ -283,6 +327,8 @@ export default {
       });
   },
 
+  // to check How to do it with Dexie
+  /*
   async getVisits() {
     nSQL().onConnected(() => {
       nSQL(PatientVisit.entity)
@@ -295,30 +341,24 @@ export default {
         });
     });
   },
+*/
 
   async localDbGetPacks() {
     const packList = [];
-    return nSQL('patientVisits')
-      .query('select', ['patientVisitDetails'])
-      .exec()
-      .then((result) => {
-        for (const pvd of result) {
-          for (const pvdObj of pvd.patientVisitDetails) {
-            packList.push(pvdObj.pack);
-          }
+    return db[patientVisitDexie].toArray().then((result: any) => {
+      for (const pvd of result) {
+        for (const pvdObj of pvd.patientVisitDetails) {
+          packList.push(pvdObj.pack);
         }
-        return packList;
-      });
+      }
+      return packList;
+    });
   },
 
   async localDbGetAllPatientVisit() {
-    return nSQL('patientVisits')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log('PATIENTVISIT: ', result);
-        return result;
-      });
+    return db[patientVisitDexie].toArray().then((result: any) => {
+      return result;
+    });
   },
 
   async countPacksByDispenseTypeAndServiceOnPeriod(
@@ -328,31 +368,176 @@ export default {
     endDate: any
   ) {
     let counter = 0;
-    return nSQL('patientVisits')
-      .query('select')
-      .exec()
-      .then((result) => {
-        for (const pv of result) {
-          for (const pvd of pv.patientVisitDetails) {
-            if (pvd.pack !== undefined) {
-              const pickupDate = moment(pvd.pack.pickupDate);
-              const dispenseTypeId =
-                pvd.prescription.prescriptionDetails[0].dispenseType
-                  .identifierType;
-              const codeDispenseType =
-                dispenseTypeService.getById(dispenseTypeId);
-              if (
-                pickupDate >= startDate &&
-                pickupDate <= endDate &&
-                pvd.episode.patientServiceIdentifier.service.id === service &&
-                codeDispenseType.code === dispenseType
-              ) {
-                counter++;
-              }
+    return db[patientVisitDexie].toArray().then((result) => {
+      for (const pv of result) {
+        for (const pvd of pv.patientVisitDetails) {
+          if (pvd.pack !== undefined) {
+            const pickupDate = moment(pvd.pack.pickupDate);
+            const dispenseTypeId =
+              pvd.prescription.prescriptionDetails[0].dispenseType
+                .identifierType;
+            const codeDispenseType =
+              dispenseTypeService.getById(dispenseTypeId);
+            if (
+              pickupDate >= startDate &&
+              pickupDate <= endDate &&
+              pvd.episode.patientServiceIdentifier.service.id === service &&
+              codeDispenseType.code === dispenseType
+            ) {
+              counter++;
             }
           }
         }
-        return counter;
-      });
+      }
+      return counter;
+    });
+  },
+
+  async doPatientVisitServiceBySectorGet() {
+    showloading();
+    const patients = await patientService.getMobile();
+    const ids = patients.map((pat: any) => pat.id);
+    const clinicSector = clinicService.currClinic();
+    console.log(ids);
+    // ids.push(clinicSector);
+
+    const limit = 100; // Define your limit
+    const offset = 0; // Define your offset
+
+    const chunks = ChunkArray.chunkArrayWithOffset(ids, limit, offset);
+    const allVisits = [];
+    for (const chunk of chunks) {
+      const listParams = {
+        ids: chunk,
+        clinicSector: clinicSector,
+      };
+      let visitDetails;
+      if (isUserAPE()) {
+        visitDetails = await api().post(
+          '/patientVisitDetails/getLastAllByPatientIds/',
+          listParams
+        );
+      } else {
+        visitDetails = await api().post(
+          'patientVisitDetails/getAllByPatientIds/',
+          listParams
+        );
+      }
+
+      allVisits.push(...visitDetails.data);
+    }
+
+    patientVisitDetailsService.addBulkMobile(allVisits);
+
+    const pvs = allVisits.map((pat: any) => pat.patientVisit);
+    console.log(pvs);
+
+    this.addBulkMobile(pvs);
+
+    const idsPrescription = allVisits.map((vis: any) => vis.prescriptionId);
+    const prescriptions = await prescriptionService.getPrescriptionsByIds(
+      idsPrescription
+    );
+    console.log(prescriptions);
+
+    const idsPacks = allVisits.map((vis: any) => vis.packId);
+    const packs = await packService.getPacksByIds(idsPacks);
+    console.log(packs);
+
+    const episodeIds = patients.flatMap((data: any) =>
+      data.identifiers.flatMap((data1: any) =>
+        data1.episodes.map((episode: any) => episode.id)
+      )
+    );
+
+    const episodes = await episodeService.getEpisodeByIds(episodeIds);
+    console.log(episodes);
+    const visitScreening = await this.getPatientVisitWithScreeningByPatientIds(
+      ids
+    );
+    //  this.addBulkMobile(resp.data);
+    closeLoading();
+    notifySuccess('Carregamento de Dispensas Terminado');
+    /*
+    const idsVisit = visits.data.map((vis: any) => vis.patientVisitId);
+    const idsPrescription = visits.data.map((vis: any) => vis.prescriptionId);
+    const idsPacks = visits.data.map((vis: any) => vis.packId);
+    console.log(idsVisit);
+    console.log(idsPrescription);
+    console.log(idsPacks);
+*/
+    /*
+    const patientVisits = await api().post(
+      '/patientVisit/getAllByVisitIds/',
+      idsVisit
+    );
+    console.log(patientVisits);
+
+
+    this.addBulkMobile(patientVisits.data);
+
+    const prescriptions = await api().post(
+      '/prescription/getAllByPrescriptionIds/',
+      idsPrescription
+    );
+
+    const packs = await api().post('/pack/getAllByPackIds/', idsPacks);
+
+    prescriptionService.addBulkMobile(prescriptions.data);
+
+    packService.addBulkMobile(packs.data);
+
+    const patientServices = await patientServiceIdentifierService.getMobile();
+
+    // dataArray.flatMap(data => data.episodes.map(episode => episode.id));
+
+    const episodeIds = patients.flatMap((data: any) =>
+      data.identifiers.flatMap((data1: any) =>
+        data1.episodes.map((episode: any) => episode.id)
+      )
+    );
+    console.log(episodeIds);
+    const episodes = await api().post(
+      '/episode/getAllByEpisodeIds/',
+      episodeIds
+    );
+    episodeService.addBulkMobile(episodes.data);
+    console.log(episodes);
+        */
+  },
+
+  /*
+  chunkArrayWithOffset(array: [], limit: number, offset: number) {
+    const result = [];
+    let currentOffset = offset;
+
+    while (currentOffset < array.length) {
+      const chunk = array.slice(currentOffset, currentOffset + limit);
+      result.push(chunk);
+      currentOffset += limit;
+    }
+
+    return result;
+  },
+  */
+
+  async getPatientVisitWithScreeningByPatientIds(patientIds: any) {
+    const limit = 100; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(patientIds, limit, offset);
+
+    const allVisits = [];
+
+    for (const chunk of chunks) {
+      const visitWithScreening = await api().post(
+        '/patientVisit/getAllLastWithScreeningByPatientIds/',
+        chunk
+      );
+
+      allVisits.push(...visitWithScreening.data);
+    }
+
+    this.addBulkMobile(allVisits);
   },
 };

@@ -1,19 +1,22 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import { nSQL } from 'nano-sql';
 import AdherenceScreening from 'src/stores/models/screening/AdherenceScreening';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
+import db from '../../../stores/dexie';
 
 const adherenceScreening = useRepo(AdherenceScreening);
+const adherenceScreeningDexi = AdherenceScreening.entity;
 
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+const { closeLoading, showloading } = useLoading();
 
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -27,7 +30,7 @@ export default {
   },
   patch(uid: string, params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.patchMobile(params);
     } else {
       return this.patchWeb(uid, params);
     }
@@ -78,20 +81,41 @@ export default {
       });
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(AdherenceScreening.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        adherenceScreening.save(resp[0].affectedRows);
+  addMobile(params: string) {
+    showloading();
+    return db[adherenceScreeningDexi]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        adherenceScreening.save(params);
+        // alertSucess('O Registo foi efectuado com sucesso');
+        closeLoading();
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  patchMobile(params: string) {
+    showloading();
+    return db[adherenceScreeningDexi]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        adherenceScreening.save(params);
+        // alertSucess('O Registo foi efectuado com sucesso');
+        closeLoading();
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
       });
   },
   getMobile() {
-    return nSQL(AdherenceScreening.entity)
-      .query('select')
-      .exec()
+    showloading();
+    return db[adherenceScreeningDexi]
+      .toArray()
       .then((rows: any) => {
         adherenceScreening.save(rows);
+        closeLoading();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -99,16 +123,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(AdherenceScreening.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[adherenceScreeningDexi]
+      .delete(paramsId)
       .then(() => {
         adherenceScreening.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: string) {
+    return db[adherenceScreeningDexi]
+      .bulkPut(params)
+      .then(() => {
+        adherenceScreening.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

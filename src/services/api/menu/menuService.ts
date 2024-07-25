@@ -4,9 +4,10 @@ import Menu from 'src/stores/models/userLogin/Menu';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const menu = useRepo(Menu);
+const menuDexie = Menu.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -14,28 +15,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
-      this.putMobile(params);
+    if (isMobile.value && !isOnline.value) {
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -92,42 +93,55 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(menu.use?.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[menuDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         menu.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[menuDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        menu.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(menu.use?.entity)
-      .query('select')
-      .exec()
+    return db[menuDexie]
+      .toArray()
       .then((rows: any) => {
         menu.save(rows);
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(menu.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[menuDexie]
+      .delete(paramsId)
       .then(() => {
         menu.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[menuDexie]
+      .bulkPut(params)
+      .then(() => {
+        menu.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

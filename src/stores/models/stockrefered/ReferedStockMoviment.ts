@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import { StockReferenceAdjustment } from '../stockadjustment/StockAdjustmentHierarchy';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,5 +24,5 @@ export default class StockReferedStockMoviment extends Model {
 
   static piniaOptions = {
     persist: true,
-  }
+  };
 }

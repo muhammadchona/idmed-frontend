@@ -270,9 +270,10 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import groupService from 'src/services/api/group/groupService';
 import PrescriptionDetailsView from 'components/Patient/Prescription/PrescriptionDetailsView.vue';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import StockService from 'src/services/api/stockService/StockService';
 
 //Declaration
-const { website } = useSystemUtils();
+const { website, isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 const { isProvincialInstalation } = useSystemConfig();
 const { isCloseEpisode, isDCReferenceEpisode } = useEpisode();
@@ -293,6 +294,9 @@ const patient = inject('patient');
 onMounted(() => {
   showloading();
   init();
+  if (isMobile.value && !isOnline.value) {
+    StockService.get(0);
+  }
 });
 //Methods
 const init = () => {

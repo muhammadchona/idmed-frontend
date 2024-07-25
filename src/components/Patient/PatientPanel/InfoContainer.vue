@@ -81,7 +81,7 @@
             <div class="row q-my-md">
               <q-space />
               <q-btn
-                v-if="!showEndDetails"
+                v-if="!showEndDetails && !isPharmacyDDDOrAPEOrDCP()"
                 unelevated
                 color="orange-5"
                 label="Editar"
@@ -89,7 +89,11 @@
                 class="float-right"
               />
               <q-btn
-                v-if="!showEndDetails"
+                v-if="
+                  !showEndDetails &&
+                  !isPharmacyDDDOrAPEOrDCP() &&
+                  !isProvincialInstalationMobileClinic()
+                "
                 unelevated
                 color="red"
                 label="Fechar"
@@ -108,7 +112,12 @@
           </div>
           <div class="col q-py-md">
             <ListHeader
-              :addVisible="islastEpisodeClosed && !isProvincialInstalation()"
+              :addVisible="
+                islastEpisodeClosed &&
+                (!isProvincialInstalation() ||
+                  isProvincialInstalationPharmacysMode() ||
+                  isProvincialInstalationMobileClinic())
+              "
               bgColor="bg-primary"
               :addButtonActions="openEpisodeCreation"
               >Histórico Clínico</ListHeader
@@ -163,7 +172,12 @@ const props = defineProps(['identifierId', 'serviceId']);
 
 // Declaration
 const { hasVisits, isCloseEpisode, isDCReferenceEpisode } = useEpisode();
-const { isProvincialInstalation } = useSystemConfig();
+const {
+  isProvincialInstalation,
+  isPharmacyDDDOrAPEOrDCP,
+  isProvincialInstalationPharmacysMode,
+  isProvincialInstalationMobileClinic,
+} = useSystemConfig();
 const { canBeEdited } = usePatientServiceIdentifier();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { preferedIdentifierValue, fullName } = usePatient();

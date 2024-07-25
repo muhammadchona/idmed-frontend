@@ -159,6 +159,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import StockService from 'src/services/api/stockService/StockService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { isOnline } = useSystemUtils();
 
@@ -236,7 +237,7 @@ const prepareInit = () => {
       initNewAdjustment(stock, drug, i);
       i = i + 1;
     });
-    // closeLoading();
+    closeLoading();
   } else if (stockList.length === i) {
     closeLoading();
   }
@@ -245,7 +246,7 @@ const prepareInit = () => {
 
 const getValidStocks = (drug) => {
   closeLoading();
-  return StockService.getValidStockByDrug(drug);
+  return StockService.getValidStockByDrug(drug, clinicService.currClinic().id);
 };
 
 const initNewAdjustment = (stock, drug, i) => {
@@ -276,7 +277,6 @@ const initNewAdjustment = (stock, drug, i) => {
   newAdjustment.adjustedStock.clinic.id = stock.clinic_id;
   newAdjustment.inventory = {};
   newAdjustment.inventory.id = inventory.id;
-  // newAdjustment.id = uuidv4();
   inventory.adjustments.push(newAdjustment);
   adjustments.value.push(newAdjustment);
 };
@@ -288,12 +288,18 @@ const saveAdjustments = () => {
     if (adjustment.adjustedStock.drug.id === drug.id) {
       conta++;
       let operation = null;
-      if (adjustment.balance > adjustment.adjustedStock.stockMoviment) {
+      if (
+        Number(adjustment.balance) >
+        Number(adjustment.adjustedStock.stockMoviment)
+      ) {
         operation =
           StockOperationTypeService.getStockOperatinTypeByCode(
             'AJUSTE_POSETIVO'
           );
-      } else if (adjustment.balance < adjustment.adjustedStock.stockMoviment) {
+      } else if (
+        Number(adjustment.balance) <
+        Number(adjustment.adjustedStock.stockMoviment)
+      ) {
         operation =
           StockOperationTypeService.getStockOperatinTypeByCode(
             'AJUSTE_NEGATIVO'

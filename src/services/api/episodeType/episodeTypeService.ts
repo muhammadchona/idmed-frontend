@@ -4,9 +4,10 @@ import EpisodeType from 'src/stores/models/episodeType/EpisodeType';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const episodeType = useRepo(EpisodeType);
+const episodeTypeDexie = EpisodeType.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -92,10 +93,9 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(EpisodeType.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[episodeTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         episodeType.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -105,10 +105,19 @@ export default {
         console.log(error);
       });
   },
+  putMobile(params: string) {
+    return db[episodeTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        episodeType.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   getMobile() {
-    return nSQL(EpisodeType.entity)
-      .query('select')
-      .exec()
+    return db[episodeTypeDexie]
+      .toArray()
       .then((rows: any) => {
         episodeType.save(rows);
       })
@@ -118,16 +127,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(EpisodeType.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[episodeTypeDexie]
+      .delete(paramsId)
       .then(() => {
         episodeType.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[episodeTypeDexie]
+      .bulkPut(params)
+      .then(() => {
+        episodeType.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

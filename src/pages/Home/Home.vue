@@ -192,27 +192,54 @@ import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, watch, inject } from 'vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import patientService from 'src/services/api/patientService/patientService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import sysConfigsService from 'src/services/api/systemConfigs/systemConfigsService.ts';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
-const { isProvincialInstalation } = useSystemConfig();
+const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
 
 const { loadSettingParams, loadPatientData } = useOnline();
 
-const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
+const {
+  loadPatientDataToOffline,
+  loadSettingParamsToOffline,
+  loadSettingParamsInOfflineMode,
+} = useOffline();
 const { alertWarningTitle } = useSwal();
+
+const stockDistributionCount = inject('stockDistributionCount');
 let codeExecuted = false;
 
 const clinic = computed(() => {
   return clinicService.currClinic();
 });
+
+const isClinicSector = computed(() => {
+  return clinicService.isClinicSector(clinic.value);
+});
+
+const isPrivatePharmacy = computed(() => {
+  return clinicService.isPrivatePharmacy(clinic.value);
+});
+
+const getStockDistributionCount = (clinic) => {
+  DrugDistributorService.getDistributionsByStatus(clinic.id, 'P').then(
+    (list) => {
+      stockDistributionCount.value = list.length;
+      localStorage.setItem(
+        'stockDistributionCount',
+        stockDistributionCount.value
+      );
+    }
+  );
+};
 
 const menusVisible = (name) => {
   const menus = sessionStorage.getItem('role_menus');
@@ -224,7 +251,9 @@ const menusVisible = (name) => {
     }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // await loadSettingParams();
+  /*
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
     loadSettingParams();
@@ -235,6 +264,40 @@ onMounted(() => {
       setTimeout(() => {
         loadPatientDataToOffline();
       }, 5000);
+    }
+  }
+  */
+  /*
+  setTimeout(() => {
+    console.log(isOnline.value);
+    if (isPharmacyDDD(clinic.value)) {
+      showloading();
+      // loadSettingParamsToOffline();
+      setTimeout(() => {
+        //   loadPatientDataToOffline();
+      }, 5000);
+    }
+  }, 1000);
+
+  console.log(isClinicSector.value);
+  // console.log(isPrivatePharmacy.value);
+  */
+  console.log(isOnline.value);
+  if (website.value || (isMobile.value && isOnline.value)) {
+    showloading();
+    loadSettingParams();
+  } else {
+    await patientService.getMobile();
+    console.log(patientService.getAllFromStorage().length);
+    if (patientService.getAllFromStorage().length <= 0) {
+      showloading();
+      loadSettingParamsToOffline();
+      //  loadSettingParamsInOfflineMode();
+      setTimeout(() => {
+        loadPatientDataToOffline();
+      }, 5000);
+    } else {
+      loadSettingParams();
     }
   }
 });
@@ -253,6 +316,7 @@ watch(clinic, () => {
         );
       }
     });
+    // getStockDistributionCount(clinic.value);
   }
 });
 </script>

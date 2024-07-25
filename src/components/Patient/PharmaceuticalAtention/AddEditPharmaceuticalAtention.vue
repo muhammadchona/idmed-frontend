@@ -256,11 +256,16 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import clinicService from 'src/services/api/clinicService/clinicService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { alertSucess, alertError } = useSwal();
 const { age, fullName, hasIdentifiers, getOldestIdentifier, isMale } =
   usePatient();
 const { getDDMMYYYFromJSDate, getJSDateFromDDMMYYY } = useDateUtils();
+const { isProvincialInstalation } = useSystemConfig();
+const { isMobile, isOnline } = useSystemUtils();
 const patientVisit = ref(new PatientVisit({ id: uuidv4() }));
 const vitalSignsScreening = ref(new VitalSignsScreening({ id: uuidv4() }));
 const tBScreening = ref(new TBScreening({ id: uuidv4() }));
@@ -563,6 +568,7 @@ const goToNextStep = async () => {
 
       patientVisit.value.clinic = patient.value.clinic;
       patientVisit.value.clinic_id = patient.value.clinic.id;
+
       patientVisit.value.patient = patient.value;
       patientVisit.value.visitDate = getJSDateFromDDMMYYY(visitDate.value);
 
@@ -579,9 +585,22 @@ const goToNextStep = async () => {
 
       patientVisit.value.clinic = {};
       patientVisit.value.clinic.id = patient.value.clinic_id;
+
       patientVisit.value.patient = {};
       patientVisit.value.patient.id = patient.value.id;
+      patientVisit.value.patient_id = patient.value.id;
+      patientVisit.value.patientId = patient.value.id;
 
+      if (isMobile.value && !isOnline.value) {
+        if (
+          patientVisit.value.syncStatus === '' ||
+          patientVisit.value.syncStatus === 'R'
+        ) {
+          patientVisit.value.syncStatus = 'R';
+        } else if (patientVisit.value.syncStatus === 'S') {
+          patientVisit.value.syncStatus = 'U';
+        }
+      }
       saveORUpdatePatientVisit(!editMode.value);
     }
   }

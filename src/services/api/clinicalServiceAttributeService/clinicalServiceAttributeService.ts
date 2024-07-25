@@ -3,10 +3,11 @@ import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import db from '../../../stores/dexie';
 
 const clinicalServiceAttribute = useRepo(ClinicalServiceAttribute);
+const clinicalServiceAttributeDexie = ClinicalServiceAttribute.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -95,23 +96,29 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(ClinicalServiceAttribute.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[clinicalServiceAttributeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         clinicalServiceAttribute.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[clinicalServiceAttributeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        clinicalServiceAttribute.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },
   getMobile() {
-    return nSQL(ClinicalServiceAttribute.entity)
-      .query('select')
-      .exec()
+    return db[clinicalServiceAttributeDexie]
+      .toArray()
       .then((rows: any) => {
         clinicalServiceAttribute.save(rows);
       })
@@ -121,16 +128,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(ClinicalServiceAttribute.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[clinicalServiceAttributeDexie]
+      .delete(paramsId)
       .then(() => {
         clinicalServiceAttribute.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: string) {
+    return db[clinicalServiceAttributeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        clinicalServiceAttribute.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

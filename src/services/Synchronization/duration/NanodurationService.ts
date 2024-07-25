@@ -1,8 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import Duration from 'src/stores/models/duration/Duration';
-import { useRepo } from 'pinia-orm';
-const duration = useRepo(Duration);
+import durationService from 'src/services/api/duration/durationService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -10,8 +7,7 @@ export default {
       return await api()
         .get('duration?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(Duration.entity).query('upsert', resp.data).exec();
-          duration.save(resp.data);
+          durationService.addBulkMobile(resp.data);
           console.log('Data synced from backend: Duration');
           offset = offset + 100;
           if (resp.data.length > 0) {

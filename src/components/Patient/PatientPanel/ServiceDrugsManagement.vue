@@ -208,6 +208,10 @@ import drugService from 'src/services/api/drugService/drugService';
 import { v4 as uuidv4 } from 'uuid';
 import { debounce } from 'lodash';
 import { useDrug } from 'src/composables/drug/drugMethods';
+import clinicService from 'src/services/api/clinicService/clinicService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import moment from 'moment';
+const { isOnline, isMobile, website } = useSystemUtils();
 //Declaration
 const { getQtyPrescribed } = usePrescribedDrug();
 const { alertError } = useSwal();
@@ -268,6 +272,7 @@ const addPatientVisitDetail = inject('addPatientVisitDetail');
 const removePatientVisitDetail = inject('removePatientVisitDetail');
 const curIdentifier = inject('curIdentifier');
 const submittingValidateDispense = inject('submittingValidateDispense');
+
 //Methods
 const deleteRow = (row) => {
   const i = curPack.value.packagedDrugs
@@ -324,19 +329,44 @@ const getDrugById = (drugID) => {
 };
 
 const checkStock = async (packagedDrug) => {
-  packagedDrug.drug = getDrugById(packagedDrug.drug.id);
   const qtytoDispense = getQtyPrescribed(
     packagedDrug,
     curPack.value.weeksSupply
   );
+  packagedDrug.drug = getDrugById(packagedDrug.drug.id);
   packagedDrug.quantitySupplied = qtytoDispense;
-  const resp = await StockService.checkStockStatus(
-    packagedDrug.drug.id,
-    curPack.value.pickupDate,
-    qtytoDispense
-  );
-  qtySuppliedFlag.value = resp;
-  return resp;
+  if (isOnline.value) {
+    const resp = await StockService.checkStockStatus(
+      packagedDrug.drug.id,
+      curPack.value.pickupDate,
+      qtytoDispense,
+      clinicService.currClinic().id
+    );
+    qtySuppliedFlag.value = resp;
+    return resp;
+  } else {
+    let qtyInStock = 0;
+    const stocks = await StockService.getStockByDrug(
+      packagedDrug.drug.id,
+      clinicService.currClinic().id
+    );
+    console.log(stocks);
+    const validStock = stocks.filter((item) => {
+      return moment(item.expireDate) >= moment(curPack.value.pickupDate);
+    });
+    if (validStock.length <= 0) {
+      return false;
+    } else {
+      validStock.forEach((item) => {
+        qtyInStock = Number(qtyInStock + item.stockMoviment);
+      });
+      if (qtyInStock < qtytoDispense) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  }
 };
 
 const checkStockList = async () => {

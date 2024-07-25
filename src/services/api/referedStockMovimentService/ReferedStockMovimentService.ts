@@ -4,59 +4,56 @@ import api from '../apiService/apiService';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from 'src/stores/dexie';
 
 const { closeLoading, showloading } = useLoading();
-
 
 const { isMobile, isOnline } = useSystemUtils();
 
 const referedStockMoviment = useRepo(ReferedStockMoviment);
+const referedStockMovimentDexie = ReferedStockMoviment.entity;
 
 export default {
   // Axios API call
   post(params: any) {
     if (!isOnline.value) {
-     return this.putMobile(params);
+      return this.putMobile(params);
     } else {
-     return this.postWeb(params);
+      return this.postWeb(params);
     }
   },
   get(offset: number) {
-
     if (!isOnline.value) {
-     return this.getMobile();
+      return this.getMobile();
     } else {
       return this.getWeb(offset);
     }
-   },
+  },
   patch(id: string, params: any) {
     if (!isOnline.value) {
       return this.putMobile(params);
     } else {
       return this.patchWeb(id, params);
     }
-     },
+  },
 
   async delete(id: string) {
-    if (!isOnline.value ) {
+    if (!isOnline.value) {
       return this.deleteMobile(id);
     } else {
-     return  this.deleteWeb(id);
+      return this.deleteWeb(id);
     }
   },
 
-   async apiSave(referedStockMoviment: any) {
-    return  api().post('/referedStockMoviment', referedStockMoviment);
+  async apiSave(referedStockMoviment: any) {
+    return api().post('/referedStockMoviment', referedStockMoviment);
   },
 
-   async apiRemove(id: string) {
-    return   api().delete(`/referedStockMoviment/${id}`);
+  async apiRemove(id: string) {
+    return api().delete(`/referedStockMoviment/${id}`);
   },
-   async apiUpdate(referedStockMoviment: any) {
-    return  api().patch(
-      '/referedStockMoviment',
-      referedStockMoviment
-    );
+  async apiUpdate(referedStockMoviment: any) {
+    return api().patch('/referedStockMoviment', referedStockMoviment);
   },
   // Local Storage Pinia
   newInstanceEntity() {
@@ -65,15 +62,12 @@ export default {
 
   // WEB
 
-
-
-
   postWeb(params: any) {
     return api()
       .post('referedStockMoviment', params)
       .then((resp) => {
         referedStockMoviment.save(resp.data);
-      })
+      });
   },
   getWeb(offset: number) {
     if (offset >= 0) {
@@ -85,11 +79,34 @@ export default {
           if (resp.data.length > 0) {
             this.get(offset);
           } else {
-            closeLoading()
+            closeLoading();
           }
-        })
+        });
     }
   },
+
+  getAllByClinic(clinicId: any, offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get(
+          'referedStockMoviment/clinic/' +
+            clinicId +
+            '?offset=' +
+            offset +
+            '&max=100'
+        )
+        .then((resp) => {
+          referedStockMoviment.save(resp.data);
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.get(offset);
+          } else {
+            closeLoading();
+          }
+        });
+    }
+  },
+
   patchWeb(id: any, params: string) {
     return api()
       .patch('referedStockMoviment/' + id, params)
@@ -104,54 +121,71 @@ export default {
         referedStockMoviment.destroy(id);
       });
   },
-   async apiGetAll(offset: number, max:number) {
-    return  api().get(
-      '/referedStockMoviment?offset=' + offset + '&max=' + max
-    );
+  async apiGetAll(offset: number, max: number) {
+    return api().get('/referedStockMoviment?offset=' + offset + '&max=' + max);
   },
 
   // MOBILE
 
-  async putMobile (params: any) {
-    const resp = await nSQL('referedStockMoviments').query('upsert',
-    JSON.parse( JSON.stringify(params))
-   ).exec()
-   referedStockMoviment.save(params);
-   return resp
- },
+  addMobile(params: string) {
+    return db[referedStockMovimentDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        referedStockMoviment.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
 
-  getMobile () {
-  return nSQL().onConnected(() => {
-    nSQL('referedStockMoviments').query('select').exec().then(result => {
-     console.log(result)
-     referedStockMoviment.save(result)
-      return result
-     })
-   })
- },
+  async putMobile(params: any) {
+    return db[referedStockMovimentDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        referedStockMoviment.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
 
-  getBystockMobile (stock: any) {
-  return nSQL().onConnected(() => {
-   nSQL('referedStockMoviments').query('select').where(['stocks[id]', '=', stock.id]).exec().then(result => {
-     console.log(result)
-     referedStockMoviment.save(result)
-   })
- })
-},
+  getMobile() {
+    return db[referedStockMovimentDexie]
+      .toArray()
+      .then((rows: any) => {
+        referedStockMoviment.save(rows);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  async getReferedStockMovimentsMobile() {
+    const rows = await db[referedStockMovimentDexie].toArray();
+    return rows;
+  },
 
-async deleteMobile (id: any) {
-  const resp = await  nSQL('referedStockMoviments').query('delete').where(['id', '=', id]).exec()
-  referedStockMoviment.destroy(id)
- return resp
-},
-async localDbGetAll () {
-  return nSQL('referedStockMoviments').query('select').exec().then(result => {
-    console.log(result)
-    return result
-    })
-}
+  getBystockMobile(stock: any) {
+    return nSQL().onConnected(() => {
+      nSQL('referedStockMoviments')
+        .query('select')
+        .where(['stocks[id]', '=', stock.id])
+        .exec()
+        .then((result) => {
+          console.log(result);
+          referedStockMoviment.save(result);
+        });
+    });
+  },
 
-
-  
-
+  async deleteMobile(id: any) {
+    const resp = await nSQL('referedStockMoviments')
+      .query('delete')
+      .where(['id', '=', id])
+      .exec();
+    referedStockMoviment.destroy(id);
+    return resp;
+  },
+  async localDbGetAll() {
+    return nSQL('referedStockMoviments')
+      .query('select')
+      .exec()
+      .then((result) => {
+        console.log(result);
+        return result;
+      });
+  },
 };

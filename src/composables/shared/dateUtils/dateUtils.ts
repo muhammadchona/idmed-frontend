@@ -107,6 +107,142 @@ export function useDateUtils() {
     }
   }
 
+  function returnEstatisticMonth(thedate) {
+    const startOfYear = new Date(thedate.getFullYear(), 0, 1);
+
+    const intervals = [
+      {
+        start: new Date(startOfYear.getTime() + 21 * 24 * 60 * 60 * 1000),
+        end: new Date(
+          startOfYear.getTime() + (1 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 2,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (1 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (2 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 3,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (2 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (3 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 4,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (3 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (4 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 5,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (4 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (5 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 6,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (5 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (6 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 7,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (6 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (7 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 8,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (7 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (8 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 9,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (8 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (9 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 10,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (9 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (10 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 11,
+      },
+      {
+        start: new Date(
+          startOfYear.getTime() + (10 * 30 + 21) * 24 * 60 * 60 * 1000
+        ),
+        end: new Date(
+          startOfYear.getTime() + (11 * 30 + 20) * 24 * 60 * 60 * 1000
+        ),
+        value: 12,
+      },
+    ];
+
+    for (const interval of intervals) {
+      if (thedate >= interval.start && thedate <= interval.end) {
+        return interval.value;
+      }
+    }
+
+    return 1;
+  }
+
+  function getMonthName(monthNumber) {
+    const monthNames = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ];
+
+    // monthNumber should be between 1 and 12
+    if (monthNumber < 1 || monthNumber > 12) {
+      throw new Error('Invalid month number');
+    }
+
+    return monthNames[monthNumber - 1];
+  }
+
   return {
     isValidDate,
     formatDate,
@@ -130,5 +266,7 @@ export function useDateUtils() {
     idadeCalculator,
     idadeReportCalculator,
     getDateFromHyphenDDMMYYYYWithTime,
+    returnEstatisticMonth,
+    getMonthName,
   };
 }

@@ -4,9 +4,10 @@ import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const patientServiceIdentifier = useRepo(PatientServiceIdentifier);
+const patientServiceIdentifierDexie = PatientServiceIdentifier.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -80,20 +81,25 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientServiceIdentifierDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientServiceIdentifier.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PatientServiceIdentifier.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        patientServiceIdentifier.save(resp[0].affectedRows);
+    return db[patientServiceIdentifierDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientServiceIdentifier.save(JSON.parse(JSON.stringify(params)));
       });
   },
   async getMobile() {
     try {
-      const rows = await nSQL(PatientServiceIdentifier.entity)
-        .query('select')
-        .exec();
+      const rows = await db[patientServiceIdentifierDexie].toArray();
       patientServiceIdentifier.save(rows);
+      return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -101,16 +107,31 @@ export default {
   },
   async deleteMobile(paramsId: string) {
     try {
-      await nSQL(PatientServiceIdentifier.entity)
-        .query('delete')
-        .where(['id', '=', paramsId])
-        .exec();
+      await db[patientServiceIdentifierDexie].delete(paramsId);
       patientServiceIdentifier.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+  addBulkMobile(params: any) {
+    return db[patientServiceIdentifierDexie]
+      .bulkPut(params)
+      .then(() => {
+        patientServiceIdentifier.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  async getAllMobileByPatientId(patientId: string) {
+    const resp = await db[patientServiceIdentifierDexie]
+      .where('patient_id')
+      .equalsIgnoreCase(patientId)
+      .toArray();
+    patientServiceIdentifier.save(resp);
+    return resp;
   },
   async apiSave(identifier: any, isNew: boolean) {
     if (isNew) {
@@ -160,13 +181,12 @@ export default {
 
   async apiGetAllByPatientId(patientId: string, offset: number, max: number) {
     if (isMobile.value && !isOnline.value) {
-      return nSQL(PatientServiceIdentifier.value)
-        .query('select')
-        .where(['patient_id', '=', patientId])
-        .exec()
-        .then((rows) => {
-          patientServiceIdentifier.save(rows);
-          return rows;
+      return db[patientServiceIdentifierDexie]
+        .where('patient_id')
+        .equalsIgnoreCase(patientId)
+        .then((row: any) => {
+          patientServiceIdentifier.save(row);
+          return row;
         });
     } else {
       return await api()
@@ -184,15 +204,18 @@ export default {
     }
   },
   async syncPatientServiceIdentifier(identifier: any) {
-    if (identifier.syncStatus === 'R') await this.apiSave(identifier, true);
-    if (identifier.syncStatus === 'U') await this.apiUpdate(identifier);
+    if (identifier.syncStatus === 'R') await this.postWeb(identifier);
+    if (identifier.syncStatus === 'U')
+      await this.patchWeb(identifier.id, identifier);
   },
   async getLocalDbPatientServiceIdentifierToSync() {
-    return nSQL(PatientServiceIdentifier.entity)
-      .query('select')
-      .where([['syncStatus', '=', 'R'], 'OR', ['syncStatus', '=', 'U']])
-      .exec()
-      .then((result) => {
+    return db[patientServiceIdentifierDexie]
+      .where('syncStatus')
+      .equalsIgnoreCase('R')
+      .or('syncStatus')
+      .equalsIgnoreCase('U')
+      .toArray()
+      .then((result: any) => {
         return result;
       });
   },
@@ -253,11 +276,11 @@ export default {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
   },
   localDbGetById(id: string) {
-    return nSQL(PatientServiceIdentifier.entity)
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((result) => {
+    return db[patientServiceIdentifierDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first()
+      .then((result: any) => {
         return result;
       });
   },

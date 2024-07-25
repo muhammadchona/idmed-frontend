@@ -3,7 +3,7 @@ import ClinicalService from 'src/stores/models/ClinicalService/ClinicalService';
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import ClinicalServiceAttribute from 'src/stores/models/ClinicalServiceAttribute/ClinicalServiceAttribute';
 import ClinicalServiceSector from 'src/stores/models/ClinicalServiceClinicSector/ClinicalServiceSector';
@@ -11,6 +11,7 @@ import ClinicalServiceSector from 'src/stores/models/ClinicalServiceClinicSector
 const clinicalService = useRepo(ClinicalService);
 const clinicalServiceAttribute = useRepo(ClinicalServiceAttribute);
 const clinicalServiceSector = useRepo(ClinicalServiceSector);
+const clinicalServiceDexie = ClinicalService.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -19,7 +20,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -104,10 +105,19 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[clinicalServiceDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        clinicalServiceAttributeType.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(ClinicalService.entity)
-      .query('upsert', params)
-      .exec()
+    return db[clinicalServiceDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         clinicalService.save(params);
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -118,9 +128,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(ClinicalService.entity)
-      .query('select')
-      .exec()
+    return db[clinicalServiceDexie]
+      .toArray()
       .then((rows: any) => {
         clinicalService.save(rows);
       })
@@ -130,10 +139,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(ClinicalService.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[clinicalServiceDexie]
+      .delete(paramsId)
       .then(() => {
         clinicalService.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -143,14 +150,24 @@ export default {
         // console.log(error);
       });
   },
+  addBulkMobile(params: any) {
+    return db[clinicalServiceDexie]
+      .bulkPut(params)
+      .then(() => {
+        clinicalService.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   async localDbGetById(id: any) {
-    return nSQL(ClinicalService.entity)
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((result) => {
+    return db[clinicalServiceDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first()
+      .then((result: any) => {
         //  console.log(result)
-        return result[0];
+        return result;
       });
   },
   getByIdentifierTypeCode(identifierTypeCode: string) {

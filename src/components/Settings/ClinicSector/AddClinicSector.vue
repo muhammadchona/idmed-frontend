@@ -25,7 +25,7 @@
             ref="nomeRef"
             :disable="onlyView"
             class="col"
-            v-model="clinicSector.description"
+            v-model="clinicSector.clinicName"
             @input="(event) => $emit('update:name', event.target.value)"
             :rules="[(val) => !!val || 'Por favor indicar o nome']"
             lazy-rules
@@ -50,8 +50,8 @@
             outlined
             class="col"
             :disable="onlyView"
-            v-model="clinicSector.clinicSectorType"
-            :options="clinicSectorTypes"
+            v-model="clinicSector.facilityType"
+            :options="facilityTypes"
             transition-show="flip-up"
             transition-hide="flip-down"
             ref="clinicSectorRef"
@@ -69,9 +69,9 @@
             dense
             outlined
             class="col"
-            v-model="clinicSector.clinic"
+            v-model="clinicSector.parentClinic"
             :options="clinics"
-            disable
+            :disable="!isProvincialInstalation() || onlyView"
             transition-show="flip-up"
             transition-hide="flip-down"
             ref="clinicRef"
@@ -104,13 +104,15 @@ import { ref, inject, onMounted, computed } from 'vue';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import clinicService from 'src/services/api/clinicService/clinicService.ts';
 import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService.ts';
+import facilityTypeService from 'src/services/api/facilityTypeService/facilityTypeService.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 const { alertSucess, alertError } = useSwal();
 const { closeLoading, showloading } = useLoading();
-
+const { isProvincialInstalation } = useSystemConfig();
 /*Declarations*/
 const databaseCodes = ref([]);
 const submitting = ref(false);
@@ -142,11 +144,19 @@ const clinics = computed(() => {
 });
 
 const clinicSectors = computed(() => {
-  return clinicSectorService.getClinicSectorsByClinicId(currClinic.value.id);
+  if (isProvincialInstalation()) {
+    return clinicSectorService.getAllClinicSectors();
+  } else {
+    return clinicSectorService.getClinicSectorsByClinicId(currClinic.value.id);
+  }
 });
 
 const clinicSectorTypes = computed(() => {
   return clinicSectorTypeService.getAllClinicSectorTypes();
+});
+
+const facilityTypes = computed(() => {
+  return facilityTypeService.getFacilityTypeClinicSector();
 });
 
 onMounted(() => {
@@ -181,10 +191,15 @@ const submitClinicSector = () => {
   if (isNewClinicSector.value) {
     clinicSector.value.active = true;
     clinicSector.value.uuid = uuidv4();
+    clinicSector.value.id = uuidv4();
     clinicSector.value.syncStatus = 'P';
     if (clinicSector.value.clinic !== null) {
-      clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+      //  clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+      clinicSector.value.province = clinicSector.value.parentClinic.province;
+      clinicSector.value.district = clinicSector.value.parentClinic.district;
+      // clinicSector.value.parentClinic = clinicSector.value.clinic;
     }
+
     clinicSectorService
       .post(clinicSector.value)
       .then(() => {
@@ -202,7 +217,10 @@ const submitClinicSector = () => {
       });
   } else {
     if (clinicSector.value.clinic !== null) {
-      clinicSector.value.clinic_id = clinicSector.value.clinic.id;
+      clinicSector.value.parentClinic_id =
+        clinicSector.value.parentClinic_id.id;
+      clinicSector.value.province = clinicSector.value.parentClinic.province;
+      clinicSector.value.district = clinicSector.value.parentClinic.district;
     }
     clinicSectorService
       .patch(clinicSector.value.id, clinicSector.value)

@@ -1,7 +1,7 @@
 import { Model } from 'pinia-orm';
 import Country from 'src/stores/models/country/Country';
 import City from '../city/City';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import District from '../district/District';
 import { v4 as uuidv4 } from 'uuid';
 

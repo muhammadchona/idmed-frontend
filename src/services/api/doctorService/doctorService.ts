@@ -4,9 +4,11 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import Doctor from 'src/stores/models/doctor/Doctor';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const doctor = useRepo(Doctor);
+const doctorDexie = Doctor.entity;
+
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -14,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -81,10 +83,19 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[doctorDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        doctor.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(Doctor.entity)
-      .query('upsert', params)
-      .exec()
+    return db[doctorDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         doctor.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -95,9 +106,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(Doctor.entity)
-      .query('select')
-      .exec()
+    return db[doctorDexie]
+      .toArray()
       .then((rows: any) => {
         doctor.save(rows);
       })
@@ -107,10 +117,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(Doctor.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[doctorDexie]
+      .put(paramsId)
       .then(() => {
         doctor.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -120,7 +128,16 @@ export default {
         console.log(error);
       });
   },
-
+  addBulkMobile(params: any) {
+    return db[doctorDexie]
+      .bulkPut(params)
+      .then(() => {
+        doctor.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return doctor.getModel().$newInstance();

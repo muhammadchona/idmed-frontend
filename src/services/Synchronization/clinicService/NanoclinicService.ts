@@ -12,10 +12,9 @@ export default {
       return await api()
         .get('clinic?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(Clinic.entity).query('upsert', resp.data).exec();
-          clinic.save(resp.data);
+          clinicService.addBulkMobile(resp.data);
           console.log('Data synced from backend: Clinic');
-          clinicService.savePinia(resp.data)
+          clinicService.savePinia(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getFromBackEnd(offset);

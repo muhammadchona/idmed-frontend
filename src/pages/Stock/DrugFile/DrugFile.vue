@@ -162,7 +162,7 @@
 
 <script setup>
 import { morph } from 'quasar';
-import { ref, onMounted, computed, provide, watch } from 'vue';
+import { ref, onMounted, onBeforeMount, computed, provide, watch } from 'vue';
 import DrugFile from '../../../stores/models/drugFile/DrugFile';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
@@ -182,7 +182,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 import fichaStockReport from 'src/services/reports/stock/FichaStockReport';
 
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 
 const loading = ref(true);
 const batchChanged = ref(false);
@@ -190,6 +190,7 @@ const batchChanged = ref(false);
 const toggle = ref(false);
 const refFab = ref(null);
 const refCard = ref(null);
+const drug = ref(null);
 
 const columns = [
   {
@@ -351,21 +352,23 @@ const updateDrugFileAdjustment = (adjustment) => {
 };
 
 watch((batchChanged) => {
-  generateDrugEventSummary();
+  if (drug.value !== undefined && drug.value !== null) {
+    generateDrugEventSummary();
+  }
+});
+
+onBeforeMount(() => {
+  const selectedDrug = localStorage.getItem('selectedDrug');
+  drug.value = drugService.getDrugById(selectedDrug);
 });
 
 onMounted(() => {
   generateDrugEventSummary();
 });
 
-const drug = computed(() => {
-  const selectedDrug = localStorage.getItem('selectedDrug');
-  const dru = drugService.getDrugById(selectedDrug);
-  return dru;
-});
-
 const stocks = (drug) => {
-  return StockService.getStockByDrug(drug.id);
+  const clinic = clinicService.currClinic();
+  return StockService.getStockByDrug(drug.id, clinic.id);
 };
 
 const drugFile = () => {

@@ -1,9 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import HealthInformationSystem from 'src/stores/models/healthInformationSystem/HealthInformationSystem';
-import { useRepo } from 'pinia-orm';
-
-const healthInformationSystem = useRepo(HealthInformationSystem);
+import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -11,10 +7,7 @@ export default {
       return await api()
         .get('healthInformationSystem?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(HealthInformationSystem.entity)
-            .query('upsert', resp.data)
-            .exec();
-          healthInformationSystem.save(resp.data);
+          healthInformationSystemService.addBulkMobile(resp.data);
           console.log('Data synced from backend: HealthInformationSystem');
           offset = offset + 100;
           if (resp.data.length > 0) {

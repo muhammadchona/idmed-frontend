@@ -1,5 +1,6 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
+import provinceService from 'src/services/api/provinceService/provinceService';
 import Province from 'src/stores/models/province/Province';
 
 export default {
@@ -8,7 +9,7 @@ export default {
       return await api()
         .get('province?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(Province.entity).query('upsert', resp.data).exec();
+          provinceService.addBulkMobile(resp.data);
           console.log('Data synced from backend: VitalSignsScreening');
           offset = offset + 100;
           if (resp.data.length > 0) {

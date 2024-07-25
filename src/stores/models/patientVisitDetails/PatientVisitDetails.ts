@@ -3,7 +3,7 @@ import Episode from '../episode/Episode';
 import Pack from '../packaging/Pack';
 import Prescription from '../prescription/Prescription';
 import PatientVisit from '../patientVisit/PatientVisit';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientVisitDetails extends Model {
@@ -19,6 +19,7 @@ export default class PatientVisitDetails extends Model {
       prescription_id: this.attr(''),
       pack_id: this.attr(''),
       syncStatus: this.attr(''),
+      patientVisitId: this.attr(''),
       // Relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),
       pack: this.belongsTo(Pack, 'pack_id'),

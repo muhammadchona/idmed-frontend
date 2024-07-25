@@ -3,10 +3,11 @@ import ProvincialServer from 'src/stores/models/provincialServer/ProvincialServe
 import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const provincialServer = useRepo(ProvincialServer);
+const provincialServerDexie = ProvincialServer.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -14,28 +15,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -92,23 +93,23 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(provincialServer.use?.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[provincialServerDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        provincialServer.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
+        provincialServer.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
+  putMobile(params: string) {
+    return db[provincialServerDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        provincialServer.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
-    return nSQL(provincialServer.use?.entity)
-      .query('select')
-      .exec()
+    return db[provincialServerDexie]
+      .toArray()
       .then((rows: any) => {
         provincialServer.save(rows);
       })
@@ -118,16 +119,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(provincialServer.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[provincialServerDexie]
+      .delete(paramsId)
       .then(() => {
         provincialServer.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[provincialServerDexie]
+      .bulkPut(params)
+      .then(() => {
+        provincialServer.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

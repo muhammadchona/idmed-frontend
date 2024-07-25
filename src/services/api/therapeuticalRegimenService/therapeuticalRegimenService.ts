@@ -3,10 +3,11 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import TherapeuticRegimen from 'src/stores/models/therapeuticRegimen/TherapeuticRegimen';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const therapeuticRegimen = useRepo(TherapeuticRegimen);
+const therapeuticRegimenDexie = TherapeuticRegimen.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -107,10 +108,19 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[therapeuticRegimenDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        therapeuticRegimen.save(JSON.parse(params));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
   putMobile(params: string) {
-    return nSQL(TherapeuticRegimen.entity)
-      .query('upsert', params)
-      .exec()
+    return db[therapeuticRegimenDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         therapeuticRegimen.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -121,9 +131,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(TherapeuticRegimen.entity)
-      .query('select')
-      .exec()
+    return db[therapeuticRegimenDexie]
+      .toArray()
       .then((rows: any) => {
         therapeuticRegimen.save(rows);
       })
@@ -133,16 +142,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(TherapeuticRegimen.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[therapeuticRegimenDexie]
+      .delete(paramsId)
       .then(() => {
         therapeuticRegimen.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[therapeuticRegimenDexie]
+      .bulkPut(params)
+      .then(() => {
+        therapeuticRegimen.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

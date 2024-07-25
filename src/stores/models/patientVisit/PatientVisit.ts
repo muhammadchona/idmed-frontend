@@ -6,7 +6,7 @@ import TBScreening from '../screening/TBScreening';
 import AdherenceScreening from '../screening/AdherenceScreening';
 import VitalSignsScreening from '../screening/VitalSignsScreening';
 import Patient from '../patient/Patient';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class PatientVisit extends Model {
@@ -29,6 +29,7 @@ export default class PatientVisit extends Model {
         VitalSignsScreening,
         'patient_visit_id'
       ),
+      patientId: this.attr(''),
       tbScreenings: this.hasMany(TBScreening, 'patient_visit_id'),
       pregnancyScreenings: this.hasMany(PregnancyScreening, 'patient_visit_id'),
       adherenceScreenings: this.hasMany(AdherenceScreening, 'patient_visit_id'),

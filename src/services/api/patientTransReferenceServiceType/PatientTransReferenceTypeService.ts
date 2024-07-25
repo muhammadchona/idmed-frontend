@@ -4,9 +4,10 @@ import PatientTransReferenceType from 'src/stores/models/transreference/PatientT
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const patientTransReferenceType = useRepo(PatientTransReferenceType);
+const patientTransReferenceTypeDexie = PatientTransReferenceType.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -14,28 +15,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
-      this.putMobile(params);
+    if (isMobile.value && !isOnline.value) {
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       this.deleteWeb(uuid);
@@ -95,10 +96,16 @@ export default {
     }
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientTransReferenceTypeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientTransReferenceType.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(patientTransReferenceType.use?.entity)
-      .query('upsert', params)
-      .exec()
+    return db[patientTransReferenceTypeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
         patientTransReferenceType.save(JSON.parse(params));
         // alertSucess('O Registo foi efectuado com sucesso');
@@ -109,9 +116,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(patientTransReferenceType.use?.entity)
-      .query('select')
-      .exec()
+    return db[patientTransReferenceTypeDexie]
+      .toArray()
       .then((rows: any) => {
         patientTransReferenceType.save(rows);
       })
@@ -121,16 +127,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(patientTransReferenceType.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[patientTransReferenceTypeDexie]
+      .delete(paramsId)
       .then(() => {
         patientTransReferenceType.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[patientTransReferenceTypeDexie]
+      .bulkPut(params)
+      .then(() => {
+        patientTransReferenceType.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

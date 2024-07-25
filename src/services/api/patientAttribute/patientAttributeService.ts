@@ -4,9 +4,10 @@ import PatientAttribute from 'src/stores/models/patientAttribute/PatientAttribut
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 
 const patientAttribute = useRepo(PatientAttribute);
+const patientAttributeDexie = PatientAttribute.entity;
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -15,7 +16,7 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
@@ -80,18 +81,23 @@ export default {
       });
   },
   // Mobile
+  addMobile(params: string) {
+    return db[patientAttributeDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientAttribute.save(JSON.parse(JSON.stringify(params)));
+      });
+  },
   putMobile(params: string) {
-    return nSQL(PatientAttribute.entity)
-      .query('upsert', params)
-      .exec()
-      .then((resp) => {
-        patientAttribute.save(resp[0].affectedRows);
+    return db[patientAttributeDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        patientAttribute.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
-    return nSQL(patientAttribute.use?.entity)
-      .query('select')
-      .exec()
+    return db[patientAttributeDexie]
+      .toArray()
       .then((rows: any) => {
         patientAttribute.save(rows);
       })
@@ -101,16 +107,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(patientAttribute.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[patientAttributeDexie]
+      .delete(paramsId)
       .then(() => {
         patientAttribute.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[patientAttributeDexie]
+      .bulkAdd(params)
+      .then(() => {
+        patientAttribute.save(params);
+      })
+      .catch((error: any) => {
         console.log(error);
       });
   },

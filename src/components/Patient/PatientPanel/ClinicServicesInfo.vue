@@ -1,7 +1,11 @@
 <template>
   <div>
     <ListHeader
-      :addVisible="!isProvincialInstalation()"
+      :addVisible="
+        !isProvincialInstalation() ||
+        !isProvincialInstalationPharmacysMode() ||
+        isProvincialInstalationMobileClinic()
+      "
       :mainContainer="true"
       bgColor="bg-primary"
       :addButtonActions="addClinicService"
@@ -40,7 +44,11 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 // Declaration
 const { preferedIdentifier } = usePatient();
-const { isProvincialInstalation } = useSystemConfig();
+const {
+  isProvincialInstalation,
+  isProvincialInstalationPharmacysMode,
+  isProvincialInstalationMobileClinic,
+} = useSystemConfig();
 const { canBeEdited } = usePatientServiceIdentifier();
 const emptyList = ref(false);
 const selectedIdentifier = ref(new PatientServiceIdentifier());

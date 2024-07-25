@@ -54,7 +54,7 @@
               {{ props.row.code }}
             </q-td>
             <q-td key="description" :props="props">
-              {{ props.row.description }}
+              {{ props.row.clinicName }}
             </q-td>
             <q-td key="active" :props="props">
               {{ props.row.active ? 'Sim' : 'Nao' }}
@@ -99,7 +99,7 @@
           </q-tr>
         </template>
       </q-table>
-      <div class="absolute-bottom" v-if="website && !isProvincialInstalation()">
+      <div class="absolute-bottom" v-if="website">
         <q-page-sticky position="bottom-right" :offset="[18, 18]">
           <q-btn
             size="xl"
@@ -120,12 +120,13 @@
 <script setup>
 /*imports*/
 import { ref, inject, provide, onMounted, computed } from 'vue';
-import ClinicSector from '../../../stores/models/clinicSector/ClinicSector';
+// import { ClinicSector } from '../../../stores/models/clinic/ClinicHierarchy';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import addClinicSector from 'src/components/Settings/ClinicSector/AddClinicSector.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 /*Declarations*/
 const { website } = useSystemUtils();
@@ -221,8 +222,9 @@ const editClinicSector = (clinicSectorParam) => {
 };
 const addClinicSectorr = () => {
   isNewClinicSector.value = true;
-  clinicSector.value = clinicSector.value;
-  clinicSector.value.clinic = currClinic.value;
+  clinicSector.value = clinicSectorService.newInstanceEntity();
+  // clinicSector.value = clinicSector.value;
+  clinicSector.value.parentClinic = currClinic.value;
   showClinicSectorRegistrationScreen.value = true;
   editMode.value = false;
   viewMode.value = false;

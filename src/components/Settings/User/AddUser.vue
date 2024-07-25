@@ -75,7 +75,7 @@
                   </template>
                 </q-input>
               </div>
-              <div class="row q-gutter-md" v-if="editMode">
+              <div class="row" v-if="editMode">
                 <q-input
                   v-model="user.password"
                   dense
@@ -89,13 +89,6 @@
                   :disable="onlyView"
                   type="password"
                 >
-                  <template v-slot:append>
-                    <q-icon
-                      name="close"
-                      @click="user.password = ''"
-                      class="cursor-pointer"
-                    />
-                  </template>
                 </q-input>
               </div>
               <div class="row q-mb-md">
@@ -123,20 +116,6 @@
                   :disable="onlyView"
                   type="email"
                   label="Email"
-                />
-              </div>
-              <q-separator />
-              <div class="row q-mb-md q-mt-sm float-right">
-                <q-checkbox
-                  dense
-                  v-model="user.accountLocked"
-                  keep-color
-                  :label="
-                    user.accountLocked
-                      ? 'Utilizador Bloqueado'
-                      : 'Utilizador Activo'
-                  "
-                  :color="user.accountLocked ? 'red' : 'teal'"
                 />
               </div>
               <div class="row q-gutter-sm">
@@ -197,6 +176,12 @@
           </q-step>
           <q-step :name="3" title="Farmacias/Sectores Clinicos">
             <div class="q-mb-md" v-if="isProvincial">
+              <q-input
+                outlined
+                v-model="filter"
+                placeholder="Search..."
+                class="q-mb-md"
+              />
               <q-table
                 title="Farmacias"
                 :rows="clinics"
@@ -207,6 +192,7 @@
                 class="my-sticky-header-table"
                 rows-per-page-options="7"
                 dense
+                :filter="filter"
               >
               </q-table>
             </div>
@@ -329,7 +315,7 @@ const columnsClinicSectors = ref([
     required: true,
     label: 'Nome',
     align: 'left',
-    field: (row) => row.description,
+    field: (row) => row.clinicName,
     format: (val) => `${val}`,
     sortable: true,
   },
@@ -353,7 +339,7 @@ const isCreateStep = inject('isCreateStep');
 const user = inject('selectedUser');
 const configs = inject('configs');
 const showUserRegistrationScreen = inject('showUserRegistrationScreen');
-
+const filter = ref('');
 /*Hooks*/
 onMounted(() => {
   loadUserRelations();
@@ -361,10 +347,10 @@ onMounted(() => {
   extractDatabaseCodes();
   if (configs.value.value === 'LOCAL') {
     isProvincial.value = false;
-    user.value.clinics[0] = currClinic.value;
+    //   user.value.clinics[0] = currClinic.value;
   } else {
     isProvincial.value = true;
-    selectedClinics.value[0] = currClinic.value;
+    // selectedClinics.value[0] = currClinic.value;
   }
 });
 
@@ -387,7 +373,8 @@ const userRoles = computed(() => {
 });
 
 const clinics = computed(() => {
-  return clinicService.getAllClinics();
+  console.log(clinicService.getAllClinics());
+  return clinicService.getAllClinicsAndClinicSectors();
 });
 const users = computed(() => {
   return userService.getAllUsers();
@@ -396,7 +383,9 @@ const clinicSectors = computed(() => {
   const allClinicSectors = clinicSectorService.getActivebyClinicId(
     currClinic.value.id
   );
-  return onlyView.value ? user.value.clinicSectors : allClinicSectors;
+  return onlyView.value
+    ? user.value.clinics.filter((cli) => cli.type === 'CLINIC_SECTOR')
+    : allClinicSectors;
 });
 
 /*Methods*/
@@ -404,8 +393,14 @@ const loadUserRelations = () => {
   if (user.value !== null && user.value !== undefined) {
     if (user.value.id !== null) {
       selectedRoles.value = user.value.authorities;
-      selectedClinics.value = user.value.clinics;
-      selectedClinicSectors.value = user.value.clinicSectors;
+      selectedClinics.value = user.value.clinics.filter(
+        (cli) => cli.type === 'CLINIC'
+      );
+      selectedClinicSectors.value = user.value.clinics.filter(
+        (cli) => cli.type === 'CLINIC_SECTOR'
+      );
+      // selectedClinicSectors.value = user.value.clinicSectors;
+      console.log(selectedClinicSectors.value);
     }
   }
 };
@@ -423,7 +418,10 @@ const goToNextStep = () => {
       stepper.value.next();
     }
   } else if (step.value === 3) {
-    if (selectedClinicSectors.value.length <= 0) {
+    if (
+      selectedClinicSectors.value.length <= 0 &&
+      selectedClinics.value.length <= 0
+    ) {
       alertError(
         'Por Favor, seleccione pelo menos uma Farmácia para dar Acesso.'
       );
@@ -442,9 +440,16 @@ const submitUser = () => {
   });
 
   user.value.roles = roless;
-  user.value.clinics = selectedClinics.value;
-  user.value.clinics.push(currClinic.value);
-  user.value.clinicSectors = selectedClinicSectors.value;
+  if (configs.value.value === 'LOCAL') {
+    user.value.clinics.push(currClinic.value);
+    user.value.clinics.push(...selectedClinicSectors.value);
+  } else {
+    user.value.clinics = selectedClinics.value;
+  }
+  //user.value.clinicSectors = selectedClinicSectors.value;
+  // if (configs.value.value === 'LOCAL')
+
+  user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;
 
   if (user.value.contact === null || user.value.contact === undefined) {
@@ -469,7 +474,6 @@ const submitUser = () => {
         showUserRegistrationScreen.value = false;
       });
   } else {
-    console.log('User', user.value);
     userService
       .patch(user.value.id, user.value)
       .then(() => {

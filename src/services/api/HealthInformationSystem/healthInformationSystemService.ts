@@ -4,12 +4,13 @@ import api from '../apiService/apiService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
+import db from '../../../stores/dexie';
 import InteroperabilityAttribute from 'src/stores/models/interoperabilityAttribute/InteroperabilityAttribute';
 import InteroperabilityAttributeService from '../InteroperabilityAttribute/InteroperabilityAttributeService';
 
 const healthInformationSystem = useRepo(HealthInformationSystem);
 const interoperabilityAttributeRepo = useRepo(InteroperabilityAttribute);
+const healthInformationSystemDexie = HealthInformationSystem.entity;
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -17,28 +18,28 @@ const { isMobile, isOnline } = useSystemUtils();
 
 export default {
   post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       return this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       return this.patchWeb(uuid, params);
     }
   },
   delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.deleteMobile(uuid);
     } else {
       return this.deleteWeb(uuid);
@@ -85,22 +86,29 @@ export default {
       });
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(healthInformationSystem.use?.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[healthInformationSystemDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
         healthInformationSystem.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      })
+      .catch((error: any) => {
+        alertError('Aconteceu um erro inesperado nesta operação.');
+      });
+  },
+  putMobile(params: string) {
+    return db[healthInformationSystemDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        healthInformationSystem.save(JSON.parse(params));
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inesperado nesta operação.');
       });
   },
   getMobile() {
-    return nSQL(healthInformationSystem.use?.entity)
-      .query('select')
-      .exec()
+    return db[healthInformationSystemDexie]
+      .toArray()
       .then((rows: any) => {
         healthInformationSystem.save(rows);
       })
@@ -109,10 +117,8 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(healthInformationSystem.use?.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[healthInformationSystemDexie]
+      .delete(paramsId)
       .then(() => {
         healthInformationSystem.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
@@ -121,6 +127,17 @@ export default {
         // alertError('Aconteceu um erro inesperado nesta operação.');
       });
   },
+  addBulkMobile(params: any) {
+    return db[healthInformationSystemDexie]
+      .bulkPut(params)
+      .then(() => {
+        healthInformationSystem.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
   async apiFetchById(id: string) {
     return await api().get(`/healthInformationSystem/${id}`);
   },

@@ -72,9 +72,11 @@
 
 <script setup>
 import { date } from 'quasar';
-import { ref, computed } from 'vue';
+import { ref, computed, inject, watch } from 'vue';
 import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import { useRouter } from 'vue-router';
+
+const isExecutedEntrance = inject('isExecutedEntrance');
 
 const columns = [
   {
@@ -114,9 +116,20 @@ const editStockEntrance = (entrance) => {
 
 const stockEntrances = computed(() => {
   const list = StockEntranceService.getStockEntrances();
-  if (list.length > 0) {
+  if (
+    list.length > 0 ||
+    (list.length === 0 && isExecutedEntrance.value === true)
+  ) {
     loading.value = false;
   }
   return list;
+});
+
+watch((isExecutedEntrance) => {
+  if (isExecutedEntrance.value === 'true') {
+    loading.value = false;
+  } else {
+    loading.value = true;
+  }
 });
 </script>

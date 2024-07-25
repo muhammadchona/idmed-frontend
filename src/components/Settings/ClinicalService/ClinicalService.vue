@@ -344,21 +344,6 @@ const promptToConfirm = (clinicalServiceParam) => {
     }
   });
 };
-
-const getClinicalServicesFromProvincialServer = () => {
-  showloading();
-  clinicalServiceService
-    .getFromProvincial(0)
-    .then(() => {
-      console.log('Inicio actualizacao da lista Regimens');
-    })
-    .catch((error) => {
-      closeLoading();
-      alertError('Erro na comunicação com o Servidor Central.');
-      console.log('Erro', error);
-    });
-};
-
 /*Provides*/
 
 provide('clinicalService', clinicalService);

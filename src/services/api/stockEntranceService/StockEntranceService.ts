@@ -1,14 +1,17 @@
 import { useRepo } from 'pinia-orm';
 import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
 import api from '../apiService/apiService';
-import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import db from '../../../stores/dexie';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 
 const { closeLoading, showloading } = useLoading();
 
 const { isMobile, isOnline } = useSystemUtils();
+const { alertSucess, alertError } = useSwal();
 const stockEntrance = useRepo(StockEntrance);
+const stockEntranceDexie = StockEntrance.entity;
 
 export default {
   // Axios API call
@@ -58,6 +61,47 @@ export default {
     }
   },
 
+  async getFromBackEnd(offset: number, clinicId: string) {
+    if (offset >= 0) {
+      return await api()
+        .get(
+          '/stockEntrance/clinic/' +
+            clinicId +
+            '?offset=' +
+            offset +
+            '&max=' +
+            100
+        )
+        .then((resp) => {
+          this.addBulkMobile(resp.data);
+          console.log('Data synced from backend: stockEntrance');
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getFromBackEnd(offset, clinicId);
+          }
+        })
+        .catch((error) => {
+          console.error('Error syncing data from backend:', error);
+          console.log(error);
+        });
+    }
+  },
+
+  async getStockEntrancesByIds(entranceIds: any) {
+    return db[stockEntranceDexie].where('id').anyOf(entranceIds).toArray();
+  },
+
+  addBulkMobile(params: string) {
+    return db[stockEntranceDexie]
+      .bulkAdd(params)
+      .then(() => {
+        stockEntrance.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+
   // WEB
   postWeb(params: string) {
     return api()
@@ -101,7 +145,7 @@ export default {
   },
   apiFetchByIdWeb(id: string) {
     return api()
-      .get('/inventory/' + id)
+      .get('/stockEntrance/' + id)
       .then((resp) => {
         stockEntrance.save(resp.data);
         if (resp.data.length > 0) {
@@ -111,74 +155,97 @@ export default {
   },
 
   async apiGetAllByClinicIdWeb(clinicId: string, offset: number, max: number) {
-    return await api().get(
-      '/stockEntrance/clinic/' + clinicId + '?offset=' + offset + '&max=' + max
-    );
+    if (offset >= 0) {
+      return api()
+        .get(
+          '/stockEntrance/clinic/' +
+            clinicId +
+            '?offset=' +
+            offset +
+            '&max=' +
+            max
+        )
+        .then((resp) => {
+          if (resp.data.length > 0) {
+            stockEntrance.save(resp.data);
+            offset = offset + 100;
+            this.apiGetAllByClinicIdWeb(clinicId, offset, max);
+          } else {
+            closeLoading();
+          }
+        });
+    }
   },
 
   //Mobile
 
-  async putMobile(params: any) {
-    const resp = await nSQL('stockEntrances')
-      .query('upsert', JSON.parse(JSON.stringify(params)))
-      .exec();
-    stockEntrance.save(params);
-    return resp;
+  addMobile(params: string) {
+    return db[stockEntranceDexie]
+      .add(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        stockEntrance.save(JSON.parse(JSON.stringify(params)));
+      });
   },
 
-  getMobile() {
-    return nSQL('stockEntrances')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        stockEntrance.save(result);
-        //  return result
+  async putMobile(params: any) {
+    return db[stockEntranceDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        stockEntrance.save(JSON.parse(JSON.stringify(params)));
       });
+  },
+
+  async getMobile() {
+    try {
+      const rows = await db[stockEntranceDexie].toArray();
+      stockEntrance.save(rows);
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 
   getByStockEntranceMobile(stockEntrance: any) {
-    return nSQL('stockEntrances')
-      .query('select')
-      .where(['stockEntrances[id]', '=', stockEntrance.id])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        stockEntrance.save(result);
+    return db[stockEntranceDexie]
+      .where('id')
+      .equalsIgnoreCase(stockEntrance.id)
+      .then((rows: any) => {
+        stockEntrance.save(rows);
+        return rows;
       });
   },
 
-  async deleteMobile(id: any) {
-    const resp = await nSQL('stockEntrances')
-      .query('delete')
-      .where(['id', '=', id])
-      .exec();
-    stockEntrance.destroy(id);
-    return resp;
+  async deleteMobile(paramsId: any) {
+    try {
+      await db[stockEntranceDexie].delete(paramsId);
+      stockEntrance.destroy(paramsId);
+      alertSucess('O Registo foi removido com sucesso');
+    } catch (error) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
 
   apiFetchByIdMobile(id: any) {
-    return nSQL('stockEntrances')
-      .query('select')
-      .where(['id', '=', id])
-      .exec()
-      .then((result) => {
-        console.log(result);
-        stockEntrance.save(result);
+    return db[stockEntranceDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first()
+      .then((rows: any) => {
+        stockEntrance.save(rows);
+        return rows;
       });
   },
 
   apiGetAllByClinicIdMobile(id: any) {
-    return nSQL().onConnected(() => {
-      nSQL('stockEntrance')
-        .query('select')
-        .where(['stockEntrance[clinic_id]', '=', id])
-        .exec()
-        .then((result) => {
-          console.log(result);
-          stockEntrance.save(result);
-        });
-    });
+    return db[stockEntranceDexie]
+      .where('clinic_id')
+      .equalsIgnoreCase(id)
+      .first()
+      .then((rows: any) => {
+        stockEntrance.save(rows);
+        return rows;
+      });
   },
 
   // Local Storage Pinia

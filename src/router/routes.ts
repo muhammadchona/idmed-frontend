@@ -108,6 +108,34 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'stock/stockDistributor',
+        component: () =>
+          import('pages/Stock/stockDistributor/StockDistributorPanel.vue'),
+        beforeEnter(to, from, next) {
+          if (!AccessControlUtils.menusVisible('Stock')) {
+            next('/:catchAll(.*)*');
+          } else {
+            next();
+          }
+        },
+      },
+
+      {
+        path: 'stock/stockConfirmation',
+        component: () =>
+          import(
+            'pages/Stock/stockConfirmation/StockConfirmDistributionPanel.vue'
+          ),
+        beforeEnter(to, from, next) {
+          if (!AccessControlUtils.menusVisible('Stock')) {
+            next('/:catchAll(.*)*');
+          } else {
+            next();
+          }
+        },
+      },
+
+      {
         path: 'dashboard',
         component: () => import('pages/Dashboard/Dashboard.vue'),
         beforeEnter(to, from, next) {

@@ -314,7 +314,8 @@ import StockDestructionAdjustmentService from 'src/services/api/stockAdjustment/
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import eventBus from '../../utils/eventbus';
-const { notifyError } = useNotify();
+import NanosystemConfigsService from 'src/services/Synchronization/systemConfigs/NanosystemConfigsService';
+const { notifyError, notifySuccess } = useNotify();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
@@ -377,7 +378,11 @@ onMounted(() => {
     localStorage.setItem('Btoa', '');
   }
   eventBus.on('notification', (notificationIsOpen) => {
-    isOpen.value = notificationIsOpen;
+    if (isMobile.value) {
+      isOpen.value = false;
+    } else {
+      isOpen.value = notificationIsOpen;
+    }
   });
   console.log(isOpen.value);
 });
@@ -470,10 +475,13 @@ const loginOnline = (encodedStringBtoA) => {
         sessionStorage.setItem('Btoa', encodedStringBtoA);
         localStorage.setItem('Btoa', encodedStringBtoA);
         sessionStorage.setItem('role_menus', localuser.menus);
-        sessionStorage.setItem(
-          'clinic_sector_users',
-          localuser.clinicSectorUsers
+        localStorage.setItem('clinicUsers', response.data.clinicUsers);
+        localStorage.setItem(
+          'userFacilityTypeCode',
+          response.data.userFacilityTypeCode
         );
+        // sessionStorage.setItem('clinicUsers', response.data.clinicUsers);
+
         router.push({ path: '/' });
       }
     })
@@ -497,25 +505,17 @@ const loginOnline = (encodedStringBtoA) => {
 const loginOffline = (encodedStringBtoA) => {
   const userLoged = UsersService.getUserByUserName(username.value);
   if (
+    userLoged !== null &&
     userLoged.username === username.value &&
     bcrypt.compareSync(password.value, userLoged.password.substring(8))
   ) {
     sessionStorage.setItem('username', userLoged.username);
     sessionStorage.setItem('user', userLoged.username);
     sessionStorage.setItem('Btoa', encodedStringBtoA);
+    sessionStorage.setItem('role_menus', userLoged.menus);
     router.push({ path: '/' });
   } else {
-    Notify.create({
-      icon: 'announcement',
-      message: 'Utilizador bloqueado ou a senha inválida',
-      type: 'negative',
-      progress: true,
-      timeout: 3000,
-      position: 'top',
-      color: 'negative',
-      textColor: 'white',
-      classes: 'glossy',
-    });
+    notifyError('Utilizador bloqueado ou a senha inválida');
     submitting.value = false;
   }
 };

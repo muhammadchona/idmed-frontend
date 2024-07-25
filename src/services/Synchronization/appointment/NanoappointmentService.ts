@@ -1,6 +1,5 @@
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
-import Appointment from 'src/stores/models/appointment/Appointment';
+import appointmentService from 'src/services/api/appointment/appointmentService';
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,7 +7,7 @@ export default {
       return await api()
         .get('apointment?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(Appointment.entity).query('upsert', resp.data).exec();
+          appointmentService.addBulkMobile(resp.data);
           console.log('Data synced from backend: Appointment');
           offset = offset + 100;
           if (resp.data.length > 0) {

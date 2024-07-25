@@ -1,22 +1,26 @@
 import Province from 'src/stores/models/province/Province';
 import { useRepo } from 'pinia-orm';
-import Clinic from 'src/stores/models/clinic/Clinic';
+import { Clinic } from 'src/stores/models/clinic/Clinic';
 import api from '../apiService/apiService';
-import { nSQL } from 'nano-sql';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { P } from 'app/dist/spa/assets/apiService.4d03f836';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import { SessionStorage } from 'quasar';
+import db from '../../../stores/dexie';
 
 const clinic = useRepo(Clinic);
+const clinicDexie = Clinic.entity;
+
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarning } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+const { isProvincialInstalation } = useSystemConfig();
 
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      this.putMobile(params);
+      this.addMobile(params);
     } else {
       this.postWeb(params);
     }
@@ -91,12 +95,21 @@ export default {
     }
   },
   // Mobile
-  putMobile(params: string) {
-    return nSQL(Clinic.entity)
-      .query('upsert', params)
-      .exec()
+  addMobile(params: string) {
+    return db[clinicDexie]
+      .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        clinic.save(JSON.parse(params));
+        clinic.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  },
+  putMobile(params: string) {
+    return db[clinicDexie]
+      .put(JSON.parse(JSON.stringify(params)))
+      .then(() => {
+        clinic.save(params);
         // alertSucess('O Registo foi efectuado com sucesso');
         closeLoading();
       })
@@ -105,9 +118,8 @@ export default {
       });
   },
   getMobile() {
-    return nSQL(Clinic.entity)
-      .query('select')
-      .exec()
+    return db[clinicDexie]
+      .toArray()
       .then((rows: any) => {
         clinic.save(rows);
       })
@@ -116,16 +128,24 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
-    return nSQL(Clinic.entity)
-      .query('delete')
-      .where(['id', '=', paramsId])
-      .exec()
+    return db[clinicDexie]
+      .delete(paramsId)
       .then(() => {
         clinic.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
+      });
+  },
+  addBulkMobile(params: any) {
+    return db[clinicDexie]
+      .bulkPut(params)
+      .then(() => {
+        clinic.save(params);
+      })
+      .catch((error: any) => {
+        console.log(error);
       });
   },
   // Methods
@@ -178,13 +198,52 @@ export default {
 
   /*PINIA*/
   currClinic() {
-    return clinic.withAllRecursive(2).where('mainClinic', true).first();
+    const clinicUser = localStorage.getItem('clinicUsers');
+    // const pharmacyUser = SessionStorage.getItem('clinicUsers');
+    console.log(isProvincialInstalation());
+    if (
+      (clinicUser === 'undefined' && !isProvincialInstalation()) ||
+      (clinicUser === '' && !isProvincialInstalation()) ||
+      clinicUser.includes('NORMAL')
+    ) {
+      return clinic.withAllRecursive(2).where('mainClinic', true).first();
+    } else if (clinicUser !== null && clinicUser !== '') {
+      return this.getByCode(clinicUser);
+    }
+    return null;
   },
 
   savePinia(clin: any) {
     clinic.save(clin);
   },
   getAllClinics() {
+    return clinic
+      .query()
+      .with('nationalClinic')
+      .with('province')
+      .with('facilityType')
+      .with('district')
+      .with('sectors')
+      .where('type', 'CLINIC')
+      .get();
+  },
+
+  getAllClinicSectors() {
+    return clinic
+      .query()
+      .with('nationalClinic')
+      .with('province')
+      .with('facilityType')
+      .with('district')
+      .with('parentClinic')
+      .with('sectors')
+      .where((clinic) => {
+        return clinic.parentClinic_id !== '';
+      })
+      .get();
+  },
+
+  getAllClinicsAndClinicSectors() {
     return clinic
       .query()
       .with('nationalClinic')
@@ -239,7 +298,7 @@ export default {
       .where('district_id', districtId)
       .whereHas('facilityType', (query) => {
         query.where((facilityType) => {
-          return facilityType.code !== 'US';
+          return facilityType.code !== 'US' && facilityType.type === 'clinic';
         });
       })
       .orderBy('code', 'asc')
@@ -276,7 +335,33 @@ export default {
       .withAllRecursive(2)
       .first();
   },
-  deleteFromPinia(){
-    return clinic.flush()
-  }
+  getByCode(code: string) {
+    return clinic
+      .query()
+      .where((clinic) => {
+        return clinic.code === code;
+      })
+      .withAllRecursive(2)
+      .first();
+  },
+  getActivebyClinicId(clinicId: string) {
+    return clinic
+      .query()
+      .with('facilityType')
+      .where((clinic) => {
+        return clinic.active && clinic.parentClinic_id === clinicId;
+      })
+      .get();
+  },
+  deleteFromPinia() {
+    return clinic.flush();
+  },
+
+  isClinicSector(currClinic: Clinic) {
+    return currClinic && !!currClinic.parentClinic_id;
+  },
+
+  isPrivatePharmacy(currClinic: Clinic) {
+    return currClinic && currClinic.facilityType.code == 'FP';
+  },
 };

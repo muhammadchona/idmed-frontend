@@ -1,5 +1,5 @@
 import { Model } from 'pinia-orm';
-import Clinic from '../clinic/Clinic';
+import { Clinic } from '../clinic/ClinicHierarchy';
 import Group from '../group/Group';
 import GroupMemberPrescription from '../group/GroupMemberPrescription';
 import Patient from '../patient/Patient';

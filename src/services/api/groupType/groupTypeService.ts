@@ -66,7 +66,6 @@ export default {
         console.log(error);
       });
   },
-
   get() {
     if (!isOnline.value) {
       this.getMobile();
