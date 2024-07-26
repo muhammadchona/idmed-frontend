@@ -143,8 +143,11 @@ export function sendData() {
   async function apiSendPatientVisit(patientVisitToSync: any, i: number) {
     const patientVisit = patientVisitToSync[i];
     if (patientVisit !== undefined) {
+      const patientVisitModified =
+        patientVisitService.setPackagedDrugStockNullToSend(patientVisit);
+      console.log(patientVisitModified);
       await patientVisitService
-        .postWeb(patientVisit)
+        .postWeb(patientVisitModified)
         .then((resp) => {
           i = i + 1;
           patientVisit.syncStatus = 'S';
