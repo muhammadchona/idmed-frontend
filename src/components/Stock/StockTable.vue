@@ -196,7 +196,7 @@ const getStyleIfCharts = () => {
 const getConsuptionRelatedColor = (state) => {
   if (state === 'Sem Consumo') {
     return 'blue';
-  } else if (state === 'Roptura de Stock') {
+  } else if (state === 'Ruptura de Stock') {
     return 'red';
   } else if (state === 'Acima do Consumo Máximo') {
     return 'info';
