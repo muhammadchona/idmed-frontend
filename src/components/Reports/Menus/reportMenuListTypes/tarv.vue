@@ -154,6 +154,10 @@ const menu = [
         description: 'Lista de Dispensas Nao Sicronizadas Para o OpenMrs',
         tabName: 'NotSynchronizedPack',
       },
+      {
+        description: 'Lista de Pacientes Registados à partir do iDMED',
+        tabName: 'RegisteredInIdmed',
+      },
     ],
   },
 ];

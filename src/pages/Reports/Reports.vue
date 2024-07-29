@@ -121,6 +121,7 @@ import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPa
 import PossiblePatientDuplicates from 'components/Reports/monitoring/PossiblePatientDuplicates.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+import RegisteredInIdmed from 'src/components/Reports/monitoring/RegisteredInIdmed.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
@@ -171,6 +172,7 @@ const componentsList = {
   expectedOfDay,
   MmiaTb,
   PossiblePatientDuplicates,
+  RegisteredInIdmed,
 };
 
 const { isMobile } = useSystemUtils();
