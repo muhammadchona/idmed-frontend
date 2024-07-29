@@ -75,6 +75,10 @@ const menu = [
         description: 'Mapa Mensal de Informação de ARV (MMIA)',
         tabName: 'Mmia',
       },
+      {
+        description: 'Linhas Terapeuticas Usadas',
+        tabName: 'LinhasTerapeuticasUsadas',
+      },
       //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
       //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
       { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
