@@ -661,12 +661,14 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import StockCenterService from 'src/services/api/stockCenterService/StockCenterService';
+import { useDrug } from 'src/composables/drug/drugMethods';
 
 const router = useRouter();
 const stockMethod = useStock();
 const dateUtils = useDateUtils();
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { getDrugFirstLevelById } = useDrug();
 const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
 const isClinicSector = ref('');
@@ -718,7 +720,15 @@ const filterFn = (val, update, abort) => {
   const stringOptions = activeDrugs.value;
   if (val === '') {
     update(() => {
-      return (drugs.value = stringOptions.map((drug) => drug));
+      return (drugs.value = stringOptions.map((drug) => {
+        drug.name = String(drug.name)
+          .concat(' - (')
+          .concat(drug.packSize)
+          .concat(' ')
+          .concat(String(drug.form.description).substring(0, 4))
+          .concat(')');
+        return drug;
+      }));
     });
   } else if (stringOptions.length === 0) {
     update(() => {
@@ -1072,6 +1082,15 @@ const loadStockList = () => {
           currStockEntrance.value.stocks[k].id
         );
         stock.auxExpireDate = dateUtils.getDDMMYYYFromJSDate(stock.expireDate);
+        stock.drug.name =
+          stock.drug.name +
+          ' (' +
+          stock.drug.packSize +
+          ' ' +
+          String(
+            getDrugFirstLevelById(stock.drug.id).form.description
+          ).substring(0, 4) +
+          ')';
         stockList.value.push(stock);
       }.bind(this)
     );

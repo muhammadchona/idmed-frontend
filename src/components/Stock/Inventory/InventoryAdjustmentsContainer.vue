@@ -7,7 +7,7 @@
       :mainContainer="false"
       @done="saveAdjustments"
       :bgColor="headerColor"
-      >{{ drug.name }}
+      >{{ drug.name }} ({{ drug.packSize }} {{ drug.form.description }})
     </ListHeader>
     <div class="box-border q-pb-md" v-show="infoContainerVisible">
       <q-table
