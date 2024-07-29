@@ -13,6 +13,7 @@
     <allow-navigation href="data:*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
+    <preference name="Scheme" value="http" />
     <preference name="AndroidPersistentFileLocation" value="Compatibility" />
     <preference name="SplashMaintainAspectRatio" value="true" />
     <platform name="android">
