@@ -74,7 +74,7 @@ export default {
       stockAlert.save(response);
       return response;
     } else {
-      api()
+      await api()
         .get(`/dashBoard/getStockAlertAll/${clinicId}`)
         .then((resp) => {
           stockAlert.save(resp.data);
