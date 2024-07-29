@@ -540,4 +540,13 @@ export default {
 
     this.addBulkMobile(allVisits);
   },
+
+  setPackagedDrugStockNullToSend(patientVis: any) {
+    patientVis.patientVisitDetails.forEach((pvd) => {
+      pvd.pack.packagedDrugs.forEach((pcd) => {
+        pcd.packagedDrugStocks = null;
+      });
+    });
+    return patientVis;
+  },
 };

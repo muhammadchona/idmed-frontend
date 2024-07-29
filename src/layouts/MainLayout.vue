@@ -60,7 +60,9 @@
               label="Pacientes/Utentes"
             />
             <q-route-tab
-              v-if="menusVisible('Grupos') && !isProvincialInstalation()"
+              v-if="
+                menusVisible('Grupos') && !isProvincialInstalation() && isOnline
+              "
               exact
               :to="'/group/search'"
               name="groups"
@@ -127,7 +129,11 @@
               label="Migração"
             />
             <q-route-tab
-              v-if="menusVisible('DCProvedor') && !isProvincialInstalation()"
+              v-if="
+                menusVisible('DCProvedor') &&
+                !isProvincialInstalation() &&
+                website
+              "
               exact
               :to="'/loadfiledc'"
               name="migration"

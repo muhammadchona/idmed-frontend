@@ -215,6 +215,7 @@ export default {
     entitiesList.push(StockDistributor);
     entitiesList.push(StockDistributorBatch);
     entitiesList.push(DrugDistributor);
+    entitiesList.push(StockLevel);
 
     return entitiesList;
   },

@@ -558,7 +558,6 @@ const clinicSerctors = computed(() => {
 
 const mobileClinicSector = computed(() => {
   const clinicSectorCode = localStorage.getItem('clinicUsers');
-  console.log(clinicSectorService.getClinicSectorByCode(clinicSectorCode));
   return clinicSectorService.getClinicSectorByCode(clinicSectorCode);
 });
 
@@ -604,6 +603,24 @@ const stopReasons = computed(() => {
   let resonList = [];
   if (allReasons === undefined || allReasons === null) {
     allReasons = [];
+  }
+
+  if (!isOnline.value) {
+    resonList = allReasons.filter((reason) => {
+      return (
+        reason.code !== 'REFERIDO_DC' &&
+        reason.code !== 'TRANSFERIDO_PARA' &&
+        reason.code !== 'REFERIDO_PARA' &&
+        reason.code !== 'FIM_PPE' &&
+        reason.code !== 'TERMINO_DO_TRATAMENTO' &&
+        reason.code !== 'OBITO' &&
+        reason.code !== 'TSPC' &&
+        reason.code !== 'REFERIDO_SECTOR_CLINICO' &&
+        reason.code !== 'VOLTOU_A_SER_REFERIDO_PARA'
+      );
+    });
+    console.log(resonList);
+    return resonList;
   }
   if (
     lastEpisode.value !== null &&
