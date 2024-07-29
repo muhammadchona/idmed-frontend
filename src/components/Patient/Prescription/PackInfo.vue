@@ -32,7 +32,19 @@
               <template #body="props">
                 <q-tr no-hover :props="props">
                   <q-td key="drug" :props="props">
-                    {{ props.row.drug !== null ? props.row.drug.name : '' }}
+                    {{
+                      props.row.drug !== null
+                        ? props.row.drug.name +
+                          ' (' +
+                          props.row.drug.packSize +
+                          ' ' +
+                          String(
+                            getDrugFirstLevelById(props.row.drug.id).form
+                              .description
+                          ).substring(0, 4) +
+                          ')'
+                        : ''
+                    }}
                   </q-td>
                   <q-td key="qty" :props="props">
                     {{ props.row.quantitySupplied }}

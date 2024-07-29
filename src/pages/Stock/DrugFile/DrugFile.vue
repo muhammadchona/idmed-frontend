@@ -14,7 +14,7 @@
           :doneVisible="false"
           :mainContainer="true"
           bgColor="bg-primary"
-          >{{ drug.name }}
+          >{{ drug.name }} ({{ drug.packSize }} {{ drug.form.description }})
         </ListHeader>
         <div class="box-border q-pb-md">
           <div class="row q-pa-md">
