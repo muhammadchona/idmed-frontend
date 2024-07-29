@@ -101,6 +101,7 @@ import TransferedFrom from 'components/Reports/Patient/TransferedFrom.vue';
 import TransferedTo from 'components/Reports/Patient/TransferedTo.vue';
 import Mmia from 'components/Reports/ClinicManagement/Mmia.vue';
 import LinhasTerapeuticasUsadas from 'components/Reports/ClinicManagement/LinhasUsadas.vue';
+import SegundasLinhas from 'components/Reports/ClinicManagement/SegundasLinhas.vue';
 import ReferredPatients from 'components/Reports/ReferralManagement/ReferredPatients.vue';
 import ReferredBackPatients from 'components/Reports/ReferralManagement/ReferredBackPatients.vue';
 import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue';
@@ -145,6 +146,7 @@ const componentsList = {
   TransferedTo,
   Mmia,
   LinhasTerapeuticasUsadas,
+  SegundasLinhas,
   ReferredBackPatients,
   ReferredPatients,
   ReferredPatientDispenseHistory,

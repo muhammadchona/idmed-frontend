@@ -79,6 +79,10 @@ const menu = [
         description: 'Linhas Terapeuticas Usadas',
         tabName: 'LinhasTerapeuticasUsadas',
       },
+      {
+        description: 'Segundas Linhas',
+        tabName: 'SegundasLinhas',
+      },
       //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
       //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
       { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
