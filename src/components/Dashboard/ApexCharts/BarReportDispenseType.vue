@@ -43,21 +43,6 @@ const monthsX = [
   'NOV',
   'DEC',
 ];
-// const toDateStr = (str) => new Date(str.replace(/^(\d+)\/(\d+)\/(\d+)$/, '$2/$1/$3'));
-// const monthsEng = [
-//   'JAN',
-//   'FEB',
-//   'MAR',
-//   'APR',
-//   'MAY',
-//   'JUN',
-//   'JUL',
-//   'AUG',
-//   'SEP',
-//   'OCT',
-//   'NOV',
-//   'DEC',
-// ];
 
 const loading = ref(false);
 
@@ -65,7 +50,7 @@ const chartOptions = {
   chart: {
     id: 'vue-chart-bar',
   },
-  colors: ['#F44336', '#13c185', '#13a6c1'],
+  colors: ['#F44336', '#ff6600', '#13c185', '#13a6c1'],
   animations: {
     enabled: true,
     easing: 'easeinout',
@@ -107,6 +92,20 @@ const chartOptions = {
   },
   dataLabels: {
     enabled: true,
+    style: {
+      fontSize: '14px',
+      fontFamily: 'Helvetica, Arial, sans-serif',
+      fontWeight: 'bold',
+      colors: [
+        function ({ seriesIndex, dataPointIndex, w }) {
+          if (w.config.series[seriesIndex].data[dataPointIndex] > 100) {
+            return '#ffffff';
+          } else {
+            return '#000000';
+          }
+        },
+      ],
+    },
   },
   xaxis: {
     categories: [...monthsX],
@@ -128,6 +127,10 @@ const getRegisteredPatientByDispenseType = () => {
   loading.value = true;
   const dms = {
     name: 'Dispensa Mensal',
+    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  };
+  const db = {
+    name: 'Dispensa Bimensal',
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
   const dts = {
@@ -154,16 +157,21 @@ const getRegisteredPatientByDispenseType = () => {
         }
         for (let i = 1; i <= 12; i++) {
           response.value.forEach((item) => {
-            if (item.dispense_type === 'DM' && item.month === i) {
+            if (
+              (item.dispense_type === 'DM' || item.dispense_type === 'FRM') &&
+              item.month === i
+            ) {
               dms.data[i - 1] = item.quantity;
             } else if (item.dispense_type === 'DT' && item.month === i) {
               dts.data[i - 1] = item.quantity;
             } else if (item.dispense_type === 'DS' && item.month === i) {
               dss.data[i - 1] = item.quantity;
+            } else if (item.dispense_type === 'DB' && item.month === i) {
+              db.data[i - 1] = item.quantity;
             }
           });
         }
-        series.value = [dms, dts, dss];
+        series.value = [dms, db, dts, dss];
         loading.value = false;
       });
   } else {
@@ -182,16 +190,21 @@ const getRegisteredPatientByDispenseType = () => {
         }
         for (let i = 1; i <= 12; i++) {
           response.value.forEach((item) => {
-            if (item.dispense_type === 'DM' && item.month === i) {
+            if (
+              (item.dispense_type === 'DM' || item.dispense_type === 'FRM') &&
+              item.month === i
+            ) {
               dms.data[i - 1] = item.quantity;
             } else if (item.dispense_type === 'DT' && item.month === i) {
               dts.data[i - 1] = item.quantity;
             } else if (item.dispense_type === 'DS' && item.month === i) {
               dss.data[i - 1] = item.quantity;
+            } else if (item.dispense_type === 'DB' && item.month === i) {
+              db.data[i - 1] = item.quantity;
             }
           });
         }
-        series.value = [dms, dts, dss];
+        series.value = [dms, db, dts, dss];
         loading.value = false;
       });
   }
