@@ -13,7 +13,7 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 const { isMobile, isOnline } = useSystemUtils();
 
 const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS';
-const title = 'PACIENTES EM SEGUNDA LINHA';
+const title = 'SEGUNDAS LINHAS TERAPÊUTICAS USADAS';
 const reportName = 'segundas_linhas';
 const fileName = reportName.concat('_' + moment(new Date()).format('DD-MM-YYYY'));
 
@@ -84,12 +84,9 @@ export default {
           styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', textColor: 0 }
         },
         {
+          colSpan: 2,
           content: title,
           styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: 0 }
-        },
-        {
-          content: 'Data Inicio: ' + Report.getFormatDDMMYYYY(segundasLinhasData[0].startDate),
-          styles: { valign: 'middle', halign: 'center', fontStyle: 'bold', textColor: 0 }
         }
       ],
       [
@@ -97,6 +94,10 @@ export default {
           content: 'Unidade Sanitária: ' + clinic.clinicName,
           colSpan: 3,
           styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
+        },
+        {
+          content: 'Data Inicio: ' + Report.getFormatDDMMYYYY(segundasLinhasData[0].startDate),
+          styles: { valign: 'middle', halign: 'center', fontStyle: 'bold', textColor: 0 }
         }
       ],
       [
