@@ -33,8 +33,8 @@ const year = inject('year');
 const loading = ref(false);
 const series = ref([]);
 const chartOptions = {
-  labels: ['Masculino', 'Feminino'],
-  colors: ['#0096FF', '#FF1493'],
+  labels: ['Feminino', 'Masculino'],
+  colors: ['#FF1493', '#0096FF'],
   animations: {
     enabled: true,
     easing: 'easeinout',
