@@ -241,10 +241,17 @@
                       </q-td>
                       <q-td key="therapeuticRegimen" :props="props">
                         {{
-                          therapeuticalRegimenService.getById(
-                            props.row.prescription.prescriptionDetails[0]
-                              .therapeutic_regimen_id
-                          ).regimenScheme
+                          props.row.prescription.prescriptionDetails[0]
+                            .therapeutic_regimen_id !== null &&
+                          props.row.prescription.prescriptionDetails[0]
+                            .therapeutic_regimen_id !== undefined &&
+                          props.row.prescription.prescriptionDetails[0]
+                            .therapeutic_regimen_id !== ''
+                            ? therapeuticalRegimenService.getById(
+                                props.row.prescription.prescriptionDetails[0]
+                                  .therapeutic_regimen_id
+                              ).regimenScheme
+                            : 'Sem Info.'
                         }}
                       </q-td>
                     </q-tr>

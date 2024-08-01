@@ -252,37 +252,6 @@ const menusVisible = (name) => {
 };
 
 onMounted(async () => {
-  // await loadSettingParams();
-  /*
-  if (website.value || (isMobile.value && isOnline.value)) {
-    showloading();
-    loadSettingParams();
-  } else {
-    if (patientService.getAllFromStorage().length <= 0) {
-      showloading();
-      loadSettingParamsToOffline();
-      setTimeout(() => {
-        loadPatientDataToOffline();
-      }, 5000);
-    }
-  }
-  */
-  /*
-  setTimeout(() => {
-    console.log(isOnline.value);
-    if (isPharmacyDDD(clinic.value)) {
-      showloading();
-      // loadSettingParamsToOffline();
-      setTimeout(() => {
-        //   loadPatientDataToOffline();
-      }, 5000);
-    }
-  }, 1000);
-
-  console.log(isClinicSector.value);
-  // console.log(isPrivatePharmacy.value);
-  */
-  console.log(isOnline.value);
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
     loadSettingParams();
@@ -292,7 +261,6 @@ onMounted(async () => {
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
       loadSettingParamsToOffline();
-      //  loadSettingParamsInOfflineMode();
       setTimeout(() => {
         loadPatientDataToOffline();
       }, 5000);

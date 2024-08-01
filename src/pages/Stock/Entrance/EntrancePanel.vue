@@ -892,7 +892,7 @@ const initNewStock = () => {
       clinic: clinicService.currClinic(),
       entrance: currStockEntrance,
     });
-    stockList.value.push(newStock);
+    stockList.value.unshift(newStock);
     closeLoading();
   }
 };

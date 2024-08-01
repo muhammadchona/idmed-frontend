@@ -1166,9 +1166,10 @@ const checkStockToPack = async () => {
     if (!item) {
       const i = packagedDrugs.indexOf(packageDrug);
       indexToRemove.push(i);
-    } else {
-      generatePacks(packageDrug);
     }
+    // else {
+    //   generatePacks(packageDrug);
+    // }
   }
 
   return indexToRemove;
