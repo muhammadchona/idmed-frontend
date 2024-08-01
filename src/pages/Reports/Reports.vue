@@ -129,7 +129,7 @@ import TBScreening from 'components/Reports/Patient/TBScreening.vue';
 import PacksByDrugBottles from 'src/components/Reports/monitoring/PacksByDrugBottles.vue';
 import PatientWithPregnancyScreening from 'src/components/Reports/monitoring/PatientsWithPregnancyScreening.vue';
 import NotSynchronizedPackToServer from 'components/Reports/monitoring/NotSyncronizedPacksToServer.vue';
-
+import PatientsMonitoredForAdherence from 'components/Reports/Patient/PatientsMonitoredForAdherence.vue';
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
 
 import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue';
@@ -185,8 +185,8 @@ const componentsList = {
   PacksByDrugBottles,
   PatientWithPregnancyScreening,
   NotSynchronizedPackToServer,
-  RegisteredInIdmed
-
+  RegisteredInIdmed,
+  PatientsMonitoredForAdherence,
 };
 
 const { isMobile } = useSystemUtils();
