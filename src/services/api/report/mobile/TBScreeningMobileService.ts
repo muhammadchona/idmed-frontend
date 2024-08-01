@@ -31,52 +31,54 @@ export default {
       ) {
         const tbScreening = patientVisit.tbScreenings[0];
         const tbScreeningReport = new TBScreeningReport();
-        if (tbScreening !== null && tbScreening !== undefined) {
-          const patient = await patientService.getPatientByIdMobile(
-            patientVisit.patient.id
-          );
 
-          let identifier = patient.identifiers[0];
+        const patient = await patientService.getPatientByIdMobile(
+          patientVisit.patient.id
+        );
 
-          if (!identifier) {
-            const idents =
-              await patientServiceIdentifierService.getAllMobileByPatientId(
-                patientVisit.patient.id
-              );
-            identifier = idents[0];
-          }
-          tbScreeningReport.id = uuidv4();
-          tbScreeningReport.nid = identifier.value;
-          tbScreeningReport.name =
-            patient.firstNames +
-            ' ' +
-            patient.middleNames +
-            ' ' +
-            patient.lastNames;
-          tbScreeningReport.age = idadeCalculator(patient.dateOfBirth);
-          tbScreeningReport.gender = patient.gender;
-          tbScreeningReport.dateRegister = patientVisit.visitDate;
-          tbScreeningReport.clinic = clinicService.getActivebyClinicId(
-            patientVisit.clinic.id
-          ).clinicName;
-          tbScreeningReport.reportId = reportParams.id;
-          tbScreeningReport.year = reportParams.year;
-          tbScreeningReport.endDate = reportParams.endDate;
-          tbScreeningReport.startDate = reportParams.startDate;
+        let identifier = patient.identifiers[0];
 
-          if (
-            tbScreening.cough === true ||
+        if (!identifier) {
+          const idents =
+            await patientServiceIdentifierService.getAllMobileByPatientId(
+              patientVisit.patient.id
+            );
+          identifier = idents[0];
+        }
+        tbScreeningReport.id = uuidv4();
+        tbScreeningReport.nid = identifier.value;
+        tbScreeningReport.name =
+          patient.firstNames +
+          ' ' +
+          patient.middleNames +
+          ' ' +
+          patient.lastNames;
+        tbScreeningReport.age = idadeCalculator(patient.dateOfBirth);
+        tbScreeningReport.gender = patient.gender;
+        tbScreeningReport.dateRegister = patientVisit.visitDate;
+        tbScreeningReport.clinic = clinicService.getById(
+          patientVisit.clinic.id
+        ).clinicName;
+        tbScreeningReport.reportId = reportParams.id;
+        tbScreeningReport.year = reportParams.year;
+        tbScreeningReport.endDate = reportParams.endDate;
+        tbScreeningReport.startDate = reportParams.startDate;
+
+        if (
+          tbScreening !== null &&
+          tbScreening !== undefined &&
+          (tbScreening.cough === true ||
             tbScreening.fever === true ||
             tbScreening.losingWeight === true ||
             tbScreening.sweating === true ||
-            tbScreening.fatigueOrTirednessLastTwoWeeks === true
-          ) {
-            tbScreeningReport.wasTBScreened = 'Sim';
-          } else {
-            tbScreeningReport.wasTBScreened = 'Nao';
-          }
-          this.localDbAddOrUpdate(tbScreeningReport);
+            tbScreening.fatigueOrTirednessLastTwoWeeks === true)
+        ) {
+          tbScreeningReport.wasTBScreened = 'Sim';
+        } else {
+          tbScreeningReport.wasTBScreened = 'Nao';
         }
+
+        this.localDbAddOrUpdate(tbScreeningReport);
       }
     }
   },
