@@ -137,7 +137,6 @@ const getProcessingStatus = (params) => {
 const generateReport = (id, fileType) => {
   if (fileType === 'PDF') {
     segundasLinhasReport.downloadPDF(id).then((resp) => {
-      console.log(resp)
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
