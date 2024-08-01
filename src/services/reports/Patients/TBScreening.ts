@@ -58,11 +58,7 @@ export default {
           fontSize: '14',
         },
         {
-          content:
-            'Período: ' +
-            moment(new Date(startDate)).format('DD-MM-YYYY') +
-            ' à ' +
-            moment(new Date(endDate)).format('DD-MM-YYYY'),
+          content: 'Período: ' + startDate + ' a ' + endDate,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -159,10 +155,13 @@ export default {
       },
       columnStyles: {
         0: { cellWidth: 14 },
-        1: { cellWidth: 50 },
-        2: { cellWidth: 55 },
-        3: { cellWidth: 75 },
-        4: { cellWidth: 75 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 40 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 25 },
+        5: { cellWidth: 40 },
+        6: { cellWidth: 40 },
+        7: { cellWidth: 35 },
       },
       didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -185,14 +184,14 @@ export default {
       window.open(doc.output('bloburl'));
     } else {
       const pdfOutput = doc.output();
-      this.downloadFile(fileName, 'pdf', pdfOutput);
+      this.downloadFile(fileName, '.pdf', pdfOutput);
     }
     // params.value.loading.loading.hide()
     // return doc.save('HistoricoDeLevantamento.pdf')
 
     // params.value.loading.loading.hide()
   },
-  async downloadExcel(province, startDate, endDate, result, params) {
+  async downloadExcel(province, startDate, endDate, result) {
     const clinic = clinicService.currClinic();
     const rows = result;
     const data = this.createArrayOfArrayRow(rows);
@@ -287,12 +286,8 @@ export default {
     cellPharmParamValue.value = result[0].clinic;
     cellProvinceParamValue.value = province;
     cellDistrictParamValue.value = result[0].district;
-    cellStartDateParamValue.value = moment(new Date(startDate)).format(
-      'DD-MM-YYYY'
-    );
-    cellEndDateParamValue.value = moment(new Date(endDate)).format(
-      'DD-MM-YYYY'
-    );
+    cellStartDateParamValue.value = startDate;
+    cellEndDateParamValue.value = endDate;
     cellPharm.value = 'Unidade Sanitária';
     cellDistrict.value = 'Distrito';
     cellProvince.value = 'Província';
@@ -380,7 +375,7 @@ export default {
           filterButton: false,
         },
         {
-          name: 'Rastreado Com TB',
+          name: 'Suspeito',
           totalsRowFunction: 'none',
           filterButton: false,
         },
