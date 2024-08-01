@@ -109,6 +109,9 @@ import DrugQuantityTemp from './models/report/monitoring/DrugQuantityTemp';
 import StockDistributor from './models/stockDistributor/StockDistributor';
 import StockDistributorBatch from './models/stockDistributorBatch/StockDistributorBatch';
 import DrugDistributor from './models/drugDistributor/DrugDistributor';
+import NotSyncronizedPacksToServer from './models/report/pharmacyManagement/NotSyncronizedPacksToServer';
+import PacksByDrugBottles from './models/report/monitoring/PacksByDrugBottles';
+import PatientsWithPregnancyScreening from './models/report/monitoring/PatientsWithPregnancyScreening';
 //import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils';
 // import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore';
 
@@ -215,8 +218,10 @@ export default {
     entitiesList.push(StockDistributor);
     entitiesList.push(StockDistributorBatch);
     entitiesList.push(DrugDistributor);
+    entitiesList.push(NotSyncronizedPacksToServer);
+    entitiesList.push(PacksByDrugBottles);
+    entitiesList.push(PatientsWithPregnancyScreening);
     entitiesList.push(StockLevel);
-
     return entitiesList;
   },
 };

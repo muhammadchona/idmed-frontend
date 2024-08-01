@@ -169,12 +169,22 @@ export default {
   },
 
   async apiFetchById(id: string) {
-    return await api()
-      .get(`/episode/${id}`)
-      .then((resp) => {
-        episode.save(resp.data);
-        return resp;
-      });
+    if (isMobile.value && !isOnline.value) {
+      return db[episodeDexie]
+        .where('id')
+        .equalsIgnoreCase(id)
+        .first()
+        .then((row: any) => {
+          return row;
+        });
+    } else {
+      return await api()
+        .get(`/episode/${id}`)
+        .then((resp) => {
+          episode.save(resp.data);
+          return resp;
+        });
+    }
   },
 
   async apiGetAllByIdentifierId(

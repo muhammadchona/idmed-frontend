@@ -93,7 +93,7 @@ const props = defineProps([
   'statusIcon',
 ]);
 
-const $emits = defineEmits(['done', 'initEdition']);
+const $emits = defineEmits(['done', 'initEdition', 'closeSection']);
 
 // Methods
 const determineHeaderClass = () => {

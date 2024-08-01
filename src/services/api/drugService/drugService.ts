@@ -108,6 +108,15 @@ export default {
     return await db[drugDexie].where('id').anyOf(drugIds).toArray();
   },
 
+  async getMobileDrugById(drugId: any) {
+    return db[drugDexie]
+      .where('id')
+      .equalsIgnoreCase(drugId)
+      .first()
+      .then((result: any) => {
+        return result;
+      });
+  },
   async getInventoryDrugsMobile(inventoryId: any) {
     // Step 1: Query StockAdjustments table for the given inventory ID
     const adjustments =

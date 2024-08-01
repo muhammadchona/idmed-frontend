@@ -136,6 +136,10 @@ import generalInventory from 'components/Reports/stock/InventoryGeneral.vue';
 import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
 import MmiaTb from 'components/Reports/ClinicManagement/tpt/MmiaTb.vue';
 
+//Mobile
+import NotSynchronizedPackToServer from 'components/Reports/monitoring/NotSyncronizedPacksToServer.vue';
+import PacksByDrugBottles from 'src/components/Reports/monitoring/PacksByDrugBottles.vue';
+import PatientWithPregnancyScreening from 'src/components/Reports/monitoring/PatientsWithPregnancyScreening.vue';
 const { closeLoading, showloading } = useLoading();
 
 const componentsList = {
@@ -174,6 +178,9 @@ const componentsList = {
   expectedOfDay,
   MmiaTb,
   PossiblePatientDuplicates,
+  NotSynchronizedPackToServer,
+  PacksByDrugBottles,
+  PatientWithPregnancyScreening,
   RegisteredInIdmed,
 };
 

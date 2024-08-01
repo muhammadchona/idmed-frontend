@@ -19,7 +19,7 @@ import useNotify from 'src/composables/shared/notify/UseNotify';
 import StockService from '../stockService/StockService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
-const { isUserAPE } = useSystemConfig();
+const { isUserDCP } = useSystemConfig();
 
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = PatientVisit.entity;
@@ -27,7 +27,7 @@ const patientVisitDexie = PatientVisit.entity;
 const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
-const { notifySuccess } = useNotify();
+const { notifySuccess, notifyInfo } = useNotify();
 
 export default {
   post(params: string) {
@@ -236,6 +236,46 @@ export default {
       });
   },
 
+  async getLocalDbPatientVisitsNotSynced() {
+    return db[patientVisitDexie]
+      .where('syncStatus')
+      .equalsIgnoreCase('R')
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalDbPatientVisitsBetweenDates(startDate: any, endDate: any) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter(
+        (visit: any) =>
+          visit.syncStatus !== null &&
+          visit.syncStatus !== undefined &&
+          visit.syncStatus !== ''
+      )
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalDbPatientVisitsBetweenDatesWithPregnancyScreening(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.pregnancyScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisit.getModel().$newInstance();
@@ -394,6 +434,7 @@ export default {
   },
 
   async doPatientVisitServiceBySectorGet() {
+    notifyInfo('Carregamento de Pacientes Iniciado');
     showloading();
     const patients = await patientService.getMobile();
     const ids = patients.map((pat: any) => pat.id);
@@ -412,7 +453,7 @@ export default {
         clinicSector: clinicSector,
       };
       let visitDetails;
-      if (isUserAPE()) {
+      if (isUserDCP()) {
         visitDetails = await api().post(
           '/patientVisitDetails/getLastAllByPatientIds/',
           listParams

@@ -284,6 +284,16 @@ export default {
         return result;
       });
   },
+
+  localDbGetByPatientId(patientId: string) {
+    return db[patientServiceIdentifierDexie]
+      .where('patient_id')
+      .equalsIgnoreCase(patientId)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
   getLatestIdentifierSlimByPatientId(patientId: string) {
     return patientServiceIdentifier
       .withAll()

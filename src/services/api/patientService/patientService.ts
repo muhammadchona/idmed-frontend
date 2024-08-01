@@ -22,8 +22,8 @@ const patientDexie = Patient.entity;
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
-const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
-const { notifySuccess } = useNotify();
+const { isProvincialInstalation, isUserDCP } = useSystemConfig();
+const { notifySuccess, notifyInfo } = useNotify();
 
 export default {
   post(params: string) {
@@ -278,7 +278,7 @@ export default {
     );
   },
 
-  async apiGetAllPatientsIsAbandonmentForAPE(offset: number, max: number) {
+  async apiGetAllPatientsIsAbandonmentForDCP(offset: number, max: number) {
     return await api().get(
       '/patient/ape/getAllPatientsIsAbandonment' +
         '?offset=' +
@@ -288,6 +288,7 @@ export default {
     );
   },
   async doPatientsBySectorGet() {
+    notifyInfo('Carregamento de Pacientes Iniciado');
     const data2 = clinicSectorService.getAllClinicSectors();
     let clinicSectorUser = clinicService.currClinic();
     /*
@@ -305,10 +306,12 @@ export default {
       );
     }
 
-    const resp = await this.fetchAllPatientsByClinicSectorId(
-      clinicSectorUser.id
-    );
-
+    let resp;
+    if (isUserDCP()) {
+      resp = await this.fetchAllPatientsForDCP();
+    } else {
+      resp = await this.fetchAllPatientsByClinicSectorId(clinicSectorUser.id);
+    }
     this.addBulkMobile(resp);
     notifySuccess('Carregamento de Pacientes Terminado');
     return resp;
@@ -338,14 +341,14 @@ export default {
     return allPatients;
   },
 
-  async fetchAllPatientsForAPE() {
+  async fetchAllPatientsForDCP() {
     let offset = 0;
     const max = 100; // You can adjust this number based on your API's limits
     let allPatients = [];
     let hasMorePatients = true;
 
     while (hasMorePatients) {
-      const response = await this.apiGetAllPatientsIsAbandonmentForAPE(
+      const response = await this.apiGetAllPatientsIsAbandonmentForDCP(
         offset,
         max
       );
@@ -361,14 +364,15 @@ export default {
     return allPatients;
   },
 
-  async doPatientsForAPIGet() {
-    const resp = await this.fetchAllPatientsForAPE();
+  /*
+  async doPatientsForAPIGetDCP() {
+    const resp = await this.fetchAllPatientsForDCP();
 
     this.addBulkMobile(resp);
     notifySuccess('Carregamento de Pacientes Terminado');
     return resp;
   },
-
+*/
   async apiSyncPatient(patient: any) {
     if (patient.syncStatus === 'R') await this.apiSave(patient, true);
     if (patient.syncStatus === 'U') await this.apiSave(patient, false);

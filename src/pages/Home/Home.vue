@@ -19,7 +19,12 @@
             </q-btn>
           </router-link>
         </div>
-        <div class="col" v-if="menusVisible('Grupos')">
+        <div
+          class="col"
+          v-if="
+            menusVisible('Grupos') && !isProvincialInstalation() && isOnline
+          "
+        >
           <router-link :to="`/group/search`">
             <q-btn round>
               <q-avatar size="190px">
@@ -90,7 +95,14 @@
             </q-btn>
           </router-link>
         </div>
-        <div class="col-2" v-if="menusVisible('Administração')">
+        <div
+          class="col-2"
+          v-if="
+            menusVisible('Administração') &&
+            !isProvincialInstalation() &&
+            isOnline
+          "
+        >
           <router-link :to="`/settings`">
             <q-btn round>
               <q-avatar size="190px">
@@ -203,7 +215,7 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 
 const { closeLoading, showloading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
-const { isProvincialInstalation, isPharmacyDDD } = useSystemConfig();
+const { isProvincialInstalation } = useSystemConfig();
 
 const { loadSettingParams, loadPatientData } = useOnline();
 
@@ -252,37 +264,6 @@ const menusVisible = (name) => {
 };
 
 onMounted(async () => {
-  // await loadSettingParams();
-  /*
-  if (website.value || (isMobile.value && isOnline.value)) {
-    showloading();
-    loadSettingParams();
-  } else {
-    if (patientService.getAllFromStorage().length <= 0) {
-      showloading();
-      loadSettingParamsToOffline();
-      setTimeout(() => {
-        loadPatientDataToOffline();
-      }, 5000);
-    }
-  }
-  */
-  /*
-  setTimeout(() => {
-    console.log(isOnline.value);
-    if (isPharmacyDDD(clinic.value)) {
-      showloading();
-      // loadSettingParamsToOffline();
-      setTimeout(() => {
-        //   loadPatientDataToOffline();
-      }, 5000);
-    }
-  }, 1000);
-
-  console.log(isClinicSector.value);
-  // console.log(isPrivatePharmacy.value);
-  */
-  console.log(isOnline.value);
   if (website.value || (isMobile.value && isOnline.value)) {
     showloading();
     loadSettingParams();
@@ -300,6 +281,8 @@ onMounted(async () => {
       loadSettingParams();
     }
   }
+  // loadSettingParamsToOffline();
+  /// loadPatientDataToOffline();
 });
 
 watch(clinic, () => {

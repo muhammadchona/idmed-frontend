@@ -63,7 +63,7 @@ export function useSystemConfig() {
     );
   }
 
-  function isDCP() {
+  function isUserDCP() {
     const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
 
     return userFacilityTypeCode === 'PROVEDOR';
@@ -92,5 +92,6 @@ export function useSystemConfig() {
     isPharmacyDDDOrAPEOrDCP,
     isOnlyPharmacyDDDO,
     isOnlyComunitaryDispense,
+    isUserDCP,
   };
 }
