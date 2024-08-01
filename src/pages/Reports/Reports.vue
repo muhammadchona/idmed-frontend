@@ -182,7 +182,9 @@ const componentsList = {
   RegisteredInIdmed,
   PacksByDrugBottles,
   PatientWithPregnancyScreening,
-  NotSynchronizedPackToServer
+  NotSynchronizedPackToServer,
+  RegisteredInIdmed
+
 };
 
 const { isMobile } = useSystemUtils();
