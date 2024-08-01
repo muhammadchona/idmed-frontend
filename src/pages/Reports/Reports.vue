@@ -125,6 +125,9 @@ import clinicalServiceService from 'src/services/api/clinicalServiceService/clin
 import RegisteredInIdmed from 'src/components/Reports/monitoring/RegisteredInIdmed.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import TBScreening from 'components/Reports/Patient/TBScreening.vue';
+import PacksByDrugBottles from 'src/components/Reports/monitoring/PacksByDrugBottles.vue';
+import PatientWithPregnancyScreening from 'src/components/Reports/monitoring/PatientsWithPregnancyScreening.vue';
+import NotSynchronizedPackToServer from 'components/Reports/monitoring/NotSyncronizedPacksToServer.vue';
 
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
 
@@ -177,6 +180,9 @@ const componentsList = {
   PossiblePatientDuplicates,
   TBScreening,
   RegisteredInIdmed,
+  PacksByDrugBottles,
+  PatientWithPregnancyScreening,
+  NotSynchronizedPackToServer
 };
 
 const { isMobile } = useSystemUtils();
