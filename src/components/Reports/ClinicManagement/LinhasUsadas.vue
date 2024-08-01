@@ -1,5 +1,5 @@
 <template>
-  <div ref="filterMmiaSection">
+  <div ref="filterLinhasUsadasSection">
     <ListHeader
       v-if="resultFromLocalStorage"
       :addVisible="false"
@@ -7,8 +7,7 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa Mensal de
-      Medicamentos da TB (MMTB)
+    >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Linhas Terapeuticas Usadas
     </ListHeader>
     <ListHeader
       v-else
@@ -17,8 +16,7 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Mapa
-      Mensal de Medicamentos da TB (MMTB)
+    >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Linhas Terapeuticas Usadas
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -47,7 +45,7 @@
 import Report from 'src/services/api/report/ReportService';
 import { ref, provide } from 'vue';
 import { LocalStorage } from 'quasar';
-import mmiaReport from 'src/services/reports/ClinicManagement/tb/MmiaTb';
+import linhasUsadasReport from 'src/services/reports/ClinicManagement/LinhasUsadas';
 
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
@@ -61,14 +59,14 @@ const { alertError } = useSwal();
 
 const serviceAux = ref(null);
 const resultFromLocalStorage = ref(false);
-const name = 'MmiaTb';
+const name = 'LinhasTerapeuticasUsadas';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
-const filterMmiaSection  = ref('');
+const filterLinhasUsadasSection = ref('');
 const downloadingPdf = ref(false);
 const downloadingXls = ref(false);
-const reportType = 'MAPA_MENSAL_DE_MEDICAMENTO_DA_TB';
+const reportType = 'LINHAS_TERAPEUTICAS_USADAS';
 const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
 const isReportClosed = ref(false);
 const alert = ref({
@@ -79,7 +77,7 @@ const alert = ref({
 
 const progress = ref(0.0);
 const closeSection = (params) => {
-  filterMmiaSection.value.remove();
+  filterLinhasUsadasSection.value.remove();
   if (params) {
     const paramId = params.id;
     isReportClosed.value = true;
@@ -92,34 +90,29 @@ const updateParamsOnLocalStrage = (params, isReportClosed) => {
 };
 
 const initReportProcessing = async (params) => {
-  if (params.periodType !== 'MONTH') {
-    alertError(
-      'O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]'
-    );
+  console.log(params)
+  progress.value = 0.001;
+  if (isOnline.value) {
+    updateParamsOnLocalStrage(params, isReportClosed);
+    Report.apiInitLinhasUsadasProcessing(params).then((resp) => {
+      getProcessingStatus(params);
+    });
   } else {
-    progress.value = 0.001;
-    if (isOnline.value) {
-      updateParamsOnLocalStrage(params, isReportClosed);
-      Report.apiInitMmiaProcessing(params).then((resp) => {
-        getProcessingStatus(params);
-      });
-    } else {
-      updateParamsOnLocalStrage(params, isReportClosed);
-      const reportParams = await MmiaMobileService.getMmiaStockReport(params);
-      const listRegimenSubReport =
-        await MmiaMobileService.getMmiaRegimenSubReport(reportParams);
-      const beta = await MmiaMobileService.getMmiaReport(
-        reportParams,
-        listRegimenSubReport
-      );
-      progress.value = 100;
-      params.progress = 100;
-    }
+    // updateParamsOnLocalStrage(params, isReportClosed);
+    // const reportParams = await MmiaMobileService.getMmiaStockReport(params);
+    // const listRegimenSubReport =
+    //   await MmiaMobileService.getMmiaRegimenSubReport(reportParams);
+    // const beta = await MmiaMobileService.getMmiaReport(
+    //   reportParams,
+    //   listRegimenSubReport
+    // );
+    // progress.value = 100;
+    // params.progress = 100;
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('mmiaReport', params).then((resp) => {
+  Report.getProcessingStatus('linhasUsadasReport', params).then((resp) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
@@ -143,13 +136,14 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType) => {
   if (fileType === 'PDF') {
-    mmiaReport.downloadPDF(id).then((resp) => {
+    linhasUsadasReport.downloadPDF(id).then((resp) => {
+      console.log(resp)
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else {
-    mmiaReport.downloadExcel(id).then((resp) => {
+    linhasUsadasReport.downloadExcel(id).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;

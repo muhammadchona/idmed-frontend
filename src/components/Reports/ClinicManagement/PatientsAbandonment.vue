@@ -1,5 +1,5 @@
 <template>
-  <div ref="filterMmiaSection">
+  <div ref="filterPatientsAbandonmentSection">
     <ListHeader
       v-if="resultFromLocalStorage"
       :addVisible="false"
@@ -7,8 +7,7 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Mapa Mensal de
-      Medicamentos da TB (MMTB)
+    >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Pacientes Abandono
     </ListHeader>
     <ListHeader
       v-else
@@ -17,8 +16,8 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-      >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Mapa
-      Mensal de Medicamentos da TB (MMTB)
+    >Serviço {{ selectedService !== null ? selectedService.code : '' }}:
+      Pacientes Abandono
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -27,13 +26,11 @@
             :id="id"
             :totalRecords="totalRecords"
             :qtyProcessed="qtyProcessed"
-            :reportType="reportType"
             :progress="progress"
+            :reportType="report"
             :tabName="name"
             :params="params"
-            :typeService="selectedService"
             :clinicalService="selectedService"
-            :applicablePeriods="periodType"
             @generateReport="generateReport"
             @initReportProcessing="initReportProcessing"
           />
@@ -44,42 +41,39 @@
 </template>
 
 <script setup>
+import moment from 'moment';
 import Report from 'src/services/api/report/ReportService';
-import { ref, provide } from 'vue';
 import { LocalStorage } from 'quasar';
-import mmiaReport from 'src/services/reports/ClinicManagement/tb/MmiaTb';
-
+import { ref, provide } from 'vue';
+import patientsAbandonmentTS from 'src/services/reports/ClinicManagement/PatientsAbandonment.ts';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
-import { useSwal } from 'src/composables/shared/dialog/dialog';
-
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
+import PatientHistoryMobileService from 'src/services/api/report/mobile/PatientHistoryMobileService';
 
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 
-const serviceAux = ref(null);
-const resultFromLocalStorage = ref(false);
-const name = 'MmiaTb';
+const name = 'PatientsAbandonment';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
-const filterMmiaSection  = ref('');
+const progress = ref(0.0);
+const filterPatientsAbandonmentSection = ref('');
+const report = 'PATIENTES_ABANDONMENT';
 const downloadingPdf = ref(false);
 const downloadingXls = ref(false);
-const reportType = 'MAPA_MENSAL_DE_MEDICAMENTO_DA_TB';
-const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
-const isReportClosed = ref(false);
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
+const serviceAux = ref(null);
+const resultFromLocalStorage = ref(false);
 
-const progress = ref(0.0);
+const isReportClosed = ref(false);
+const updateParamsOnLocalStrage = (params, isReportClosed) => {
+  if (!isReportClosed.value) LocalStorage.set(params.id, params);
+};
+
 const closeSection = (params) => {
-  filterMmiaSection.value.remove();
+  filterPatientsAbandonmentSection.value.remove();
   if (params) {
     const paramId = params.id;
     isReportClosed.value = true;
@@ -87,39 +81,25 @@ const closeSection = (params) => {
   }
 };
 
-const updateParamsOnLocalStrage = (params, isReportClosed) => {
-  if (!isReportClosed.value) LocalStorage.set(params.id, params);
-};
-
-const initReportProcessing = async (params) => {
-  if (params.periodType !== 'MONTH') {
-    alertError(
-      'O período seleccionado não é aplicavel a este relatório, por favor seleccionar o período [Mensal]'
-    );
-  } else {
-    progress.value = 0.001;
-    if (isOnline.value) {
-      updateParamsOnLocalStrage(params, isReportClosed);
-      Report.apiInitMmiaProcessing(params).then((resp) => {
+const initReportProcessing = (params) => {
+  progress.value = 0.001;
+  if (isOnline.value) {
+    updateParamsOnLocalStrage(params, isReportClosed);
+    Report.apiInitReportProcess('patientsAbandonmentReport', params).then((resp) => {
+      setTimeout(() => {
         getProcessingStatus(params);
-      });
-    } else {
-      updateParamsOnLocalStrage(params, isReportClosed);
-      const reportParams = await MmiaMobileService.getMmiaStockReport(params);
-      const listRegimenSubReport =
-        await MmiaMobileService.getMmiaRegimenSubReport(reportParams);
-      const beta = await MmiaMobileService.getMmiaReport(
-        reportParams,
-        listRegimenSubReport
-      );
-      progress.value = 100;
-      params.progress = 100;
-    }
+      }, 3000);
+    });
+  } else {
+    updateParamsOnLocalStrage(params, isReportClosed);
+    PatientHistoryMobileService.getDataLocalDb(params);
+    progress.value = 100;
+    params.progress = 100;
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('mmiaReport', params).then((resp) => {
+  Report.getProcessingStatus('patientsAbandonmentReport', params).then((resp) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
@@ -134,25 +114,49 @@ const getProcessingStatus = (params) => {
         updateParamsOnLocalStrage(params, isReportClosed);
       }
     } else {
-      progress.value = 100;
-      params.progress = 100;
-      updateParamsOnLocalStrage(params, isReportClosed);
+      setTimeout(() => {
+        getProcessingStatus(params);
+      }, 3000);
     }
   });
 };
 
-const generateReport = (id, fileType) => {
-  if (fileType === 'PDF') {
-    mmiaReport.downloadPDF(id).then((resp) => {
-      if (resp === 204)
-        alertError('Não existem Dados para o período selecionado');
+const generateReport = (id, fileType, params) => {
+  //  UID da tab corrente
+  if (isOnline.value) {
+    if (fileType === 'PDF') {
+      downloadingPdf.value = true;
+      patientsAbandonmentTS.downloadPDF(
+          id, fileType, params
+      );
       downloadingPdf.value = false;
-    });
-  } else {
-    mmiaReport.downloadExcel(id).then((resp) => {
-      if (resp === 204)
-        alertError('Não existem Dados para o período selecionado');
+    } else {
+      downloadingXls.value = true;
+      patientsAbandonmentTS.downloadExcel(
+          id, fileType, params
+      );
       downloadingXls.value = false;
+    }
+  } else {
+    PatientHistoryMobileService.localDbGetAllByReportId(id).then((reports) => {
+      const firstReg = reports[0];
+      if (fileType === 'PDF') {
+        patientsAbandonmentTS.downloadPDF(
+          '',
+          moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+          moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+          reports
+        );
+        downloadingPdf.value = false;
+      } else {
+        patientsAbandonmentTS.downloadExcel(
+          '',
+          moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
+          moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
+          reports
+        );
+        downloadingXls.value = false;
+      }
     });
   }
 };

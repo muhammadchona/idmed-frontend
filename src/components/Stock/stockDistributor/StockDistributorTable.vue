@@ -73,7 +73,7 @@
 
 <script setup>
 import { date } from 'quasar';
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, watch } from 'vue';
 import stockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import { useRouter } from 'vue-router';
 
@@ -111,6 +111,7 @@ const filter = ref('');
 const router = useRouter();
 const loading = ref(true);
 const clinic = inject('currClinic');
+const isExecutedDistributor = inject('isExecutedDistributor');
 
 const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
@@ -127,9 +128,20 @@ const stockDistributorsList = computed(() => {
   const list = stockDistributorService.getStockDistributorServices(
     clinic.value.id
   );
-  if (list.length >= 0) {
+  if (
+    list.length > 0 ||
+    (list.length === 0 && isExecutedDistributor.value === true)
+  ) {
     loading.value = false;
   }
   return list;
+});
+
+watch((isExecutedDistributor) => {
+  if (isExecutedDistributor.value === 'true') {
+    loading.value = false;
+  } else {
+    loading.value = true;
+  }
 });
 </script>

@@ -412,14 +412,17 @@
                       class="col"
                       dense
                       outlined
+                      @update:model-value="
+                        (val) => onChangeDrug(props.row, val)
+                      "
                       :disable="!props.row.enabled"
-                      ref="drug"
+                      ref="drugRef"
                       v-model="props.row.drug"
                       :options="drugs"
+                      @filter="filterFn"
                       option-value="id"
                       option-label="name"
                       label="Medicamento"
-                      @filter="filterFn"
                       use-input
                       hide-selected
                       fill-input
@@ -437,11 +440,14 @@
 
                   <q-td key="clinic" :props="props">
                     <q-select
+                      @update:model-value="
+                        (val) => onChangeClinic(props.row, val)
+                      "
                       class="col"
                       dense
                       outlined
                       :disable="!props.row.enabled"
-                      ref="drug"
+                      ref="clinicSectorRef"
                       v-model="props.row.clinic"
                       :options="clinicSectors"
                       option-value="id"
@@ -467,6 +473,7 @@
                     <q-input
                       v-model="props.row.quantity"
                       :disable="!props.row.enabled"
+                      ref="quantityRef"
                       label="Quantidade"
                       type="number"
                       dense
@@ -594,6 +601,8 @@ import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DrugDistributor from '../../../stores/models/drugDistributor/DrugDistributor';
 import StockService from 'src/services/api/stockService/StockService';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService.ts';
+import stockLevelService from 'src/services/api/stockLevelService/stockLevelService.ts';
 
 const router = useRouter();
 const dateUtils = useDateUtils();
@@ -631,6 +640,10 @@ const stockList = ref([]);
 let stockDistributorBatch = '';
 const orderNumberRef = ref('');
 const notesRef = ref('');
+const clinicSectorRef = ref('');
+const drugRef = ref('');
+const paramsStockLevel = ref({ drugId: '', clinicId: '' });
+const quantityRef = ref('');
 
 const status = ref('');
 const stockDistributionCount = inject('stockDistributionCount');
@@ -692,6 +705,42 @@ const filterClinicSectors = (val, update, abort) => {
           );
         });
     });
+  }
+};
+
+const onChangeClinic = (row, item) => {
+  paramsStockLevel.value.clinicId = item.id;
+  if (
+    paramsStockLevel.value.clinicId !== '' &&
+    paramsStockLevel.value.drugId !== ''
+  ) {
+    const stockLevel = stockLevelService.getStockLevel(
+      paramsStockLevel.value.clinicId,
+      paramsStockLevel.value.drugId
+    );
+    if (stockLevel !== null) {
+      row.quantity = stockLevel.quantity;
+    } else {
+      row.quantity = 0;
+    }
+  }
+};
+
+const onChangeDrug = (row, item) => {
+  paramsStockLevel.value.drugId = item.id;
+  if (
+    paramsStockLevel.value.clinicId !== '' &&
+    paramsStockLevel.value.drugId !== ''
+  ) {
+    const stockLevel = stockLevelService.getStockLevel(
+      paramsStockLevel.value.clinicId,
+      paramsStockLevel.value.drugId
+    );
+    if (stockLevel !== null) {
+      row.quantity = stockLevel.quantity;
+    } else {
+      row.quantity = 0;
+    }
   }
 };
 
@@ -910,17 +959,16 @@ const validateStock = async (stock) => {
   }
 };
 
-const doSave = (stockObj) => {
+const doSave = (stock) => {
   showloading();
-  const stock = stockObj;
-  stock.drug_id = stockObj.drug.id;
+  stock.drug_id = stock.drug.id;
   stock.drug = {};
   stock.drug.id = stock.drug_id;
   stock.stockDistributor = {};
-  stock.stockDistributor.id = stockObj.stock_distributor_id;
+  stock.stockDistributor.id = stock.stock_distributor_id;
   stock.status = 'P'; //Pending
 
-  stock.clinic_id = stockObj.clinic.id;
+  stock.clinic_id = stock.clinic.id;
   //stock.clinic = {};
 
   if (isCreationStep.value) {
@@ -928,6 +976,24 @@ const doSave = (stockObj) => {
     stock.id = uuidv4();
     DrugDistributorService.post(stock)
       .then((resp) => {
+        if (
+          !stockLevelService.isStockLevelExists(stock.clinic_id, stock.drug_id)
+        ) {
+          const stockLevel = {};
+          stockLevel.id = uuidv4();
+          stockLevel.drug_id = stock.drug_id;
+          stockLevel.clinic_id = stock.clinic_id;
+          stockLevel.quantity = stock.quantity;
+          stockLevel.drug = {};
+          stockLevel.clinic = {};
+          stockLevel.drug.id = stock.drug_id;
+          stockLevel.clinic.id = stock.clinic_id;
+
+          stockLevelService.post(stockLevel);
+        }
+
+        loadStockList();
+        paramsStockLevel.value = {};
         // stock.id = resp.response.data.id
         submitting = false;
         step.value = 'display';
@@ -1077,7 +1143,7 @@ const activeDrugs = computed(() => {
 });
 
 const clinicSectorsList = computed(() => {
-  return clinicService.getAllClinicSectors();
+  return clinicSectorService.getActivebyClinicId(currClinic.value.id);
 });
 
 const isEditionStep = computed(() => {

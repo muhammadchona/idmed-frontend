@@ -225,7 +225,15 @@ const filterFnDrugs = (val, update, abort) => {
   const stringOptions = getDrugs.value;
   if (val === '') {
     update(() => {
-      optionsDrugs.value = stringOptions.map((drug) => drug);
+      optionsDrugs.value = stringOptions.map((drug) => {
+        drug.name = String(drug.name)
+          .concat(' - (')
+          .concat(drug.packSize)
+          .concat(' ')
+          .concat(String(drug.form.description).substring(0, 4))
+          .concat(')');
+        return drug;
+      });
     });
   } else if (stringOptions.length === 0) {
     update(() => {

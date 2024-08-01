@@ -100,6 +100,9 @@ import ImportedPatientList from 'components/Reports/Patient/ImportedPatientList.
 import TransferedFrom from 'components/Reports/Patient/TransferedFrom.vue';
 import TransferedTo from 'components/Reports/Patient/TransferedTo.vue';
 import Mmia from 'components/Reports/ClinicManagement/Mmia.vue';
+import LinhasTerapeuticasUsadas from 'components/Reports/ClinicManagement/LinhasUsadas.vue';
+import SegundasLinhas from 'components/Reports/ClinicManagement/SegundasLinhas.vue';
+import PatientsAbandonment from 'components/Reports/ClinicManagement/PatientsAbandonment.vue';
 import ReferredPatients from 'components/Reports/ReferralManagement/ReferredPatients.vue';
 import ReferredBackPatients from 'components/Reports/ReferralManagement/ReferredBackPatients.vue';
 import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue';
@@ -119,6 +122,7 @@ import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPa
 import PossiblePatientDuplicates from 'components/Reports/monitoring/PossiblePatientDuplicates.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
+import RegisteredInIdmed from 'src/components/Reports/monitoring/RegisteredInIdmed.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
@@ -146,6 +150,9 @@ const componentsList = {
   TransferedFrom,
   TransferedTo,
   Mmia,
+  LinhasTerapeuticasUsadas,
+  SegundasLinhas,
+  PatientsAbandonment,
   ReferredBackPatients,
   ReferredPatients,
   ReferredPatientDispenseHistory,
@@ -174,6 +181,7 @@ const componentsList = {
   NotSynchronizedPackToServer,
   PacksByDrugBottles,
   PatientWithPregnancyScreening,
+  RegisteredInIdmed,
 };
 
 const { isMobile } = useSystemUtils();

@@ -221,6 +221,7 @@ export default {
     entitiesList.push(NotSyncronizedPacksToServer);
     entitiesList.push(PacksByDrugBottles);
     entitiesList.push(PatientsWithPregnancyScreening);
+    entitiesList.push(StockLevel);
     return entitiesList;
   },
 };

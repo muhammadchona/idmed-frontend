@@ -68,7 +68,7 @@ export default {
     transferencePatientData: any
   ) {
     const openProvincialServer = axios.create({
-      baseURL: 'http://localhost:8884',
+      baseURL: 'http://localhost:8086',
     });
     const nid = currPatient.identifiers[0].value.replaceAll('/', '-');
 

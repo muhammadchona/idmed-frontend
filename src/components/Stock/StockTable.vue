@@ -4,7 +4,7 @@
       :loading="loading"
       :class="headerClass"
       dense
-      :rows="rows"
+      :rows="rowsAux"
       :columns="columns"
       :filter="filter"
       row-key="id"
@@ -106,6 +106,7 @@ import {
   reactive,
   onMounted,
   onBeforeMount,
+  watch,
 } from 'vue';
 
 import drugService from 'src/services/api/drugService/drugService';
@@ -116,6 +117,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const { isMobile, isOnline } = useSystemUtils();
 const loadingDrugFile = ref(false);
+const isExecutedStockAlert = inject('isExecutedStockAlert');
 
 const router = useRouter();
 const { showloading, closeLoading } = useLoading();
@@ -172,7 +174,7 @@ const headerClass = ref('');
 const title = ref('');
 const drug = reactive(ref(null));
 provide('drug', drug);
-const clinic = inject('currClinic');
+const rows = ref([]);
 
 const openDrugFile = (drugInfo) => {
   loadingDrugFile.value = true;
@@ -203,12 +205,23 @@ const getConsuptionRelatedColor = (state) => {
   }
 };
 
-const rows = computed(() => {
+const rowsAux = computed(() => {
   const list = StockAlertService.getStockAlertsByClinic();
-  if (list.length >= 0) {
+  if (
+    list.length > 0 ||
+    (list.length === 0 && isExecutedStockAlert.value === true)
+  ) {
     loading.value = false;
   }
   return list;
+});
+
+watch((isExecutedStockAlert) => {
+  if (isExecutedStockAlert.value === 'true') {
+    loading.value = false;
+  } else {
+    loading.value = true;
+  }
 });
 </script>
 <style lang="sass" scoped>

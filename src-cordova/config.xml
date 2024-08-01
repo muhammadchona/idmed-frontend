@@ -1,25 +1,21 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="csaude.org.mz.idmed.mobile" version="1.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="org.csaude.idmed.mobile" version="1.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>iDMED</name>
     <description>Sistema Inteligente de Dispensa de Medicamentos</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
-       cSaude Team
+        C-SAUDE iDMED Team
     </author>
     <content src="index.html" />
-    <allow-intent href="http://*/*" />
-    <allow-intent href="https://*/*" />
+    <access origin="*" />
     <allow-navigation href="about:*" />
     <allow-navigation href="http://*/*" />
     <allow-navigation href="https://*/*" />
     <allow-navigation href="data:*" />
-    <access origin="*" />
-    <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application" xmlns:android="http://schemas.android.com/apk/res/android">
-        <application android:usesCleartextTraffic="true" />
-    </edit-config>
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
     <preference name="Scheme" value="http" />
-    <preference name="SplashMaintainAspectRatio" value="true" />
     <preference name="AndroidPersistentFileLocation" value="Compatibility" />
-    <allow-intent href="market:*" />
+    <preference name="SplashMaintainAspectRatio" value="true" />
     <platform name="android">
         <icon density="ldpi" src="res/android/ldpi.png" />
         <icon density="mdpi" src="res/android/mdpi.png" />
@@ -39,18 +35,6 @@
         <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xxhdpi.png" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-xxxhdpi.png" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xxxhdpi.png" />
-        <splash density="land-ldpi" src="res/screen/android/splash-land-ldpi.png" />
-        <splash density="port-ldpi" src="res/screen/android/splash-port-ldpi.png" />
-        <splash density="land-mdpi" src="res/screen/android/splash-land-mdpi.png" />
-        <splash density="port-mdpi" src="res/screen/android/splash-port-mdpi.png" />
-        <splash density="land-hdpi" src="res/screen/android/splash-land-hdpi.png" />
-        <splash density="port-hdpi" src="res/screen/android/splash-port-hdpi.png" />
-        <splash density="land-xhdpi" src="res/screen/android/splash-land-xhdpi.png" />
-        <splash density="port-xhdpi" src="res/screen/android/splash-port-xhdpi.png" />
-        <splash density="land-xxhdpi" src="res/screen/android/splash-land-xxhdpi.png" />
-        <splash density="port-xxhdpi" src="res/screen/android/splash-port-xxhdpi.png" />
-        <splash density="land-xxxhdpi" src="res/screen/android/splash-land-xxxhdpi.png" />
-        <splash density="port-xxxhdpi" src="res/screen/android/splash-port-xxxhdpi.png" />
     </platform>
     <platform name="ios">
         <icon height="57" src="res/ios/icon.png" width="57" />
@@ -78,13 +62,13 @@
         <icon height="88" src="res/ios/icon-44@2x.png" width="88" />
         <icon height="172" src="res/ios/icon-86@2x.png" width="172" />
         <icon height="196" src="res/ios/icon-98@2x.png" width="196" />
-        <splash src="res/screen/ios/Default@2x~iphone~anyany.png" />
-        <splash src="res/screen/ios/Default@2x~iphone~comany.png" />
-        <splash src="res/screen/ios/Default@2x~iphone~comcom.png" />
-        <splash src="res/screen/ios/Default@3x~iphone~anyany.png" />
-        <splash src="res/screen/ios/Default@3x~iphone~anycom.png" />
-        <splash src="res/screen/ios/Default@3x~iphone~comany.png" />
-        <splash src="res/screen/ios/Default@2x~ipad~anyany.png" />
-        <splash src="res/screen/ios/Default@2x~ipad~comany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~iphone~anyany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~iphone~comany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~iphone~comcom.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@3x~iphone~anyany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@3x~iphone~anycom.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@3x~iphone~comany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~ipad~anyany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~ipad~comany.png" />
     </platform>
 </widget>

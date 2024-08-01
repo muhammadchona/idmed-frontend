@@ -13,6 +13,18 @@ export default {
     return await api().post('/mmiaReport/initReportProcess', params);
   },
 
+  async apiInitLinhasUsadasProcessing(params: any) {
+    return await api().post('/linhasUsadasReport/initReportProcess', params);
+  },
+
+  async apiInitSegundasLinhasProcessing(params: any) {
+    return await api().post('/segundasLinhasReport/initReportProcess', params);
+  },
+
+  async apiInitPatientsAbandonmentProcessing(params: any) {
+    return await api().post('/patientsAbandonmentReport/initReportProcess', params);
+  },
+
   async apiPrintMmiaReport(reportId: string, fileType: string) {
     return await api().get(`/mmiaReport/printReport/${reportId}/${fileType}`);
   },

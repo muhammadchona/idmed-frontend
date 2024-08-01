@@ -39,7 +39,14 @@
               {{
                 getDrugById(props.row.drug.id) !== null &&
                 getDrugById(props.row.drug.id) !== undefined
-                  ? getDrugById(props.row.drug.id).name
+                  ? getDrugById(props.row.drug.id).name +
+                    ' - (' +
+                    getDrugById(props.row.drug.id).packSize +
+                    ' ' +
+                    String(
+                      getDrugFirstLevelById(props.row.drug.id).form.description
+                    ).substring(0, 4) +
+                    ')'
                   : ''
               }}
             </q-td>

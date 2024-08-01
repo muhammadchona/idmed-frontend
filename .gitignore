@@ -57,3 +57,7 @@ yarn-error.log*
 *.tar
 *.zip
 .env
+src/services/Transferences/TransferenceService.ts
+.env
+yarn.lock
+src/services/Transferences/TransferenceService.ts

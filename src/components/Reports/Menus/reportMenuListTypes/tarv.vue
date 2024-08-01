@@ -75,6 +75,18 @@ const menu = [
         description: 'Mapa Mensal de Informação de ARV (MMIA)',
         tabName: 'Mmia',
       },
+      {
+        description: 'Linhas Terapeuticas Usadas',
+        tabName: 'LinhasTerapeuticasUsadas',
+      },
+      {
+        description: 'Segundas Linhas',
+        tabName: 'SegundasLinhas',
+      },
+      {
+        description: 'Pacientes Abandono',
+        tabName: 'PatientsAbandonment',
+      },
       //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
       //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
       { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
@@ -145,6 +157,10 @@ const menu = [
       {
         description: 'Lista de Dispensas Nao Sicronizadas Para o OpenMrs',
         tabName: 'NotSynchronizedPack',
+      },
+      {
+        description: 'Lista de Pacientes Registados à partir do iDMED',
+        tabName: 'RegisteredInIdmed',
       },
     ],
   },
