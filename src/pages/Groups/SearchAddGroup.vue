@@ -188,7 +188,6 @@ onMounted(() => {
 });
 
 const getAllGroups = () => {
-  console.log(groupService.getAllGroups());
   searchResults.value = groupService.getAllGroups();
 };
 

@@ -271,6 +271,7 @@ import groupService from 'src/services/api/group/groupService';
 import PrescriptionDetailsView from 'components/Patient/Prescription/PrescriptionDetailsView.vue';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import StockService from 'src/services/api/stockService/StockService';
+import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 
 //Declaration
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -300,6 +301,7 @@ onMounted(() => {
 });
 //Methods
 const init = () => {
+   groupMemberService.getPatientGroupByPatientId(patient.value.id);
   closeLoading();
 };
 
