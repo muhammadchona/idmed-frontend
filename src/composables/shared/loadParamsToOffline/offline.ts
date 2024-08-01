@@ -60,9 +60,6 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import NanosystemConfigsService from 'src/services/Synchronization/systemConfigs/NanosystemConfigsService';
 import drugService from 'src/services/api/drugService/drugService';
-import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
-
-const { isUserAPE } = useSystemConfig();
 
 export function useOffline() {
   async function loadSettingParamsToOffline() {
@@ -105,15 +102,6 @@ export function useOffline() {
   async function loadPatientDataToOffline() {
     await patientService.doPatientsBySectorGet();
     await patientVisitService.doPatientVisitServiceBySectorGet();
-    /*
-    if (isUserAPE()) {
-      await patientService.doPatientsForAPIGet();
-    } else {
-      await patientService.doPatientsBySectorGet();
-    }
-
-    await patientVisitService.doPatientVisitServiceBySectorGet();
-        */
   }
 
   async function loadSettingParamsInOfflineMode() {
