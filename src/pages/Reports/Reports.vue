@@ -125,6 +125,7 @@ import clinicalServiceService from 'src/services/api/clinicalServiceService/clin
 import RegisteredInIdmed from 'src/components/Reports/monitoring/RegisteredInIdmed.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import TBScreening from 'components/Reports/Patient/TBScreening.vue';
+import RAMScreening from 'components/Reports/Patient/RAMScreening.vue';
 import PacksByDrugBottles from 'src/components/Reports/monitoring/PacksByDrugBottles.vue';
 import PatientWithPregnancyScreening from 'src/components/Reports/monitoring/PatientsWithPregnancyScreening.vue';
 import NotSynchronizedPackToServer from 'components/Reports/monitoring/NotSyncronizedPacksToServer.vue';
@@ -179,12 +180,12 @@ const componentsList = {
   MmiaTb,
   PossiblePatientDuplicates,
   TBScreening,
+  RAMScreening,
   RegisteredInIdmed,
   PacksByDrugBottles,
   PatientWithPregnancyScreening,
   NotSynchronizedPackToServer,
-  RegisteredInIdmed
-
+  RegisteredInIdmed,
 };
 
 const { isMobile } = useSystemUtils();

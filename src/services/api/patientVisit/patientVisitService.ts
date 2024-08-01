@@ -276,6 +276,34 @@ export default {
       });
   },
 
+  async getLocalDbPatientVisitsBetweenDatesWithTBScreening(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.tbScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalDbPatientVisitsBetweenDatesWithRAMScreening(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.ramScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisit.getModel().$newInstance();

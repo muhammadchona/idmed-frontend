@@ -18,7 +18,7 @@
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}:
-      Rastreio de pacietes de TB
+      Rastreio de pacientes de RAM
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -89,7 +89,7 @@ const initReportProcessing = async (params) => {
       getProcessingStatus(params);
     }); */
   } else {
-    TBScreeningMobileService.getDataLocalDb(params);
+    TBScreeningMobileService.getDataLocalDbRAM(params);
     updateParamsOnLocalStrage(params, isReportClosed);
     progress.value = 100;
     params.progress = 100;
