@@ -276,6 +276,20 @@ export default {
       });
   },
 
+  async getLocalDbPatientVisitsBetweenDatesMonitoredForAdherence(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.adherenceScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisit.getModel().$newInstance();

@@ -82,6 +82,10 @@ const menu = [
       //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
       //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
       { description: 'Rastreio de TB', tabName: 'TBScreening' },
+      {
+        description: 'Lista de Pacientes Monitorados Para Adesão',
+        tabName: 'PatientWithPregnancyScreening',
+      },
     ],
   },
   {
