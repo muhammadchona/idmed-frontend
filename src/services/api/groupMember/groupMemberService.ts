@@ -67,7 +67,6 @@ export default {
         });
     } else {
       const group = groupService.getGroupWithsById(member.group_id);
-      console.log(group);
       const memberToRemove = group.members.filter((memberParam: any) => {
         return memberParam.id === member.id;
       });
@@ -76,8 +75,6 @@ export default {
           return memberParam.id === member.id;
         }
       );
-      console.log(memberToRemove);
-      console.log(memberToRemoveIndex);
       group.members.splice(memberToRemoveIndex, 1, member);
       group.members.forEach((member) => {
         const memberPatientId = member.patient.id;
@@ -94,6 +91,13 @@ export default {
       groupMember.save(member);
       groupService.apiUpdate(group);
     }
+  },
+  async getPatientGroupByPatientId(patientId: string) {
+    return await api()
+      .get(`/groupMember/groupMemberInfoPatient/${patientId}`)
+      .then((resp) => {
+        groupMember.save(resp.data);
+      });
   },
   // Local Storage Pinia
   newInstanceEntity() {

@@ -273,7 +273,6 @@ onMounted(async () => {
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
       loadSettingParamsToOffline();
-      //  loadSettingParamsInOfflineMode();
       setTimeout(() => {
         loadPatientDataToOffline();
       }, 5000);

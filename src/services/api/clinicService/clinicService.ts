@@ -199,8 +199,6 @@ export default {
   /*PINIA*/
   currClinic() {
     const clinicUser = localStorage.getItem('clinicUsers');
-    // const pharmacyUser = SessionStorage.getItem('clinicUsers');
-    console.log(isProvincialInstalation());
     if (
       (clinicUser === 'undefined' && !isProvincialInstalation()) ||
       (clinicUser === '' && !isProvincialInstalation()) ||

@@ -153,12 +153,7 @@ export default {
     }
   },
   */
-
-  async apiValidateBeforeAdd(
-    patientId: string,
-    code: string,
-    dispenseTypeCode: string
-  ) {
+  async apiValidateBeforeAdd(patientId: string, code: string) {
     return await api().get(
       `/groupInfo/validadePatient/${patientId}/${code}/${dispenseTypeCode}`
     );

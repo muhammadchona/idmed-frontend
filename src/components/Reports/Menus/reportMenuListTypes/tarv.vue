@@ -87,6 +87,10 @@ const menu = [
         description: 'Pacientes Abandono',
         tabName: 'PatientsAbandonment',
       },
+      {
+        description: 'Pacientes Abandono Que Retornaram',
+        tabName: 'PatientsAbandonmentReturned',
+      },
       //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
       //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
       { description: 'Histórico de Levantamentos', tabName: 'PatientHistory' },
