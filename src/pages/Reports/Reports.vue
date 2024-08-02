@@ -185,7 +185,6 @@ const componentsList = {
   PossiblePatientDuplicates,
   TBScreening,
   RAMScreening,
-  RegisteredInIdmed,
   PacksByDrugBottles,
   PatientWithPregnancyScreening,
   NotSynchronizedPackToServer,
