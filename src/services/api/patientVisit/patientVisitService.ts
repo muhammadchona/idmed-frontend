@@ -276,6 +276,7 @@ export default {
       });
   },
 
+
   async getLocalDbPatientVisitsBetweenDatesMonitoredForAdherence(
     startDate: any,
     endDate: any
@@ -283,7 +284,33 @@ export default {
     return db[patientVisitDexie]
       .where('visitDate')
       .between(startDate, endDate, true, true)
-      .filter((visit: any) => visit.adherenceScreenings.length > 0)
+      .filter((visit: any) => visit.tbScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+ async getLocalDbPatientVisitsBetweenDatesWithTBScreening(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.tbScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },  async getLocalDbPatientVisitsBetweenDatesWithRAMScreening(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.ramScreenings.length > 0)
       .toArray()
       .then((result: any) => {
         return result;

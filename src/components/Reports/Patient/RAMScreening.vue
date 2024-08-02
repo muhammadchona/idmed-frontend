@@ -18,7 +18,7 @@
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}:
-      Rastreio de pacietes de TB
+      Rastreio de pacientes de RAM
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -44,7 +44,7 @@
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
 import { ref, provide, onMounted } from 'vue';
-import TBScreeningReportTs from 'src/services/reports/Patients/TBScreening.ts';
+import RAMScreeningReportTs from 'src/services/reports/Patients/RAMScreening.ts';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -89,7 +89,7 @@ const initReportProcessing = async (params) => {
       getProcessingStatus(params);
     }); */
   } else {
-    TBScreeningMobileService.getDataLocalDb(params);
+    TBScreeningMobileService.getDataLocalDbRAM(params);
     updateParamsOnLocalStrage(params, isReportClosed);
     progress.value = 100;
     params.progress = 100;
@@ -132,14 +132,14 @@ const generateReport = async (id, fileType) => {
       const patientAux = data[0];
 
       if (fileType === 'PDF') {
-        await TBScreeningReportTs.downloadPDF(
+        await RAMScreeningReportTs.downloadPDF(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
       } else {
-        await TBScreeningReportTs.downloadExcel(
+        await RAMScreeningReportTs.downloadExcel(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),

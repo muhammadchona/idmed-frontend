@@ -22,6 +22,7 @@ export default class TBScreeningReport extends Model {
       registerDate: this.attr(''),
       clinic: this.attr(''),
       wasTBScreened: this.attr(''),
+      wasRAMScreened: this.attr(''),
     };
   }
 }
