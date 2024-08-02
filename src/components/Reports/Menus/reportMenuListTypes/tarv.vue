@@ -144,6 +144,7 @@ const menu = [
       },
       { description: 'Inventario Parcial', tabName: 'partialInventory' },
       { description: 'Inventario Geral', tabName: 'generalInventory' },
+      { description: 'Balancete', tabName: 'Balancete' },
     ],
   },
   {

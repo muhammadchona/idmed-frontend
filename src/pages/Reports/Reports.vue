@@ -104,6 +104,7 @@ import LinhasTerapeuticasUsadas from 'components/Reports/ClinicManagement/Linhas
 import SegundasLinhas from 'components/Reports/ClinicManagement/SegundasLinhas.vue';
 import PatientsAbandonment from 'components/Reports/ClinicManagement/PatientsAbandonment.vue';
 import PatientsAbandonmentReturned from 'components/Reports/ClinicManagement/PatientsAbandonmentReturned.vue';
+import Balancete from 'components/Reports/stock/Balancete.vue';
 import ReferredPatients from 'components/Reports/ReferralManagement/ReferredPatients.vue';
 import ReferredBackPatients from 'components/Reports/ReferralManagement/ReferredBackPatients.vue';
 import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue';
@@ -156,6 +157,7 @@ const componentsList = {
   SegundasLinhas,
   PatientsAbandonment,
   PatientsAbandonmentReturned,
+  Balancete,
   ReferredBackPatients,
   ReferredPatients,
   ReferredPatientDispenseHistory,
