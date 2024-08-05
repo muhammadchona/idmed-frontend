@@ -187,7 +187,6 @@ const componentsList = {
   PacksByDrugBottles,
   PatientWithPregnancyScreening,
   NotSynchronizedPackToServer,
-  RegisteredInIdmed,
   PatientsMonitoredForAdherence,
 };
 
