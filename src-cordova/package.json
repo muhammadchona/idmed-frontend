@@ -17,6 +17,7 @@
     "cordova-plugin-device": "^3.0.0",
     "cordova-plugin-dialogs": "^2.0.2",
     "cordova-plugin-file": "^8.1.0",
+    "cordova-plugin-file-opener2": "github:pwlin/cordova-plugin-file-opener2",
     "cordova-plugin-network-information": "^3.0.0",
     "cordova-plugin-screen-orientation": "^3.0.4",
     "cordova-plugin-splashscreen": "^6.0.1",
@@ -34,7 +35,8 @@
       },
       "cordova-plugin-network-information": {},
       "cordova-plugin-screen-orientation": {},
-      "cordova-plugin-splashscreen": {}
+      "cordova-plugin-splashscreen": {},
+      "cordova-plugin-file-opener2": {}
     }
   }
 }

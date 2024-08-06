@@ -81,10 +81,20 @@ const menu = [
       //  { description: 'Lista de transferidos DE', tabName: 'TransferedFrom' },
       //  { description: 'Lista de Visitantes', tabName: 'GuestList' },
       //  { description: 'Lista de pacientes importados de outros Sistemas', tabName: 'ImportedPatientList' }
-      { description: 'Rastreio de TB', tabName: 'TBScreening' },
-      { description: 'Rastreio de RAM', tabName: 'RAMScreening' },
+      {
+        description: 'Lista de Pacientes Com Rastreio de TB',
+        tabName: 'TBScreening',
+      },
+      {
+        description: 'Lista de Pacientes Rastreados para RAM',
+        tabName: 'RAMScreening',
+      },
       {
         description: 'Lista de Pacientes Monitorados Para Adesão',
+        tabName: 'PatientsMonitoredForAdherence',
+      },
+      {
+        description: 'Lista de Pacientes Rastreados Para Gravidez',
         tabName: 'PatientWithPregnancyScreening',
       },
     ],
@@ -109,6 +119,10 @@ const menu = [
         description:
           "Lista de Pacientes Faltosos ao Levantamento de ARV's para APSS",
         tabName: 'AbsentPatientsAPSS',
+      },
+      {
+        description: 'Lista de Dispensas por Frascos',
+        tabName: 'PacksByDrugBottles',
       },
     ],
   },
@@ -154,14 +168,6 @@ const menu = [
       {
         description: 'Lista de Dispensas nao sicronizadas',
         tabName: 'NotSynchronizedPackToServer',
-      },
-      {
-        description: 'Lista de Dispensas por Frascos',
-        tabName: 'PacksByDrugBottles',
-      },
-      {
-        description: 'Lista de Pacientes Rastreados Para Gravidez',
-        tabName: 'PatientWithPregnancyScreening',
       },
     ],
   },

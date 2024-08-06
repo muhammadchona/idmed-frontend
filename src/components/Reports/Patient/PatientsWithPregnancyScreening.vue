@@ -50,8 +50,8 @@ import { ref, onMounted, provide } from 'vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import PatientsWithPregnancyScreening from 'src/services/reports/monitoring/PatientsWithPregnancyScreening';
-import PatientsWithPregnancyScreeningMobileService from 'src/services/api/report/mobile/PatientsWithPregnancyScreeningMobileService';
+import PatientsWithPregnancyScreening from 'src/services/reports/Patients/PatientsWithPregnancyScreening';
+import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService';
 const { alertError } = useSwal();
 
 const name = 'PatientWithPregnancyScreening';
@@ -92,7 +92,9 @@ const closeSection = (params) => {
 
 const initReportProcessing = (params) => {
   updateParamsOnLocalStrage(params, isReportClosed);
-  PatientsWithPregnancyScreeningMobileService.getDataLocalDb(params);
+  PatientsWithScreeningMobileService.getDataLocalDbForPregnancyScreening(
+    params
+  );
   progress.value = 100;
   params.progress = 100;
 };
