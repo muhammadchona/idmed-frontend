@@ -45,7 +45,7 @@
 import Report from 'src/services/api/report/ReportService';
 import { ref, provide } from 'vue';
 import { LocalStorage } from 'quasar';
-import  segundasLinhasReport from 'src/services/reports/ClinicManagement/SegundasLinhas';
+import  balancete from 'src/services/reports/stock/Balancete';
 
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
@@ -112,7 +112,7 @@ const initReportProcessing = async (params) => {
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('segundasLinhasReport', params).then((resp) => {
+  Report.getProcessingStatus('balanceteReport', params).then((resp) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
@@ -136,13 +136,13 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType) => {
   if (fileType === 'PDF') {
-    segundasLinhasReport.downloadPDF(id).then((resp) => {
+    balancete.downloadPDF(id).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else {
-    segundasLinhasReport.downloadExcel(id).then((resp) => {
+    balancete.downloadExcel(id).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;

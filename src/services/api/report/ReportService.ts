@@ -21,6 +21,10 @@ export default {
     return await api().post('/segundasLinhasReport/initReportProcess', params);
   },
 
+  async apiInitBalanceteProcessing(params: any) {
+    return await api().post('/balanceteReport/initReportProcess', params);
+  },
+
   async apiInitPatientsAbandonmentProcessing(params: any) {
     return await api().post('/patientsAbandonmentReport/initReportProcess', params);
   },
