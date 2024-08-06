@@ -5,26 +5,25 @@ import saveAs from 'file-saver';
 import { MOHIMAGELOG } from '../../../assets/imageBytes.ts';
 import * as ExcelJS from 'exceljs';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import NotSyncronizedPacksToServerService from 'src/services/api/report/mobile/PacksByDrugBottleMobileService';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
-import PacksByDrugBottleMobileService from 'src/services/api/report/mobile/PacksByDrugBottleMobileService';
-import PatientsWithPregnancyScreeningMobileService from 'src/services/api/report/mobile/PatientsWithPregnancyScreeningMobileService.js';
-
+import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService.js';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 const { isMobile, isOnline } = useSystemUtils();
 
-const reportName = 'RelatorioMonitoriaAdesao';
+const reportName = 'RelatorioRastreioDeGravidez';
 const logoTitle =
-  'REPUBLICA DE MOÇAMBIQUE \n MINISTERIO DA SAÚDE \n SERVIÇO NACIONAL DE SAUDE';
-const title = 'Relatorio De Pacientes Monitorados a Adesao';
+  'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
+const title = 'Relatorio Estatistico de Dispensas Por Frasco';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
 
 const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
-
+const fontPath = '/src/assets/NotoSans-Regular.ttf';
 export default {
   async downloadPDF(params: any) {
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -33,12 +32,14 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default i
     });
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     const result =
-      await PatientsWithPregnancyScreeningMobileService.localDbGetAllByReportId(
+      await PatientsWithScreeningMobileService.localDbGetAllByReportId(
         params.id
       );
-    console.log(params);
-    console.log(result[0]);
+
     const firstObject = result[0];
     /*
       Fill Table
@@ -51,7 +52,7 @@ export default {
     const headerReport = [
       [
         {
-          content: 'Relatorio de Pacientes Pacientes Monitorados a Adesao',
+          content: 'Relatorio de Pacientes Rastreados Para Gravidez',
           styles: { minCellHeight: 25, fontSize: 12, halign: 'center' },
           colSpan: 3,
           halign: 'center',
@@ -69,7 +70,7 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Periodo: ' + params.startDate + ' a ' + params.endDate,
+          content: 'Período: ' + params.startDate + ' a ' + params.endDate,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -82,6 +83,7 @@ export default {
     autoTable(doc, {
       //  margin: { top: 10 },
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
         fontSize: 8,
@@ -95,9 +97,9 @@ export default {
     });
 
     doc.setFontSize(8);
-    doc.text('Republica de Mocambique ', 16, 28);
-    doc.text('Ministerio da Saude ', 20, 32);
-    doc.text('Serviço Nacional de Saude ', 16, 36);
+    doc.text('República de Moçambique ', 16, 28);
+    doc.text('Ministério da Saúde ', 20, 32);
+    doc.text('Serviço Nacional de Saúde', 16, 36);
     doc.addImage(img, 'png', 28, 15, 10, 10);
 
     const cols = [
@@ -106,7 +108,8 @@ export default {
       'Genero',
       'Idade',
       'Data da Consulta',
-      'Unidade Sanitaria',
+      'Gravida',
+      'Unidade Sanitária',
     ];
     const rows = result;
     // const data = [];
@@ -114,6 +117,7 @@ export default {
     const data = this.createArrayOfArrayRow(rows);
     autoTable(doc, {
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 8,
       },
@@ -149,7 +153,7 @@ export default {
   },
   async downloadExcel(params: any) {
     const result =
-      await PatientsWithPregnancyScreeningMobileService.localDbGetAllByReportId(
+      await PatientsWithScreeningMobileService.localDbGetAllByReportId(
         params.id
       );
     const rows = result;
@@ -197,6 +201,7 @@ export default {
     const colH = worksheet.getColumn('H');
     const colI = worksheet.getColumn('I');
     const colJ = worksheet.getColumn('J');
+    const colK = worksheet.getColumn('K');
 
     // Format Table Cells
     // Alignment Format
@@ -278,6 +283,7 @@ export default {
     colH.width = 20;
     colI.width = 20;
     colJ.width = 20;
+    colK.width = 20;
 
     // Add Style
     // cellTitle.font =
@@ -320,6 +326,11 @@ export default {
         },
         {
           name: 'Data da Consulta',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Gravida',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -410,7 +421,8 @@ export default {
       createRow.push(
         moment(new Date(rows[row].visitDate)).format('DD-MM-YYYY')
       );
-      createRow.push(rows[row].clinic);
+      createRow.push(rows[row].isPregnant);
+      createRow.push(rows[row].clinic.clinicName);
 
       data.push(createRow);
     }

@@ -1,7 +1,7 @@
 import { Model } from 'pinia-orm';
 
-export default class TBScreeningReport extends Model {
-  static entity = 'tbScreeningReport';
+export default class PatientsWithScreeningReport extends Model {
+  static entity = 'patientsWithScreeningReports';
   static fields() {
     return {
       id: this.attr(null),
@@ -19,10 +19,11 @@ export default class TBScreeningReport extends Model {
       name: this.attr(''),
       gender: this.attr(''),
       age: this.attr(''),
-      registerDate: this.attr(''),
+      visitDate: this.attr(''),
       clinic: this.attr(''),
       wasTBScreened: this.attr(''),
       wasRAMScreened: this.attr(''),
+      isPregnant: this.attr(''),
     };
   }
 }

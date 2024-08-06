@@ -50,8 +50,8 @@ import { ref, onMounted, provide } from 'vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import PatientsWithPregnancyScreening from 'src/services/reports/monitoring/PatientsWithPregnancyScreening';
-import PatientsWithPregnancyScreeningMobileService from 'src/services/api/report/mobile/PatientsWithPregnancyScreeningMobileService';
+import PatientsMonitoredForAdhrence from 'src/services/reports/Patients/PatientsMonitoredForAdhrence';
+import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService';
 const { alertError } = useSwal();
 
 const name = 'PatientsMonitoredForAdherence';
@@ -92,7 +92,9 @@ const closeSection = (params) => {
 
 const initReportProcessing = (params) => {
   updateParamsOnLocalStrage(params, isReportClosed);
-  PatientsWithPregnancyScreeningMobileService.getDataLocalDb(params);
+  PatientsWithScreeningMobileService.getDataLocalDbMonitoredForAdherence(
+    params
+  );
   progress.value = 100;
   params.progress = 100;
 };
@@ -104,13 +106,13 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
-    PatientsWithPregnancyScreening.downloadPDF(params).then((resp) => {
+    PatientsMonitoredForAdhrence.downloadPDF(params).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else {
-    PatientsWithPregnancyScreening.downloadExcel(params).then((resp) => {
+    PatientsMonitoredForAdhrence.downloadExcel(params).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;

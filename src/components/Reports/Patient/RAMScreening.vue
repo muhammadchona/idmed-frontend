@@ -49,7 +49,7 @@ import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import TBScreeningMobileService from 'src/services/api/report/mobile/TBScreeningMobileService';
+import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService';
 import moment from 'moment';
 
 const { isOnline } = useSystemUtils();
@@ -89,7 +89,7 @@ const initReportProcessing = async (params) => {
       getProcessingStatus(params);
     }); */
   } else {
-    TBScreeningMobileService.getDataLocalDbRAM(params);
+    PatientsWithScreeningMobileService.getDataLocalDbRAM(params);
     updateParamsOnLocalStrage(params, isReportClosed);
     progress.value = 100;
     params.progress = 100;
@@ -123,7 +123,8 @@ const generateReport = async (id, fileType) => {
   if (isOnline.value) {
     //TODO:
   } else {
-    const data = await TBScreeningMobileService.localDbGetAllByReportId(id);
+    const data =
+      await PatientsWithScreeningMobileService.localDbGetAllByReportId(id);
     if (data.length === 0) {
       alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
@@ -132,19 +133,21 @@ const generateReport = async (id, fileType) => {
       const patientAux = data[0];
 
       if (fileType === 'PDF') {
-        await RAMScreeningReportTs.downloadPDF(
+        RAMScreeningReportTs.downloadPDF(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
+        downloadingPdf.value = false;
       } else {
-        await RAMScreeningReportTs.downloadExcel(
+        RAMScreeningReportTs.downloadExcel(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
+        downloadingXls.value = false;
       }
     }
   }
