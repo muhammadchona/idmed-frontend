@@ -342,6 +342,7 @@ export default {
     try {
       const rows = await db[stockDexie].toArray();
       stock.save(rows);
+      return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
