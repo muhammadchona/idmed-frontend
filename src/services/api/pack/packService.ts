@@ -161,6 +161,14 @@ export default {
         });
     }
   },
+  async apiGetAllByPatientId(patientid: string) {
+    if (isMobile.value && !isOnline.value) {
+      this.get(0);
+    } else {
+      return await api()
+        .get('pack/getAllByPatient/' + patientid)
+    }
+  },
   async apiGetAllByPatientVisitDetailsId(
     patientVisitDetailsId: string,
     offset: number,
@@ -234,6 +242,7 @@ export default {
       .orderBy('pickupDate', 'desc')
       .first();
   },
+
   getPacksFromPatientId(patientServiceIdentifierid: string) {
     return pack
       .withAllRecursive(2)

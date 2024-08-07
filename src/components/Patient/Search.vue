@@ -581,57 +581,26 @@ const goToPatientPanel = async (patient) => {
   await patientService.deleteAllExceptIdFromStorage(patient.id);
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
-  // localStorage.setItem('patientuuid', currPatient.value.id);
+
   if (isMobile.value && !isOnline.value) {
-    /*
-    await patientService.getMobile();
-    await patientServiceIdentifierService.getMobile();
-    await episodeService.getMobile();
-    await prescriptionService.getMobile();
-    await patientVisitDetailsService.getMobile();
-    await packService.getMobile();
-    await drugService.getMobile();
-    await clinicalServiceService.getMobile();
-    */
     await patientService.getPatientMobileWithAllByPatientId(currPatient.value);
   } else {
     localStorage.setItem('patientuuid', currPatient.value.id);
     await patientService.getPatientByID(currPatient.value.id);
     // Rest Calls
-    await patientServiceIdentifierService.apiGetAllByPatientId(
-      currPatient.value.id
-    );
+    // await patientServiceIdentifierService.apiGetAllByPatientId(
+    //   currPatient.value.id
+    // );
     await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
     await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
       currPatient.value.id
     );
-    await prescriptionService.apiGetByPatientId(currPatient.value.id);
-    await packService.apiGetByPatientId(currPatient.value.id);
+    //  await prescriptionService.apiGetByPatientId(currPatient.value.id);
+    //  await packService.apiGetByPatientId(currPatient.value.id);
   }
 
-  // Delete all Except this patient
-  /*
-  const patientVisits = await patientVisitService.apiGetAllByPatientId(
-    currPatient.value.id
-  );
-  const resp = await patientVisitDetailsService.getMobileByPatientVisitIds(
-    patientVisits
-  );
-  */
   localStorage.setItem('patientuuid', currPatient.value.id);
-  /*
-  await patientService.getPatientByID(currPatient.value.id);
-  // Rest Calls
-  await patientServiceIdentifierService.apiGetAllByPatientId(
-    currPatient.value.id
-  );
-  await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
-  await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
-    currPatient.value.id
-  );
-  await prescriptionService.apiGetByPatientId(currPatient.value.id);
-  await packService.apiGetByPatientId(currPatient.value.id);
-  */
+
   router.push('/patientpanel/');
 };
 
