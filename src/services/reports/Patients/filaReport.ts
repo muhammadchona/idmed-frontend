@@ -60,7 +60,10 @@ export default {
       'Data Prox. Levant.',
     ];
 
-    const rows = packService.getPacksFromPatientId(patientServiceIdentifier.id);
+    let rows = [];
+    await packService.apiGetAllByPatientId(patient.id).then((resp) => {
+      rows = resp.data;
+    });
 
     const data = [];
     let saveInicialDate = new Date(1990, 1, 1);
@@ -229,7 +232,7 @@ function createDrugDosageArrayOfArrayRow(rows: any) {
             ? rows[row].timesPerDay
             : rows[row].drug.defaultTreatment
         ) +
-        ' Vez(es) por '.concat(rows[row].form)
+        ' Vez(es) por '.concat(rows[row].drug.defaultPeriodTreatment)
     );
     data.push(createRow);
   }

@@ -74,10 +74,20 @@
                   }}
                 </div>
               </div>
-              <div v-if="prescription.prescriptionDetails !== null" class="row">
+              <div
+                v-if="
+                  prescription.prescriptionDetails !== null &&
+                  prescription.prescriptionDetails !== undefined &&
+                  prescription.prescriptionDetails.length !== 0
+                "
+                class="row"
+              >
                 <div
                   v-if="
-                    prescription.prescriptionDetails[0].therapeuticLine !== null
+                    prescription.prescriptionDetails[0].therapeuticLine !==
+                      null &&
+                    prescription.prescriptionDetails[0].therapeuticLine !==
+                      undefined
                   "
                   class="col text-grey-9 text-weight-medium"
                 >
@@ -85,7 +95,10 @@
                 </div>
                 <div
                   v-if="
-                    prescription.prescriptionDetails[0].therapeuticLine !== null
+                    prescription.prescriptionDetails[0].therapeuticLine !==
+                      null &&
+                    prescription.prescriptionDetails[0].therapeuticLine !==
+                      undefined
                   "
                   class="col text-grey-8"
                 >
@@ -112,7 +125,14 @@
                   }}
                 </div>
               </div>
-              <div v-if="prescription !== null" class="row">
+              <div
+                v-if="
+                  prescription !== null &&
+                  prescription.prescriptionDetails !== undefined &&
+                  prescription.prescriptionDetails.length !== 0
+                "
+                class="row"
+              >
                 <div class="col text-grey-9 text-weight-medium">
                   Tipo Dispensa:
                 </div>
@@ -301,7 +321,7 @@ onMounted(() => {
 });
 //Methods
 const init = () => {
-   groupMemberService.getPatientGroupByPatientId(patient.value.id);
+  groupMemberService.getPatientGroupByPatientId(patient.value.id);
   closeLoading();
 };
 
@@ -408,7 +428,7 @@ const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD-MM-YYYY');
 };
 
-const printFilaReport = (patientServiceIdentifier) => {
+const printFilaReport = async (patientServiceIdentifier) => {
   filaReport.downloadPDF(
     patient.value,
     patientServiceIdentifier,

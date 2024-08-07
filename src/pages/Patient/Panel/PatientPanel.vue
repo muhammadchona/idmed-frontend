@@ -111,6 +111,11 @@ import ClinicServiceInfo from 'components/Patient/PatientPanel/ClinicServicesInf
 import PrescriptionInfo from 'components/Patient/PatientPanel/PrescriptionInfo.vue';
 import PharmaceuticalAtentionInfo from 'components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
+import packService from 'src/services/api/pack/packService';
 
 //Declarations
 const { closeLoading, showloading } = useLoading();
@@ -143,11 +148,29 @@ onMounted(() => {
 
 // Methods
 const init = async () => {
+  showloading();
   if (patient.value === null) {
     patient.value = patientService.getPatientByID(
       localStorage.getItem('patientuuid')
     );
   }
+
+  // else {
+  //   if (isMobile.value && !isOnline.value) {
+  //     await patientService.getPatientMobileWithAllByPatientId(patient.value);
+  //   } else {
+  //     // Rest Calls
+  //     await patientServiceIdentifierService.apiGetAllByPatientId(
+  //       patient.value.id
+  //     );
+  //     await patientVisitService.apiGetAllByPatientId(patient.value.id);
+  //     await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
+  //       currPatient.value.id
+  //     );
+  //     await prescriptionService.apiGetByPatientId(patient.value.id);
+  //     await packService.apiGetByPatientId(patient.value.id);
+  //   }
+  // }
   closeLoading();
 };
 const showPatientDetails = () => {
