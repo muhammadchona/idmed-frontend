@@ -160,6 +160,14 @@ export default {
       });
   },
 
+  async getPrescriptionMobileById(id: String) {
+    const resp = await db[prescriptionDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first();
+    return resp;
+  },
+
   async apiFetchLastByIdentifierId(id: string) {
     return await api().get(`/prescription/identifier/${id}`);
   },

@@ -135,6 +135,16 @@ export default {
     patientVisitDetails.save(resp);
     return resp;
   },
+
+  async getAllMobileByDetailsId(id: String) {
+    const resp = await db[patientVisitDetailsDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first();
+
+    ///  patientVisitDetails.save(resp);
+    return resp;
+  },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisitDetails/${id}`);
   },

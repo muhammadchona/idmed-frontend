@@ -17,10 +17,11 @@ export default {
   async getDataLocalDb(params) {
     const reportParams = ReportDatesParams.determineStartEndDate(params);
 
-    console.log(reportParams);
     const patientVisitList =
-      await patientVisitService.getLocalDbPatientVisitsNotSynced();
-    console.log(patientVisitList);
+      await patientVisitService.getLocalDbPatientVisitsNotSynced(
+        reportParams.startDate,
+        reportParams.endDate
+      );
     for (const patientVisit of patientVisitList) {
       for (const patientVisitDetail of patientVisit.patientVisitDetails) {
         if (patientVisitDetail.pack !== undefined) {

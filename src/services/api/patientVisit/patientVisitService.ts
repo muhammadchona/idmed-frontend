@@ -236,8 +236,10 @@ export default {
       });
   },
 
-  async getLocalDbPatientVisitsNotSynced() {
+  async getLocalDbPatientVisitsNotSynced(startDate: any, endDate: any) {
     return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
       .where('syncStatus')
       .equalsIgnoreCase('R')
       .toArray()
@@ -276,7 +278,6 @@ export default {
       });
   },
 
-
   async getLocalDbPatientVisitsBetweenDatesMonitoredForAdherence(
     startDate: any,
     endDate: any
@@ -291,7 +292,7 @@ export default {
       });
   },
 
- async getLocalDbPatientVisitsBetweenDatesWithTBScreening(
+  async getLocalDbPatientVisitsBetweenDatesWithTBScreening(
     startDate: any,
     endDate: any
   ) {
@@ -303,7 +304,8 @@ export default {
       .then((result: any) => {
         return result;
       });
-  },  async getLocalDbPatientVisitsBetweenDatesWithRAMScreening(
+  },
+  async getLocalDbPatientVisitsBetweenDatesWithRAMScreening(
     startDate: any,
     endDate: any
   ) {
@@ -311,6 +313,22 @@ export default {
       .where('visitDate')
       .between(startDate, endDate, true, true)
       .filter((visit: any) => visit.ramScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalDbPatientVisitsSyncedAndWithSyncStatusNull() {
+    return db[patientVisitDexie]
+      .orderBy('visitDate')
+      .filter(
+        (visit: any) =>
+          (visit.syncStatus !== null &&
+            visit.syncStatus !== undefined &&
+            visit.syncStatus !== '') ||
+          visit.syncStatus !== 'S'
+      )
       .toArray()
       .then((result: any) => {
         return result;
