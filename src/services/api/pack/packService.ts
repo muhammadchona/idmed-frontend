@@ -197,6 +197,11 @@ export default {
       });
   },
 
+  async getPackMobileById(id: String) {
+    const resp = await db[packDexie].where('id').equalsIgnoreCase(id).first();
+    return resp;
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return pack.getModel().$newInstance();

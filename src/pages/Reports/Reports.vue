@@ -103,7 +103,8 @@ import Mmia from 'components/Reports/ClinicManagement/Mmia.vue';
 import LinhasTerapeuticasUsadas from 'components/Reports/ClinicManagement/LinhasUsadas.vue';
 import SegundasLinhas from 'components/Reports/ClinicManagement/SegundasLinhas.vue';
 import PatientsAbandonment from 'components/Reports/ClinicManagement/PatientsAbandonment.vue';
-// import PatientsAbandonmentReturned from 'components/Reports/ClinicManagement/PatientsAbandonmentReturned.vue';
+import PatientsAbandonmentReturned from 'components/Reports/ClinicManagement/PatientsAbandonmentReturned.vue';
+import Balancete from 'components/Reports/stock/Balancete.vue';
 import ReferredPatients from 'components/Reports/ReferralManagement/ReferredPatients.vue';
 import ReferredBackPatients from 'components/Reports/ReferralManagement/ReferredBackPatients.vue';
 import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue';
@@ -126,10 +127,11 @@ import clinicalServiceService from 'src/services/api/clinicalServiceService/clin
 import RegisteredInIdmed from 'src/components/Reports/monitoring/RegisteredInIdmed.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import TBScreening from 'components/Reports/Patient/TBScreening.vue';
+import RAMScreening from 'components/Reports/Patient/RAMScreening.vue';
 import PacksByDrugBottles from 'src/components/Reports/monitoring/PacksByDrugBottles.vue';
-import PatientWithPregnancyScreening from 'src/components/Reports/monitoring/PatientsWithPregnancyScreening.vue';
+import PatientWithPregnancyScreening from 'src/components/Reports/Patient/PatientsWithPregnancyScreening.vue';
 import NotSynchronizedPackToServer from 'components/Reports/monitoring/NotSyncronizedPacksToServer.vue';
-
+import PatientsMonitoredForAdherence from 'components/Reports/Patient/PatientsMonitoredForAdherence.vue';
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
 
 import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue';
@@ -154,7 +156,8 @@ const componentsList = {
   LinhasTerapeuticasUsadas,
   SegundasLinhas,
   PatientsAbandonment,
-  // PatientsAbandonmentReturned,
+  PatientsAbandonmentReturned,
+  Balancete,
   ReferredBackPatients,
   ReferredPatients,
   ReferredPatientDispenseHistory,
@@ -181,12 +184,11 @@ const componentsList = {
   MmiaTb,
   PossiblePatientDuplicates,
   TBScreening,
-  RegisteredInIdmed,
+  RAMScreening,
   PacksByDrugBottles,
   PatientWithPregnancyScreening,
   NotSynchronizedPackToServer,
-  RegisteredInIdmed
-
+  PatientsMonitoredForAdherence,
 };
 
 const { isMobile } = useSystemUtils();

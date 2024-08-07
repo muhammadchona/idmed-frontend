@@ -236,8 +236,10 @@ export default {
       });
   },
 
-  async getLocalDbPatientVisitsNotSynced() {
+  async getLocalDbPatientVisitsNotSynced(startDate: any, endDate: any) {
     return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
       .where('syncStatus')
       .equalsIgnoreCase('R')
       .toArray()
@@ -270,6 +272,63 @@ export default {
       .where('visitDate')
       .between(startDate, endDate, true, true)
       .filter((visit: any) => visit.pregnancyScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalDbPatientVisitsBetweenDatesMonitoredForAdherence(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.tbScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalDbPatientVisitsBetweenDatesWithTBScreening(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.tbScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+  async getLocalDbPatientVisitsBetweenDatesWithRAMScreening(
+    startDate: any,
+    endDate: any
+  ) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter((visit: any) => visit.ramScreenings.length > 0)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalDbPatientVisitsSyncedAndWithSyncStatusNull() {
+    return db[patientVisitDexie]
+      .orderBy('visitDate')
+      .filter(
+        (visit: any) =>
+          (visit.syncStatus !== null &&
+            visit.syncStatus !== undefined &&
+            visit.syncStatus !== '') ||
+          visit.syncStatus !== 'S'
+      )
       .toArray()
       .then((result: any) => {
         return result;

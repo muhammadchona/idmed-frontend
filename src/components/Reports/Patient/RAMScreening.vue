@@ -1,5 +1,5 @@
 <template>
-  <div ref="filterSegundasLinhasSection">
+  <div ref="filterTbScreeningSection">
     <ListHeader
       v-if="resultFromLocalStorage"
       :addVisible="false"
@@ -7,7 +7,8 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-    >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Segundas Linhas
+      >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Rastreio de
+      pacientes de RAM
     </ListHeader>
     <ListHeader
       v-else
@@ -16,22 +17,21 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-    >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Segundas Linhas
+      >Serviço {{ selectedService !== null ? selectedService.code : '' }}:
+      Rastreio de pacientes de RAM
     </ListHeader>
     <div class="param-container">
       <q-item>
         <q-item-section class="col">
           <FiltersInput
             :id="id"
+            :clinicalService="selectedService"
             :totalRecords="totalRecords"
             :qtyProcessed="qtyProcessed"
-            :reportType="reportType"
+            :reportType="report"
             :progress="progress"
             :tabName="name"
             :params="params"
-            :typeService="selectedService"
-            :clinicalService="selectedService"
-            :applicablePeriods="periodType"
             @generateReport="generateReport"
             @initReportProcessing="initReportProcessing"
           />
@@ -40,44 +40,33 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import Report from 'src/services/api/report/ReportService';
-import { ref, provide } from 'vue';
 import { LocalStorage } from 'quasar';
-import  balancete from 'src/services/reports/stock/Balancete';
-
+import { ref, provide, onMounted } from 'vue';
+import RAMScreeningReportTs from 'src/services/reports/Patients/RAMScreening.ts';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService';
+import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService';
+import moment from 'moment';
 
 const { isOnline } = useSystemUtils();
 const { alertError } = useSwal();
-
-const serviceAux = ref(null);
-const resultFromLocalStorage = ref(false);
-const name = 'SegundasLinhas';
+const name = 'TBScreening';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
-const filterSegundasLinhasSection = ref('');
+const report = 'TB_SCREENING';
+const progress = ref(0.0);
+const filterTbScreeningSection = ref('');
 const downloadingPdf = ref(false);
 const downloadingXls = ref(false);
-const reportType = 'SEGUNDAS_LINHAS';
-const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
 const isReportClosed = ref(false);
-const alert = ref({
-  type: '',
-  visible: false,
-  msg: '',
-});
 
-const progress = ref(0.0);
 const closeSection = (params) => {
-  filterSegundasLinhasSection.value.remove();
+  filterTbScreeningSection.value.remove();
   if (params) {
     const paramId = params.id;
     isReportClosed.value = true;
@@ -85,34 +74,30 @@ const closeSection = (params) => {
   }
 };
 
+const serviceAux = ref(null);
+const resultFromLocalStorage = ref(false);
+
 const updateParamsOnLocalStrage = (params, isReportClosed) => {
   if (!isReportClosed.value) LocalStorage.set(params.id, params);
 };
 
 const initReportProcessing = async (params) => {
-  console.log(params)
   progress.value = 0.001;
   if (isOnline.value) {
-    updateParamsOnLocalStrage(params, isReportClosed);
-    Report.apiInitSegundasLinhasProcessing(params).then((resp) => {
+    /*updateParamsOnLocalStrage(params, isReportClosed);
+    Report.apiInitReportProcess('TBScreening', params).then((response) => {
       getProcessingStatus(params);
-    });
+    }); */
   } else {
-    // updateParamsOnLocalStrage(params, isReportClosed);
-    // const reportParams = await MmiaMobileService.getMmiaStockReport(params);
-    // const listRegimenSubReport =
-    //   await MmiaMobileService.getMmiaRegimenSubReport(reportParams);
-    // const beta = await MmiaMobileService.getMmiaReport(
-    //   reportParams,
-    //   listRegimenSubReport
-    // );
-    // progress.value = 100;
-    // params.progress = 100;
+    PatientsWithScreeningMobileService.getDataLocalDbRAM(params);
+    updateParamsOnLocalStrage(params, isReportClosed);
+    progress.value = 100;
+    params.progress = 100;
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('balanceteReport', params).then((resp) => {
+  Report.getProcessingStatus('TBScreening', params).then((resp) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;
       if (progress.value < 100) {
@@ -127,28 +112,50 @@ const getProcessingStatus = (params) => {
         updateParamsOnLocalStrage(params, isReportClosed);
       }
     } else {
-      progress.value = 100;
-      params.progress = 100;
-      updateParamsOnLocalStrage(params, isReportClosed);
+      setTimeout(() => {
+        getProcessingStatus(params);
+      }, 3000);
     }
   });
 };
 
-const generateReport = (id, fileType) => {
-  if (fileType === 'PDF') {
-    balancete.downloadPDF(id).then((resp) => {
-      if (resp === 204)
-        alertError('Não existem Dados para o período selecionado');
-      downloadingPdf.value = false;
-    });
+const generateReport = async (id, fileType) => {
+  if (isOnline.value) {
+    //TODO:
   } else {
-    balancete.downloadExcel(id).then((resp) => {
-      if (resp === 204)
-        alertError('Não existem Dados para o período selecionado');
+    const data =
+      await PatientsWithScreeningMobileService.localDbGetAllByReportId(id);
+    if (data.length === 0) {
+      alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
-    });
+      downloadingPdf.value = false;
+    } else {
+      const patientAux = data[0];
+
+      if (fileType === 'PDF') {
+        RAMScreeningReportTs.downloadPDF(
+          patientAux.province,
+          moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+          moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+          data
+        );
+        downloadingPdf.value = false;
+      } else {
+        RAMScreeningReportTs.downloadExcel(
+          patientAux.province,
+          moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
+          moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
+          data
+        );
+        downloadingXls.value = false;
+      }
+    }
   }
 };
+
+onMounted(() => {
+  console.log(name);
+});
 
 provide('downloadingPdf', downloadingPdf);
 provide('downloadingXls', downloadingXls);

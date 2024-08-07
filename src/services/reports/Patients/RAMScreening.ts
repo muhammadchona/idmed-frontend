@@ -9,10 +9,10 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 const { isMobile, isOnline } = useSystemUtils();
-const reportName = 'PacientesComRastreioTB';
+const reportName = 'PacientesComRastreioRAM';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = 'Lista de Pacientes Com rastreio de TB';
+const title = 'Lista de Pacientes Com rastreio de RAM';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
@@ -29,24 +29,24 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
-    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
-    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
-    doc.setFont('NotoSans');
     const firstObject = result[0];
     // const totalPagesExp = '{total_pages_count_string}'
 
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
 
     const image = new Image();
-    // image.src = '/src/assets/MoHLogo.png'
-    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+    image.src = '/src/assets/MoHLogo.png';
+    //image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
     const headerReport = [
       [
         {
-          content: 'Lista de Pacientes Com rastreio de TB',
+          content: 'Lista de Pacientes Com rastreio de RAM',
           styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
           colSpan: 3,
           halign: 'center',
@@ -115,7 +115,7 @@ export default {
     doc.setFontSize(8);
     doc.text('República de Moçambique ', 16, 28);
     doc.text('Ministério da Saúde ', 20, 32);
-    doc.text('Serviço Nacional de Saúde ', 16, 36);
+    doc.text('Serviço Nacional de Saúde', 16, 36);
     doc.addImage(image, 'png', 28, 15, 10, 10);
 
     const cols = [
@@ -124,8 +124,8 @@ export default {
       'Nome',
       'Sexo',
       'Idade',
-      'Data de criacao',
-      'Unidade Sanitaria',
+      'Data de criação',
+      'Unidade Sanitária',
       'Suspeito',
     ];
 
@@ -144,7 +144,7 @@ export default {
         moment(new Date(rows[row].dateRegister)).format('DD-MM-YYYY')
       );
       createRow.push(rows[row].clinic);
-      createRow.push(rows[row].wasTBScreened);
+      createRow.push(rows[row].wasRAMScreened);
 
       data.push(createRow);
       ord += 1;
@@ -442,7 +442,7 @@ export default {
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension);
     } else {
-      const titleFile = 'TBScreening.xlsx';
+      const titleFile = 'RAMScreening.xlsx';
       DownloadFileMobile.downloadFile(titleFile, '.xlsx', blob);
     }
   },
@@ -461,7 +461,7 @@ export default {
         moment(new Date(rows[row].dateRegister)).format('DD-MM-YYYY')
       );
       createRow.push(rows[row].clinic);
-      createRow.push(rows[row].wasTBScreened);
+      createRow.push(rows[row].wasRAMScreened);
 
       data.push(createRow);
       ord += 1;
