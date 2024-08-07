@@ -93,11 +93,13 @@ export default {
     }
   },
   async getPatientGroupByPatientId(patientId: string) {
-    return await api()
-      .get(`/groupMember/groupMemberInfoPatient/${patientId}`)
-      .then((resp) => {
-        groupMember.save(resp.data);
-      });
+    if (isOnline.value) {
+      return await api()
+        .get(`/groupMember/groupMemberInfoPatient/${patientId}`)
+        .then((resp) => {
+          groupMember.save(resp.data);
+        });
+    }
   },
   // Local Storage Pinia
   newInstanceEntity() {

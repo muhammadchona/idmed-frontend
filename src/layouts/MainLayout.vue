@@ -174,6 +174,14 @@
                   >Sincronizar</q-item-section
                 >
               </q-item>
+              <q-item clickable v-if="mobile">
+                <q-item-section avatar clickable @click="sync()">
+                  <q-avatar icon="delete"> </q-avatar>
+                </q-item-section>
+                <q-item-section clickable @click="wipeDataMobile()"
+                  >Limpar Dados</q-item-section
+                >
+              </q-item>
               <q-separator spaced />
               <q-item clickable v-close-popup @click="onItemClick" to="/Logout">
                 <q-item-section avatar>
@@ -209,13 +217,13 @@ import {
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { sendData } from 'src/services/SendInfo';
+import { sendData } from 'src/services/Mobile/SendInfo';
 import useNotify from 'src/composables/shared/notify/UseNotify';
 import provinceService from 'src/services/api/provinceService/provinceService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
-
+import { wipeData } from 'src/services/Mobile/WipeData';
 const { website } = useSystemUtils();
 const {
   isProvincialInstalation,
@@ -232,6 +240,7 @@ const mobile = ref(false);
 const { notifyError } = useNotify();
 const { isOnline } = useSystemUtils();
 const { getPatientsToSend, getGroupsToSend } = sendData();
+const { getPatientsVisitToWipe } = wipeData();
 const {
   loadPatientDataToOffline,
   loadSettingParamsToOffline,
@@ -343,6 +352,11 @@ const menusVisible = (name) => {
 const sync = async () => {
   // getGroupsToSend();
   getPatientsToSend();
+};
+
+const wipeDataMobile = async () => {
+  // getGroupsToSend();
+  getPatientsVisitToWipe();
 };
 provide('stockDistributionCount', stockDistributionCount);
 </script>

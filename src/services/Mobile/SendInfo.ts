@@ -1,11 +1,11 @@
-import episodeService from './api/episode/episodeService';
-import groupService from './api/group/groupService';
-import patientService from './api/patientService/patientService';
-import patientServiceIdentifierService from './api/patientServiceIdentifier/patientServiceIdentifierService';
-import patientVisitService from './api/patientVisit/patientVisitService';
+import episodeService from '../api/episode/episodeService';
+import groupService from '../api/group/groupService';
+import patientService from '../api/patientService/patientService';
+import patientServiceIdentifierService from '../api/patientServiceIdentifier/patientServiceIdentifierService';
+import patientVisitService from '../api/patientVisit/patientVisitService';
 import useNotify from 'src/composables/shared/notify/UseNotify';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
-import UsersService from './UsersService';
+import UsersService from '../UsersService';
 const { loadPatientDataToOffline, loadSettingParamsToOffline } = useOffline();
 const { notifySuccess, notifyInfo } = useNotify();
 export function sendData() {
