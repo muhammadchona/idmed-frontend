@@ -21,7 +21,6 @@ const reportName = 'ArvDailyListReport';
 const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 export default {
-
   async downloadPDF(id, fileType, params) {
     const clinic = clinicService.currClinic();
     let rowsAux = [];
@@ -42,7 +41,6 @@ export default {
       const listaFinal = Object.values(Report.mapaDeAgrupamento(rowsAux.data));
 
       data = this.createArrayOfArrayRow(listaFinal);
-
     } else {
       rowsAux = await this.getDataLocalReport(id);
       if (rowsAux.length === 0) return 204;
@@ -180,16 +178,14 @@ export default {
 
     autoTable(doc, {
       // margin: { top: 45 },
-      bodyStyles: 
-      {
+      bodyStyles: {
         overflow: 'linebreak',
         cellWidth: 'wrap',
         valign: 'middle',
         fontSize: 6,
         overflowColumns: 'linebreak',
       },
-      headStyles: 
-      {
+      headStyles: {
         valign: 'bottom',
         halign: 'center',
         fontSize: 6,
@@ -198,14 +194,15 @@ export default {
         fillColor: [255, 255, 255],
         textColor: [96, 96, 96],
       },
-      didDrawPage: function (data) 
-      {    
+      didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
         doc.setFontSize(6);
         // jsPDF 1.4+ uses getWidth, <1.4 uses .width
         const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);        
+        const pageHeight = pageSize.height
+          ? pageSize.height
+          : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);
       },
 
       theme: 'grid',
@@ -757,30 +754,32 @@ export default {
   },
   createArrayOfArrayRow(rows) {
     const data = [];
-    let ord = 1
-      for (const row in rows) {
-        const createRow = [];
-        // createRow.push(rows[row].orderNumber);
-        createRow.push(ord++);
-        createRow.push(rows[row].nid);
-        createRow.push(rows[row].patientName);
-        createRow.push(rows[row].startReason);
-        createRow.push(rows[row].ageGroup_0_4);
-        createRow.push(rows[row].ageGroup_5_9);
-        createRow.push(rows[row].ageGroup_10_14);
-        createRow.push(rows[row].ageGroup_Greater_than_15);
-        createRow.push(rows[row].patientType);
-        createRow.push(rows[row].regime);
-        createRow.push(Report.createDrugArrayOfArrayRow(rows[row].drugQuantityTemps).join('; \n'));
-        createRow.push(rows[row].dispensationType);
-        createRow.push(rows[row].therapeuticLine);
-        createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate));
-        createRow.push(Report.getFormatDDMMYYYY(rows[row].nextPickupDate));
-        createRow.push(rows[row].ppe);
-        createRow.push(rows[row].prep);
-        createRow.push('');
-        data.push(createRow);
-      }
+    let ord = 1;
+    for (const row in rows) {
+      const createRow = [];
+      // createRow.push(rows[row].orderNumber);
+      createRow.push(ord++);
+      createRow.push(rows[row].nid);
+      createRow.push(rows[row].patientName);
+      createRow.push(rows[row].startReason);
+      createRow.push(rows[row].ageGroup_0_4);
+      createRow.push(rows[row].ageGroup_5_9);
+      createRow.push(rows[row].ageGroup_10_14);
+      createRow.push(rows[row].ageGroup_Greater_than_15);
+      createRow.push(rows[row].patientType);
+      createRow.push(rows[row].regime);
+      const drugs = rows[row].drugQuantityTemps;
+      const result = drugs.map((drug) => `${drug.drugName}: ${drug.quantity}`);
+      createRow.push(result.join('; \n'));
+      createRow.push(rows[row].dispensationType);
+      createRow.push(rows[row].therapeuticLine);
+      createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate));
+      createRow.push(Report.getFormatDDMMYYYY(rows[row].nextPickupDate));
+      createRow.push(rows[row].ppe);
+      createRow.push(rows[row].prep);
+      createRow.push('');
+      data.push(createRow);
+    }
 
     return data;
   },

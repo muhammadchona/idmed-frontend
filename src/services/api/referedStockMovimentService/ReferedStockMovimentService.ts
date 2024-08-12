@@ -86,6 +86,14 @@ export default {
   },
 
   getAllByClinic(clinicId: any, offset: number) {
+    if (!isOnline.value) {
+      this.getAllByClinicMobile(clinicId);
+    } else {
+      this.getAllByClinicWeb(clinicId, offset);
+    }
+  },
+
+  getAllByClinicWeb(clinicId: any, offset: number) {
     if (offset >= 0) {
       return api()
         .get(
@@ -158,17 +166,33 @@ export default {
     return rows;
   },
 
-  getBystockMobile(stock: any) {
-    return nSQL().onConnected(() => {
-      nSQL('referedStockMoviments')
-        .query('select')
-        .where(['stocks[id]', '=', stock.id])
-        .exec()
-        .then((result) => {
-          console.log(result);
-          referedStockMoviment.save(result);
-        });
+  getAllByClinicMobile(clinicId: any) {
+    return db[referedStockMovimentDexie]
+      .where('clinic_id')
+      .equalsIgnoreCase(clinicId)
+      .toArray()
+      .then((rows: any) => {
+        referedStockMoviment.save(rows);
+        return rows;
+      });
+  },
+
+  async localDbGetAll() {
+    return db[referedStockMovimentDexie].toArray().then((rows: any) => {
+      referedStockMoviment.save(rows);
+      return rows;
     });
+  },
+
+  getBystockMobile(stock: any) {
+    return db[referedStockMovimentDexie]
+      .where('stock_id')
+      .equalsIgnoreCase(stock.id)
+      .toArray()
+      .then((rows: any) => {
+        referedStockMoviment.save(rows);
+        return rows;
+      });
   },
 
   async deleteMobile(id: any) {
@@ -178,14 +202,5 @@ export default {
       .exec();
     referedStockMoviment.destroy(id);
     return resp;
-  },
-  async localDbGetAll() {
-    return nSQL('referedStockMoviments')
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        return result;
-      });
   },
 };
