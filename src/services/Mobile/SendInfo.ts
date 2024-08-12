@@ -19,14 +19,7 @@ export function sendData() {
         return patientsToSync;
       })
       .then((patientsToSync) => {
-        UsersService.login({
-          username: 'iDMED',
-          password: 'iDMED123',
-        }).then((response) => {
-          sessionStorage.setItem('id_token', response.data.access_token);
-          sessionStorage.setItem('refresh_token', response.data.refresh_token);
-          apiSendPatients(patientsToSync, 0);
-        });
+        apiSendPatients(patientsToSync, 0);
       });
 
     function apiSendPatients(patientsToSync: any, i: number) {
