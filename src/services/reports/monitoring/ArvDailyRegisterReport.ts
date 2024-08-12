@@ -8,6 +8,9 @@ import Report from 'src/services/api/report/ReportService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDailyRegisterMobileService';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
+
+const fontPath = '/src/assets/NotoSans-Regular.ttf';
 
 const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
@@ -22,6 +25,7 @@ const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 export default {
   async downloadPDF(id, fileType, params) {
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     const clinic = clinicService.currClinic();
     let rowsAux = [];
     let data = [];
@@ -57,7 +61,9 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
-
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     // doc.setProperties({
     //   title: fileName.concat('.pdf'),
     // });
@@ -159,6 +165,7 @@ export default {
     autoTable(doc, {
       //  margin: { top: 10 },
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
         fontSize: 8,
@@ -179,6 +186,7 @@ export default {
     autoTable(doc, {
       // margin: { top: 45 },
       bodyStyles: {
+        font: 'NotoSans',
         overflow: 'linebreak',
         cellWidth: 'wrap',
         valign: 'middle',
@@ -216,7 +224,7 @@ export default {
     } else {
       console.log(doc);
       const pdfOutput = doc.output();
-      this.downloadFile(fileName, 'pdf', pdfOutput);
+      this.downloadFile(fileName, '.pdf', pdfOutput);
     }
   },
 

@@ -3,15 +3,14 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import * as ExcelJS from 'exceljs';
 import Report from 'src/services/api/report/ReportService';
-import StockReceivedReport from 'src/stores/models/report/stock/StockReceivedReport';
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
 import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedStockMobileService.';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 
 const { isMobile, isOnline } = useSystemUtils();
-
+const fontPath = '/src/assets/NotoSans-Regular.ttf';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
 const title = 'Lista de Stock Recebido';
@@ -24,6 +23,7 @@ image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
   async downloadPDF(id, fileType, params) {
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -31,6 +31,9 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     const width = doc.internal.pageSize.getWidth();
 
     doc.setProperties({
@@ -64,6 +67,7 @@ export default {
           halign: 'center',
           valign: 'middle',
           fontStyle: 'bold',
+          font: 'NotoSans',
         },
       ],
       [
@@ -121,6 +125,7 @@ export default {
     autoTable(doc, {
       //  margin: { top: 10 },
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
         fontSize: 8,
@@ -151,6 +156,7 @@ export default {
 
     autoTable(doc, {
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 8,
       },

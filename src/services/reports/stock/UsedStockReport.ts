@@ -8,6 +8,7 @@ import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobi
 
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 
 const { isOnline, isMobile } = useSystemUtils();
 
@@ -23,6 +24,7 @@ image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
   async downloadPDF(id, fileType, params) {
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     console.log(params);
     const doc = new JsPDF({
       orientation: 'l',
@@ -31,6 +33,9 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     const width = doc.internal.pageSize.getWidth();
     doc.setProperties({
       title: fileName.concat('.pdf'),
@@ -107,6 +112,7 @@ export default {
         halign: 'left',
         valign: 'middle',
         fontSize: 8,
+        font: 'NotoSans',
       },
       headStyles: {
         halign: 'left',
@@ -156,6 +162,7 @@ export default {
       bodyStyles: {
         halign: 'center',
         fontSize: 8,
+        font: 'NotoSans',
       },
       headStyles: {
         halign: 'center',
