@@ -8,6 +8,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import encryption from 'src/services/Encryption';
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import db from 'src/stores/dexie';
+import axios, { Axios } from 'axios';
 
 const userLogin = useRepo(UserLogin);
 const userRoles = useRepo(UserRole);
@@ -131,6 +132,20 @@ export default {
         } else {
           console.log('Error', error.message);
         }
+      });
+  },
+
+  refreshToken() {
+    const rToken = sessionStorage.getItem('refresh_token');
+    const url = localStorage.getItem('backend_url')?.replace('/api', '');
+    return axios
+      .post(
+        url +
+          '/oauth/access_token?grant_type=refresh_token&refresh_token=' +
+          rToken
+      )
+      .then((data) => {
+        return data;
       });
   },
 

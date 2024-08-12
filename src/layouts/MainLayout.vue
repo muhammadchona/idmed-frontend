@@ -197,6 +197,10 @@
         </q-toolbar>
       </q-header>
     </div>
+
+    <q-dialog persistent v-model="showLoginScreen">
+      <loginDialog @close="showLoginScreen = false" />
+    </q-dialog>
     <q-page-container>
       <router-view v-slot="{ Component }">
         <component :is="Component" />
@@ -224,6 +228,8 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { wipeData } from 'src/services/Mobile/WipeData';
+import UsersService from 'src/services/UsersService';
+import loginDialog from 'src/components/Shared/LoginDialog.vue';
 const { website } = useSystemUtils();
 const {
   isProvincialInstalation,
@@ -249,6 +255,7 @@ const {
 const stockDistributionCount = ref(0);
 
 const logoutTimer = ref(null);
+const showLoginScreen = ref(false);
 
 // Função para fazer o logout
 const logout = () => {
@@ -350,13 +357,21 @@ const menusVisible = (name) => {
 };
 
 const sync = async () => {
-  // getGroupsToSend();
-  getPatientsToSend();
+  UsersService.refreshToken()
+    .then((resp) => {
+      if (resp.data.refresh_token === undefined) {
+        showLoginScreen.value = true;
+      }
+    })
+    .catch((error) => {
+      showLoginScreen.value = true;
+      console.log(error);
+    });
 };
 
 const wipeDataMobile = async () => {
-  // getGroupsToSend();
   getPatientsVisitToWipe();
 };
 provide('stockDistributionCount', stockDistributionCount);
+provide('showLoginScreen', showLoginScreen);
 </script>
