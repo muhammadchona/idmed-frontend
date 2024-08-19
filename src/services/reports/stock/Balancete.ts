@@ -175,14 +175,22 @@ export default {
       const firstItem = groupedData[medicamento][0];
       const mainHeader = createMainHeader(firstItem);
 
-      const matriz = groupedData[medicamento].map(item => [
-        Report.getFormatDDMMYYYY(item.diaDoEvento),
-        item.entradas,
-        item.perdasEAjustes,
-        item.saidas,
-        item.stockExistente,
-        item.notas
-      ]);
+      // Inicializa a variável para segurar o estoque inicial
+      let estoqueAtual = firstItem.stockExistente;
+
+      const matriz = groupedData[medicamento].map(item => {
+        // Atualiza o estoque atual com base nos movimentos do item
+        estoqueAtual += (item.entradas || 0) - (item.perdasEAjustes || 0) - (item.saidas || 0);
+
+        return [
+          Report.getFormatDDMMYYYY(item.diaDoEvento),
+          item.entradas,
+          item.perdasEAjustes,
+          item.saidas,
+          estoqueAtual, // Define o estoque atualizado
+          item.notas
+        ];
+      });
 
       autoTable(doc, {
         theme: 'grid',
@@ -214,7 +222,7 @@ export default {
       matriz = balanceteReport.data;
     }
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'CMAM';
+    workbook.creator = 'CSAUDE';
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
@@ -317,14 +325,22 @@ export default {
 
       worksheet.addRow(headerValues);
 
-      matriz = groupedData[medicamento].map(item => [
-        Report.getFormatDDMMYYYY(item.diaDoEvento),
-        item.entradas,
-        item.perdasEAjustes,
-        item.saidas,
-        item.stockExistente,
-        item.notas
-      ]);
+      // Inicializa a variável para segurar o estoque inicial
+      let estoqueAtual = firstItem.stockExistente;
+
+      const matriz = groupedData[medicamento].map(item => {
+        // Atualiza o estoque atual com base nos movimentos do item
+        estoqueAtual += (item.entradas || 0) - (item.perdasEAjustes || 0) - (item.saidas || 0);
+
+        return [
+          Report.getFormatDDMMYYYY(item.diaDoEvento),
+          item.entradas,
+          item.perdasEAjustes,
+          item.saidas,
+          estoqueAtual, // Define o estoque atualizado
+          item.notas
+        ];
+      });
 
       matriz.forEach(item => worksheet.addRow(item));
       worksheet.addRow([]); // Adicionar uma linha vazia entre os grupos

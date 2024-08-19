@@ -189,6 +189,7 @@ const componentsList = {
   PatientWithPregnancyScreening,
   NotSynchronizedPackToServer,
   PatientsMonitoredForAdherence,
+  RegisteredInIdmed
 };
 
 const { isMobile } = useSystemUtils();
