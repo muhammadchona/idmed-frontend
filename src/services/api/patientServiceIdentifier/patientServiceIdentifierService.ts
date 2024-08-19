@@ -285,7 +285,7 @@ export default {
       });
   },
 
-  localDbGetByPatientId(patientId: string) {
+  async localDbGetByPatientId(patientId: string) {
     return db[patientServiceIdentifierDexie]
       .where('patient_id')
       .equalsIgnoreCase(patientId)

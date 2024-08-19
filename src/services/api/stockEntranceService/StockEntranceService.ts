@@ -209,6 +209,7 @@ export default {
     return db[stockEntranceDexie]
       .where('id')
       .equalsIgnoreCase(stockEntrance.id)
+      .toArray()
       .then((rows: any) => {
         stockEntrance.save(rows);
         return rows;
@@ -241,7 +242,7 @@ export default {
     return db[stockEntranceDexie]
       .where('clinic_id')
       .equalsIgnoreCase(id)
-      .first()
+      .toArray()
       .then((rows: any) => {
         stockEntrance.save(rows);
         return rows;

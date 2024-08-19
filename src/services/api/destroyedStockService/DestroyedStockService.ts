@@ -72,6 +72,14 @@ export default {
   },
 
   getAllByClinic(clinicId: any, offset: number) {
+    if (!isOnline.value) {
+      this.getAllByClinicMobile(clinicId);
+    } else {
+      this.getAllByClinicWeb(clinicId, offset);
+    }
+  },
+
+  getAllByClinicWeb(clinicId: any, offset: any) {
     if (offset >= 0) {
       return api()
         .get(
@@ -88,6 +96,7 @@ export default {
         });
     }
   },
+
   deleteWeb(id: any) {
     return api()
       .delete('destroyedStock/' + id)
@@ -137,36 +146,32 @@ export default {
     return rows;
   },
 
-  getBystockMobile(stock: any) {
-    return nSQL().onConnected(() => {
-      nSQL('destroyedStocks')
-        .query('select')
-        .where(['stocks[id]', '=', stock.id])
-        .exec()
-        .then((result) => {
-          console.log(result);
-          destroyedStockRepo.save(result);
-        });
-    });
+  getAllByClinicMobile(clinicId: any) {
+    return db[destroyedStockDexie]
+      .where('clinic_id')
+      .equalsIgnoreCase(clinicId)
+      .toArray()
+      .then((rows: any) => {
+        destroyedStockRepo.save(rows);
+        return rows;
+      });
   },
 
-  async deleteMobile(id: any) {
-    const resp = await nSQL('destroyedStocks')
-      .query('delete')
-      .where(['id', '=', id])
-      .exec();
-    destroyedStockRepo.destroy(id);
-    return resp;
+  getBystockMobile(stock: any) {
+    return db[destroyedStockDexie]
+      .where('stock_id')
+      .equalsIgnoreCase(stock.id)
+      .toArray()
+      .then((rows: any) => {
+        destroyedStockRepo.save(rows);
+        return rows;
+      });
   },
 
   async localDbGetAll() {
-    return nSQL(this.entity)
-      .query('select')
-      .exec()
-      .then((result) => {
-        console.log(result);
-        // DestroyedStock.insertOrUpdate({ data: result })
-        return result;
-      });
+    return db[destroyedStockDexie].toArray().then((rows: any) => {
+      destroyedStockRepo.save(rows);
+      return rows;
+    });
   },
 };
