@@ -161,12 +161,13 @@ export default {
         });
     }
   },
-  async apiGetAllByPatientId(patientid: string) {
+  async apiGetAllByPatientId(patientid: string, serviceCode: string) {
     if (isMobile.value && !isOnline.value) {
       this.get(0);
     } else {
-      return await api()
-        .get('pack/getAllByPatient/' + patientid)
+      return await api().get(
+        'pack/getAllByPatient/' + patientid + '/' + serviceCode
+      );
     }
   },
   async apiGetAllByPatientVisitDetailsId(

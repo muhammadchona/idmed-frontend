@@ -1,8 +1,5 @@
 <template>
   <div>
-    <!-- <q-responsive :ratio="1" class="col">
-  </q-responsive> -->
-
     <InfoTitleBar v-if="!website" />
     <TitleBar v-else />
     <div class="row q-mt-md" v-if="patient !== null">
@@ -111,11 +108,6 @@ import ClinicServiceInfo from 'components/Patient/PatientPanel/ClinicServicesInf
 import PrescriptionInfo from 'components/Patient/PatientPanel/PrescriptionInfo.vue';
 import PharmaceuticalAtentionInfo from 'components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
-import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
-import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
-import prescriptionService from 'src/services/api/prescription/prescriptionService';
-import packService from 'src/services/api/pack/packService';
 
 //Declarations
 const { closeLoading, showloading } = useLoading();

@@ -61,7 +61,7 @@ export default {
     ];
 
     let rows = [];
-    await packService.apiGetAllByPatientId(patient.id).then((resp) => {
+    await packService.apiGetAllByPatientId(patient.id, patientServiceIdentifier.service.code).then((resp) => {
       rows = resp.data;
     });
 
