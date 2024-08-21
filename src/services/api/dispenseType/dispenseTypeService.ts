@@ -170,7 +170,7 @@ export default {
       .where((dispenseType) => {
         return dispenseType.id === id;
       })
-      .get();
+      .first();
   },
 
   getAllForGroupDispense() {

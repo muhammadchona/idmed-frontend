@@ -1,118 +1,118 @@
-
-import { v4 as uuidv4 } from 'uuid'
-import { nSQL } from 'nano-sql'
-import { Model } from 'pinia-orm'
+import { v4 as uuidv4 } from 'uuid';
+import { nSQL } from 'nano-sql';
+import { Model } from 'pinia-orm';
 
 export default class MmiaReport extends Model {
-    static entity = 'mmiaReports'
-    static fields () {
-      return {
-        id: this.string(() => uuidv4()),
-        reportId: this.attr(''),
-       // fields
+  static entity = 'mmiaReports';
+  static fields() {
+    return {
+      id: this.string(() => uuidv4()),
+      reportId: this.attr(''),
+      // fields
 
-       /**
-     * Tipo de doentes em TARV
-     */
-     totalPacientesInicio: this.attr(0),
-     totalPacientesManter: this.attr(0),
-     totalPacientesAlterar: this.attr(0),
-     totalPacientesTransito: this.attr(0),
-     totalPacientesTransferidoDe: this.attr(0),
+      /**
+       * Tipo de doentes em TARV
+       */
+      totalPacientesInicio: this.attr(0),
+      totalPacientesManter: this.attr(0),
+      totalPacientesAlterar: this.attr(0),
+      totalPacientesTransito: this.attr(0),
+      totalPacientesTransferidoDe: this.attr(0),
 
-    /**
-     * Faixa etaria dos pacientes em TARV
-     */
-     totalPacientesAdulto: this.attr(0),
-     totalPacientes04: this.attr(0),
-     totalPacientes59: this.attr(0),
-     totalPacientes1014: this.attr(0),
+      /**
+       * Faixa etaria dos pacientes em TARV
+       */
+      totalPacientesAdulto: this.attr(0),
+      totalPacientes04: this.attr(0),
+      totalPacientes59: this.attr(0),
+      totalPacientes1014: this.attr(0),
 
-    /**
-     * Profilaxia
-     */
-     totalPacientesPPE: this.attr(0),
-     totalPacientesPREP: this.attr(0),
-     totalpacientesCE: this.attr(0),
+      /**
+       * Profilaxia
+       */
+      totalPacientesPPE: this.attr(0),
+      totalPacientesPREP: this.attr(0),
+      totalpacientesCE: this.attr(0),
 
-     dsM0: this.attr(0),
-     dsM1: this.attr(0),
-     dsM2: this.attr(0),
-     dsM3: this.attr(0),
-     dsM4: this.attr(0),
-     dsM5: this.attr(0),
+      dsM0: this.attr(0),
+      dsM1: this.attr(0),
+      dsM2: this.attr(0),
+      dsM3: this.attr(0),
+      dsM4: this.attr(0),
+      dsM5: this.attr(0),
 
-     dtM0: this.attr(0),
-     dtM1: this.attr(0),
-     dtM2: this.attr(0),
+      dtM0: this.attr(0),
+      dtM1: this.attr(0),
+      dtM2: this.attr(0),
 
-     dM: this.attr(0)
+      dbM0: this.attr(0),
+      dbM1: this.attr(0),
 
-      }
-    }
-
-    static addTotalPacientesInicio () {
-      this.totalPacientesInicio++
+      dM: this.attr(0),
+    };
   }
 
-  static addTotalPacientesManter () {
-      this.totalPacientesManter++
+  static addTotalPacientesInicio() {
+    this.totalPacientesInicio++;
   }
 
-  static addTotalPacientesAlterar () {
-      this.totalPacientesAlterar++
+  static addTotalPacientesManter() {
+    this.totalPacientesManter++;
   }
 
-  static addTotalPacientesTransito () {
-      this.totalPacientesTransito++
+  static addTotalPacientesAlterar() {
+    this.totalPacientesAlterar++;
   }
 
-  static addTotalPacientesTransferido () {
-      this.totalPacientesTransferidoDe++
+  static addTotalPacientesTransito() {
+    this.totalPacientesTransito++;
   }
 
-  static addTotalPacientesAdulto () {
-      this.totalPacientesAdulto++
+  static addTotalPacientesTransferido() {
+    this.totalPacientesTransferidoDe++;
   }
 
-  static addTotalPacientes04 () {
-      this.totalPacientes04++
+  static addTotalPacientesAdulto() {
+    this.totalPacientesAdulto++;
   }
 
-  static addTotalPacientes59 () {
-      this.totalPacientes59++
+  static addTotalPacientes04() {
+    this.totalPacientes04++;
   }
 
-  static addTotalPacientes1014 () {
-      this.totalPacientes1014++
+  static addTotalPacientes59() {
+    this.totalPacientes59++;
   }
 
-  static addTotalPacientesPPE () {
-      this.totalPacientesPPE++
+  static addTotalPacientes1014() {
+    this.totalPacientes1014++;
   }
 
-  static addTotalPacientesPREP () {
-      this.totalPacientesPREP++
+  static addTotalPacientesPPE() {
+    this.totalPacientesPPE++;
   }
 
-  static addTotalPacientesCE () {
-      this.totalpacientesCE++
+  static addTotalPacientesPREP() {
+    this.totalPacientesPREP++;
   }
 
-  static addTotalDsM0 () {
-      this.dsM0++
+  static addTotalPacientesCE() {
+    this.totalpacientesCE++;
   }
 
-  static addTotalDtM0 () {
-      this.dtM0++
+  static addTotalDsM0() {
+    this.dsM0++;
   }
 
-  static addTotalDM () {
-      this.dM++
+  static addTotalDtM0() {
+    this.dtM0++;
   }
 
-  static addTotalPrep () {
-      this.prep++
+  static addTotalDM() {
+    this.dM++;
   }
 
+  static addTotalPrep() {
+    this.prep++;
+  }
 }

@@ -78,6 +78,9 @@ const closeSection = (params) => {
     const paramId = params.id;
     isReportClosed.value = true;
     LocalStorage.remove(paramId);
+  } else {
+    isReportClosed.value = true;
+    LocalStorage.remove(props.id);
   }
 };
 
@@ -92,36 +95,38 @@ const initReportProcessing = (params) => {
       getProcessingStatus(params);
     });
   } else {
-    updateParamsOnLocalStrage(params, isReportClosed);
     const reportParams = reportDatesParams.determineStartEndDate(params);
     activeInDrugStoreMobileService.getDataLocalDb(reportParams).then((resp) => {
       progress.value = 100;
       params.progress = 100;
+      updateParamsOnLocalStrage(params, isReportClosed);
     });
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('activePatientReport', params).then((resp) => {
-    if (resp.data.progress > 0.001) {
-      progress.value = resp.data.progress;
-      if (progress.value < 100) {
-        updateParamsOnLocalStrage(params, isReportClosed);
-        params.progress = resp.data.progress;
+  if (isOnline.value) {
+    Report.getProcessingStatus('activePatientReport', params).then((resp) => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
+        if (progress.value < 100) {
+          updateParamsOnLocalStrage(params, isReportClosed);
+          params.progress = resp.data.progress;
+          setTimeout(() => {
+            getProcessingStatus(params);
+          }, 3000);
+        } else {
+          progress.value = 100;
+          params.progress = 100;
+          updateParamsOnLocalStrage(params, isReportClosed);
+        }
+      } else {
         setTimeout(() => {
           getProcessingStatus(params);
         }, 3000);
-      } else {
-        progress.value = 100;
-        params.progress = 100;
-        updateParamsOnLocalStrage(params, isReportClosed);
       }
-    } else {
-      setTimeout(() => {
-        getProcessingStatus(params);
-      }, 3000);
-    }
-  });
+    });
+  }
 };
 
 const generateReport = async (id, fileType) => {
@@ -154,7 +159,9 @@ const generateReport = async (id, fileType) => {
       }
     });
   } else {
-    const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id);
+    const data = await ActiveInDrugStoreMobileService.localDbGetAllByReportId(
+      id
+    );
     if (data.length === 0) {
       alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
@@ -180,6 +187,12 @@ const generateReport = async (id, fileType) => {
     }
   }
 };
+
+onMounted(() => {
+  if (props.params) {
+    getProcessingStatus(props.params);
+  }
+});
 
 provide('downloadingPdf', downloadingPdf);
 provide('downloadingXls', downloadingXls);

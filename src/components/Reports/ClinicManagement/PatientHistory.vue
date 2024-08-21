@@ -45,7 +45,7 @@
 import moment from 'moment';
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
-import { ref, provide } from 'vue';
+import { ref, provide, onMounted } from 'vue';
 import patientHistoryTS from 'src/services/reports/ClinicManagement/PatientHistory.ts';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
@@ -73,12 +73,21 @@ const updateParamsOnLocalStrage = (params, isReportClosed) => {
   if (!isReportClosed.value) LocalStorage.set(params.id, params);
 };
 
+onMounted(() => {
+  if (props.params) {
+    getProcessingStatus(props.params);
+  }
+});
+
 const closeSection = (params) => {
   filterDPatientHistorySection.value.remove();
   if (params) {
     const paramId = params.id;
     isReportClosed.value = true;
     LocalStorage.remove(paramId);
+  } else {
+    isReportClosed.value = true;
+    LocalStorage.remove(props.id);
   }
 };
 
@@ -102,28 +111,30 @@ const initReportProcessing = (params) => {
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('historicoLevantamentoReport', params).then(
-    (resp) => {
-      if (resp.data.progress > 0.001) {
-        progress.value = resp.data.progress;
-        if (progress.value < 100) {
-          updateParamsOnLocalStrage(params, isReportClosed);
-          params.progress = resp.data.progress;
+  if (isOnline.value) {
+    Report.getProcessingStatus('historicoLevantamentoReport', params).then(
+      (resp) => {
+        if (resp.data.progress > 0.001) {
+          progress.value = resp.data.progress;
+          if (progress.value < 100) {
+            updateParamsOnLocalStrage(params, isReportClosed);
+            params.progress = resp.data.progress;
+            setTimeout(() => {
+              getProcessingStatus(params);
+            }, 3000);
+          } else {
+            progress.value = 100;
+            params.progress = 100;
+            updateParamsOnLocalStrage(params, isReportClosed);
+          }
+        } else {
           setTimeout(() => {
             getProcessingStatus(params);
           }, 3000);
-        } else {
-          progress.value = 100;
-          params.progress = 100;
-          updateParamsOnLocalStrage(params, isReportClosed);
         }
-      } else {
-        setTimeout(() => {
-          getProcessingStatus(params);
-        }, 3000);
       }
-    }
-  );
+    );
+  }
 };
 
 const generateReport = (id, fileType) => {

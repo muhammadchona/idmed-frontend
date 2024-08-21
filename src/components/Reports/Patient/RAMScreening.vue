@@ -90,9 +90,9 @@ const initReportProcessing = async (params) => {
     }); */
   } else {
     PatientsWithScreeningMobileService.getDataLocalDbRAM(params);
-    updateParamsOnLocalStrage(params, isReportClosed);
     progress.value = 100;
     params.progress = 100;
+    updateParamsOnLocalStrage(params, isReportClosed);
   }
 };
 

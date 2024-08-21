@@ -70,6 +70,9 @@ const closeSection = (params) => {
     const paramId = params.id;
     isReportClosed.value = true;
     LocalStorage.remove(paramId);
+  } else {
+    isReportClosed.value = true;
+    LocalStorage.remove(props.id);
   }
 };
 
@@ -90,34 +93,36 @@ const initReportProcessing = async (params) => {
       }
     );
   } else {
-    updateParamsOnLocalStrage(params, isReportClosed);
     const resp = await AbsentPatientMobileService.getDataLocalDb(params);
     progress.value = 100;
     params.progress = 100;
+    updateParamsOnLocalStrage(params, isReportClosed);
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('absentPatientsReport', params).then((resp) => {
-    if (resp.data.progress > 0.001) {
-      progress.value = resp.data.progress;
-      if (progress.value < 100) {
-        updateParamsOnLocalStrage(params, isReportClosed);
-        params.progress = resp.data.progress;
+  if (isOnline.value) {
+    Report.getProcessingStatus('absentPatientsReport', params).then((resp) => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
+        if (progress.value < 100) {
+          updateParamsOnLocalStrage(params, isReportClosed);
+          params.progress = resp.data.progress;
+          setTimeout(() => {
+            getProcessingStatus(params);
+          }, 3000);
+        } else {
+          progress.value = 100;
+          params.progress = 100;
+          updateParamsOnLocalStrage(params, isReportClosed);
+        }
+      } else {
         setTimeout(() => {
           getProcessingStatus(params);
         }, 3000);
-      } else {
-        progress.value = 100;
-        params.progress = 100;
-        updateParamsOnLocalStrage(params, isReportClosed);
       }
-    } else {
-      setTimeout(() => {
-        getProcessingStatus(params);
-      }, 3000);
-    }
-  });
+    });
+  }
 };
 
 const generateReport = (id, fileType, params) => {
@@ -137,7 +142,9 @@ const generateReport = (id, fileType, params) => {
 };
 
 onMounted(() => {
-  console.log(name);
+  if (props.params) {
+    getProcessingStatus(props.params);
+  }
 });
 
 provide('downloadingPdf', downloadingPdf);
