@@ -6,6 +6,9 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import db from '../../../stores/dexie';
 import clinicalServiceService from '../clinicalServiceService/clinicalServiceService';
+import dispenseTypeService from '../dispenseType/dispenseTypeService';
+import moment from 'moment';
+import prescriptionService from '../prescription/prescriptionService';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
 const patientVisitDetailsDexie = PatientVisitDetails.entity;
@@ -144,6 +147,46 @@ export default {
 
     ///  patientVisitDetails.save(resp);
     return resp;
+  },
+
+  async countPacksByDispenseTypeAndServiceOnPeriod(
+    dispenseType: any,
+    service: any,
+    startDate: any,
+    endDate: any
+  ) {
+    let counter = 0;
+    return db[patientVisitDetailsDexie].toArray().then(async (result) => {
+      for (const pvd of result) {
+        if (pvd.pack !== undefined) {
+          const pickupDate = moment(pvd.pack.pickupDate);
+          let prescription = pvd.prescription;
+          if (prescription !== undefined) {
+            if (
+              prescription.prescriptionDetails[0].dispenseType === null ||
+              prescription.prescriptionDetails[0].dispenseType === undefined
+            ) {
+              prescription =
+                await prescriptionService.getPrescriptionMobileById(
+                  prescription.id
+                );
+            }
+          }
+          const dispenseTypeId =
+            prescription.prescriptionDetails[0].dispenseType.id;
+          const codeDispenseType = dispenseTypeService.getById(dispenseTypeId);
+          if (
+            pickupDate >= startDate &&
+            pickupDate <= endDate &&
+            pvd.episode.patientServiceIdentifier.service.id === service &&
+            codeDispenseType.code === dispenseType
+          ) {
+            counter++;
+          }
+        }
+      }
+      return counter;
+    });
   },
   async apiFetchById(id: string) {
     return await api().get(`/patientVisitDetails/${id}`);

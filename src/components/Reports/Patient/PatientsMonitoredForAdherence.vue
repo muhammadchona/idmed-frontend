@@ -91,12 +91,12 @@ const closeSection = (params) => {
 };
 
 const initReportProcessing = (params) => {
-  updateParamsOnLocalStrage(params, isReportClosed);
   PatientsWithScreeningMobileService.getDataLocalDbMonitoredForAdherence(
     params
   );
   progress.value = 100;
   params.progress = 100;
+  updateParamsOnLocalStrage(params, isReportClosed);
 };
 
 const getProcessingStatus = (params) => {
