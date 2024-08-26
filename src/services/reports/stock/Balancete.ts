@@ -115,7 +115,8 @@ export default {
           content: 'Notas',
           styles: { valign: 'middle', halign: 'left', fontStyle: 'bold', textColor: 0, fillColor: [211, 211, 211], lineWidth: 0.2 }
         }
-      ]
+      ],
+
     ];
 
     const headData = [
@@ -215,96 +216,71 @@ export default {
     const clinic = clinicService.currClinic();
     let balanceteData = [];
     let matriz = [];
+    let firstReg = {};
+    let params = {};
+
     if (isOnline.value) {
       const balanceteReport = await Report.printReportOther('balanceteReport', id);
       if (balanceteReport.status === 204 || !balanceteReport.data.length) return 204;
       balanceteData = balanceteReport.data;
       matriz = balanceteReport.data;
+      firstReg = balanceteData[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
     }
+
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'CSAUDE';
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
-    const worksheet = workbook.addWorksheet(fileName);
 
-    const logo = new Image();
-    logo.src = 'data:image/png;base64,' + MOHIMAGELOG;
-    const imageId1 = workbook.addImage({
-      base64: logo.src,
+    const worksheet = workbook.addWorksheet('Balancete');
+    const imageId = workbook.addImage({
+      base64: 'data:image/png;base64,' + MOHIMAGELOG,
       extension: 'png',
     });
 
-    worksheet.addImage(imageId1, {
-      tl: { col: 0.2, row: 0.2 },
-      ext: { width: 35, height: 35 },
+    const cellRepublica = worksheet.getCell('A8');
+    const cellTitle = worksheet.getCell('A9');
+    const cellPharm = worksheet.getCell('A11');
+    const cellPharmParamValue = worksheet.getCell('B11');
+
+    const cellStartDate = worksheet.getCell('E11');
+    const cellEndDate = worksheet.getCell('E12');
+    const cellStartDateParamValue = worksheet.getCell('F11');
+    const cellEndDateParamValue = worksheet.getCell('F12');
+
+    cellRepublica.alignment = cellTitle.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    cellPharm.alignment = cellStartDate.alignment = cellEndDate.alignment = { vertical: 'middle', horizontal: 'left', wrapText: false };
+    cellTitle.border = cellPharm.border = cellPharmParamValue.border = cellStartDate.border = cellStartDateParamValue.border = cellEndDate.border = cellEndDateParamValue.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
+    };
+
+    cellRepublica.value = 'República de Moçambique';
+    cellTitle.value = 'Balancete';
+    cellPharmParamValue.value = clinic?.clinicName;
+    cellStartDateParamValue.value = params.startDateParam;
+    cellEndDateParamValue.value = params.endDateParam;
+    cellPharm.value = 'Unidade Sanitária';
+    cellStartDate.value = 'Data Início';
+    cellEndDate.value = 'Data Fim';
+
+    worksheet.mergeCells('A1:A7');
+    worksheet.mergeCells('A9:F10');
+    worksheet.mergeCells('B11:D11');
+    worksheet.mergeCells('A12:D12');
+
+    worksheet.addImage(imageId, {
+      tl: { col: 0, row: 1 },
+      ext: { width: 144, height: 98 },
     });
-
-    worksheet.mergeCells('B1:C3');
-    worksheet.getCell('B1').value = logoTitle;
-    worksheet.getCell('B1').font = {
-      name: 'Arial',
-      size: 9,
-      bold: true,
-    };
-    worksheet.getCell('B1').alignment = { vertical: 'middle', horizontal: 'center' };
-
-    worksheet.mergeCells('D1:E3');
-    worksheet.getCell('D1').value = title;
-    worksheet.getCell('D1').font = {
-      name: 'Arial',
-      size: 11,
-      bold: true,
-    };
-    worksheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
-
-    worksheet.mergeCells('A4:B4');
-    worksheet.getCell('A4').value = 'Unidade Sanitária: ' + clinic.clinicName;
-    worksheet.getCell('A4').font = {
-      name: 'Arial',
-      size: 8,
-      bold: true,
-    };
-    worksheet.getCell('A4').alignment = { vertical: 'middle', horizontal: 'left' };
-
-    worksheet.getCell('D4').value = 'Data Inicio: ' + Report.getFormatDDMMYYYY(balanceteData[0].startDate);
-    worksheet.getCell('D4').font = {
-      name: 'Arial',
-      size: 8,
-      bold: true,
-    };
-    worksheet.getCell('D4').alignment = { vertical: 'middle', horizontal: 'left' };
-
-    worksheet.mergeCells('A5:B5');
-    worksheet.getCell('A5').value = 'Distrito: ' + clinic.district.description;
-    worksheet.getCell('A5').font = {
-      name: 'Arial',
-      size: 8,
-      bold: true,
-    };
-    worksheet.getCell('A5').alignment = { vertical: 'middle', horizontal: 'left' };
-
-    worksheet.getCell('C5').value = 'Província: ' + clinic.province.description;
-    worksheet.getCell('C5').font = {
-      name: 'Arial',
-      size: 8,
-      bold: true,
-    };
-    worksheet.getCell('C5').alignment = { vertical: 'middle', horizontal: 'left' };
-
-    worksheet.getCell('D5').value = 'Data Fim: ' + Report.getFormatDDMMYYYY(balanceteData[0].endDate);
-    worksheet.getCell('D5').font = {
-      name: 'Arial',
-      size: 8,
-      bold: true,
-    };
-    worksheet.getCell('D5').alignment = { vertical: 'middle', horizontal: 'left' };
 
     worksheet.addRow([]);
     worksheet.addRow(['FNM', 'Medicamento', 'Unidade', 'Validade Medicamento']);
-    worksheet.addRow(['Data de Movimento', 'Entradas', 'Perdas e Ajustes', 'Saidas', 'Stock Existente', 'Notas']);
-
-// Agrupar por medicamento
     const groupedData = balanceteData.reduce((acc, item) => {
       if (!acc[item.medicamento]) {
         acc[item.medicamento] = [];
@@ -316,20 +292,20 @@ export default {
     Object.keys(groupedData).forEach(medicamento => {
       const firstItem = groupedData[medicamento][0];
 
+      // Adiciona os valores de firstItem antes da linha "Data de Movimento"
       const headerValues = [
         firstItem.fnm,
         firstItem.medicamento,
         firstItem.unidade,
-        firstItem.validadeMedicamento
+        Report.getFormatDDMMYYYY(firstItem.validadeMedicamento)
       ];
-
       worksheet.addRow(headerValues);
 
-      // Inicializa a variável para segurar o estoque inicial
+      worksheet.addRow(['Data de Movimento', 'Entradas', 'Perdas e Ajustes', 'Saidas', 'Stock Existente', 'Notas']);
+
       let estoqueAtual = firstItem.stockExistente;
 
       const matriz = groupedData[medicamento].map(item => {
-        // Atualiza o estoque atual com base nos movimentos do item
         estoqueAtual += (item.entradas || 0) - (item.perdasEAjustes || 0) - (item.saidas || 0);
 
         return [
@@ -337,13 +313,13 @@ export default {
           item.entradas,
           item.perdasEAjustes,
           item.saidas,
-          estoqueAtual, // Define o estoque atualizado
+          estoqueAtual,
           item.notas
         ];
       });
 
       matriz.forEach(item => worksheet.addRow(item));
-      worksheet.addRow([]); // Adicionar uma linha vazia entre os grupos
+      worksheet.addRow([]);
     });
 
     worksheet.getColumn(1).width = 20;
@@ -354,8 +330,7 @@ export default {
     worksheet.getColumn(6).width = 20;
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const fileType =
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     const fileExtension = '.xlsx';
 
     const blob = new Blob([buffer], { type: fileType });
