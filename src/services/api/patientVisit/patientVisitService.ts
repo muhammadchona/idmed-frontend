@@ -114,6 +114,7 @@ export default {
               StockService.patch(stock.id, stock);
             });
           });
+          patientVisitDetailsService.addMobile(pvd);
         });
         patientVisit.save(params);
       });
@@ -344,7 +345,6 @@ export default {
         return result;
       });
   },
-
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisit.getModel().$newInstance();

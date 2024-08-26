@@ -463,8 +463,15 @@ const currProvince = computed(() => {
 });
 
 const blockDataFutura = (date) => {
-  const data = ref(moment(date).format('YYYY/MM/DD'));
-  return data.value <= moment(new Date()).format('YYYY/MM/DD');
+  if (
+    props.tabName === 'ExpectedPatients' ||
+    props.tabName === 'ExpectedPatients'
+  ) {
+    return true;
+  } else {
+    const data = ref(moment(date).format('YYYY/MM/DD'));
+    return data.value <= moment(new Date()).format('YYYY/MM/DD');
+  }
 };
 
 const errorCount = (value) => {

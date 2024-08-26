@@ -97,6 +97,14 @@ const menu = [
         description: 'Lista de Pacientes Rastreados Para Gravidez',
         tabName: 'PatientWithPregnancyScreening',
       },
+      {
+        description: 'Lista de Pacientes que Levantaram Medicamentos na US',
+        tabName: 'PatientsPickedUpMedsAtUS',
+      },
+      {
+        description: 'Lista de Pacientes Esperados no dia',
+        tabName: 'expectedOfDay',
+      },
     ],
   },
   {
