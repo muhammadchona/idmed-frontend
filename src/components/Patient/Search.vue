@@ -241,19 +241,14 @@ import Patient from 'src/stores/models/patient/Patient';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useRouter } from 'vue-router';
-import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
-import prescriptionService from 'src/services/api/prescription/prescriptionService';
-import packService from 'src/services/api/pack/packService';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import districtService from 'src/services/api/districtService/districtService';
 import { v4 as uuidv4 } from 'uuid';
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
-import episodeService from 'src/services/api/episode/episodeService';
-import drugService from 'src/services/api/drugService/drugService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -581,57 +576,26 @@ const goToPatientPanel = async (patient) => {
   await patientService.deleteAllExceptIdFromStorage(patient.id);
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
-  // localStorage.setItem('patientuuid', currPatient.value.id);
+
   if (isMobile.value && !isOnline.value) {
-    /*
-    await patientService.getMobile();
-    await patientServiceIdentifierService.getMobile();
-    await episodeService.getMobile();
-    await prescriptionService.getMobile();
-    await patientVisitDetailsService.getMobile();
-    await packService.getMobile();
-    await drugService.getMobile();
-    await clinicalServiceService.getMobile();
-    */
     await patientService.getPatientMobileWithAllByPatientId(currPatient.value);
   } else {
     localStorage.setItem('patientuuid', currPatient.value.id);
     await patientService.getPatientByID(currPatient.value.id);
     // Rest Calls
-    await patientServiceIdentifierService.apiGetAllByPatientId(
-      currPatient.value.id
-    );
+    // await patientServiceIdentifierService.apiGetAllByPatientId(
+    //   currPatient.value.id
+    // );
     await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
     await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
       currPatient.value.id
     );
-    await prescriptionService.apiGetByPatientId(currPatient.value.id);
-    await packService.apiGetByPatientId(currPatient.value.id);
+    //  await prescriptionService.apiGetByPatientId(currPatient.value.id);
+    //  await packService.apiGetByPatientId(currPatient.value.id);
   }
 
-  // Delete all Except this patient
-  /*
-  const patientVisits = await patientVisitService.apiGetAllByPatientId(
-    currPatient.value.id
-  );
-  const resp = await patientVisitDetailsService.getMobileByPatientVisitIds(
-    patientVisits
-  );
-  */
   localStorage.setItem('patientuuid', currPatient.value.id);
-  /*
-  await patientService.getPatientByID(currPatient.value.id);
-  // Rest Calls
-  await patientServiceIdentifierService.apiGetAllByPatientId(
-    currPatient.value.id
-  );
-  await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
-  await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
-    currPatient.value.id
-  );
-  await prescriptionService.apiGetByPatientId(currPatient.value.id);
-  await packService.apiGetByPatientId(currPatient.value.id);
-  */
+
   router.push('/patientpanel/');
 };
 

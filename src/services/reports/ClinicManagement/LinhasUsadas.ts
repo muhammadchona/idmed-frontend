@@ -90,15 +90,12 @@ export default {
         image,
         {
           content: logoTitle,
-          styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', textColor: 0 }
-        },
-        {
-          content: title,
           styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: 0 }
         },
         {
-          content: 'Data Inicio: ' + Report.getFormatDDMMYYYY(linhasUsadasData[0].startDate),
-          styles: { valign: 'middle', halign: 'center', fontStyle: 'bold', textColor: 0 }
+          colSpan: 2,
+          content: title,
+          styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: 0 }
         }
       ],
       [
@@ -106,6 +103,10 @@ export default {
           content: 'Unidade Sanitária: ' + clinic.clinicName,
           colSpan: 3,
           styles: { halign: 'left', fontStyle: 'bold', textColor: 0 }
+        },
+        {
+          content: 'Data Inicio: ' + Report.getFormatDDMMYYYY(linhasUsadasData[0].startDate),
+          styles: { valign: 'middle', halign: 'center', fontStyle: 'bold', textColor: 0 }
         }
       ],
       [

@@ -1,5 +1,5 @@
 <template>
-  <div ref="filterSegundasLinhasSection">
+  <div ref="filterBalanceteSection">
     <ListHeader
       v-if="resultFromLocalStorage"
       :addVisible="false"
@@ -7,7 +7,7 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-    >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Segundas Linhas
+    >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Balancete
     </ListHeader>
     <ListHeader
       v-else
@@ -16,7 +16,7 @@
       :closeVisible="true"
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
-    >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Segundas Linhas
+    >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Balancete
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -45,7 +45,7 @@
 import Report from 'src/services/api/report/ReportService';
 import { ref, provide } from 'vue';
 import { LocalStorage } from 'quasar';
-import  balancete from 'src/services/reports/stock/Balancete';
+import  balanceteReport from 'src/services/reports/stock/Balancete';
 
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
@@ -59,14 +59,14 @@ const { alertError } = useSwal();
 
 const serviceAux = ref(null);
 const resultFromLocalStorage = ref(false);
-const name = 'SegundasLinhas';
+const name = 'balancete';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
-const filterSegundasLinhasSection = ref('');
+const filterBalanceteSection = ref('');
 const downloadingPdf = ref(false);
 const downloadingXls = ref(false);
-const reportType = 'SEGUNDAS_LINHAS';
+const reportType = 'BALANCETE';
 const periodType = { id: 2, description: 'Mensal', code: 'MONTH' };
 const isReportClosed = ref(false);
 const alert = ref({
@@ -77,7 +77,7 @@ const alert = ref({
 
 const progress = ref(0.0);
 const closeSection = (params) => {
-  filterSegundasLinhasSection.value.remove();
+  filterBalanceteSection.value.remove();
   if (params) {
     const paramId = params.id;
     isReportClosed.value = true;
@@ -90,11 +90,10 @@ const updateParamsOnLocalStrage = (params, isReportClosed) => {
 };
 
 const initReportProcessing = async (params) => {
-  console.log(params)
   progress.value = 0.001;
   if (isOnline.value) {
     updateParamsOnLocalStrage(params, isReportClosed);
-    Report.apiInitSegundasLinhasProcessing(params).then((resp) => {
+    Report.apiInitBalanceteProcessing(params).then((resp) => {
       getProcessingStatus(params);
     });
   } else {
@@ -136,13 +135,13 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType) => {
   if (fileType === 'PDF') {
-    balancete.downloadPDF(id).then((resp) => {
+    balanceteReport.downloadPDF(id).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else {
-    balancete.downloadExcel(id).then((resp) => {
+    balanceteReport.downloadExcel(id).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;

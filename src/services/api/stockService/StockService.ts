@@ -349,10 +349,11 @@ export default {
     }
   },
 
-  localDbGetUsedStock(reportParams: any) {
+  async localDbGetUsedStock(reportParams: any) {
     return db[stockDexie]
-      .where('drug.clinicalService.id')
+      .where('drug.clinical_Service_id')
       .equalsIgnoreCase(reportParams.clinicalService)
+      .toArray()
       .then((rows: any) => {
         stock.save(rows);
         return rows;

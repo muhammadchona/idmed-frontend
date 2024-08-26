@@ -101,6 +101,14 @@ export default {
   },
 
   getAllByClinic(clinicId: any, offset: number) {
+    if (!isOnline.value) {
+      this.getAllByClinicMobile(clinicId);
+    } else {
+      this.getAllByClinicWeb(clinicId, offset);
+    }
+  },
+
+  getAllByClinicWeb(clinicId: any, offset: number) {
     if (offset >= 0) {
       return api()
         .get(
@@ -217,6 +225,17 @@ export default {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+
+  getAllByClinicMobile(clinicId: any) {
+    return db[inventoryStockAdjustmentDexie]
+      .where('clinic_id')
+      .equalsIgnoreCase(clinicId)
+      .toArray()
+      .then((rows: any) => {
+        inventoryStockAdjustment.save(rows);
+        return rows;
+      });
   },
 
   async getFromBackEnd(offset: number) {

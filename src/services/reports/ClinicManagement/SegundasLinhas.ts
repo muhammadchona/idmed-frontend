@@ -81,7 +81,7 @@ export default {
         image,
         {
           content: logoTitle,
-          styles: { halign: 'left', valign: 'middle', fontStyle: 'bold', textColor: 0 }
+          styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: 0 }
         },
         {
           colSpan: 2,

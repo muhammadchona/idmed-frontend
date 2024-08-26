@@ -53,6 +53,14 @@ export default {
     }
   },
 
+  async getAllByClinic(clinicId: any, offset: number) {
+    if (!isOnline.value) {
+      this.apiGetAllByClinicIdMobile(clinicId);
+    } else {
+      this.apiGetAllByClinicIdWeb(clinicId, offset);
+    }
+  },
+
   async apiClose(id: string) {
     return await api().patch(`/inventory/close/${id}`);
   },
@@ -149,15 +157,15 @@ export default {
     }
   },
 
-  getAllByClinic(clinicId: any, offset: number) {
+  async apiGetAllByClinicIdWeb(clinicId: string, offset: number) {
     if (offset >= 0) {
       return api()
         .get('inventory/clinic/' + clinicId + '?offset=' + offset + '&max=100')
         .then((resp) => {
-          inventory.save(resp.data);
-          offset = offset + 100;
           if (resp.data.length > 0) {
-            this.get(offset);
+            inventory.save(resp.data);
+            offset = offset + 100;
+            this.apiGetAllByClinicIdWeb(clinicId, offset);
           } else {
             closeLoading();
           }
@@ -235,6 +243,18 @@ export default {
     return db[inventoryDexie]
       .where('id')
       .equalsIgnoreCase(id)
+      .toArray()
+      .then((rows: any) => {
+        inventory.save(rows);
+        return rows;
+      });
+  },
+
+  apiGetAllByClinicIdMobile(id: any) {
+    return db[inventoryDexie]
+      .where('clinic_id')
+      .equalsIgnoreCase(id)
+      .toArray()
       .then((rows: any) => {
         inventory.save(rows);
         return rows;

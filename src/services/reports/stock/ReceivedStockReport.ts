@@ -3,27 +3,27 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import * as ExcelJS from 'exceljs';
 import Report from 'src/services/api/report/ReportService';
-import StockReceivedReport from 'src/stores/models/report/stock/StockReceivedReport';
 import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { nSQL } from 'nano-sql';
 import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedStockMobileService.';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 
 const { isMobile, isOnline } = useSystemUtils();
-
-const logoTitle = 'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE'
+const fontPath = '/src/assets/NotoSans-Regular.ttf';
+const logoTitle =
+  'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
 const title = 'Lista de Stock Recebido';
 const reportName = 'ListaDeStockRecebido';
 const fileName = reportName.concat('_' + Report.getFormatDDMMYYYY(new Date()));
 
 const image = new Image();
-    // image.src = '/src/assets/MoHLogo.png'
-    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+// image.src = '/src/assets/MoHLogo.png'
+image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
   async downloadPDF(id, fileType, params) {
-  
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -31,13 +31,32 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     const width = doc.internal.pageSize.getWidth();
 
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
-    
+
     const clinic = clinicService.currClinic();
+
+    let data = [];
+    if (isOnline.value) {
+      data = await Report.printReportOther('stockReportTemp', id);
+      if (data.status === 204 || data.length === 0) return 204;
+      const firstReg = data.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(data.data);
+    } else {
+      data = await this.getDataLocalReport(id);
+      if (data.length === 0) return 204;
+      const firstReg = data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+    }
 
     const headerReport = [
       [
@@ -48,6 +67,7 @@ export default {
           halign: 'center',
           valign: 'middle',
           fontStyle: 'bold',
+          font: 'NotoSans',
         },
       ],
       [
@@ -60,7 +80,8 @@ export default {
           fontSize: '14',
         },
         {
-          content: 'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+          content:
+            'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
@@ -104,6 +125,7 @@ export default {
     autoTable(doc, {
       //  margin: { top: 10 },
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
         fontSize: 8,
@@ -132,21 +154,9 @@ export default {
       'Fornecedor',
     ];
 
-    let data = [];
-    if (isOnline.value) {
-      data = await Report.printReportOther('stockReportTemp', id);
-      if (data.status === 204 || data.length === 0) return 204;
-      const firstReg = data.data[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
-      data = this.createArrayOfArrayRow(data.data);
-    } else {
-      data = await this.getDataLocalReport(id);
-      if (data.length === 0) return 204;
-    }
-
     autoTable(doc, {
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 8,
       },
@@ -155,14 +165,15 @@ export default {
         valign: 'middle',
         fontSize: 8,
       },
-      didDrawPage: function (data) 
-      {    
+      didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
         doc.setFontSize(8);
         // jsPDF 1.4+ uses getWidth, <1.4 uses .width
         const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        doc.text(str, data.settings.margin.right, pageHeight - 10);        
+        const pageHeight = pageSize.height
+          ? pageSize.height
+          : pageSize.getHeight();
+        doc.text(str, data.settings.margin.right, pageHeight - 10);
       },
       startY: doc.lastAutoTable.finalY,
       theme: 'grid',
@@ -177,7 +188,7 @@ export default {
       console.log(doc);
       const pdfOutput = doc.output();
       console.log(pdfOutput);
-      this.downloadFile(fileName, 'pdf', pdfOutput);
+      this.downloadFile(fileName, '.pdf', pdfOutput);
     }
   },
 
@@ -207,12 +218,12 @@ export default {
     // Force workbook calculation on load
     // workbook.calcProperties.fullCalcOnLoad = true
     const worksheet = workbook.addWorksheet(reportName);
-      const imageId = workbook.addImage({
-        base64: 'data:image/pngbase64,' + MOHIMAGELOG,
-        extension: 'png'
-      }) 
+    const imageId = workbook.addImage({
+      base64: 'data:image/pngbase64,' + MOHIMAGELOG,
+      extension: 'png',
+    });
     // Get Cells
-    const cellRepublica = worksheet.getCell('A8') 
+    const cellRepublica = worksheet.getCell('A8');
     const cellTitle = worksheet.getCell('A9');
     const cellPharm = worksheet.getCell('A11');
     const cellDistrict = worksheet.getCell('A12');
@@ -238,11 +249,13 @@ export default {
     // Format Table Cells
     // Alignment Format
     cellRepublica.alignment =
-    cellTitle.alignment = headerRow.alignment = {
-      vertical: 'middle',
-      horizontal: 'center',
-      wrapText: true,
-    };
+      cellTitle.alignment =
+      headerRow.alignment =
+        {
+          vertical: 'middle',
+          horizontal: 'center',
+          wrapText: true,
+        };
     cellPharm.alignment =
       cellDistrict.alignment =
       cellProvince.alignment =
@@ -254,8 +267,8 @@ export default {
           wrapText: false,
         };
     // Border Format
-     cellRepublica.border =
-    cellTitle.border =
+    cellRepublica.border =
+      cellTitle.border =
       cellPharm.border =
       cellDistrictParamValue.border =
       cellDistrict.border =
@@ -273,7 +286,7 @@ export default {
           right: { style: 'thin' },
         };
     // Assign Value to Cell
-     cellRepublica.value = logoTitle
+    cellRepublica.value = logoTitle;
     cellTitle.value = title;
     cellPharmParamValue.value =
       params.clinic !== null ? params.clinic.clinicName : '';
@@ -289,7 +302,7 @@ export default {
     cellStartDate.value = 'Data Início';
     cellEndDate.value = 'Data Fim';
     // merge a range of cells
-    worksheet.mergeCells('A1:A7')
+    worksheet.mergeCells('A1:A7');
     worksheet.mergeCells('A9:G9');
     worksheet.mergeCells('B11:E11');
     worksheet.mergeCells('B12:C12');
@@ -325,9 +338,9 @@ export default {
         };
     // Add Image
     worksheet.addImage(imageId, {
-        tl: { col: 0, row: 1 },
-        ext: { width: 144, height: 98 }
-      })
+      tl: { col: 0, row: 1 },
+      ext: { width: 144, height: 98 },
+    });
     // Cereate Table
     worksheet.addTable({
       name: reportName,
