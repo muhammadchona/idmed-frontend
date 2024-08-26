@@ -2,42 +2,49 @@ import JsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
 import saveAs from 'file-saver';
+import { MOHIMAGELOG } from '../../../assets/imageBytes.ts';
 import * as ExcelJS from 'exceljs';
-import { MOHIMAGELOG } from 'src/assets/imageBytes.ts';
-import Report from 'src/services/api/report/ReportService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import AbsentPatientMobileService from 'src/services/api/report/mobile/AbsentPatientMobileService';
-import clinicService from 'src/services/api/clinicService/clinicService';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
+import PatientsPickedUpMedAtUsMobileService from 'src/services/api/report/mobile/PatientsPickedUpMedAtUsMobileService.js';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 const { isMobile, isOnline } = useSystemUtils();
 
-const reportName = 'PacientesFaltosos';
+const reportName = 'RelatorioDePacientesQueLevantaramNaUS';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = "Relatório de Pacientes Faltosos ao \n Levantamento de ARV's";
+const title = 'Relatorio de Pacientes Que Levantaram Medicamentos na US';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
+
+const img = new Image();
+img.src = 'data:image/png;base64,' + MOHIMAGELOG;
 const fontPath = '/src/assets/NotoSans-Regular.ttf';
 export default {
-  async downloadPDF(id, fileType, params) {
-    const clinic = clinicService.currClinic();
+  async downloadPDF(params: any) {
     const fontBase64 = await fetchFontAsBase64(fontPath);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
-      format: 'a4',
+      // format: 'a4',
+      format: [205, 313],
       putOnlyUsedFonts: true,
-      floatPrecision: 'smart', // or "smart", default is 16
+      floatPrecision: 'smart', // or "smart", default i
     });
     doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
     doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
     doc.setFont('NotoSans');
-    const image = new Image();
-    // image.src = '/src/assets/MoHLogo.png'
-    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
-    const width = doc.internal.pageSize.getWidth();
+    const result =
+      await PatientsPickedUpMedAtUsMobileService.localDbGetAllByReportId(
+        params.id
+      );
+
+    const firstObject = result[0];
+    /*
+      Fill Table
+    */
+
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
@@ -45,8 +52,8 @@ export default {
     const headerReport = [
       [
         {
-          content: 'Faltosos ao Levantamento de ARV´s',
-          styles: { minCellHeight: 25, fontSize: 16, halign: 'center' },
+          content: 'Relatorio de Pacientes Que Levantaram Medicamentos na US',
+          styles: { minCellHeight: 25, fontSize: 12, halign: 'center' },
           colSpan: 3,
           halign: 'center',
           valign: 'middle',
@@ -55,7 +62,7 @@ export default {
       ],
       [
         {
-          content: 'Unidade Sanitária: ' + clinic.clinicName,
+          content: 'Clinica/Sector: ' + params.clinic.clinicName,
           colSpan: 2,
           halign: 'center',
           valign: 'middle',
@@ -63,42 +70,10 @@ export default {
           fontSize: '14',
         },
         {
-          content:
-            'Período: ' + params.startDateParam + ' à ' + params.endDateParam,
+          content: 'Período: ' + params.startDate + ' a ' + params.endDate,
           colSpan: 1,
           halign: 'center',
           valign: 'middle',
-          fontStyle: 'bold',
-          fontSize: '14',
-        },
-      ],
-      [
-        {
-          content:
-            'Distrito: ' +
-            (params.district === null
-              ? clinic.district.description
-              : params.district.description),
-          halign: 'center',
-          valign: 'middle',
-          fontStyle: 'bold',
-          fontSize: '14',
-        },
-        {
-          content:
-            'Província: ' +
-            (params.province === null
-              ? clinic.province.description
-              : params.province.description),
-          halign: 'center',
-          valign: 'left',
-          fontStyle: 'bold',
-          fontSize: '14',
-        },
-        {
-          content: 'Ano: ' + params.year,
-          halign: 'center',
-          valign: 'left',
           fontStyle: 'bold',
           fontSize: '14',
         },
@@ -114,6 +89,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
       },
@@ -124,30 +100,22 @@ export default {
     doc.setFontSize(8);
     doc.text('República de Moçambique ', 16, 28);
     doc.text('Ministério da Saúde ', 20, 32);
-    doc.text('Serviço Nacional de Saúde ', 16, 36);
-    doc.addImage(image, 'png', 28, 15, 10, 10);
+    doc.text('Serviço Nacional de Saúde', 16, 36);
+    doc.addImage(img, 'png', 28, 15, 10, 10);
 
     const cols = [
       'NID',
-      'NOME',
-      'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
-      'Data em que Identificou o Abandono ao TARV [>59 dias faltoso] (d-m-a)',
-      'Data em que Regressou à Unidade Sanitária',
-      'Contacto',
+      'Nome Completo',
+      'Data de Levantamento',
+      'Data de Prox. Levantamento',
+      'Regime Terapeutico',
+      'Tipo de Dispensa',
+      'Unidade Sanitária',
     ];
+    const rows = result;
+    // const data = [];
 
-    let data = '';
-    let rowsAux = [];
-    if (isOnline.value) {
-      const rowsAux = await Report.printReportOther('absentPatientsReport', id);
-      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
-      data = this.createArrayOfArrayRow(rowsAux.data);
-    } else {
-      rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
-      if (rowsAux.length === 0) return 204;
-      data = this.createArrayOfArrayRow(rowsAux);
-    }
-
+    const data = this.createArrayOfArrayRow(rows);
     autoTable(doc, {
       bodyStyles: {
         font: 'NotoSans',
@@ -155,16 +123,14 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 8,
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 55 },
-        2: { cellWidth: 55 },
-        3: { cellWidth: 55 },
-        4: { cellWidth: 40 },
+        0: { cellWidth: 100 },
+        1: { cellWidth: 50 },
       },
       didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -181,60 +147,49 @@ export default {
       head: [cols],
       body: data,
     });
-    // params.value.loading.loading.hide()
-    if (isOnline.value && !isMobile.value) {
-      // return doc.save('PacientesFaltosos.pdf');
-      window.open(doc.output('bloburl'));
-    } else {
-      const pdfOutput = doc.output();
-      DownloadFileMobile.downloadFile(fileName, '.pdf', pdfOutput);
-    }
+    // return doc.save('HistoricoDeLevantamento.pdf')
+    // window.open(doc.output('bloburl'));
+    console.log(doc);
+    const pdfOutput = doc.output();
+    DownloadFileMobile.downloadFile(fileName, '.pdf', pdfOutput);
   },
-  async downloadExcel(id, fileType, params) {
-    const clinic = clinicService.currClinic();
-    let data = '';
-    let rowsAux = [];
-    let firstReg = {};
-    if (isOnline.value) {
-      const rowsAux = await Report.printReportOther('absentPatientsReport', id);
-      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
-      const firstReg = rowsAux.data[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
-      data = this.createArrayOfArrayRow(rowsAux.data);
-    } else {
-      rowsAux = await AbsentPatientMobileService.localDbGetAllByReportId(id);
-      if (rowsAux.length === 0) return 204;
-      firstReg = rowsAux[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
-      data = this.createArrayOfArrayRow(rowsAux);
-    }
+  async downloadExcel(params: any) {
+    const result =
+      await PatientsPickedUpMedAtUsMobileService.localDbGetAllByReportId(
+        params.id
+      );
+    const rows = result;
+    const data = this.createArrayOfArrayRow(rows);
+    console.log(data);
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'FGH';
     workbook.lastModifiedBy = 'FGH';
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
-
+    // Force workbook calculation on load
+    // workbook.calcProperties.fullCalcOnLoad = true
     const worksheet = workbook.addWorksheet(reportName);
     const imageId = workbook.addImage({
-      base64: 'data:image/png;base64,' + MOHIMAGELOG,
+      base64: 'data:image/pngbase64,' + MOHIMAGELOG,
       extension: 'png',
     });
 
-    // // Get Cells
+    // Get Cells
     const cellRepublica = worksheet.getCell('A8');
     const cellTitle = worksheet.getCell('A9');
     const cellPharm = worksheet.getCell('A11');
+    const cellDistrict = worksheet.getCell('A12');
+    const cellProvince = worksheet.getCell('E12');
+    const cellStartDate = worksheet.getCell('L11');
+    const cellEndDate = worksheet.getCell('L12');
     const cellPharmParamValue = worksheet.getCell('B11');
+    const cellDistrictParamValue = worksheet.getCell('B12');
+    const cellProvinceParamValue = worksheet.getCell('F12');
+    const cellStartDateParamValue = worksheet.getCell('M11');
+    const cellEndDateParamValue = worksheet.getCell('M12');
 
-    const cellStartDate = worksheet.getCell('E11');
-    const cellEndDate = worksheet.getCell('E12');
-    const cellStartDateParamValue = worksheet.getCell('F11');
-    const cellEndDateParamValue = worksheet.getCell('F12');
-
-    // // Get Rows
+    // Get Rows
     const headerRow = worksheet.getRow(15);
 
     // Get Columns
@@ -244,6 +199,11 @@ export default {
     const colD = worksheet.getColumn('D');
     const colE = worksheet.getColumn('E');
     const colF = worksheet.getColumn('F');
+    const colG = worksheet.getColumn('G');
+    const colH = worksheet.getColumn('H');
+    const colI = worksheet.getColumn('I');
+    const colJ = worksheet.getColumn('J');
+    const colK = worksheet.getColumn('K');
 
     // Format Table Cells
     // Alignment Format
@@ -257,6 +217,8 @@ export default {
         };
 
     cellPharm.alignment =
+      cellDistrict.alignment =
+      cellProvince.alignment =
       cellStartDate.alignment =
       cellEndDate.alignment =
         {
@@ -266,10 +228,14 @@ export default {
         };
 
     // Border Format
-    // cellRepublica.border =
-    cellTitle.border =
+    cellRepublica.border =
+      cellTitle.border =
       cellPharm.border =
+      cellDistrictParamValue.border =
+      cellDistrict.border =
       cellPharmParamValue.border =
+      cellProvince.border =
+      cellProvinceParamValue.border =
       cellStartDate.border =
       cellStartDateParamValue.border =
       cellEndDate.border =
@@ -284,31 +250,47 @@ export default {
     // Assign Value to Cell
     cellRepublica.value = logoTitle;
     cellTitle.value = title;
-    cellPharmParamValue.value = clinic?.clinicName;
-    cellStartDateParamValue.value = params.startDateParam;
-    cellEndDateParamValue.value = params.endDateParam;
+    cellPharmParamValue.value = result[0].clinic;
+    cellProvinceParamValue.value = '';
+    cellDistrictParamValue.value = result[0].district;
+    cellStartDateParamValue.value = params.startDate;
+    cellEndDateParamValue.value = params.endDate;
     cellPharm.value = 'Unidade Sanitária';
+    cellDistrict.value = 'Distrito';
+    cellProvince.value = 'Província';
     cellStartDate.value = 'Data Início';
     cellEndDate.value = 'Data Fim';
 
     // merge a range of cells
-    worksheet.mergeCells('A1:A7');
-    worksheet.mergeCells('A9:F10');
-    worksheet.mergeCells('B11:D11');
-    worksheet.mergeCells('A12:D12');
+    // worksheet.mergeCells('A1:A7')
+    worksheet.mergeCells('A9:M10');
+    worksheet.mergeCells('B11:K11');
+    worksheet.mergeCells('B12:D12');
+    worksheet.mergeCells('F12:K12');
+    worksheet.mergeCells('A13:K13');
+
+    // add width size to Columns
+    // add height size to Rows
     headerRow.height = 30;
 
     // add height size to Columns
     // add width size to Columns
-    colA.width = 25;
-    colB.width = 30;
-    colC.width = 25;
-    colD.width = 25;
-    colE.width = 25;
+    colA.width = 20;
+    colB.width = 20;
+    colC.width = 30;
+    colD.width = 10;
+    colE.width = 15;
     colF.width = 20;
+    colG.width = 20;
+    colH.width = 20;
+    colI.width = 20;
+    colJ.width = 20;
+    colK.width = 20;
 
     // Add Style
-    cellTitle.font =
+    // cellTitle.font =
+    cellDistrict.font =
+      cellProvince.font =
       cellStartDate.font =
       cellEndDate.font =
       cellPharm.font =
@@ -336,26 +318,30 @@ export default {
         showRowStripes: false,
       },
       columns: [
-        // { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
-        { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
+        { name: 'NID', totalsRowLabel: 'none', filterButton: false },
         { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
         {
-          name: 'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
+          name: 'Data de Levantamento',
           totalsRowFunction: 'none',
           filterButton: false,
         },
         {
-          name: 'Data em que Identificou o Abandono ao TARV [>59 dias faltoso] (d-m-a)',
+          name: 'Data de Prox. Levantamento',
           totalsRowFunction: 'none',
           filterButton: false,
         },
         {
-          name: 'Data em que Regressou à Unidade Sanitária',
+          name: 'Regime Terapeutico',
           totalsRowFunction: 'none',
           filterButton: false,
         },
         {
-          name: 'Contacto',
+          name: 'Tipo de Dispensa',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Unidade Sanitaria',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -405,47 +391,38 @@ export default {
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const fileTypePa =
+    const fileType =
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     const fileExtension = '.xlsx';
 
-    const blob = new Blob([buffer], { type: fileTypePa });
+    const blob = new Blob([buffer], { type: fileType });
 
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension);
     } else {
-      //   var blob = new Blob(materialEducativo.blop)
-      //  const bytes = new Uint8Array(materialEducativo.blop)
-      // var UTF8_STR = new Uint8Array(pdfOutput)
-      //   var BINARY_ARR = UTF8_STR.buffer
-      const titleFile = 'PacientesFaltosos.xlsx';
+      const titleFile = 'RelatorioRastreioDeGravidez';
+      console.log('result' + titleFile);
       DownloadFileMobile.downloadFile(titleFile, '.xlsx', blob);
     }
   },
-  createArrayOfArrayRow(rows) {
+  createArrayOfArrayRow(rows: []) {
     const data = [];
 
     for (const row in rows) {
       const createRow = [];
       createRow.push(rows[row].nid);
-      createRow.push(rows[row].name);
       createRow.push(
-        moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY')
-      );
-      const dataIdent = rows[row].dateIdentifiedAbandonment;
-      createRow.push(
-        dataIdent !== null && dataIdent !== ''
-          ? moment(new Date(rows[row].dateIdentifiedAbandonment)).format(
-              'DD-MM-YYYY'
-            )
-          : ''
+        String(rows[row].fullName).replaceAll('null', '').replace('  ', ' ')
       );
       createRow.push(
-        rows[row].returnedPickUp !== null
-          ? moment(new Date(rows[row].returnedPickUp)).format('DD-MM-YYYY')
-          : ''
+        moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY')
       );
-      createRow.push(rows[row].contact);
+      createRow.push(
+        moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
+      );
+      createRow.push(rows[row].therapeuticalRegimen);
+      createRow.push(rows[row].dispenseType);
+      createRow.push(rows[row].clinic.clinicName);
 
       data.push(createRow);
     }

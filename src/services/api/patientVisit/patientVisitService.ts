@@ -114,6 +114,7 @@ export default {
               StockService.patch(stock.id, stock);
             });
           });
+          patientVisitDetailsService.addMobile(pvd);
         });
         patientVisit.save(params);
       });
@@ -335,6 +336,15 @@ export default {
       });
   },
 
+  async getLocalPatientVisitsBetweenDates(startDate: any, endDate: any) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
   // Local Storage Pinia
   newInstanceEntity() {
     return patientVisit.getModel().$newInstance();
@@ -530,9 +540,12 @@ export default {
     patientVisitDetailsService.addBulkMobile(allVisits);
 
     const pvs = allVisits.map((pat: any) => pat.patientVisit);
-    console.log(pvs);
 
-    this.addBulkMobile(pvs);
+    const patientVisitOfMobile = await this.getPatientVisitMobile();
+
+    const newPvs = this.removeExistingIds(pvs, patientVisitOfMobile);
+
+    this.addBulkMobile(newPvs);
 
     const idsPrescription = allVisits.map((vis: any) => vis.prescriptionId);
     const prescriptions = await prescriptionService.getPrescriptionsByIds(
@@ -606,20 +619,15 @@ export default {
         */
   },
 
-  /*
-  chunkArrayWithOffset(array: [], limit: number, offset: number) {
-    const result = [];
-    let currentOffset = offset;
+  removeExistingIds(pvs: any, patientVisits: any) {
+    // Create a Set of IDs from patientVisits for faster lookup
+    const patientVisitIds = new Set(patientVisits.map((pv) => pv.id));
 
-    while (currentOffset < array.length) {
-      const chunk = array.slice(currentOffset, currentOffset + limit);
-      result.push(chunk);
-      currentOffset += limit;
-    }
+    // Filter the pvs array to remove objects with IDs present in patientVisitIds
+    const filteredPvs = pvs.filter((pv) => !patientVisitIds.has(pv.id));
 
-    return result;
+    return filteredPvs;
   },
-  */
 
   async getPatientVisitWithScreeningByPatientIds(patientIds: any) {
     const limit = 100; // Define your limit

@@ -112,6 +112,8 @@ import DrugDistributor from './models/drugDistributor/DrugDistributor';
 import NotSyncronizedPacksToServer from './models/report/pharmacyManagement/NotSyncronizedPacksToServer';
 import PacksByDrugBottles from './models/report/monitoring/PacksByDrugBottles';
 import PatientsWithScreeningReport from './models/report/patient/PatientsWithScreeningReport';
+import PatientPickedUpMedAtUsReport from './models/report/pharmacyManagement/PatientPickedUpMedAtUsReport';
+import PatientExpectedReport from './models/report/patient/PatientExpectedReport';
 //import NonSqlDatabaseUtils from 'src/utils/NonSqlDatabaseUtils';
 // import ActiveInDrugStore from 'src/store/models/report/patient/ActiveInDrugStore';
 
@@ -222,7 +224,8 @@ export default {
     entitiesList.push(PacksByDrugBottles);
     entitiesList.push(StockLevel);
     entitiesList.push(PatientsWithScreeningReport);
-
+    entitiesList.push(PatientPickedUpMedAtUsReport);
+    entitiesList.push(PatientExpectedReport);
     return entitiesList;
   },
 };
