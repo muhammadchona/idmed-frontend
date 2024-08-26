@@ -159,7 +159,7 @@ export default {
     return db[patientVisitDetailsDexie].toArray().then(async (result) => {
       for (const pvd of result) {
         if (pvd.pack !== undefined) {
-          const pickupDate = moment(pvd.pack.pickupDate);
+          const pickupDate = moment(pvd.pack.pickupDate).format('YYYY-MM-DD');
           let prescription = pvd.prescription;
           if (prescription !== undefined) {
             if (
@@ -186,6 +186,54 @@ export default {
         }
       }
       return counter;
+    });
+  },
+  async getLocalDbPatientVisitsPickedUpAtUs(
+    service: any,
+    startDate: any,
+    endDate: any
+  ) {
+    let patientVisitDetails = [];
+    return db[patientVisitDetailsDexie].toArray().then(async (result) => {
+      for (const pvd of result) {
+        if (pvd.pack !== undefined) {
+          const pickupDate = moment(pvd.pack.pickupDate).format('YYYY-MM-DD');
+          if (
+            pickupDate >= startDate &&
+            pickupDate <= endDate &&
+            pvd.episode.patientServiceIdentifier.service.id === service &&
+            pvd.pack.isreferral === true &&
+            pvd.pack.isreferalSynced === true
+          ) {
+            patientVisitDetails.push(pvd);
+          }
+        }
+      }
+      return patientVisitDetails;
+    });
+  },
+  async getLocalDbPatientVisitsExpectedOnDay(
+    service: any,
+    startDate: any,
+    endDate: any
+  ) {
+    let patientVisitDetails = [];
+    return db[patientVisitDetailsDexie].toArray().then(async (result) => {
+      for (const pvd of result) {
+        if (pvd.pack !== undefined) {
+          const nexPickUpDate = moment(pvd.pack.nextPickUpDate).format(
+            'YYYY-MM-DD'
+          );
+          if (
+            nexPickUpDate >= startDate &&
+            nexPickUpDate <= endDate &&
+            pvd.episode.patientServiceIdentifier.service.id === service
+          ) {
+            patientVisitDetails.push(pvd);
+          }
+        }
+      }
+      return patientVisitDetails;
     });
   },
   async apiFetchById(id: string) {

@@ -45,13 +45,13 @@
 import moment from 'moment';
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
-import activePatients from 'src/services/reports/Patients/ExpectedOfTheDay';
+import expectedOfTheDay from 'src/services/reports/Patients/ExpectedOfTheDay';
 import { ref, provide } from 'vue';
 import reportDatesParams from 'src/services/reports/ReportDatesParams';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
-import activeInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
+import patientsExpectedInPharmacyMobileService from 'src/services/api/report/mobile/PatientsExpectedInPharmacyMobileService';
 import ActiveInDrugStoreMobileService from 'src/services/api/report/mobile/ActiveInDrugStoreMobileService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
@@ -78,6 +78,9 @@ const closeSection = (params) => {
     const paramId = params.id;
     isReportClosed.value = true;
     LocalStorage.remove(paramId);
+  } else {
+    isReportClosed.value = true;
+    LocalStorage.remove(props.id);
   }
 };
 
@@ -94,36 +97,42 @@ const initReportProcessing = (params) => {
       getProcessingStatus(reportParams);
     });
   } else {
-    updateParamsOnLocalStrage(params, isReportClosed);
     const reportParams = reportDatesParams.determineStartEndDate(params);
-    activeInDrugStoreMobileService.getDataLocalDb(reportParams).then((resp) => {
-      progress.value = 100;
-      params.progress = 100;
-    });
+    patientsExpectedInPharmacyMobileService
+      .getDataLocalDb(reportParams)
+      .then((resp) => {
+        progress.value = 100;
+        params.progress = 100;
+      });
+    updateParamsOnLocalStrage(params, isReportClosed);
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('expectedPatientsReport', params).then((resp) => {
-    if (resp.data.progress > 0.001) {
-      progress.value = resp.data.progress;
-      if (progress.value < 100) {
-        updateParamsOnLocalStrage(params, isReportClosed);
-        params.progress = resp.data.progress;
-        setTimeout(() => {
-          getProcessingStatus(params);
-        }, 3000);
-      } else {
-        progress.value = 100;
-        params.progress = 100;
-        updateParamsOnLocalStrage(params, isReportClosed);
+  if (isOnline.value) {
+    Report.getProcessingStatus('expectedPatientsReport', params).then(
+      (resp) => {
+        if (resp.data.progress > 0.001) {
+          progress.value = resp.data.progress;
+          if (progress.value < 100) {
+            updateParamsOnLocalStrage(params, isReportClosed);
+            params.progress = resp.data.progress;
+            setTimeout(() => {
+              getProcessingStatus(params);
+            }, 3000);
+          } else {
+            progress.value = 100;
+            params.progress = 100;
+            updateParamsOnLocalStrage(params, isReportClosed);
+          }
+        } else {
+          setTimeout(() => {
+            getProcessingStatus(params);
+          }, 3000);
+        }
       }
-    } else {
-      setTimeout(() => {
-        getProcessingStatus(params);
-      }, 3000);
-    }
-  });
+    );
+  }
 };
 
 const generateReport = async (id, fileType) => {
@@ -137,7 +146,7 @@ const generateReport = async (id, fileType) => {
         const patientAux = resp.data[0];
 
         if (fileType === 'PDF') {
-          activePatients.downloadPDF(
+          expectedOfTheDay.downloadPDF(
             patientAux.province,
             moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
             moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
@@ -145,7 +154,7 @@ const generateReport = async (id, fileType) => {
           );
           downloadingPdf.value = false;
         } else {
-          activePatients.downloadExcel(
+          expectedOfTheDay.downloadExcel(
             patientAux.province,
             moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
             moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
@@ -156,7 +165,8 @@ const generateReport = async (id, fileType) => {
       }
     });
   } else {
-    const data = await ActiveInDrugStoreMobileService.getDataLocalReport(id);
+    const data =
+      await patientsExpectedInPharmacyMobileService.localDbGetAllByReportId(id);
     if (data.length === 0) {
       alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
@@ -165,14 +175,14 @@ const generateReport = async (id, fileType) => {
       const patientAux = data[0];
 
       if (fileType === 'PDF') {
-        await activePatients.downloadPDF(
+        await expectedOfTheDay.downloadPDF(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
       } else {
-        await activePatients.downloadExcel(
+        await expectedOfTheDay.downloadExcel(
           patientAux.province,
           moment(new Date(patientAux.startDate)).format('DD-MM-YYYY'),
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
