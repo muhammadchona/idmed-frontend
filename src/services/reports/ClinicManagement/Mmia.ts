@@ -9,9 +9,11 @@ import moment from 'moment';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService';
 import clinicService from 'src/services/api/clinicService/clinicService';
-
+import DownloadFileMobile from 'src/utils/DownloadFileMobile';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 const { isMobile, isOnline } = useSystemUtils();
 
+const fontPath = '/src/assets/NotoSans-Regular.ttf';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS';
 const title = 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV';
@@ -36,6 +38,7 @@ const months = [
 
 export default {
   async downloadPDF(id) {
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     const doc = new JsPDF({
       orientation: 'p',
       unit: 'mm',
@@ -44,6 +47,9 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     doc.setFontSize(10);
     const image = new Image();
     image.src = 'data:image/png;base64,' + MOHIMAGELOG;
@@ -111,7 +117,12 @@ export default {
     const mmiaAjusteData = this.createMmiaAjustePercentageArrayRow(mmiaData);
     const footer = this.createFotterTableRow();
 
-    const month = months[new Date(mmiaData.endDate).getMonth()];
+    const month =
+      months[
+        new Date(
+          isOnline.value ? mmiaData.endDate : mmiaStockData[0].endDate
+        ).getMonth()
+      ];
 
     const regimenCols = [
       'Código',
@@ -129,6 +140,7 @@ export default {
       content:
         'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS',
       styles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
         fontStyle: 'bold',
@@ -138,6 +150,7 @@ export default {
     row1.push({
       content: 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV',
       styles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontStyle: 'bold',
@@ -147,6 +160,7 @@ export default {
     row1.push({
       content: 'Mês: ' + month,
       styles: {
+        font: 'NotoSans',
         valign: 'middle',
         halign: 'center',
         fontStyle: 'bold',
@@ -157,22 +171,38 @@ export default {
     row2.push({
       content: 'Unidade Sanitária: ' + clinic.clinicName,
       colSpan: 3,
-      styles: { halign: 'left', fontStyle: 'bold', textColor: 0 },
+      styles: {
+        font: 'NotoSans',
+        halign: 'left',
+        fontStyle: 'bold',
+        textColor: 0,
+      },
     });
 
     row3.push({
       colSpan: 2,
       content: 'Distrito: ' + clinic.district.description,
-      styles: { halign: 'left', fontStyle: 'bold', textColor: 0 },
+      styles: {
+        font: 'NotoSans',
+        halign: 'left',
+        fontStyle: 'bold',
+        textColor: 0,
+      },
     });
     row3.push({
       content: 'Província: ' + clinic.province.description,
-      styles: { halign: 'left', fontStyle: 'bold', textColor: 0 },
+      styles: {
+        font: 'NotoSans',
+        halign: 'left',
+        fontStyle: 'bold',
+        textColor: 0,
+      },
     });
     row2.push({
       rowSpan: 2,
-      content: 'Ano: ' + mmiaData.year,
+      content: 'Ano: ' + isOnline.value ? mmiaData.year : mmiaStockData[0].year,
       styles: {
+        font: 'NotoSans',
         valign: 'middle',
         halign: 'center',
         fontStyle: 'bold',
@@ -187,6 +217,7 @@ export default {
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
         textColor: 0,
@@ -224,6 +255,7 @@ export default {
         8: { cellWidth: 17 },
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 8,
@@ -249,6 +281,7 @@ export default {
         3: { cellWidth: 18 },
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -277,6 +310,7 @@ export default {
         2: { cellWidth: 18 },
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -295,6 +329,7 @@ export default {
       // Quarta  tabela (Linhas Terapêuticas)
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
@@ -313,6 +348,7 @@ export default {
         ],
       ],
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -331,6 +367,7 @@ export default {
       // Quinta tabela (Total Linhas)
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
@@ -357,6 +394,7 @@ export default {
       // Sexta tabela (Tipo de Doencas em TARV)
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
@@ -374,6 +412,7 @@ export default {
         ],
       ],
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -391,6 +430,7 @@ export default {
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
@@ -408,6 +448,7 @@ export default {
         ],
       ],
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -425,6 +466,7 @@ export default {
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
@@ -442,6 +484,7 @@ export default {
         ],
       ],
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -459,6 +502,7 @@ export default {
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
@@ -471,6 +515,7 @@ export default {
         ],
       ],
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -533,10 +578,12 @@ export default {
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 6,
@@ -609,6 +656,7 @@ export default {
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 6,
       },
@@ -626,6 +674,7 @@ export default {
     autoTable(doc, {
       theme: 'grid',
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'left',
         fontSize: 6,
       },
@@ -659,10 +708,8 @@ export default {
       // return doc.save(fileName.concat('.pdf'));
       window.open(doc.output('bloburl'));
     } else {
-      console.log(doc);
-      var pdfOutput = doc.output();
-      console.log(pdfOutput);
-      this.downloadFile(fileName, 'pdf', pdfOutput);
+      const pdfOutput = doc.output();
+      DownloadFileMobile.downloadFile(fileName, '.pdf', pdfOutput);
     }
   },
   async downloadExcel(id) {
@@ -1372,70 +1419,7 @@ export default {
       saveAs(blob, fileName + fileExtension);
     } else {
       const titleFile = 'Mmia.xlsx';
-      saveBlob2File(titleFile, blob);
-      function saveBlob2File(fileName, blob) {
-        const folder = cordova.file.externalRootDirectory + 'Download';
-        //  var folder = 'Download'
-        window.resolveLocalFileSystemURL(
-          folder,
-          function (dirEntry) {
-            createFile(dirEntry, fileName, blob);
-            // $q.loading.hide()
-          },
-          onErrorLoadFs
-        );
-      }
-      function createFile(dirEntry, fileName, blob) {
-        // Creates a new file
-        dirEntry.getFile(
-          fileName,
-          { create: true, exclusive: false },
-          function (fileEntry) {
-            writeFile(fileEntry, blob);
-          },
-          onErrorCreateFile
-        );
-      }
-
-      function writeFile(fileEntry, dataObj) {
-        // Create a FileWriter object for our FileEntry
-        fileEntry.createWriter(function (fileWriter) {
-          fileWriter.onwriteend = function () {
-            console.log('Successful file write...');
-            openFile();
-          };
-
-          fileWriter.onerror = function (error) {
-            console.log('Failed file write: ' + error);
-          };
-          fileWriter.write(dataObj);
-        });
-      }
-      function onErrorLoadFs(error) {
-        console.log(error);
-      }
-
-      function onErrorCreateFile(error) {
-        console.log('errorr: ' + error.toString());
-      }
-      function openFile() {
-        const strTitle = titleFile;
-        console.log('file system 44444: ' + strTitle);
-        const folder =
-          cordova.file.externalRootDirectory + 'Download/' + strTitle;
-        console.log('file system 2222: ' + folder);
-        const documentURL = decodeURIComponent(folder);
-        cordova.plugins.fileOpener2.open(
-          documentURL,
-          'application/vnd.ms-excel',
-          {
-            error: function (e) {
-              console.log('file system open3333366: ' + e + documentURL);
-            },
-            success: function () {},
-          }
-        );
-      }
+      DownloadFileMobile.downloadFile(titleFile, '.xlsx', blob);
     }
   },
 
@@ -1457,7 +1441,11 @@ export default {
       createRow.push(rows[row].outcomes);
       createRow.push(rows[row].lossesAdjustments);
       createRow.push(rows[row].inventory);
-      createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'));
+      if (isOnline.value) {
+        createRow.push(moment(rows[row].expireDate).format('DD-MM-YYYY'));
+      } else {
+        createRow.push(rows[row].expireDate);
+      }
 
       data.push(createRow);
     }
@@ -1487,24 +1475,34 @@ export default {
     const createRow3 = [];
     const createRow4 = [];
     const createRow5 = [];
-
-    createRow1.push('Novos');
-    createRow1.push(rows.totalPacientesInicio);
-    createRow2.push('Manutenção');
-    createRow2.push(rows.totalPacientesManter);
-    createRow3.push('Alteração');
-    createRow3.push(rows.totalPacientesAlterar);
-    createRow4.push('Trânsito');
-    createRow4.push(rows.totalPacientesTransito);
-    createRow5.push('Transferências');
-    createRow5.push(rows.totalPacientesTransferidoDe);
-
+    if (isOnline.value && !isMobile.value) {
+      createRow1.push('Novos');
+      createRow1.push(rows.totalPacientesInicio);
+      createRow2.push('Manutenção');
+      createRow2.push(rows.totalPacientesManter);
+      createRow3.push('Alteração');
+      createRow3.push(rows.totalPacientesAlterar);
+      createRow4.push('Trânsito');
+      createRow4.push(rows.totalPacientesTransito);
+      createRow5.push('Transferências');
+      createRow5.push(rows.totalPacientesTransferidoDe);
+    } else {
+      createRow1.push('Novos');
+      createRow1.push(rows[0].totalPacientesInicio);
+      createRow2.push('Manutenção');
+      createRow2.push(rows[0].totalPacientesManter);
+      createRow3.push('Alteração');
+      createRow3.push(rows[0].totalPacientesAlterar);
+      createRow4.push('Trânsito');
+      createRow4.push(rows[0].totalPacientesTransito);
+      createRow5.push('Transferências');
+      createRow5.push(rows[0].totalPacientesTransferidoDe);
+    }
     data.push(createRow1);
     data.push(createRow2);
     data.push(createRow3);
     data.push(createRow4);
     data.push(createRow5);
-
     return data;
   },
   createMmiaFaixaEtariaArrayRow(rows) {
@@ -1514,16 +1512,21 @@ export default {
     const createRow2 = [];
     const createRow3 = [];
     const createRow4 = [];
-
     createRow1.push('Adultos');
-    createRow1.push(rows.totalPacientesAdulto);
     createRow2.push('Pediátricos 0 aos 4');
-    createRow2.push(rows.totalPacientes04);
     createRow3.push('Pediátricos 5 aos 9');
-    createRow3.push(rows.totalPacientes59);
     createRow4.push('Pediátricos 10 aos 14');
-    createRow4.push(rows.totalPacientes1014);
-
+    if (isOnline.value && !isMobile.value) {
+      createRow1.push(rows.totalPacientesAdulto);
+      createRow2.push(rows.totalPacientes04);
+      createRow3.push(rows.totalPacientes59);
+      createRow4.push(rows.totalPacientes1014);
+    } else {
+      createRow1.push(rows[0].totalPacientesAdulto);
+      createRow2.push(rows[0].totalPacientes04);
+      createRow3.push(rows[0].totalPacientes59);
+      createRow4.push(rows[0].totalPacientes1014);
+    }
     data.push(createRow1);
     data.push(createRow2);
     data.push(createRow3);
@@ -1540,13 +1543,20 @@ export default {
     const createRow4 = [];
 
     createRow1.push('PPE');
-    createRow1.push(rows.totalPacientesPPE);
     createRow2.push('PrEP');
-    createRow2.push(rows.totalPacientesPREP);
     createRow3.push('Crianças Expostas');
-    createRow3.push(rows.totalpacientesCE);
     createRow4.push('Total de pacientes em TARV na US');
     createRow4.push('Ver Resumo Mensal');
+
+    if (isOnline.value && !isMobile.value) {
+      createRow1.push(rows.totalPacientesPPE);
+      createRow2.push(rows.totalPacientesPREP);
+      createRow3.push(rows.totalpacientesCE);
+    } else {
+      createRow1.push(rows[0].totalPacientesPPE);
+      createRow2.push(rows[0].totalPacientesPREP);
+      createRow3.push(rows[0].totalpacientesCE);
+    }
 
     data.push(createRow1);
     data.push(createRow2);
@@ -1573,12 +1583,21 @@ export default {
     } else {
       createRow.push('Total');
     }
-    createRow.push(
-      totalPatients -
-        generalRows.totalPacientesPPE -
-        generalRows.totalPacientesPREP -
-        generalRows.totalpacientesCE
-    );
+    if (isOnline.value) {
+      createRow.push(
+        totalPatients -
+          generalRows.totalPacientesPPE -
+          generalRows.totalPacientesPREP -
+          generalRows.totalpacientesCE
+      );
+    } else {
+      createRow.push(
+        totalPatients -
+          generalRows[0].totalPacientesPPE -
+          generalRows[0].totalPacientesPREP -
+          generalRows[0].totalpacientesCE
+      );
+    }
     createRow.push(cumunitaryClinic);
 
     data.push(createRow);
@@ -1626,12 +1645,22 @@ export default {
     } else {
       createRow2.push('2as Linhas');
     }
-    createRow2.push(
-      totallinha2Nr -
-        generalRows.totalPacientesPPE -
-        generalRows.totalPacientesPREP -
-        generalRows.totalpacientesCE
-    );
+    if (isOnline.value) {
+      createRow2.push(
+        totallinha2Nr -
+          generalRows.totalPacientesPPE -
+          generalRows.totalPacientesPREP -
+          generalRows.totalpacientesCE
+      );
+    } else {
+      createRow2.push(
+        totallinha2Nr -
+          generalRows[0].totalPacientesPPE -
+          generalRows[0].totalPacientesPREP -
+          generalRows[0].totalpacientesCE
+      );
+    }
+
     createRow2.push(totallinha2DC);
 
     if (fileType == 'PDF') {
@@ -1675,12 +1704,21 @@ export default {
     } else {
       createRow1.push('Total');
     }
-    createRow1.push(
-      totallinhaNr -
-        generalRows.totalPacientesPPE -
-        generalRows.totalPacientesPREP -
-        generalRows.totalpacientesCE
-    );
+    if (isOnline.value) {
+      createRow1.push(
+        totallinhaNr -
+          generalRows.totalPacientesPPE -
+          generalRows.totalPacientesPREP -
+          generalRows.totalpacientesCE
+      );
+    } else {
+      createRow1.push(
+        totallinhaNr -
+          generalRows[0].totalPacientesPPE -
+          generalRows[0].totalPacientesPREP -
+          generalRows[0].totalpacientesCE
+      );
+    }
     createRow1.push(totallinhaDC);
 
     data.push(createRow1);
@@ -1697,23 +1735,39 @@ export default {
     const createRow6 = [];
     const createRow7 = [];
     const createRow8 = [];
-
     createRow2.push('Mês-5');
-    createRow2.push(rows.dsM5);
     createRow3.push('Mês-4');
-    createRow3.push(rows.dsM4);
     createRow4.push('Mês-3');
-    createRow4.push(rows.dsM3);
     createRow5.push('Mês-2');
-    createRow5.push(rows.dsM2);
     createRow6.push('Mês-1');
-    createRow6.push(rows.dsM1);
     createRow7.push('No Mês');
-    createRow7.push(rows.dsM0);
     createRow8.push('Total');
-    createRow8.push(
-      rows.dsM5 + rows.dsM4 + rows.dsM3 + rows.dsM2 + rows.dsM1 + rows.dsM0
-    );
+    if (isOnline.value && !isMobile.value) {
+      createRow2.push(rows.dsM5);
+      createRow3.push(rows.dsM4);
+      createRow4.push(rows.dsM3);
+      createRow5.push(rows.dsM2);
+      createRow6.push(rows.dsM1);
+      createRow7.push(rows.dsM0);
+      createRow8.push(
+        rows.dsM5 + rows.dsM4 + rows.dsM3 + rows.dsM2 + rows.dsM1 + rows.dsM0
+      );
+    } else {
+      createRow2.push(rows[0].dsM5);
+      createRow3.push(rows[0].dsM4);
+      createRow4.push(rows[0].dsM3);
+      createRow5.push(rows[0].dsM2);
+      createRow6.push(rows[0].dsM1);
+      createRow7.push(rows[0].dsM0);
+      createRow8.push(
+        rows[0].dsM5 +
+          rows[0].dsM4 +
+          rows[0].dsM3 +
+          rows[0].dsM2 +
+          rows[0].dsM1 +
+          rows[0].dsM0
+      );
+    }
 
     data.push(createRow2);
     data.push(createRow3);
@@ -1732,11 +1786,17 @@ export default {
     const createRow6 = [];
     const createRow7 = [];
     const createRow8 = [];
-
-    createRow5.push(rows.dtM2);
-    createRow6.push(rows.dtM1);
-    createRow7.push(rows.dtM0);
-    createRow8.push(rows.dtM2 + rows.dtM1 + rows.dtM0);
+    if (isOnline.value && !isMobile.value) {
+      createRow5.push(rows.dtM2);
+      createRow6.push(rows.dtM1);
+      createRow7.push(rows.dtM0);
+      createRow8.push(rows.dtM2 + rows.dtM1 + rows.dtM0);
+    } else {
+      createRow5.push(rows[0].dtM2);
+      createRow6.push(rows[0].dtM1);
+      createRow7.push(rows[0].dtM0);
+      createRow8.push(rows[0].dtM2 + rows[0].dtM1 + rows[0].dtM0);
+    }
 
     data.push(createRow5);
     data.push(createRow6);
@@ -1750,10 +1810,15 @@ export default {
     const createRow6 = [];
     const createRow7 = [];
     const createRow8 = [];
-
-    createRow6.push(rows.dbM1);
-    createRow7.push(rows.dbM0);
-    createRow8.push(rows.dbM1 + rows.dbM0);
+    if (isOnline.value && !isMobile.value) {
+      createRow6.push(rows.dbM1);
+      createRow7.push(rows.dbM0);
+      createRow8.push(rows.dbM1 + rows.dbM0);
+    } else {
+      createRow6.push(rows[0].dbM1);
+      createRow7.push(rows[0].dbM0);
+      createRow8.push(rows[0].dbM1 + rows[0].dbM0);
+    }
 
     data.push(createRow6);
     data.push(createRow7);
@@ -1765,25 +1830,45 @@ export default {
     const data = [];
 
     const createRow5 = [];
-    const createRow8 = [];
 
-    createRow5.push(rows.dM);
-    createRow5.push(rows.dM + rows.dsM0 + rows.dtM0 + rows.dbM0);
-    createRow8.push(rows.dM);
-    createRow8.push(
-      rows.dM +
-        rows.dtM2 +
-        rows.dtM1 +
-        rows.dtM0 +
-        rows.dbM0 +
-        rows.dbM1 +
-        rows.dsM5 +
-        rows.dsM4 +
-        rows.dsM3 +
-        rows.dsM2 +
-        rows.dsM1 +
-        rows.dsM0
-    );
+    const createRow8 = [];
+    if (isOnline.value && !isMobile.value) {
+      createRow5.push(rows.dM);
+      createRow5.push(rows.dM + rows.dsM0 + rows.dtM0 + rows.dbM0);
+      createRow8.push(rows.dM);
+      createRow8.push(
+        rows.dM +
+          rows.dtM2 +
+          rows.dtM1 +
+          rows.dtM0 +
+          rows.dbM0 +
+          rows.dbM1 +
+          rows.dsM5 +
+          rows.dsM4 +
+          rows.dsM3 +
+          rows.dsM2 +
+          rows.dsM1 +
+          rows.dsM0
+      );
+    } else {
+      createRow5.push(rows[0].dM);
+      createRow5.push(rows[0].dM + rows[0].dsM0 + rows[0].dtM0 + rows[0].dbM0);
+      createRow8.push(rows[0].dM);
+      createRow8.push(
+        rows[0].dM +
+          rows[0].dtM2 +
+          rows[0].dtM1 +
+          rows[0].dtM0 +
+          rows[0].dbM0 +
+          rows[0].dbM1 +
+          rows[0].dsM5 +
+          rows[0].dsM4 +
+          rows[0].dsM3 +
+          rows[0].dsM2 +
+          rows[0].dsM1 +
+          rows[0].dsM0
+      );
+    }
 
     data.push(createRow5);
     data.push(createRow8);
@@ -1796,24 +1881,45 @@ export default {
     const createRow1 = [];
 
     createRow1.push('Ajuste');
-    createRow1.push(
-      Math.round(
-        ((rows.dM +
-          rows.dtM2 +
-          rows.dtM1 +
-          rows.dtM0 +
-          rows.dbM0 +
-          rows.dbM1 +
-          rows.dsM5 +
-          rows.dsM4 +
-          rows.dsM3 +
-          rows.dsM2 +
-          rows.dsM1 +
-          rows.dsM0) /
-          (rows.dM + rows.dsM0 + rows.dtM0 + rows.dbM0)) *
-          100
-      ) + '%'
-    );
+    if (isOnline.value && !isMobile.value) {
+      createRow1.push(
+        Math.round(
+          ((rows.dM +
+            rows.dtM2 +
+            rows.dtM1 +
+            rows.dtM0 +
+            rows.dbM0 +
+            rows.dbM1 +
+            rows.dsM5 +
+            rows.dsM4 +
+            rows.dsM3 +
+            rows.dsM2 +
+            rows.dsM1 +
+            rows.dsM0) /
+            (rows.dM + rows.dsM0 + rows.dtM0 + rows.dbM0)) *
+            100
+        ) + '%'
+      );
+    } else {
+      createRow1.push(
+        Math.round(
+          ((rows[0].dM +
+            rows[0].dtM2 +
+            rows[0].dtM1 +
+            rows[0].dtM0 +
+            rows[0].dbM0 +
+            rows[0].dbM1 +
+            rows[0].dsM5 +
+            rows[0].dsM4 +
+            rows[0].dsM3 +
+            rows[0].dsM2 +
+            rows[0].dsM1 +
+            rows[0].dsM0) /
+            (rows[0].dM + rows[0].dsM0 + rows[0].dtM0 + rows[0].dbM0)) *
+            100
+        ) + '%'
+      );
+    }
 
     data.push(createRow1);
 
@@ -1836,70 +1942,5 @@ export default {
   },
   getFormatDDMMYYYY(date) {
     return moment(date).format('DD-MM-YYYY');
-  },
-
-  downloadFile(fileName, fileType, blop) {
-    var titleFile = fileName + fileType;
-    console.log('result' + titleFile);
-    saveBlob2File(titleFile, blop);
-    function saveBlob2File(fileName, blob) {
-      var folder = cordova.file.externalRootDirectory + 'Download';
-      //  var folder = 'Download'
-      window.resolveLocalFileSystemURL(
-        folder,
-        function (dirEntry) {
-          createFile(dirEntry, fileName, blob);
-          // $q.loading.hide()
-        },
-        onErrorLoadFs
-      );
-    }
-    function createFile(dirEntry, fileName, blob) {
-      // Creates a new file
-      dirEntry.getFile(
-        fileName,
-        { create: true, exclusive: false },
-        function (fileEntry) {
-          writeFile(fileEntry, blob);
-        },
-        onErrorCreateFile
-      );
-    }
-
-    function writeFile(fileEntry, dataObj) {
-      // Create a FileWriter object for our FileEntry
-      fileEntry.createWriter(function (fileWriter) {
-        fileWriter.onwriteend = function () {
-          console.log('Successful file write...');
-          openFile();
-        };
-
-        fileWriter.onerror = function (error) {
-          console.log('Failed file write: ' + error);
-        };
-        fileWriter.write(dataObj);
-      });
-    }
-    function onErrorLoadFs(error) {
-      console.log(error);
-    }
-
-    function onErrorCreateFile(error) {
-      console.log('errorr: ' + error.toString());
-    }
-    function openFile() {
-      var strTitle = titleFile;
-      console.log('file system 44444: ' + strTitle);
-      var folder = cordova.file.externalRootDirectory + 'Download/' + strTitle;
-      console.log('file system 2222: ' + folder);
-      var documentURL = decodeURIComponent(folder);
-      cordova.plugins.fileOpener2.open(documentURL, 'application/pdf', {
-        error: function (e) {
-          console.log('file system open3333366: ' + e + documentURL);
-        },
-        success: function () {},
-      });
-    }
-    // }
   },
 };

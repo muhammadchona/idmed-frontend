@@ -8,7 +8,7 @@
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ serviceAux !== null ? serviceAux.code : '' }}: Lista de
-      Pacientes Monitorados Para Adesão
+      Pacientes que Levantaram Medicamentos na US
     </ListHeader>
     <ListHeader
       v-else
@@ -18,7 +18,7 @@
       @closeSection="closeSection(params)"
       bgColor="bg-orange-5"
       >Serviço {{ selectedService !== null ? selectedService.code : '' }}: Lista
-      de Pacientes Monitorados Para Adesão
+      de Pacientes que Levantaram Medicamentos na US
     </ListHeader>
     <div class="param-container">
       <q-item>
@@ -50,17 +50,17 @@ import { ref, onMounted, provide } from 'vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import FiltersInput from 'components/Reports/shared/FiltersInput.vue';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
-import PatientsMonitoredForAdhrence from 'src/services/reports/Patients/PatientsMonitoredForAdhrence';
-import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService';
+import PatientsPickedUpMedsAtUS from 'src/services/reports/Patients/PatientsPickedUpMedsAtUS';
+import PatientsPickedUpMedAtUsMobileService from 'src/services/api/report/mobile/PatientsPickedUpMedAtUsMobileService';
 const { alertError } = useSwal();
 
-const name = 'PatientsMonitoredForAdherence';
+const name = 'PatientsPickedUpMedsAtUS';
 const props = defineProps(['selectedService', 'menuSelected', 'id', 'params']);
 const totalRecords = ref(0);
 const qtyProcessed = ref(0);
 const progress = ref(0.0);
 const filterDrugStoreSection = ref('');
-const report = 'Patients_monitored_for_adherence';
+const report = 'Patients_picked_up_med_us';
 const serviceAux = ref(null);
 const resultFromLocalStorage = ref(false);
 const downloadingPdf = ref(false);
@@ -91,9 +91,7 @@ const closeSection = (params) => {
 };
 
 const initReportProcessing = (params) => {
-  PatientsWithScreeningMobileService.getDataLocalDbMonitoredForAdherence(
-    params
-  );
+  PatientsPickedUpMedAtUsMobileService.getDataLocalDb(params);
   progress.value = 100;
   params.progress = 100;
   updateParamsOnLocalStrage(params, isReportClosed);
@@ -106,13 +104,13 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
-    PatientsMonitoredForAdhrence.downloadPDF(params).then((resp) => {
+    PatientsPickedUpMedsAtUS.downloadPDF(params).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else {
-    PatientsMonitoredForAdhrence.downloadExcel(params).then((resp) => {
+    PatientsPickedUpMedsAtUS.downloadExcel(params).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;

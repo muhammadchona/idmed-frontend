@@ -1,7 +1,6 @@
 import { Model } from 'pinia-orm';
 
-
-export default class AbsentPatientReport extends Model{
+export default class AbsentPatientReport extends Model {
   static entity = 'absentPatientReports';
   static fields() {
     return {
@@ -17,7 +16,7 @@ export default class AbsentPatientReport extends Model{
 
       // fields
       nid: this.attr(''),
-      firstNames: this.attr(''),
+      name: this.attr(''),
       cellphone: this.attr(''),
       // dateBackUs: this.attr(''),
       dateMissedPickUp: this.attr(''),
@@ -25,5 +24,4 @@ export default class AbsentPatientReport extends Model{
       returnedPickUp: this.attr(''),
     };
   }
-
 }
