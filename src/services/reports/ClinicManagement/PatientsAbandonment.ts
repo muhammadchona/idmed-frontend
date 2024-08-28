@@ -149,11 +149,13 @@ export default {
     const cols = [
       'NID',
       'NOME',
+      'ENDEREÇO',
       'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
       'Data em que Identificou o Abandono ao TARV [>59 dias faltoso] (d-m-a)',
       'Data em que Regressou à Unidade Sanitária',
       'Contacto',
     ];
+
 
     autoTable(doc, {
       bodyStyles: {
@@ -166,11 +168,9 @@ export default {
         fontSize: 8,
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 55 },
-        2: { cellWidth: 55 },
-        3: { cellWidth: 55 },
-        4: { cellWidth: 40 },
+        // 0: { cellWidth: 40 },
+        // 1: { cellWidth: 40 },
+        // 2: { cellWidth: 40 },
       },
       didDrawPage: function (data) {
         const str = 'Página ' + doc.internal.getNumberOfPages();
@@ -341,10 +341,11 @@ export default {
       style: {
         showRowStripes: false,
       },
+
       columns: [
-        // { name: 'ORD', totalsRowLabel: 'none', filterButton: false },
         { name: 'NID', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'Nome', totalsRowFunction: 'none', filterButton: false },
+        { name: 'Endereço', totalsRowFunction: 'none', filterButton: false }, // Adicionando a coluna Endereço
         {
           name: 'Data que Faltou ao Levantamento de ARVs [0-59 dias faltoso] (d-m-a)',
           totalsRowFunction: 'none',
@@ -366,6 +367,7 @@ export default {
           filterButton: false,
         },
       ],
+
       rows: data,
     });
 
@@ -491,6 +493,7 @@ export default {
       const createRow = [];
       createRow.push(rows[row].nid);
       createRow.push(rows[row].name);
+      createRow.push(rows[row].address);
       createRow.push(
           moment(new Date(rows[row].dateMissedPickUp)).format('DD-MM-YYYY')
       );
