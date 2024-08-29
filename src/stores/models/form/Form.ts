@@ -10,7 +10,8 @@ export default class Form extends Model {
       id: this.string(() => uuidv4()),
       code: this.attr(''),
       description: this.attr(''),
-
+      unit: this.attr(''),
+      howToUse: this.attr(''),
       // Relationships
       drugs: this.hasMany(Drug, 'form_id'),
     };

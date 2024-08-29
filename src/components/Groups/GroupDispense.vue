@@ -483,7 +483,8 @@ const checkStock = async (curPack, prescribedDrug) => {
     prescribedDrug.drug.id,
     prescrDate,
     qtyPrescribed,
-    clinicService.currClinic().id
+    clinicService.currClinic().id,
+    curPack.weeksSupply
   );
   return resp;
 };

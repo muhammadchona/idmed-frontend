@@ -721,12 +721,18 @@ const filterFn = (val, update, abort) => {
   if (val === '') {
     update(() => {
       return (drugs.value = stringOptions.map((drug) => {
-        drug.name = String(drug.name)
-          .concat(' - (')
-          .concat(drug.packSize)
-          .concat(' ')
-          .concat(String(drug.form.description).substring(0, 4))
-          .concat(')');
+        if (
+          !String(drug.name).includes(
+            String(drug.form.description).substring(0, 4)
+          )
+        ) {
+          drug.name = String(drug.name)
+            .concat(' - (')
+            .concat(drug.packSize)
+            .concat(' ')
+            .concat(String(drug.form.description).substring(0, 4))
+            .concat(')');
+        }
         return drug;
       }));
     });

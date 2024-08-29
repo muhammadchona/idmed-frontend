@@ -51,14 +51,19 @@
                   ? amtPerTimesForPediatric
                   : amtPerTimesForAdults
               "
-              label="Toma"
+              :label="
+                prescribedDrug.drug !== null &&
+                prescribedDrug.drug !== undefined
+                  ? prescribedDrug.drug.form.howToUse
+                  : 'Tomar'
+              "
             />
             <q-input
               v-if="prescribedDrug.drug"
               outlined
               type="text"
               :disable="true"
-              v-model="prescribedDrug.drug.form.description"
+              v-model="prescribedDrug.drug.form.unit"
               label="Forma Farmacêutica"
               dense
               class="col q-ml-md"
@@ -119,7 +124,15 @@ const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
 const prescribedDrug = ref(new PrescribedDrug({ id: uuidv4() }));
 const showOnlyOfRegimen = ref(false);
 const amtPerTimesForPediatric = ref([
+  '0.1',
+  '0.2',
+  '0.3',
+  '0.4',
   '0.5',
+  '0.6',
+  '0.7',
+  '0.8',
+  '0.9',
   '1',
   '1.5',
   '2',
@@ -226,12 +239,19 @@ const filterFnDrugs = (val, update, abort) => {
   if (val === '') {
     update(() => {
       optionsDrugs.value = stringOptions.map((drug) => {
-        drug.name = String(drug.name)
-          .concat(' - (')
-          .concat(drug.packSize)
-          .concat(' ')
-          .concat(String(drug.form.description).substring(0, 4))
-          .concat(')');
+        if (
+          !String(drug.name).includes(
+            String(drug.form.description).substring(0, 4)
+          )
+        ) {
+          drug.name = String(drug.name)
+            .concat(' - (')
+            .concat(drug.packSize)
+            .concat(' ')
+            .concat(String(drug.form.description).substring(0, 4))
+            .concat(')');
+        }
+
         return drug;
       });
     });

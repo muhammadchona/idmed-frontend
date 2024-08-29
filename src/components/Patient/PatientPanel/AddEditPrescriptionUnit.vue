@@ -181,15 +181,22 @@
                 {{
                   getDrugById(props.row.drug.id) !== null &&
                   getDrugById(props.row.drug.id) !== undefined
-                    ? getDrugById(props.row.drug.id).name +
-                      ' - (' +
-                      getDrugById(props.row.drug.id).packSize +
-                      ' ' +
-                      String(
-                        getDrugFirstLevelById(props.row.drug.id).form
-                          .description
-                      ).substring(0, 4) +
-                      ')'
+                    ? getDrugById(props.row.drug.id).name.includes(
+                        String(
+                          getDrugFirstLevelById(props.row.drug.id).form
+                            .description
+                        ).substring(0, 4)
+                      )
+                      ? getDrugById(props.row.drug.id).name
+                      : getDrugById(props.row.drug.id).name +
+                        ' - (' +
+                        getDrugById(props.row.drug.id).packSize +
+                        ' ' +
+                        String(
+                          getDrugFirstLevelById(props.row.drug.id).form
+                            .description
+                        ).substring(0, 4) +
+                        ')'
                     : ''
                 }}
               </q-td>
@@ -197,9 +204,11 @@
                 {{
                   getDrugById(props.row.drug.id) !== null &&
                   getDrugById(props.row.drug.id) !== undefined
-                    ? ' Toma ' +
+                    ? getDrugFirstLevelById(props.row.drug.id).form.howToUse +
+                      ' ' +
                       props.row.amtPerTime +
                       '   ' +
+                      getDrugFirstLevelById(props.row.drug.id).form.unit +
                       ' - ' +
                       props.row.timesPerDay +
                       ' vez(es) por ' +
@@ -244,9 +253,12 @@
                         props.row.drug.packSize
                     )
                   }}
-                  Frasco(s) e ({{
-                    getQtyRemain(props.row, curPrescription.duration.weeks)
-                  }}) Unidades
+                  Frasco(s) e
+                  {{
+                    getQtyRemain(props.row, curPrescription.duration.weeks) +
+                    ' ' +
+                    getDrugFirstLevelById(props.row.drug.id).form.unit
+                  }}
                 </em>
                 <em v-else>
                   {{
@@ -585,10 +597,11 @@ const columns = [
     name: 'dosage',
     align: 'left',
     field: (row) =>
-      'Tomar ' +
+      row.drug.form.howToUse +
+      ' ' +
       row.amtPerTime +
       ' ' +
-      row.drug.form.description +
+      row.drug.form.unit +
       ' ' +
       row.timesPerDay +
       ' vez(es)' +
@@ -1416,7 +1429,8 @@ const checkStock = async (prescribedDrug, weeksSupply) => {
     prescribedDrug.drug.id,
     prescrDate,
     qtyPrescribed,
-    clinicService.currClinic().id
+    clinicService.currClinic().id,
+    weeksSupply
   );
   return resp;
 };

@@ -314,7 +314,7 @@ const qtySupplied = async (packagedDrug) => {
 const checkStock = async (packagedDrug) => {
   let resp = true;
   const quantitySupplied = drugQuantities.get(packagedDrug.drug.id);
-  console.log(quantitySupplied);
+
   if (drugsDuration.value !== '') {
     // packagedDrug.drug = drugService.getDrugWith1ById(packagedDrug.drug.id);
     const qtytoDispense = usePrescribedDrug().getQtyPrescribed(
@@ -326,7 +326,8 @@ const checkStock = async (packagedDrug) => {
       packagedDrug.drug.id,
       pickupDate.value,
       quantitySupplied,
-      clinicService.currClinic().id
+      clinicService.currClinic().id,
+      drugsDuration.weeks
     );
   }
 

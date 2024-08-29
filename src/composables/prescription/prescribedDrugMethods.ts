@@ -120,7 +120,9 @@ export function usePrescribedDrug() {
     //  alert('quantidade: ' + qty);
     // packagedDrug.quantityRemain = qtyRemainAux;
 
-    return qtyRemainAux;
+    return Number.isInteger(qtyRemainAux)
+      ? qtyRemainAux
+      : Number(qtyRemainAux).toFixed(1);
   }
 
   function getDecimalPart(number: any) {
