@@ -235,9 +235,11 @@ const promptToConfirm = (user) => {
   alertWarningAction(question).then((response) => {
     if (response) {
       if (user.accountLocked) {
-        user.accountLocked = false;
+        user.accountLocked = false; //Conta nao trancada
+        user.enabled = true; // Conta Activa
       } else {
         user.accountLocked = true;
+        user.enabled = false;
       }
       userService
         .patch(user.id, user)
