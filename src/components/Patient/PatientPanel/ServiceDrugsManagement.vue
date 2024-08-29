@@ -39,14 +39,22 @@
               {{
                 getDrugById(props.row.drug.id) !== null &&
                 getDrugById(props.row.drug.id) !== undefined
-                  ? getDrugById(props.row.drug.id).name +
-                    ' - (' +
-                    getDrugById(props.row.drug.id).packSize +
-                    ' ' +
-                    String(
-                      getDrugFirstLevelById(props.row.drug.id).form.description
-                    ).substring(0, 4) +
-                    ')'
+                  ? getDrugById(props.row.drug.id).name.includes(
+                      String(
+                        getDrugFirstLevelById(props.row.drug.id).form
+                          .description
+                      ).substring(0, 4)
+                    )
+                    ? getDrugById(props.row.drug.id).name
+                    : getDrugById(props.row.drug.id).name +
+                      ' - (' +
+                      getDrugById(props.row.drug.id).packSize +
+                      ' ' +
+                      String(
+                        getDrugFirstLevelById(props.row.drug.id).form
+                          .description
+                      ).substring(0, 4) +
+                      ')'
                   : ''
               }}
             </q-td>
@@ -58,15 +66,25 @@
               {{
                 getDrugById(props.row.drug.id) !== null &&
                 getDrugById(props.row.drug.id) !== undefined
-                  ? ' Toma ' +
-                    props.row.amtPerTime +
-                    '   ' +
-                    // getDrugById(props.row.drug.id).defaultTimes +
-                    ' - ' +
-                    // getDrugById(props.row.drug.id).defaultTreatment +
-                    props.row.timesPerDay +
-                    ' vez(es) por ' +
-                    props.row.form
+                  ? getDrugFirstLevelById(props.row.drug.id).form !== null &&
+                    getDrugFirstLevelById(props.row.drug.id).form !== undefined
+                    ? getDrugFirstLevelById(props.row.drug.id).form.howToUse +
+                      ' ' +
+                      props.row.amtPerTime +
+                      '   ' +
+                      getDrugFirstLevelById(props.row.drug.id).form.unit +
+                      ' - ' +
+                      props.row.timesPerDay +
+                      ' vez(es) por ' +
+                      props.row.form
+                    : 'Tomar' +
+                      ' ' +
+                      props.row.amtPerTime +
+                      '   ' +
+                      ' - ' +
+                      props.row.timesPerDay +
+                      ' vez(es) por ' +
+                      props.row.form
                   : ''
               }}
             </q-td>
@@ -109,9 +127,12 @@
                       props.row.drug.packSize
                   )
                 }}
-                Frasco(s) e ({{
-                  getQtyRemain(props.row, curPrescription.duration.weeks)
-                }}) Unidades
+                Frasco(s) e
+                {{
+                  getQtyRemain(props.row, curPrescription.duration.weeks) +
+                  ' ' +
+                  getDrugFirstLevelById(props.row.drug.id).form.unit
+                }}
               </em>
               <em v-else>
                 {{
@@ -347,7 +368,8 @@ const checkStock = async (packagedDrug) => {
       packagedDrug.drug.id,
       curPack.value.pickupDate,
       qtytoDispense,
-      clinicService.currClinic().id
+      clinicService.currClinic().id,
+      curPack.value.weeksSupply
     );
     qtySuppliedFlag.value = resp;
     return resp;
@@ -357,7 +379,6 @@ const checkStock = async (packagedDrug) => {
       packagedDrug.drug.id,
       clinicService.currClinic().id
     );
-    console.log(stocks);
     const validStock = stocks.filter((item) => {
       return moment(item.expireDate) >= moment(curPack.value.pickupDate);
     });

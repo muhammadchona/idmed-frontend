@@ -152,11 +152,12 @@ export function usePatient() {
   function hasNoObitOrTransferedForEpisode(patient: any) {
     const filteredData = patient.identifiers.filter(
       (item: PatientServiceIdentifier) =>
-        item.episodes.some(
-          (episode: Episode) =>
-            // episode.startStopReason.code === 'TRANSFERIDO_PARA' ||
-            episode.startStopReason.code === 'OBITO'
-        )
+        item.episodes.some((episode: Episode) => {
+          episode.startStopReason !== null &&
+          episode.startStopReason !== undefined
+            ? episode.startStopReason.code === 'OBITO'
+            : false;
+        })
     );
     if (filteredData.length >= 1) {
       return false;

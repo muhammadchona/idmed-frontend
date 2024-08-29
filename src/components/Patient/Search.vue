@@ -249,6 +249,7 @@ import districtService from 'src/services/api/districtService/districtService';
 import { v4 as uuidv4 } from 'uuid';
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -340,15 +341,11 @@ const canClear = computed(() => {
 });
 
 const onRequest = async (props) => {
-  console.log(props);
   const { page, rowsPerPage, sortBy, descending } = props.pagination;
   // const filter = props.filter;
   if (page !== actualPage.value || rowsPerPage !== actualRowsPerPage.value) {
     loading.value = true;
   }
-  // actualPage.value = page;
-  console.log(actualPage.value);
-  console.log(page);
   // emulate server
   setTimeout(() => {
     // update rowsCount with appropriate value
@@ -583,9 +580,9 @@ const goToPatientPanel = async (patient) => {
     localStorage.setItem('patientuuid', currPatient.value.id);
     await patientService.getPatientByID(currPatient.value.id);
     // Rest Calls
-    // await patientServiceIdentifierService.apiGetAllByPatientId(
-    //   currPatient.value.id
-    // );
+    await patientServiceIdentifierService.apiGetAllByPatientId(
+      currPatient.value.id
+    );
     await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
     await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
       currPatient.value.id

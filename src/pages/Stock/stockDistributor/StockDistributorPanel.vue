@@ -945,7 +945,8 @@ const validateStock = async (stock) => {
       stock.drug.id,
       currStockDistributor.value.creationDate,
       stock.quantity,
-      clinicService.currClinic().id
+      clinicService.currClinic().id,
+      8
     );
     if (hasStock) {
       doSave(stock);
