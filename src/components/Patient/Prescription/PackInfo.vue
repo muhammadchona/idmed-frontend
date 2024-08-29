@@ -34,15 +34,22 @@
                   <q-td key="drug" :props="props">
                     {{
                       props.row.drug !== null
-                        ? props.row.drug.name +
-                          ' (' +
-                          props.row.drug.packSize +
-                          ' ' +
-                          String(
-                            getDrugFirstLevelById(props.row.drug.id).form
-                              .description
-                          ).substring(0, 4) +
-                          ')'
+                        ? props.row.drug.name.includes(
+                            String(
+                              getDrugFirstLevelById(props.row.drug.id).form
+                                .description
+                            ).substring(0, 4)
+                          )
+                          ? props.row.drug.name
+                          : props.row.drug.name +
+                            ' - (' +
+                            props.row.drug.packSize +
+                            ' ' +
+                            String(
+                              getDrugFirstLevelById(props.row.drug.id).form
+                                .description
+                            ).substring(0, 4) +
+                            ')'
                         : ''
                     }}
                   </q-td>
@@ -78,7 +85,12 @@
                       "
                     >
                       {{ totalQuantityRemainFrascos(props.row.drug) }} Frasco(s)
-                      e ({{ totalUnityRemains(props.row.drug) }}) Unidades
+                      e
+                      {{
+                        totalUnityRemains(props.row.drug) +
+                        ' ' +
+                        getDrugFirstLevelById(props.row.drug.id).form.unit
+                      }}
                     </em>
                     <em v-else
                       >{{ totalQuantityRemainFrascos(props.row.drug) }}

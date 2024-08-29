@@ -227,7 +227,8 @@ export default {
     idPrescribedDrug: any,
     date: any,
     qtyPrescribed: any,
-    clinicId: any
+    clinicId: any,
+    weeks:any
   ) {
     if (isOnline.value) {
       if (date !== '') {
@@ -240,7 +241,9 @@ export default {
               '/' +
               qtyPrescribed +
               '/' +
-              clinicId
+              clinicId +
+              '/' +
+              weeks
           )
           .then((resp) => {
             closeLoading();
