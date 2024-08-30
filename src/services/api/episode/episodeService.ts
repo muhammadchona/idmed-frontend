@@ -88,6 +88,9 @@ export default {
         episode.destroy(uuid);
       });
   },
+  deletePinia(uuid: string) {
+    return episode.destroy(uuid);
+  },
   // Mobile
   addMobile(params: string) {
     return db[episodeDexie]

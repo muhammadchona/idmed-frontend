@@ -174,6 +174,7 @@ const {
   hasVisits,
   isCloseEpisode,
   isStartEpisode,
+  checkIsReferedToRemove,
 } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { isPharmacyDDDOrAPEOrDCP } = useSystemConfig();
@@ -252,6 +253,11 @@ const doOnConfirm = () => {
   episodeService
     .delete(currEpisode.value.id)
     .then((result) => {
+      const episodes = episodeService.getlast3EpisodesByIdentifier(
+        currIdentifier.value.id
+      );
+      if (checkIsReferedToRemove(episodes))
+        episodeService.deletePinia(episodes[0].id);
       alertSucess('Sucesso', 'Operação efectuada com sucesso.');
     })
     .catch((error) => {

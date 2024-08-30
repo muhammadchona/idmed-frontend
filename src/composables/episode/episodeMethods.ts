@@ -79,6 +79,16 @@ export function useEpisode() {
     if (episode.syncStatus === 'U') await episode.apiUpdate(episode);
   }
 
+  function checkIsReferedToRemove(episodes: []) {
+    const episode = episodes[0];
+    const startStopReasonList = [
+      'REFERIDO_PARA',
+      'REFERIDO_SECTOR_CLINICO',
+      'REFERIDO_DC',
+    ];
+    return startStopReasonList.includes(episode.startStopReason.code);
+  }
+
   function getClassName() {
     return 'episode';
   }
@@ -96,5 +106,6 @@ export function useEpisode() {
     lastVisit,
     syncEpisode,
     getClassName,
+    checkIsReferedToRemove,
   };
 }

@@ -198,7 +198,6 @@
     </div>
   </q-page>
 </template>
-
 <script setup>
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
@@ -268,6 +267,7 @@ onMounted(async () => {
     showloading();
     loadSettingParams();
   } else {
+    //  await clinicService.getMobile();
     await patientService.getMobile();
     console.log(patientService.getAllFromStorage().length);
     if (patientService.getAllFromStorage().length <= 0) {
@@ -303,4 +303,17 @@ watch(clinic, () => {
 });
 </script>
 
-<style></style>
+<style scoped>
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 80px; /* Adjust gap between items */
+}
+
+.col {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>
