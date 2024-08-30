@@ -25,7 +25,11 @@
                     transition-show="scale"
                     transition-hide="scale"
                   >
-                    <q-date v-model="currInventory.startDate" mask="DD-MM-YYYY">
+                    <q-date
+                      v-model="currInventory.startDate"
+                      mask="DD-MM-YYYY"
+                      :options="blockData"
+                    >
                       <div class="row items-center justify-end">
                         <q-btn
                           v-close-popup
@@ -123,6 +127,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import moment from 'moment';
 import drugService from 'src/services/api/drugService/drugService';
+import InventoryService from 'src/services/api/inventoryService/InventoryService';
 
 const { showloading, closeLoading } = useLoading();
 
@@ -250,6 +255,7 @@ const initInventory = () => {
   currInventory.value.id = uuidv4();
   currInventory.value.clinic = {};
   currInventory.value.clinic.id = currClinic.value.id;
+
   currInventory.value.startDate = dateUtils.getYYYYMMDDFromJSDate(
     dateUtils.getDateFromHyphenDDMMYYYY(currInventory.value.startDate)
   );
@@ -276,7 +282,103 @@ const activeDrugs = computed(() => {
   return drugService.getDrugsWithValidStockInList();
 });
 
+const blockData = (date) => {
+  const currentDate = new Date();
+  const startDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    21
+  );
+
+  const endDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    20
+  );
+
+  const inventory = InventoryService.hasInventoryInPreviousMonth(
+    startDate,
+    endDate
+  );
+
+  const lastDayStatisticMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    20
+  );
+
+  const lastDateStatisticBeforeMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 2,
+    20
+  );
+
+  if (!inventory) {
+    // verificar os meses antes do mes anterior se existe algum
+
+    const hastInventories = InventoryService.hasInventoryBeforeDate(
+      lastDateStatisticBeforeMonth
+    );
+
+    if (hastInventories) {
+      currInventory.value.startDate = moment
+        .utc(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 20))
+        .local()
+        .format('DD-MM-YYYY');
+      return date === moment(lastDayStatisticMonth).format('YYYY/MM/DD');
+    } else {
+      return true;
+    }
+
+    //return date <= moment(lastDayStatisticMonth).format('YYYY/MM/DD');
+  } else {
+    return true;
+    // ( date <= moment(lastDayStatisticMonth).format('YYYY/MM/DD')
+    // &&
+    // date >= moment(inventory.endDate).format('YYYY/MM/DD')
+    // );
+  }
+};
+
 onMounted(() => {
+  const currentDate = new Date();
+  const startDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    21
+  );
+
+  const endDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    20
+  );
+
+  const inventory = InventoryService.hasInventoryInPreviousMonth(
+    startDate,
+    endDate
+  );
+
+  const lastDateStatisticBeforePreviousMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    20
+  );
+
+  if (!inventory) {
+    // verificar os meses antes do mes anterior se existe algum
+    const hastInventories = InventoryService.hasInventoryBeforeDate(
+      lastDateStatisticBeforePreviousMonth
+    );
+
+    if (hastInventories) {
+      currInventory.value.startDate = moment
+        .utc(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 20))
+        .local()
+        .format('DD-MM-YYYY');
+    }
+  }
+
   currInventory.value.generic = 'true';
   if (
     currInventory.value.startDate === null ||

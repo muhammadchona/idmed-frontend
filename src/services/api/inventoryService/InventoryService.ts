@@ -61,8 +61,8 @@ export default {
     }
   },
 
-  async apiClose(id: string) {
-    return await api().patch(`/inventory/close/${id}`);
+  async apiClose(id: string, endDate: string) {
+    return await api().patch(`/inventory/close/${id}/${endDate}`);
   },
 
   async apiRemove(id: string) {
@@ -90,6 +90,65 @@ export default {
       return false;
     }
   },
+
+  hasInventoryInPreviousMonth(startDate: any, endDate: any) {
+    return inventory
+      .query()
+      .where('endDate', (value: Date) => {
+        const startDateMoment = moment(value, 'YYYY-MM-DD');
+        return (
+          startDateMoment.isSameOrAfter(startDate) &&
+          startDateMoment.isSameOrBefore(endDate)
+        );
+      })
+      .first();
+  },
+
+  isInventoryStartDateBetweenDates(startDate: any, endDate: any) {
+    const list = inventory
+      .query()
+      .where('startDate', (value: Date) => {
+        const startDateMoment = moment(value, 'YYYY-MM-DD');
+        return (
+          startDateMoment.isSameOrAfter(startDate) &&
+          startDateMoment.isSameOrBefore(endDate)
+        );
+      })
+      .get();
+    return list.length > 0;
+  },
+
+  hasInventoryBeforeDate(dateLimit: any) {
+    const items = inventory
+      .query()
+      .where('endDate', (value: Date) => {
+        const startDateMoment = moment(value, 'YYYY-MM-DD');
+        return startDateMoment.isSameOrBefore(dateLimit);
+      })
+      .get();
+    return items.length > 0;
+  },
+
+  isDateBetween21And25(dateMoment: any) {
+    const currentDate = new Date();
+    const startDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      21
+    );
+
+    const endDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      25
+    );
+    const date = moment(dateMoment, 'YYYY-MM-DD');
+    return (
+      date.isSameOrAfter(moment(startDate)) &&
+      date.isSameOrBefore(moment(endDate))
+    );
+  },
+
   // Pinia
   newInstanceEntity() {
     return inventory.getModel().$newInstance();
@@ -103,9 +162,9 @@ export default {
       .get();
   },
 
-  closeInventoryPinia(inventoryOb: any) {
+  closeInventoryPinia(inventoryOb: any, endDate: any) {
     inventoryOb.open = false;
-    inventoryOb.endDate = new Date();
+    inventoryOb.endDate = endDate;
     inventory.save(inventoryOb);
   },
 
