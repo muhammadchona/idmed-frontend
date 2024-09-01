@@ -11,14 +11,14 @@
           @click="selectTab('inventory')"
         />
         <q-tab
-          v-if="!isClinicSector && isOnline"
+          v-if="!isClinicSector"
           name="stockDistributor"
           label="Distribuicao"
           @click="selectTab('stockDistributor')"
         >
         </q-tab>
         <q-tab
-          v-if="isClinicSector && isOnline"
+          v-if="isClinicSector"
           name="confirmDistribution"
           label="Confirmar Distribuicao"
           @click="selectTab('confirmDistribution')"
@@ -45,6 +45,7 @@
               <StockTable />
             </KeepAlive>
           </q-tab-panel>
+
           <q-tab-panel name="entrance">
             <KeepAlive> <EntranceTable /></KeepAlive>
           </q-tab-panel>

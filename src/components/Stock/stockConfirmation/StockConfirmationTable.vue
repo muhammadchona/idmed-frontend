@@ -118,7 +118,7 @@ const viewStockConfirmation = (stockDistributor) => {
 
 const stockDistributors = computed(() => {
   const list = stockDistributorService.getStockDistributorConfirmation(
-    '8a8a823b81900fee018190163i0c0001'
+    clinic.value.id
   );
   if (list.length >= 0) {
     loading.value = false;

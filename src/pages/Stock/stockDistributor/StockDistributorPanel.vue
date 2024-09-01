@@ -758,8 +758,8 @@ const cancelOperation = () => {
 };
 
 const doSaveGuia = () => {
-  currStockDistributor.value.dateReceived = dateUtils.getJSDateFromDDMMYYY(
-    dateReceived.value
+  currStockDistributor.value.creationDate = dateUtils.getJSDateFromDDMMYYY(
+    creationDate.value
   ); // getJSDateFromDDMMYYY()
   currStockDistributor.value.orderNumber = orderNumber.value;
   currStockDistributor.value.clinic = currClinic.value;
@@ -768,7 +768,7 @@ const doSaveGuia = () => {
   orderNumberRef.value.validate();
   if (creationDate.value === '') {
     alertError('Preencha a data de criação da guia .');
-  } else if (currStockDistributor.value.dateReceived > new Date()) {
+  } else if (currStockDistributor.value.creationDate > new Date()) {
     alertError(
       'A data de criação da guia não pode ser superior a data corrente.'
     );
