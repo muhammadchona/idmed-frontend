@@ -50,11 +50,11 @@
                 >Ajuste Negativo</q-item-section
               >
             </q-item>
-            <q-item clickable v-close-popup>
+            <!-- <q-item clickable v-close-popup>
               <q-item-section @click="createAdjustment('LOSS')"
                 >Perdas</q-item-section
               >
-            </q-item>
+            </q-item> -->
           </q-list>
         </q-menu>
       </q-btn>

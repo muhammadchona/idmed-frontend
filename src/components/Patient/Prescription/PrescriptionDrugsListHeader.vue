@@ -128,6 +128,7 @@ import moment from 'moment';
 import { date } from 'quasar';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { useDispenseType } from 'src/composables/prescription/dispenseType';
 import durationService from 'src/services/api/duration/durationService';
 // props
 const props = defineProps(['addVisible', 'mainContainer', 'bgColor']);
@@ -140,6 +141,7 @@ const {
   getJSDateFromDDMMYYY,
 } = useDateUtils();
 const { alertSucess, alertError, alertInfo } = useSwal();
+const { getRelatedWeeks } = useDispenseType();
 const headerClass = ref('');
 const expanded = ref(false);
 const curVisitDetails = ref('');
@@ -148,6 +150,7 @@ const pickupDate = ref('');
 const drugsDuration = ref();
 
 //Inject
+const curPrescriptionDetail = inject('curPrescriptionDetail');
 const curPatientVisit = inject('curPatientVisit');
 const curPrescription = inject('curPrescription');
 const curPack = inject('curPack');
@@ -237,7 +240,16 @@ const init = () => {
     pickupDate.value = getDDMMYYYFromJSDate(
       curPrescription.value.prescriptionDate
     );
-    drugsDuration.value = curPrescription.value.duration;
+    if (
+      curPrescriptionDetail.value.dispenseType !== null &&
+      curPrescriptionDetail.value.dispenseType !== undefined
+    ) {
+      drugsDuration.value = durationService.getDurationByWeeks(
+        getRelatedWeeks(curPrescriptionDetail.value.dispenseType)
+      );
+    } else {
+      drugsDuration.value = curPrescription.value.duration;
+    }
   } else {
     pickupDate.value = getYYYYMMDDFromJSDate(moment());
     if (
