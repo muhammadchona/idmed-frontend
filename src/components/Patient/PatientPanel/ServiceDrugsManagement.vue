@@ -294,6 +294,7 @@ const drugsDuration = ref('');
 // Injection
 const curPrescription = inject('curPrescription');
 const curPatientVisitDetail = inject('curPatientVisitDetail');
+const curPrescriptionDetail = inject('curPrescriptionDetail');
 const curPack = inject('curPack');
 const validateDispense = inject('validateDispense');
 const addPatientVisitDetail = inject('addPatientVisitDetail');
@@ -429,6 +430,8 @@ watch(
 provide('showAddEditDrug', showAddEditDrug);
 provide('addPrescribedDrug', addPackagedDrug);
 provide('submittingPrescribedDrug', submittingPrescribedDrug);
+provide('curPatientVisitDetail', curPatientVisitDetail);
+provide('curPrescriptionDetail', curPrescriptionDetail);
 </script>
 
 <style></style>

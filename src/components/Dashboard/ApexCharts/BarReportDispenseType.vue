@@ -130,7 +130,7 @@ const getRegisteredPatientByDispenseType = () => {
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
   const db = {
-    name: 'Dispensa Bimensal',
+    name: 'Dispensa Bimestral',
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
   const dts = {
