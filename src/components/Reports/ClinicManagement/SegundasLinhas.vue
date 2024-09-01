@@ -90,7 +90,6 @@ const updateParamsOnLocalStrage = (params, isReportClosed) => {
 };
 
 const initReportProcessing = async (params) => {
-  console.log(params)
   progress.value = 0.001;
   if (isOnline.value) {
     updateParamsOnLocalStrage(params, isReportClosed);
