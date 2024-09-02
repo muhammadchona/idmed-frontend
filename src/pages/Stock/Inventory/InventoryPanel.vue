@@ -542,7 +542,7 @@ const endDate = computed(() => {
   );
 
   if (currInventory.value.endDate === null) {
-    const inventory = InventoryService.hasInventoryInPreviousMonth(
+    const inventory = InventoryService.getInventoryInPreviousMonth(
       startDate,
       endDate
     );
@@ -600,14 +600,12 @@ onMounted(() => {
   );
 
   inventoryTemp.value = currInventory.value;
-  const inventory = InventoryService.hasInventoryInPreviousMonth(
+  const inventory = InventoryService.getInventoryInPreviousMonth(
     startDate,
     endDate
   );
 
-  if (inventory) {
-    isDataFechoVisible.value = true;
-  } else {
+  if (!inventory) {
     isDataFechoVisible.value = true;
     const lastDateStatisticBeforePreviousMonth = new Date(
       currentDate.getFullYear(),
@@ -625,7 +623,15 @@ onMounted(() => {
         .local()
         .format('DD-MM-YYYY');
     } else {
-      isDataFechoVisible.value = true;
+      if (InventoryService.isDateBetween21And25(new Date())) {
+        // Mostrar as datas de fecho entre 21 a 25
+        isEndDateDisabled.value = false;
+        isDataFechoVisible.value = true;
+        return moment.utc(new Date()).local().format('DD-MM-YYYY');
+      } else {
+        isDataFechoVisible.value = false;
+        return moment.utc(new Date()).local().format('DD-MM-YYYY');
+      }
     }
   }
 });
@@ -660,13 +666,8 @@ const blockData = (date) => {
     'YYYY-MM-DD'
   );
 
-  const startDate20 = moment(
-    new Date(currentDate.getFullYear(), currentDate.getMonth(), 20),
-    'YYYY-MM-DD'
-  );
-
   const inventoryClosedInPreviousMonth =
-    InventoryService.hasInventoryInPreviousMonth(startDate, endDate);
+    InventoryService.getInventoryInPreviousMonth(startDate, endDate);
 
   // se startDate for deste mes.
   if (inventory.endDate === null) {
