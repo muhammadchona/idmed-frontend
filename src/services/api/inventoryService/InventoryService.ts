@@ -91,7 +91,7 @@ export default {
     }
   },
 
-  hasInventoryInPreviousMonth(startDate: any, endDate: any) {
+  getInventoryInPreviousMonth(startDate: any, endDate: any) {
     return inventory
       .query()
       .where('endDate', (value: Date) => {

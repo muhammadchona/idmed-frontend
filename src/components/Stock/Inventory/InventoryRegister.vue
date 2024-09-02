@@ -296,7 +296,7 @@ const blockData = (date) => {
     20
   );
 
-  const inventory = InventoryService.hasInventoryInPreviousMonth(
+  const inventory = InventoryService.getInventoryInPreviousMonth(
     startDate,
     endDate
   );
@@ -329,14 +329,8 @@ const blockData = (date) => {
     } else {
       return true;
     }
-
-    //return date <= moment(lastDayStatisticMonth).format('YYYY/MM/DD');
   } else {
     return true;
-    // ( date <= moment(lastDayStatisticMonth).format('YYYY/MM/DD')
-    // &&
-    // date >= moment(inventory.endDate).format('YYYY/MM/DD')
-    // );
   }
 };
 
@@ -354,7 +348,7 @@ onMounted(() => {
     20
   );
 
-  const inventory = InventoryService.hasInventoryInPreviousMonth(
+  const inventory = InventoryService.getInventoryInPreviousMonth(
     startDate,
     endDate
   );
