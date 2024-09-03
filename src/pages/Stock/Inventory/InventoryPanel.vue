@@ -186,6 +186,43 @@
                 </q-icon>
               </template>
             </q-input>
+
+            <q-input
+              dense
+              outlined
+              :disable="isEndDateDisabled"
+              class="col q-ma-sm"
+              v-model="endDate"
+              ref="dataFecho"
+              label="Data de Fecho"
+              v-if="isDataFechoVisible"
+            >
+              <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy
+                    ref="qEndDateProxy"
+                    transition-show="scale"
+                    transition-hide="scale"
+                  >
+                    <q-date
+                      v-model="endDate"
+                      mask="DD-MM-YYYY"
+                      :options="blockData"
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn
+                          v-close-popup
+                          label="Close"
+                          color="primary"
+                          flat
+                        />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+
             <q-separator class="q-mx-sm" />
             <div class="row q-pa-sm">
               <q-btn
@@ -632,6 +669,16 @@ onMounted(() => {
         isDataFechoVisible.value = false;
         return moment.utc(new Date()).local().format('DD-MM-YYYY');
       }
+    }
+  } else {
+    if (InventoryService.isDateBetween21And25(new Date())) {
+      // Mostrar as datas de fecho entre 21 a 25
+      isEndDateDisabled.value = false;
+      isDataFechoVisible.value = true;
+      return moment.utc(new Date()).local().format('DD-MM-YYYY');
+    } else {
+      isDataFechoVisible.value = false;
+      return moment.utc(new Date()).local().format('DD-MM-YYYY');
     }
   }
 });
