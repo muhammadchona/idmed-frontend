@@ -280,8 +280,6 @@ onMounted(async () => {
       loadSettingParams();
     }
   }
-  // loadSettingParamsToOffline();
-  /// loadPatientDataToOffline();
 });
 
 watch(clinic, () => {
