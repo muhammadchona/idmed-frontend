@@ -22,11 +22,7 @@ export default {
     }
   },
   get(offset: number) {
-    if (!isOnline.value) {
-      return this.getMobile();
-    } else {
-      return this.getWeb(offset);
-    }
+    return this.getWeb(offset);
   },
   patch(id: string, params: any) {
     if (!isOnline.value) {
@@ -194,11 +190,12 @@ export default {
       });
   },
 
-  getDrugDistributorList(stockDistributorId: string) {
+  getDrugDistributorList(stockDistributorId: string, clinicId: string) {
     return drugDistributor
       .query()
       .withAllRecursive(3)
       .where('stock_distributor_id', stockDistributorId)
+      .where('clinic_id', clinicId)
       .get();
   },
 };

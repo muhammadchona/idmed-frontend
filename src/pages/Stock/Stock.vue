@@ -39,6 +39,7 @@ onMounted(() => {
   StockDistributorService.get(0).then(() => {
     isExecutedDistributor.value = true;
   });
+  StockService.getStockDistributorWeb(clinic.id, 0);
   StockService.get(0, clinic.id);
   stockLevelService.get(0);
 

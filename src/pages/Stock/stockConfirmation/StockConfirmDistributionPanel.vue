@@ -664,7 +664,8 @@ const getCurrStockDistributor = () => {
 
 const loadstockObjectsList = () => {
   const stocks = DrugDistributorService.getDrugDistributorList(
-    currStockDistributor.value.id
+    currStockDistributor.value.id,
+    currClinic.value.id
   );
   console.log('Finished loading stock: ' + stocks);
   Object.keys(stocks).forEach(
@@ -686,10 +687,6 @@ const currStockDistributor = computed(() => {
 
 const activeDrugs = computed(() => {
   return drugService.getActiveDrugs();
-});
-
-const clinicSectorsList = computed(() => {
-  return clinicService.getAllClinicSectors();
 });
 
 const isEditionStep = computed(() => {

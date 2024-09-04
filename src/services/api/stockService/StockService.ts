@@ -223,6 +223,32 @@ export default {
         });
     }
   },
+
+  getStockDistributorWeb(clinicId: string, offset: number) {
+    if (offset >= 0) {
+      return api()
+        .get(
+          'stock/getStocksByStockDistributor/' +
+            clinicId +
+            '/' +
+            offset +
+            '/100'
+        )
+        .then((resp) => {
+          const stocksResp = resp.data;
+          stocksResp.forEach((stockItem) => {
+            stock.save(stockItem);
+          });
+
+          offset = offset + 100;
+          if (resp.data.length > 0) {
+            this.getStockDistributorWeb(clinicId, offset);
+          } else {
+            closeLoading();
+          }
+        });
+    }
+  },
   async checkStockStatus(
     idPrescribedDrug: any,
     date: any,

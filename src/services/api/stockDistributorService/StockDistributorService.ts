@@ -23,11 +23,7 @@ export default {
   },
 
   async get(offset: number) {
-    if (!isOnline.value) {
-      this.getMobile();
-    } else {
-      this.getWeb(offset);
-    }
+    this.getWeb(offset);
   },
   async apiUpdate(id: string, params: string) {
     if (!isOnline.value) {
