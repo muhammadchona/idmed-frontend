@@ -289,7 +289,7 @@ export default {
   },
   async doPatientsBySectorGet() {
     notifyInfo('Carregamento de Pacientes Iniciado');
-    const data2 = clinicSectorService.getAllClinicSectors();
+    const data2 = clinicService.getAllClinics();
     let clinicSectorUser = clinicService.currClinic();
     /*
     if (isPharmacyDDD(clinicService.currClinic())) {

@@ -315,6 +315,7 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import eventBus from '../../utils/eventbus';
 import NanosystemConfigsService from 'src/services/Synchronization/systemConfigs/NanosystemConfigsService';
+import NanoclinicService from 'src/services/Synchronization/clinicService/NanoclinicService';
 const { notifyError, notifySuccess } = useNotify();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -338,7 +339,7 @@ const isOpen = ref(false);
 /*
 Hook
 */
-onMounted(() => {
+onMounted(async () => {
   const tokenExpiration = sessionStorage.getItem('tokenExpiration');
   if (tokenExpiration && tokenExpiration === '0') {
     notifyError('Sessão Expirada');
@@ -376,6 +377,11 @@ onMounted(() => {
     sessionStorage.setItem('Btoa', '');
     localStorage.setItem('currInventory', '');
     localStorage.setItem('Btoa', '');
+  } else {
+    const users = await UsersService.getMobile();
+    if (users.length === 0) {
+      NanoclinicService.getFromBackEnd(0);
+    }
   }
   eventBus.on('notification', (notificationIsOpen) => {
     if (isMobile.value) {
