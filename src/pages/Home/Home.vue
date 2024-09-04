@@ -298,7 +298,7 @@ watch(clinic, () => {
         );
       }
     });
-    // getStockDistributionCount(clinic.value);
+    getStockDistributionCount(clinic.value);
   }
 });
 </script>
