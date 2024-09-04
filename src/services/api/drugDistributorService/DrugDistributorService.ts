@@ -22,11 +22,7 @@ export default {
     }
   },
   get(offset: number) {
-    if (!isOnline.value) {
-      return this.getMobile();
-    } else {
-      return this.getWeb(offset);
-    }
+    return this.getWeb(offset);
   },
   patch(id: string, params: any) {
     if (!isOnline.value) {
