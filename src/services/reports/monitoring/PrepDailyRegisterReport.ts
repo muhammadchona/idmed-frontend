@@ -722,7 +722,9 @@ export default {
       );
       createRow.push(rows[row].dispensationType);
       createRow.push(rows[row].therapeuticLine);
+      console.log(rows[row].pickupDate)
       createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate));
+      console.log(Report.getFormatDDMMYYYY(rows[row].pickupDate))
       createRow.push(Report.getFormatDDMMYYYY(rows[row].nextPickupDate));
       createRow.push(rows[row].ppe);
       createRow.push(rows[row].prep);
