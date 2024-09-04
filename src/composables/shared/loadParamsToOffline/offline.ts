@@ -65,7 +65,7 @@ export function useOffline() {
   async function loadSettingParamsToOffline() {
     //  await NanoclinicSectorTypeService.getFromBackEnd(0);
     //  await NanoclinicSectorService.getFromBackEnd(0);
-    NanoclinicService.getFromBackEnd(0);
+    //NanoclinicService.getFromBackEnd(0);
     NanoclinicSectorService.getFromBackEnd(0);
     NanodrugService.getFromBackEnd(0);
     NanoclinicalServiceService.getFromBackEnd(0);
