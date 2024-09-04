@@ -45,6 +45,7 @@ export default {
       const listaFinal = Object.values(Report.mapaDeAgrupamento(rowsAux.data));
 
       data = this.createArrayOfArrayRow(listaFinal);
+
     } else {
       rowsAux = await this.getDataLocalReport(id);
       if (rowsAux.length === 0) return 204;
@@ -222,7 +223,6 @@ export default {
       return doc.save(fileName.concat('.pdf'));
       // window.open(doc.output('bloburl'));
     } else {
-      console.log(doc);
       const pdfOutput = doc.output();
       this.downloadFile(fileName, '.pdf', pdfOutput);
     }
@@ -776,9 +776,15 @@ export default {
       createRow.push(rows[row].ageGroup_Greater_than_15);
       createRow.push(rows[row].patientType);
       createRow.push(rows[row].regime);
-      const drugs = rows[row].drugQuantityTemps;
-      const result = drugs.map((drug) => `${drug.drugName}: ${drug.quantity}`);
-      createRow.push(result.join('; \n'));
+      createRow.push(
+        Report.createDrugArrayOfArrayRow(rows[row].drugQuantityTemps).join(
+          '; \n'
+        )
+      );
+      // const drugs = rows[row].drugQuantityTemps;
+      // console.log(drugs)
+      // const result = drugs.map((drug) => `${drug.drugName}: ${drug.quantity}`);
+      // createRow.push(result.join('; \n'));
       createRow.push(rows[row].dispensationType);
       createRow.push(rows[row].therapeuticLine);
       createRow.push(Report.getFormatDDMMYYYY(rows[row].pickupDate));

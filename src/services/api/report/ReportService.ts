@@ -309,9 +309,14 @@ export default {
     return api().get('/migrationLog/printReport', { responseType: 'json' });
   },
 
+  // getFormatDDMMYYYY(date: any) {
+  //   return moment(date).format('DD-MM-YYYY');
+  // },
+
   getFormatDDMMYYYY(date: any) {
-    return moment(date).format('DD-MM-YYYY');
+    return moment.parseZone(date).format('DD-MM-YYYY');
   },
+
 
   getFormatYYYYMMDD(date: any) {
     return moment(date).format('YYYY-MM-DD');
