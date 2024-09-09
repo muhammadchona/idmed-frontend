@@ -6,7 +6,7 @@
         v-model="urlBackend"
         placeholder="URL do Servidor"
         label-color="black"
-        :suffix="urlBackend.includes('https') ? '' : '/api'"
+        :suffix="'/api'"
         clearable
       >
         <template v-slot:append> </template>
@@ -27,7 +27,6 @@ const { isMobile, isOnline } = useSystemUtils();
 const { alertError } = useSwal();
 const urlBackend = ref('http://');
 
-
 onMounted(() => {
   if (localStorage.getItem('backend_url') !== null && isMobile.value) {
     urlBackend.value = localStorage.getItem('backend_url');
@@ -37,9 +36,7 @@ onMounted(() => {
 });
 
 const saveURLBackend = () => {
-  urlBackend.value = urlBackend.value.includes('https')
-    ? urlBackend.value
-    : urlBackend.value.concat('/api');
+  urlBackend.value = urlBackend.value.concat('/api');
 
   if (urlBackend.value && isValidUrl(urlBackend.value)) {
     localStorage.setItem('backend_url', urlBackend.value);
@@ -49,7 +46,6 @@ const saveURLBackend = () => {
     alertError('Por Favor Preencha uma URL válida');
   }
 };
-
 
 const isValidUrl = (url) => {
   try {

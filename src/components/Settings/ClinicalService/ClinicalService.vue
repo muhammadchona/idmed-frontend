@@ -34,7 +34,6 @@
               icon-right="refresh"
               label="Actualizar Lista"
               no-caps
-              @click="getClinicalServicesFromProvincialServer"
             />
           </div>
           <div class="q-pa-md q-gutter-sm">
@@ -273,7 +272,7 @@ const submitClinicalService = () => {
       therapeuticalRegimen.clinical_service_id;
   });
   */
-  clinicalService.value.therapeuticRegimens = [];
+  // clinicalService.value.therapeuticRegimens = [];
   if (isNewClinicalService.value) {
     clinicalServiceService
       .post(clinicalService.value)

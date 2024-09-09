@@ -1,12 +1,15 @@
-import clinicService from 'src/services/api/clinicService/clinicService';
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
 import { LocalStorage } from 'quasar';
+import { useSystemUtils } from '../shared/systemUtils/systemUtils';
 
 export function useSystemConfig() {
+
+  const {isMobile } = useSystemUtils();
+
   function isProvincialInstalation() {
     const instalationType = systemConfigsService.getInstallationType();
 
-    if (instalationType !== null && instalationType !== undefined) {
+    if (instalationType !== null && instalationType !== undefined && !isMobile) {
       return instalationType.value === 'PROVINCIAL';
     } else return false;
   }

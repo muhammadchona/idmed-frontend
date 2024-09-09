@@ -166,6 +166,7 @@ import { computed, provide, inject, ref } from 'vue';
 // import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import packService from 'src/services/api/pack/packService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 const {
   isReferenceEpisode,
@@ -177,6 +178,7 @@ const {
   checkIsReferedToRemove,
 } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
+const { closeLoading, showloading } = useLoading();
 const { isPharmacyDDDOrAPEOrDCP } = useSystemConfig();
 //Props
 const props = defineProps(['episodeId', 'isLast']);
@@ -250,19 +252,23 @@ const removeEpisode = () => {
 };
 
 const doOnConfirm = () => {
+  showloading();
   episodeService
     .delete(currEpisode.value.id)
     .then((result) => {
       const episodes = episodeService.getlast3EpisodesByIdentifier(
         currIdentifier.value.id
       );
-      if (checkIsReferedToRemove(episodes))
+      if (checkIsReferedToRemove(episodes)) {
         episodeService.deletePinia(episodes[0].id);
+      }
+      closeLoading();
       alertSucess('Sucesso', 'Operação efectuada com sucesso.');
     })
     .catch((error) => {
       console.error(error);
       alertError('Erro ao remover o episodio');
+      closeLoading();
     });
 };
 
