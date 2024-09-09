@@ -73,7 +73,7 @@
                   <q-table
                     style="max-width: 450px; max-height: 350px"
                     title="Regimes Terapeuticos"
-                    :rows="clinicalService.therapeuticRegimens"
+                    :rows="therapeuticRegimenList"
                     :columns="columnsRegimen"
                     row-key="code"
                     v-if="onlyView && therapeuticRegimenList.length > 0"
@@ -171,10 +171,11 @@
               <div class="q-pa-md">
                 <q-table
                   title="Regimes Terapêuticos"
-                  :rows="clinicalService.therapeuticRegimens"
+                  :rows="therapeuticRegimenList"
                   :columns="columnsRegimen"
                   :filter="filter2"
                   row-key="code"
+                  selection="multiple"
                   v-model:selected="clinicalService.therapeuticRegimens"
                   class="my-sticky-header-table"
                   dense

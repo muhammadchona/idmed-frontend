@@ -361,7 +361,6 @@ import episodeService from 'src/services/api/episode/episodeService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import provinceService from 'src/services/api/provinceService/provinceService';
-import clinicSectorTypeService from 'src/services/api/clinicSectorTypeService/clinicSectorTypeService';
 import districtService from 'src/services/api/districtService/districtService';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import episodeTypeService from 'src/services/api/episodeType/episodeTypeService';
@@ -370,9 +369,9 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
-import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import facilityTypeService from 'src/services/api/facilityTypeService/facilityTypeService';
+import { useLoading } from 'src/composables/shared/loading/loading';
 
 //Declaration
 const {
@@ -387,6 +386,7 @@ const { alertSucess, alertError } = useSwal();
 const { fullName, age } = usePatient();
 const { isReferenceOrTransferenceEpisode, hasVisits } = useEpisode();
 const { remainigDurationInWeeks } = usePrescription();
+const { closeLoading, showloading } = useLoading();
 const { isOnline } = useSystemUtils();
 
 const submitting = ref(false);
@@ -882,6 +882,7 @@ const doSave = async () => {
     .apiSave(episode.value, isNewEpisode.value)
     .then(() => {
       if (isClosingEpisode.value) {
+        showloading();
         episodeService
           .apiSave(closureEpisode.value, true)
           .then(() => {
@@ -890,16 +891,20 @@ const doSave = async () => {
                 'TRANSFERIDO_PARA' ||
               closureEpisode.value.startStopReason.code === 'OBITO' ||
               closureEpisode.value.startStopReason.code ===
-                'REFERIDO_SECTOR_CLINICO'
+                'REFERIDO_SECTOR_CLINICO' ||
+              closureEpisode.value.startStopReason.code === 'REFERIDO_PARA'
             ) {
               curIdentifier.value.patient.identifiers.forEach((identifiers) => {
                 patientServiceIdentifierService.apiFetchById(identifiers.id);
+                closeLoading();
               });
+            } else {
+              closeLoading();
             }
-            console.log('Histórico Clínico de fecho criado com sucesso');
           })
           .catch((error) => {
             console.log(error);
+            closeLoading();
             alertError(
               'Aconteceu um erro ao durante a operacao de registo do Histórico Clínico de Fecho'
             );

@@ -238,9 +238,9 @@ export default {
         query.with('form');
         query.with('clinicalService', (query) => {
           query.with('identifierType');
+          query.where('clinical_service_id', clinicalServiceId);
         });
       })
-      .where('clinical_service_id', clinicalServiceId)
       .where('active', true)
       .get();
   },
