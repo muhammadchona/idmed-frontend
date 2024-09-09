@@ -722,10 +722,18 @@ const lastPatientVisit = computed(() => {
 
     if (
       listPatietVisitDetails !== null &&
-      listPatietVisitDetails !== undefined
+      listPatietVisitDetails !== undefined &&
+      listPatietVisitDetails.length !== 0
     ) {
       listPatietVisitDetails.forEach((patientvisitdetails) => {
         listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+      });
+    } else {
+      const listPatientVisits = patientVisitService.getAllFromPatient(
+        patient.value.id
+      );
+      listPatientVisits.forEach((patientvisit) => {
+        listPatietVisitIds.push(patientvisit.id);
       });
     }
     return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
@@ -736,10 +744,21 @@ const lastPatientVisit = computed(() => {
 
 const lastPatientVisitDetails = computed(() => {
   if (lastPatientVisit.value !== null && lastPatientVisit.value !== undefined) {
-    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
-      lastPatientVisit.value.id,
-      lastStartEpisode.value.id
-    );
+    const lastPatientVisitDetailsFromEpisode =
+      patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+        lastPatientVisit.value.id,
+        lastStartEpisode.value.id
+      );
+    if (
+      lastPatientVisitDetailsFromEpisode === null ||
+      lastPatientVisitDetailsFromEpisode === undefined
+    ) {
+      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
+        lastPatientVisit.value.id
+      );
+    } else {
+      return lastPatientVisitDetailsFromEpisode;
+    }
   } else {
     return null;
   }
