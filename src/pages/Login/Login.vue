@@ -519,6 +519,8 @@ const loginOffline = (encodedStringBtoA) => {
     sessionStorage.setItem('user', userLoged.username);
     sessionStorage.setItem('Btoa', encodedStringBtoA);
     sessionStorage.setItem('role_menus', userLoged.menus);
+    sessionStorage.setItem('id_token', userLoged.access_token);
+    sessionStorage.setItem('refresh_token', userLoged.refresh_token);
     router.push({ path: '/' });
   } else {
     notifyError('Utilizador bloqueado ou a senha inválida');

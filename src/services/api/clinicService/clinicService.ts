@@ -356,7 +356,7 @@ export default {
   },
 
   isClinicSector(currClinic: Clinic) {
-    return currClinic && !!currClinic.parentClinic_id;
+    return currClinic && currClinic.facilityType.type == 'clinic_sector';
   },
 
   isPrivatePharmacy(currClinic: Clinic) {
