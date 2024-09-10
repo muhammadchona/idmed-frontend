@@ -8,6 +8,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { SessionStorage } from 'quasar';
 import db from '../../../stores/dexie';
+import systemConfigsService from '../systemConfigs/systemConfigsService';
 
 const clinic = useRepo(Clinic);
 const clinicDexie = Clinic.entity;
@@ -198,13 +199,18 @@ export default {
 
   /*PINIA*/
   currClinic() {
+    const instalationType = systemConfigsService.getInstallationType();
     const clinicUser = localStorage.getItem('clinicUsers');
     if (
       (clinicUser === 'undefined' && !isProvincialInstalation()) ||
       (clinicUser === '' && !isProvincialInstalation()) ||
       clinicUser.includes('NORMAL')
     ) {
-      return clinic.withAllRecursive(2).where('mainClinic', true).first();
+      return clinic
+        .withAllRecursive(2)
+        .where('mainClinic', true)
+        .where('id', instalationType.description)
+        .first();
     } else if (clinicUser !== null && clinicUser !== '') {
       return this.getByCode(clinicUser);
     }
