@@ -528,6 +528,7 @@ import { v4 as uuidv4 } from 'uuid';
 import drugService from 'src/services/api/drugService/drugService';
 import { useDrug } from 'src/composables/drug/drugMethods';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 
 //props
 const props = defineProps(['identifier']);
@@ -688,9 +689,16 @@ const hasPrescriptionChangeMotive = computed(() => {
   return result;
 });
 const therapeuticRegimens = computed(() => {
-  return therapeuticalRegimenService.getAllTherapeuticalByclinicalService(
-    props.identifier.service.id
-  );
+  const clinicalServiceData =
+    clinicalServiceService.getClinicalServicePersonalizedById(
+      props.identifier.service.id
+    );
+  if (!clinicalServiceData || !clinicalServiceData.therapeuticRegimens) {
+    return therapeuticalRegimenService.getAllTherapeuticalByclinicalService(
+      props.identifier.service.id
+    );
+  }
+  return clinicalServiceData.therapeuticRegimens;
 });
 const therapeuticLines = computed(() => {
   return therapeuticLineService.getAllFromStorage();

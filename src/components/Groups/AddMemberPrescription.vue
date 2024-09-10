@@ -176,16 +176,10 @@ const doValidationToDispense = () => {
     member: selectedMember.value,
     used: false,
   });
-  console.log(memberPrescription);
-  // memberPrescription.id = uuidv4();
-  // memberPrescription.prescription =
-  //   curPatientVisit.value.patientVisitDetails[0].prescription;
-  // memberPrescription.member = selectedMember.value;
 
-  console.log(memberPrescription);
+
   const groupId = memberPrescription.member.group.id;
   const patientId = memberPrescription.member.patient.id;
-  // memberPrescription.member.group.clinic = memberPrescription.member.clinic;
   memberPrescription.member.group = {};
   memberPrescription.member.group.id = groupId;
   memberPrescription.member.group_id = groupId;
@@ -260,14 +254,12 @@ const doValidationToDispense = () => {
       alertSucess('Prescrição gravada com sucesso');
       submitting.value = false;
       loadedPrescriptionInfo.value = false;
-      // this.$emit('getGroupMembers', true)
     })
     .catch((error) => {
       selectedMember.value.groupMemberPrescriptions[0] = null;
       submitting.value = false;
       alertError('Ocorreu um erro ao gravar o prescrição do Membro');
     });
-  //   }
 };
 
 provide('curPatientVisit', curPatientVisit);
@@ -281,9 +273,5 @@ provide('selectedMember', selectedMember);
 .box-border {
   border: 1px solid $grey-4;
 }
-// .q-expansion-item--expanded {
-//   // border: 1px solid #000000;
-//   // border-color: coral;
-//   background-color: coral;
-// }
+
 </style>
