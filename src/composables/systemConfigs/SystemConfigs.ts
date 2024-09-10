@@ -3,13 +3,15 @@ import { LocalStorage } from 'quasar';
 import { useSystemUtils } from '../shared/systemUtils/systemUtils';
 
 export function useSystemConfig() {
-
-  const {isMobile } = useSystemUtils();
+  const { isMobile } = useSystemUtils();
 
   function isProvincialInstalation() {
     const instalationType = systemConfigsService.getInstallationType();
-
-    if (instalationType !== null && instalationType !== undefined && !isMobile) {
+    if (
+      instalationType !== null &&
+      instalationType !== undefined &&
+      !isMobile.value
+    ) {
       return instalationType.value === 'PROVINCIAL';
     } else return false;
   }
