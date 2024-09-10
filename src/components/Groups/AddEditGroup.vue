@@ -163,12 +163,7 @@
               class="q-mt-md"
               dense
             >
-              <template v-slot:append class="q-mr-none">
-                <!--   <q-btn  @click="search()" class="q-mt-md q-mb-md q-mr-none"  square color="primary" icon="search" >
-                        <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
-                      </q-btn> -->
-                <!-- <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
-              </template>
+              <template v-slot:append class="q-mr-none"> </template>
             </q-input>
             <q-btn
               @click="search()"
@@ -180,7 +175,6 @@
             >
               <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
             </q-btn>
-            <!-- <q-btn v-if="searchParam !== ''" icon="clear" @click="searchParam = '', searchResults = []" class="q-mt-md q-ml-md q-mb-md cursor-pointer" color="amber" square /> -->
           </div>
           <q-separator color="grey-13" size="1px" />
           <div class="row q-mt-none">
@@ -467,7 +461,6 @@ const search = () => {
       patientService
         .apisearchByParam(searchParam.value, clinic.value.id)
         .then((resp) => {
-          //  if (resp.data.length >= 0) {
           const patients = patientService.getPatientByClinicId(clinic.value.id);
           searchResults.value = patients.filter((patient) => {
             return (
@@ -569,12 +562,6 @@ const addPatient = (patient) => {
       // Validar paciente antes de adicionar, se o ultimo episodio e' de inicio (deve ser de inicio)  //mudar Para mobile
       let lastEpisode = {};
       patient.identifiers.forEach((identifier) => {
-        /*
-        const episodes = episodeService.getLastStartEpisodeByIdentifier(
-          identifier.id
-        );
-          */
-        //  identifier.episodes = episodes;
         let episode = null;
         if (identifier.service.code === curGroup.value.service.code) {
           episode = episodeService.lastEpisode(identifier.id);
@@ -710,7 +697,6 @@ const doSave = async () => {
           } else {
             loadMemberInfoToShowByGroupId();
           }
-          // loadMembersData();
           alertSucess('Operação efectuada com sucesso.');
           emit('close');
           SessionStorage.set('selectedGroupId', curGroup.value.id);
@@ -747,7 +733,6 @@ onMounted(() => {
   //  init()
   getGroupForEdit();
   checkFieldForEditGroup();
-  console.log(curGroup);
 });
 
 watch(

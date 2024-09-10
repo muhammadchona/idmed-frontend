@@ -21,20 +21,25 @@ export function usePatientServiceIdentifier() {
   function lastVisitPrescription(patientServiceIdentifier: any) {
     let lastVisit = '';
     patientServiceIdentifier.episodes.forEach((episode: any) => {
-      episode.patientVisitDetails.forEach((pvd: any) => {
-        if (lastVisit === null || lastVisit === '') {
-          lastVisit = pvd;
-          if (lastVisit.pack !== null && pvd.pack !== null) {
-            if (pvd.pack.pickupDate > lastVisit.pack.pickupDate) {
-              lastVisit = pvd;
-            } else {
-              lastVisit = pvd;
+      if (
+        episode.patientVisitDetails !== null &&
+        episode.patientVisitDetails !== undefined
+      ) {
+        episode.patientVisitDetails.forEach((pvd: any) => {
+          if (lastVisit === null || lastVisit === '') {
+            lastVisit = pvd;
+            if (lastVisit.pack !== null && pvd.pack !== null) {
+              if (pvd.pack.pickupDate > lastVisit.pack.pickupDate) {
+                lastVisit = pvd;
+              } else {
+                lastVisit = pvd;
+              }
             }
+          } else {
+            lastVisit = pvd;
           }
-        } else {
-          lastVisit = pvd;
-        }
-      });
+        });
+      }
     });
     return lastVisit;
   }
