@@ -5,6 +5,9 @@ import moment from 'moment';
 import { nSQL } from 'nano-sql';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import StockEntranceService from '../stockEntranceService/StockEntranceService';
+import clinicService from '../clinicService/clinicService';
+import StockService from '../stockService/StockService';
 
 const { closeLoading, showloading } = useLoading();
 
@@ -185,7 +188,12 @@ export default {
         `drugDistributor/updateDrugDistributorStatus/${record.id}/${status}`
       )
       .then((resp) => {
+        console.log(record);
         drugDistributor.save(record);
+        if (record.status === 'C') {
+          StockEntranceService.getFromBackEnd(0, record.clinic.id);
+          StockService.getFromBackEnd(0, record.clinic.id);
+        }
         return resp.data;
       });
   },
