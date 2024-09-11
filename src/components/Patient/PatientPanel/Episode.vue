@@ -119,7 +119,11 @@
             v-if="props.isLast && isLastEpisode && !isCloseEpisode(currEpisode)"
           >
             <q-btn
-              v-if="canEdit && !isPharmacyDDDOrAPEOrDCP()"
+              v-if="
+                canEdit &&
+                !isPharmacyDDDOrAPEOrDCP() &&
+                !isProvincialInstalation()
+              "
               @click="removeEpisode"
               dense
               unelevated
@@ -128,7 +132,11 @@
               class="float-right q-ml-md"
             />
             <q-btn
-              v-if="!canEdit && !isPharmacyDDDOrAPEOrDCP()"
+              v-if="
+                !canEdit &&
+                !isPharmacyDDDOrAPEOrDCP() &&
+                !isProvincialInstalation()
+              "
               @click="closeEpisode"
               dense
               unelevated
@@ -137,7 +145,11 @@
               class="float-right q-ml-md"
             />
             <q-btn
-              v-if="canEdit && !isPharmacyDDDOrAPEOrDCP()"
+              v-if="
+                canEdit &&
+                !isPharmacyDDDOrAPEOrDCP() &&
+                !isProvincialInstalation()
+              "
               @click="editEpisode"
               dense
               unelevated
@@ -179,7 +191,7 @@ const {
 } = useEpisode();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { closeLoading, showloading } = useLoading();
-const { isPharmacyDDDOrAPEOrDCP } = useSystemConfig();
+const { isPharmacyDDDOrAPEOrDCP, isProvincialInstalation } = useSystemConfig();
 //Props
 const props = defineProps(['episodeId', 'isLast']);
 //Inject

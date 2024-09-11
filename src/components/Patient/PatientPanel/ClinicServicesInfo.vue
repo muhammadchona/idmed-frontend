@@ -2,9 +2,10 @@
   <div>
     <ListHeader
       :addVisible="
-        !isProvincialInstalation() ||
-        !isProvincialInstalationPharmacysMode() ||
-        isProvincialInstalationMobileClinic()
+        (isProvincialInstalation() &&
+          isProvincialInstalationMobileClinic() &&
+          !isProvincialInstalationPharmacysMode()) ||
+        isLocalInstalation()
       "
       :mainContainer="true"
       bgColor="bg-primary"
@@ -32,7 +33,7 @@
 <script setup>
 import AddClinicService from 'components/Patient/PatientPanel/AddClinicService.vue';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
-import { provide, inject, ref, computed } from 'vue';
+import { provide, inject, ref, computed, onMounted } from 'vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 // import AddEditEpisode from 'components/Patient/PatientPanel/AddEditEpisode.vue';
@@ -48,6 +49,8 @@ const {
   isProvincialInstalation,
   isProvincialInstalationPharmacysMode,
   isProvincialInstalationMobileClinic,
+  isPharmacyDDDOrAPEOrDCP,
+  isLocalInstalation,
 } = useSystemConfig();
 const { canBeEdited } = usePatientServiceIdentifier();
 const emptyList = ref(false);
@@ -79,6 +82,20 @@ const currIdentifier = computed(() => {
   } else {
     return [];
   }
+});
+
+//Hook
+onMounted(() => {
+  console.log(isProvincialInstalation());
+  console.log(isProvincialInstalationMobileClinic());
+  /*
+  console.log(isProvincialInstalation());
+  console.log(isProvincialInstalationPharmacysMode());
+  console.log(isProvincialInstalationMobileClinic());
+  console.log(
+    !isProvincialInstalation() || !isProvincialInstalationPharmacysMode()
+  );
+  */
 });
 
 //Method
