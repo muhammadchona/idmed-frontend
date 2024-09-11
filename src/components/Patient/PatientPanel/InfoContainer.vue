@@ -81,7 +81,11 @@
             <div class="row q-my-md">
               <q-space />
               <q-btn
-                v-if="!showEndDetails && !isPharmacyDDDOrAPEOrDCP()"
+                v-if="
+                  !showEndDetails &&
+                  !isPharmacyDDDOrAPEOrDCP() &&
+                  !isProvincialInstalation()
+                "
                 unelevated
                 color="orange-5"
                 label="Editar"
@@ -92,7 +96,8 @@
                 v-if="
                   !showEndDetails &&
                   !isPharmacyDDDOrAPEOrDCP() &&
-                  !isProvincialInstalationMobileClinic()
+                  !isProvincialInstalationMobileClinic() &&
+                  !isProvincialInstalation()
                 "
                 unelevated
                 color="red"
