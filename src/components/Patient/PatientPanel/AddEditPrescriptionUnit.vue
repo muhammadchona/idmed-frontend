@@ -528,6 +528,7 @@ import { v4 as uuidv4 } from 'uuid';
 import drugService from 'src/services/api/drugService/drugService';
 import { useDrug } from 'src/composables/drug/drugMethods';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 
 //props
 const props = defineProps(['identifier']);
@@ -688,9 +689,16 @@ const hasPrescriptionChangeMotive = computed(() => {
   return result;
 });
 const therapeuticRegimens = computed(() => {
-  return therapeuticalRegimenService.getAllTherapeuticalByclinicalService(
-    props.identifier.service.id
-  );
+  const clinicalServiceData =
+    clinicalServiceService.getClinicalServicePersonalizedById(
+      props.identifier.service.id
+    );
+  if (!clinicalServiceData || !clinicalServiceData.therapeuticRegimens) {
+    return therapeuticalRegimenService.getAllTherapeuticalByclinicalService(
+      props.identifier.service.id
+    );
+  }
+  return clinicalServiceData.therapeuticRegimens;
 });
 const therapeuticLines = computed(() => {
   return therapeuticLineService.getAllFromStorage();
@@ -722,10 +730,18 @@ const lastPatientVisit = computed(() => {
 
     if (
       listPatietVisitDetails !== null &&
-      listPatietVisitDetails !== undefined
+      listPatietVisitDetails !== undefined &&
+      listPatietVisitDetails.length !== 0
     ) {
       listPatietVisitDetails.forEach((patientvisitdetails) => {
         listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+      });
+    } else {
+      const listPatientVisits = patientVisitService.getAllFromPatient(
+        patient.value.id
+      );
+      listPatientVisits.forEach((patientvisit) => {
+        listPatietVisitIds.push(patientvisit.id);
       });
     }
     return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
@@ -736,10 +752,21 @@ const lastPatientVisit = computed(() => {
 
 const lastPatientVisitDetails = computed(() => {
   if (lastPatientVisit.value !== null && lastPatientVisit.value !== undefined) {
-    return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
-      lastPatientVisit.value.id,
-      lastStartEpisode.value.id
-    );
+    const lastPatientVisitDetailsFromEpisode =
+      patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+        lastPatientVisit.value.id,
+        lastStartEpisode.value.id
+      );
+    if (
+      lastPatientVisitDetailsFromEpisode === null ||
+      lastPatientVisitDetailsFromEpisode === undefined
+    ) {
+      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
+        lastPatientVisit.value.id
+      );
+    } else {
+      return lastPatientVisitDetailsFromEpisode;
+    }
   } else {
     return null;
   }

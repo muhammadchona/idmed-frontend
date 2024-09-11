@@ -60,12 +60,14 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import NanosystemConfigsService from 'src/services/Synchronization/systemConfigs/NanosystemConfigsService';
 import drugService from 'src/services/api/drugService/drugService';
+import StockService from 'src/services/api/stockService/StockService';
+import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 
 export function useOffline() {
   async function loadSettingParamsToOffline() {
     //  await NanoclinicSectorTypeService.getFromBackEnd(0);
     //  await NanoclinicSectorService.getFromBackEnd(0);
-    NanoclinicService.getFromBackEnd(0);
+    //NanoclinicService.getFromBackEnd(0);
     NanoclinicSectorService.getFromBackEnd(0);
     NanodrugService.getFromBackEnd(0);
     NanoclinicalServiceService.getFromBackEnd(0);
@@ -97,6 +99,8 @@ export function useOffline() {
     NanoStockOperationTypeService.getFromBackEnd(0);
     NanoGroupTypeService.getFromBackEnd(0);
     NanosystemConfigsService.getFromBackEnd(0);
+    StockService.getFromBackEnd(0, clinicService.currClinic().id);
+    StockEntranceService.getFromBackEnd(0, clinicService.currClinic().id);
   }
 
   async function loadPatientDataToOffline() {

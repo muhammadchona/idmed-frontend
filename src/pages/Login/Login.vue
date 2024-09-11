@@ -232,7 +232,7 @@
                     </q-avatar>
                   </div>
                 </div>
-                <div class="row justify-center">Versão v.1.4.0 SNAPSHOT</div>
+                <div class="row justify-center">Versão v.1.4.0_3 SNAPSHOT</div>
               </q-card-section>
             </q-card>
           </transition>
@@ -315,6 +315,7 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import eventBus from '../../utils/eventbus';
 import NanosystemConfigsService from 'src/services/Synchronization/systemConfigs/NanosystemConfigsService';
+import NanoclinicService from 'src/services/Synchronization/clinicService/NanoclinicService';
 const { notifyError, notifySuccess } = useNotify();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -338,7 +339,7 @@ const isOpen = ref(false);
 /*
 Hook
 */
-onMounted(() => {
+onMounted(async () => {
   const tokenExpiration = sessionStorage.getItem('tokenExpiration');
   if (tokenExpiration && tokenExpiration === '0') {
     notifyError('Sessão Expirada');
@@ -376,6 +377,11 @@ onMounted(() => {
     sessionStorage.setItem('Btoa', '');
     localStorage.setItem('currInventory', '');
     localStorage.setItem('Btoa', '');
+  } else {
+    const users = await UsersService.getMobile();
+    if (users.length === 0) {
+      NanoclinicService.getFromBackEnd(0);
+    }
   }
   eventBus.on('notification', (notificationIsOpen) => {
     if (isMobile.value) {
@@ -513,6 +519,8 @@ const loginOffline = (encodedStringBtoA) => {
     sessionStorage.setItem('user', userLoged.username);
     sessionStorage.setItem('Btoa', encodedStringBtoA);
     sessionStorage.setItem('role_menus', userLoged.menus);
+    sessionStorage.setItem('id_token', userLoged.access_token);
+    sessionStorage.setItem('refresh_token', userLoged.refresh_token);
     router.push({ path: '/' });
   } else {
     notifyError('Utilizador bloqueado ou a senha inválida');

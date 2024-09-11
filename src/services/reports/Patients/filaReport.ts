@@ -61,9 +61,11 @@ export default {
     ];
 
     let rows = [];
-    await packService.apiGetAllByPatientId(patient.id, patientServiceIdentifier.service.code).then((resp) => {
-      rows = resp.data;
-    });
+    await packService
+      .apiGetAllByPatientId(patient.id, patientServiceIdentifier.service.code)
+      .then((resp) => {
+        rows = resp.data;
+      });
 
     const data = [];
     let saveInicialDate = new Date(1990, 1, 1);
@@ -201,8 +203,12 @@ function createDrugQuantitySuppliedArrayOfArrayRow(rows: any) {
   const data = [];
 
   for (const row in rows) {
+    console.log('RoWWW', rows[row]);
     let qtyInUnit = 'Frasco(s)';
-    if (rows[row].drug.clinicalService.code !== 'TARV') {
+    if (
+      rows[row].drug.clinical_service_id !==
+      '80A7852B-57DF-4E40-90EC-ABDE8403E01F'
+    ) {
       qtyInUnit = rows[row].drug.form.description + '(s)';
     }
 

@@ -191,8 +191,17 @@ export default {
     cellTitle.value = title;
     cellPharmParamValue.value =
       params.clinic !== null ? params.clinic.clinicName : '';
-
-    cellPharm.value = 'Farmácia';
+    // cellStartDateParamValue.value = moment(
+    //   params.startDateParam,
+    //   'DD-MM-YYYY'
+    // ).format('DD-MM-YYYY');
+    // cellEndDateParamValue.value = moment(
+    //   params.endDateParam,
+    //   'DD-MM-YYYY'
+    // ).format('DD-MM-YYYY');
+    cellStartDate.value = 'Data Início';
+    cellEndDate.value = 'Data Fim';
+    cellPharm.value = 'Unidade Sanitaria';
 
     // merge a range of cells
     worksheet.mergeCells('A1:A7');

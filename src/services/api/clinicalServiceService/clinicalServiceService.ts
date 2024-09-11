@@ -209,6 +209,7 @@ export default {
       .query()
       .with('clinicSectors')
       .with('identifierType')
+      .with('therapeuticRegimens')
       .whereId(clinicalServiceId)
       .first();
   },

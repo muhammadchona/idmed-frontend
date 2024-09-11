@@ -280,8 +280,6 @@ onMounted(async () => {
       loadSettingParams();
     }
   }
-  // loadSettingParamsToOffline();
-  /// loadPatientDataToOffline();
 });
 
 watch(clinic, () => {
@@ -293,12 +291,12 @@ watch(clinic, () => {
 
       if (isInventoryPeriod && config.value === 'LOCAL') {
         alertWarningTitle(
-          'Lembrete de Inventário',
+          'Lembrete de Inventário ',
           'Último inventário foi feito há mais de 28 dias. Por favor, efectue um novo inventário!'
         );
       }
     });
-    // getStockDistributionCount(clinic.value);
+    getStockDistributionCount(clinic.value);
   }
 });
 </script>

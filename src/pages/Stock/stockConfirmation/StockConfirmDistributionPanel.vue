@@ -71,7 +71,7 @@
       <div class="col-12 q-px-md">
         <div>
           <ListHeader
-            :addVisible="isGuiaDisplayStep"
+            :addVisible="false"
             :expandVisible="false"
             :mainContainer="true"
             @showAdd="initNewStock"
@@ -98,95 +98,100 @@
               </template>
               <template #header="props">
                 <q-tr class="text-left bg-grey-3" :props="props">
-                  <q-th style="width: 70px">{{ columns[0].label }}</q-th>
+                  <q-th style="width: 70px">{{}}</q-th>
                   <q-th class="col">{{ columns[1].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[2].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[3].label }}</q-th>
                   <q-th style="width: 190px">{{ columns[4].label }}</q-th>
-                  <q-th style="width: 120px">{{ columns[5].label }}</q-th>
-                  <q-th style="width: 150px; text-align: center">{{
-                    columns[6].label
-                  }}</q-th>
                 </q-tr>
               </template>
               <template #body="props">
                 <q-tr :props="props">
-                  <q-td key="order" :props="props">
+                  <!-- <q-td key="order" :props="props">
                     {{ index }}
+                  </q-td> -->
+
+                  <q-td auto-width>
+                    <q-btn
+                      size="sm"
+                      color="primary"
+                      round
+                      dense
+                      @click="props.expand = !props.expand"
+                      :icon="props.expand ? 'remove' : 'add'"
+                    />
                   </q-td>
+
                   <q-td key="drug" :props="props">
-                    <q-select
-                      class="col"
-                      dense
-                      outlined
-                      :disable="!props.row.enabled"
-                      ref="drug"
-                      v-model="props.row.stock.drug"
-                      :options="drugs"
-                      @filter="filterFn"
-                      option-value="id"
-                      option-label="name"
-                      label="Medicamento"
-                      use-input
-                      hide-selected
-                      fill-input
-                      input-debounce="0"
-                    >
-                      <template v-slot:no-option>
-                        <q-item>
-                          <q-item-section class="text-grey">
-                            Sem Resultados
-                          </q-item-section>
-                        </q-item>
-                      </template>
-                    </q-select>
+                    {{ props.row.drug.name }}
                   </q-td>
-
-                  <q-td key="batchNumber" :props="props">
-                    <q-input
-                      outlined
-                      v-model="props.row.stock.batchNumber"
-                      :disable="!props.row.enabled"
-                      label="Lote"
-                      dense
-                      class="col"
-                    />
+                  <q-td key="clinic" :props="props">
+                    {{ props.row.clinic.clinicName }}
                   </q-td>
-
                   <q-td key="quantity" :props="props">
-                    <q-input
-                      outlined
-                      v-model="props.row.quantity"
-                      :disable="!props.row.enabled"
-                      label="Quantidade"
-                      dense
-                      class="col"
-                    />
+                    {{ props.row.quantity }}
                   </q-td>
+
                   <q-td key="options" :props="props">
-                    <div class="col">
+                    <div class="col" v-if="props.row.status === 'P'">
                       <q-btn
-                        v-if="props.row.enabled"
+                        :loading="submitting"
                         flat
+                        size="md"
                         dense
                         round
-                        color="red"
+                        color="primary"
                         icon="done"
-                        @click="cancel(props.row)"
+                        @click="confirmRecord(props.row)"
                       />
+
                       <q-btn
-                        v-if="!props.row.enabled"
+                        size="md"
                         flat
                         dense
                         round
                         color="orange-5"
-                        icon="edit"
-                        @click="initStockEdition(props.row)"
+                        icon="clear"
+                        @click="rejectRecord(props.row)"
                       />
                     </div>
-                    <div class="col">
-                      <q-chip color="info" text-color="white"> Em Uso </q-chip>
+                    <div class="col" v-else-if="props.row.status === 'C'">
+                      <q-chip color="green" text-color="white">
+                        Confirmado
+                      </q-chip>
                     </div>
+                    <div class="col" v-else-if="props.row.status === 'R'">
+                      <q-chip color="orange" text-color="white">
+                        Rejeitado
+                      </q-chip>
+                    </div>
+                    <div class="col" v-else-if="props.row.status === 'A'">
+                      <q-chip color="red" text-color="white"> Anulado </q-chip>
+                    </div>
+                  </q-td>
+                </q-tr>
+
+                <tr v-show="props.expand">
+                  <th></th>
+                  <th align="left"><b>Fornecedor</b></th>
+                  <th align="left"><b>Lote</b></th>
+                  <th align="left"><b>Quantidade</b></th>
+                  <th align="left"><b>Data de Validade</b></th>
+                </tr>
+
+                <q-tr
+                  v-for="col in props.row.stockDistributorBatchs"
+                  :key="col.id"
+                  v-show="props.expand"
+                >
+                  <q-td> </q-td>
+                  <q-td key="manufacture">{{ col.stock.manufacture }} </q-td>
+                  <q-td key="batchNumber"> {{ col.stock.batchNumber }}</q-td>
+                  <q-td key="quantity">
+                    {{ col.quantity }}
+                  </q-td>
+                  <q-td key="expireDate">
+                    {{ formatDate(col.stock.expireDate) }}
                   </q-td>
                 </q-tr>
               </template>
@@ -204,7 +209,7 @@
                   dense
                   unelevated
                   color="primary"
-                  class="col"
+                  class="col hidden"
                   label="Imprimir"
                 />
               </template>
@@ -664,7 +669,8 @@ const getCurrStockDistributor = () => {
 
 const loadstockObjectsList = () => {
   const stocks = DrugDistributorService.getDrugDistributorList(
-    currStockDistributor.value.id
+    currStockDistributor.value.id,
+    currClinic.value.id
   );
   console.log('Finished loading stock: ' + stocks);
   Object.keys(stocks).forEach(
@@ -686,10 +692,6 @@ const currStockDistributor = computed(() => {
 
 const activeDrugs = computed(() => {
   return drugService.getActiveDrugs();
-});
-
-const clinicSectorsList = computed(() => {
-  return clinicService.getAllClinicSectors();
 });
 
 const isEditionStep = computed(() => {
