@@ -40,7 +40,7 @@ export default class Patient extends Model {
       syncStatus: this.string(''),
       hisSyncStatus: this.attr(''),
       hisProvider: this.string(''),
-
+      origin: this.attr(''),
       // Relationships
       province: this.belongsTo(Province, 'province_id'),
       attributes: this.hasMany(PatientAttribute, 'patient_id'),

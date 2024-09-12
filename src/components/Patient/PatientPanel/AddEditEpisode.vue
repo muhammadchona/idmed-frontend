@@ -837,6 +837,7 @@ const doSave = async () => {
     episode.value.patientServiceIdentifier = {};
     episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
     episode.value.patientServiceIdentifier_id = curIdentifier.value.id;
+    episode.value.origin = currClinic.value.uuid;
   } else {
     episode.value.clinicSector_id = episode.value.clinicSector.id;
     const clinicSectorId = episode.value.clinicSector.id;
@@ -876,6 +877,8 @@ const doSave = async () => {
       closureEpisode.value.patientServiceIdentifier = {};
       closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
       closureEpisode.value.patientVisitDetails = [];
+      episode.value.origin = currClinic.value.uuid;
+      closureEpisode.value.origin = currClinic.value.uuid;
     }
   }
   episodeService
