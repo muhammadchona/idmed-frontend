@@ -21,6 +21,7 @@ export default class PackagedDrug extends Model {
       drug_id: this.attr(''),
       syncStatus: this.attr(''),
       quantityRemain: this.attr(''),
+      origin: this.attr(''),
       // Relationships
       pack: this.belongsTo(Pack, 'pack_id'),
       drug: this.belongsTo(Drug, 'drug_id'),

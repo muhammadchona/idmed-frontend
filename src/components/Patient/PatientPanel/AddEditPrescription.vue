@@ -178,6 +178,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import episodeService from 'src/services/api/episode/episodeService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import clinicService from 'src/services/api/clinicService/clinicService';
 // Declaration
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
   useDateUtils();
@@ -218,6 +219,10 @@ const getIdentifierWithRefferalEpisode = computed(() => {
   );
 });
 
+const currClinic = computed(() => {
+  return clinicService.currClinic();
+});
+
 const dispenseLabel = computed(() => {
   return curPatientVisit.value.patientVisitDetails.length === 0
     ? 'Dispensar'
@@ -248,6 +253,7 @@ const doValidationToDispense = () => {
   curPatientVisit.value.patient = {};
   curPatientVisit.value.patient.id = patient.value.id;
   curPatientVisit.value.syncStatus = 'R';
+  curPatientVisit.value.origin = currClinic.value.uuid;
   submitting.value = true;
   if (
     dispenseMode.value === null ||
@@ -259,6 +265,7 @@ const doValidationToDispense = () => {
   } else {
     curPatientVisit.value.patientVisitDetails.forEach((patientVisitDetail) => {
       curPatientVisit.value.visitDate = patientVisitDetail.pack.pickupDate;
+      patientVisitDetail.origin = currClinic.value.uuid;
       patientVisitDetail.clinic = {};
       patientVisitDetail.clinic.id = patient.value.clinic_id;
       patientVisitDetail.episode = {};
@@ -269,17 +276,21 @@ const doValidationToDispense = () => {
       patientVisitDetail.pack.dispenseMode.id = dispenseMode.value.id;
       patientVisitDetail.pack.syncStatus = 'R';
       patientVisitDetail.pack.providerUuid = sessionStorage.getItem('Btoa');
+      patientVisitDetail.pack.origin = currClinic.value.uuid;
       patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug) => {
         packagedDrug.drug = {};
         packagedDrug.drug.id = packagedDrug.drug_id;
+        packagedDrug.origin = currClinic.value.uuid;
       });
       patientVisitDetail.prescription.clinic = {};
       patientVisitDetail.prescription.clinic.id = patient.value.clinic_id;
+      patientVisitDetail.prescription.origin = currClinic.value.uuid;
       patientVisitDetail.prescription.prescribedDrugs.forEach(
         (prescribedDrug) => {
           let drugID = prescribedDrug.drug.id;
           prescribedDrug.drug = {};
           prescribedDrug.drug.id = drugID;
+          prescribedDrug.origin = currClinic.value.uuid;
           // prescribedDrug.prescribedQty = 1;
         }
       );
@@ -310,6 +321,7 @@ const doValidationToDispense = () => {
 };
 
 provide('curPatientVisit', curPatientVisit);
+provide('currClinic', currClinic);
 </script>
 
 <style lang="scss">

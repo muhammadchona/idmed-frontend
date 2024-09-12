@@ -30,6 +30,7 @@ export default class PatientVisit extends Model {
         'patient_visit_id'
       ),
       patientId: this.attr(''),
+      origin: this.attr(''),
       tbScreenings: this.hasMany(TBScreening, 'patient_visit_id'),
       pregnancyScreenings: this.hasMany(PregnancyScreening, 'patient_visit_id'),
       adherenceScreenings: this.hasMany(AdherenceScreening, 'patient_visit_id'),
