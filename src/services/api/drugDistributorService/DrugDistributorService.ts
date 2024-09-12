@@ -191,8 +191,8 @@ export default {
         console.log(record);
         drugDistributor.save(record);
         if (record.status === 'C') {
-          StockEntranceService.getFromBackEnd(0, record.clinic.id);
           StockService.getFromBackEnd(0, record.clinic.id);
+          StockEntranceService.getFromBackEnd(0, record.clinic.id);
         }
         return resp.data;
       });

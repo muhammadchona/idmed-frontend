@@ -11,14 +11,14 @@
           @click="selectTab('inventory')"
         />
         <q-tab
-          v-if="!isClinicSector"
+          v-if="false"
           name="stockDistributor"
           label="Distribuicao"
           @click="selectTab('stockDistributor')"
         >
         </q-tab>
         <q-tab
-          v-if="isClinicSector"
+          v-if="false"
           name="confirmDistribution"
           label="Confirmar Distribuicao"
           @click="selectTab('confirmDistribution')"
