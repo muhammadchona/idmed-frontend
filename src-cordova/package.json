@@ -29,9 +29,7 @@
     "plugins": {
       "cordova-plugin-screen-orientation": {},
       "cordova-plugin-network-information": {},
-      "cordova-plugin-file": {
-        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
-      },
+      "cordova-plugin-file": {},
       "cordova-plugin-device": {},
       "cordova-plugin-dialogs": {},
       "cordova-plugin-splashscreen": {}

@@ -195,6 +195,7 @@
             size="25px"
             stripe
             rounded
+            :buffer="buffer"
             :value="processingInitiated ? 0.02 : progressStatus.barVal"
             color="secondary"
           >
@@ -267,7 +268,7 @@
 <script setup>
 import Province from '../../../stores/models/province/Province';
 import Clinic from '../../../stores/models/clinic/Clinic';
-import { onMounted, ref, computed, inject, provide } from 'vue';
+import {onMounted, ref, computed, inject, provide, watch} from 'vue';
 import { LocalStorage, SessionStorage } from 'quasar';
 import moment from 'moment';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
@@ -310,6 +311,7 @@ const annualPeriod = ref('');
 const submitForm = ref('');
 const downloadingXls = inject('downloadingXls');
 const downloadingPdf = inject('downloadingPdf');
+const buffer = ref(0.01)
 
 const reportParams = ref({
   id: null,
@@ -399,6 +401,16 @@ onMounted(() => {
     periodTypeSelect.value = periodTypeSelect.value;
   }
 });
+
+const startBufferProgress = () => {
+  const interval = setInterval(() => {
+    if (buffer.value >= 1) {
+      buffer.value = progressStatus.value.barVal; // Reinicia o buffer quando chegar a 100%
+    } else {
+      buffer.value += 0.01; // Aumenta o buffer em 1 unidade (1%)
+    }
+  }, 300);
+}
 
 const processingTerminated = computed(() => {
   if (retrievingFromLocalStore.value) {
@@ -589,6 +601,17 @@ const getWidthDateByPlatform = () => {
     return 'width: 100px';
   }
 };
+
+watch(
+    () => processingInitiated.value,
+    (newValue) => {
+      if (newValue) {
+        startBufferProgress(); // Inicia o buffer quando processingInitiated for true
+      } else {
+        // stopBufferProgress(); // Para o buffer quando processingInitiated for false
+      }
+    }
+);
 
 provide('initProcessing', initProcessing);
 provide('errorCount', errorCount);

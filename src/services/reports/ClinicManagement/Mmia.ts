@@ -129,6 +129,7 @@ export default {
       'Regime Terapêutico',
       'Total doentes',
       'Farmácia Comunitária',
+      'Doentes Referidos',
     ];
 
     const headData = [];
@@ -277,8 +278,10 @@ export default {
       },
       columnStyles: {
         0: { cellWidth: 13 },
-        2: { cellWidth: 15 },
+        2: { cellWidth: 15.1 },
         3: { cellWidth: 18 },
+        4: { cellWidth: 21.2 },
+
       },
       headStyles: {
         font: 'NotoSans',
@@ -306,8 +309,9 @@ export default {
         fontSize: 6,
       },
       columnStyles: {
-        1: { cellWidth: 15 },
+        1: { cellWidth: 15.1 },
         2: { cellWidth: 18 },
+        3: { cellWidth: 21.2 },
       },
       headStyles: {
         font: 'NotoSans',
@@ -736,21 +740,9 @@ export default {
     const miaTipoDoenteData = this.createMmiaTipoDoentesArrayRow(mmiaData);
     const miaFaixaEtariaData = this.createMmiaFaixaEtariaArrayRow(mmiaData);
     const miaProfilaxiaData = this.createMmiaProfilaxiaArrayRow(mmiaData);
-    const miaRegimenTotalData = this.createRegimenTotalArrayRow(
-      mmiaData,
-      isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
-    );
-    const miaLinesSumaryData = this.createLinesSumaryArrayRow(
-      mmiaData,
-      isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
-    );
-    const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(
-      mmiaData,
-      isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
-    );
+    const miaRegimenTotalData = this.createRegimenTotalArrayRow( mmiaData, isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData, 'XLS');
+    const miaLinesSumaryData = this.createLinesSumaryArrayRow( mmiaData,isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,'XLS');
+    const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(mmiaData,isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,'XLS');
     const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData);
     const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData);
     const mmiadbTypeData = this.createMmiaDispenseTypeDBArrayRow(mmiaData);
@@ -759,14 +751,12 @@ export default {
     const footer = this.createFotterTableRow();
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'FGH';
-    workbook.lastModifiedBy = 'FGH';
+    workbook.creator = 'CSAUDE';
+    workbook.lastModifiedBy = 'CSAUDE';
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
 
-    // Force workbook calculation on load
-    //workbook.calcProperties.fullCalcOnLoad = true;
     const worksheet = workbook.addWorksheet(reportName);
     const imageId = workbook.addImage({
       base64: 'data:image/png;base64,' + MOHIMAGELOG,
@@ -780,7 +770,6 @@ export default {
     const cellProvince = worksheet.getCell('C9');
     const cellPeriodo = worksheet.getCell('I1');
     const cellYear = worksheet.getCell('I8');
-
     // Get Rows
     const headerRow = worksheet.getRow(11);
 
@@ -794,6 +783,7 @@ export default {
     const colG = worksheet.getColumn('G');
     const colH = worksheet.getColumn('H');
     const colI = worksheet.getColumn('I');
+    const colJ = worksheet.getColumn('J');
 
     // Format Table Cells
     // Alignment Format
@@ -846,6 +836,7 @@ export default {
     worksheet.mergeCells('B1:B7');
     worksheet.mergeCells('C1:H7');
     worksheet.mergeCells('I1:I7');
+
     worksheet.mergeCells('A8:H8');
     worksheet.mergeCells('A9:B9');
     worksheet.mergeCells('C9:H9');
@@ -866,6 +857,7 @@ export default {
     colG.width = 10;
     colH.width = 12;
     colI.width = 13;
+    colJ.width = 14;
 
     // Add Style
     cellTitle.font =
@@ -889,7 +881,7 @@ export default {
     // Cereate Table
     worksheet.addTable({
       name: reportName,
-      ref: 'A10',
+      ref: 'A10', // Inicia na celula A10
       headerRow: true,
       totalsRow: false,
       style: {
@@ -960,10 +952,16 @@ export default {
           totalsRowFunction: 'none',
           filterButton: false,
         },
+          {
+              name: 'Doentes Referidos',
+              totalsRowFunction: 'none',
+              filterButton: false,
+          }
       ],
       rows: regimendata,
     });
-    worksheet.mergeCells(
+
+    worksheet.mergeCells( // Label "Total"
       'A' +
         (Number(worksheet.lastRow.number) + 1) +
         ':B' +
@@ -986,6 +984,7 @@ export default {
         { name: 'Total', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'toatl1', totalsRowFunction: 'none', filterButton: false },
         { name: 'total2', totalsRowFunction: 'none', filterButton: false },
+        { name: 'total3', totalsRowFunction: 'none', filterButton: false }
       ],
       rows: miaRegimenTotalData,
     });
@@ -1061,21 +1060,21 @@ export default {
       rows: miaLinesSumaryTotalData,
     });
 
-    worksheet.mergeCells('E' + RegimenTableRef + ':I' + RegimenTableRef);
+    worksheet.mergeCells('F' + RegimenTableRef + ':I' + RegimenTableRef);
     worksheet.mergeCells(
-      'E' + (RegimenTableRef + 1) + ':H' + (RegimenTableRef + 1)
+      'F' + (RegimenTableRef + 1) + ':H' + (RegimenTableRef + 1)
     );
     worksheet.mergeCells(
-      'E' + (RegimenTableRef + 2) + ':H' + (RegimenTableRef + 2)
+      'F' + (RegimenTableRef + 2) + ':H' + (RegimenTableRef + 2)
     );
     worksheet.mergeCells(
-      'E' + (RegimenTableRef + 3) + ':H' + (RegimenTableRef + 3)
+      'F' + (RegimenTableRef + 3) + ':H' + (RegimenTableRef + 3)
     );
     worksheet.mergeCells(
-      'E' + (RegimenTableRef + 4) + ':H' + (RegimenTableRef + 4)
+      'F' + (RegimenTableRef + 4) + ':H' + (RegimenTableRef + 4)
     );
     worksheet.mergeCells(
-      'E' + (RegimenTableRef + 5) + ':H' + (RegimenTableRef + 5)
+      'F' + (RegimenTableRef + 5) + ':H' + (RegimenTableRef + 5)
     );
 
     const cellTipoDoenteHeader = worksheet.getCell('F' + RegimenTableRef);
@@ -1099,21 +1098,21 @@ export default {
 
     const refFaixaEtaria = RegimenTableRef + 6;
 
-    const cellFaixaEtariaHeader = worksheet.getCell('E' + refFaixaEtaria);
+    const cellFaixaEtariaHeader = worksheet.getCell('F' + refFaixaEtaria);
 
     cellFaixaEtariaHeader.value = 'Faixa Etária dos Pacientes TARV';
-    worksheet.mergeCells('E' + refFaixaEtaria + ':I' + refFaixaEtaria);
+    worksheet.mergeCells('F' + refFaixaEtaria + ':I' + refFaixaEtaria);
     worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 1) + ':H' + (refFaixaEtaria + 1)
+      'F' + (refFaixaEtaria + 1) + ':H' + (refFaixaEtaria + 1)
     );
     worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 2) + ':H' + (refFaixaEtaria + 2)
+      'F' + (refFaixaEtaria + 2) + ':H' + (refFaixaEtaria + 2)
     );
     worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 3) + ':H' + (refFaixaEtaria + 3)
+      'F' + (refFaixaEtaria + 3) + ':H' + (refFaixaEtaria + 3)
     );
     worksheet.mergeCells(
-      'E' + (refFaixaEtaria + 4) + ':H' + (refFaixaEtaria + 4)
+      'F' + (refFaixaEtaria + 4) + ':H' + (refFaixaEtaria + 4)
     );
 
     worksheet.addTable({
@@ -1132,20 +1131,20 @@ export default {
     });
 
     const refProfilaxia = refFaixaEtaria + 5;
-    const cellProfilaxiaHeader = worksheet.getCell('E' + refProfilaxia);
+    const cellProfilaxiaHeader = worksheet.getCell('F' + refProfilaxia);
     cellFaixaEtariaHeader.value = 'Faixa Etária dos Pacientes TARV';
-    worksheet.mergeCells('E' + refProfilaxia + ':I' + refProfilaxia);
+    worksheet.mergeCells('F' + refProfilaxia + ':I' + refProfilaxia);
     worksheet.mergeCells(
-      'E' + (refProfilaxia + 1) + ':H' + (refProfilaxia + 1)
+      'F' + (refProfilaxia + 1) + ':H' + (refProfilaxia + 1)
     );
     worksheet.mergeCells(
-      'E' + (refProfilaxia + 2) + ':H' + (refProfilaxia + 2)
+      'F' + (refProfilaxia + 2) + ':H' + (refProfilaxia + 2)
     );
     worksheet.mergeCells(
-      'E' + (refProfilaxia + 3) + ':H' + (refProfilaxia + 3)
+      'F' + (refProfilaxia + 3) + ':H' + (refProfilaxia + 3)
     );
     worksheet.mergeCells(
-      'E' + (refProfilaxia + 4) + ':H' + (refProfilaxia + 4)
+      'F' + (refProfilaxia + 4) + ':H' + (refProfilaxia + 4)
     );
 
     cellProfilaxiaHeader.value = 'Profilaxia';
@@ -1165,7 +1164,7 @@ export default {
       rows: miaProfilaxiaData,
     });
 
-    const refDispenseType = refProfilaxia + 5;
+    const refDispenseType = refProfilaxia + 6;
     const cellDispenseTypeHeader = worksheet.getCell('E' + refDispenseType);
     cellDispenseTypeHeader.value = 'Tipo de Dispensa';
     worksheet.mergeCells('E' + refDispenseType + ':I' + refDispenseType);
@@ -1461,6 +1460,7 @@ export default {
       createRow.push(rows[row].regimen);
       createRow.push(rows[row].totalPatients);
       createRow.push(rows[row].cumunitaryClinic);
+      createRow.push(rows[row].totalReferidos);
 
       data.push(createRow);
     }
@@ -1569,10 +1569,12 @@ export default {
     const data = [];
     let totalPatients = 0;
     let cumunitaryClinic = 0;
+    let totalReferidos = 0;
 
     for (const row in rows) {
       totalPatients += rows[row].totalPatients;
       cumunitaryClinic += rows[row].cumunitaryClinic;
+      totalReferidos += rows[row].totalReferidos;
     }
     const createRow = [];
     if (fileType == 'PDF') {
@@ -1599,6 +1601,7 @@ export default {
       );
     }
     createRow.push(cumunitaryClinic);
+    createRow.push(totalReferidos);
 
     data.push(createRow);
 
