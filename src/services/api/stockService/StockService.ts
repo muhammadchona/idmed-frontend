@@ -254,7 +254,7 @@ export default {
     date: any,
     qtyPrescribed: any,
     clinicId: any,
-    weeks:any
+    weeks: any
   ) {
     if (isOnline.value) {
       if (date !== '') {
@@ -431,7 +431,7 @@ export default {
   },
   addBulkMobile(params: string) {
     return db[stockDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         stock.save(params);
       })

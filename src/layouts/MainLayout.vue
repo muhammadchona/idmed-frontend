@@ -332,12 +332,12 @@ const migrationConfig = computed(() => {
 const currClinic = computed(() => {
   return clinicService.currClinic();
 });
-
 /*
 const stockDistributionCount = computed(() => {
   return localStorage.getItem('stockDistributionCount');
 });
 */
+
 const currProvince = computed(() => {
   const instalationType = systemConfigsService.getInstallationType();
   if (instalationType.value === 'PROVINCIAL') {
@@ -361,6 +361,9 @@ const sync = async () => {
     .then((resp) => {
       if (resp.data.refresh_token === undefined) {
         showLoginScreen.value = true;
+      } else {
+        getPatientsToSend();
+        // getStockDistributionCount();
       }
     })
     .catch((error) => {
@@ -368,10 +371,22 @@ const sync = async () => {
       console.log(error);
     });
 };
-
+const getStockDistributionCount = () => {
+  DrugDistributorService.getDistributionsByStatus(
+    currClinic.value.id,
+    'P'
+  ).then((list) => {
+    stockDistributionCount.value = list.length;
+    localStorage.setItem(
+      'stockDistributionCount',
+      stockDistributionCount.value
+    );
+  });
+};
 const wipeDataMobile = async () => {
   getPatientsVisitToWipe();
 };
 provide('stockDistributionCount', stockDistributionCount);
 provide('showLoginScreen', showLoginScreen);
+// provide('getStockDistributionCount', getStockDistributionCount);
 </script>

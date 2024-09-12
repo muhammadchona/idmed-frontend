@@ -93,7 +93,7 @@ export default {
 
   addBulkMobile(params: string) {
     return db[stockEntranceDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         stockEntrance.save(params);
       })
