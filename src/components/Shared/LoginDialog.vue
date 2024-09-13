@@ -91,7 +91,8 @@ const isPwd = ref(true);
 const submitting = ref(false);
 const showLoginScreen = inject('showLoginScreen');
 const { getPatientsToSend } = sendData();
-
+const stockDistributionCount = inject('stockDistributionCount');
+const getStockDistributionCount = inject('getStockDistributionCount');
 const authUser = async () => {
   submitting.value = true;
   UsersService.login({
@@ -104,6 +105,7 @@ const authUser = async () => {
     sessionStorage.setItem('refresh_token', response.data.refresh_token);
     showLoginScreen.value = false;
     getPatientsToSend();
+    //  getStockDistributionCount();
   });
 };
 </script>

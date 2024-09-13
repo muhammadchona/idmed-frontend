@@ -308,6 +308,12 @@ const onlyView = inject('onlyView');
 
 // Hook
 onMounted(() => {
+  patientVisit.value.origin = currClinic.value.uuid;
+  vitalSignsScreening.value.origin = currClinic.value.uuid;
+  tBScreening.value.origin = currClinic.value.uuid;
+  pregnancyScreening.value.origin = currClinic.value.uuid;
+  adherenceScreening.value.origin = currClinic.value.uuid;
+  rAMScreening.value.origin = currClinic.value.uuid;
   if (editMode.value) {
     patientVisit.value = editPatientVisit.value;
     visitDate.value = getDDMMYYYFromJSDate(editPatientVisit.value.visitDate);
@@ -343,6 +349,11 @@ onMounted(() => {
   }
 });
 // Computed
+
+const currClinic = computed(() => {
+  return clinicService.currClinic();
+});
+
 const imcDescription = computed(() => {
   let imcDesc = '';
   const imc = vitalSignsScreening.value.imc;

@@ -23,6 +23,7 @@ export default class PatientServiceIdentifier extends Model {
       patient_id: this.attr(''),
       clinic_id: this.attr(''),
       syncStatus: this.attr(''),
+      origin: this.attr(''),
       // Relationships
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
       service: this.belongsTo(ClinicalService, 'service_id'),

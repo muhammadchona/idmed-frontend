@@ -23,6 +23,7 @@ export default class Episode extends Model {
       isLast: this.boolean(false),
       referralClinic_id: this.attr(''),
       syncStatus: this.attr(''),
+      origin: this.attr(''),
       // Relationships
       referralClinic: this.belongsTo(Clinic, 'referralClinic_id'),
       startStopReason: this.belongsTo(StartStopReason, 'startStopReason_id'),

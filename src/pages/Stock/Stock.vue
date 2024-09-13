@@ -34,12 +34,14 @@ onMounted(() => {
   StockAlertService.apiGetStockAlertAll(clinic.id).then(() => {
     isExecutedStockAlert.value = true;
   });
+  /*
   StockDistributorBatchService.get(0);
   DrugDistributorService.get(0);
   StockDistributorService.get(0).then(() => {
     isExecutedDistributor.value = true;
   });
   StockService.getStockDistributorWeb(clinic.id, 0);
+    */
   StockService.get(0, clinic.id);
   stockLevelService.get(0);
 

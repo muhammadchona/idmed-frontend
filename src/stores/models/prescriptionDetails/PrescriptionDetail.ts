@@ -20,6 +20,7 @@ export default class PrescriptionDetail extends Model {
       dispense_type_id: this.attr(''),
       spetialPrescriptionMotive_id: this.attr(''),
       syncStatus: this.attr(''),
+      origin: this.attr(''),
       // Relationships
       prescription: this.belongsTo(Prescription, 'prescription_id'),
       therapeuticLine: this.belongsTo(TherapeuticLine, 'therapeutic_line_id'),

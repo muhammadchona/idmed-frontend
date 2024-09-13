@@ -273,6 +273,7 @@ onMounted(async () => {
     if (patientService.getAllFromStorage().length <= 0) {
       showloading();
       loadSettingParamsToOffline();
+      //   getStockDistributionCount(clinic.value);
       setTimeout(() => {
         loadPatientDataToOffline();
       }, 5000);
@@ -296,7 +297,7 @@ watch(clinic, () => {
         );
       }
     });
-    getStockDistributionCount(clinic.value);
+    // getStockDistributionCount(clinic.value);
   }
 });
 </script>

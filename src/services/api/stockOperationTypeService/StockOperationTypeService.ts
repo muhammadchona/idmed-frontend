@@ -44,7 +44,7 @@ export default {
   //mobile
   addBulkMobile(params: string) {
     return db[stockOperationDexie]
-      .bulkAdd(params)
+      .bulkPut(params)
       .then(() => {
         stockOperationRepo.save(params);
       })

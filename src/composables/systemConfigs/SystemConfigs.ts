@@ -3,7 +3,7 @@ import { LocalStorage } from 'quasar';
 import { useSystemUtils } from '../shared/systemUtils/systemUtils';
 
 export function useSystemConfig() {
-  const { isMobile } = useSystemUtils();
+  const { isMobile, website } = useSystemUtils();
 
   function isProvincialInstalation() {
     const instalationType = systemConfigsService.getInstallationType();
@@ -87,6 +87,13 @@ export function useSystemConfig() {
       return instalationType.value === 'PROVINCIAL' && isMobileClinic();
     } else return false;
   }
+
+  function isLocalInstalation() {
+    const instalationType = systemConfigsService.getInstallationType();
+    if (instalationType !== null && instalationType !== undefined) {
+      return instalationType.value === 'LOCAL';
+    } else return false;
+  }
   return {
     isProvincialInstalation,
     localProvincialInstalationCode,
@@ -98,5 +105,6 @@ export function useSystemConfig() {
     isOnlyPharmacyDDDO,
     isOnlyComunitaryDispense,
     isUserDCP,
+    isLocalInstalation,
   };
 }
