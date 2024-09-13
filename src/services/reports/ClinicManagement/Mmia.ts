@@ -98,17 +98,17 @@ export default {
     const miaRegimenTotalData = this.createRegimenTotalArrayRow(
       mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
+      'PDF'
     );
     const miaLinesSumaryData = this.createLinesSumaryArrayRow(
       mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
+      'PDF'
     );
     const miaLinesSumaryTotalData = this.createLinesSumaryTotalArrayRow(
       mmiaData,
       isOnline.value ? mmiaData.mmiaRegimenSubReportList : mmiaRegimenData,
-      'XLS'
+      'PDF'
     );
     const mmiadsTypeData = this.createMmiaDispenseTypeDSArrayRow(mmiaData);
     const mmiadtTypeData = this.createMmiaDispenseTypeDTArrayRow(mmiaData);
@@ -327,7 +327,7 @@ export default {
       margin: { right: 90.1 },
     });
 
-    const hirdTableHeigth = doc.lastAutoTable.finalY;
+    const thirdTableHeigth = doc.lastAutoTable.finalY;
 
     autoTable(doc, {
       // Quarta  tabela (Linhas Terapêuticas)
@@ -338,15 +338,20 @@ export default {
         fontSize: 6,
       },
       columnStyles: {
+        // 0: { fillColor: [240, 241, 242] },
+        // 1: { cellWidth: 15 },
+        // 2: { cellWidth: 18 },
+
         0: { fillColor: [240, 241, 242] },
-        1: { cellWidth: 15 },
-        2: { cellWidth: 18 },
+        // 2: { cellWidth: 15.1 },
+        // 3: { cellWidth: 18 },
+        // 4: { cellWidth: 21.2 },
       },
       head: [
         [
           {
             content: 'Linhas Terapêuticas\n',
-            colSpan: 3,
+            colSpan: 4,
             styles: { halign: 'center', fillColor: [75, 76, 77] },
           },
         ],
@@ -361,7 +366,7 @@ export default {
         maxCellHeight: 4,
       },
       body: miaLinesSumaryData,
-      startY: hirdTableHeigth + 1,
+      startY: thirdTableHeigth + 1,
       margin: { right: 90.1 },
     });
 
@@ -376,8 +381,11 @@ export default {
         fontSize: 6,
       },
       columnStyles: {
-        1: { cellWidth: 15 },
+        // 1: { cellWidth: 15 },
+        // 2: { cellWidth: 18 },
+        1: { cellWidth: 15.1 },
         2: { cellWidth: 18 },
+        3: { cellWidth: 21.2 },
       },
       headStyles: {
         halign: 'center',
@@ -850,9 +858,9 @@ export default {
     // add width size to Columns
     colA.width = 13;
     colB.width = 70;
-    colC.width = 10;
-    colD.width = 9;
-    colE.width = 10;
+    colC.width = 15;
+    colD.width = 15;
+    colE.width = 15;
     colF.width = 9;
     colG.width = 10;
     colH.width = 12;
@@ -992,7 +1000,7 @@ export default {
     worksheet.mergeCells(
       'A' +
         (Number(worksheet.lastRow.number) + 1) +
-        ':D' +
+        ':E' +
         (Number(worksheet.lastRow.number) + 1)
     );
 
@@ -1032,6 +1040,7 @@ export default {
         { name: 'Total', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'toatl1', totalsRowFunction: 'none', filterButton: false },
         { name: 'total2', totalsRowFunction: 'none', filterButton: false },
+        { name: 'total3', totalsRowFunction: 'none', filterButton: false },
       ],
       rows: miaLinesSumaryData,
     });
@@ -1056,6 +1065,7 @@ export default {
         { name: 'Total', totalsRowLabel: 'Totals:', filterButton: false },
         { name: 'toatl1', totalsRowFunction: 'none', filterButton: false },
         { name: 'total2', totalsRowFunction: 'none', filterButton: false },
+        { name: 'total3', totalsRowFunction: 'none', filterButton: false },
       ],
       rows: miaLinesSumaryTotalData,
     });
@@ -1585,21 +1595,7 @@ export default {
     } else {
       createRow.push('Total');
     }
-    if (isOnline.value) {
-      createRow.push(
-        totalPatients -
-          generalRows.totalPacientesPPE -
-          generalRows.totalPacientesPREP -
-          generalRows.totalpacientesCE
-      );
-    } else {
-      createRow.push(
-        totalPatients -
-          generalRows[0].totalPacientesPPE -
-          generalRows[0].totalPacientesPREP -
-          generalRows[0].totalpacientesCE
-      );
-    }
+    createRow.push(totalPatients);
     createRow.push(cumunitaryClinic);
     createRow.push(totalReferidos);
 
@@ -1615,14 +1611,21 @@ export default {
     let totallinha1DC = 0;
     let totallinha2DC = 0;
     let totallinha3DC = 0;
+    let totallinha1Ref = 0;
+    let totallinha2Ref = 0;
+    let totallinha3Ref = 0;
 
     for (const row in rows) {
       totallinha1Nr += rows[row].totalline1;
       totallinha1DC += rows[row].totaldcline1;
+      totallinha1Ref += rows[row].totalrefline1;
       totallinha2Nr += rows[row].totalline2;
       totallinha2DC += rows[row].totaldcline2;
+      totallinha2Ref += rows[row].totalrefline2;
       totallinha3Nr += rows[row].totalline3;
       totallinha3DC += rows[row].totaldcline3;
+      totallinha3Ref += rows[row].totalrefline3;
+
     }
     const createRow1 = [];
     const createRow2 = [];
@@ -1638,33 +1641,35 @@ export default {
     }
     createRow1.push(totallinha1Nr);
     createRow1.push(totallinha1DC);
+    createRow1.push(totallinha1Ref);
 
     if (fileType == 'PDF') {
       createRow2.push({
-        // colSpan: 1,
         content: '2as Linhas',
         styles: { halign: 'right' },
       });
     } else {
       createRow2.push('2as Linhas');
     }
-    if (isOnline.value) {
-      createRow2.push(
-        totallinha2Nr -
-          generalRows.totalPacientesPPE -
-          generalRows.totalPacientesPREP -
-          generalRows.totalpacientesCE
-      );
+    console.log(fileType)
+    if (fileType == 'PDF') {
+      createRow2.push({
+        content: totallinha2Nr,
+        styles: {cellWidth: 15.1},
+      });
+      createRow2.push({
+        content: totallinha2DC,
+        styles: {cellWidth: 18},
+      });
+      createRow2.push({
+        content: totallinha2Ref,
+        styles: {cellWidth: 21.2},
+      });
     } else {
-      createRow2.push(
-        totallinha2Nr -
-          generalRows[0].totalPacientesPPE -
-          generalRows[0].totalPacientesPREP -
-          generalRows[0].totalpacientesCE
-      );
+      createRow2.push(totallinha2Nr)
+      createRow2.push(totallinha2DC)
+      createRow2.push(totallinha2Ref)
     }
-
-    createRow2.push(totallinha2DC);
 
     if (fileType == 'PDF') {
       createRow3.push({
@@ -1677,6 +1682,7 @@ export default {
     }
     createRow3.push(totallinha3Nr);
     createRow3.push(totallinha3DC);
+    createRow3.push(totallinha3Ref);
 
     data.push(createRow1);
     data.push(createRow2);
@@ -1688,14 +1694,12 @@ export default {
     const data = [];
     let totallinhaNr = 0;
     let totallinhaDC = 0;
+    let totallinhaRefidos = 0;
 
     for (const row in rows) {
-      totallinhaNr +=
-        rows[row].totalline1 + rows[row].totalline2 + rows[row].totalline3;
-      totallinhaDC +=
-        rows[row].totaldcline1 +
-        rows[row].totaldcline2 +
-        rows[row].totaldcline3;
+      totallinhaNr += rows[row].totalline1 + rows[row].totalline2 + rows[row].totalline3;
+      totallinhaDC += rows[row].totaldcline1 + rows[row].totaldcline2 + rows[row].totaldcline3;
+      totallinhaRefidos += rows[row].totalrefline1 + rows[row].totalrefline2 + rows[row].totalrefline3;
     }
     const createRow1 = [];
     if (fileType == 'PDF') {
@@ -1707,22 +1711,10 @@ export default {
     } else {
       createRow1.push('Total');
     }
-    if (isOnline.value) {
-      createRow1.push(
-        totallinhaNr -
-          generalRows.totalPacientesPPE -
-          generalRows.totalPacientesPREP -
-          generalRows.totalpacientesCE
-      );
-    } else {
-      createRow1.push(
-        totallinhaNr -
-          generalRows[0].totalPacientesPPE -
-          generalRows[0].totalPacientesPREP -
-          generalRows[0].totalpacientesCE
-      );
-    }
+
+    createRow1.push(totallinhaNr);
     createRow1.push(totallinhaDC);
+    createRow1.push(totallinhaRefidos);
 
     data.push(createRow1);
 
