@@ -9,7 +9,7 @@ import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import PatientsPickedUpMedAtUsMobileService from 'src/services/api/report/mobile/PatientsPickedUpMedAtUsMobileService.js';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 const { isMobile, isOnline } = useSystemUtils();
-
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const reportName = 'RelatorioDePacientesQueLevantaramNaUS';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
@@ -20,7 +20,7 @@ const fileName = reportName.concat(
 
 const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
+//const fontPath = '/src/assets/NotoSans-Regular.ttf';
 export default {
   async downloadPDF(params: any) {
     const fontBase64 = await fetchFontAsBase64(fontPath);
@@ -39,7 +39,7 @@ export default {
       await PatientsPickedUpMedAtUsMobileService.localDbGetAllByReportId(
         params.id
       );
-
+    if (result.length === 0) return 204;
     const firstObject = result[0];
     /*
       Fill Table
@@ -158,6 +158,7 @@ export default {
       await PatientsPickedUpMedAtUsMobileService.localDbGetAllByReportId(
         params.id
       );
+    if (result.length === 0) return 204;
     const rows = result;
     const data = this.createArrayOfArrayRow(rows);
     console.log(data);

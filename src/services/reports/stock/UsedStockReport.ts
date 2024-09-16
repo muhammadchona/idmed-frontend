@@ -9,7 +9,7 @@ import UsedStockMobileService from 'src/services/api/report/mobile/UsedStockMobi
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
-
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isOnline, isMobile } = useSystemUtils();
 
 const logoTitle =

@@ -10,6 +10,7 @@ import AbsentPatientMobileService from 'src/services/api/report/mobile/AbsentPat
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
 
 const reportName = 'PacientesFaltosos';
@@ -19,7 +20,7 @@ const title = "Relatório de Pacientes Faltosos ao \n Levantamento de ARV's";
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
+// const fontPath = '/src/assets/NotoSans-Regular.ttf';
 export default {
   async downloadPDF(id, fileType, params) {
     const clinic = clinicService.currClinic();
@@ -114,6 +115,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
       },
@@ -155,6 +157,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 8,
