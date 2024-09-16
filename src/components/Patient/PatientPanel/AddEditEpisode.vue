@@ -895,7 +895,8 @@ const doSave = async () => {
               closureEpisode.value.startStopReason.code === 'OBITO' ||
               closureEpisode.value.startStopReason.code ===
                 'REFERIDO_SECTOR_CLINICO' ||
-              closureEpisode.value.startStopReason.code === 'REFERIDO_PARA'
+              closureEpisode.value.startStopReason.code === 'REFERIDO_PARA' ||
+              closureEpisode.value.startStopReason.code === 'REFERIDO_DC'
             ) {
               curIdentifier.value.patient.identifiers.forEach((identifiers) => {
                 patientServiceIdentifierService.apiFetchById(identifiers.id);

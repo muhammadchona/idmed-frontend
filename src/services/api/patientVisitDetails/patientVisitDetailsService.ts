@@ -9,6 +9,7 @@ import clinicalServiceService from '../clinicalServiceService/clinicalServiceSer
 import dispenseTypeService from '../dispenseType/dispenseTypeService';
 import moment from 'moment';
 import prescriptionService from '../prescription/prescriptionService';
+import ChunkArray from 'src/utils/ChunkArray';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
 const patientVisitDetailsDexie = PatientVisitDetails.entity;
@@ -324,6 +325,29 @@ export default {
         patientVisitDetails.save(resp.data);
         return resp;
       });
+  },
+
+  async getPatientVisitDetailsByPrescriptionIds(prescriptionIds: any) {
+    const limit = 100; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(
+      prescriptionIds,
+      limit,
+      offset
+    );
+
+    const allPatientVisitDetails = [];
+
+    for (const chunk of chunks) {
+      const patientVisitDetails = await api().post(
+        '/patientVisitDetails/getAllByListPrescriptionIds/',
+        chunk
+      );
+      allPatientVisitDetails.push(...patientVisitDetails.data);
+    }
+    this.addBulkMobile(allPatientVisitDetails);
+    return allPatientVisitDetails;
   },
 
   async getMobileByPatientVisitIds(patientVisitIds: string) {
