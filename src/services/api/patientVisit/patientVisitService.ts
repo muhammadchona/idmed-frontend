@@ -565,9 +565,24 @@ export default {
 
     const episodes = await episodeService.getEpisodeByIds(episodeIds);
     console.log(episodes);
+
+    const otherPatientVisitDetails =
+      await patientVisitDetailsService.getPatientVisitDetailsByPrescriptionIds(
+        idsPrescription
+      );
+    console.log(otherPatientVisitDetails);
+    //  const moreVisits = [];
+
     const visitScreening = await this.getPatientVisitWithScreeningByPatientIds(
       ids
     );
+
+    const moreVisits = otherPatientVisitDetails.map(
+      (pat: any) => pat.patientVisit
+    );
+    console.log(moreVisits);
+    this.addBulkMobile(moreVisits);
+
     //  this.addBulkMobile(resp.data);
     closeLoading();
     notifySuccess('Carregamento de Dispensas Terminado');
