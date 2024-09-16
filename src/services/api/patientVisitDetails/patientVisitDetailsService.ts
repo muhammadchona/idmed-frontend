@@ -225,11 +225,7 @@ export default {
           const nexPickUpDate = moment(pvd.pack.nextPickUpDate).format(
             'YYYY-MM-DD'
           );
-          if (
-            nexPickUpDate >= startDate &&
-            nexPickUpDate <= endDate &&
-            pvd.episode.patientServiceIdentifier.service.id === service
-          ) {
+          if (nexPickUpDate >= startDate && nexPickUpDate <= endDate) {
             patientVisitDetails.push(pvd);
           }
         }

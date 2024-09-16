@@ -8,19 +8,17 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService.js';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
 
 const reportName = 'RelatorioRastreioDeGravidez';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
-const title = 'Relatorio Estatistico de Dispensas Por Frasco';
-const fileName = reportName.concat(
-  '_' + moment(new Date()).format('DD-MM-YYYY')
-);
+const title = 'Relatorio de Pacientes Rastreados Para Gravidez';
+const fileName = reportName;
 
 const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
 export default {
   async downloadPDF(params: any) {
     const fontBase64 = await fetchFontAsBase64(fontPath);
@@ -40,6 +38,7 @@ export default {
         params.id
       );
 
+    if (result.length === 0) return 204;
     const firstObject = result[0];
     /*
       Fill Table
@@ -122,6 +121,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 8,
@@ -156,6 +156,7 @@ export default {
       await PatientsWithScreeningMobileService.localDbGetAllByReportId(
         params.id
       );
+    if (result.length === 0) return 204;
     const rows = result;
     const data = this.createArrayOfArrayRow(rows);
     console.log(data);

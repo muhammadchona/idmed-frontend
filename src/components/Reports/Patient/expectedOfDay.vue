@@ -181,6 +181,7 @@ const generateReport = async (id, fileType) => {
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
+        downloadingPdf.value = false;
       } else {
         await expectedOfTheDay.downloadExcel(
           patientAux.province,
@@ -188,6 +189,7 @@ const generateReport = async (id, fileType) => {
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
+        downloadingPdf.value = false;
       }
     }
   }

@@ -1,3 +1,4 @@
+import moment from 'moment';
 export default {
   downloadFile(fileName, fileType, blop) {
     // console.log(blop)
@@ -8,7 +9,8 @@ export default {
     //  const bytes = new Uint8Array(materialEducativo.blop)
     // var UTF8_STR = new Uint8Array(pdfOutput)
     //   var BINARY_ARR = UTF8_STR.buffer
-    const titleFile = fileName + fileType;
+    const titleFile =
+      fileName + moment(new Date()).format('DD-MM-YYYY_HHmmss') + fileType;
     console.log('result' + titleFile);
     saveBlob2File(titleFile, blop);
     function saveBlob2File(fileName, blob) {

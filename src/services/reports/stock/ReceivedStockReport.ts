@@ -8,9 +8,9 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import ReceivedStockMobileService from 'src/services/api/report/mobile/ReceivedStockMobileService.';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
-
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
+
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
 const title = 'Lista de Stock Recebido';

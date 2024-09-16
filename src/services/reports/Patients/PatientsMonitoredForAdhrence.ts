@@ -9,7 +9,7 @@ import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import PatientsWithScreeningMobileService from 'src/services/api/report/mobile/PatientsWithScreeningMobileService.js';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 const { isMobile, isOnline } = useSystemUtils();
-
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const reportName = 'RelatorioMonitoriaAdesao';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \n MINISTÉRIO DA SAÚDE \n SERVIÇO NACIONAL DE SAÚDE';
@@ -18,7 +18,6 @@ const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
 
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
 const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
@@ -37,6 +36,7 @@ export default {
       await PatientsWithScreeningMobileService.localDbGetAllByReportId(
         params.id
       );
+    if (result.length === 0) return 204;
     doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
     doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
     doc.setFont('NotoSans');
@@ -89,6 +89,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
       },
@@ -155,6 +156,7 @@ export default {
       await PatientsWithScreeningMobileService.localDbGetAllByReportId(
         params.id
       );
+    if (result.length === 0) return 204;
     const rows = result;
     const data = this.createArrayOfArrayRow(rows);
     console.log(data);

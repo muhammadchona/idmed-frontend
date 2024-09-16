@@ -7,7 +7,7 @@ import * as ExcelJS from 'exceljs';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
-
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
 
 const reportName = 'HistoricoDeLevantamento';
@@ -20,7 +20,7 @@ const fileName = reportName.concat(
 
 const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
+
 export default {
   async downloadPDF(province, startDate, endDate, result, tipoPacient) {
     const fontBase64 = await fetchFontAsBase64(fontPath);
@@ -107,6 +107,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
       },

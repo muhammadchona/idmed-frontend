@@ -8,6 +8,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
 const reportName = 'PacientesActivosNaFarmacia';
 const logoTitle =
@@ -16,7 +17,7 @@ const title = 'Lista de Pacientes Activos na Farmácia';
 const fileName = reportName.concat(
   '_' + moment(new Date()).format('DD-MM-YYYY')
 );
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
+
 export default {
   async downloadPDF(province, startDate, endDate, result) {
     const fontBase64 = await fetchFontAsBase64(fontPath);

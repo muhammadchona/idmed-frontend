@@ -9,8 +9,7 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import ArvDailyRegisterMobileService from 'src/services/api/report/mobile/ArvDailyRegisterMobileService';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
-
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 
 const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
@@ -45,7 +44,6 @@ export default {
       const listaFinal = Object.values(Report.mapaDeAgrupamento(rowsAux.data));
 
       data = this.createArrayOfArrayRow(listaFinal);
-
     } else {
       rowsAux = await this.getDataLocalReport(id);
       if (rowsAux.length === 0) return 204;
@@ -172,6 +170,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
       },
