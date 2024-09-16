@@ -267,7 +267,7 @@ const doOnConfirm = () => {
   showloading();
   episodeService
     .delete(currEpisode.value.id)
-    .then((result) => {
+    .then(() => {
       const episodes = episodeService.getlast3EpisodesByIdentifier(
         currIdentifier.value.id
       );

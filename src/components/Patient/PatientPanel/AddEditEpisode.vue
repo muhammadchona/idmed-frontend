@@ -558,7 +558,12 @@ const clinicSerctors = computed(() => {
 
 const mobileClinicSector = computed(() => {
   const clinicSectorCode = localStorage.getItem('clinicUsers');
-  return clinicSectorService.getClinicSectorByCode(clinicSectorCode);
+
+  if (!clinicSectorService.getClinicSectorByCode(clinicSectorCode)) {
+    return clinicService.getByCode(clinicSectorCode);
+  } else {
+    return clinicSectorService.getClinicSectorByCode(clinicSectorCode);
+  }
 });
 
 const referralClinics = computed(() => {
