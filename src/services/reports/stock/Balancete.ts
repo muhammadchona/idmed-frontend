@@ -279,8 +279,7 @@ export default {
       ext: { width: 144, height: 98 },
     });
 
-    worksheet.addRow([]);
-    worksheet.addRow(['FNM', 'Medicamento', 'Unidade', 'Validade Medicamento']);
+
     const groupedData = balanceteData.reduce((acc, item) => {
       if (!acc[item.medicamento]) {
         acc[item.medicamento] = [];
@@ -292,6 +291,20 @@ export default {
     Object.keys(groupedData).forEach(medicamento => {
       const firstItem = groupedData[medicamento][0];
 
+      worksheet.addRow(['FNM', 'Medicamento', 'Unidade', 'Validade Medicamento']);
+      const headerRow1 = worksheet.lastRow;
+
+      headerRow1?.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D3D3D3' } 
+        };
+        cell.font = {
+          bold: true
+        };
+      });
+
       // Adiciona os valores de firstItem antes da linha "Data de Movimento"
       const headerValues = [
         firstItem.fnm,
@@ -302,6 +315,18 @@ export default {
       worksheet.addRow(headerValues);
 
       worksheet.addRow(['Data de Movimento', 'Entradas', 'Perdas e Ajustes', 'Saidas', 'Stock Existente', 'Notas']);
+      const headerRow2 = worksheet.lastRow;
+
+      headerRow2?.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D3D3D3' }
+        };
+        cell.font = {
+          bold: true
+        };
+      });
 
       let estoqueAtual = firstItem.stockExistente;
 
