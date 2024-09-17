@@ -253,7 +253,7 @@ const doValidationToDispense = () => {
   curPatientVisit.value.patient = {};
   curPatientVisit.value.patient.id = patient.value.id;
   curPatientVisit.value.syncStatus = 'R';
-  curPatientVisit.value.origin = currClinic.value.uuid;
+  curPatientVisit.value.origin = currClinic.value.id;
   submitting.value = true;
   if (
     dispenseMode.value === null ||
@@ -265,7 +265,7 @@ const doValidationToDispense = () => {
   } else {
     curPatientVisit.value.patientVisitDetails.forEach((patientVisitDetail) => {
       curPatientVisit.value.visitDate = patientVisitDetail.pack.pickupDate;
-      patientVisitDetail.origin = currClinic.value.uuid;
+      patientVisitDetail.origin = currClinic.value.id;
       patientVisitDetail.clinic = {};
       patientVisitDetail.clinic.id = patient.value.clinic_id;
       patientVisitDetail.episode = {};
@@ -276,21 +276,21 @@ const doValidationToDispense = () => {
       patientVisitDetail.pack.dispenseMode.id = dispenseMode.value.id;
       patientVisitDetail.pack.syncStatus = 'R';
       patientVisitDetail.pack.providerUuid = sessionStorage.getItem('Btoa');
-      patientVisitDetail.pack.origin = currClinic.value.uuid;
+      patientVisitDetail.pack.origin = currClinic.value.id;
       patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug) => {
         packagedDrug.drug = {};
         packagedDrug.drug.id = packagedDrug.drug_id;
-        packagedDrug.origin = currClinic.value.uuid;
+        packagedDrug.origin = currClinic.value.id;
       });
       patientVisitDetail.prescription.clinic = {};
       patientVisitDetail.prescription.clinic.id = patient.value.clinic_id;
-      patientVisitDetail.prescription.origin = currClinic.value.uuid;
+      patientVisitDetail.prescription.origin = currClinic.value.id;
       patientVisitDetail.prescription.prescribedDrugs.forEach(
         (prescribedDrug) => {
           let drugID = prescribedDrug.drug.id;
           prescribedDrug.drug = {};
           prescribedDrug.drug.id = drugID;
-          prescribedDrug.origin = currClinic.value.uuid;
+          prescribedDrug.origin = currClinic.value.id;
           // prescribedDrug.prescribedQty = 1;
         }
       );

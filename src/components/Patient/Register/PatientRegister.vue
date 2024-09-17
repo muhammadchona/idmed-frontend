@@ -679,14 +679,14 @@ const doSave = async () => {
 
   patientReg.value.clinic = {};
   patientReg.value.clinic.id = currClinic.value.id;
-  patientReg.value.origin = currClinic.value.uuid;
+  patientReg.value.origin = currClinic.value.id;
 
   patientReg.value.identifiers.forEach((identifier) => {
     identifier.clinic = {};
     identifier.clinic.id = identifier.clinic_id;
     identifier.service = {};
     identifier.service.id = identifier.service_id;
-    identifier.origin = currClinic.value.uuid;
+    identifier.origin = currClinic.value.id;
   });
 
   if (newPatient.value) {
