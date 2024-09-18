@@ -323,29 +323,6 @@ export default {
       });
   },
 
-  async getPatientVisitDetailsByPrescriptionIds(prescriptionIds: any) {
-    const limit = 100; // Define your limit
-    const offset = 0;
-
-    const chunks = ChunkArray.chunkArrayWithOffset(
-      prescriptionIds,
-      limit,
-      offset
-    );
-
-    const allPatientVisitDetails = [];
-
-    for (const chunk of chunks) {
-      const patientVisitDetails = await api().post(
-        '/patientVisitDetails/getAllByListPrescriptionIds/',
-        chunk
-      );
-      allPatientVisitDetails.push(...patientVisitDetails.data);
-    }
-    this.addBulkMobile(allPatientVisitDetails);
-    return allPatientVisitDetails;
-  },
-
   async getMobileByPatientVisitIds(patientVisitIds: string) {
     const rows = await db[patientVisitDetailsDexie]
       .where('patientVisitId')
