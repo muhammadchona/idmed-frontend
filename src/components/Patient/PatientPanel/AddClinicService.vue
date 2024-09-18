@@ -754,7 +754,7 @@ const lastStartEpisodeWithPrescription = () => {
 
 const doSave = async () => {
   identifier.value.episodes = [];
-  closureEpisode.value.origin = currClinic.value.uuid;
+  closureEpisode.value.origin = currClinic.value.id;
   if (isCloseStep.value) {
     closureEpisode.value.episodeType =
       episodeTypeService.getEpisodeTypeByCode('FIM');
@@ -812,7 +812,7 @@ const doSave = async () => {
       getDateFromHyphenDDMMYYYY(identifierstartDate.value)
     );
     identifier.value.identifierType = identifier.value.service.identifierType;
-    identifier.value.origin = currClinic.value.uuid;
+    identifier.value.origin = currClinic.value.id;
   }
   if (isEditStep.value) {
     identifier.value.startDate = getYYYYMMDDFromJSDate(
@@ -824,7 +824,7 @@ const doSave = async () => {
   identifier.value.patient.id = patient.value.id;
   identifier.value.service = {};
   identifier.value.service.id = clinical_service_id;
-  identifier.value.origin = currClinic.value.uuid;
+  identifier.value.origin = currClinic.value.id;
   if (usePreferedId.value) {
     identifier.value.value =
       patientServiceIdentifierService.getLatestIdentifierSlimByPatientId(

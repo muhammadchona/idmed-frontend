@@ -11,9 +11,10 @@ import MmiaMobileService from 'src/services/api/report/mobile/MmiaMobileService'
 import clinicService from 'src/services/api/clinicService/clinicService';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
 
-const fontPath = '/src/assets/NotoSans-Regular.ttf';
+//const fontPath = '/src/assets/NotoSans-Regular.ttf';
 const logoTitle =
   'REPÚBLICA DE MOÇAMBIQUE \nMINISTÉRIO DA SAÚDE \nCENTRAL DE MEDICAMENTOS E ARTIGOS MÉDICOS';
 const title = 'MMIA \n MAPA MENSAL DE INFORMAÇÃO ARV';

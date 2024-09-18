@@ -558,7 +558,12 @@ const clinicSerctors = computed(() => {
 
 const mobileClinicSector = computed(() => {
   const clinicSectorCode = localStorage.getItem('clinicUsers');
-  return clinicSectorService.getClinicSectorByCode(clinicSectorCode);
+
+  if (!clinicSectorService.getClinicSectorByCode(clinicSectorCode)) {
+    return clinicService.getByCode(clinicSectorCode);
+  } else {
+    return clinicSectorService.getClinicSectorByCode(clinicSectorCode);
+  }
 });
 
 const referralClinics = computed(() => {
@@ -837,7 +842,7 @@ const doSave = async () => {
     episode.value.patientServiceIdentifier = {};
     episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
     episode.value.patientServiceIdentifier_id = curIdentifier.value.id;
-    episode.value.origin = currClinic.value.uuid;
+    episode.value.origin = currClinic.value.id;
   } else {
     episode.value.clinicSector_id = episode.value.clinicSector.id;
     const clinicSectorId = episode.value.clinicSector.id;
@@ -877,8 +882,8 @@ const doSave = async () => {
       closureEpisode.value.patientServiceIdentifier = {};
       closureEpisode.value.patientServiceIdentifier.id = curIdentifier.value.id;
       closureEpisode.value.patientVisitDetails = [];
-      episode.value.origin = currClinic.value.uuid;
-      closureEpisode.value.origin = currClinic.value.uuid;
+      episode.value.origin = currClinic.value.id;
+      closureEpisode.value.origin = currClinic.value.id;
     }
   }
   episodeService
