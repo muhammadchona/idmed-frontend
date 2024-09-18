@@ -19,15 +19,13 @@ import useNotify from 'src/composables/shared/notify/UseNotify';
 import StockService from '../stockService/StockService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
-const { isUserDCP } = useSystemConfig();
-
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = PatientVisit.entity;
 
 const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
-const { notifySuccess, notifyInfo } = useNotify();
+const { notifySuccess, notifyInfo, notifyError } = useNotify();
 
 export default {
   post(params: string) {
@@ -503,135 +501,65 @@ export default {
   },
 
   async doPatientVisitServiceBySectorGet() {
-    notifyInfo('Carregamento de Pacientes Iniciado');
-    showloading();
-    const patients = await patientService.getMobile();
-    const ids = patients.map((pat: any) => pat.id);
-    const clinicSector = clinicService.currClinic();
-    console.log(ids);
-    // ids.push(clinicSector);
+    try {
+      notifyInfo('Carregamento de Dispensas Iniciado');
+      showloading();
+      const patients = await patientService.getMobile();
+      const ids = patients.map((pat: any) => pat.id);
+      const clinicSector = clinicService.currClinic();
+      console.log(ids);
 
-    const limit = 100; // Define your limit
-    const offset = 0; // Define your offset
+      const limit = 100; // Define your limit
+      const offset = 0; // Define your offset
 
-    const chunks = ChunkArray.chunkArrayWithOffset(ids, limit, offset);
-    const allVisits = [];
-    for (const chunk of chunks) {
-      const listParams = {
-        ids: chunk,
-        clinicSector: clinicSector,
-      };
-      let visitDetails;
-      if (isUserDCP()) {
+      const chunks = ChunkArray.chunkArrayWithOffset(ids, limit, offset);
+      const allVisits = [];
+      //const allVisitDetailsIds = [];
+      for (const chunk of chunks) {
+        const listParams = {
+          ids: chunk,
+          clinicSector: clinicSector,
+        };
+        let visitDetails;
+
         visitDetails = await api().post(
           '/patientVisitDetails/getLastAllByPatientIds/',
           listParams
         );
-      } else {
-        visitDetails = await api().post(
-          'patientVisitDetails/getAllByPatientIds/',
-          listParams
-        );
+        allVisits.push(...visitDetails.data);
       }
 
-      allVisits.push(...visitDetails.data);
-    }
+      patientVisitDetailsService.addBulkMobile(allVisits);
 
-    patientVisitDetailsService.addBulkMobile(allVisits);
+      const pvs = allVisits.map((pat: any) => pat.patientVisit);
 
-    const pvs = allVisits.map((pat: any) => pat.patientVisit);
+      const patientVisitOfMobile = await this.getPatientVisitMobile();
 
-    const patientVisitOfMobile = await this.getPatientVisitMobile();
+      const newPvs = this.removeExistingIds(pvs, patientVisitOfMobile);
 
-    const newPvs = this.removeExistingIds(pvs, patientVisitOfMobile);
+      this.addBulkMobile(newPvs);
 
-    this.addBulkMobile(newPvs);
-
-    const idsPrescription = allVisits.map((vis: any) => vis.prescriptionId);
-    const prescriptions = await prescriptionService.getPrescriptionsByIds(
-      idsPrescription
-    );
-    console.log(prescriptions);
-
-    const idsPacks = allVisits.map((vis: any) => vis.packId);
-    const packs = await packService.getPacksByIds(idsPacks);
-    console.log(packs);
-
-    const episodeIds = patients.flatMap((data: any) =>
-      data.identifiers.flatMap((data1: any) =>
-        data1.episodes.map((episode: any) => episode.id)
-      )
-    );
-
-    const episodes = await episodeService.getEpisodeByIds(episodeIds);
-    console.log(episodes);
-
-    const otherPatientVisitDetails =
-      await patientVisitDetailsService.getPatientVisitDetailsByPrescriptionIds(
-        idsPrescription
+      const episodeIds = patients.flatMap((data: any) =>
+        data.identifiers.flatMap((data1: any) =>
+          data1.episodes.map((episode: any) => episode.id)
+        )
       );
-    console.log(otherPatientVisitDetails);
-    //  const moreVisits = [];
 
-    const visitScreening = await this.getPatientVisitWithScreeningByPatientIds(
-      ids
-    );
+      const episodes = await episodeService.getEpisodeByIds(episodeIds);
+      console.log(episodes);
 
-    const moreVisits = otherPatientVisitDetails.map(
-      (pat: any) => pat.patientVisit
-    );
-    console.log(moreVisits);
-    this.addBulkMobile(moreVisits);
+      const visitScreening =
+        await this.getAllLast3VisitsWithScreeningByPatientIds(ids);
 
-    //  this.addBulkMobile(resp.data);
-    closeLoading();
-    notifySuccess('Carregamento de Dispensas Terminado');
-    /*
-    const idsVisit = visits.data.map((vis: any) => vis.patientVisitId);
-    const idsPrescription = visits.data.map((vis: any) => vis.prescriptionId);
-    const idsPacks = visits.data.map((vis: any) => vis.packId);
-    console.log(idsVisit);
-    console.log(idsPrescription);
-    console.log(idsPacks);
-*/
-    /*
-    const patientVisits = await api().post(
-      '/patientVisit/getAllByVisitIds/',
-      idsVisit
-    );
-    console.log(patientVisits);
-
-
-    this.addBulkMobile(patientVisits.data);
-
-    const prescriptions = await api().post(
-      '/prescription/getAllByPrescriptionIds/',
-      idsPrescription
-    );
-
-    const packs = await api().post('/pack/getAllByPackIds/', idsPacks);
-
-    prescriptionService.addBulkMobile(prescriptions.data);
-
-    packService.addBulkMobile(packs.data);
-
-    const patientServices = await patientServiceIdentifierService.getMobile();
-
-    // dataArray.flatMap(data => data.episodes.map(episode => episode.id));
-
-    const episodeIds = patients.flatMap((data: any) =>
-      data.identifiers.flatMap((data1: any) =>
-        data1.episodes.map((episode: any) => episode.id)
-      )
-    );
-    console.log(episodeIds);
-    const episodes = await api().post(
-      '/episode/getAllByEpisodeIds/',
-      episodeIds
-    );
-    episodeService.addBulkMobile(episodes.data);
-    console.log(episodes);
-        */
+      //  this.addBulkMobile(resp.data);
+      closeLoading();
+      notifySuccess('Carregamento de Dispensas Terminado');
+    } catch (error) {
+      // Handle any error that occurs during the async operations
+      console.error('An error occurred:', error);
+      closeLoading();
+      notifyError('Ocorreu um erro durante o carregamento de dispensas');
+    }
   },
 
   removeExistingIds(pvs: any, patientVisits: any) {
@@ -655,6 +583,26 @@ export default {
     for (const chunk of chunks) {
       const visitWithScreening = await api().post(
         '/patientVisit/getAllLastWithScreeningByPatientIds/',
+        chunk
+      );
+
+      allVisits.push(...visitWithScreening.data);
+    }
+
+    this.addBulkMobile(allVisits);
+  },
+
+  async getAllLast3VisitsWithScreeningByPatientIds(patientIds: any) {
+    const limit = 100; // Define your limit
+    const offset = 0;
+
+    const chunks = ChunkArray.chunkArrayWithOffset(patientIds, limit, offset);
+
+    const allVisits = [];
+
+    for (const chunk of chunks) {
+      const visitWithScreening = await api().post(
+        '/patientVisit/getAllLast3VisitsWithScreeningByPatientIds/',
         chunk
       );
 

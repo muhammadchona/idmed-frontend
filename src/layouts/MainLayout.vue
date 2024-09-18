@@ -22,7 +22,8 @@
                 style="font-family: 'Gill Sans'; font-size: 25px"
                 >{{
                   currClinic !== null
-                    ? currClinic.parentClinic_id !== undefined
+                    ? currClinic.parentClinic_id !== undefined &&
+                      currClinic.parentClinic_id !== null
                       ? currClinic.parentClinic.clinicName +
                         ' - ' +
                         currClinic.clinicName
