@@ -58,6 +58,11 @@ export default {
       // reportResp[0]
       const episode = await episodeService.apiFetchById(reportResp.episode.id);
       const startStopReasonType = episode.startStopReason;
+      if (reportResp.patientVisit === null) {
+        reportResp.patientVisit = await patientVisitService.getAllMobileById(
+          reportResp.patient_visit_id
+        );
+      }
       const idPatient = reportResp.patientVisit.patient.id;
       const patient = await patientService.getPatientByIdMobile(idPatient);
       if (patient.identifiers.length > 0) {
@@ -106,9 +111,7 @@ export default {
         activePatient.nextPickUpDate = pack.nextPickUpDate;
         activePatient.therapeuticRegimen = therapeuticRegimen.description;
         activePatient.therapeuticLine = therapeuticLine.description;
-        console.log(patient.dateOfBirth);
         activePatient.age = idadeReportCalculator(patient.dateOfBirth);
-        console.log(activePatient.age);
         activePatient.id = uuidv4();
         this.localDbAddOrUpdate(activePatient);
       }
@@ -132,19 +135,16 @@ export default {
   groupedMapChild(items: any) {
     return items.reduce(
       (entryMap, e) =>
-        entryMap.set(
-          e.patientVisit.patient.id,
-          [...(entryMap.get(e.patientVisit.patient.id) || []), e],
-          console.log(e.patientVisit.patient.id)
-        ),
+        entryMap.set(e.patientVisit.patient.id, [
+          ...(entryMap.get(e.patientVisit.patient.id) || []),
+          e,
+        ]),
       new Map()
     );
   },
 
   localDbAddOrUpdate(data: any) {
-    return db[activeInDrugStore].add(data).catch((error: any) => {
-      console.log(error);
-    });
+    return db[activeInDrugStore].add(data).catch((error: any) => {});
   },
 
   async localDbGetAllByReportId(reportId: any) {

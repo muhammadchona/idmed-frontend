@@ -537,7 +537,7 @@ export default {
   },
 
   localDbAddOrUpdateStockReport(data: any) {
-    return db[MmiaStockReportDexie].add(data).catch((error: any) => {
+    return db[MmiaStockReportDexie].put(data).catch((error: any) => {
       console.log(error);
     });
   },
@@ -552,7 +552,7 @@ export default {
   },
 
   localDbAddOrUpdateReportRegimen(data: any) {
-    return db[MmiaRegimenSubReportDexie].add(data).catch((error: any) => {
+    return db[MmiaRegimenSubReportDexie].put(data).catch((error: any) => {
       console.log(error);
     });
   },
@@ -580,7 +580,7 @@ export default {
   },
 
   localDbAddOrUpdateMmia(data: any) {
-    return db[MmiaReportDexie].add(data).catch((error: any) => {
+    return db[MmiaReportDexie].put(data).catch((error: any) => {
       console.log(error);
     });
   },
