@@ -484,12 +484,6 @@ export default {
     });
   },
 
-  async localDbGetAllPatientVisit() {
-    return db[patientVisitDexie].toArray().then((result: any) => {
-      return result;
-    });
-  },
-
   async countPacksByDispenseTypeAndServiceOnPeriod(
     dispenseType: any,
     service: any,
