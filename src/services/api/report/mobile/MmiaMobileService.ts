@@ -42,7 +42,9 @@ export default {
     console.log(stocks);
     const result = stocks.filter(
       (stock: any) =>
-        stock.drug.clinicalService.id === reportParams.clinicalService &&
+        stock.drug.name !== null &&
+        stock.drug.name !== undefined &&
+        stock.drug.clinical_service_id === reportParams.clinicalService &&
         stock.entrance.dateReceived >= reportParams.startDate &&
         stock.entrance.dateReceived <= reportParams.endDate
     );

@@ -14,6 +14,7 @@ import packService from '../../pack/packService';
 import db from 'src/stores/dexie';
 import { v4 as uuidv4 } from 'uuid';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import clinicService from '../../clinicService/clinicService';
 const patientHistoryReporDexie = patientHistoryReport.entity;
 // const activeInDrugStore = useRepo(ActiveInDrugStore);
 
@@ -24,7 +25,10 @@ export default {
 
     console.log(reportParams);
     const patientVisitList =
-      await patientVisitService.localDbGetAllPatientVisit();
+      await patientVisitService.getLocalOnlyPatientVisitsBetweenDates(
+        reportParams.startDate,
+        reportParams.endDate
+      );
     for (const patientVisit of patientVisitList) {
       for (const patientVisitDetail of patientVisit.patientVisitDetails) {
         if (patientVisitDetail.pack !== undefined) {
@@ -81,7 +85,10 @@ export default {
                     prescription.id
                   );
               }
-              const clinic = patientVisitDetail.clinic;
+              console.log(patientVisitDetail.clinic.id);
+              const clinic = clinicService.getById(
+                patientVisitDetail.clinic.id
+              );
               const clinicalService =
                 await clinicalServiceService.localDbGetById(
                   identifier.service.id
@@ -114,6 +121,8 @@ export default {
               patientHistory.dispenseMode = dispenseMode.description;
               patientHistory.clinicalService = clinicalService.description;
               patientHistory.clinic = clinic.clinicName;
+              patientHistory.clinicsector =
+                clinicService.currClinic().clinicName;
               patientHistory.id = uuidv4();
               this.localDbAddOrUpdate(patientHistory);
               console.log(patientHistory);

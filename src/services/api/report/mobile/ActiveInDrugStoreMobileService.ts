@@ -15,6 +15,7 @@ import episodeService from '../../episode/episodeService';
 import packService from '../../pack/packService';
 import prescriptionService from '../../prescription/prescriptionService';
 import db from 'src/stores/dexie';
+import patientVisitDetailsService from '../../patientVisitDetails/patientVisitDetailsService';
 
 const activeInDrugStore = ActiveInDrugStore.entity;
 // const activeInDrugStore = useRepo(ActiveInDrugStore);
@@ -49,13 +50,15 @@ export default {
       activePatient.endDate = reportParams.endDate;
       activePatient.province = clinic.province.description;
 
-      const reportResp = reportData[1];
+      const reportResp =
+        await patientVisitDetailsService.getAllMobileByDetailsId(
+          reportData[1][0].id
+        );
       let identifier;
-      const episode = await episodeService.apiFetchById(
-        reportResp[0].episode.id
-      );
+      // reportResp[0]
+      const episode = await episodeService.apiFetchById(reportResp.episode.id);
       const startStopReasonType = episode.startStopReason;
-      const idPatient = reportResp[0].patientVisit.patient.id;
+      const idPatient = reportResp.patientVisit.patient.id;
       const patient = await patientService.getPatientByIdMobile(idPatient);
       if (patient.identifiers.length > 0) {
         identifier = patient.identifiers[0];
@@ -70,8 +73,8 @@ export default {
         identifier.service.id === reportParams.clinicalService &&
         startStopReasonType.isStartReason
       ) {
-        let pack = reportResp[0].pack;
-        let prescription = reportResp[0].prescription;
+        let pack = reportResp.pack;
+        let prescription = reportResp.prescription;
         if (pack.pickupDate === null || pack.pickupDate === undefined) {
           pack = await packService.getPackMobileById(pack.id);
         }

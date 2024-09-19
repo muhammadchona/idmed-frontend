@@ -239,8 +239,7 @@ export default {
     return db[patientVisitDexie]
       .where('visitDate')
       .between(startDate, endDate, true, true)
-      .where('syncStatus')
-      .equalsIgnoreCase('R')
+      .and((item: any) => item.syncStatus === 'R')
       .toArray()
       .then((result: any) => {
         return result;
@@ -338,6 +337,23 @@ export default {
     return db[patientVisitDexie]
       .where('visitDate')
       .between(startDate, endDate, true, true)
+      .toArray()
+      .then((result: any) => {
+        return result;
+      });
+  },
+
+  async getLocalOnlyPatientVisitsBetweenDates(startDate: any, endDate: any) {
+    return db[patientVisitDexie]
+      .where('visitDate')
+      .between(startDate, endDate, true, true)
+      .filter(
+        (visit: any) =>
+          visit.syncStatus !== null &&
+          visit.syncStatus !== undefined &&
+          visit.syncStatus !== '' &&
+          visit.syncStatus !== 'S'
+      )
       .toArray()
       .then((result: any) => {
         return result;
@@ -468,6 +484,12 @@ export default {
     });
   },
 
+  async localDbGetAllPatientVisit() {
+    return db[patientVisitDexie].toArray().then((result: any) => {
+      return result;
+    });
+  },
+
   async countPacksByDispenseTypeAndServiceOnPeriod(
     dispenseType: any,
     service: any,
@@ -548,8 +570,10 @@ export default {
       const episodes = await episodeService.getEpisodeByIds(episodeIds);
       console.log(episodes);
 
+      /*
       const visitScreening =
         await this.getAllLast3VisitsWithScreeningByPatientIds(ids);
+        */
 
       //  this.addBulkMobile(resp.data);
       closeLoading();
