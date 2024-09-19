@@ -484,6 +484,16 @@ export default {
     });
   },
 
+  async getAllMobileById(id: String) {
+    const resp = await db[patientVisitDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first();
+
+    ///  patientVisitDetails.save(resp);
+    return resp;
+  },
+
   async countPacksByDispenseTypeAndServiceOnPeriod(
     dispenseType: any,
     service: any,
