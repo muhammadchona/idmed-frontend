@@ -202,7 +202,6 @@ export default {
           if (
             pickupDate >= startDate &&
             pickupDate <= endDate &&
-            pvd.episode.patientServiceIdentifier.service.id === service &&
             pvd.pack.isreferral === true &&
             pvd.pack.isreferalSynced === true
           ) {

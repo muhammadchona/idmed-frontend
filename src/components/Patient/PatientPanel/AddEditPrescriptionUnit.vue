@@ -523,13 +523,13 @@ import packService from 'src/services/api/pack/packService';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 //import { usePackagedDrugs } from 'src/composables/packaging/packagedDrugMethods';
-
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
 import drugService from 'src/services/api/drugService/drugService';
 import { useDrug } from 'src/composables/drug/drugMethods';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
-
+const { isMobile, isOnline } = useSystemUtils();
 //props
 const props = defineProps(['identifier']);
 
@@ -1206,10 +1206,11 @@ const checkStockToPack = async () => {
     if (!item) {
       const i = packagedDrugs.indexOf(packageDrug);
       indexToRemove.push(i);
+    } else {
+      if (isMobile.value && !isOnline.value) {
+        generatePacks(packageDrug);
+      }
     }
-    // else {
-    //   generatePacks(packageDrug);
-    // }
   }
 
   return indexToRemove;

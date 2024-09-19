@@ -46,7 +46,7 @@ import moment from 'moment';
 import Report from 'src/services/api/report/ReportService';
 import { LocalStorage } from 'quasar';
 import activePatients from 'src/services/reports/Patients/ActivePatients.ts';
-import { ref, provide } from 'vue';
+import { ref, provide, onMounted } from 'vue';
 import reportDatesParams from 'src/services/reports/ReportDatesParams';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import ListHeader from 'components/Shared/ListHeader.vue';
@@ -176,6 +176,7 @@ const generateReport = async (id, fileType) => {
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
+        downloadingPdf.value = false;
       } else {
         await activePatients.downloadExcel(
           patientAux.province,
@@ -183,6 +184,7 @@ const generateReport = async (id, fileType) => {
           moment(new Date(patientAux.endDate)).format('DD-MM-YYYY'),
           data
         );
+        downloadingXls.value = false;
       }
     }
   }

@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid';
 import { Model } from 'pinia-orm';
 
 export default class patientHistoryReport extends Model {
@@ -32,6 +32,7 @@ export default class patientHistoryReport extends Model {
       clinicalService: this.attr(''),
       clinic: this.attr(''),
       patientType: this.attr(''),
+      clinicsector: this.attr(''),
     };
   }
 }

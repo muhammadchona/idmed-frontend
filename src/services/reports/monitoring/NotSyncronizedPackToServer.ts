@@ -7,7 +7,9 @@ import * as ExcelJS from 'exceljs';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import NotSyncronizedPacksToServerService from 'src/services/api/report/mobile/NotSyncronizedPacksToServerService.js';
 import DownloadFileMobile from 'src/utils/DownloadFileMobile.js';
-
+import clinicService from 'src/services/api/clinicService/clinicService.js';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
 
 const reportName = 'HistoricoDeLevantamento';
@@ -23,6 +25,7 @@ img.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
   async downloadPDF(params: any) {
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -31,6 +34,9 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default i
     });
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     const result =
       await NotSyncronizedPacksToServerService.localDbGetAllByReportId(
         params.id
@@ -38,6 +44,7 @@ export default {
     console.log(params);
     console.log(result[0]);
     const firstObject = result[0];
+    if (result.length === 0) return 204;
     /*
       Fill Table
     */
@@ -59,7 +66,7 @@ export default {
       ],
       [
         {
-          content: 'Sector Clinic: ' + firstObject.clinic,
+          content: 'Sector Clinico: ' + clinicService.currClinic().clinicName,
           colSpan: 2,
           halign: 'center',
           valign: 'middle',
@@ -103,11 +110,13 @@ export default {
     autoTable(doc, {
       //  margin: { top: 10 },
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
       },
@@ -172,10 +181,12 @@ export default {
     ord = 0;
     autoTable(doc, {
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 8,
@@ -222,6 +233,7 @@ export default {
         params.id
       );
     const rows = result;
+    if (result.length === 0) return 204;
     const data = this.createArrayOfArrayRow(rows);
     console.log(data);
     const workbook = new ExcelJS.Workbook();
@@ -313,7 +325,7 @@ export default {
     // Assign Value to Cell
     cellRepublica.value = logoTitle;
     cellTitle.value = title;
-    cellPharmParamValue.value = result[0].clinic;
+    cellPharmParamValue.value = clinicService.currClinic().clinicName;
     cellProvinceParamValue.value = '';
     cellDistrictParamValue.value = result[0].district;
     cellStartDateParamValue.value = params.startDate;
