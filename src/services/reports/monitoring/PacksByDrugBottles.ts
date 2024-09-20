@@ -38,6 +38,7 @@ export default {
     console.log(params);
     console.log(result[0]);
     const firstObject = result[0];
+    if (result.length === 0) return 204;
     /*
       Fill Table
     */
@@ -173,6 +174,7 @@ export default {
       params.id
     );
     const rows = result;
+    if (result.length === 0) return 204;
     const data = this.createArrayOfArrayRow(rows);
     console.log(data);
     const workbook = new ExcelJS.Workbook();
