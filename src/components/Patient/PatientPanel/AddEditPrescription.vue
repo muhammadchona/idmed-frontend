@@ -275,7 +275,11 @@ const doValidationToDispense = () => {
       patientVisitDetail.pack.dispenseMode = {};
       patientVisitDetail.pack.dispenseMode.id = dispenseMode.value.id;
       patientVisitDetail.pack.syncStatus = 'R';
-      patientVisitDetail.pack.providerUuid = sessionStorage.getItem('Btoa');
+      if (isOnlyPharmacyDDDO() || isOnlyComunitaryDispense()) {
+        patientVisitDetail.pack.providerUuid = null;
+      } else {
+        patientVisitDetail.pack.providerUuid = sessionStorage.getItem('Btoa');
+      }
       patientVisitDetail.pack.origin = currClinic.value.id;
       patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug) => {
         packagedDrug.drug = {};
