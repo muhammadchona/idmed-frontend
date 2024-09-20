@@ -10,6 +10,7 @@ import patientService from '../../patientService/patientService';
 import episodeService from '../../episode/episodeService';
 import patientVisitDetailsService from '../../patientVisitDetails/patientVisitDetailsService';
 import PatientPickedUpMedAtUsReport from 'src/stores/models/report/pharmacyManagement/PatientPickedUpMedAtUsReport';
+import clinicService from '../../clinicService/clinicService';
 const patientPickedUpMedAtUsDexie = PatientPickedUpMedAtUsReport.entity;
 
 export default {
@@ -48,7 +49,7 @@ export default {
         if (identifier) {
           // const serviceIdentifier = identifier
           const pack = patientVisitDetail.pack;
-          const clinic = patientVisitDetail.clinic;
+          const clinic = clinicService.getById(patientVisitDetail.clinic.id);
           const clinicalService = await clinicalServiceService.localDbGetById(
             identifier.service.id
           );
