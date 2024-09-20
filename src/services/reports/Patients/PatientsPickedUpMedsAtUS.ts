@@ -401,7 +401,7 @@ export default {
     if (isOnline.value && !isMobile.value) {
       saveAs(blob, fileName + fileExtension);
     } else {
-      const titleFile = 'RelatorioRastreioDeGravidez';
+      const titleFile = 'RelatorioDePacientesQueLevantaramMedsNaUS';
       console.log('result' + titleFile);
       DownloadFileMobile.downloadFile(titleFile, '.xlsx', blob);
     }
@@ -431,7 +431,7 @@ export default {
       );
       createRow.push(rows[row].therapeuticalRegimen);
       createRow.push(rows[row].dispenseType);
-      createRow.push(rows[row].clinic.clinicName);
+      createRow.push(rows[row].clinic);
 
       data.push(createRow);
     }
