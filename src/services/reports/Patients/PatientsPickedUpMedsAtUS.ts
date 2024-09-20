@@ -413,7 +413,15 @@ export default {
       const createRow = [];
       createRow.push(rows[row].nid);
       createRow.push(
-        String(rows[row].fullName).replaceAll('null', '').replace('  ', ' ')
+        String(
+          rows[row].firstNames +
+            ' ' +
+            rows[row].middleNames +
+            ' ' +
+            rows[row].lastNames
+        )
+          .replaceAll('null', '')
+          .replace('  ', ' ')
       );
       createRow.push(
         moment(new Date(rows[row].pickUpDate)).format('DD-MM-YYYY')

@@ -9,7 +9,7 @@ import clinicalServiceService from '../clinicalServiceService/clinicalServiceSer
 import dispenseTypeService from '../dispenseType/dispenseTypeService';
 import moment from 'moment';
 import prescriptionService from '../prescription/prescriptionService';
-import ChunkArray from 'src/utils/ChunkArray';
+import clinicService from '../clinicService/clinicService';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
 const patientVisitDetailsDexie = PatientVisitDetails.entity;
@@ -202,8 +202,7 @@ export default {
           if (
             pickupDate >= startDate &&
             pickupDate <= endDate &&
-            pvd.pack.isreferral === true &&
-            pvd.pack.isreferalSynced === true
+            pvd.pack.origin !== clinicService.currClinic().id
           ) {
             patientVisitDetails.push(pvd);
           }
