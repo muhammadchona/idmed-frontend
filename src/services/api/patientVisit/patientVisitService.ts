@@ -100,6 +100,7 @@ export default {
   },
   // Mobile
   addMobile(params: any) {
+    params.syncStatus = 'R';
     return db[patientVisitDexie]
       .add(JSON.parse(JSON.stringify(params)))
       .then(() => {
