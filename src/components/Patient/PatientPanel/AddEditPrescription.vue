@@ -252,7 +252,7 @@ const doValidationToDispense = () => {
   curPatientVisit.value.clinic.id = patient.value.clinic_id;
   curPatientVisit.value.patient = {};
   curPatientVisit.value.patient.id = patient.value.id;
-  curPatientVisit.value.syncStatus = 'R';
+  // curPatientVisit.value.syncStatus = 'R';
   curPatientVisit.value.origin = currClinic.value.id;
   submitting.value = true;
   if (
@@ -284,13 +284,17 @@ const doValidationToDispense = () => {
       });
       patientVisitDetail.prescription.clinic = {};
       patientVisitDetail.prescription.clinic.id = patient.value.clinic_id;
-      patientVisitDetail.prescription.origin = currClinic.value.id;
+      if (patientVisitDetail.prescription.origin !== patient.value.clinic_id) {
+        patientVisitDetail.prescription.origin = currClinic.value.id;
+      }
       patientVisitDetail.prescription.prescribedDrugs.forEach(
         (prescribedDrug) => {
           let drugID = prescribedDrug.drug.id;
           prescribedDrug.drug = {};
           prescribedDrug.drug.id = drugID;
-          prescribedDrug.origin = currClinic.value.id;
+          if (prescribedDrug.origin !== patient.value.clinic_id) {
+            prescribedDrug.origin = currClinic.value.id;
+          }
           // prescribedDrug.prescribedQty = 1;
         }
       );
