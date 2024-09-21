@@ -12,7 +12,7 @@ import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
 import fontPath from 'src/assets/NotoSans-Regular.ttf';
 const { isMobile, isOnline } = useSystemUtils();
 
-const reportName = 'HistoricoDeLevantamento';
+const reportName = 'DispensasNaoSicronizadasParaServidor';
 const logoTitle =
   'REPUBLICA DE MOÇAMBIQUE \n MINISTERIO DA SAÚDE \n SERVIÇO NACIONAL DE SAUDE';
 const title = 'HISTORICO DE LEVANTAMENTO';
@@ -225,7 +225,7 @@ export default {
     // window.open(doc.output('bloburl'));
     console.log(doc);
     const pdfOutput = doc.output();
-    DownloadFileMobile.downloadFile(fileName, 'pdf', pdfOutput);
+    DownloadFileMobile.downloadFile(fileName, '.pdf', pdfOutput);
   },
   async downloadExcel(params: any) {
     const result =
@@ -489,7 +489,7 @@ export default {
     } else {
       const titleFile = 'RelatorioDeDispensasNaoSicronizadas';
       console.log('result' + titleFile);
-      DownloadFileMobile.downloadFile(titleFile, 'xlsx', blob);
+      DownloadFileMobile.downloadFile(titleFile, '.xlsx', blob);
       /*
       saveBlob2File(titleFile, blob);
       function saveBlob2File(fileName, blob) {

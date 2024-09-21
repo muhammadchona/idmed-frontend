@@ -40,7 +40,7 @@ export default {
     let arrayDrugStock = [];
     const stocks = await StockService.localDbGetAll();
     console.log(stocks);
-    const result = stocks.filter(
+    let result = stocks.filter(
       (stock: any) =>
         stock.drug.name !== null &&
         stock.drug.name !== undefined &&
@@ -49,6 +49,14 @@ export default {
         stock.entrance.dateReceived <= reportParams.endDate
     );
     console.log(result);
+    if (result.length === 0) {
+      result = stocks.filter(
+        (stock: any) =>
+          stock.drug.name !== null &&
+          stock.drug.name !== undefined &&
+          stock.drug.clinical_service_id === reportParams.clinicalService
+      );
+    }
     resultDrugsStocks = this.groupedMap(result, 'drug_id');
     console.log(resultDrugsStocks);
     arrayDrugStock = Array.from(resultDrugsStocks.keys());

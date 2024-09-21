@@ -22,7 +22,7 @@ export default class PatientExpectedReport extends Model {
       lastNames: this.attr(''),
       pickUpDate: this.attr(''),
       nextPickUpDate: this.attr(''),
-      therapeuticalRegimen: this.attr(''),
+      therapeuticRegimen: this.attr(''),
       dispenseType: this.attr(''),
       clinicalService: this.attr(''),
       clinicSectorName: this.attr(''),

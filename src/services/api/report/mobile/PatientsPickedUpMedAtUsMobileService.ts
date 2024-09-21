@@ -11,6 +11,7 @@ import episodeService from '../../episode/episodeService';
 import patientVisitDetailsService from '../../patientVisitDetails/patientVisitDetailsService';
 import PatientPickedUpMedAtUsReport from 'src/stores/models/report/pharmacyManagement/PatientPickedUpMedAtUsReport';
 import clinicService from '../../clinicService/clinicService';
+import patientVisitService from '../../patientVisit/patientVisitService';
 const patientPickedUpMedAtUsDexie = PatientPickedUpMedAtUsReport.entity;
 
 export default {
@@ -30,9 +31,16 @@ export default {
         const dispenseType = dispenseTypeService.getById(
           patientVisitDetail.prescription.prescriptionDetails[0].dispenseType.id
         );
+        let patientVisit = patientVisitDetail.patientVisit;
+        if (patientVisit === null) {
+          patientVisit = await patientVisitService.getAllMobileById(
+            patientVisitDetail.patient_visit_id
+          );
+        }
         const patient = await patientService.getPatientByIdMobile(
-          patientVisitDetail.patientVisit.patient.id
+          patientVisit.patient.id
         );
+
         const episode = await episodeService.apiFetchById(
           patientVisitDetail.episode.id
         );

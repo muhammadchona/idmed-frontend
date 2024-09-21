@@ -163,6 +163,17 @@ export default {
         console.log(error);
       });
   },
+
+  async getInMobileById(id: String) {
+    const resp = await db[therapeuticRegimenDexie]
+      .where('id')
+      .equalsIgnoreCase(id)
+      .first();
+
+    ///  patientVisitDetails.save(resp);
+    return resp;
+  },
+
   // Local Storage Pinia
   newInstanceEntity() {
     return therapeuticRegimen.getModel().$newInstance();
