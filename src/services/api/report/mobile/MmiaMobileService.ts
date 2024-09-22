@@ -249,7 +249,8 @@ export default {
       if (
         patientVisit.visitDate >= reportParams.startDate &&
         patientVisit.visitDate <= reportParams.endDate &&
-        patientVisit.syncStatus !== undefined
+        patientVisit.syncStatus !== undefined &&
+        patientVisit.patientVisitDetails.length > 0
       ) {
         console.log(patientVisit);
         for (const patientVisitDetail of patientVisit.patientVisitDetails) {
@@ -342,7 +343,8 @@ export default {
       if (
         patientVisit.visitDate >= reportParams.startDate &&
         patientVisit.visitDate <= reportParams.endDate &&
-        patientVisit.syncStatus !== undefined
+        patientVisit.syncStatus !== undefined &&
+        patientVisit.patientVisitDetails.length > 0
       ) {
         const patientVisitDetail = patientVisit.patientVisitDetails[0];
         const episode = await episodeService.apiFetchById(

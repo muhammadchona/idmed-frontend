@@ -105,6 +105,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'left',
         valign: 'middle',
       },
@@ -163,6 +164,7 @@ export default {
         fontSize: 8,
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
         fontSize: 8,

@@ -234,7 +234,10 @@ export default {
       ramScreeningReport.endDate = reportParams.endDate;
       ramScreeningReport.startDate = reportParams.startDate;
 
-      if (ramScreening.adverseReactionMedicine === true) {
+      if (
+        ramScreening.adverseReactionMedicine === true ||
+        ramScreening.adverseReactionMedicine === 'true'
+      ) {
         ramScreeningReport.wasRAMScreened = 'Sim';
       } else {
         ramScreeningReport.wasRAMScreened = 'Não';

@@ -38,8 +38,8 @@ export default {
     });
 
     const image = new Image();
-    image.src = '/src/assets/MoHLogo.png';
-    //image.src = 'data:image/png;base64,' + MOHIMAGELOG;
+    //image.src = '/src/assets/MoHLogo.png';
+    image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
     const headerReport = [
       [

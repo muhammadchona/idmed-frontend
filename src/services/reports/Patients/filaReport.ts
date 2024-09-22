@@ -5,15 +5,22 @@ import moment from 'moment';
 import { date } from 'quasar';
 import { MOHIMAGELOG } from 'src/assets/imageBytes';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import DownloadFileMobile from 'src/utils/DownloadFileMobile';
 import packService from 'src/services/api/pack/packService';
+import patientVisitService from 'src/services/api/patientVisit/patientVisitService';
+import { fetchFontAsBase64 } from 'src/utils/ReportUtils';
+import fontPath from 'src/assets/NotoSans-Regular.ttf';
 
 const { idadeCalculator, idadeReportCalculator } = useDateUtils();
+const { isMobile, isOnline } = useSystemUtils();
 export default {
   async downloadPDF(
     patient: object,
     patientServiceIdentifier: object,
     loadingPDF: object
   ) {
+    const fontBase64 = await fetchFontAsBase64(fontPath);
     const title =
       patientServiceIdentifier.service.code === 'TARV'
         ? 'Ficha Individual de Levantamento de ARVs ( FILA)'
@@ -41,6 +48,9 @@ export default {
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default is 16
     });
+    doc.addFileToVFS('NotoSans-Regular.ttf', fontBase64.split(',')[1]);
+    doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.setFont('NotoSans');
     doc.setProperties({
       title: fileName.concat('.pdf'),
     });
@@ -61,11 +71,23 @@ export default {
     ];
 
     let rows = [];
-    await packService
-      .apiGetAllByPatientId(patient.id, patientServiceIdentifier.service.code)
-      .then((resp) => {
-        rows = resp.data;
-      });
+    if (isOnline.value && !isMobile.value) {
+      await packService
+        .apiGetAllByPatientId(patient.id, patientServiceIdentifier.service.code)
+        .then((resp) => {
+          rows = resp.data;
+        });
+    } else {
+      await patientVisitService
+        .apiGetAllPacksByPatientId(
+          patient.id,
+          patientServiceIdentifier.service.code
+        )
+        .then((resp) => {
+          console.log(resp);
+          rows = resp;
+        });
+    }
 
     const data = [];
     let saveInicialDate = new Date(1990, 1, 1);
@@ -143,10 +165,12 @@ export default {
       {
         margin: { top: 60 },
         bodyStyles: {
+          font: 'NotoSans',
           halign: 'center',
           valign: 'middle',
         },
         headStyles: {
+          font: 'NotoSans',
           halign: 'center',
           valign: 'middle',
         },
@@ -159,10 +183,12 @@ export default {
     autoTable(doc, {
       margin: { top: 60 },
       bodyStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
       },
       headStyles: {
+        font: 'NotoSans',
         halign: 'center',
         valign: 'middle',
       },
@@ -184,7 +210,19 @@ export default {
       body: data,
     });
     loadingPDF.value = false;
-    window.open(doc.output('bloburl'));
+
+    if (isOnline.value && !isMobile.value) {
+      // return doc.save('PacientesActivos.pdf')
+      window.open(doc.output('bloburl'));
+    } else {
+      const pdfOutput = doc.output();
+      DownloadFileMobile.downloadFile(
+        'Ficha_Individual_de_Levantamento',
+        '.pdf',
+        pdfOutput
+      );
+    }
+
     // return doc.save(fileName.concat('.pdf'));
   },
 };
@@ -205,6 +243,7 @@ function createDrugQuantitySuppliedArrayOfArrayRow(rows: any) {
   for (const row in rows) {
     console.log('RoWWW', rows[row]);
     let qtyInUnit = 'Frasco(s)';
+
     if (
       rows[row].drug.clinical_service_id !==
       '80A7852B-57DF-4E40-90EC-ABDE8403E01F'

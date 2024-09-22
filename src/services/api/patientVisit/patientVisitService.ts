@@ -18,6 +18,9 @@ import ChunkArray from 'src/utils/ChunkArray';
 import useNotify from 'src/composables/shared/notify/UseNotify';
 import StockService from '../stockService/StockService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import drugService from '../drugService/drugService';
+import formService from '../formService/formService';
+import clinicalServiceService from '../clinicalServiceService/clinicalServiceService';
 
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = PatientVisit.entity;
@@ -197,6 +200,52 @@ export default {
 
     //  const resp = await api().get('/patientVisit/patient/' + patientId);
     // patientVisit.save(resp.data);
+  },
+
+  async apiGetAllPacksByPatientId(patientId: string, serviceCode: string) {
+    if (isMobile.value && !isOnline.value) {
+      const resp = await db[patientVisitDexie]
+        .where('patientId')
+        .equalsIgnoreCase(patientId)
+        .or('patient_id')
+        .equalsIgnoreCase(patientId)
+        .toArray();
+      patientVisit.save(resp);
+      const packs = [];
+      console.log(resp);
+
+      for (const pv of resp) {
+        if (pv.patientVisitDetails.length > 0) {
+          for (const pvd of pv.patientVisitDetails) {
+            const patientVisitDetailsLocal =
+              await patientVisitDetailsService.getAllMobileByDetailsId(pvd.id);
+            const episode = await episodeService.apiFetchById(
+              patientVisitDetailsLocal.episode.id
+            );
+            const clinicalService =
+              clinicalServiceService.getClinicalServicePersonalizedById(
+                episode.patientServiceIdentifier.service.id
+              );
+            if (
+              clinicalService !== null &&
+              clinicalService.code === serviceCode
+            ) {
+              for (const pcd of patientVisitDetailsLocal.pack.packagedDrugs) {
+                const drugLocal = await drugService.getMobileDrugById(
+                  pcd.drug.id
+                );
+                const formLocal = formService.getFormById(drugLocal.form.id);
+                drugLocal.form = formLocal;
+                pcd.drug = drugLocal;
+                console.log(pcd);
+              }
+              packs.push(patientVisitDetailsLocal.pack);
+            }
+          }
+        }
+      }
+      return packs;
+    }
   },
 
   async apiGetAllByClinicId(clinicId: string, offset: number, max: number) {
