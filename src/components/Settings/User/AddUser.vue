@@ -441,13 +441,14 @@ const submitUser = () => {
 
   user.value.roles = roless;
   if (configs.value.value === 'LOCAL') {
+    user.value.clinics = [];
     user.value.clinics.push(currClinic.value);
     user.value.clinics.push(...selectedClinicSectors.value);
   } else {
     user.value.clinics = selectedClinics.value;
   }
   //user.value.clinicSectors = selectedClinicSectors.value;
-  // if (configs.value.value === 'LOCAL')
+  // if (configs.value.value === 'LOCAL')x
 
   user.value.accountLocked = false;
   user.value.authorities = selectedRoles.value;

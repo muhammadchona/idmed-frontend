@@ -7,11 +7,13 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import UserClinics from 'src/stores/models/userLogin/UserClinic';
 
 const secUserRepo = useRepo(SecUser);
 const secUserDexie = SecUser.entity;
 const clinicSectorUsersRepo = useRepo(ClinicSectorUsers);
 const secUserRoleRepo = useRepo(SecUserRole);
+const clinicsUsersRepo = useRepo(UserClinics);
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -77,10 +79,11 @@ export default {
     return api()
       .patch('secUser/' + uuid, params)
       .then((resp) => {
-        // if (resp.data) {
-        //   clinicSectorUsersRepo.where('user_id', resp.data.id).delete();
-        //   secUserRoleRepo.where('user_id', resp.data.id).delete();
-        // }
+        if (resp.data) {
+          clinicsUsersRepo.where('user_id', resp.data.id).delete();
+          console.log(clinicsUsersRepo.all());
+          // secUserRoleRepo.where('user_id', resp.data.id).delete();
+        }
         secUserRepo.save(resp.data);
       });
   },
@@ -170,8 +173,6 @@ export default {
         query.with('district', (query1) => {
           query1.with('province');
         });
-      })
-      .with('clinicSectors', (query) => {
         query.with('parentClinic', (query1) => {
           query1.with('province');
           query1.with('facilityType');
@@ -180,6 +181,7 @@ export default {
           });
         });
       })
+
       .get();
   },
 };
