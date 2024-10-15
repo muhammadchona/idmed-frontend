@@ -81,7 +81,6 @@ export default {
       .then((resp) => {
         if (resp.data) {
           clinicsUsersRepo.where('user_id', resp.data.id).delete();
-          console.log(clinicsUsersRepo.all());
           // secUserRoleRepo.where('user_id', resp.data.id).delete();
         }
         secUserRepo.save(resp.data);
