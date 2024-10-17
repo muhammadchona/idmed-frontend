@@ -122,13 +122,13 @@ const getProcessingStatus = (params) => {
 
 const generateReport = (id, fileType, params) => {
   if (fileType === 'PDF') {
-    absentPatientsTs.downloadPDF(id, fileType, params).then((resp) => {
+    absentPatientsTs.downloadPDF(id, params).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingPdf.value = false;
     });
   } else if (fileType === 'XLS') {
-    absentPatientsTs.downloadExcel(id, fileType, params).then((resp) => {
+    absentPatientsTs.downloadExcel(id, params).then((resp) => {
       if (resp === 204)
         alertError('Não existem Dados para o período selecionado');
       downloadingXls.value = false;
