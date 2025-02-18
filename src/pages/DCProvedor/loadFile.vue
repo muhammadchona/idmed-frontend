@@ -288,7 +288,7 @@ const columns = [
     label: 'Nome',
     sortable: false,
   },
-  { name: 'gender', align: 'left', label: 'Género', sortable: false },
+  { name: 'gender', align: 'left', label: 'Sexo', sortable: false },
   { name: 'age', align: 'center', label: 'Idade', sortable: false },
   {
     name: 'lastPickup',

@@ -312,7 +312,7 @@ const columns = [
     sortable: false,
   },
   { name: 'age', align: 'center', label: 'Idade', sortable: false },
-  { name: 'gender', align: 'left', label: 'Género', sortable: false },
+  { name: 'gender', align: 'left', label: 'Sexo', sortable: false },
   { name: 'options', align: 'left', label: 'Opções', sortable: false },
 ];
 
