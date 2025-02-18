@@ -24,6 +24,7 @@ export default class Episode extends Model {
       referralClinic_id: this.attr(''),
       syncStatus: this.attr(''),
       origin: this.attr(''),
+      residentInCountry: this.boolean(true),
       // Relationships
       referralClinic: this.belongsTo(Clinic, 'referralClinic_id'),
       startStopReason: this.belongsTo(StartStopReason, 'startStopReason_id'),

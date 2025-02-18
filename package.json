@@ -1,9 +1,9 @@
 {
   "name": "org.csaude.idmed.frontend",
-  "version": "1.5.0",
+  "version": "1.6.0 SNAPSHOT",
   "description": "Sistema Inteligente de Dispensa de Medicamentos",
   "productName": "iDMED",
-  "author": "colaco.nhongo, muhammad.chona, Ercilio.francisco, joao.mabjaia",
+  "author": "colaco.nhongo, muhammad.chona, Ercilio.francisco, joao.mabjaia, voloide.tamele",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
