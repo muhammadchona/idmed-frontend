@@ -14,6 +14,11 @@
 
         <q-item-section>
           Data de Levantamento: {{ formatDate(pack.pickupDate) }}
+          {{
+            String(prescription?.clinic?.id) !== prescription.origin
+              ? ' - [ Origem da Dispensa: '.concat(getOriginClinic).concat(']')
+              : ''
+          }}
         </q-item-section>
       </template>
       <q-card flat v-if="pack !== null" bordered class="noRadius">
@@ -132,8 +137,9 @@
 <script setup>
 import { date } from 'quasar';
 import { useDrug } from 'src/composables/drug/drugMethods';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
-import { inject, provide, ref } from 'vue';
+import { computed, inject, provide, ref } from 'vue';
 //Declaration
 
 const { getDrugFirstLevelById } = useDrug();
@@ -180,6 +186,12 @@ const bgColor = ref('bg-grey-6');
 const pack = inject('lastPackOnPrescription');
 const curIdentifier = inject('curIdentifier');
 const removePack = inject('removePack');
+const prescription = inject('prescription');
+
+const getOriginClinic = computed(() => {
+  const clinic = clinicService.getById(prescription.value.origin);
+  return clinic?.clinicName;
+});
 
 // Methods
 const formatDate = (dateString) => {
