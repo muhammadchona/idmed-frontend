@@ -153,10 +153,11 @@ export function usePatient() {
     const filteredData = patient.identifiers.filter(
       (item: PatientServiceIdentifier) =>
         item.episodes.some((episode: Episode) => {
-          episode.startStopReason !== null &&
-          episode.startStopReason !== undefined
-            ? episode.startStopReason.code === 'OBITO'
-            : false;
+          return (
+            episode.startStopReason !== null &&
+            episode.startStopReason !== undefined &&
+            episode.startStopReason.code === 'OBITO'
+          );
         })
     );
     if (filteredData.length >= 1) {

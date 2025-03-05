@@ -499,6 +499,24 @@ export default {
       .get();
   },
 
+  getLastWithAllRecursiveFromPatientAndClinicService(
+    patientId: string,
+    clinicalServiceId: string
+  ) {
+    return patientVisitDetails
+      .query()
+      .withAllRecursive(2)
+      .whereHas('patientVisit', (query) => {
+        query.where('patient_id', patientId);
+      })
+      .whereHas('episode', (query) => {
+        query.whereHas('patientServiceIdentifier', (query) => {
+          query.where('service_id', clinicalServiceId);
+        });
+      })
+      .first();
+  },
+
   // Dexie Block
   async getPatientVisitDetailsByPackIdFromDexie(packIds: string) {
     return await patientVisitDetailsDexie

@@ -168,10 +168,11 @@ export default {
   },
   checkWeatherAttExist(clinicalServiceId: string, att: string) {
     const csa = clinicalServiceAttribute
-      .where('service_id', clinicalServiceId)
+      .where('clinical_service_id', clinicalServiceId)
       .whereHas('clinicalServiceAttributeType', (query) => {
         query.where('code', att);
-      });
+      })
+      .first();
     return csa !== null && csa !== undefined;
   },
 };

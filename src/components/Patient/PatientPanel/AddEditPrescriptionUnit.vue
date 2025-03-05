@@ -761,9 +761,22 @@ const lastPatientVisitDetails = computed(() => {
       lastPatientVisitDetailsFromEpisode === null ||
       lastPatientVisitDetailsFromEpisode === undefined
     ) {
-      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
-        lastPatientVisit.value.id
-      );
+      const patientVisitsDetailsByIdentifier =
+        patientVisitDetailsService.getAllWithAllRecursiveFromPatientAndClinicService(
+          patient.value.id,
+          props.identifier.id
+        );
+      if (
+        patientVisitsDetailsByIdentifier !== null &&
+        patientVisitsDetailsByIdentifier !== undefined &&
+        patientVisitsDetailsByIdentifier.length !== 0
+      ) {
+        return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
+          lastPatientVisit.value.id
+        );
+      } else {
+        return null;
+      }
     } else {
       return lastPatientVisitDetailsFromEpisode;
     }

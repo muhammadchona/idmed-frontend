@@ -133,6 +133,7 @@ import PatientWithPregnancyScreening from 'src/components/Reports/Patient/Patien
 import NotSynchronizedPackToServer from 'components/Reports/monitoring/NotSyncronizedPacksToServer.vue';
 import PatientsMonitoredForAdherence from 'components/Reports/Patient/PatientsMonitoredForAdherence.vue';
 import PatientsPickedUpMedsAtUS from 'components/Reports/Patient/PatientsPickedUpMedsAtUS.vue';
+import ErrorLogPatientUpdateSesp from 'components/Reports/monitoring/ErrorLogPatientUpdateSesp.vue';
 // NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
 
 import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue';
@@ -192,6 +193,7 @@ const componentsList = {
   PatientsMonitoredForAdherence,
   PatientsPickedUpMedsAtUS,
   RegisteredInIdmed,
+  ErrorLogPatientUpdateSesp,
 };
 
 const { isMobile } = useSystemUtils();

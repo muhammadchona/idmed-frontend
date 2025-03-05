@@ -2,10 +2,11 @@
   <div>
     <ListHeader
       :addVisible="
-        (isProvincialInstalation() &&
+        showAddPrescriptionButton &&
+        ((isProvincialInstalation() &&
           isProvincialInstalationMobileClinic() &&
           !isProvincialInstalationPharmacysMode()) ||
-        isLocalInstalation()
+          isLocalInstalation())
       "
       :mainContainer="true"
       bgColor="bg-primary"
@@ -43,7 +44,8 @@ import { usePatientServiceIdentifier } from 'src/composables/patient/patientServ
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 // Declaration
-const { preferedIdentifier } = usePatient();
+const { preferedIdentifier, hasEpisodes, hasNoObitOrTransferedForEpisode } =
+  usePatient();
 const {
   isProvincialInstalation,
   isProvincialInstalationPharmacysMode,
@@ -80,6 +82,16 @@ const currIdentifier = computed(() => {
     );
   } else {
     return [];
+  }
+});
+
+const showAddPrescriptionButton = computed(() => {
+  if (hasEpisodes(patient.value)) {
+    if (hasNoObitOrTransferedForEpisode(patient.value)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 });
 
