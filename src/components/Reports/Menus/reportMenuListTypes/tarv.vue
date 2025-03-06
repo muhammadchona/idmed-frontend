@@ -167,6 +167,11 @@ const menu = [
         description: 'Lista de Pacientes Registados à partir do iDMED',
         tabName: 'RegisteredInIdmed',
       },
+      {
+        description:
+          'Lista de Pacientes Com Erro Na Actualização de Dados Vindo do SESP',
+        tabName: 'ErrorLogPatientUpdateSesp',
+      },
     ],
   },
 ];

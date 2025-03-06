@@ -426,6 +426,7 @@ import { usePatientVisitDetail } from 'src/composables/patient/patientVisitDetai
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import { v4 as uuidv4 } from 'uuid';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useLoading } from 'src/composables/shared/loading/loading';
 // Declaration
 const { hasPreferedId } = usePatient();
 const { hasVisits } = useEpisode();
@@ -443,6 +444,7 @@ const { fullName, age } = usePatient();
 const { lastPack } = usePatientVisitDetail();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
 const { isMobile, isOnline } = useSystemUtils();
+const { closeLoading, showloading } = useLoading();
 const submitting = ref(false);
 const identifierstartDate = ref('');
 const identifier = ref(new PatientServiceIdentifier({ id: uuidv4() }));
@@ -855,7 +857,21 @@ const doSave = async () => {
       }
       let msg = '';
       if (isCloseStep.value) {
+        showloading();
         msg = 'Serviço de saúde fechado com sucesso.';
+        if (
+          closureEpisode.value.startStopReason.code === 'TRANSFERIDO_PARA' ||
+          closureEpisode.value.startStopReason.code === 'OBITO'
+        ) {
+          curIdentifier.value.patient.identifiers.forEach((identifiers) => {
+            patientServiceIdentifierService.apiFetchById(identifiers.id);
+            closeLoading();
+            close();
+          });
+        } else {
+          closeLoading();
+          close();
+        }
       } else if (isCreateStep.value) {
         msg = 'Serviço de saúde adicionado com sucesso.';
       } else if (isEditStep.value) {
