@@ -29,15 +29,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-
-            <q-btn
-              color="primary"
-              icon-right="refresh"
-              label="Actualizar Lista"
-              no-caps
-              v-if="isProvincialInstalation()"
-              @click="getDrugsFromProvincialServer"
-            />
           </div>
         </template>
         <template v-slot:body="props">
@@ -98,6 +89,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { ref, inject, provide, onMounted, computed } from 'vue';
 import drugService from 'src/services/api/drugService/drugService.ts';
 import formService from 'src/services/api/formService/formService.ts';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
 /*Components Import*/
 import addDrug from 'src/components/Settings/Drug/AddDrug.vue';
@@ -106,6 +98,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 /*Declarations*/
 const { alertWarningAction, alertSucess, alertError } = useSwal();
 const { showloading, closeLoading } = useLoading();
+const { isProvincialInstalation } = useSystemConfig();
 const columns = [
   {
     name: 'name',

@@ -72,9 +72,8 @@
             />
             <q-route-tab
               v-if="
-                menusVisible('Stock') &&
-                (!isProvincialInstalation() ||
-                  isProvincialInstalationPharmacysMode() ||
+                menusVisible('Stock') && !isProvincialInstalation() &&
+                ( isProvincialInstalationPharmacysMode() ||
                   isProvincialInstalationMobileClinic)
               "
               exact
