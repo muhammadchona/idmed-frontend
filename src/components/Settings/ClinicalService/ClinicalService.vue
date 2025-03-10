@@ -29,13 +29,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn
-              color="primary"
-              icon-right="refresh"
-              label="Actualizar Lista"
-              @click="getClinicalServicesFromProvincialServer"
-              no-caps
-            />
           </div>
           <div class="q-pa-md q-gutter-sm">
             <q-btn

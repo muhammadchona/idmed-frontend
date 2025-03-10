@@ -91,18 +91,14 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return provinceDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        province.save(JSON.parse(JSON.stringify(params)));
-      });
+    return provinceDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
+      province.save(JSON.parse(JSON.stringify(params)));
+    });
   },
   putMobile(params: string) {
-    return provinceDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        province.save(JSON.parse(JSON.stringify(params)));
-      });
+    return provinceDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
+      province.save(JSON.parse(JSON.stringify(params)));
+    });
   },
   getMobile() {
     return provinceDexie
@@ -152,7 +148,7 @@ export default {
   },
 
   getAllProvinces() {
-    return province.query().with('districts').orderBy('code', 'asc').get();
+    return province.withAllRecursive(1).orderBy('code', 'asc').get();
   },
 
   getAllProvincesById(provinceId: string) {

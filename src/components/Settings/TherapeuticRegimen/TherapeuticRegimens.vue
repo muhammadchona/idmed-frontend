@@ -38,14 +38,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn
-              color="primary"
-              icon-right="refresh"
-              label="Actualizar Lista"
-              no-caps
-              v-if="isProvincialInstalation()"
-              @click="getRegimensFromProvincialServer"
-            />
           </div>
         </template>
         <template v-slot:body="props">

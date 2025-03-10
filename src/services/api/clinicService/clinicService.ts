@@ -323,6 +323,21 @@ export default {
       .orderBy('code', 'asc')
       .get();
   },
+
+  getAllofAllUSFromDistrict(districtId: string) {
+    return clinic
+      .withAllRecursive(2)
+      .where('active', true)
+      .where('district_id', districtId)
+      .whereHas('facilityType', (query) => {
+        query.where((facilityType) => {
+          return facilityType.code === 'US';
+        });
+      })
+      .orderBy('code', 'asc')
+      .get();
+  },
+
   getAllActiveUSWithoutMain() {
     return clinic
       .withAllRecursive(1)
