@@ -2,7 +2,7 @@
   <div>
     <ListHeader
       :addVisible="
-        showAddPrescriptionButton &&
+        disableAddButton &&
         ((isProvincialInstalation() &&
           isProvincialInstalationMobileClinic() &&
           !isProvincialInstalationPharmacysMode()) ||
@@ -85,14 +85,15 @@ const currIdentifier = computed(() => {
   }
 });
 
-const showAddPrescriptionButton = computed(() => {
-  if (hasEpisodes(patient.value)) {
+const disableAddButton = computed(() => {
+  if (patient.value !== null) {
     if (hasNoObitOrTransferedForEpisode(patient.value)) {
       return true;
     } else {
       return false;
     }
   }
+  return false;
 });
 
 //Hook
