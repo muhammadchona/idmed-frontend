@@ -104,7 +104,14 @@
                   class="my-sticky-header-table"
                 >
                   <template #body="props">
-                    <q-tr no-hover :props="props">
+                    <q-tr
+                      no-hover
+                      :props="props"
+                      v-if="
+                        props.row.prescription &&
+                        props.row.prescription.clinic !== null
+                      "
+                    >
                       <q-td key="pickUpDate" :props="props">
                         {{ formatDate(props.row.pack.pickupDate) }}
                       </q-td>
@@ -453,6 +460,11 @@ const submitForm = () => {
       submitLoading.value = false;
       alertSucess('Operacao efectuada com sucesso');
       closeMergePatient();
+    })
+    .catch((error) => {
+      console.log('ERROR ', error);
+      submitLoading.value = false;
+      alertError(error.response.data);
     });
 };
 
