@@ -764,7 +764,7 @@ const lastPatientVisitDetails = computed(() => {
       const patientVisitsDetailsByIdentifier =
         patientVisitDetailsService.getAllWithAllRecursiveFromPatientAndClinicService(
           patient.value.id,
-          props.identifier.id
+          props.identifier.service.id
         );
       if (
         patientVisitsDetailsByIdentifier !== null &&
