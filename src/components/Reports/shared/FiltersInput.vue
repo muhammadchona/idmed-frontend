@@ -5,9 +5,9 @@
         <q-select
           dense
           outlined
-          v-if="isProvincialLevel"
-          disable
+          v-if="isProvincialInstalation()"
           class="col q-mr-md"
+          disabled
           :options="provinces"
           v-model="reportParams.province"
           ref="province"
@@ -18,7 +18,7 @@
 
         <q-select
           class="col q-mr-md"
-          v-if="isProvincialLevel"
+          v-if="isProvincialInstalation()"
           dense
           outlined
           :options="districts"
@@ -34,7 +34,7 @@
           class="col q-mr-md"
           dense
           outlined
-          :disable="isClinicLevel"
+          :disable="!isProvincialInstalation()"
           :options="clinics"
           v-model="reportParams.clinic"
           ref="clinic"
@@ -266,21 +266,25 @@
 </template>
 
 <script setup>
-import Province from '../../../stores/models/province/Province';
 import Clinic from '../../../stores/models/clinic/Clinic';
 import { onMounted, ref, computed, inject, provide, watch } from 'vue';
-import { LocalStorage, SessionStorage } from 'quasar';
+import { LocalStorage } from 'quasar';
 import moment from 'moment';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { useProgress } from 'src/composables/shared/progressBarParams/progressBarParams';
 
 import SemesterPeriod from 'components/Reports/shared/SemesterPeriod.vue';
 import MonthlyPeriod from 'components/Reports/shared/MonthlyPeriod.vue';
 import QuarterlyPeriod from 'components/Reports/shared/QuarterlyPeriod.vue';
 import AnnualPeriod from 'components/Reports/shared/AnnualPeriod.vue';
+import provinceService from 'src/services/api/provinceService/provinceService';
+import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { website } = useSystemUtils();
 const { barAndPercentProgressVal } = useProgress();
+const { isProvincialInstalation } = useSystemConfig();
 const props = defineProps([
   'clinicalService',
   'menuSelected',
@@ -437,41 +441,32 @@ const progressStatus = computed(() => {
 });
 
 const provinces = computed(() => {
-  return Province.query().with('districts').has('code').get();
+  return provinceService.getAllProvinces();
 });
 
-const districts = () => {
+const districts = computed(() => {
   if (reportParams.value.province !== null) {
-    return props.province.districts;
+    return currProvince.value.districts;
   } else {
     return null;
   }
-};
+});
 
 const clinics = computed(() => {
   if (reportParams.value.district !== null) {
-    return Clinic.query()
-      .with('districts')
-      .where('district_id', reportParams.value.districtId)
-      .get();
+    return clinicService.getAllofAllUSFromDistrict(
+      reportParams.value.district.id
+    );
   } else {
     return null;
   }
 });
 
-const isProvincialLevel = computed(() => {
-  return false;
-});
-
-const isClinicLevel = computed(() => {
-  return true;
-});
-
 const currProvince = computed(() => {
-  return Province.query()
-    .with('districts')
-    .where('id', SessionStorage.getItem('currProvince').id)
-    .first();
+  const instalationType = systemConfigsService.getInstallationType();
+  if (instalationType.value === 'PROVINCIAL') {
+    return provinceService.getAllProvincesByCode(instalationType.description);
+  } else return null;
 });
 
 const blockDataFutura = (date) => {
@@ -533,12 +528,12 @@ const onPeriodoChange = (val) => {
 };
 
 const initParams = () => {
-  if (isClinicLevel.value) {
+  if (!isProvincialInstalation()) {
     reportParams.value.clinicId = currClinic.value.id;
     reportParams.value.clinic = currClinic.value;
   } else {
-    reportParams.value.provinceId = currClinic.value.province.id;
-    reportParams.value.province = currClinic.value.province;
+    reportParams.value.provinceId = currProvince.value.id;
+    reportParams.value.province = currProvince.value;
   }
 };
 
@@ -570,14 +565,17 @@ const processReport = () => {
 };
 
 const saveParams = () => {
+  if (isProvincialInstalation()) {
+    reportParams.value.clinicId = reportParams.value.clinic.id;
+  } else {
+    reportParams.value.clinic = null;
+    reportParams.value.clinic = currClinic.value;
+  }
   reportParams.value.tabName = props.tabName;
-  reportParams.value.clinic = null;
   const jsonPar = JSON.parse(JSON.stringify(reportParams.value));
   LocalStorage.set(reportParams.value.id, jsonPar);
-  reportParams.value.clinic = currClinic.value;
   // reportParams.value.endDateParam = props.endDate;
   // reportParams.value.startDateParam = props.startDate;
-  // console.log('PAR Inicial', reportParams.value);
 };
 
 const generateReport = (fileType) => {

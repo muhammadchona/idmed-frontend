@@ -146,8 +146,16 @@
             bgColor="bg-primary"
             >Informação por Lote
           </list-header>
-          <div>
-            <span v-for="lote in stocks(drug)" :key="lote.id">
+          <div class="q-pa-sm">
+            <q-toggle
+              v-model="loadingHiddenBatches"
+              label="Exibir Lotes expirados"
+              class="q-mb-sm"
+            />
+            <span
+              v-for="lote in stocks(drug, loadingHiddenBatches)"
+              :key="lote.id"
+            >
               <lote-info-container
                 :stockInfo="lote"
                 @updateDrugFileAdjustment="updateDrugFileAdjustment"
@@ -185,6 +193,7 @@ import fichaStockReport from 'src/services/reports/stock/FichaStockReport';
 const { isOnline, isMobile } = useSystemUtils();
 
 const loading = ref(true);
+const loadingHiddenBatches = ref(false);
 const batchChanged = ref(false);
 
 const toggle = ref(false);
@@ -275,7 +284,12 @@ const goBack = () => {
 };
 
 const printFichaPDF = () => {
-  fichaStockReport.downloadPDF('PDF', drugEventList, drug, stocks(drug.value));
+  fichaStockReport.downloadPDF(
+    'PDF',
+    drugEventList,
+    drug,
+    stocks(drug.value, loadingHiddenBatches)
+  );
 };
 
 const printFichaXLS = () => {
@@ -283,7 +297,7 @@ const printFichaXLS = () => {
     'XLS',
     drugEventList,
     drug,
-    stocks(drug.value)
+    stocks(drug.value, loadingHiddenBatches)
   );
 };
 
@@ -366,9 +380,17 @@ onMounted(() => {
   generateDrugEventSummary();
 });
 
-const stocks = (drug) => {
+const stocks = (drug, hideExpiredBatches) => {
   const clinic = clinicService.currClinic();
-  return StockService.getStockByDrug(drug.id, clinic.id);
+  let stockList = [];
+
+  if (hideExpiredBatches) {
+    stockList = StockService.getStockByDrug(drug.id, clinic.id);
+  } else {
+    stockList = StockService.getValidStockByDrug(drug, clinic.id);
+  }
+
+  return stockList;
 };
 
 const drugFile = () => {

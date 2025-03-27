@@ -185,7 +185,25 @@
               }}
             </div>
           </div>
-
+          <div
+            class="row"
+            v-if="String(prescription?.clinic?.id) !== prescription.origin"
+          >
+            <div class="col text-grey-9 text-weight-medium">
+              <span> Origem da Prescrição:</span>
+            </div>
+            <div class="col text-grey-8 neon-text">
+              {{
+                prescription === null ||
+                prescription === undefined ||
+                prescription.origin === null
+                  ? 'Sem Info'
+                  : getOriginClinic
+              }}
+            </div>
+            <div class="col text-grey-8 neon-text"></div>
+            <div class="col text-grey-8 neon-text"></div>
+          </div>
           <div class="col text-grey-8 q-pt-lg">
             <q-banner
               dense
@@ -264,6 +282,7 @@ import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
 import drugService from 'src/services/api/drugService/drugService';
+import clinicService from 'src/services/api/clinicService/clinicService';
 const { remainigDuration, remainigDurationInWeeks } = usePrescription();
 const { getQtyPrescribed } = usePrescribedDrug();
 
@@ -327,6 +346,10 @@ const validadeColor = computed(() => {
   } else {
     return 'text-red';
   }
+});
+const getOriginClinic = computed(() => {
+  const clinic = clinicService.getById(prescription.value.origin);
+  return clinic?.clinicName;
 });
 </script>
 

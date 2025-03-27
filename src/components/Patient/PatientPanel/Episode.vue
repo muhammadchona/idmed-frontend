@@ -202,7 +202,13 @@ const currEpisode = computed(() => {
   return episodeService.getEpisodeById(props.episodeId);
 });
 const lastPack = computed(() => {
-  return packService.getLastPackFromEpisode(props.episodeId);
+  let lastPack = packService.getLastPackFromEpisode(props.episodeId);
+  if (lastPack === null) {
+    lastPack = packService.getLastPackFromPatientId(
+      currEpisode.value.patientServiceIdentifier_id
+    );
+  }
+  return lastPack;
 });
 const currIdentifier = computed(() => {
   return currEpisode.value.patientServiceIdentifier;

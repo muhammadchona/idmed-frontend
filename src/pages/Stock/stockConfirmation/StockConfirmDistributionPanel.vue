@@ -572,6 +572,7 @@ const doConfirmRecord = (record) => {
   record.status = 'C'; //confirmed
   DrugDistributorService.updateDrugDistributorStatus(record, 'C')
     .then((resp) => {
+      loadstockObjectsList();
       closeLoading();
       getStockDistributionCount(currClinic.value);
       alertSucess('Operação efectuada com sucesso.');
@@ -587,6 +588,7 @@ const doRejectRecord = (record) => {
   record.status = 'R'; //rejected
   DrugDistributorService.updateDrugDistributorStatus(record, 'R')
     .then((resp) => {
+      loadstockObjectsList();
       closeLoading();
       getStockDistributionCount(currClinic.value);
       alertSucess('Operação efectuada com sucesso.');
@@ -672,7 +674,8 @@ const loadstockObjectsList = () => {
     currStockDistributor.value.id,
     currClinic.value.id
   );
-  console.log('Finished loading stock: ' + stocks);
+  console.log(stocks);
+  drugDistributorList.value = [];
   Object.keys(stocks).forEach(
     function (k) {
       drugDistributorList.value.push(stocks[k]);

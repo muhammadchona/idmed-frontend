@@ -215,7 +215,13 @@ export default {
       loadingPDF.value = false;
     } else {
       const pdfOutput = doc.output();
-      DownloadFileMobile.downloadFile(fileName, '.pdf', pdfOutput, loadingPDF);
+      const newFileName = fileName.replace(/\//g, '-');
+      DownloadFileMobile.downloadFile(
+        newFileName,
+        '.pdf',
+        pdfOutput,
+        loadingPDF
+      );
     }
 
     // return doc.save(fileName.concat('.pdf'));

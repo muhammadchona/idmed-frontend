@@ -185,6 +185,25 @@
                   }}
                 </div>
               </div>
+              <div
+                class="row"
+                v-if="String(prescription?.clinic?.id) !== prescription.origin"
+              >
+                <div class="col text-grey-9 text-weight-medium">
+                  <span> Origem da Prescrição:</span>
+                </div>
+                <div class="col text-grey-8 neon-text">
+                  {{
+                    prescription === null ||
+                    prescription === undefined ||
+                    prescription.origin === null
+                      ? 'Sem Info'
+                      : getOriginClinic
+                  }}
+                </div>
+                <div class="col text-grey-8 neon-text"></div>
+                <div class="col text-grey-8 neon-text"></div>
+              </div>
               <q-separator />
               <div class="row q-my-md">
                 <q-space />
@@ -292,6 +311,7 @@ import PrescriptionDetailsView from 'components/Patient/Prescription/Prescriptio
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import StockService from 'src/services/api/stockService/StockService';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 //Declaration
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -570,6 +590,11 @@ const isPatientActiveGroupMember = computed(() => {
   );
 });
 
+const getOriginClinic = computed(() => {
+  const clinic = clinicService.getById(prescription.value.origin);
+  return clinic?.clinicName;
+});
+
 const showPrescriptionDetailView = () => {
   showPrescriptionDetails.value = true;
 };
@@ -587,5 +612,38 @@ provide('validadeColor', validadeColor);
 <style>
 .noRadius {
   border-radius: 0px;
+}
+.item {
+  position: relative;
+  padding-top: 5px;
+  /* display: inline-block; */
+}
+.notify-badge {
+  /* position: absolute; */
+  right: -20px;
+  top: -10px;
+  background: red;
+  text-align: center;
+  border-radius: 30px 30px 30px 30px;
+  color: white;
+  padding: 5px 8px;
+  font-size: 10px;
+}
+.neon-text {
+  font-size: 1rem;
+  color: #ffff;
+  text-shadow: 0 0 5px #0059ff, 0 0 10px #0059ff, 0 0 20px #0059ff,
+    0 0 40px #0059ff, 0 0 80px #0059ff;
+  animation: glow 1.5s infinite alternate;
+}
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 5px #0059ff, 0 0 10px #0059ff, 0 0 20px #0059ff,
+      0 0 40px #0059ff, 0 0 80px #0059ff;
+  }
+  100% {
+    text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff, 0 0 40px #00d4ff,
+      0 0 80px #00d4ff, 0 0 160px #00d4ff;
+  }
 }
 </style>

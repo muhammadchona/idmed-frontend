@@ -429,9 +429,7 @@ const saveAllAdjustments = (inventory, hasAdjustments) => {
 const closeClassInventory = (inventory) => {
   if (!isMobile.value) {
     inventory.open = false;
-    inventory.endDate = moment(
-      getDateFromHyphenDDMMYYYY(closeDate.value)
-    ).format('YYYY-MM-DD');
+    inventory.endDate = closeDate.value;
     InventoryService.apiClose(inventory.id, inventory.endDate).then((resp) => {
       let step = 'display';
       InventoryService.closeInventoryPinia(inventory, inventory.endDate);
@@ -441,9 +439,7 @@ const closeClassInventory = (inventory) => {
     });
   } else {
     inventory.open = false;
-    inventory.endDate = moment(
-      getDateFromHyphenDDMMYYYY(closeDate.value)
-    ).format('YYYY-MM-DD');
+    inventory.endDate = closeDate.value;
     inventory.adjustments.forEach((item) => {
       item.inventory_id = inventory.id;
       item.finalised = true;

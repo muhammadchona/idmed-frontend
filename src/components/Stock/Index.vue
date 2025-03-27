@@ -18,7 +18,12 @@
         >
         </q-tab>
         <q-tab
-          v-if="!isOnline"
+          v-if="
+            !isOnline &&
+            clinic.facilityType.code !== 'FP' &&
+            clinic.facilityType.code !== 'FC' &&
+            clinic.facilityType.code !== 'US'
+          "
           name="confirmDistribution"
           label="Confirmar Distribuicao"
           @click="selectTab('confirmDistribution')"

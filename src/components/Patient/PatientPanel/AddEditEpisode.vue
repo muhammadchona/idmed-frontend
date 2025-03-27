@@ -101,6 +101,10 @@
             :rules="[(val) => !!val || 'Por favor indicar a nota de início']"
             option-value="id"
             option-label="reason"
+            @update:model-value="
+              selectedDistrict = null;
+              selectedClinicSector = null;
+            "
             label="Notas de início *"
           />
         </div>
@@ -174,18 +178,50 @@
               </q-icon>
             </template>
           </q-input>
-          <div class="col q-ml-md" />
+          <div
+            class="col q-ml-md"
+            v-if="String(episode?.startStopReason?.code) === 'TRANSITO'"
+          >
+            <q-radio
+              v-model="episode.residentInCountry"
+              checked-icon="task_alt"
+              unchecked-icon="panorama_fish_eye"
+              :val="true"
+              :disable="!canEditEpisode || isClosingEpisode"
+              label="Nacional"
+            />
+            <q-radio
+              v-model="episode.residentInCountry"
+              checked-icon="task_alt"
+              unchecked-icon="panorama_fish_eye"
+              :val="false"
+              :disable="!canEditEpisode || isClosingEpisode"
+              label="Estrangeiro"
+              @update:model-value="
+                selectedDistrict = null;
+                selectedClinicSector = null;
+              "
+            />
+          </div>
+          <div class="col q-ml-md" v-else></div>
         </div>
-        <span v-if="isClosingEpisode && hasVisits(episode)">
+        <span
+          v-if="(isClosingEpisode && hasVisits(episode)) || isNationalTransit"
+        >
           <div class="q-mt-md">
             <div class="row items-center q-mb-sm">
-              <span class="text-subtitle2"
+              <span
+                class="text-subtitle2"
+                v-if="isNationalTransit && !hasVisits(episode)"
+                >Selecione a Unidade Sanitaria de origem</span
+              >
+              <span class="text-subtitle2" v-else
                 >Dados de Fim do Histórico Clínico</span
               >
             </div>
             <q-separator color="grey-13" size="1px" class="q-mb-sm" />
           </div>
-          <div class="row">
+          <div class="row" v-if="hasVisits(episode)">
             <q-input
               dense
               outlined
@@ -224,7 +260,9 @@
               dense
               outlined
               ref="stopReasonRef"
-              :rules="[(val) => !!val || 'Por favor indicar a nota de fim']"
+              :rules="[
+                (val) => !!val || 'Por favor indicar do histórico clínico',
+              ]"
               v-model="closureEpisode.startStopReason"
               :options="stopReasons"
               option-value="id"
@@ -233,7 +271,14 @@
             />
           </div>
 
-          <div class="row" v-if="isReferenceEpisode || isTransferenceEpisode">
+          <div
+            class="row"
+            v-if="
+              isReferenceEpisode ||
+              isTransferenceEpisode ||
+              (isNationalTransit && !hasVisits(episode))
+            "
+          >
             <q-select
               class="col"
               dense
@@ -245,6 +290,10 @@
               :options="provinces"
               option-value="id"
               option-label="description"
+              @update:model-value="
+                selectedDistrict = null;
+                selectedClinicSector = null;
+              "
               label="Província"
             />
             <q-select
@@ -258,6 +307,7 @@
               :options="districts"
               option-value="id"
               option-label="description"
+              @update:model-value="selectedClinicSector = null"
               label="Distrito"
             />
             <q-select
@@ -266,7 +316,11 @@
               outlined
               ref="referralClinicRef"
               :rules="[
-                (val) => !!val || 'Por favor indicar o destino do paciente.',
+                (val) =>
+                  !!val ||
+                  (isNationalTransit
+                    ? 'Por favor indicar a origem do paciente.'
+                    : 'Por favor indicar o destino do paciente.'),
               ]"
               v-model="selectedClinicSector"
               :options="referralClinics"
@@ -329,7 +383,9 @@
               label="Outras notas do Histórico Clínico"
               :disable="episode.id !== null && isEditStep"
               ref="endNotesRef"
-              :rules="[(val) => !!val || 'Por favor indicar a nota de fim']"
+              :rules="[
+                (val) => !!val || 'Por favor indicar do histórico clínico',
+              ]"
               dense
               class="col"
             />
@@ -436,7 +492,7 @@ const patientDestinationfieldLabel = computed(() => {
   } else if (isReferenceEpisode.value) {
     return 'Farmácia de Referência';
   } else {
-    return 'Sem Titulo';
+    return 'US de Origem';
   }
 });
 
@@ -480,7 +536,11 @@ const referealClinicSectorsRSC = computed(() => {
 
 const districts = computed(() => {
   if (selectedProvince.value !== null && selectedProvince.value !== undefined) {
-    if (isReferenceEpisode.value || isTransferenceEpisode.value) {
+    if (
+      isReferenceEpisode.value ||
+      isTransferenceEpisode.value ||
+      isNationalTransit
+    ) {
       return districtService.getAllDistrictByProvinceId(
         selectedProvince.value.id
       );
@@ -490,6 +550,13 @@ const districts = computed(() => {
   } else {
     return [];
   }
+});
+
+const isNationalTransit = computed(() => {
+  return (
+    String(episode?.value?.startStopReason?.code) === 'TRANSITO' &&
+    episode.value.residentInCountry
+  );
 });
 
 const isReferenceEpisode = computed(() => {
@@ -676,10 +743,15 @@ const init = async () => {
     closureEpisode.value.id = uuidv4();
     closureEpisode.value.syncStatus = 'R';
     episode.value.syncStatus = 'U';
+
     if (curEpisode !== null && curEpisode !== undefined) {
       episode.value = episodeService.lastEpisodeByIdentifier(
         curIdentifier.value.id
       );
+      if (isNationalTransit.value) {
+        selectedClinicSector.value = episode.value.referralClinic;
+        selectedDistrict.value = episode.value.referralClinic.district;
+      }
       startDate.value = getDDMMYYYFromJSDate(episode.value.episodeDate);
     }
   }
@@ -791,10 +863,14 @@ const submitForm = () => {
             'O paciente deve ter registo de uma prescrição válida e dispensa para poder ser referido.'
           );
           submitting.value = false;
-        } else if (isReferenceEpisode.value || isTransferenceEpisode.value) {
-          referralClinicRef.value.validate();
-          if (referralClinicRef.value.hasError) {
-            alertError('Por favor indicar o destino do paciente.');
+        } else if (
+          isReferenceEpisode.value ||
+          isTransferenceEpisode.value ||
+          isNationalTransit.value
+        ) {
+          endNotesRef.value.validate();
+          if (endNotesRef.value.hasError) {
+            alertError('Por favor indicar notas do histórico clínico.');
             submitting.value = false;
           } else {
             doSave();
@@ -804,6 +880,18 @@ const submitForm = () => {
         }
       } else {
         submitting.value = false;
+      }
+    } else if (isNationalTransit.value) {
+      referralClinicRef.value.validate();
+      endNotesRef.value.validate();
+      if (referralClinicRef.value.hasError) {
+        alertError('Por favor indicar a origem do paciente.');
+        submitting.value = false;
+      } else if (endNotesRef.value.hasError) {
+        alertError('Por favor indicar notas do histórico clínico.');
+        submitting.value = false;
+      } else {
+        doSave();
       }
     } else {
       doSave();
@@ -873,6 +961,11 @@ const doSave = async () => {
       closureEpisode.value.origin = currClinic.value.id;
     }
   }
+  if (isNationalTransit.value) {
+    episode.value.notes = closureEpisode.value.notes;
+    episode.value.referralClinic = selectedClinicSector.value;
+  }
+
   episodeService
     .apiSave(episode.value, isNewEpisode.value)
     .then(() => {

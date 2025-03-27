@@ -815,7 +815,7 @@ export default {
         timeout: 2500, // we will timeout it in 2.5s
       });
       closeLoading();
-      notifySuccess('Carregamento de Dispensas Terminado');
+      notifySuccess('Carregamento de Atencao Farmaceutica Terminado');
       return true;
       //this.addBulkMobile();
     } catch (error) {

@@ -214,7 +214,13 @@ const curEpisode = computed(() => {
   return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
 });
 const lastPack = computed(() => {
-  return packService.getLastPackFromEpisode(curEpisode.value.id);
+  let lastPack = packService.getLastPackFromEpisode(curEpisode.value.id);
+  if (lastPack === null) {
+    lastPack = packService.getLastPackFromPatientId(
+      curEpisode.value.patientServiceIdentifier_id
+    );
+  }
+  return lastPack;
 });
 // Methods
 const openEpisodeCreation = () => {

@@ -281,6 +281,21 @@ export default {
       .get();
   },
 
+  getLastPackFromPatientId(patientServiceIdentifierid: string) {
+    return pack
+      .withAllRecursive(2)
+      .whereHas('patientVisitDetails', (query) => {
+        query.whereHas('episode', (query) => {
+          query.where(
+            'patientServiceIdentifier_id',
+            patientServiceIdentifierid
+          );
+        });
+      })
+      .orderBy('pickupDate', 'desc')
+      .first();
+  },
+
   getLastPackFromPatientAndDrug(patient: string, drug: string) {
     const list = pack
       .withAllRecursive(3)

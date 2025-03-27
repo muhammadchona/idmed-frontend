@@ -108,6 +108,11 @@ const submitForm = () => {
     alertError(
       'A data de criação da guia não pode ser superior a data corrente.'
     );
+    closeLoading();
+  }
+  if (stockDistributor.notes === null || stockDistributor.notes === '') {
+    alertError('Por favor preencha o campo de Notas da Guia');
+    closeLoading();
   } else {
     orderNumberRef.value.validate();
     if (!orderNumberRef.value.hasError) {
@@ -132,6 +137,8 @@ const submitForm = () => {
           closeLoading();
           alertError('Ocorreu um erro inesperado, contacte o administrador!');
         });
+    } else {
+      closeLoading();
     }
   }
 };

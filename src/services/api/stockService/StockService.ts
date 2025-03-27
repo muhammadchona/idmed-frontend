@@ -120,7 +120,7 @@ export default {
   getValidStockWithDrug() {
     return stock
       .with('drug')
-      .where((stock) => {
+      .where((stock: any) => {
         return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
           moment().format('YYYY-MM-DD')
         );
@@ -133,7 +133,11 @@ export default {
     const stocks = stock
       .where('drug_id', drug.id)
       .where('clinic_id', clinicId)
-
+      .where((stock: any) => {
+        return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
+          moment().format('YYYY-MM-DD')
+        );
+      })
       .orderBy('expireDate', 'desc')
       .get();
     return stocks;
@@ -142,7 +146,7 @@ export default {
   getValidStock() {
     return stock
       .withAllRecursive(1)
-      .where((stock) => {
+      .where((stock: any) => {
         return moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
           moment().format('YYYY-MM-DD')
         );
@@ -156,7 +160,7 @@ export default {
     return stock
       .where('drug_id', drugId)
       .where('clinic_id', clinicService.currClinic().id)
-      .where((stock) => {
+      .where((stock: any) => {
         return stock.expireDate > pickupDate && stock.stockMoviment > 0;
       })
       .orderBy('expireDate', 'asc')
