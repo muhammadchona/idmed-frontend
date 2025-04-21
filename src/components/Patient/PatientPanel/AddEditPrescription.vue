@@ -286,7 +286,7 @@ const doValidationToDispense = () => {
       patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug) => {
         packagedDrug.drug = {};
         packagedDrug.drug.id = packagedDrug.drug_id;
-        
+
         packagedDrug.origin = currClinic.value.id;
       });
       patientVisitDetail.prescription.clinic = {};
@@ -305,7 +305,6 @@ const doValidationToDispense = () => {
           if (prescribedDrug.origin !== patient.value.clinic_id) {
             prescribedDrug.origin = currClinic.value.id;
           }
-
         }
       );
       const checkEpisode = episodeService.getEpisodeById(
@@ -325,6 +324,9 @@ const doValidationToDispense = () => {
         submitting.value = false;
         alertSucess('Dispensa efectuada com sucesso');
         closePrescriptionOption();
+        patient.value.identifiers.forEach((identifiers) => {
+          patientServiceIdentifierService.apiFetchById(identifiers.id);
+        });
       })
       .catch((error) => {
         submitting.value = false;

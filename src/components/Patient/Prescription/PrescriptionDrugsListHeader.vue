@@ -153,6 +153,7 @@ const drugsDuration = ref();
 const curPrescriptionDetail = inject('curPrescriptionDetail');
 const curPatientVisit = inject('curPatientVisit');
 const curPrescription = inject('curPrescription');
+const lastPrescription = inject('lastPrescription');
 const curPack = inject('curPack');
 const isNewPrescription = inject('isNewPrescription');
 const durations = inject('durations');
@@ -253,6 +254,7 @@ const init = () => {
   } else {
     pickupDate.value = getYYYYMMDDFromJSDate(moment());
     if (
+      lastPack.value !== null &&
       lastPack.value.nextPickUpDate !== null &&
       lastPack.value.nextPickUpDate !== undefined
     ) {
@@ -263,8 +265,13 @@ const init = () => {
       );
     } else {
       curPack.value.pickupDate = getYYYYMMDDFromJSDate(moment());
-      curPack.value.weeksSupply = curPrescription.value.duration.weeks;
-      drugsDuration.value = curPrescription.value.duration;
+      if (curPrescription.value.duration !== null) {
+        curPack.value.weeksSupply = curPrescription.value.duration.weeks;
+        drugsDuration.value = curPrescription.value.duration;
+      } else {
+        curPack.value.weeksSupply = lastPrescription.value.duration.weeks;
+        drugsDuration.value = lastPrescription.value.duration;
+      }
     }
     pickupDate.value = getDDMMYYYFromJSDate(curPack.value.pickupDate);
   }

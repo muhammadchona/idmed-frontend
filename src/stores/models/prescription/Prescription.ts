@@ -28,6 +28,9 @@ export default class Prescription extends Model {
       clinic_id: this.attr(''),
       special: this.boolean(false),
       syncStatus: this.attr(''),
+      photo: this.attr(''),
+      photoName: this.attr(''),
+      photoContentType: this.attr(''),
       origin: this.attr(''),
       // Relationships
       clinic: this.belongsTo(Clinic, 'clinic_id'),

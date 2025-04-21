@@ -447,7 +447,36 @@
         </div>
 
       </div> -->
+      <div class="row">
+        <div class="col-4">
+          <q-file
+            v-model="attachedPrescription"
+            name="poster_file"
+            ref="fileInput"
+            label=""
+            square
+            flat
+            outlined
+            use-chips
+            accept=".jpg,.png,.gif,.pdf"
+            max-file-size="5120000"
+          >
+            <template v-slot:append>
+              <q-btn
+                color="primary"
+                @click="triggerFileInput"
+                icon="attach_file"
+              />
+              <camera-dialog
+                v-model="showCamera"
+                @image-captured="handleImageCaptured"
+              ></camera-dialog>
+            </template>
+          </q-file>
+        </div>
 
+        <!-- Display captured image if available -->
+      </div>
       <div class="row reverse q-mb-sm q-mt-sm q-gutter-sm">
         <q-btn
           v-if="!showServiceDrugsManagement"
@@ -491,7 +520,15 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import {
+  computed,
+  inject,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  watch,
+} from 'vue';
 import { date } from 'quasar';
 import moment from 'moment';
 import ServiceDrugsManagement from 'components/Patient/PatientPanel/ServiceDrugsManagement.vue';
@@ -529,11 +566,13 @@ import drugService from 'src/services/api/drugService/drugService';
 import { useDrug } from 'src/composables/drug/drugMethods';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
-import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
+import CameraDialog from '../PatientPanel/UploadPicture.vue';
+
 const { isMobile, isOnline } = useSystemUtils();
 //props
 const props = defineProps(['identifier']);
-
+const showCamera = ref(false);
 // Declaration
 const {
   isValidDate,
@@ -587,6 +626,8 @@ const optionspatientStatus = ref([]);
 const spetialPrescription = ref(false);
 const msgObject = ref({});
 const other = ref(false);
+const fileInput = ref(null);
+const attachedPrescription = ref(null);
 const columns = [
   {
     name: 'drug',
@@ -786,7 +827,17 @@ const lastPatientVisitDetails = computed(() => {
   }
 });
 
+const lastLog = computed(() => {
+  return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
+    patient.value.id,
+    curIdentifier.value.service.id
+  );
+});
+
 const lastPrescription = computed(() => {
+  if (lastLog.value && lastLog.value.prescription) {
+    return lastLog.value.prescription;
+  }
   if (
     lastPatientVisitDetails.value !== null &&
     lastPatientVisitDetails.value !== undefined
@@ -928,33 +979,39 @@ const init = () => {
       prescriptionDetail.prescription_id = curPrescription.value.id;
       delete prescriptionDetail.therapeuticRegimen['prescriptionDetails'];
       delete prescriptionDetail.therapeuticRegimen['drugs'];
-      delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
+      if (prescriptionDetail.therapeuticLine !== null)
+        delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
     });
     curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
     // curPack.value.packDate = lastPack.value.nextPickUpDate;
     // curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+    console.log(curPrescription.value);
+    if (lastPack.value !== null) {
+      lastPack.value.packagedDrugs.forEach((packagedDrug) => {
+        let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
+        packagedDrugEdit.drug = packagedDrug.drug;
+        packagedDrugEdit.drug_id = packagedDrug.drug.id;
+        packagedDrugEdit.amtPerTime =
+          packagedDrug.amtPerTime !== 0
+            ? packagedDrug.amtPerTime
+            : packagedDrug.drug.defaultTimes;
+        packagedDrugEdit.timesPerDay =
+          packagedDrug.timesPerDay !== 0
+            ? packagedDrug.amtPerTime
+            : packagedDrug.drug.defaultTimes;
+        packagedDrugEdit.form =
+          packagedDrug.form !== null
+            ? packagedDrug.form
+            : packagedDrug.drug.defaultPeriodTreatment;
 
-    lastPack.value.packagedDrugs.forEach((packagedDrug) => {
-      let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
-      packagedDrugEdit.drug = packagedDrug.drug;
-      packagedDrugEdit.drug_id = packagedDrug.drug.id;
-      packagedDrugEdit.amtPerTime =
-        packagedDrug.amtPerTime !== 0
-          ? packagedDrug.amtPerTime
-          : packagedDrug.drug.defaultTimes;
-      packagedDrugEdit.timesPerDay =
-        packagedDrug.timesPerDay !== 0
-          ? packagedDrug.amtPerTime
-          : packagedDrug.drug.defaultTimes;
-      packagedDrugEdit.form =
-        packagedDrug.form !== null
-          ? packagedDrug.form
-          : packagedDrug.drug.defaultPeriodTreatment;
+        curPack.value.packagedDrugs.push(packagedDrugEdit);
+      });
 
-      curPack.value.packagedDrugs.push(packagedDrugEdit);
-    });
+      curPack.value.weeksSupply = lastPack.value.weeksSupply;
+    } else {
+      addPackagedDrugs();
+    }
 
-    curPack.value.weeksSupply = lastPack.value.weeksSupply;
     curPack.value.syncStatus = 'N';
     curPack.value.clinic = patient.value.clinic;
     curPack.value.clinic_id = patient.value.clinic_id;
@@ -991,6 +1048,14 @@ const validateForm = () => {
   }
   if (curPrescriptionDetail.value.spetialPrescription) {
     spetialMotiveRef.value.validate();
+  }
+  if (attachedPrescription.value) {
+    console.log(attachedPrescription.value);
+    console.log(curPrescription.value.value);
+    // const imageBase64 = attachedPrescription.value.split(',')[1];
+    // curPrescription.value.photo = attachedPrescription.value;
+    // curPrescription.value.photoName = attachedPrescription.value.name;
+    // curPrescription.value.photoContentType = imageBase64;
   }
   durationRef.value.validate();
   doctorRef.value.validate();
@@ -1711,9 +1776,52 @@ const filterFnpatientStatus = (val, update, abort) => {
   }
 };
 
+const triggerFileInput = () => {
+  const nativeInput = fileInput.value.$el.querySelector('input[type="file"]');
+  if (nativeInput) {
+    nativeInput.click();
+  }
+};
+
+const handleImageCaptured = (imageData) => {
+  curPrescription.value.photoContentType = imageData;
+  curPrescription.value.photoName = props.identifier.value + '-' + 'Foto.jpeg';
+  //attachedPrescription.value = curPrescription.value.photoName;
+  const byteString = atob(imageData);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+
+  // Create a blob and then a File object
+  const blob = new Blob([ab], { type: 'image/jpeg' });
+  const fileName = `captured_${new Date().getTime()}.jpg`;
+  const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+  // Update the q-file model value
+  attachedPrescription.value = file;
+  if (file.name === undefined || file.name === null) file.name = fileName;
+  console.log(curPrescription.value);
+};
+
 // Hook
 onMounted(() => {
   init();
+});
+
+watch(attachedPrescription, (newFile) => {
+  if (!newFile) return;
+  if (curPrescription.value.photoName) return;
+  curPrescription.value.photoName = newFile.name;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const base64String = e.target.result.split(',')[1];
+    curPrescription.value.photoContentType = base64String;
+  };
+  reader.readAsDataURL(newFile);
 });
 
 //Provide
@@ -1733,6 +1841,7 @@ provide('addPatientVisitDetail', addPatientVisitDetail);
 provide('removePatientVisitDetail', removePatientVisitDetail);
 provide('submittingPrescribedDrug', submittingPrescribedDrug);
 provide('submittingValidateDispense', submittingValidateDispense);
+provide('lastPrescription', lastPrescription);
 </script>
 
 <style lang="scss">

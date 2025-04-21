@@ -312,6 +312,7 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import StockService from 'src/services/api/stockService/StockService';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
 
 //Declaration
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -471,7 +472,18 @@ const lastPackOnPrescription = computed(() => {
     return null;
   }
 });
+
+const lastLog = computed(() => {
+  return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
+    patient.value.id,
+    curIdentifier.value.service.id
+  );
+});
+
 const prescription = computed(() => {
+  if (lastLog.value && lastLog.value.prescription) {
+    return lastLog.value.prescription;
+  }
   if (lastPatientVisitDetails.value !== null) {
     return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
       lastPatientVisitDetails.value.prescription.id
