@@ -830,7 +830,7 @@ const lastPatientVisitDetails = computed(() => {
 const lastLog = computed(() => {
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
     patient.value.id,
-    curIdentifier.value.service.id
+    props.identifier.service.id
   );
 });
 
