@@ -11,7 +11,7 @@
           }}
         </div>
       </q-card-section>
-      <q-card-section class="row q-mt-lg">
+      <q-card-section class="row q-mt-sm">
         <div class="col bg-white q-pa-md">
           <div class="row">
             <div class="col text-grey-9 text-weight-medium text-bold">
@@ -267,6 +267,10 @@
           </div>
         </div>
       </q-card-section>
+      <q-card-section class="q-pa-none text-center">
+        <img v-if="!isPdf" :src="imageUrl" class="responsive-image" />
+        <iframe v-if="isPdf" :src="pdfUrl" width="100%" height="500px"></iframe>
+      </q-card-section>
       <q-separator />
       <q-card-actions align="right" class="q-mb-md q-mr-sm">
         <q-btn label="Fechar" color="red" @click="close" />
@@ -278,7 +282,7 @@
 <script setup>
 import { date } from 'quasar';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import { computed, inject } from 'vue';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
 import drugService from 'src/services/api/drugService/drugService';
@@ -351,10 +355,88 @@ const getOriginClinic = computed(() => {
   const clinic = clinicService.getById(prescription.value.origin);
   return clinic?.clinicName;
 });
+
+const isPdf = computed(() => {
+  return prescription.value.photoName?.toLowerCase().endsWith('.pdf');
+});
+
+const pdfUrl = computed(() => {
+  if (!prescription.value.photo) return null;
+
+  const uint8Array = new Uint8Array(prescription.value.photo);
+  const blob = new Blob([uint8Array], { type: 'application/pdf' });
+  return URL.createObjectURL(blob);
+});
+
+const imageUrl = computed(() => {
+  if (!prescription.value.photo) return null;
+  // Create a complete data URL by adding the prefix
+  return createImageFromBytes(prescription.value.photo);
+});
+
+const createImageFromBytes = (bytes) => {
+  if (!bytes || !bytes.length) return null;
+
+  // Create a Uint8Array from the bytes
+  const uint8Array = new Uint8Array(bytes);
+
+  // Create a blob from the Uint8Array
+  const blob = new Blob([uint8Array], { type: 'image/jpeg' }); // Adjust MIME type if needed
+
+  // Create a URL for the blob
+  return URL.createObjectURL(blob);
+};
 </script>
 
 <style>
 .noRadius {
   border-radius: 0px;
+}
+
+.responsive-image {
+  max-width: 100%;
+  max-height: 80vh;
+  display: block;
+  margin: 0 auto;
+}
+
+.responsive-iframe-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 129.4%; /* This creates a 8.5:11 aspect ratio (letter size) */
+  overflow: hidden;
+}
+
+.responsive-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.image-container {
+  height: auto;
+  max-height: 80vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Media query for tablets */
+@media screen and (max-width: 1280px) and (orientation: landscape) {
+  .responsive-image {
+    width: 95%;
+    max-height: 45vh;
+  }
+}
+/* For even smaller devices */
+@media screen and (max-width: 768px) {
+  .responsive-image {
+    max-width: 75%; /* Further reduction for smaller tablets/phones */
+    max-height: 40vh;
+  }
 }
 </style>

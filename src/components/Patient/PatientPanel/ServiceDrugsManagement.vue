@@ -301,7 +301,7 @@ const addPatientVisitDetail = inject('addPatientVisitDetail');
 const removePatientVisitDetail = inject('removePatientVisitDetail');
 const curIdentifier = inject('curIdentifier');
 const submittingValidateDispense = inject('submittingValidateDispense');
-
+const lastPrescription = inject('lastPrescription');
 //Methods
 const deleteRow = (row) => {
   const i = curPack.value.packagedDrugs
@@ -432,6 +432,8 @@ provide('addPrescribedDrug', addPackagedDrug);
 provide('submittingPrescribedDrug', submittingPrescribedDrug);
 provide('curPatientVisitDetail', curPatientVisitDetail);
 provide('curPrescriptionDetail', curPrescriptionDetail);
+provide('curPrescription', curPrescription);
+provide('lastPrescription', lastPrescription);
 </script>
 
 <style></style>

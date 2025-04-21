@@ -155,6 +155,24 @@ export default {
       });
   },
 
+  async apiGetLastPrecriptionFromPoc(
+    patientId: string,
+    clinicalServiceId: string
+  ) {
+    return await api().get(
+      '/prescription/lastPrescriptionFromPoc/' +
+        patientId +
+        '/' +
+        clinicalServiceId
+    );
+  },
+
+  async apiGetAllPrescriptionFromPocByPatientId(patientId: string) {
+    return await api().get(
+      '/prescription/getAllPrescriptionFromPoc/' + patientId
+    );
+  },
+
   async apiFetchById(id: string) {
     return await api()
       .get(`/prescription/${id}`)

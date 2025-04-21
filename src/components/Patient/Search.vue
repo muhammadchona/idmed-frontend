@@ -250,6 +250,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -586,6 +587,9 @@ const goToPatientPanel = async (patient) => {
     );
     await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
     await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
+      currPatient.value.id
+    );
+    await pocPrescriptionLogService.apiGetAllPrescriptionFromPocByPatientId(
       currPatient.value.id
     );
   }
