@@ -442,12 +442,8 @@
         />
       </div>
 
-      <!-- <div class="row">
-        <div class="col">
-        </div>
-
-      </div> -->
       <div class="row">
+        <div class="col-4"></div>
         <div class="col-4">
           <q-file
             v-model="attachedPrescription"

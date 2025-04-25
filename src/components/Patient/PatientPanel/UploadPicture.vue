@@ -175,6 +175,7 @@ const startCamera = async () => {
     );
   } else {
     cameraDialog.value = true;
+    capturedImage.value = null;
     try {
       if (stream.value) {
         stopCamera();
