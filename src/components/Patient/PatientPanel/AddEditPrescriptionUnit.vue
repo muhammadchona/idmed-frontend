@@ -973,15 +973,20 @@ const init = () => {
     curPrescription.value.prescriptionDetails.forEach((prescriptionDetail) => {
       prescriptionDetail.prescription = null;
       prescriptionDetail.prescription_id = curPrescription.value.id;
-      delete prescriptionDetail.therapeuticRegimen['prescriptionDetails'];
-      delete prescriptionDetail.therapeuticRegimen['drugs'];
+      hasTherapeuticalRegimen.value
+        ? delete prescriptionDetail.therapeuticRegimen['prescriptionDetails']
+        : '';
+      hasTherapeuticalRegimen.value
+        ? delete prescriptionDetail.therapeuticRegimen['drugs']
+        : '';
       if (prescriptionDetail.therapeuticLine !== null)
-        delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
+        hasTherapeuticalLine.value
+          ? delete prescriptionDetail.therapeuticLine['prescriptionDetails']
+          : '';
     });
     curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
     // curPack.value.packDate = lastPack.value.nextPickUpDate;
     // curPack.value.pickupDate = lastPack.value.nextPickUpDate;
-    console.log(curPrescription.value);
     if (lastPack.value !== null) {
       lastPack.value.packagedDrugs.forEach((packagedDrug) => {
         let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
@@ -1181,9 +1186,15 @@ const allGoodvalidatedForm = () => {
   curPrescription.value.prescriptionDetails.forEach((prescriptionDetail) => {
     prescriptionDetail.prescription = null;
     prescriptionDetail.prescription_id = null;
-    delete prescriptionDetail.therapeuticRegimen['prescriptionDetails'];
-    delete prescriptionDetail.therapeuticRegimen['drugs'];
-    delete prescriptionDetail.therapeuticLine['prescriptionDetails'];
+    hasTherapeuticalRegimen.value
+      ? delete prescriptionDetail.therapeuticRegimen['prescriptionDetails']
+      : '';
+    hasTherapeuticalRegimen.value
+      ? delete prescriptionDetail.therapeuticRegimen['drugs']
+      : '';
+    hasTherapeuticalLine.value
+      ? delete prescriptionDetail.therapeuticLine['prescriptionDetails']
+      : '';
   });
   curPrescription.value.clinic = patient.value.clinic;
   curPrescription.value.clinic_id = patient.value.clinic_id;
