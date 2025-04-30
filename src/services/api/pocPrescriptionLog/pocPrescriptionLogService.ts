@@ -172,7 +172,7 @@ export default {
       .withAllRecursive(3)
       .where('patient_id', patientId)
       .where('clinical_service_id', clinicalServiceId)
-      .orderBy('prescriptionDate', 'asc')
+      .orderBy('prescriptionDate', 'desc')
       .first();
   },
 };
