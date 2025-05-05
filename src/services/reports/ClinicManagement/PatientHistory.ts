@@ -22,13 +22,20 @@ const img = new Image();
 img.src = 'data:image/png;base64,' + MOHIMAGELOG;
 
 export default {
-  async downloadPDF(province, startDate, endDate, result, tipoPacient, loading) {
+  async downloadPDF(
+    province,
+    startDate,
+    endDate,
+    result,
+    tipoPacient,
+    loading
+  ) {
     const fontBase64 = await fetchFontAsBase64(fontPath);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
       // format: 'a4',
-      format: [205, 313],
+      format: [205, 330],
       putOnlyUsedFonts: true,
       floatPrecision: 'smart', // or "smart", default i
     });
@@ -134,6 +141,7 @@ export default {
       'Data Levant.',
       'Data Prox. Levant.',
       'Sector Clínico',
+      'Farmácia',
       'Utilizador',
     ];
     const rows = result;
@@ -141,6 +149,7 @@ export default {
     let ord = 1;
 
     for (const row in rows) {
+      console.log('ROw', rows[row]);
       const createRow = [];
       createRow.push(ord);
       createRow.push(rows[row].nid);
@@ -168,6 +177,7 @@ export default {
         moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
       );
       createRow.push(rows[row].clinicsector);
+      createRow.push(rows[row].dispenseOrigin);
       createRow.push(rows[row].idmeduser);
 
       data.push(createRow);
@@ -219,13 +229,20 @@ export default {
     if (isOnline.value && !isMobile.value) {
       // return doc.save('HistoricoDeLevantamento.pdf')
       window.open(doc.output('bloburl'));
-      loading.value = false
+      loading.value = false;
     } else {
       const pdfOutput = doc.output();
       DownloadFileMobile.downloadFile(fileName, '.pdf', pdfOutput, loading);
     }
   },
-  async downloadExcel(province, startDate, endDate, result, tipoPacient, loading) {
+  async downloadExcel(
+    province,
+    startDate,
+    endDate,
+    result,
+    tipoPacient,
+    loading
+  ) {
     const rows = result;
     const data = this.createArrayOfArrayRow(rows);
 
@@ -249,13 +266,13 @@ export default {
     const cellPharm = worksheet.getCell('A11');
     const cellDistrict = worksheet.getCell('A12');
     const cellProvince = worksheet.getCell('E12');
-    const cellStartDate = worksheet.getCell('L11');
-    const cellEndDate = worksheet.getCell('L12');
+    const cellStartDate = worksheet.getCell('M11');
+    const cellEndDate = worksheet.getCell('M12');
     const cellPharmParamValue = worksheet.getCell('B11');
     const cellDistrictParamValue = worksheet.getCell('B12');
     const cellProvinceParamValue = worksheet.getCell('F12');
-    const cellStartDateParamValue = worksheet.getCell('M11');
-    const cellEndDateParamValue = worksheet.getCell('M12');
+    const cellStartDateParamValue = worksheet.getCell('N11');
+    const cellEndDateParamValue = worksheet.getCell('N12');
 
     // Get Rows
     const headerRow = worksheet.getRow(15);
@@ -274,6 +291,7 @@ export default {
     const colK = worksheet.getColumn('K');
     const colL = worksheet.getColumn('L');
     const colM = worksheet.getColumn('M');
+    const colN = worksheet.getColumn('N');
 
     // Format Table Cells
     // Alignment Format
@@ -333,11 +351,11 @@ export default {
 
     // merge a range of cells
     // worksheet.mergeCells('A1:A7')
-    worksheet.mergeCells('A9:M10');
-    worksheet.mergeCells('B11:K11');
+    worksheet.mergeCells('A9:N10');
+    worksheet.mergeCells('B11:L11');
     worksheet.mergeCells('B12:D12');
-    worksheet.mergeCells('F12:K12');
-    worksheet.mergeCells('A13:K13');
+    worksheet.mergeCells('F12:L12');
+    worksheet.mergeCells('A13:L13');
 
     // add width size to Columns
     // add height size to Rows
@@ -358,7 +376,7 @@ export default {
     colK.width = 20;
     colL.width = 20;
     colM.width = 20;
-
+    colN.width = 20;
     // Add Style
     // cellTitle.font =
     cellDistrict.font =
@@ -431,6 +449,11 @@ export default {
         },
         {
           name: 'Sector Clínico',
+          totalsRowFunction: 'none',
+          filterButton: false,
+        },
+        {
+          name: 'Farmácia',
           totalsRowFunction: 'none',
           filterButton: false,
         },
@@ -528,6 +551,7 @@ export default {
         moment(new Date(rows[row].nexPickUpDate)).format('DD-MM-YYYY')
       );
       createRow.push(rows[row].clinicsector);
+      createRow.push(rows[row].dispenseOrigin);
       createRow.push(rows[row].idmeduser);
 
       data.push(createRow);
