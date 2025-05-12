@@ -347,6 +347,7 @@ const init = () => {
 };
 
 const removePack = () => {
+  showloading();
   let isPatientVisitRemoveble = true;
   if (
     patientVisit.value.tbScreenings.length > 0 ||
@@ -373,11 +374,17 @@ const removePack = () => {
           );
         patientVisitService
           .delete(patientVisit.value.id)
-          .then((resp) => {
+          .then(async (resp) => {
             packService.removeFromStorage(packIdToRemove);
+
             if (countPatientVisitDetailsByPrescription.length <= 1) {
               prescriptionService.removeFromStorage(prescriptionToRemove);
             }
+
+            await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
+              patient.value.id
+            );
+
             closeLoading();
             console.log(resp);
             alertSucess('Dispensa removida com sucesso');
@@ -411,20 +418,25 @@ const removePack = () => {
     }
   });
 };
-const removePrescription = () => {
+const removePrescription = async () => {
+  showloading();
   if (lastPackOnPrescription.value !== null) {
     alertError(
       'Esta prescrição ja possui registo de dispensas associados, remova primeiro as dispensas.'
     );
+    closeLoading();
   } else {
     alertWarningAction('Deseja remover a Prescrição?').then((result) => {
       if (result) {
         prescriptionService
           .delete(prescription.value.id)
-          .then((resp) => {
+          .then(async (resp) => {
+            alertSucess('Prescrição removida com sucesso');
+            await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
+              patient.value.id
+            );
             closeLoading();
             console.log(resp);
-            alertSucess('Prescrição removida com sucesso');
           })
           .catch((error) => {
             closeLoading();
