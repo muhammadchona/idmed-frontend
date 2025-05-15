@@ -235,19 +235,19 @@
                   </q-td>
                   <q-td key="dosage" :props="props">
                     {{
-                      'Tomar ' +
-                        props.row.amtPerTime +
-                        ' ' +
-                        getDrugById(props.row.drug.id).form !==
-                        null &&
-                      getDrugById(props.row.drug.id).form !== undefined
-                        ? getDrugById(props.row.drug.id).form.description
-                        : '' +
+                      getDrugById(props.row.drug.id) !== null &&
+                      getDrugById(props.row.drug.id) !== undefined
+                        ? getDrugFirstLevelById(props.row.drug.id).form
+                            .howToUse +
                           ' ' +
+                          props.row.amtPerTime +
+                          '   ' +
+                          getDrugFirstLevelById(props.row.drug.id).form.unit +
+                          ' - ' +
                           props.row.timesPerDay +
-                          ' vez(es)' +
-                          ' por ' +
+                          ' vez(es) por ' +
                           props.row.form
+                        : ''
                     }}
                   </q-td>
                   <q-td auto-width key="packs" :props="props">
@@ -287,8 +287,10 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
 import drugService from 'src/services/api/drugService/drugService';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import { useDrug } from 'src/composables/drug/drugMethods';
 const { remainigDuration, remainigDurationInWeeks } = usePrescription();
 const { getQtyPrescribed } = usePrescribedDrug();
+const { getDrugFirstLevelById } = useDrug();
 
 const columns = [
   {
