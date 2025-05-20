@@ -334,6 +334,7 @@ export default {
       const colS = worksheet.getColumn('S');
       const colT = worksheet.getColumn('T');
       const colU = worksheet.getColumn('U');
+      const colV = worksheet.getColumn('V');
 
       worksheet.getCell('A13').fill =
         worksheet.getCell('B13').fill =
@@ -482,6 +483,8 @@ export default {
       colS.width = 25;
       colT.width = 25;
       colU.width = 25;
+      colV.width = 25;
+      colV.hidden = true;
 
       // Add Style
       cellTitle.font =
@@ -612,6 +615,11 @@ export default {
             totalsRowFunction: 'none',
             filterButton: false,
           },
+          {
+            name: 'UUID',
+            totalsRowFunction: 'none',
+            filterButton: false,
+          },
         ],
         rows: data,
       });
@@ -696,6 +704,18 @@ export default {
         services.forEach((code) => {
           createRow.push(servedService === code ? 'SIM' : 'NAO');
         });
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push('');
+        createRow.push(rows[row].id);
         data.push(createRow);
       }
     }
