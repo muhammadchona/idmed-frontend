@@ -779,10 +779,10 @@ const doSave = async () => {
       episodeTypeService.getEpisodeTypeByCode('INICIO');
     closureEpisode.value.episodeType_id = closureEpisode.value.episodeType.id;
     closureEpisode.value.episodeDate = getYYYYMMDDFromJSDate(
-      getDateFromHyphenDDMMYYYY(reOpenDate)
+      getDateFromHyphenDDMMYYYY(reOpenDate.value)
     );
     identifier.value.reopenDate = getYYYYMMDDFromJSDate(
-      getDateFromHyphenDDMMYYYY(reOpenDate)
+      getDateFromHyphenDDMMYYYY(reOpenDate.value)
     );
     identifier.value.endDate = '';
     identifier.value.state = 'Activo';

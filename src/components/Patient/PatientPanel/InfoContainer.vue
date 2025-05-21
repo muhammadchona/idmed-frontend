@@ -195,7 +195,6 @@ const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { preferedIdentifierValue, fullName } = usePatient();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const { formatDate } = useDateUtils();
-const isPatientActive = ref(false);
 const isNewEpisode = ref(false);
 const isClosingEpisode = ref(false);
 const selectedEpisode = ref(new Episode());
@@ -226,6 +225,7 @@ const lastPack = computed(() => {
   return lastPack;
 });
 
+
 const canEditPatientService = computed(() => {
   return PermissionService.canPerformUiAction(
     'patientServiceIdentifier',
@@ -244,6 +244,13 @@ const canClosePatientService = computed(() => {
   return PermissionService.canPerformUiAction(
     'patientServiceIdentifier',
     'edit'
+  );
+});
+
+const isPatientActive = computed(() => {
+  return (
+    curIdentifier.value?.endDate !== null &&
+    curIdentifier.value.endDate !== null
   );
 });
 

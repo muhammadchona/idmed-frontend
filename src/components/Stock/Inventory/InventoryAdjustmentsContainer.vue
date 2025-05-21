@@ -28,11 +28,11 @@
         </template>
         <template #header="props">
           <q-tr class="text-left bg-grey-3" :props="props">
-            <q-th style="width: 70px">{{ columns[0].label }}</q-th>
-            <q-th style="width: 110px">{{ columns[1].label }}</q-th>
+            <q-th style="width: 10px">{{ columns[0].label }}</q-th>
+            <q-th style="width: 220px">{{ columns[1].label }}</q-th>
             <q-th style="width: 180px">{{ columns[2].label }}</q-th>
-            <q-th style="width: 190px">{{ columns[3].label }}</q-th>
-            <q-th style="width: 190px">{{ columns[4].label }}</q-th>
+            <q-th style="width: 180px">{{ columns[3].label }}</q-th>
+            <q-th style="width: 250px">{{ columns[4].label }}</q-th>
             <q-th class="col">{{ columns[5].label }}</q-th>
           </q-tr>
         </template>

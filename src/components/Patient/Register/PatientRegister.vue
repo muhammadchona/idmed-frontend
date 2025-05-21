@@ -647,7 +647,10 @@ const savePatient = async () => {
         closeLoading();
         if (response.data.results.length > 0) {
           response.data.results.forEach((identifierOpenMrs) => {
-            if (identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO') {
+            if (
+              identifierOpenMrs?.display === 'SERVICO TARV - TRATAMENTO' ||
+              String(identifierOpenMrs?.display).includes('PREP')
+            ) {
               editPatientIdentifierFromOpenMRS(
                 patientReg.value,
                 identifierOpenMrs
@@ -853,8 +856,10 @@ const initPatient = () => {
 const editPatientIdentifierFromOpenMRS = (patientReg, identifierOpenMrs) => {
   patientReg.identifiers.forEach((identifier) => {
     if (
-      identifier.service.code === 'TARV' &&
-      identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO'
+      (identifier.service.code === 'TARV' &&
+        identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO') ||
+      (identifier.service.code === 'PREP' &&
+        String(identifierOpenMrs?.display).includes('PREP'))
     ) {
       identifier.startDate = identifierOpenMrs.dateEnrolled;
     }
