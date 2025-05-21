@@ -181,6 +181,7 @@ import { computed, provide, inject, ref } from 'vue';
 import packService from 'src/services/api/pack/packService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { useLoading } from 'src/composables/shared/loading/loading';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 const {
   isReferenceEpisode,

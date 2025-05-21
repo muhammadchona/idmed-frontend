@@ -40,6 +40,7 @@ import patientVisitService from 'src/services/api/patientVisit/patientVisitServi
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 //Declaration
 const { website } = useSystemUtils();
