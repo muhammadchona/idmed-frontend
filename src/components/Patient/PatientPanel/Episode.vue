@@ -120,6 +120,7 @@
           >
             <q-btn
               v-if="
+                canRemoveEpisodeService &&
                 canEdit &&
                 !isPharmacyDDDOrAPEOrDCP() &&
                 !isProvincialInstalation()
@@ -133,6 +134,7 @@
             />
             <q-btn
               v-if="
+                canCloseEpisodeService &&
                 !canEdit &&
                 !isPharmacyDDDOrAPEOrDCP() &&
                 !isProvincialInstalation()
@@ -146,6 +148,7 @@
             />
             <q-btn
               v-if="
+                canEditEpisodeService &&
                 canEdit &&
                 !isPharmacyDDDOrAPEOrDCP() &&
                 !isProvincialInstalation()
@@ -297,6 +300,18 @@ const isLastEpisode = computed(() => {
     );
   }
   return true;
+});
+
+const canCloseEpisodeService = computed(() => {
+  return PermissionService.canPerformUiAction('episode', 'close');
+});
+
+const canEditEpisodeService = computed(() => {
+  return PermissionService.canPerformUiAction('episode', 'edit');
+});
+
+const canRemoveEpisodeService = computed(() => {
+  return PermissionService.canPerformUiAction('episode', 'remove');
 });
 
 provide('curEpisode', currEpisode);

@@ -215,7 +215,7 @@
                   class="float-right q-ml-sm"
                 />
                 <q-btn
-                  v-if="!isClosed"
+                  v-if="canRemovePrescription && !isClosed"
                   unelevated
                   color="red"
                   label="Remover"
@@ -256,6 +256,7 @@
                     />
                     <q-btn
                       v-if="
+                        canAddPack &&
                         !isClosed &&
                         remainigDuration(prescription) > 0 &&
                         !isProvincialInstalation()
@@ -345,6 +346,16 @@ const init = () => {
   groupMemberService.getPatientGroupByPatientId(patient.value.id);
   closeLoading();
 };
+
+const canRemovePrescription = computed(() => {
+  // return PermissionService.canPerformUiAction('prescription', 'remove');
+  return true;
+});
+
+const canAddPack = computed(() => {
+  // return PermissionService.canPerformUiAction('prescription', 'add');
+  return true;
+});
 
 const removePack = () => {
   let isPatientVisitRemoveble = true;

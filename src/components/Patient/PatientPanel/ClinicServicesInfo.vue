@@ -2,6 +2,7 @@
   <div>
     <ListHeader
       :addVisible="
+        canAddPatientService &&
         disableAddButton &&
         ((isProvincialInstalation() &&
           isProvincialInstalationMobileClinic() &&
@@ -42,6 +43,7 @@ import patientServiceIdentifierService from 'src/services/api/patientServiceIden
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 // Declaration
 const { preferedIdentifier, hasEpisodes, hasNoObitOrTransferedForEpisode } =
@@ -94,6 +96,13 @@ const disableAddButton = computed(() => {
     }
   }
   return false;
+});
+
+const canAddPatientService = computed(() => {
+  return PermissionService.canPerformUiAction(
+    'patientServiceIdentifier',
+    'add'
+  );
 });
 
 //Hook

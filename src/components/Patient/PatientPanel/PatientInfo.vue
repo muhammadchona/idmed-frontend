@@ -100,7 +100,7 @@
         color="orange-5"
         label="Editar"
         class="col"
-        :disable="!disableEditButton"
+        :disable="canEditPatient && !disableEditButton"
         @click="editPatient"
       />
     </div>
@@ -110,6 +110,7 @@
         color="primary"
         label="Unir Duplicados"
         class="col"
+        :disable="canUniteDup"
         @click="mergeDuplicatePatient"
       />
     </div>
@@ -142,7 +143,7 @@ import {
 import patientService from 'src/services/api/patientService/patientService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
-
+import PermissionService from 'src/services/api/user/PermissionService';
 // Declaration
 const {
   postoAdministrativoName,
@@ -176,6 +177,15 @@ const init = () => {
     );
   }
 };
+
+const canEditPatient = computed(() => {
+  return PermissionService.canPerformUiAction('patient', 'edit');
+});
+
+const canUniteDup = computed(() => {
+  return PermissionService.canPerformUiAction('patient', 'unitDuplicates');
+});
+
 const editPatient = () => {
   showPatientRegister.value = true;
   newPatient.value = false;

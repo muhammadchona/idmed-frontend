@@ -86,6 +86,7 @@
               <q-space />
               <q-btn
                 v-if="
+                  canEditPatientService &&
                   !showEndDetails &&
                   !isPharmacyDDDOrAPEOrDCP() &&
                   !isProvincialInstalation()
@@ -98,6 +99,7 @@
               />
               <q-btn
                 v-if="
+                  canClosePatientService &&
                   !showEndDetails &&
                   !isPharmacyDDDOrAPEOrDCP() &&
                   !isProvincialInstalationMobileClinic() &&
@@ -110,7 +112,7 @@
                 class="float-right q-ml-sm"
               />
               <q-btn
-                v-if="showEndDetails"
+                v-if="canAddPatientService && showEndDetails"
                 unelevated
                 color="blue"
                 label="Reabrir"
@@ -175,6 +177,7 @@ import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import EpisodeInfo from './Episode.vue';
 import packService from 'src/services/api/pack/packService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 //props
 const props = defineProps(['identifierId']);
@@ -222,6 +225,28 @@ const lastPack = computed(() => {
   }
   return lastPack;
 });
+
+const canEditPatientService = computed(() => {
+  return PermissionService.canPerformUiAction(
+    'patientServiceIdentifier',
+    'edit'
+  );
+});
+
+const canAddPatientService = computed(() => {
+  return PermissionService.canPerformUiAction(
+    'patientServiceIdentifier',
+    'add'
+  );
+});
+
+const canClosePatientService = computed(() => {
+  return PermissionService.canPerformUiAction(
+    'patientServiceIdentifier',
+    'edit'
+  );
+});
+
 // Methods
 const openEpisodeCreation = () => {
   selectedEpisode.value = new Episode();

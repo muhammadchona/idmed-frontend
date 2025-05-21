@@ -1,15 +1,13 @@
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
-import Role from 'src/stores/models/userLogin/Role';
-import RoleMenu from 'src/stores/models/userLogin/RoleMenu';
+import UiSection from 'src/stores/models/userLogin/UiSection';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import db from '../../../stores/dexie';
 
-const role = useRepo(Role);
-const roleMenuRepo = useRepo(RoleMenu);
-const roleDexie = db[Role.entity];
+const uiSection = useRepo(UiSection);
+const uiSectionDexie = db[UiSection.entity];
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -18,13 +16,13 @@ const { isMobile, isOnline } = useSystemUtils();
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
-      return this.putMobile(params);
+      return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile.value && !isOnline.value) {
+    if (isMobile.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
@@ -34,7 +32,7 @@ export default {
     if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
-      await this.patchWeb(uuid, params);
+      this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
@@ -44,11 +42,11 @@ export default {
       return this.deleteWeb(uuid);
     }
   },
-  // WEB
+
   async postWeb(params: string) {
     try {
-      const resp = await api().post('role', params);
-      role.save(resp.data);
+      const resp = await api().post('uiSection', params);
+      uiSection.save(resp.data);
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -58,31 +56,23 @@ export default {
   async getWeb(offset: number) {
     if (offset >= 0) {
       return await api()
-        .get('role?offset=' + offset + '&max=100')
+        .get('uiSection?offset=' + offset + '&max=100')
         .then((resp) => {
-          role.save(resp.data);
-          Role.afterInsert?.(resp.data); // manually call it
+          uiSection.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
-          } else {
-            closeLoading();
           }
         })
         .catch((error) => {
-          // alertError('Aconteceu um erro inesperado nesta operação.');
           console.log(error);
         });
     }
   },
   async patchWeb(uuid: string, params: string) {
     try {
-      const resp = await api().patch('role/' + uuid, params);
-      console.log(resp.data);
-      if (resp.data) {
-        roleMenuRepo.where('role_id', resp.data.id).delete();
-      }
-      role.save(resp.data);
+      const resp = await api().patch('uiSection/' + uuid, params);
+      uiSection.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -91,8 +81,8 @@ export default {
   },
   async deleteWeb(uuid: string) {
     try {
-      const resp = await api().delete('role/' + uuid);
-      role.destroy(uuid);
+      const resp = await api().delete('uiSection/' + uuid);
+      uiSection.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -101,45 +91,40 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return roleDexie
+    return uiSectionDexie
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        role.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+        uiSection.save(JSON.parse(JSON.stringify(params)));
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   putMobile(params: string) {
-    return roleDexie
+    return uiSectionDexie
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        role.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+        uiSection.save(JSON.parse(params));
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   getMobile() {
-    return roleDexie
+    return uiSectionDexie
       .toArray()
       .then((rows: any) => {
-        role.save(rows);
+        uiSection.save(rows);
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
       });
   },
   deleteMobile(paramsId: string) {
-    return roleDexie
+    return uiSectionDexie
       .delete(paramsId)
       .then(() => {
-        role.destroy(paramsId);
+        uiSection.destroy(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
@@ -148,42 +133,29 @@ export default {
       });
   },
   addBulkMobile(params: any) {
-    return roleDexie
-      .bulkAdd(params)
+    return uiSectionDexie
+      .bulkPut(params)
       .then(() => {
-        role.save(params);
+        uiSection.save(params);
       })
       .catch((error: any) => {
         console.log(error);
       });
   },
   async apiGetAll() {
-    return await api().get('/role');
-  },
-  async apiSave(role: any) {
-    return await api().post('/role', role);
-  },
-  async apiUpdate(role: any) {
-    return await api().put('/role/', role);
+    return await api().get('/uiSection');
   },
   // Local Storage Pinia
   newInstanceEntity() {
-    return role.getModel().$newInstance();
-    //  const instance = role.getModel().$newInstance();
-    // instance.uiSections = []; // ✅ Add this
-    //  console.log(instance);
-    //  return instance;
+    return uiSection.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return role.all();
+    return uiSection.all();
   },
-  getActiveWithMenus() {
-    return role.query().with('menus').withAllRecursive(2).get();
+  getAll() {
+    return uiSection.query().withAll().get();
   },
-  getByAuthority(auth: any) {
-    return role.query().where('authority', auth).first();
-  },
-  getAllWithMenus() {
-    return role.query().with('menus').withAllRecursive(2).get();
+  getAllByMenu(menuId: string) {
+    return uiSection.query().withAll().where('menu_id', menuId).get();
   },
 };

@@ -6,6 +6,7 @@
       :main-container="mainContainer"
       :expanded="expandLess"
       :add-visible="
+        canAddPharmaceuticalAtention &&
         showAddButton &&
         (!isProvincialInstalation() ||
           isProvincialInstalationPharmacysMode() ||
@@ -158,6 +159,11 @@ const showAddButton = computed(() => {
     }
   }
 });
+
+const canAddPharmaceuticalAtention = computed(() => {
+  return PermissionService.canPerformUiAction('pharmaceuticalAttention', 'add');
+});
+
 provide('title', title);
 provide('bgColor', bgColor);
 provide('expandLess', expandLess);

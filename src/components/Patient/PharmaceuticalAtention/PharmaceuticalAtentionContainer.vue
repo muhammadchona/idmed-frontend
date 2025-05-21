@@ -157,6 +157,7 @@
                   >
                     <div class="col">
                       <q-btn
+                        v-if="canAddPharmaceuticalAtention"
                         flat
                         @click="editButtonActions(patientVisit)"
                         round
@@ -179,6 +180,7 @@
                         <q-tooltip class="bg-amber-5">Editar</q-tooltip>
                       </q-btn>
                       <q-btn
+                        v-if="canRemovePharmaceuticalAtention"
                         flat
                         @click.stop="promptToConfirm(patientVisit)"
                         round
@@ -342,6 +344,17 @@ const promptToConfirm = (patientVisitParams) => {
     }
   });
 };
+
+const canRemovePharmaceuticalAtention = computed(() => {
+  return PermissionService.canPerformUiAction(
+    'pharmaceuticalAttention',
+    'remove'
+  );
+});
+
+const canAddPharmaceuticalAtention = computed(() => {
+  return PermissionService.canPerformUiAction('pharmaceuticalAttention', 'add');
+});
 </script>
 
 <style>
