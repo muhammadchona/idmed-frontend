@@ -985,7 +985,9 @@ const init = () => {
           : '';
     });
     curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
-    handleImageCaptured(byteArrayToBase64(curPrescription.value.photo));
+    if (curPrescription.value.photo !== null) {
+      handleImageCaptured(byteArrayToBase64(curPrescription.value.photo));
+    }
     if (lastPack.value !== null) {
       lastPack.value.packagedDrugs.forEach((packagedDrug) => {
         let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
