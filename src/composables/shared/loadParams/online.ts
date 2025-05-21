@@ -53,7 +53,8 @@ import StockReferenceAdjustmentService from 'src/services/api/stockAdjustment/St
 import StockDestructionAdjustmentService from 'src/services/api/stockAdjustment/StockDestructionAdjustmentService';
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
-
+import UiSectionService from 'src/services/api/menu/UiSectionService';
+import permissionService from 'src/services/api/user/PermissionService';
 export function useOnline() {
   async function loadConfigsSettings() {
     systemConfigsService.get(0);
@@ -122,7 +123,10 @@ export function useOnline() {
 
     StockOperationTypeService.get(0);
 
+    UiSectionService.get(0);
+
     groupTypeService.get();
+    permissionService.loadPermissions();
   }
 
   function loadPatientData() {

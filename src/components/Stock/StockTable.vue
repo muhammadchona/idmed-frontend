@@ -79,7 +79,7 @@
                 round
                 color="primary"
                 icon="description"
-                v-if="!isCharts"
+                v-if="canViewStockFile && !isCharts"
                 @click="openDrugFile(props.row)"
                 :loading="loadingDrugFile"
               >
@@ -106,6 +106,7 @@ import StockAlertService from 'src/services/api/stockAlertService/StockAlertServ
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import StockService from 'src/services/api/stockService/StockService';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 const { isMobile, isOnline } = useSystemUtils();
 const loadingDrugFile = ref(false);
@@ -217,6 +218,10 @@ watchEffect((isExecutedStockAlert) => {
   } else {
     loading.value = true;
   }
+});
+
+const canViewStockFile = computed(() => {
+  return PermissionService.canPerformUiAction('stockFile', 'open');
 });
 </script>
 <style lang="sass" scoped>

@@ -985,8 +985,7 @@ const init = () => {
           : '';
     });
     curPrescriptionDetail.value = curPrescription.value.prescriptionDetails[0];
-    // curPack.value.packDate = lastPack.value.nextPickUpDate;
-    // curPack.value.pickupDate = lastPack.value.nextPickUpDate;
+    handleImageCaptured(byteArrayToBase64(curPrescription.value.photo));
     if (lastPack.value !== null) {
       lastPack.value.packagedDrugs.forEach((packagedDrug) => {
         let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
@@ -1811,6 +1810,15 @@ const handleImageCaptured = (imageData) => {
   attachedPrescription.value = file;
   if (file.name === undefined || file.name === null) file.name = fileName;
   console.log(curPrescription.value);
+};
+
+const byteArrayToBase64 = (byteArray) => {
+  let binary = '';
+  const len = byteArray.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(byteArray[i]);
+  }
+  return btoa(binary); // Base64 encode
 };
 
 // Hook

@@ -73,6 +73,7 @@
                   submitting = true;
                   openFile(props.row);
                 "
+                v-if="canEditInventory"
               >
                 <q-tooltip class="bg-amber-5">{{
                   props.row.open ? 'Abrir Inventário' : 'Visualizar Inventário'
@@ -123,6 +124,7 @@ import clinicService from 'src/services/api/clinicService/clinicService';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import inventoryDetails from 'components/Stock/Inventory/InventoryDetails.vue';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 const submitting = ref(false);
 const submittingDetails = ref(false);
@@ -199,6 +201,10 @@ watchEffect((isExecutedInventory) => {
   } else {
     loading.value = true;
   }
+});
+
+const canEditInventory = computed(() => {
+  return PermissionService.canPerformUiAction('inventory', 'edit');
 });
 
 provide('inventoryDetail', inventoryDetail);

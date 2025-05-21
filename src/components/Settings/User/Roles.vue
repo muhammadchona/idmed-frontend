@@ -4,15 +4,26 @@
       <q-bar style="background-color: #9e9e9e2e">
         <div class="cursor-pointer non-selectable">Perfis</div>
       </q-bar>
-      <q-separator class="q-my-md max-width" color="primary" ></q-separator>
+      <q-separator class="q-my-md max-width" color="primary"></q-separator>
     </div>
     <div class="">
-      <q-table :loading="loading" :rows="userRoles" :columns="columns" :filter="filter">
+      <q-table
+        :loading="loading"
+        :rows="userRoles"
+        :columns="columns"
+        :filter="filter"
+      >
         <template v-slot:loading>
           <q-inner-loading showing color="primary" />
         </template>
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Procurar">
+          <q-input
+            outlined
+            dense
+            debounce="300"
+            v-model="filter"
+            placeholder="Procurar"
+          >
             <template v-slot:append>
               <q-icon name="search" />
             </template>
@@ -30,7 +41,9 @@
           </div>
         </template>
         <template v-slot:no-data="{ icon, filter }">
-          <div class="full-width row flex-center text-primary q-gutter-sm text-body2">
+          <div
+            class="full-width row flex-center text-primary q-gutter-sm text-body2"
+          >
             <span> Sem resultados para visualizar </span>
             <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
           </div>
@@ -75,7 +88,7 @@
                   @click.stop="promptToConfirm(props.row)"
                 >
                   <q-tooltip :class="getTooltipClass(props.row)">{{
-                    props.row.active ? "Inactivar" : "Activar"
+                    props.row.active ? 'Inactivar' : 'Activar'
                   }}</q-tooltip>
                 </q-btn>
               </div>
@@ -86,7 +99,14 @@
     </div>
     <div class="absolute-bottom">
       <q-page-sticky v-if="website" position="bottom-right" :offset="[18, 18]">
-        <q-btn size="xl" fab icon="add" @click="addRole" no-cap color="primary" />
+        <q-btn
+          size="xl"
+          fab
+          icon="add"
+          @click="addRole"
+          no-cap
+          color="primary"
+        />
       </q-page-sticky>
     </div>
     <q-dialog persistent v-model="showRoleRegistrationScreen">

@@ -76,7 +76,7 @@
       :offset="[18, 18]"
     >
       <q-btn
-        v-if="!buttonVisible"
+        v-if="canAddStockData && !buttonVisible"
         class="q-mb-xl q-mr-xl"
         fab
         color="primary"
@@ -129,6 +129,7 @@ import drugService from 'src/services/api/drugService/drugService';
 import stockDistributorTable from 'components/Stock/stockDistributor/StockDistributorTable.vue';
 import stockConfirmationTable from 'components/Stock/stockConfirmation/StockConfirmationTable.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 const { isMobile, isOnline } = useSystemUtils();
 const { alertError } = useSwal();
@@ -162,6 +163,18 @@ const addEntrada = () => {
   }
   //
 };
+
+const canAddStockData = computed(() => {
+  // return PermissionService.canPerformUiAction('prescription', 'add');
+  if (tab.value === 'entrance') {
+    return PermissionService.canPerformUiAction('stockEntrance', 'add');
+  } else if (tab.value === 'stockDistributor') {
+    return PermissionService.canPerformUiAction('distribution', 'add');
+  } else {
+    return PermissionService.canPerformUiAction('inventory', 'add');
+  }
+});
+
 const reloadPage = () => {
   window.location.reload();
 };

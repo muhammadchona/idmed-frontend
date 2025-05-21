@@ -5,6 +5,7 @@
       :mainContainer="true"
       bgColor="bg-primary"
       :add-visible="
+        canAddPrescription &&
         showAddPrescriptionButton &&
         (!isProvincialInstalation() ||
           isProvincialInstalationPharmacysMode() ||
@@ -38,6 +39,7 @@ import { computed, provide, inject, onMounted, ref } from 'vue';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 //Declaration
 const {
@@ -67,6 +69,10 @@ onMounted(() => {
 });
 
 // Computed
+const canAddPrescription = computed(() => {
+  return PermissionService.canPerformUiAction('prescription', 'add');
+});
+
 const showAddButton = computed(() => {
   return patientHasEpisodes.value && !patientHasClosedIdentifier.value;
 });

@@ -99,7 +99,7 @@
               />
               <q-space v-if="currInventory !== null" />
               <q-btn
-                v-if="currInventory.open"
+                v-if="canCloseInventory && currInventory.open"
                 unelevated
                 color="orange"
                 class="q-ml-md col"
@@ -233,7 +233,7 @@
               />
               <q-space v-if="currInventory.open" />
               <q-btn
-                v-if="currInventory.open"
+                v-if="canCloseInventory && currInventory.open"
                 unelevated
                 color="red"
                 class="q-ml-md col"
@@ -650,6 +650,10 @@ const inventoryType = computed(() => {
   return currInventory.value !== null
     ? inventoryMethod.getInventoryType(currInventory.value)
     : '';
+});
+
+const canCloseInventory = computed(() => {
+  return PermissionService.canPerformUiAction('inventory', 'edit');
 });
 
 provide('title', title);
