@@ -108,13 +108,17 @@ import ClinicServiceInfo from 'components/Patient/PatientPanel/ClinicServicesInf
 import PrescriptionInfo from 'components/Patient/PatientPanel/PrescriptionInfo.vue';
 import PharmaceuticalAtentionInfo from 'components/Patient/PatientPanel/PharmaceuticalAtentionInfo.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
-
+import { usePrescriptionDialog } from 'src/composables/prescription/openPrecriptionDialog';
+import { useSwal } from 'src/composables/shared/dialog/dialog';
 //Declarations
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
+const { openDialog, checkIfPatientIsObit } = usePrescriptionDialog();
+const { alertError } = useSwal();
 const tab = ref('clinicService');
-
+const showPrescriptionDialog = ref(false);
 const showPatientInfo = ref(false);
+const isScanScreen = localStorage.getItem('isScanScreen') === 'true';
 const title = ref('Detalhe do Utente/Paciente');
 const contentStyle = ref({
   backgroundColor: '#ffffff',
@@ -136,6 +140,16 @@ const thumbStyle = ref({
 // Hook
 onMounted(() => {
   init();
+  if (isScanScreen) {
+    console.log(checkIfPatientIsObit(patient.value));
+    if (checkIfPatientIsObit(patient.value)) {
+      openDialog();
+    } else {
+      alertError(
+        'O paciente encontra-se no estado de óbito. A dispensa de medicamentos não pode ser efetuada.'
+      );
+    }
+  }
 });
 
 // Methods

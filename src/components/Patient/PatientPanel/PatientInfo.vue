@@ -100,18 +100,28 @@
         color="orange-5"
         label="Editar"
         class="col"
-        :disable="canEditPatient && !disableEditButton"
+        :disable="!canEditPatient && !disableEditButton"
         @click="editPatient"
       />
     </div>
-    <div class="row" v-if="!isProvincialInstalation()">
+    <div class="row q-my-md" v-if="!isProvincialInstalation()">
       <q-btn
         unelevated
         color="primary"
         label="Unir Duplicados"
         class="col"
-        :disable="canUniteDup"
+        :disable="!canUniteDup"
         @click="mergeDuplicatePatient"
+      />
+    </div>
+    <div class="row q-my-md" v-if="!isProvincialInstalation()">
+      <q-btn
+        unelevated
+        color="blue"
+        label="Imprimir Etiqueta"
+        class="col"
+        @click="generateBarcode"
+        :loading="submitting"
       />
     </div>
 
@@ -144,6 +154,8 @@ import patientService from 'src/services/api/patientService/patientService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import healthInformationSystemService from 'src/services/api/HealthInformationSystem/healthInformationSystemService';
 import PermissionService from 'src/services/api/user/PermissionService';
+import BarcodeLabelPrint from '../../../services/reports/Patients/BarcodeLabelPrint';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 // Declaration
 const {
   postoAdministrativoName,
@@ -158,7 +170,7 @@ const showPatientRegister = ref(false);
 const showMergeDuplicates = ref(false);
 const newPatient = ref(false);
 const openMrsPatient = ref(false);
-
+const submitting = ref(false);
 //Injection
 const patient = inject('patient');
 
@@ -223,6 +235,31 @@ const disableEditButton = computed(() => {
   }
   return false;
 });
+
+const generateBarcode = async () => {
+  submitting.value = true;
+  try {
+    const psi =
+      patientServiceIdentifierService.getPreferredIdentifierByPatientId(
+        patient.value.id
+      );
+
+    const provinceStr = patient.value.province.description
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    // Call the barcode service method
+    await BarcodeLabelPrint.downloadPDF(
+      psi.value,
+      provinceStr,
+      patient.value.district.description,
+      psi.clinic.clinicName,
+      submitting
+    );
+  } catch (error) {
+    console.error('Error generating barcode label:', error);
+  }
+};
 
 provide('newPatient', newPatient);
 provide('closePatient', closePatient);
