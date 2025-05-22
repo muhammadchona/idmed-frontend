@@ -574,7 +574,7 @@ const goToPatientPanel = async (patient) => {
   await patientService.deleteAllExceptIdFromStorage(patient.id);
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
-
+  localStorage.setItem('isScanScreen', false);
   if (isMobile.value && !isOnline.value) {
     await patientService.getPatientMobileWithAllByPatientId(currPatient.value);
   } else {

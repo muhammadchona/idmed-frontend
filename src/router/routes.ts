@@ -212,6 +212,14 @@ const routes: RouteRecordRaw[] = [
           }
         },
       },
+      {
+        path: 'scanBarcode',
+        component: () =>
+          import('pages/Patient/PatientBarcode/PatientByScanning.vue'),
+        beforeEnter(to, from, next) {
+          next();
+        },
+      },
     ],
   },
   {
