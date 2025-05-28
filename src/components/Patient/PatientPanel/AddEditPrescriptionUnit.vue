@@ -571,6 +571,7 @@ const props = defineProps(['identifier']);
 const showCamera = ref(false);
 // Declaration
 const {
+  extractHyphenDateFromDMYConvertYMD,
   isValidDate,
   getDDMMYYYFromJSDate,
   getDateFromHyphenDDMMYYYY,
@@ -623,6 +624,7 @@ const spetialPrescription = ref(false);
 const msgObject = ref({});
 const other = ref(false);
 const fileInput = ref(null);
+const defaultDate = ref('1900-01-01');
 const attachedPrescription = ref(null);
 const columns = [
   {
@@ -1369,9 +1371,9 @@ const addPatientVisitDetail = async () => {
       packagedDrug.quantityRemain = qtyRemain;
     }
   });
-
   const itemsSuppliedToRemove = checkPackageDrugQtySupplied();
   const itemsToRemove = await checkStockToPack();
+
   if (itemsSuppliedToRemove.length > 0) {
     submittingValidateDispense.value = false;
     alertError(
@@ -1405,6 +1407,46 @@ const addPatientVisitDetail = async () => {
   ) {
     submittingValidateDispense.value = false;
     alertError('A data de levantamento indicada é maior que a data corrente');
+  } else if (
+    !date.isValid(
+      getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.pickupDate)
+    )
+  ) {
+    alertError('A data de levantamento é inválida');
+    submittingValidateDispense.value = false;
+  } else if (
+    !date.isValid(
+      getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.nextPickUpDate)
+    )
+  ) {
+    alertError('A data do próximo levantamento é inválida');
+    submittingValidateDispense.value = false;
+  } else if (
+    getYYYYMMDDFromJSDate(defaultDate.value) ===
+    getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.pickupDate)
+  ) {
+    alertError('A data de levantamento é inválida');
+    submittingValidateDispense.value = false;
+  } else if (
+    getYYYYMMDDFromJSDate(defaultDate.value) ===
+    getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.nextPickUpDate)
+  ) {
+  } else if (
+    getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.pickupDate) >
+    moment().format('YYYY-MM-DD')
+  ) {
+    alertError(
+      'A data de levantamento indicada é maior que a data da corrente'
+    );
+    submittingValidateDispense.value = false;
+  } else if (
+    getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.pickupDate) >
+    getYYYYMMDDFromJSDate(curPatientVisitDetail.value.pack.nextPickUpDate)
+  ) {
+    alertError(
+      'A data do levantamento é maior que a data do próximo levantamento'
+    );
+    submittingValidateDispense.value = false;
   } else if (lastPack.value !== null && lastPack.value !== undefined) {
     if (
       getYYYYMMDDFromJSDate(lastPack.value.nextPickUpDate) >

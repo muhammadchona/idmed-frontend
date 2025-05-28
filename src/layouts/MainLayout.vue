@@ -61,6 +61,14 @@
               label="Pacientes/Utentes"
             />
             <q-route-tab
+              v-if="menusVisible('Pacientes') && !isProvincialInstalation()"
+              exact
+              :to="'/scanBarcode'"
+              name="patientDispense"
+              icon="medication"
+              label="Dispensa"
+            />
+            <q-route-tab
               v-if="
                 menusVisible('Grupos') && !isProvincialInstalation() && isOnline
               "
@@ -140,14 +148,6 @@
               name="migration"
               icon="connect_without_contact"
               label="DC pelo Provedor"
-            />
-            <q-route-tab
-              v-if="menusVisible('Pacientes') && !isProvincialInstalation()"
-              exact
-              :to="'/scanBarcode'"
-              name="patientDispense"
-              icon="branding_watermark"
-              label="Dispensa"
             />
           </q-tabs>
           <q-btn-dropdown

@@ -110,10 +110,18 @@ import PharmaceuticalAtentionInfo from 'components/Patient/PatientPanel/Pharmace
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { usePrescriptionDialog } from 'src/composables/prescription/openPrecriptionDialog';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import { usePatient } from 'src/composables/patient/patientMethods';
+import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
+import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
+import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
+import prescriptionService from 'src/services/api/prescription/prescriptionService';
 //Declarations
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile } = useSystemUtils();
 const { openDialog, checkIfPatientIsObit } = usePrescriptionDialog();
+const { preferedIdentifier } = usePatient();
+const { lastVisitPrescription } = usePatientServiceIdentifier();
+const { remainigDuration } = usePrescription();
 const { alertError } = useSwal();
 const tab = ref('clinicService');
 const showPrescriptionDialog = ref(false);
@@ -141,9 +149,20 @@ const thumbStyle = ref({
 onMounted(() => {
   init();
   if (isScanScreen) {
-    console.log(checkIfPatientIsObit(patient.value));
+    let isNewPrescription = true;
     if (checkIfPatientIsObit(patient.value)) {
-      openDialog();
+      const identifier = preferedIdentifier(patient.value);
+      const currIdentifier = patientServiceIdentifierService.curIdentifierById(
+        identifier?.id
+      );
+      const lastvisitPrescription = lastVisitPrescription(currIdentifier);
+      if (identifier !== null) {
+        const prescription = prescriptionService.getLocalPrescriptionById(
+          lastvisitPrescription?.prescription?.id
+        );
+        if (remainigDuration(prescription) > 0) isNewPrescription = false;
+      }
+      openDialog(isNewPrescription);
     } else {
       alertError(
         'O paciente encontra-se no estado de óbito. A dispensa de medicamentos não pode ser efetuada.'

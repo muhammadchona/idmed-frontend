@@ -8,14 +8,14 @@
         <div class="row items-center q-my-md">
           <q-icon name="person_outline" size="sm" />
           <span class="q-pl-sm text-subtitle2"
-            >Digitalize o código de barras</span
+            >Digitalize o código de barras ou NID</span
           >
         </div>
         <div class="row">
           <q-input
             ref="barcodeInput"
             outlined
-            label="Digitalizar código de barras"
+            label="Digitalizar código de barras ou NID"
             dense
             class="col"
             v-model="patientIdentifier"
@@ -45,46 +45,27 @@
               />
             </template>
           </q-input>
-
-          <q-btn
-            v-if="canClear"
-            @click="search"
-            class="q-ml-md q-mb-xs"
-            square
-            color="primary"
-            icon="search"
-          >
-            <q-tooltip class="bg-green-5">Pesquisar</q-tooltip>
-          </q-btn>
-          <q-btn
-            v-if="canClear"
-            @click="clearSearchParams"
-            class="q-ml-md q-mb-xs"
-            square
-            color="amber"
-            icon="clear"
-          >
-            <q-tooltip class="bg-amber-5">Limpar</q-tooltip>
-          </q-btn>
         </div>
-
         <div></div>
       </div>
     </div>
   </q-responsive>
+  <q-dialog v-model="findPatientDialog" persistent>
+    <q-card style="width: 900px; max-width: 90vw">
+      <q-card-section>
+        <patient-select-list />
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn color="red" label="Cancelar" @click="cancelSelection" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 <script setup>
-import {
-  ref,
-  onMounted,
-  computed,
-  onUnmounted,
-  onBeforeUnmount,
-  watch,
-  provide,
-} from 'vue';
+import { ref, onMounted, computed, onBeforeUnmount, watch, provide } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import patientSelectList from 'src/pages/Patient/PatientBarcode/findScannedPatient.vue';
 import patientService from 'src/services/api/patientService/patientService';
 import Patient from 'src/stores/models/patient/Patient';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
@@ -94,15 +75,21 @@ import patientVisitDetailsService from 'src/services/api/patientVisitDetails/pat
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 import packService from 'src/services/api/pack/packService';
 import { v4 as uuidv4 } from 'uuid';
+import { useLoading } from 'src/composables/shared/loading/loading';
 const { alertError } = useSwal();
+const { closeLoading, showloading } = useLoading();
 const router = useRouter();
 const patientIdentifier = ref('');
 const barcodeInput = ref(null);
 const loading = ref(false);
+const findPatientDialog = ref(false);
 const statusMessage = ref('');
 const statusType = ref(''); // success, warning, error
 const scanResult = ref(null);
+const title = ref('Procurar Utentes/Pacientes');
 const currPatient = ref(new Patient({ id: uuidv4() }));
+const patientList = ref([]);
+const resolveFn = ref(null);
 let inputBuffer = '';
 let barcodeTimeout = null;
 let bufferTimer = null;
@@ -144,7 +131,6 @@ const handleBarcodeInput = (event) => {
     console.error('Invalid keyboard event:', event);
     return;
   }
-  z;
 
   if (event.key.length === 1 || event.key === '/' || event.key === '-') {
     if (barcodeTimeout) clearTimeout(barcodeTimeout);
@@ -170,6 +156,26 @@ const handleBarcodeInput = (event) => {
   }
 };
 
+const findPatient = async () => {
+  findPatientDialog.value = true;
+  return new Promise((resolve) => {
+    resolveFn.value = resolve;
+  });
+};
+
+const onPatientClick = (evnt, row) => {
+  if (resolveFn.value) {
+    resolveFn.value(row);
+    currPatient.value = row;
+  }
+  findPatientDialog.value = false;
+};
+const cancelSelection = () => {
+  findPatientDialog.value = false;
+  patientIdentifier.value = '';
+  isProcessing = false;
+  loading.value = false;
+};
 // Methods
 const processCompleteBarcode = async () => {
   if (isProcessing || !patientIdentifier.value) {
@@ -181,36 +187,49 @@ const processCompleteBarcode = async () => {
   isProcessing = true;
   loading.value = true;
   statusMessage.value = '';
+  currPatient.value = new Patient();
+  isScanScreen.value = true;
   const completeBarcode = patientIdentifier.value.trim();
-  console.log('Processing barcode:', completeBarcode);
 
   try {
-    console.log(patientIdentifier.value);
+    showloading();
     currPatient.value.identifiers[0] = new PatientServiceIdentifier();
     currPatient.value.identifiers[0].value = completeBarcode;
-    console.log(currPatient.value);
-    const patient = await patientService.apiSearch(currPatient.value);
-    console.log(patient.data);
 
+    const patient = await patientService.apiSearch(currPatient.value);
+    patientList.value = patient.data;
+
+    if (patientList.value.length > 1) {
+      await findPatient();
+    } else {
+      currPatient.value = patientList.value[0];
+    }
     // await patientService.deleteAllExceptIdFromStorage(patient.data[0].id);
-    currPatient.value = patient.data[0];
     localStorage.setItem('patientuuid', currPatient.value.id);
     localStorage.setItem('isScanScreen', isScanScreen.value);
     await patientService.getPatientByID(currPatient.value.id);
+    showloading();
     // Rest Calls
     await patientServiceIdentifierService.apiGetAllByPatientId(
       currPatient.value.id
     );
+    showloading();
     await patientVisitService.apiGetAllByPatientId(currPatient.value.id);
+    showloading();
     await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
       currPatient.value.id
     );
+    showloading();
     await prescriptionService.apiGetByPatientId(currPatient.value.id);
+    showloading();
     await packService.apiGetByPatientId(currPatient.value.id);
     router.push('/patientpanel/');
   } catch (error) {
-    console.error('Error processing barcode:', error);
-    alertError('Erro ao processar o código de barras. Tente novamente.');
+    console.log('O Erro ', error);
+    closeLoading();
+    alertError(
+      `Nenhum registo encontrado com o NID indicado [${completeBarcode}]`
+    );
   } finally {
     isProcessing = false;
     loading.value = false;
@@ -305,4 +324,10 @@ const handleInputChange = (value) => {
 watch(patientIdentifier, (newValue, oldValue) => {
   handleInputChange(newValue);
 });
+
+provide('patientList', patientList);
+provide('currPatient', currPatient);
+provide('onPatientClick', onPatientClick);
+provide('cancelSelection', cancelSelection);
+provide('title', title);
 </script>

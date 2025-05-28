@@ -1,6 +1,6 @@
 {
   "name": "org.csaude.idmed.frontend",
-  "version": "1.7.5 SNAPSHOT",
+  "version": "1.7.6 SNAPSHOT",
   "description": "Sistema Inteligente de Dispensa de Medicamentos",
   "productName": "iDMED",
   "author": "colaco.nhongo, muhammad.chona, Ercilio.francisco, joao.mabjaia, voloide.tamele",
@@ -11,7 +11,8 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.0.0",
+    "@quasar/cli": "^2.5.0",
+    "@quasar/extras": "^1.17.0",
     "@sideway/address": "^5.0.0",
     "@sideway/formula": "^3.0.1",
     "@vueuse/components": "^10.1.2",
@@ -26,8 +27,8 @@
     "is-online": "^10.0.0",
     "joi": "^17.12.2",
     "jsbarcode": "^3.11.6",
-    "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.5.28",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "localbase": "^0.7.5",
     "mitt": "^3.0.1",
     "moment": "^2.29.4",
@@ -50,8 +51,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@intlify/vite-plugin-vue-i18n": "^3.3.1",
-    "@quasar/app-vite": "^1.0.0",
+    "@intlify/vite-plugin-vue-i18n": "^7.0.0",
+    "@quasar/app-vite": "^2.2.0",
     "@types/node": "^12.20.21",
     "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^5.10.0",
@@ -69,5 +70,6 @@
     "node": "^18 || ^16 || ^14.19",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
-  }
+  },
+  "type": "module"
 }
