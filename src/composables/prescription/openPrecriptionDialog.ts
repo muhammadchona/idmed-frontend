@@ -6,7 +6,7 @@ import { usePatient } from 'src/composables/patient/patientMethods';
 import Patient from 'src/stores/models/patient/Patient';
 const { hasEpisodes, hasNoObitOrTransferedForEpisode } = usePatient();
 export function usePrescriptionDialog() {
-  const openDialog = (isNew = true) => {
+  const openDialog = (isNew: any) => {
     isNewPrescription.value = isNew;
     showPrescriptionDialog.value = true;
   };

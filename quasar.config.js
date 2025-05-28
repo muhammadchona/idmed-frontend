@@ -8,10 +8,13 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-const { configure } = require('quasar/wrappers');
-const path = require('path');
+// const { configure } = require('quasar/wrappers');
+import { defineConfig } from '#q-app/wrappers';
+import { fileURLToPath } from 'node:url';
 
-module.exports = configure(function (/* ctx */) {
+// module.exports = configure(function (/* ctx */) {
+
+export default defineConfig((ctx) => {
   return {
     rules: {
       'vue/multi-word-component-names': 0,
@@ -74,10 +77,22 @@ module.exports = configure(function (/* ctx */) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
-      env: require('dotenv').config({ override: true }).parsed,
+      // env: require('dotenv').config({ override: true }).parsed,
+      // envFiles?: string[],
+      // passing down to UI code from the quasar.config file
+      env: {
+        API: ctx.dev
+          ? 'https://dev.' + process.env.API_URL
+          : 'https://prod.' + process.env.API_URL,
+      },
       target: {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node16',
+      },
+      typescript: {
+        strict: true,
+        vueShim: true,
+        // extendTsConfig (tsConfig) {}
       },
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
@@ -108,10 +123,23 @@ module.exports = configure(function (/* ctx */) {
             // if you want to use named tokens in your Vue I18n messages, such as 'Hello {name}',
             // you need to set `runtimeOnly: false`
             // runtimeOnly: false,
-
+            ssr: ctx.modeName === 'ssr',
             // you need to set i18n resource including paths !
-            include: path.resolve(__dirname, './src/i18n/**'),
+            // include: path.resolve(__dirname, './src/i18n/**'),
+            include: [fileURLToPath(new URL('./src/i18n', import.meta.url))],
           },
+        ],
+        [
+          'vite-plugin-checker',
+          {
+            vueTsc: true,
+            eslint: {
+              lintCommand:
+                'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
+              useFlatConfig: true,
+            },
+          },
+          { server: false },
         ],
       ],
     },
@@ -202,7 +230,7 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'generateSW', // or 'injectManifest'
+      workboxMode: 'GenerateSW', // or 'injectManifest'
       injectPwaMetaTags: true,
       swFilename: 'sw.js',
       manifestFilename: 'manifest.json',

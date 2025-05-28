@@ -4,9 +4,11 @@ node_modules
 
 # Quasar core related directories
 .quasar
-.env
-.npmrc
 /dist
+/quasar.config.*.temporary.compiled*
+
+# local .env files
+.env.local*
 
 # Cordova related directories and files
 /src-cordova/node_modules
@@ -17,10 +19,6 @@ node_modules
 # Capacitor related directories and files
 /src-capacitor/www
 /src-capacitor/node_modules
-
-# BEX related directories and files
-/src-bex/www
-/src-bex/js/core
 
 # Log files
 npm-debug.log*
@@ -33,31 +31,3 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
-
-
-# Compiled source #
-###################
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.so
-
-# Packages #
-############
-# it's better to unpack these files and commit the raw source
-# git has its own built in compression methods
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-*.zip
-.env
-src/services/Transferences/TransferenceService.ts
-.env
-yarn.lock
-src/services/Transferences/TransferenceService.ts

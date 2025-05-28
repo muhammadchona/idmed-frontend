@@ -249,7 +249,9 @@ export default {
       .whereId(Id)
       .first();
   },
-
+  getLocalPrescriptionById(Id: string) {
+    return prescription.withAllRecursive(2).where('id', Id).first();
+  },
   getLastPrescriptionFromPatientVisit(patientVisitId: string) {
     return prescription
       .withAllRecursive(2)

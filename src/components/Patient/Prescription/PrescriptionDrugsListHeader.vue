@@ -207,6 +207,7 @@ const showAdd = () => {
     showAddEditDrug.value = true;
   }
 };
+
 const determineNextPickUpDate = (pickupDate, weeks) => {
   if (date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate))) {
     const newDate = getDateFromHyphenDDMMYYYY(pickupDate);

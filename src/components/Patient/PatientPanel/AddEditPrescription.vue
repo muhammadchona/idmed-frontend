@@ -187,6 +187,7 @@ const { alertSucess, alertError } = useSwal();
 const mds = ref('US_');
 const dispenseMode = ref();
 const selected_model = ref([]);
+const selectedMember = ref(null);
 const submitting = ref(false);
 const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
 const { isReferenceOrTransferenceEpisode } = useEpisode();
@@ -338,6 +339,7 @@ const doValidationToDispense = () => {
 
 provide('curPatientVisit', curPatientVisit);
 provide('currClinic', currClinic);
+provide('selectedMember', selectedMember);
 </script>
 
 <style lang="scss">

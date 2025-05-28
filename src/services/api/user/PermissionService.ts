@@ -29,7 +29,6 @@ class PermissionService {
   async loadPermissions(): Promise<boolean> {
     try {
       const { data } = await api().get('/requestmap/getUserPermissions');
-      console.log(data);
       this.apiPermissions = data.permissions;
       this.uiPermissions = data.uiPermissions;
       this.userRoles = data.roles;

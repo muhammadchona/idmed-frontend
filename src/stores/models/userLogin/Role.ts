@@ -30,7 +30,6 @@ export default class Role extends Model {
   }
 
   static afterInsert(model: Role) {
-    console.log(model);
     model.forEach((role) => {
       if (role.uiSections && role.uiSections.length) {
         const unique = [];
