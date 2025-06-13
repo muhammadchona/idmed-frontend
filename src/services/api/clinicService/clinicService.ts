@@ -206,10 +206,11 @@ export default {
   currClinic() {
     const instalationType = systemConfigsService.getInstallationType();
     const clinicUser = localStorage.getItem('clinicUsers');
-    if (instalationType !== null &&
+    if (
+      instalationType !== null &&
       ((clinicUser === 'undefined' && !isProvincialInstalation()) ||
-      (clinicUser === '' && !isProvincialInstalation()) ||
-      String(clinicUser).includes('NORMAL'))
+        (clinicUser === '' && !isProvincialInstalation()) ||
+        String(clinicUser).includes('NORMAL'))
     ) {
       return clinic
         .withAllRecursive(2)
@@ -373,6 +374,16 @@ export default {
       })
       .get();
   },
+
+  getActivebyClinicCodeinList(clinicCode: [string]) {
+    return clinic
+      .with('facilityType')
+      .where((clinicResult: Clinic) => {
+        return clinicCode.includes(clinicResult.code);
+      })
+      .get();
+  },
+
   deleteFromPinia() {
     return clinic.flush();
   },

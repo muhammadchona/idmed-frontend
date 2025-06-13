@@ -157,6 +157,10 @@ export default {
     return secUserRepo.all();
   },
 
+  getClinicsByUsername(username: string) {
+    return secUserRepo.withAllRecursive(1).where('username', username).first();
+  },
+
   getAllUsers() {
     return secUserRepo
       .query()

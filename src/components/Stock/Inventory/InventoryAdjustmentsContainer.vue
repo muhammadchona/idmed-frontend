@@ -146,7 +146,7 @@
 
 <script setup>
 import { InventoryStockAdjustment } from '../../../stores/models/stockadjustment/InventoryStockAdjustment';
-import { onMounted, ref, computed, reactive } from 'vue';
+import { onMounted, ref, computed, reactive, inject } from 'vue';
 
 import Dialog from 'components/Shared/Dialog/Dialog.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
@@ -161,11 +161,17 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { v4 as uuidv4 } from 'uuid';
 import clinicService from 'src/services/api/clinicService/clinicService';
 
+const closeDate = inject('closeDate');
 const { isOnline } = useSystemUtils();
 
 const props = defineProps(['drugFromInventoryPanel', 'inventory']);
 const { alertSucess, alertError } = useSwal();
 const { showloading, closeLoading } = useLoading();
+
+
+const {
+  getDateFromHyphenDDMMYYYY,
+} = useDateUtils();
 
 const columns = [
   {
@@ -308,7 +314,7 @@ const saveAdjustments = () => {
         operation =
           StockOperationTypeService.getStockOperatinTypeByCode('SEM_AJUSTE');
       }
-      adjustment.captureDate = new Date();
+      adjustment.captureDate = getDateFromHyphenDDMMYYYY(closeDate.value);
       adjustment.operation = operation;
       adjustment.adjustedStock.clinic = {};
       adjustment.adjustedStock.clinic.id = adjustment.clinic_id;

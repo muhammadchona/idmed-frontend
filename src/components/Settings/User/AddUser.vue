@@ -381,7 +381,7 @@ const users = computed(() => {
 });
 const clinicSectors = computed(() => {
   const allClinicSectors = clinicSectorService.getActivebyClinicId(
-    currClinic.value.id
+    currClinic?.value?.id
   );
   return onlyView.value
     ? user.value.clinics.filter((cli) => cli.type === 'CLINIC_SECTOR')
