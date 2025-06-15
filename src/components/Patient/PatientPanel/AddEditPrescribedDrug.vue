@@ -141,8 +141,11 @@ const amtPerTimesForPediatric = ref([
   '3.5',
   '4',
   '4.5',
+  '5',
+  '5.5',
+  '6',
 ]);
-const amtPerTimesForAdults = ref(['1', '2', '3', '4']);
+const amtPerTimesForAdults = ref(['1', '2', '3', '4', '5', '6']);
 const timesPerDay = ref(['Dia', 'Semana', 'Mês', 'Ano']);
 const optionsDrugs = ref([]);
 

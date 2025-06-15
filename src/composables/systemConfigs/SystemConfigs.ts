@@ -1,6 +1,8 @@
 import systemConfigsService from 'src/services/api/systemConfigs/systemConfigsService';
-import { LocalStorage } from 'quasar';
+import { LocalStorage, SessionStorage } from 'quasar';
 import { useSystemUtils } from '../shared/systemUtils/systemUtils';
+import userService from 'src/services/api/user/userService';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 export function useSystemConfig() {
   const { isMobile, website } = useSystemUtils();
@@ -74,6 +76,18 @@ export function useSystemConfig() {
     return userFacilityTypeCode === 'PROVEDOR';
   }
 
+  const getUserClinics = () => {
+    return userService.getClinicsByUsername(SessionStorage.getItem('username'));
+  };
+
+  const getUserClinicsFromLocalStorage = () => {
+    const userClinics = LocalStorage.getItem('clinicUsers');
+    const clinics = clinicService.getActivebyClinicCodeinList(
+      String(userClinics).split(',')
+    );
+    return clinics;
+  };
+
   function isUserAPE() {
     const userFacilityTypeCode = LocalStorage.getItem('userFacilityTypeCode');
 
@@ -105,6 +119,8 @@ export function useSystemConfig() {
     isOnlyPharmacyDDDO,
     isOnlyComunitaryDispense,
     isUserDCP,
+    getUserClinics,
+    getUserClinicsFromLocalStorage,
     isLocalInstalation,
   };
 }

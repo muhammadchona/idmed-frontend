@@ -218,7 +218,7 @@ const addUser = () => {
 const visualizeUser = (userParam) => {
   user.value = userParam;
   if(user.value.authorities.length === 0){
-    userParam.roles.forEach((role) => {
+    userParam?.roles?.forEach((role) => {
       user.value.authorities.push(roleService.getByAuthority(role))
     })
   }

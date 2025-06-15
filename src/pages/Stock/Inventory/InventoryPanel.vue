@@ -287,6 +287,7 @@ import { useInventoryStockAdjustment } from 'src/composables/stockAdjustment/Inv
 import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 import { v4 as uuidv4 } from 'uuid';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 const { isMobile } = useSystemUtils();
 const inventoryMethod = useInventory();
@@ -474,7 +475,7 @@ const doSaveAll = async (i, inventory) => {
       operation =
         StockOperationTypeService.getStockOperatinTypeByCode('SEM_AJUSTE');
     }
-    adjustment.captureDate = new Date();
+    adjustment.captureDate = inventory.startDate;
     adjustment.operation = operation;
     adjustment.clinic = {};
     adjustment.clinic.id = clinicService.currClinic().id;
@@ -658,6 +659,7 @@ const canCloseInventory = computed(() => {
 
 provide('title', title);
 provide('currInventory', currInventory);
+provide('closeDate', closeDate);
 </script>
 
 <style lang="scss">

@@ -23,6 +23,7 @@ import tBScreeningService from '../tBScreening/tBScreeningService';
 import adherenceScreeningService from '../adherenceScreening/adherenceScreeningService';
 import pregnancyScreeningService from '../pregnancyScreening/pregnancyScreeningService';
 import { Notify } from 'quasar';
+import userService from '../user/userService';
 
 const patient = useRepo(Patient);
 const patientDexie = db[Patient.entity];
@@ -30,7 +31,12 @@ const patientDexie = db[Patient.entity];
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
-const { isProvincialInstalation, isUserDCP } = useSystemConfig();
+const {
+  isProvincialInstalation,
+  isUserDCP,
+  getUserClinics,
+  getUserClinicsFromLocalStorage,
+} = useSystemConfig();
 const { notifySuccess, notifyInfo } = useNotify();
 
 export default {
@@ -282,27 +288,48 @@ export default {
     );
   },
 
-  async apiGetAllPatientsIsAbandonmentForDCP(offset: number, max: number) {
+  async apiGetAllPatientsIsAbandonmentForDCP(
+    offset: number,
+    max: number,
+    clinicId: string
+  ) {
     return await api().get(
-      '/patient/ape/getAllPatientsIsAbandonment' +
-        '?offset=' +
+      '/patient/ape/getAllPatientsIsAbandonment?clinicId=' +
+        clinicId +
+        '&offset=' +
         offset +
         '&max=' +
         max
     );
   },
+
   async doPatientsBySectorGet() {
     notifyInfo('Carregamento de Pacientes Iniciado');
     const clinicSectorUser = clinicService.currClinic();
     if (clinicSectorUser === null || clinicSectorUser === undefined) {
       alertError(
-        'O Utilizador logado nao pertence a nenhum sector clinico , não terá informação carregada do Servidor'
+        'O Utilizador logado não tem nenhum sector clínico associado , não terá informação carregada do Servidor'
       );
     }
 
     let resp;
     if (isUserDCP()) {
-      resp = await this.fetchAllPatientsForDCP();
+      // Verificar se é DCP e carregar as clinica ligadas a ele
+      const clinicsId =
+        clinicSectorUser.parentClinic_id === null
+          ? clinicSectorUser.id
+          : clinicSectorUser.parentClinic_id;
+
+      if (clinicsId === null) {
+        notifyInfo(
+          'O Utilizador logado não tem nenhuma clínica associada, não terá informação carregada do Servidor'
+        );
+        return;
+      }
+      notifyInfo(
+        'O Utilizador logado é DCP, carregando pacientes de todas as clínicas associadas'
+      );
+      resp = await this.fetchAllPatientsForDCP(clinicsId);
     } else {
       resp = await this.fetchAllPatientsByClinicSectorId(clinicSectorUser.id);
     }
@@ -359,7 +386,7 @@ export default {
     return hasMorePatients;
   },
 
-  async fetchAllPatientsForDCP() {
+  async fetchAllPatientsForDCP(clinicId: string) {
     let offset = 0;
     const max = 100; // You can adjust this number based on your API's limits
     // const allPatients = [];
@@ -368,7 +395,8 @@ export default {
     while (hasMorePatients) {
       const response = await this.apiGetAllPatientsIsAbandonmentForDCP(
         offset,
-        max
+        max,
+        clinicId
       );
       const patients = response.data;
       if (patients.length > 0) {
