@@ -643,7 +643,7 @@ const savePatient = async () => {
         uuid,
         sessionStorage.getItem('Btoa')
       )
-      .then((response) => {
+      .then(async (response) => {
         closeLoading();
         if (response.data.results.length > 0) {
           response.data.results.forEach((identifierOpenMrs) => {
@@ -660,7 +660,7 @@ const savePatient = async () => {
           doSave();
         } else {
           closeLoading();
-          alertInfo(
+          await alertInfo(
             'Não foi Encontrada a Data de Admissão para o serviço clinico , Será usada a data actual para efectuar a importação.'
           );
           doSave();

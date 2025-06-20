@@ -43,7 +43,8 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import PermissionService from 'src/services/api/user/PermissionService';
 
 //Declaration
-const { website } = useSystemUtils();
+
+const { website, isMobile, isOnline } = useSystemUtils();
 const {
   isProvincialInstalation,
   isProvincialInstalationPharmacysMode,
@@ -162,7 +163,14 @@ const showAddButton = computed(() => {
 });
 
 const canAddPharmaceuticalAtention = computed(() => {
-  return PermissionService.canPerformUiAction('pharmaceuticalAttention', 'add');
+  if (isOnline) {
+    return PermissionService.canPerformUiAction(
+      'pharmaceuticalAttention',
+      'add'
+    );
+  } else {
+    return true;
+  }
 });
 
 provide('title', title);

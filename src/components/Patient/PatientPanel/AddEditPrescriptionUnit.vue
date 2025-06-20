@@ -998,10 +998,10 @@ const init = () => {
         packagedDrugEdit.amtPerTime =
           packagedDrug.amtPerTime !== 0
             ? packagedDrug.amtPerTime
-            : packagedDrug.drug.defaultTimes;
+            : packagedDrug.drug.defaultTreatment;
         packagedDrugEdit.timesPerDay =
           packagedDrug.timesPerDay !== 0
-            ? packagedDrug.amtPerTime
+            ? packagedDrug.timesPerDay
             : packagedDrug.drug.defaultTimes;
         packagedDrugEdit.form =
           packagedDrug.form !== null

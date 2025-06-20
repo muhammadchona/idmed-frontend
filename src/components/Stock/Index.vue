@@ -166,12 +166,16 @@ const addEntrada = () => {
 
 const canAddStockData = computed(() => {
   // return PermissionService.canPerformUiAction('prescription', 'add');
-  if (tab.value === 'entrance') {
-    return PermissionService.canPerformUiAction('stockEntrance', 'add');
-  } else if (tab.value === 'stockDistributor') {
-    return PermissionService.canPerformUiAction('distribution', 'add');
+  if (isOnline) {
+    if (tab.value === 'entrance') {
+      return PermissionService.canPerformUiAction('stockEntrance', 'add');
+    } else if (tab.value === 'stockDistributor') {
+      return PermissionService.canPerformUiAction('distribution', 'add');
+    } else {
+      return PermissionService.canPerformUiAction('inventory', 'add');
+    }
   } else {
-    return PermissionService.canPerformUiAction('inventory', 'add');
+    return true;
   }
 });
 

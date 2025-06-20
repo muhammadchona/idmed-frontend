@@ -149,7 +149,6 @@ export default {
     let ord = 1;
 
     for (const row in rows) {
-      console.log('ROw', rows[row]);
       const createRow = [];
       createRow.push(ord);
       createRow.push(rows[row].nid);

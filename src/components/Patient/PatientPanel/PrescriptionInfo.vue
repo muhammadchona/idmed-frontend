@@ -41,6 +41,7 @@ import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { usePrescriptionDialog } from 'src/composables/prescription/openPrecriptionDialog';
 import PermissionService from 'src/services/api/user/PermissionService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 //Declaration
 const {
@@ -60,6 +61,8 @@ const title = ref('Prescrição');
 const titleEmptyList = ref('Nenhuma Prescrição Adicionada');
 const bgColor = ref('bg-primary');
 
+const { isMobile, isOnline } = useSystemUtils();
+
 // Inject
 const patient = inject('patient');
 const { showPrescriptionDialog, isNewPrescription } = usePrescriptionDialog();
@@ -74,7 +77,11 @@ onMounted(() => {
 
 // Computed
 const canAddPrescription = computed(() => {
-  return PermissionService.canPerformUiAction('prescription', 'add');
+  if (isOnline) {
+    return PermissionService.canPerformUiAction('prescription', 'add');
+  } else {
+    return true;
+  }
 });
 
 const showAddButton = computed(() => {

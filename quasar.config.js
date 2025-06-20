@@ -115,7 +115,7 @@ export default defineConfig((ctx) => {
 
       vitePlugins: [
         [
-          '@intlify/vite-plugin-vue-i18n',
+          // '@intlify/vite-plugin-vue-i18n',
           {
             // if you want to use Vue I18n Legacy API, you need to set `compositionOnly: false`
             // compositionOnly: false,
@@ -250,6 +250,7 @@ export default defineConfig((ctx) => {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-capacitor-apps/configuring-capacitor
     capacitor: {
       hideSplashscreen: true,
+      //linuxAndroidStudioPath:
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/configuring-electron

@@ -242,7 +242,6 @@ function createDrugQuantitySuppliedArrayOfArrayRow(rows: any) {
   const data = [];
 
   for (const row in rows) {
-    console.log('RoWWW', rows[row]);
     let qtyInUnit = 'Frasco(s)';
 
     if (
