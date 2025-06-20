@@ -1,0 +1,13 @@
+{
+  "name": "org.csaude.idmed.frontend",
+  "version": "1.7.7-SNAPSHOT",
+  "description": "Sistema Inteligente de Dispensa de Medicamentos",
+  "author": "colaco.nhongo, muhammad.chona, Ercilio.francisco, joao.mabjaia, voloide.tamele",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^7.3.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  }
+}

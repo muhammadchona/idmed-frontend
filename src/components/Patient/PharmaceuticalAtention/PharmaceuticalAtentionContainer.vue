@@ -244,7 +244,7 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
+import { computed, inject } from 'vue';
 import tbTable from 'components/Patient/PharmaceuticalAtention/TbQuestionsTable.vue';
 import pregnancyTable from 'components/Patient/PharmaceuticalAtention/PregnancyQuestionsTable.vue';
 import adherenceTable from 'components/Patient/PharmaceuticalAtention/MonitoringReinforcementAdherinTable.vue';
@@ -256,6 +256,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 const { isMale } = usePatient();
 const { formatDate } = useDateUtils();

@@ -38,21 +38,21 @@
                 <q-tr no-hover :props="props">
                   <q-td key="drug" :props="props">
                     {{
-                      props.row.drug !== null
-                        ? props.row.drug.name.includes(
+                      props?.row?.drug !== null
+                        ? props?.row?.drug?.name.includes(
                             String(
-                              getDrugFirstLevelById(props.row.drug.id).form
-                                .description
+                              getDrugFirstLevelById(props?.row?.drug?.id)?.form
+                                ?.description
                             ).substring(0, 4)
                           )
-                          ? props.row.drug.name
-                          : props.row.drug.name +
+                          ? props?.row?.drug?.name
+                          : props?.row?.drug?.name +
                             ' - (' +
-                            props.row.drug.packSize +
+                            props?.row?.drug?.packSize +
                             ' ' +
                             String(
-                              getDrugFirstLevelById(props.row.drug.id).form
-                                .description
+                              getDrugFirstLevelById(props?.row?.drug?.id)?.form
+                                ?.description
                             ).substring(0, 4) +
                             ')'
                         : ''
@@ -62,16 +62,16 @@
                     {{ props.row.quantitySupplied }}
                     <em
                       v-if="
-                        getDrugFirstLevelById(props.row.drug.id).clinicalService
-                          .code === 'TARV'
+                        getDrugFirstLevelById(props?.row?.drug?.id)
+                          ?.clinicalService?.code === 'TARV'
                       "
                     >
                       Frasco(s)</em
                     >
                     <em v-else
                       >{{
-                        getDrugFirstLevelById(props.row.drug.id).form
-                          .description
+                        getDrugFirstLevelById(props?.row?.drug?.id)?.form
+                          ?.description
                       }}(s)</em
                     >
                   </q-td>
@@ -85,23 +85,23 @@
                   <q-td key="quantityRemain" :props="props">
                     <em
                       v-if="
-                        getDrugFirstLevelById(props.row.drug.id).clinicalService
-                          .code === 'TARV'
+                        getDrugFirstLevelById(props?.row?.drug?.id)
+                          ?.clinicalService?.code === 'TARV'
                       "
                     >
-                      {{ totalQuantityRemainFrascos(props.row.drug) }} Frasco(s)
-                      e
+                      {{ totalQuantityRemainFrascos(props?.row?.drug) }}
+                      Frasco(s) e
                       {{
-                        totalUnityRemains(props.row.drug) +
+                        totalUnityRemains(props?.row?.drug) +
                         ' ' +
-                        getDrugFirstLevelById(props.row.drug.id).form.unit
+                        getDrugFirstLevelById(props?.row?.drug?.id)?.form?.unit
                       }}
                     </em>
                     <em v-else
-                      >{{ totalQuantityRemainFrascos(props.row.drug) }}
+                      >{{ totalQuantityRemainFrascos(props?.row?.drug) }}
                       {{
-                        getDrugFirstLevelById(props.row.drug.id).form
-                          .description
+                        getDrugFirstLevelById(props?.row?.drug?.id)?.form
+                          ?.description
                       }}(s)</em
                     >
                   </q-td>

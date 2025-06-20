@@ -25,7 +25,6 @@ image.src = 'data:image/png;base64,' + MOHIMAGELOG;
 export default {
   async downloadPDF(id, fileType, params) {
     const fontBase64 = await fetchFontAsBase64(fontPath);
-    console.log(params);
     const doc = new JsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -42,6 +41,28 @@ export default {
     });
 
     const clinic = clinicService.getById(params.clinicId);
+
+    let data = [];
+    if (isOnline.value) {
+      const rowsAux = await Report.printReport(
+        'usedStockReportTemp',
+        id,
+        fileType
+      );
+      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
+      const firstReg = rowsAux.data[0];
+      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
+      data = this.createArrayOfArrayRow(rowsAux.data);
+    } else {
+      const dataAux = await UsedStockMobileService.localDbGetAllByReportId(id);
+
+      if (dataAux.length === 0) return 204;
+      params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate);
+      params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate);
+      data = this.createArrayOfArrayRow(dataAux);
+    }
+    console.log(params);
 
     const headerReport = [
       [
@@ -138,26 +159,6 @@ export default {
       'Stock Actual',
     ];
 
-    let data = [];
-    if (isOnline.value) {
-      const rowsAux = await Report.printReport(
-        'usedStockReportTemp',
-        id,
-        fileType
-      );
-      if (rowsAux.status === 204 || rowsAux.data.length === 0) return 204;
-      const firstReg = rowsAux.data[0];
-      params.startDateParam = Report.getFormatDDMMYYYY(firstReg.startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(firstReg.endDate);
-      data = this.createArrayOfArrayRow(rowsAux.data);
-    } else {
-      const dataAux = await UsedStockMobileService.localDbGetAllByReportId(id);
-
-      if (dataAux.length === 0) return 204;
-      params.startDateParam = Report.getFormatDDMMYYYY(dataAux[0].startDate);
-      params.endDateParam = Report.getFormatDDMMYYYY(dataAux[0].endDate);
-      data = this.createArrayOfArrayRow(dataAux);
-    }
     autoTable(doc, {
       bodyStyles: {
         halign: 'center',
