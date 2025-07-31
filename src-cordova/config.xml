@@ -1,22 +1,74 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="org.csaude.idmed.mobile" version="1.7.8-SNAPSHOT" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="csaude.org.mz.idmed.mobile" version="1.7.8-SNAPSHOT" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>iDMED</name>
     <description>Sistema Inteligente de Dispensa de Medicamentos</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
-        Apache Cordova Team
+        C-SAUDE iDMED Team
     </author>
     <content src="index.html" />
+    <access origin="*" />
+    <allow-navigation href="about:*" />
+    <allow-navigation href="http://*/*" />
+    <allow-navigation href="https://*/*" />
+    <allow-navigation href="data:*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-    <allow-navigation href="about:*" />
-    <preference name="SplashMaintainAspectRatio" value="true" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="geo:*" />
     <platform name="android">
+        <preference name="Scheme" value="http" />
+        <preference name="AndroidPersistentFileLocation" value="Internal" />
+        <preference name="SplashMaintainAspectRatio" value="true" />
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application" xmlns:android="http://schemas.android.com/apk/res/android">
+            <application android:allowBackup="true" android:networkSecurityConfig="@xml/network_security_config" android:preserveLegacyExternalStorage="true" android:requestLegacyExternalStorage="true" android:usesCleartextTraffic="true" />
+        </edit-config>
+        <config-file parent="/manifest" target="AndroidManifest.xml" xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+            <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+            <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+            <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+            <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+            <uses-permission android:name="android.permission.CAMERA" />
+            <uses-permission android:name="android.permission.RECORD_AUDIO" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+        </config-file>
+        <config-file parent="/manifest/application" target="AndroidManifest.xml" xmlns:android="http://schemas.android.com/apk/res/android">
+            <provider android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true" android:name="androidx.core.content.FileProvider">
+                <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+            </provider>
+        </config-file>
+        <resource-file src="res/xml/network_security_config.xml" target="app/src/main/res/xml/network_security_config.xml" />
+        <resource-file src="res/xml/file_paths.xml" target="app/src/main/res/xml/file_paths.xml" />
+        <preference name="android-targetSdkVersion" value="35" />
+        <preference name="android-compileSdkVersion" value="35" />
+        <preference name="android-minSdkVersion" value="24" />
+        <preference name="GradlePluginKotlinEnabled" value="true" />
+        <preference name="GradlePluginKotlinCodeStyle" value="official" />
+        <preference name="AndroidXEnabled" value="true" />
+        <preference name="JetifierEnabled" value="true" />
         <icon density="ldpi" src="res/android/ldpi.png" />
         <icon density="mdpi" src="res/android/mdpi.png" />
         <icon density="hdpi" src="res/android/hdpi.png" />
         <icon density="xhdpi" src="res/android/xhdpi.png" />
         <icon density="xxhdpi" src="res/android/xxhdpi.png" />
         <icon density="xxxhdpi" src="res/android/xxxhdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-ldpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-mdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-mdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-ldpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-hdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-hdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-xhdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xhdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-xxhdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xxhdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-land-xxxhdpi.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splash-port-xxxhdpi.png" />
         <splash density="land-ldpi" src="res/screen/android/splash-land-ldpi.png" />
         <splash density="port-ldpi" src="res/screen/android/splash-port-ldpi.png" />
         <splash density="land-mdpi" src="res/screen/android/splash-land-mdpi.png" />
@@ -56,6 +108,14 @@
         <icon height="88" src="res/ios/icon-44@2x.png" width="88" />
         <icon height="172" src="res/ios/icon-86@2x.png" width="172" />
         <icon height="196" src="res/ios/icon-98@2x.png" width="196" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~iphone~anyany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~iphone~comany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~iphone~comcom.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@3x~iphone~anyany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@3x~iphone~anycom.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@3x~iphone~comany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~ipad~anyany.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/ios/Default@2x~ipad~comany.png" />
         <splash src="res/screen/ios/Default@2x~iphone~anyany.png" />
         <splash src="res/screen/ios/Default@2x~iphone~comany.png" />
         <splash src="res/screen/ios/Default@2x~iphone~comcom.png" />
