@@ -83,10 +83,7 @@ export default {
   },
 
   async apiInitExpectedPatientsProcessing(params: any) {
-    return await api().post(
-      '/expectedPatientsReport/initReportProcess',
-      params
-    );
+    return await api().post('/expectedPatientReport/initReportProcess', params);
   },
 
   async apiInitInventoryReportProcessing(params: any) {
@@ -203,7 +200,7 @@ export default {
   },
 
   apiPrintExpectedPatientsReport(reportId: any) {
-    return api().get(`/expectedPatientsReport/printReport/${reportId}`, {
+    return api().get(`/expectedPatientReport/printReport/${reportId}`, {
       responseType: 'json',
     });
   },
@@ -218,7 +215,7 @@ export default {
   },
 
   apiPrintPatientsWithoutDispenseReport(reportId: any) {
-    return api().get(`/patientWithoutDispense/printReport/${reportId}`, {
+    return api().get(`/patientWithoutDispenseReport/printReport/${reportId}`, {
       responseType: 'json',
     });
   },

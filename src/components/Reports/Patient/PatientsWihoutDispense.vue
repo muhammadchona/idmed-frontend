@@ -84,7 +84,7 @@ const initReportProcessing = async (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
     updateParamsOnLocalStrage(params, isReportClosed);
-    Report.apiInitReportProcess('patientWithoutDispense', params).then(
+    Report.apiInitReportProcess('patientWithoutDispenseReport', params).then(
       (response) => {
         getProcessingStatus(params);
       }
@@ -98,26 +98,28 @@ const initReportProcessing = async (params) => {
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('patientWithoutDispense', params).then((resp) => {
-    if (resp.data.progress > 0.001) {
-      progress.value = resp.data.progress;
-      if (progress.value < 100) {
-        updateParamsOnLocalStrage(params, isReportClosed);
-        params.progress = resp.data.progress;
+  Report.getProcessingStatus('patientWithoutDispenseReport', params).then(
+    (resp) => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
+        if (progress.value < 100) {
+          updateParamsOnLocalStrage(params, isReportClosed);
+          params.progress = resp.data.progress;
+          setTimeout(() => {
+            getProcessingStatus(params);
+          }, 3000);
+        } else {
+          progress.value = 100;
+          params.progress = 100;
+          updateParamsOnLocalStrage(params, isReportClosed);
+        }
+      } else {
         setTimeout(() => {
           getProcessingStatus(params);
         }, 3000);
-      } else {
-        progress.value = 100;
-        params.progress = 100;
-        updateParamsOnLocalStrage(params, isReportClosed);
       }
-    } else {
-      setTimeout(() => {
-        getProcessingStatus(params);
-      }, 3000);
     }
-  });
+  );
 };
 
 const generateReport = async (id, fileType) => {
@@ -149,7 +151,7 @@ const generateReport = async (id, fileType) => {
         }
       }
     });
-  } 
+  }
 };
 
 onMounted(() => {
