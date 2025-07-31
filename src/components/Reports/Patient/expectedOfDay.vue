@@ -109,28 +109,26 @@ const initReportProcessing = (params) => {
 
 const getProcessingStatus = (params) => {
   if (isOnline.value) {
-    Report.getProcessingStatus('expectedPatientsReport', params).then(
-      (resp) => {
-        if (resp.data.progress > 0.001) {
-          progress.value = resp.data.progress;
-          if (progress.value < 100) {
-            updateParamsOnLocalStrage(params, isReportClosed);
-            params.progress = resp.data.progress;
-            setTimeout(() => {
-              getProcessingStatus(params);
-            }, 3000);
-          } else {
-            progress.value = 100;
-            params.progress = 100;
-            updateParamsOnLocalStrage(params, isReportClosed);
-          }
-        } else {
+    Report.getProcessingStatus('expectedPatientReport', params).then((resp) => {
+      if (resp.data.progress > 0.001) {
+        progress.value = resp.data.progress;
+        if (progress.value < 100) {
+          updateParamsOnLocalStrage(params, isReportClosed);
+          params.progress = resp.data.progress;
           setTimeout(() => {
             getProcessingStatus(params);
           }, 3000);
+        } else {
+          progress.value = 100;
+          params.progress = 100;
+          updateParamsOnLocalStrage(params, isReportClosed);
         }
+      } else {
+        setTimeout(() => {
+          getProcessingStatus(params);
+        }, 3000);
       }
-    );
+    });
   }
 };
 
