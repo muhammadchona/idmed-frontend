@@ -173,6 +173,16 @@ export default defineConfig((ctx) => {
           // On the other hand, the following completely
           // disables Quasar's back button management.
           backButton: true / false,
+          androidVersionCode: '100001',
+          version: '1.7.8',
+          androidConfig: {
+            minSdkVersion: 24,
+            compileSdkVersion: 35,
+            targetSdkVersion: 35,
+          },
+          android: {
+            packageType: 'apk', // Força a geração de APK
+          },
         },
         notify: {} /* look at QuasarConfOptions from the API card */,
       },

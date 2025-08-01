@@ -1,12 +1,7 @@
 <template>
   <div>
-    <q-expansion-item
-      v-if="pack !== null"
-      dense
-      header-class="bg-grey-6 text-white text-bold vertical-middle q-pl-md"
-      expand-icon-class="text-white"
-      default-opened
-    >
+    <q-expansion-item v-if="pack !== null" dense header-class="bg-grey-6 text-white text-bold vertical-middle q-pl-md"
+      expand-icon-class="text-white" default-opened>
       <template v-slot:header>
         <q-item-section avatar>
           <q-icon color="white" name="add_task" />
@@ -24,56 +19,43 @@
       <q-card flat v-if="pack !== null" bordered class="noRadius">
         <q-card-section class="row q-pa-sm">
           <div class="col-12">
-            <q-table
-              class="col"
-              dense
-              flat
-              unelevated
-              :rows="pack.packagedDrugs"
-              :columns="columns"
-              row-key="id"
-              hide-bottom
-            >
+            <q-table class="col" dense flat unelevated :rows="pack.packagedDrugs" :columns="columns" row-key="id"
+              hide-bottom>
               <template #body="props">
                 <q-tr no-hover :props="props">
                   <q-td key="drug" :props="props">
                     {{
                       props?.row?.drug !== null
                         ? props?.row?.drug?.name.includes(
-                            String(
-                              getDrugFirstLevelById(props?.row?.drug?.id)?.form
-                                ?.description
-                            ).substring(0, 4)
-                          )
+                          String(
+                            getDrugFirstLevelById(props?.row?.drug?.id)?.form
+                              ?.description
+                          ).substring(0, 4)
+                        )
                           ? props?.row?.drug?.name
                           : props?.row?.drug?.name +
-                            ' - (' +
-                            props?.row?.drug?.packSize +
-                            ' ' +
-                            String(
-                              getDrugFirstLevelById(props?.row?.drug?.id)?.form
-                                ?.description
-                            ).substring(0, 4) +
-                            ')'
+                          ' - (' +
+                          props?.row?.drug?.packSize +
+                          ' ' +
+                          String(
+                            getDrugFirstLevelById(props?.row?.drug?.id)?.form
+                              ?.description
+                          ).substring(0, 4) +
+                          ')'
                         : ''
                     }}
                   </q-td>
                   <q-td key="qty" :props="props">
                     {{ props.row.quantitySupplied }}
-                    <em
-                      v-if="
-                        getDrugFirstLevelById(props?.row?.drug?.id)
-                          ?.clinicalService?.code === 'TARV'
-                      "
-                    >
-                      Frasco(s)</em
-                    >
-                    <em v-else
-                      >{{
-                        getDrugFirstLevelById(props?.row?.drug?.id)?.form
-                          ?.description
-                      }}(s)</em
-                    >
+                    <em v-if="
+                      getDrugFirstLevelById(props?.row?.drug?.id)
+                        ?.clinicalService?.code === 'TARV'
+                    ">
+                      Frasco(s)</em>
+                    <em v-else>{{
+                      getDrugFirstLevelById(props?.row?.drug?.id)?.form
+                        ?.description
+                    }}(s)</em>
                   </q-td>
                   <q-td auto-width key="nextPickUpDate" :props="props">
                     {{
@@ -83,12 +65,10 @@
                     }}
                   </q-td>
                   <q-td key="quantityRemain" :props="props">
-                    <em
-                      v-if="
-                        getDrugFirstLevelById(props?.row?.drug?.id)
-                          ?.clinicalService?.code === 'TARV'
-                      "
-                    >
+                    <em v-if="
+                      getDrugFirstLevelById(props?.row?.drug?.id)
+                        ?.clinicalService?.code === 'TARV'
+                    ">
                       {{ totalQuantityRemainFrascos(props?.row?.drug) }}
                       Frasco(s) e
                       {{
@@ -97,28 +77,15 @@
                         getDrugFirstLevelById(props?.row?.drug?.id)?.form?.unit
                       }}
                     </em>
-                    <em v-else
-                      >{{ totalQuantityRemainFrascos(props?.row?.drug) }}
+                    <em v-else>{{ totalQuantityRemainFrascos(props?.row?.drug) }}
                       {{
                         getDrugFirstLevelById(props?.row?.drug?.id)?.form
                           ?.description
-                      }}(s)</em
-                    >
+                      }}(s)</em>
                   </q-td>
-                  <q-td
-                    :rowspan="pack.packagedDrugs"
-                    auto-width
-                    key="opts"
-                    :props="props"
-                  >
+                  <q-td :rowspan="pack.packagedDrugs" auto-width key="opts" :props="props">
                     <div class="col">
-                      <q-btn
-                        flat
-                        @click.stop="removePack"
-                        round
-                        color="red"
-                        icon="delete"
-                      >
+                      <q-btn flat @click.stop="removePack" round color="red" icon="delete">
                         <q-tooltip class="bg-red">Remover</q-tooltip>
                       </q-btn>
                     </div>

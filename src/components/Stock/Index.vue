@@ -5,41 +5,21 @@
       <q-tabs v-model="tab" align="left" dense inline-label class="">
         <q-tab name="stock" label="Stock" @click="selectTab('stock')" />
         <q-tab name="entrance" label="Entrada" @click="selectTab('entrance')" />
-        <q-tab
-          name="inventory"
-          label="Inventário"
-          @click="selectTab('inventory')"
-        />
-        <q-tab
-          v-if="isOnline"
-          name="stockDistributor"
-          label="Distribuicao"
-          @click="selectTab('stockDistributor')"
-        >
+        <q-tab name="inventory" label="Inventário" @click="selectTab('inventory')" />
+        <q-tab v-if="isOnline" name="stockDistributor" label="Distribuicao" @click="selectTab('stockDistributor')">
         </q-tab>
-        <q-tab
-          v-if="
-            !isOnline &&
-            clinic.facilityType.code !== 'FP' &&
-            clinic.facilityType.code !== 'FC' &&
-            clinic.facilityType.code !== 'US'
-          "
-          name="confirmDistribution"
-          label="Confirmar Distribuicao"
-          @click="selectTab('confirmDistribution')"
-        >
+        <q-tab v-if="
+          !isOnline &&
+          clinic.facilityType.code !== 'FP' &&
+          clinic.facilityType.code !== 'FC' &&
+          clinic.facilityType.code !== 'US'
+        " name="confirmDistribution" label="Confirmar Distribuicao" @click="selectTab('confirmDistribution')">
           <q-badge color="red" floating transparent>
             {{ stockDistributionCount }}
           </q-badge>
         </q-tab>
         <div class="absolute-top-right q-mr-md">
-          <q-btn
-            flat
-            icon-right="refresh"
-            label="Actualizar Lista"
-            no-caps
-            @click="reloadPage"
-          />
+          <q-btn flat icon-right="refresh" label="Actualizar Lista" no-caps @click="reloadPage" />
         </div>
       </q-tabs>
       <q-separator color="grey-13" size="1px" />
@@ -52,7 +32,9 @@
           </q-tab-panel>
 
           <q-tab-panel name="entrance">
-            <KeepAlive> <EntranceTable /></KeepAlive>
+            <KeepAlive>
+              <EntranceTable />
+            </KeepAlive>
           </q-tab-panel>
           <q-tab-panel name="inventory">
             <KeepAlive>
@@ -61,28 +43,22 @@
           </q-tab-panel>
 
           <q-tab-panel name="stockDistributor">
-            <KeepAlive> <stockDistributorTable /></KeepAlive>
+            <KeepAlive>
+              <stockDistributorTable />
+            </KeepAlive>
           </q-tab-panel>
 
           <q-tab-panel name="confirmDistribution">
-            <KeepAlive> <stockConfirmationTable /></KeepAlive>
+            <KeepAlive>
+              <stockConfirmationTable />
+            </KeepAlive>
           </q-tab-panel>
         </q-tab-panels>
       </div>
     </div>
-    <q-page-sticky
-      v-if="tab !== 'stock'"
-      position="bottom-right"
-      :offset="[18, 18]"
-    >
-      <q-btn
-        v-if="canAddStockData && !buttonVisible"
-        class="q-mb-xl q-mr-xl"
-        fab
-        color="primary"
-        icon="add"
-        @click="addEntrada"
-      />
+    <q-page-sticky v-if="tab !== 'stock'" position="bottom-right" :offset="[18, 18]">
+      <q-btn v-if="canAddStockData && !buttonVisible" class="q-mb-xl q-mr-xl" fab color="primary" icon="add"
+        @click="addEntrada" />
     </q-page-sticky>
     <q-dialog persistent v-model="createEntrance">
       <EntranceRegister @close="createEntrance = false" />
@@ -95,11 +71,7 @@
     </q-dialog>
 
     <q-dialog v-model="alert.visible" persistent>
-      <Dialog
-        :type="alert.type"
-        @closeDialog="closeDialog"
-        @commitOperation="closeInventory"
-      >
+      <Dialog :type="alert.type" @closeDialog="closeDialog" @commitOperation="closeInventory">
         <template v-slot:title> Informação</template>
         <template v-slot:msg> {{ alert.msg }} </template>
       </Dialog>
@@ -166,7 +138,7 @@ const addEntrada = () => {
 
 const canAddStockData = computed(() => {
   // return PermissionService.canPerformUiAction('prescription', 'add');
-  if (isOnline) {
+  if (isOnline.value) {
     if (tab.value === 'entrance') {
       return PermissionService.canPerformUiAction('stockEntrance', 'add');
     } else if (tab.value === 'stockDistributor') {
