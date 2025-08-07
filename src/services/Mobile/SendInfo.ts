@@ -65,7 +65,6 @@ export function sendData() {
     ) {
       const identifier = identifiersToSync[i];
       if (identifier !== undefined) {
-        console.log(identifier);
         patientServiceIdentifierService
           .syncPatientServiceIdentifier(identifier)
           .then((resp) => {

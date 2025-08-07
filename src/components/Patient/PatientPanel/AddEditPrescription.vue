@@ -2,23 +2,16 @@
   <q-card style="width: 1350px; max-width: 110vw">
     <q-card-section style="max-height: 50vh" class="q-pa-none bg-green-2">
       <div class="row items-center text-subtitle1 q-pa-md">
-        <q-icon
-          :name="patient.gender == 'Feminino' ? 'female' : 'male'"
-          size="md"
-          color="primary"
-        />
+        <q-icon :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary" />
         <div class="text-bold text-grey-10 q-ml-sm">
           {{ fullName(patient) }}
         </div>
         <div class="text-grey-10 q-ml-sm">
           <span class="text-bold text-h6">|</span> {{ patient.gender }}
         </div>
-        <div
-          class="text-grey-10 q-ml-sm"
-          v-if="
-            idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth)) <= 14
-          "
-        >
+        <div class="text-grey-10 q-ml-sm" v-if="
+          idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth)) <= 14
+        ">
           <span class="text-bold text-h6">
             | <q-icon name="child_care" />
           </span>
@@ -31,14 +24,7 @@
           Anos de Idade
         </div>
         <div class="absolute-top-right q-pa-md">
-          <q-btn
-            flat
-            v-close-popup
-            round
-            dense
-            icon="close"
-            @click="closePrescriptionOption"
-          />
+          <q-btn flat v-close-popup round dense icon="close" @click="closePrescriptionOption" />
         </div>
       </div>
       <q-separator />
@@ -46,34 +32,21 @@
     <q-scroll-area style="height: 800px" class="q-pr-md">
       <q-card-section>
         <q-list bordered>
-          <q-expansion-item
-            v-for="identifier in getIdentifierWithInicialEpisode.length > 0
-              ? getIdentifierWithInicialEpisode
-              : getIdentifierWithRefferalEpisode"
-            :key="identifier.id"
-            group="somegroup"
-            dense
-            :label="
-              'Prescrição ' +
-              identifier.service.code +
-              ' - ' +
-              identifier.identifierType.code +
-              ': ' +
-              identifier.value
-            "
-            :default-opened="identifier.service.code === 'TARV'"
-            :header-class="
-              selected_model[identifier.service.code]
+          <q-expansion-item v-for="identifier in getIdentifierWithInicialEpisode.length > 0
+            ? getIdentifierWithInicialEpisode
+            : getIdentifierWithRefferalEpisode" :key="identifier.id" group="somegroup" dense :label="'Prescrição ' +
+                identifier.service.code +
+                ' - ' +
+                identifier.identifierType.code +
+                ': ' +
+                identifier.value
+                " :default-opened="identifier.service.code === 'TARV'" :header-class="selected_model[identifier.service.code]
                 ? 'bg-amber-9 text-white text-bold text-subtitle1 vertical-middle q-pl-md'
                 : 'bg-primary text-white text-bold text-subtitle1 vertical-middle q-pl-md'
-            "
-            expand-icon-class="text-white"
-            v-model="selected_model[identifier.service.code]"
-          >
+              " expand-icon-class="text-white" v-model="selected_model[identifier.service.code]">
             <q-card>
               <q-card-section>
-                <ListHeader bgColor="bg-grey-6"
-                  >Informação da Prescrição
+                <ListHeader bgColor="bg-grey-6">Informação da Prescrição
                 </ListHeader>
                 <add-edit-prescription-unit :identifier="identifier" />
               </q-card-section>
@@ -82,77 +55,32 @@
           </q-expansion-item>
         </q-list>
         <div class="row q-mt-xs">
-          <q-banner
-            dense
-            inline-actions
-            class="col text-white q-pa-none bg-orange-4"
-          >
+          <q-banner dense inline-actions class="col text-white q-pa-none bg-orange-4">
             <div class="q-pa-md">
               <div class="q-gutter-sm">
-                <q-radio
-                  v-model="mds"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  val="US_"
-                  label="Farmácia Pública"
-                  @update:model-value="dispenseMode = []"
-                />
-                <q-radio
-                  v-model="mds"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  val="DD_"
-                  label="Dipensa Descentralizada"
-                  @update:model-value="dispenseMode = []"
-                />
-                <q-radio
-                  v-model="mds"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  val="DC_"
-                  label="Dispensa Comunitária"
-                  @update:model-value="dispenseMode = []"
-                />
+                <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="US_"
+                  label="Farmácia Pública" @update:model-value="dispenseMode = []" />
+                <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DD_"
+                  label="Dipensa Descentralizada" @update:model-value="dispenseMode = []" />
+                <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="DC_"
+                  label="Dispensa Comunitária" @update:model-value="dispenseMode = []" />
               </div>
             </div>
             <template v-slot:action>
-              <q-select
-                style="width: 320px"
-                class="col q-ma-sm"
-                bg-color="white"
-                dense
-                outlined
-                ref="dispenseModeRef"
-                v-model="dispenseMode"
-                :options="dispenseModes"
-                option-value="id"
-                option-label="description"
-                label="Modo de dispensa"
-              />
+              <q-select style="width: 320px" class="col q-ma-sm" bg-color="white" dense outlined ref="dispenseModeRef"
+                v-model="dispenseMode" :options="dispenseModes" option-value="id" option-label="description"
+                label="Modo de dispensa" />
             </template>
           </q-banner>
         </div>
       </q-card-section>
       <q-card-actions>
         <div class="row q-mt-xl q-pt-md">
-          <span
-            class="text-right absolute-bottom q-mb-lg q-mr-md q-mt-xl no-pointer-events"
-          >
-            <q-btn
-              label="Cancelar"
-              color="red"
-              class="all-pointer-events"
-              @click="closePrescriptionOption"
-            />
-            <q-btn
-              :label="dispenseLabel"
-              loader
-              :disable="curPatientVisit.patientVisitDetails.length === 0"
-              :loading="submitting"
-              @click="doValidationToDispense()"
-              color="primary"
-              class="q-ml-md all-pointer-events"
-            >
+          <span class="text-right absolute-bottom q-mb-lg q-mr-md q-mt-xl no-pointer-events">
+            <q-btn label="Cancelar" color="red" class="all-pointer-events" @click="closePrescriptionOption" />
+            <q-btn :label="dispenseLabel" loader :disable="curPatientVisit.patientVisitDetails.length === 0"
+              :loading="submitting" @click="doValidationToDispense()" color="primary"
+              class="q-ml-md all-pointer-events">
             </q-btn>
           </span>
         </div>
@@ -346,6 +274,7 @@ provide('selectedMember', selectedMember);
 .prescription-box {
   border: 1px solid $grey-4;
 }
+
 .box-border {
   border: 1px solid $grey-4;
 }

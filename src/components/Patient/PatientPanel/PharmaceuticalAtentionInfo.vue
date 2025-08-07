@@ -163,7 +163,7 @@ const showAddButton = computed(() => {
 });
 
 const canAddPharmaceuticalAtention = computed(() => {
-  if (isOnline) {
+  if (isOnline.value) {
     return PermissionService.canPerformUiAction(
       'pharmaceuticalAttention',
       'add'

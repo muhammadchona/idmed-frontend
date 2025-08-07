@@ -21,15 +21,24 @@
         <preference name="Scheme" value="http" />
         <preference name="AndroidPersistentFileLocation" value="Internal" />
         <preference name="SplashMaintainAspectRatio" value="true" />
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application" xmlns:android="http://schemas.android.com/apk/res/android">
-            <application android:allowBackup="true" android:networkSecurityConfig="@xml/network_security_config" android:preserveLegacyExternalStorage="true" android:requestLegacyExternalStorage="true" android:usesCleartextTraffic="true" />
-        </edit-config>
+       <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+        <application
+            android:allowBackup="true"
+            android:networkSecurityConfig="@xml/network_security_config"
+            android:usesCleartextTraffic="true"
+            android:requestLegacyExternalStorage="true"
+            android:preserveLegacyExternalStorage="true" />
+       </edit-config>
         <config-file parent="/manifest" target="AndroidManifest.xml" xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+
             <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
             <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
             <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
             <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-            <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
             <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
             <uses-permission android:name="android.permission.CAMERA" />
@@ -125,5 +134,4 @@
         <splash src="res/screen/ios/Default@2x~ipad~anyany.png" />
         <splash src="res/screen/ios/Default@2x~ipad~comany.png" />
     </platform>
-    <preference name="SplashMaintainAspectRatio" value="true" />
 </widget>

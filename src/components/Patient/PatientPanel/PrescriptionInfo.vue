@@ -77,7 +77,7 @@ onMounted(() => {
 
 // Computed
 const canAddPrescription = computed(() => {
-  if (isOnline) {
+  if (isOnline.value) {
     return PermissionService.canPerformUiAction('prescription', 'add');
   } else {
     return true;
