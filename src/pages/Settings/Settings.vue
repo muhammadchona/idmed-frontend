@@ -60,6 +60,7 @@
           </interoperability>
           <users v-if="activeMenu === 'Utilizadores'"> </users>
           <roles v-if="activeMenu === 'Perfis'"> </roles>
+          <configs v-if="activeMenu === 'Configurações'"> </configs>
         </q-scroll-area>
       </div>
     </div>
@@ -126,6 +127,10 @@
             <div class="text-h4 q-mb-md"></div>
             <roles> </roles>
           </q-tab-panel>
+          <q-tab-panel name="config">
+            <div class="text-h4 q-mb-md"></div>
+            <configs> </configs>
+          </q-tab-panel>
         </q-tab-panels>
       </template>
     </q-splitter>
@@ -146,6 +151,7 @@ import identifierType from 'src/components/Settings/IdentifierType/IdentifierTyp
 import interoperability from 'src/components/Settings/Interoperability/His.vue';
 import users from 'src/components/Settings/User/Users.vue';
 import roles from 'src/components/Settings/User/Roles.vue';
+import configs from 'src/components/Settings/SystemConfig/configs.vue';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 /*Variables*/
@@ -204,6 +210,7 @@ const tabs = [
   },
   { name: 'users', icon: 'people', label: 'Utilizadores', separator: true },
   { name: 'roles', icon: 'manage_accounts', label: 'Perfis', separator: true },
+  { name: 'config', icon: 'settings', label: 'Configurações', separator: true },
 ];
 
 /*Hooks*/
@@ -236,7 +243,7 @@ const changeMenu = (label) => {
 };
 </script>
 <style scoped>
-  .q-tab--active {
+.q-tab--active {
   background-color: #9e9e9e2e; /* Defina a cor de fundo desejada para destacar o item ativo */
   color: #000000; /* Defina a cor do texto desejada para destacar o item ativo */
   /* Outros estilos desejados */

@@ -74,9 +74,9 @@ export default {
     try {
       const resp = await api().patch('systemConfigs/' + uuid, params);
       systemConfigs.save(resp.data);
-      alertSucess('O Registo foi alterado com sucesso');
+      alertSucess('Rotina actualizada com sucesso.');
     } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
+      alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -158,7 +158,18 @@ export default {
     return systemConfigs.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return systemConfigs.all();
+    return systemConfigs.orderBy('description').get();
+  },
+  getAllFromStorageWithoutMigration() {
+    return systemConfigs
+      .whereNotIn('key', [
+        'INSTALATION_TYPE',
+        'PARAMS_MIGRATION_ENGINE',
+        'STOCK_MIGRATION_ENGINE',
+        'PATIENT_MIGRATION_ENGINE',
+      ])
+      .orderBy('description')
+      .get();
   },
 
   saveInStorage(systemConfigsObj: any) {
