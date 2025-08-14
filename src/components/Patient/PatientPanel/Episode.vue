@@ -161,12 +161,28 @@
               class="float-right"
             />
           </div>
+          <div
+            class="col items-center"
+            v-if="props.isLast && isLastEpisode && isCloseEpisode(currEpisode)"
+          >
+            <q-btn
+              @click="editCloseEpisode"
+              dense
+              unelevated
+              color="orange-5"
+              label="Editar"
+              class="float-right"
+            />
+          </div>
         </q-card-actions>
       </q-card>
     </q-expansion-item>
     <q-separator />
     <q-dialog persistent v-model="showAddEditEpisode">
       <AddEditEpisode />
+    </q-dialog>
+    <q-dialog persistent v-model="showEditClosedEpisode">
+      <EditClosedEpisode />
     </q-dialog>
   </div>
 </template>
@@ -182,6 +198,7 @@ import packService from 'src/services/api/pack/packService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import PermissionService from 'src/services/api/user/PermissionService';
+import EditClosedEpisode from 'components/Patient/PatientPanel/EditClosedEpisode.vue';
 
 const {
   isReferenceEpisode,
@@ -201,6 +218,8 @@ const props = defineProps(['episodeId', 'isLast']);
 const showAddEditEpisode = inject('showAddEditEpisode');
 const isNewEpisode = inject('isNewEpisode');
 const isClosingEpisode = inject('isClosingEpisode');
+
+const showEditClosedEpisode = ref(false);
 //Computed
 const currEpisode = computed(() => {
   return episodeService.getEpisodeById(props.episodeId);
@@ -218,6 +237,7 @@ const currIdentifier = computed(() => {
   return currEpisode.value.patientServiceIdentifier;
 });
 const canEdit = computed(() => {
+  console.log(canBeEdited());
   return canBeEdited();
 });
 // Methods
@@ -243,6 +263,18 @@ const editEpisode = () => {
   } else {
     showAddEditEpisode.value = true;
     isNewEpisode.value = false;
+  }
+};
+
+const editCloseEpisode = () => {
+  // isClosingEpisode.value = true;
+  const eps = currEpisode.value;
+  if (hasVisits(eps)) {
+    alertError(
+      'Não pode fazer alterações sobre este episódio pois o mesmo ja possui registos de visitas do paciente/utente associados.'
+    );
+  } else {
+    showEditClosedEpisode.value = true;
   }
 };
 
@@ -319,6 +351,7 @@ provide('curEpisode', currEpisode);
 provide('lastPack', lastPack);
 // provide('isCloseEpisode', isCloseEpisode);
 provide('curEpisodeIdentifier', currIdentifier);
+provide('showEditClosedEpisode', showEditClosedEpisode);
 </script>
 <style scoped>
 .blink {
