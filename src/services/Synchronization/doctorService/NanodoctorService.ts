@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('doctor?offset=' + offset + '&max=100')
         .then((resp) => {
-          doctorService.addBulkMobile(resp.data);
+          doctorDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Doctor');
           offset = offset + 100;
           if (resp.data.length > 0) {

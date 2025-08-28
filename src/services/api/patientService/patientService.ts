@@ -23,10 +23,11 @@ import tBScreeningService from '../tBScreening/tBScreeningService';
 import adherenceScreeningService from '../adherenceScreening/adherenceScreeningService';
 import pregnancyScreeningService from '../pregnancyScreening/pregnancyScreeningService';
 import { Notify } from 'quasar';
-import userService from '../user/userService';
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 
 const patient = useRepo(Patient);
 const patientDexie = db[Patient.entity];
+const patientServiceIdentifierDexie = db[PatientServiceIdentifier.entity];
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -341,6 +342,7 @@ export default {
     let offset = 0;
     const max = 100; // You can adjust this number based on your API's limits
     // const allPatients = [];
+    const allIdentifiers: PatientServiceIdentifier[] = [];
     let hasMorePatients = true;
 
     let percentage = 0;
@@ -363,9 +365,35 @@ export default {
         max
       );
       const patients = response.data;
+
       if (patients.length > 0) {
-        //  allPatients.push(...patients);
-        patient.save(patients);
+        patients.forEach((patient: Patient) => {
+          patient?.identifiers?.forEach(
+            (identifier: PatientServiceIdentifier) => {
+              allIdentifiers.push(identifier);
+            }
+          );
+        });
+
+        patientDexie.bulkPut(patients).catch((error: any) => {
+          console.log(error);
+        });
+
+        if (allIdentifiers.length > 0) {
+          patientServiceIdentifierDexie
+            .bulkPut(allIdentifiers)
+            .catch((e: any) => {
+              if (e.name === 'BulkError') {
+                console.error(
+                  'Some raindrops did not succeed. However, ' +
+                    (100000 - e.failures.length) +
+                    ' raindrops was added successfully'
+                );
+              } else {
+                throw e; // We're only handling BulkError here.
+              }
+            });
+        }
         notif({
           caption: `${percentage}%`,
         });
@@ -457,7 +485,7 @@ export default {
   },
   async deleteAllExceptIdFromStorage(id: string) {
     patient
-      .where((patient) => {
+      .where((patient: Patient) => {
         return patient.id !== id;
       })
       .delete();
@@ -583,7 +611,7 @@ export default {
     return await patientDexie.count();
   },
 
-  async getPatientMobileWithAllByPatientId(patient: any) {
+  async getPatientMobileWithAllByPatientId(patient: Patient) {
     const patientServices =
       await patientServiceIdentifierService.getAllMobileByPatientId(patient.id);
 

@@ -221,6 +221,7 @@ const { isProvincialInstalation } = useSystemConfig();
 const { loadSettingParams } = useOnline();
 
 const {
+  saveParamsFromBackendToDexie,
   loadParamsDataFromBackEndToPinia,
   saveParamsFromPiniaToDexie,
   loadPatientDataToOffline,
@@ -272,14 +273,19 @@ onMounted(async () => {
     patientService.getCountPatientFromDexie().then((resp) => {
       if (resp <= 0) {
         showloading();
-        loadParamsDataFromBackEndToPinia().then((pinia_resp) => {
+        saveParamsFromBackendToDexie().then((dexie_resp) => {
           showloading();
-          if (pinia_resp)
-            saveParamsFromPiniaToDexie().then((dexie_resp) => {
-              showloading();
-              if (dexie_resp) loadPatientDataToOffline();
-            });
+          if (dexie_resp) loadPatientDataToOffline();
         });
+
+        // loadParamsDataFromBackEndToPinia().then((pinia_resp) => {
+        //   showloading();
+        //   if (pinia_resp)
+        //     saveParamsFromPiniaToDexie().then((dexie_resp) => {
+        //       showloading();
+        //       if (dexie_resp) loadPatientDataToOffline();
+        //     });
+        // });
       }
     });
   }

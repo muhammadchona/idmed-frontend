@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('episodeType?offset=' + offset + '&max=100')
         .then((resp) => {
-          episodeTypeService.addBulkMobile(resp.data);
+          episodeTypeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: EpisodeType');
           offset = offset + 100;
           if (resp.data.length > 0) {

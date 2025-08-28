@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('startStopReason?offset=' + offset + '&max=100')
         .then((resp) => {
-          startStopReasonService.addBulkMobile(resp.data);
+          startStopReasonDexie.bulkPut(resp.data);
           console.log('Data synced from backend: StartStopReason');
           offset = offset + 100;
           if (resp.data.length > 0) {

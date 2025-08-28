@@ -9,7 +9,7 @@ export default {
       return await api()
         .get('attributeType?offset=' + offset + '&max=100')
         .then((resp) => {
-          attributeTypeService.addBulkMobile(resp.data);
+          attributeTypeService.bulkPut(resp.data);
           console.log('Data synced from backend: AttributeType');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -785,7 +785,8 @@ export default {
             chunk
           )
           .then((resp) => {
-            patientVisit.save(resp.data);
+            // patientVisit.save(resp.data);
+            patientVisitDexie.bulkPut(resp.data);
             notif({
               caption: `${percentage}%`,
             });

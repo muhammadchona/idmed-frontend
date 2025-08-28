@@ -128,6 +128,39 @@ export function useOffline() {
     return true;
   }
 
+  async function saveParamsFromBackendToDexie() {
+    NanoclinicSectorService.getFromBackEnd(0);
+    NanodrugService.getFromBackEnd(0);
+    NanoclinicalServiceService.getFromBackEnd(0);
+    NanoclinicalServiceAttributeService.getFromBackEnd(0);
+    NanoidentifierTypeService.getFromBackEnd(0);
+    NanoepisodeTypeService.getFromBackEnd(0);
+    NanofacilityTypeService.getFromBackEnd(0);
+    NanostartStopReasonService.getFromBackEnd(0);
+    NanodurationService.getFromBackEnd(0);
+    NanotherapeuticRegimenService.getFromBackEnd(0);
+    NanotherapeuticLineService.getFromBackEnd(0);
+    NanoformService.getFromBackEnd(0);
+    NanodispenseTypeService.getFromBackEnd(0);
+    NanoInteroperabilityTypeService.getFromBackEnd(0);
+    NanoInteroperabilityAttributeService.getFromBackEnd(0);
+    NanohealthInformationSystemService.getFromBackEnd(0);
+    NanoPatientTransReferenceTypeService.getFromBackEnd(0);
+    NanospetialPrescriptionMotiveService.getFromBackEnd(0);
+    NanoprovincialServerService.getFromBackEnd(0);
+    NanodoctorService.getFromBackEnd(0);
+    NanodispenseModeService.getFromBackEnd(0);
+    NanoprovinceService.getFromBackEnd(0);
+    NanodistrictService.getFromBackEnd(0);
+    NanoStockCenterService.getFromBackEnd(0);
+    NanoStockOperationTypeService.getFromBackEnd(0);
+    NanoGroupTypeService.getFromBackEnd(0);
+    NanosystemConfigsService.getFromBackEnd(0);
+    NanomenuService.getFromBackEnd(0);
+    NanoclinicService.getFromBackEnd(0);
+    return true;
+  }
+
   async function loadSettingParamsToOffline() {
     //  await NanoclinicSectorTypeService.getFromBackEnd(0);
     //  await NanoclinicSectorService.getFromBackEnd(0);
@@ -168,28 +201,27 @@ export function useOffline() {
   }
 
   async function loadPatientDataToOffline() {
-    await patientService.doPatientsBySectorGet().then((resp) => {
-      if (!resp) {
-        patientService.addBulkMobile();
-        patientServiceIdentifierService.addBulkMobile();
-      }
-    });
+    await patientService.doPatientsBySectorGet();
+    // .then((resp) => {
+    // if (!resp) {
+    //  patientService.addBulkMobile();
+    //  patientServiceIdentifierService.addBulkMobile();
+    // }
+    // });
 
-    await patientVisitDetailsService
-      .doPatientVisitServiceBySectorGet()
-      .then((resp) => {
-        if (resp) {
-          //  addBulkToMobile();
-        }
-      });
+    await patientVisitDetailsService.doPatientVisitServiceBySectorGet();
+    // .then((resp) => {
+    //   if (resp) {
+    //     //  addBulkToMobile();
+    //   }
+    // });
 
-    await patientVisitService
-      .getAllLast3VisitsWithScreeningByPatientIds()
-      .then((resp) => {
-        if (resp) {
-          addBulkToMobile();
-        }
-      });
+    await patientVisitService.getAllLast3VisitsWithScreeningByPatientIds();
+    // .then((resp) => {
+    //   if (resp) {
+    //     //    addBulkToMobile();
+    //   }
+    // });
   }
 
   async function addBulkToMobile() {
@@ -269,6 +301,7 @@ export function useOffline() {
   }
 
   return {
+    saveParamsFromBackendToDexie,
     saveParamsFromPiniaToDexie,
     loadParamsDataFromBackEndToPinia,
     loadClinicsDataFromBackEndToPinia,

@@ -1,6 +1,8 @@
-import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
+import db from 'src/stores/dexie';
 import api from '../../api/apiService/apiService';
-import { nSQL } from 'nano-sql';
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
+
+const patientServiceIdentifierDexie = db[PatientServiceIdentifier.entity];
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,9 +10,7 @@ export default {
       return await api()
         .get('patientServiceIdentifier?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(PatientServiceIdentifier.entity)
-            .query('upsert', resp.data)
-            .exec();
+          patientServiceIdentifierDexie.bulkPut(resp.data);
           console.log('Data synced from backend: PatientServiceIdentifier');
           offset = offset + 100;
           if (resp.data.length > 0) {

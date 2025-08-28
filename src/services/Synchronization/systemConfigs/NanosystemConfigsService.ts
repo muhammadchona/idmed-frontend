@@ -11,7 +11,7 @@ export default {
       return await api()
         .get('systemConfigs?offset=' + offset + '&max=100')
         .then((resp) => {
-          systemConfigsService.addBulkMobile(resp.data);
+          systemConfigsDexie.bulkPut(resp.data);
           console.log('Data synced from backend: SystemConfigs');
           offset = offset + 100;
           if (resp.data.length > 0) {

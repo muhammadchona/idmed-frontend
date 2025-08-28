@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('patientTransReferenceType?offset=' + offset + '&max=100')
         .then((resp) => {
-          PatientTransReferenceTypeService.addBulkMobile(resp.data);
+          PatientTransReferenceTypeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: PatientTransReferenceType');
           offset = offset + 100;
           if (resp.data.length > 0) {

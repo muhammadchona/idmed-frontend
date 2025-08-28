@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('duration?offset=' + offset + '&max=100')
         .then((resp) => {
-          durationService.addBulkMobile(resp.data);
+          durationDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Duration');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -2,13 +2,17 @@ import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 
+import db from 'src/stores/dexie';
+
+const prescribedDrugDexie = db[PrescribedDrug.entity];
+
 export default {
   async getFromBackEnd(offset: number) {
     if (offset >= 0) {
       return await api()
         .get('prescribedDrug?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(PrescribedDrug.entity).query('upsert', resp.data).exec();
+          prescribedDrugDexie.bulkPut(resp.data);
           console.log('Data synced from backend: PrescribedDrug');
           offset = offset + 100;
           if (resp.data.length > 0) {

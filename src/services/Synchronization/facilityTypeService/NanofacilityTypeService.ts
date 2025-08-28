@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('facilityType?offset=' + offset + '&max=100')
         .then((resp) => {
-          facilityTypeService.addBulkMobile(resp.data);
+          facilityTypeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: FacilityType');
           offset = offset + 100;
           if (resp.data.length > 0) {

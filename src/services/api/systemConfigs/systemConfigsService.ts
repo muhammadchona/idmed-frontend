@@ -45,7 +45,6 @@ export default {
   // WEB
   async postWeb(params: string) {
     try {
-      console.log(api().instance);
       const resp = await api().post('systemConfigs', params);
       systemConfigs.save(resp.data);
       // alertSucess('O Registo foi efectuado com sucesso');

@@ -7,7 +7,7 @@ export default {
       return await api()
         .get('adherenceScreening?offset=' + offset + '&max=100')
         .then((resp) => {
-          adherenceScreeningService.addBulkMobile(resp.data);
+          adherenceScreeningService.bulkPut(resp.data);
           console.log('Data synced from backend: AdherenceScreening');
           offset = offset + 100;
           if (resp.data.length > 0) {

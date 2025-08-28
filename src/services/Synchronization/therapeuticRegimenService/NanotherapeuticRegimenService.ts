@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('therapeuticRegimen?offset=' + offset + '&max=100')
         .then((resp) => {
-          therapeuticalRegimenService.addBulkMobile(resp.data);
+          therapeuticalRegimenDexie.bulkPut(resp.data);
           console.log('Data synced from backend: TherapeuticRegimen');
           offset = offset + 100;
           if (resp.data.length > 0) {

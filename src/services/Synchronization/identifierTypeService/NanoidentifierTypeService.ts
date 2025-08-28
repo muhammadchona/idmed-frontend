@@ -13,7 +13,7 @@ export default {
       return await api()
         .get('identifierType?offset=' + offset + '&max=100')
         .then((resp) => {
-          identifierTypeService.addBulkMobile(resp.data);
+          identifierTypeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: IdentifierType');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -235,12 +235,16 @@ export default {
     return resp;
   },
 
-  async getAllMobileByPatientServiceIds(patientServiceIds: []) {
-    const resp = await episodeDexie
-      .where('patientServiceIdentifier_id')
-      .anyOf(patientServiceIds)
-      .toArray();
+  async getAllMobileByPatientServiceIds(patientServiceIds: string[]) {
+    console.log('Patient Ids', patientServiceIds);
+    const collection = await episodeDexie
+      .orderBy('episodeDate')
+      .filter((episode: Episode) =>
+        patientServiceIds.includes(episode?.patientServiceIdentifier?.id ?? '')
+      );
 
+    const resp = await collection.toArray();
+    console.log('Episodes', resp);
     episode.save(resp);
     return resp;
   },
