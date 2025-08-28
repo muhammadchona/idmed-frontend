@@ -751,6 +751,7 @@ const init = async () => {
       if (isNationalTransit.value) {
         selectedClinicSector.value = episode.value.referralClinic;
         selectedDistrict.value = episode.value.referralClinic.district;
+        selectedProvince.value = episode.value.referralClinic.province;
       }
       startDate.value = getDDMMYYYFromJSDate(episode.value.episodeDate);
     }

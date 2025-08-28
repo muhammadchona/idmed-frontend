@@ -515,4 +515,8 @@ export default {
   deleteAllFromDexie() {
     patientServiceIdentifierDexie.clear();
   },
+
+  deletePatientServiceIdentifierPiniaByPatientId(patientId: String) {
+    patientServiceIdentifier.where('patient_id', patientId).delete();
+  },
 };

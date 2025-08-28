@@ -5,8 +5,10 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import UserClinics from 'src/stores/models/userLogin/UserClinic';
 
 const secUserRepo = useRepo(SecUser);
+const userClinicsRepo = useRepo(UserClinics);
 const secUserDexie = db[SecUser.entity];
 
 const { closeLoading, showloading } = useLoading();
@@ -73,10 +75,9 @@ export default {
     return api()
       .patch('secUser/' + uuid, params)
       .then((resp) => {
-        // if (resp.data) {
-        //   clinicSectorUsersRepo.where('user_id', resp.data.id).delete();
-        //   secUserRoleRepo.where('user_id', resp.data.id).delete();
-        // }
+        if (resp.data) {
+          userClinicsRepo.where('user_id', resp.data.id).delete();
+        }
         secUserRepo.save(resp.data);
       });
   },

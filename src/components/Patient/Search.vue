@@ -16,6 +16,58 @@
             label="Fonte de dados"
           />
         </div>
+
+        <div class="row q-my-md" v-if="isTransitIdmed">
+          <q-select
+            class="col"
+            dense
+            outlined
+            v-model="selectedProvince"
+            use-input
+            ref="provinceRef"
+            input-debounce="0"
+            :options="provinces"
+            option-value="id"
+            option-label="description"
+            @update:model-value="
+              selectedDistrict = null;
+              selectedClinicSector = null;
+            "
+            label="Província"
+          />
+          <q-select
+            class="col q-ml-md"
+            dense
+            outlined
+            v-model="selectedDistrict"
+            use-input
+            ref="districtRef"
+            input-debounce="0"
+            :options="districts"
+            option-value="id"
+            option-label="description"
+            @update:model-value="selectedClinicSector = null"
+            label="Distrito"
+          />
+          <q-select
+            class="col q-ml-md"
+            dense
+            outlined
+            ref="referralClinicRef"
+            :rules="[
+              (val) =>
+                !!val ||
+                (isNationalTransit
+                  ? 'Por favor indicar a origem do paciente.'
+                  : 'Por favor indicar o destino do paciente.'),
+            ]"
+            v-model="selectedUs"
+            :options="clinics"
+            option-value="id"
+            option-label="clinicName"
+            label="US de Origem"
+          />
+        </div>
         <div class="row items-center q-my-md">
           <q-icon name="person_outline" size="sm" />
           <span class="q-pl-sm text-subtitle2">Informação inicial</span>
@@ -208,9 +260,10 @@
             position="bottom-right"
             :offset="[18, 18]"
             v-if="
-              !isProvincialInstalation() ||
-              !isProvincialInstalationPharmacysMode() ||
-              isProvincialInstalationMobileClinic()
+              showAddButton &&
+              (!isProvincialInstalation() ||
+                !isProvincialInstalationPharmacysMode() ||
+                isProvincialInstalationMobileClinic())
             "
           >
             <q-btn
@@ -251,6 +304,8 @@ import { useOnline } from 'src/composables/shared/loadParams/online';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import patientServiceIdentifierService from 'src/services/api/patientServiceIdentifier/patientServiceIdentifierService';
 import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
+import provinceService from 'src/services/api/provinceService/provinceService';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -284,6 +339,7 @@ const newPatient = ref(false);
 const username = sessionStorage.getItem('user');
 const transferencePatientData = ref([]);
 const openMrsPatient = ref(false);
+const provincialPatient = ref(false);
 const title = ref('Procurar ou adicionar Utentes/Pacientes');
 const tableRef = ref();
 const loading = ref(false);
@@ -297,6 +353,11 @@ const pagination = ref({
 });
 const actualPage = ref(1);
 const actualRowsPerPage = ref(5);
+const isTransitIdmed = ref(false);
+const showAddButton = ref(false);
+const selectedProvince = ref(null);
+const selectedDistrict = ref(null);
+const selectedUs = ref(null);
 const columns = [
   {
     name: 'identifier',
@@ -397,6 +458,11 @@ const search = () => {
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
       console.log(transferencePatientData.value);
+    } else if (selectedDataSources.value.abbreviation === 'PROV') {
+      showloading();
+      const nid = patientId.value.replaceAll('/', '-');
+      patientService.apisearchInProvincialServer(selectedUs.value.id, nid);
+      showAddButton.value = true;
     } else {
       openMRSSerach(selectedDataSources.value);
     }
@@ -553,7 +619,13 @@ const saveOpenMRSPatient = (patient) => {
         currPatient.value = patient;
         showPatientRegister.value = true;
         newPatient.value = true;
-        openMrsPatient.value = true;
+        if (selectedDataSources.value.id.length > 4) {
+          if (selectedDataSources.value.abbreviation === 'PROV') {
+            provincialPatient.value = true;
+          } else {
+            openMrsPatient.value = true;
+          }
+        }
       }
     })
     .catch((error) => {
@@ -640,10 +712,16 @@ const loadHISDataSource = () => {
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
       closeLoading();
+      isTransitIdmed.value = false;
+    } else if (selectedDataSources.value.abbreviation === 'PROV') {
+      closeLoading();
+      isTransitIdmed.value = true;
     } else {
+      isTransitIdmed.value = false;
       checkOpenMRS(selectedDataSources.value);
     }
   } else {
+    isTransitIdmed.value = false;
     alertSucess(
       'Pesquisa iDMED',
       'Pesquisa de Pacientes no iDMED em funcionamento'
@@ -709,10 +787,29 @@ const checkOpenMRS = (his) => {
     });
 };
 
+const provinces = computed(() => {
+  return provinceService.getAllProvinces();
+});
+
+const districts = computed(() => {
+  if (selectedProvince.value !== null && selectedProvince.value !== undefined) {
+    return districtService.getAllDistrictByProvinceId(
+      selectedProvince.value.id
+    );
+  }
+});
+
+const clinics = computed(() => {
+  if (selectedDistrict.value !== null) {
+    return clinicService.getAllUSFromDistrict(selectedDistrict.value.id);
+  }
+});
+
 provide('title', title);
 provide('newPatient', newPatient);
 provide('patient', currPatient);
 provide('openMrsPatient', openMrsPatient);
+provide('provincialPatient', provincialPatient);
 provide('transferencePatientData', transferencePatientData);
 provide('closePatient', closePatient);
 provide('showPatientRegister', showPatientRegister);

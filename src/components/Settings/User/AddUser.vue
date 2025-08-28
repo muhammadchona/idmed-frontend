@@ -440,6 +440,7 @@ const submitUser = () => {
 
   user.value.roles = roless;
   if (configs.value.value === 'LOCAL') {
+    user.value.clinics = [];
     user.value.clinics.push(currClinic.value);
     user.value.clinics.push(...selectedClinicSectors.value);
   } else {
