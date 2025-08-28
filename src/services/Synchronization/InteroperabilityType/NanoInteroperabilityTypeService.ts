@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('interoperabilityType?offset=' + offset + '&max=100')
         .then((resp) => {
-          InteroperabilityTypeService.addBulkMobile(resp.data);
+          InteroperabilityTypeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: InteroperabilityType');
           offset = offset + 100;
           if (resp.data.length > 0) {

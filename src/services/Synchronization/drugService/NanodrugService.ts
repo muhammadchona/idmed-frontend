@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('drug?offset=' + offset + '&max=100')
         .then((resp) => {
-          drugService.addBulkMobile(resp.data);
+          drugDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Drug');
           offset = offset + 100;
           if (resp.data.length > 0) {

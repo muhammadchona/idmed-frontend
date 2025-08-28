@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('form?offset=' + offset + '&max=100')
         .then((resp) => {
-          formService.addBulkMobile(resp.data);
+          formDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Form');
           offset = offset + 100;
           if (resp.data.length > 0) {

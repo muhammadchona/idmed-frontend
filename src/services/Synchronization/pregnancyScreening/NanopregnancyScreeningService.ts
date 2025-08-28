@@ -1,6 +1,9 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
 import PregnancyScreening from 'src/stores/models/screening/PregnancyScreening';
+import db from 'src/stores/dexie';
+
+const pregnancyScreeningDexie = db[PregnancyScreening.entity];
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,7 +11,7 @@ export default {
       return await api()
         .get('pregnancyScreening?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(PregnancyScreening.entity).query('upsert', resp.data).exec();
+          pregnancyScreeningDexie.bulkPut(resp.data);
           console.log('Data synced from backend: PregnancyScreening');
           offset = offset + 100;
           if (resp.data.length > 0) {

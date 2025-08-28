@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('district?offset=' + offset + '&max=100')
         .then((resp) => {
-          districtService.addBulkMobile(resp.data);
+          districtDexie.bulkPut(resp.data);
           console.log('Data synced from backend: District');
           offset = offset + 100;
           if (resp.data.length > 0) {

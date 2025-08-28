@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('spetialPrescriptionMotive?offset=' + offset + '&max=100')
         .then((resp) => {
-          spetialPrescriptionMotiveService.addBulkMobile(resp.data);
+          spetialPrescriptionMotiveDexie.bulkPut(resp.data);
           console.log('Data synced from backend: SpetialPrescriptionMotive');
           offset = offset + 100;
           if (resp.data.length > 0) {

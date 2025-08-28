@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('dispenseType?offset=' + offset + '&max=100')
         .then((resp) => {
-          dispenseTypeService.addBulkMobile(resp.data);
+          dispenseTypeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: DispenseType');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('healthInformationSystem?offset=' + offset + '&max=100')
         .then((resp) => {
-          healthInformationSystemService.addBulkMobile(resp.data);
+          healthInformationSystemDexie.bulkPut(resp.data);
           console.log('Data synced from backend: HealthInformationSystem');
           offset = offset + 100;
           if (resp.data.length > 0) {

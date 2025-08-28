@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('provincialServer?offset=' + offset + '&max=100')
         .then((resp) => {
-          provincialServerService.addBulkMobile(resp.data);
+          provincialServerDexie.bulkPut(resp.data);
           console.log('Data synced from backend: ProvincialServer');
           offset = offset + 100;
           if (resp.data.length > 0) {

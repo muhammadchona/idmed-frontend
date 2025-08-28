@@ -1,6 +1,9 @@
 import api from '../../api/apiService/apiService';
 import { nSQL } from 'nano-sql';
-import Appointment from 'src/stores/models/appointment/Appointment';
+import db from '../../../stores/dexie';
+import VitalSignsScreening from 'src/stores/models/screening/VitalSignsScreening';
+
+const vitalSignsScreeningDexie = db[VitalSignsScreening.entity];
 
 export default {
   async getFromBackEnd(offset: number) {
@@ -8,7 +11,7 @@ export default {
       return await api()
         .get('apointment?offset=' + offset + '&max=100')
         .then((resp) => {
-          nSQL(Appointment.entity).query('upsert', resp.data).exec();
+          vitalSignsScreeningDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Appointment');
           offset = offset + 100;
           if (resp.data.length > 0) {

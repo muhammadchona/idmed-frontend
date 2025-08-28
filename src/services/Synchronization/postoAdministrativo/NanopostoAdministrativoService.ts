@@ -3,13 +3,17 @@ import { nSQL } from 'nano-sql';
 import postoAdministrativoService from 'src/services/api/postoAdministrativo/postoAdministrativoService';
 import PostoAdministrativo from 'src/stores/models/PostoAdministrativo/PostoAdministrativo';
 
+import db from 'src/stores/dexie';
+
+const postoAdministrativoDexie = db[PostoAdministrativo.entity];
+
 export default {
   async getFromBackEnd(offset: number) {
     if (offset >= 0) {
       return await api()
         .get('postoAdministrativo?offset=' + offset + '&max=100')
         .then((resp) => {
-          postoAdministrativoService.addBulkMobile(resp.data);
+          postoAdministrativoDexie.bulkPut(resp.data);
           console.log('Data synced from backend: PostoAdministrativo');
           offset = offset + 100;
           if (resp.data.length > 0) {

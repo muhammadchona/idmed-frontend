@@ -44,6 +44,7 @@ import { usePatient } from 'src/composables/patient/patientMethods';
 import { usePatientServiceIdentifier } from 'src/composables/patient/patientServiceIdentifierMethods';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import PermissionService from 'src/services/api/user/PermissionService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 // Declaration
 const { preferedIdentifier, hasEpisodes, hasNoObitOrTransferedForEpisode } =
@@ -55,6 +56,7 @@ const {
   isPharmacyDDDOrAPEOrDCP,
   isLocalInstalation,
 } = useSystemConfig();
+const { isMobile, isOnline } = useSystemUtils();
 const { canBeEdited } = usePatientServiceIdentifier();
 const emptyList = ref(false);
 const selectedIdentifier = ref(new PatientServiceIdentifier());
@@ -99,10 +101,14 @@ const disableAddButton = computed(() => {
 });
 
 const canAddPatientService = computed(() => {
-  return PermissionService.canPerformUiAction(
-    'patientServiceIdentifier',
-    'add'
-  );
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction(
+      'patientServiceIdentifier',
+      'add'
+    );
+  } else {
+    return true;
+  }
 });
 
 //Hook

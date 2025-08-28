@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('groupType?offset=' + offset + '&max=100')
         .then((resp) => {
-          groupType.save(resp.data);
+          groupTypeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: GroupType');
           offset = offset + 100;
           if (resp.data.length > 0) {

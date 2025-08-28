@@ -7,7 +7,7 @@ export default {
       return await api()
         .get('episode?offset=' + offset + '&max=100')
         .then((resp) => {
-          episodeService.addBulkMobile(resp.data);
+          episodeService.bulkPut(resp.data);
           console.log('Data synced from backend: Episode');
           offset = offset + 100;
           if (resp.data.length > 0) {

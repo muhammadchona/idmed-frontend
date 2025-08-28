@@ -6,7 +6,7 @@ export default {
       return await api()
         .get('localidade?offset=' + offset + '&max=100')
         .then((resp) => {
-          bairroService.addBulkMobile(resp.data);
+          bairroService.bulkPut(resp.data);
           console.log('Data synced from backend: Localidade');
           offset = offset + 100;
           if (resp.data.length > 0) {

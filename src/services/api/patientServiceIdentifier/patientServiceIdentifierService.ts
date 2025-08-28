@@ -129,13 +129,18 @@ export default {
       });
   },
   async getAllMobileByPatientId(patientId: string) {
-    const resp = await patientServiceIdentifierDexie
-      .where('patient_id')
-      .equalsIgnoreCase(patientId)
-      .toArray();
+    const collection = await patientServiceIdentifierDexie
+      .orderBy('startDate')
+      .filter(
+        (identifier: PatientServiceIdentifier) =>
+          identifier?.patient?.id === patientId
+      );
+
+    const resp = await collection.toArray();
     patientServiceIdentifier.save(resp);
     return resp;
   },
+
   async apiSave(identifier: any, isNew: boolean) {
     if (isNew) {
       return await this.post(identifier);

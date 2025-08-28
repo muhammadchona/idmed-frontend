@@ -7,7 +7,7 @@ export default {
       return await api()
         .get('apointment?offset=' + offset + '&max=100')
         .then((resp) => {
-          appointmentService.addBulkMobile(resp.data);
+          appointmentService.bulkPut(resp.data);
           console.log('Data synced from backend: Appointment');
           offset = offset + 100;
           if (resp.data.length > 0) {

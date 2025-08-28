@@ -13,7 +13,7 @@ export default {
         .get('stockOperationType?offset=' + offset + '&max=100')
         .then((resp) => {
           if (resp.data.length > 0) {
-            StockOperationTypeService.addBulkMobile(resp.data);
+            StockOperationTypeDexie.bulkPut(resp.data);
             console.log('Data synced from backend: stockOperationType');
             offset = offset + 100;
             this.getFromBackEnd(offset);

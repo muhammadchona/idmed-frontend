@@ -1,3 +1,6 @@
+import PrescriptionDetails from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
+import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
+import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import PatientVisitDetails from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
@@ -16,9 +19,20 @@ import episodeService from '../episode/episodeService';
 import patientVisitService from '../patientVisit/patientVisitService';
 import packService from '../pack/packService';
 import { Notify } from 'quasar';
+import Episode from 'src/stores/models/episode/Episode';
+import Pack from 'src/stores/models/packaging/Pack';
+import Prescription from 'src/stores/models/prescription/Prescription';
+import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 
 const patientVisitDetails = useRepo(PatientVisitDetails);
 const patientVisitDetailsDexie = db[PatientVisitDetails.entity];
+const episodeDexie = db[Episode.entity];
+const packDexie = db[Pack.entity];
+const packagedDrugDexie = db[PackagedDrug.entity];
+const prescriptionDexie = db[Prescription.entity];
+const prescribedDrugDexie = db[PrescribedDrug.entity];
+const prescriptionDetailsDexie = db[PrescriptionDetails.entity];
+const patientVisitDexie = db[PatientVisit.entity];
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -162,39 +176,42 @@ export default {
     endDate: any
   ) {
     let counter = 0;
-    return patientVisitDetailsDexie.toArray().then(async (result) => {
-      for (const pvd of result) {
-        if (pvd.pack !== undefined) {
-          const pickupDate = moment(pvd.pack.pickupDate).format('YYYY-MM-DD');
-          let prescription = pvd.prescription;
-          if (prescription !== undefined) {
+    return patientVisitDetailsDexie
+      .toArray()
+      .then(async (result: PatientVisitDetails) => {
+        for (const pvd of result) {
+          if (pvd.pack !== undefined) {
+            const pickupDate = moment(pvd.pack.pickupDate).format('YYYY-MM-DD');
+            let prescription = pvd.prescription;
+            if (prescription !== undefined) {
+              if (
+                prescription.prescriptionDetails[0].dispenseType === null ||
+                prescription.prescriptionDetails[0].dispenseType === undefined
+              ) {
+                prescription =
+                  await prescriptionService.getPrescriptionMobileById(
+                    prescription.id
+                  );
+              }
+            }
+            const dispenseTypeId =
+              prescription.prescriptionDetails.length > 0
+                ? prescription.prescriptionDetails[0].dispenseType.id
+                : '';
+            const codeDispenseType =
+              dispenseTypeService.getById(dispenseTypeId);
             if (
-              prescription.prescriptionDetails[0].dispenseType === null ||
-              prescription.prescriptionDetails[0].dispenseType === undefined
+              pickupDate >= startDate &&
+              pickupDate <= endDate &&
+              pvd.episode.patientServiceIdentifier.service.id === service &&
+              codeDispenseType.code === dispenseType
             ) {
-              prescription =
-                await prescriptionService.getPrescriptionMobileById(
-                  prescription.id
-                );
+              counter++;
             }
           }
-          const dispenseTypeId =
-            prescription.prescriptionDetails.length > 0
-              ? prescription.prescriptionDetails[0].dispenseType.id
-              : '';
-          const codeDispenseType = dispenseTypeService.getById(dispenseTypeId);
-          if (
-            pickupDate >= startDate &&
-            pickupDate <= endDate &&
-            pvd.episode.patientServiceIdentifier.service.id === service &&
-            codeDispenseType.code === dispenseType
-          ) {
-            counter++;
-          }
         }
-      }
-      return counter;
-    });
+        return counter;
+      });
   },
 
   async doPatientVisitServiceBySectorGet() {
@@ -225,6 +242,13 @@ export default {
 
       for (const chunk of chunks) {
         percentage = Math.min(100, percentage + Math.floor(Math.random() * 20));
+        const episodes: Episode = [];
+        const packs: Pack = [];
+        const packagedDrugs: PackagedDrug = [];
+        const prescriptions: Prescription = [];
+        const prescribedDrugs: PrescribedDrug = [];
+        const prescriptionDetailsList: PrescriptionDetails = [];
+        const patientVisits: PatientVisit = [];
 
         const listParams = {
           ids: chunk,
@@ -234,7 +258,43 @@ export default {
         await api()
           .post('/patientVisitDetails/getLastAllByPatientIds/', listParams)
           .then((resp) => {
-            patientVisitDetails.save(resp.data);
+            const patientVisitDetailsList: PatientVisitDetails = resp.data;
+
+            if (patientVisitDetailsList.length > 0) {
+              patientVisitDetailsDexie.bulkPut(patientVisitDetailsList);
+
+              patientVisitDetailsList.forEach((pvd: PatientVisitDetails) => {
+                episodes.push(pvd.episode);
+                packs.push(pvd.pack);
+                prescriptions.push(pvd.prescription);
+                patientVisits.push(pvd.patientVisit);
+              });
+            }
+
+            if (packs.length > 0) {
+              packs.forEach((pack: Pack) => {
+                pack.packagedDrugs.forEach((packagedDrug: PackagedDrug) => {
+                  packagedDrugs.push(packagedDrug);
+                });
+              });
+            }
+
+            if (prescriptions.length > 0) {
+              prescriptions.forEach((prescription: Prescription) => {
+                prescription.prescribedDrugs.forEach(
+                  (prescribedDrug: PrescribedDrug) => {
+                    prescribedDrugs.push(prescribedDrug);
+                  }
+                );
+                prescription.prescriptionDetails.forEach(
+                  (prescriptionDetail: PrescriptionDetails) => {
+                    prescriptionDetailsList.push(prescriptionDetail);
+                  }
+                );
+              });
+            }
+
+            // patientVisitDetails.save(resp.data);
             notif({
               caption: `${percentage}%`,
             });
@@ -249,6 +309,31 @@ export default {
               color: 'red',
               textColor: 'white',
             });
+          });
+
+        // TODO Bulk episode, pack, prescription, patientVisit
+        episodeDexie.bulkPut(episodes).catch((error: any) => {
+          console.log(error);
+        });
+        packDexie.bulkPut(packs).catch((error: any) => {
+          console.log(error);
+        });
+        prescriptionDexie.bulkPut(prescriptions).catch((error: any) => {
+          console.log(error);
+        });
+        patientVisitDexie.bulkPut(patientVisits).catch((error: any) => {
+          console.log(error);
+        });
+        packagedDrugDexie.bulkPut(packagedDrugs).catch((error: any) => {
+          console.log(error);
+        });
+        prescribedDrugDexie.bulkPut(prescribedDrugs).catch((error: any) => {
+          console.log(error);
+        });
+        prescriptionDetailsDexie
+          .bulkPut(prescriptionDetailsList)
+          .catch((error: any) => {
+            console.log(error);
           });
       }
       // if we are done...
@@ -277,7 +362,7 @@ export default {
     startDate: any,
     endDate: any
   ) {
-    const patientVisitDetails = [];
+    const patientVisitDetails: PatientVisitDetails = [];
     return patientVisitDetailsDexie.toArray().then(async (result) => {
       for (const pvd of result) {
         if (pvd.pack !== undefined) {
@@ -299,7 +384,7 @@ export default {
     startDate: any,
     endDate: any
   ) {
-    const patientVisitDetails = [];
+    const patientVisitDetails: PatientVisitDetails = [];
     return patientVisitDetailsDexie.toArray().then(async (result) => {
       for (const pvd of result) {
         if (pvd.pack !== undefined) {

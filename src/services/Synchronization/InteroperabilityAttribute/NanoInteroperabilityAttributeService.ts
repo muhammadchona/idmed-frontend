@@ -12,7 +12,7 @@ export default {
       return await api()
         .get('interoperabilityAttribute?offset=' + offset + '&max=100')
         .then((resp) => {
-          InteroperabilityAttributeService.addBulkMobile(resp.data);
+          InteroperabilityAttributeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: InteroperabilityAttribute');
           offset = offset + 100;
           if (resp.data.length > 0) {

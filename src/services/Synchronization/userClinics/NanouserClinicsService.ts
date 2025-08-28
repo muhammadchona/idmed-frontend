@@ -3,13 +3,16 @@ import { nSQL } from 'nano-sql';
 import userClinicsService from 'src/services/api/userClinics/userClinicsService';
 import UserClinics from 'src/stores/models/userLogin/UserClinic';
 
+import db from 'src/stores/dexie';
+const userClinicsDexie = db[UserClinics.entity];
+
 export default {
   async getFromBackEnd(offset: number) {
     if (offset >= 0) {
       return await api()
         .get('userClinic?offset=' + offset + '&max=100')
         .then((resp) => {
-          userClinicsService.addBulkMobile(resp.data);
+          userClinicsDexie.bulkPut(resp.data);
           console.log('Data synced from backend: UserClinics');
           offset = offset + 100;
           if (resp.data.length > 0) {

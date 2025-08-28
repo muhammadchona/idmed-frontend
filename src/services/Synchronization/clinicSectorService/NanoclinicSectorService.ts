@@ -14,7 +14,7 @@ export default {
       return await api()
         .get('clinicSector?offset=' + offset + '&max=100')
         .then((resp) => {
-          clinicSectorService.addBulkMobile(resp.data);
+          clinicSectorDexie.bulkPut(resp.data);
           console.log('Data synced from backend: ClinicSector');
           offset = offset + 100;
           if (resp.data.length > 0) {

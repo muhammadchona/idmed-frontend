@@ -18,7 +18,7 @@ export default {
       return await api()
         .get('stockCenter?offset=' + offset + '&max=100')
         .then((resp) => {
-          StockCenterService.addBulkMobile(resp.data);
+          StockCenterDexie.bulkPut(resp.data);
           console.log('Data synced from backend: stockCenter');
           offset = offset + 100;
           if (resp.data.length > 0) {
