@@ -178,4 +178,8 @@ export default {
       .anyOfIgnoreCase(ids)
       .toArray();
   },
+
+  getStartStopReasonByCode(code: string) {
+    return startStopReason.query().where('code', code).first();
+  },
 };

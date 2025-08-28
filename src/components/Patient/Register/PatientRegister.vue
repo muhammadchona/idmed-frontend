@@ -368,6 +368,12 @@ import { useRouter } from 'vue-router';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import Localidade from 'src/stores/models/Localidade/Localidade';
 import { v4 as uuidv4 } from 'uuid';
+import Episode from 'src/stores/models/episode/Episode';
+import episodeTypeService from 'src/services/api/episodeType/episodeTypeService';
+import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
+import startStopReasonService from 'src/services/api/startStopReasonService/startStopReasonService';
+import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 
 // Declaration
 const { getYYYYMMDDFromJSDate, getDateFromHyphenDDMMYYYY } = useDateUtils();
@@ -409,6 +415,7 @@ const newPatient = inject('newPatient');
 const closePatient = inject('closePatient');
 const showPatientRegister = inject('showPatientRegister');
 const openMrsPatient = inject('openMrsPatient');
+const provincialPatient = inject('provincialPatient');
 const submitUUID = ref(false);
 // Hook
 
@@ -616,7 +623,7 @@ const submitForm = () => {
   }
 };
 const savePatient = async () => {
-  if (newPatient.value && !openMrsPatient.value) {
+  if (newPatient.value && !openMrsPatient.value && !provincialPatient.value) {
     patientReg.value.identifiers = [];
   }
   if (
@@ -634,6 +641,7 @@ const savePatient = async () => {
   ) {
     patientReg.value.bairro.district = patientReg.value.district;
   }
+
   if (openMrsPatient.value) {
     patientReg.value.identifiers = patient.value.identifiers;
     const uuid = patientReg.value.hisUuid;
@@ -666,6 +674,7 @@ const savePatient = async () => {
           doSave();
         }
       });
+    doSave();
   } else {
     doSave();
   }
@@ -692,17 +701,28 @@ const doSave = async () => {
     identifier.origin = currClinic.value.id;
   });
 
+  console.log(patientReg.value);
+  if (provincialPatient.value) {
+    patientServiceIdentifierService.deletePatientServiceIdentifierPiniaByPatientId(
+      patientReg.value.id
+    );
+  }
   if (newPatient.value) {
     patientReg.value.syncStatus = 'R';
     patientService
       .post(patientReg.value)
-      .then(() => {
+      .then(async () => {
         // if (
         //   transferencePatientData !== undefined &&
         //   transferencePatientData.length > 0
         // ) {
         //   doPatientTranference(resp);
         // } else {
+        if (provincialPatient.value) {
+          await patientServiceIdentifierService.apiGetAllByPatientId(
+            patientReg.value.id
+          );
+        }
         alertSucess('Dados do paciente gravados com sucesso.');
         submitLoading.value = false;
         showPatientRegister.value = false;
@@ -833,9 +853,10 @@ const initPatient = () => {
     );
   } else {
     if (
-      openMrsPatient.value !== undefined &&
-      openMrsPatient.value !== null &&
-      openMrsPatient.value
+      (openMrsPatient.value !== undefined &&
+        openMrsPatient.value !== null &&
+        openMrsPatient.value) ||
+      provincialPatient.value
     ) {
       patientReg.value = patient.value;
       dateOfBirth.value = moment(patientReg.value.dateOfBirth).format(
@@ -850,6 +871,16 @@ const initPatient = () => {
     }
     patientReg.value.clinic = currClinic.value;
     patientReg.value.province = currClinic.value.province;
+    if (provincialPatient.value) {
+      console.log(patient.value);
+      // patientReg.value.identifiers = patient.value.identifiers;
+      patientReg.value.his = null;
+      patientReg.value.hisUuid = null;
+      patientReg.value.hisLocation = null;
+      const transitClinic = patient.value.identifiers[0].clinic;
+      processPatientIdentifiers(patient, transitClinic);
+      console.log(patientReg.value);
+    }
   }
 };
 
@@ -948,6 +979,75 @@ const isValidUUID = (uuidString) => {
   const uuidRegex =
     /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
   return uuidRegex.test(uuidString);
+};
+
+const processPatientIdentifiers = (patient, transitClinic) => {
+  // Clear existing identifiers
+  const originalIdentifiers = [...patient.value.identifiers];
+
+  patientReg.value.identifiers = [];
+
+  // Process each identifier from the patient
+  const createdIdentifiers = originalIdentifiers.map((identifier) => {
+    const patientService = buildPatientIdentifierFromIdmed(identifier);
+    patientReg.value.identifiers.push(patientService);
+    buildEpisodeForTransit(patientService, transitClinic);
+    return patientService;
+  });
+
+  return createdIdentifiers;
+};
+const buildEpisodeForTransit = (identifier, referralClinic) => {
+  const episode = new Episode({ id: uuidv4() });
+
+  episode.episodeDate = new Date();
+  episode.creationDate = new Date();
+  episode.notes = 'Episodio Gerado Pelo Sistema';
+  episode.episodeType = episodeTypeService.getEpisodeTypeByCode('INICIO');
+
+  // minimal clinic shape (avoid mutating clinic object structure)
+  episode.clinic = { id: currClinic.value.id };
+  episode.origin = currClinic.value.id;
+
+  episode.clinicSector = {
+    id: clinicSectorService.getClinicSectorByCode('NORMAL').id,
+  };
+
+  episode.startStopReason =
+    startStopReasonService.getStartStopReasonByCode('TRANSITO');
+
+  episode.referralClinic = { id: referralClinic.id };
+  episode.referralClinic_id = referralClinic.id;
+
+  identifier.episodes = identifier.episodes ?? [];
+  identifier.episodes.push(episode);
+
+  return episode;
+};
+
+const buildPatientIdentifierFromIdmed = (identifier) => {
+  const service = clinicalServiceService.getByIdentifierTypeCode(
+    identifier.service.code
+  );
+
+  const psi = new PatientServiceIdentifier({ id: uuidv4() });
+  psi.startDate = new Date();
+  psi.value = identifier.value;
+  psi.state = 'Activo';
+  // prefered will be decided by the caller (so we can ensure exactly one)
+  psi.prefered = false;
+
+  psi.service = service;
+  psi.service_id = service?.id;
+  psi.identifierType = service?.identifierType;
+
+  psi.origin = currClinic.value.id;
+  psi.clinic = currClinic.value;
+  psi.clinic_id = currClinic.value.id;
+
+  // make sure it's an array before pushing episodes later
+  psi.episodes = psi.episodes ?? [];
+  return psi;
 };
 </script>
 

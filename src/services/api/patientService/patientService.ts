@@ -735,6 +735,24 @@ export default {
     console.log('Load parient data from Pinia');
     return patients;
   },
+
+  async apisearchInProvincialServer(clinicId: string, searchParam: string) {
+    const replacedString = searchParam.replace(/\//g, '-');
+    console.log(replacedString);
+    return await api()
+      .get(
+        `/patient/getPatientFromProvincialServer/${clinicId}/${replacedString}`
+      )
+      .then((resp) => {
+        patient.save(resp.data);
+        closeLoading();
+        return resp;
+      })
+      .catch((error) => {
+        closeLoading();
+      });
+  },
+
   deleteAllFromDexie() {
     patientDexie.clear();
   },
