@@ -525,7 +525,7 @@ export default {
     episodeId: string
   ) {
     return patientVisitDetails
-      .withAllRecursive(1)
+      .withAllRecursive(2)
       .has('prescription')
       .where('patient_visit_id', patientVisitId)
       .where('episode_id', episodeId)

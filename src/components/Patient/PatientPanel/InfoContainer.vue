@@ -133,7 +133,7 @@
               :addButtonActions="openEpisodeCreation"
               >Histórico Clínico</ListHeader
             >
-            <EmptyList v-if="curIdentifier.episodes.length <= 0"
+            <EmptyList v-if="curIdentifier?.episodes?.length <= 0"
               >Nenhum Histórico Clínico Iniciado</EmptyList
             >
             <span>
@@ -141,7 +141,7 @@
                 v-for="episode in get3LastEpisodes"
                 :key="episode.id"
                 :episodeId="episode.id"
-                :isLast="episode.isLast"
+                :isLast="episode?.isLast"
               />
             </span>
           </div>
@@ -149,12 +149,12 @@
       </q-card>
     </q-expansion-item>
     <q-separator />
-    <q-dialog persistent v-model="showEditClinicalService">
+    <!-- <q-dialog persistent v-model="showEditClinicalService">
       <AddClinicService />
     </q-dialog>
     <q-dialog persistent v-model="showAddEditEpisode">
       <AddEditEpisode />
-    </q-dialog>
+    </q-dialog> -->
   </div>
 </template>
 
@@ -209,8 +209,9 @@ const isCloseStep = inject('isCloseStep');
 const isReOpenStep = inject('isReOpenStep');
 
 // Computed
-const curIdentifier = computed(() => {
-  return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
+const curIdentifier = computed(async () => {
+  console.log('ID defe merda', await patientServiceIdentifierService.identifierCurr(props.identifierId, ''));
+  return await patientServiceIdentifierService.identifierCurr(props.identifierId, '');
 });
 const curEpisode = computed(() => {
   return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
@@ -224,7 +225,6 @@ const lastPack = computed(() => {
   }
   return lastPack;
 });
-
 
 const canEditPatientService = computed(() => {
   return PermissionService.canPerformUiAction(
@@ -343,8 +343,11 @@ const islastEpisodeClosed = computed(() => {
   }
 });
 
-const get3LastEpisodes = computed(() => {
-  return episodeService.getlast3EpisodesByIdentifier(curIdentifier.value.id);
+const get3LastEpisodes = computed(async() => {
+  console.log('Cur ID', await curIdentifier.value);
+  const idCur = await curIdentifier.value;
+  console.log('ID Cur', idCur);
+  return await episodeService.getlast3EpisodesByIdentifier(idCur.id);
 });
 
 //Provide

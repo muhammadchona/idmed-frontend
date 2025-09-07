@@ -49,10 +49,12 @@ export function generateSchemaFromModels() {
     const fieldNames = Object.keys(fields).map((fieldName) => {
       const field = fields[fieldName];
       // Assuming each field has a name and type, you may need to adjust this
-      return field.primaryKey ? `++${fieldName}` : fieldName;
+      return field.primaryKey ? `++${fieldName}` : `${fieldName}`;
     });
 
     schema[modelName] = fieldNames.join(', ');
+    console.log(`Schema for ${modelName}: ${schema[modelName]}`);
+    console.log('-------------------------');
   });
   return schema;
 }

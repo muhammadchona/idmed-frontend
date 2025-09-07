@@ -262,7 +262,7 @@ export default {
 
   getLastPrescriptionFromPatientVisitDetails(prescriptionId: string) {
     return prescription
-      .withAllRecursive(1)
+      .withAllRecursive(2)
       .where('id', prescriptionId)
       .orderBy('prescriptionDate', 'desc')
       .first();

@@ -569,7 +569,7 @@ export default {
   getLastFromPatientVisitList(patientvisitids: any) {
     return patientVisit
       .query()
-      .withAllRecursive(1)
+      .withAllRecursive(2)
       .whereIn('id', patientvisitids)
       .orderBy('visitDate', 'desc')
       .first();
