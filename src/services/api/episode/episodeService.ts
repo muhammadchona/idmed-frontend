@@ -141,8 +141,8 @@ export default {
         console.log(error);
       });
   },
-  addBulkMobile() {
-    const episodesFromPinia = this.getAllFromStorageForDexie();
+  addBulkMobile(episodesFromPinia: any) {
+    // const episodesFromPinia = this.getAllFromStorageForDexie();
     return episodeDexie.bulkPut(episodesFromPinia).catch((error: any) => {
       console.log(error);
     });
@@ -236,7 +236,6 @@ export default {
   },
 
   async getAllMobileByPatientServiceIds(patientServiceIds: string[]) {
-    console.log('Patient Ids', patientServiceIds);
     const collection = await episodeDexie
       .orderBy('episodeDate')
       .filter((episode: Episode) =>
@@ -244,7 +243,6 @@ export default {
       );
 
     const resp = await collection.toArray();
-    console.log('Episodes', resp);
     episode.save(resp);
     return resp;
   },
@@ -274,6 +272,7 @@ export default {
   getEntity() {
     return episode.getModel();
   },
+  // TODO: Revisar estes métodos que parecem duplicados
   lastEpisodeByIdentifier(identifierId: string) {
     return episode
       .withAllRecursive(2)
@@ -282,13 +281,14 @@ export default {
       .first();
   },
   getlast3EpisodesByIdentifier(identifierId: string) {
+    console.log('identifierId', identifierId);
     const episodes = episode
       .withAllRecursive(2)
       .where('patientServiceIdentifier_id', identifierId)
       .orderBy('episodeDate', 'desc')
       .limit(3)
       .get();
-    if (episodes.length > 1) {
+    if (episodes?.length > 1) {
       episodes[0].isLast = true;
       episodes[1].isLast = false;
     } else if (episodes.length > 0) {
@@ -323,11 +323,11 @@ export default {
       .with('startStopReason')
       .with('clinicSector')
       .with('patientServiceIdentifier')
-      .with('patientVisitDetails', (query) => {
+      .with('patientVisitDetails', (query: any) => {
         query.withAllRecursive(2);
       })
       .has('patientVisitDetails')
-      .whereHas('episodeType', (query) => {
+      .whereHas('episodeType', (query: any) => {
         query.where('code', 'INICIO');
       })
       .where('patientServiceIdentifier_id', identifierId)
@@ -462,31 +462,33 @@ export default {
   },
 
   //Dexie Block
-  async getAllByIDsFromDexie(ids: []) {
+  async getAllByIDsFromDexie(ids: string[]) {
     const episodes = await episodeDexie
       .where('id')
       .anyOfIgnoreCase(ids)
       .reverse()
       .sortBy('episodeDate');
 
-    const referralClinicIds = episodes.map(
-      (episode: any) => episode.referralClinic_id
+    const referralClinicIds = episodes.map((episode: any) =>
+      episode?.referralClinic?.id ? episode.referralClinic.id : ''
     );
 
-    const startStopReasonIds = episodes.map(
-      (episode: any) => episode.startStopReason_id
+    const startStopReasonIds = episodes.map((episode: any) =>
+      episode?.startStopReason?.id ? episode.startStopReason.id : ''
     );
 
-    const episodeTypeIds = episodes.map(
-      (episode: any) => episode.episodeType_id
+    const episodeTypeIds = episodes.map((episode: any) =>
+      episode?.episodeType?.id ? episode.episodeType.id : ''
     );
 
-    const clinicSectorIds = episodes.map(
-      (episode: any) => episode.clinicSector_id
+    const clinicSectorIds = episodes.map((episode: any) =>
+      episode?.clinicSector?.id ? episode.clinicSector.id : ''
     );
 
-    const patientServiceIdentifierIds = episodes.map(
-      (episode: any) => episode.patientServiceIdentifier_id
+    const patientServiceIdentifierIds = episodes.map((episode: any) =>
+      episode?.patientServiceIdentifier?.id
+        ? episode.patientServiceIdentifier.id
+        : ''
     );
 
     const [
@@ -506,21 +508,21 @@ export default {
     ]);
     episodes.map((episode: any) => {
       episode.referralClinic = referralClinics.find(
-        (referralClinic: any) => referralClinic.id === episode.referralClinic_id
+        (referralClinic: any) => referralClinic.id === episode.referralClinic.id
       );
       episode.startStopReason = startStopReasons.find(
         (startStopReason: any) =>
-          startStopReason.id === episode.startStopReason_id
+          startStopReason.id === episode.startStopReason.id
       );
       episode.episodeType = episodeTypes.find(
-        (episodeType: any) => episodeType.id === episode.episodeType_id
+        (episodeType: any) => episodeType.id === episode.episodeType.id
       );
       episode.clinicSector = clinicSectors.find(
-        (clinicSector: any) => clinicSector.id === episode.clinicSector_id
+        (clinicSector: any) => clinicSector.id === episode.clinicSector.id
       );
       episode.patientServiceIdentifier = patientServiceIdentifiers.find(
         (patientServiceIdentifier: any) =>
-          patientServiceIdentifier.id === episode.patientServiceIdentifier_id
+          patientServiceIdentifier.id === episode.patientServiceIdentifier.id
       );
     });
 
@@ -530,24 +532,26 @@ export default {
   async getByIDFromDexie(id: string) {
     const episodes = await episodeDexie.where('id').equals(id).toArray();
 
-    const referralClinicIds = episodes.map(
-      (episode: any) => episode.referralClinic_id
+    const referralClinicIds = episodes.map((episode: any) =>
+      episode?.referralClinic?.id ? episode.referralClinic.id : ''
     );
 
-    const startStopReasonIds = episodes.map(
-      (episode: any) => episode.startStopReason_id
+    const startStopReasonIds = episodes.map((episode: any) =>
+      episode?.startStopReason?.id ? episode.startStopReason.id : ''
     );
 
-    const episodeTypeIds = episodes.map(
-      (episode: any) => episode.episodeType_id
+    const episodeTypeIds = episodes.map((episode: any) =>
+      episode?.episodeType?.id ? episode.episodeType.id : ''
     );
 
-    const clinicSectorIds = episodes.map(
-      (episode: any) => episode.clinicSector_id
+    const clinicSectorIds = episodes.map((episode: any) =>
+      episode?.clinicSector?.id ? episode.clinicSector.id : ''
     );
 
-    const patientServiceIdentifierIds = episodes.map(
-      (episode: any) => episode.patientServiceIdentifier_id
+    const patientServiceIdentifierIds = episodes.map((episode: any) =>
+      episode?.patientServiceIdentifier?.id
+        ? episode.patientServiceIdentifier.id
+        : ''
     );
 
     const [
@@ -568,47 +572,49 @@ export default {
 
     episodes.map((episode: any) => {
       episode.referralClinic = referralClinics.find(
-        (referralClinic: any) => referralClinic.id === episode.referralClinic_id
+        (referralClinic: any) => referralClinic.id === episode.referralClinic.id
       );
       episode.startStopReason = startStopReasons.find(
         (startStopReason: any) =>
-          startStopReason.id === episode.startStopReason_id
+          startStopReason.id === episode.startStopReason.id
       );
       episode.episodeType = episodeTypes.find(
-        (episodeType: any) => episodeType.id === episode.episodeType_id
+        (episodeType: any) => episodeType.id === episode.episodeType.id
       );
       episode.clinicSector = clinicSectors.find(
-        (clinicSector: any) => clinicSector.id === episode.clinicSector_id
+        (clinicSector: any) => clinicSector.id === episode.clinicSector.id
       );
       episode.patientServiceIdentifier = patientServiceIdentifiers.find(
         (patientServiceIdentifier: any) =>
-          patientServiceIdentifier.id === episode.patientServiceIdentifier_id
+          patientServiceIdentifier.id === episode.patientServiceIdentifier.id
       );
     });
 
     return episodes[0];
   },
-  async getAllByIdentifierIDsFromDexie(ids: []) {
-    const episodes = await episodeDexie
-      .where('patientServiceIdentifier_id')
-      .anyOfIgnoreCase(ids)
+  async getAllByIdentifierIDsFromDexie(ids: string[]) {
+    const collection = episodeDexie
+      .orderBy('episodeDate')
       .reverse()
-      .sortBy('episodeDate');
+      .filter((episode: Episode) =>
+        ids.includes(episode?.patientServiceIdentifier?.id ?? '')
+      );
+    const episodes = await collection.limit(3).toArray();
 
-    const referralClinicIds = episodes.map(
-      (episode: any) => episode.referralClinic_id
+    const referralClinicIds = episodes.map((episode: any) =>
+      episode.referralClinic?.id ? episode.referralClinic.id : ''
     );
 
-    const startStopReasonIds = episodes.map(
-      (episode: any) => episode.startStopReason_id
+    const startStopReasonIds = episodes.map((episode: any) =>
+      episode.startStopReason?.id ? episode.startStopReason.id : ''
     );
 
-    const episodeTypeIds = episodes.map(
-      (episode: any) => episode.episodeType_id
+    const episodeTypeIds = episodes.map((episode: any) =>
+      episode.episodeType?.id ? episode.episodeType.id : ''
     );
 
-    const clinicSectorIds = episodes.map(
-      (episode: any) => episode.clinicSector_id
+    const clinicSectorIds = episodes.map((episode: any) =>
+      episode.clinicSector?.id ? episode.clinicSector.id : ''
     );
 
     const episodeIds = episodes.map((episode: any) => episode.id);
@@ -628,50 +634,63 @@ export default {
     ]);
     episodes.map((episode: any) => {
       episode.referralClinic = referralClinics.find(
-        (referralClinic: any) => referralClinic.id === episode.referralClinic_id
+        (referralClinic: any) => referralClinic.id === episode.referralClinic.id
       );
       episode.startStopReason = startStopReasons.find(
         (startStopReason: any) =>
-          startStopReason.id === episode.startStopReason_id
+          startStopReason.id === episode.startStopReason.id
       );
       episode.episodeType = episodeTypes.find(
-        (episodeType: any) => episodeType.id === episode.episodeType_id
+        (episodeType: any) => episodeType.id === episode.episodeType.id
       );
       episode.clinicSector = clinicSectors.find(
-        (clinicSector: any) => clinicSector.id === episode.clinicSector_id
+        (clinicSector: any) => clinicSector.id === episode.clinicSector.id
       );
       episode.patientVisitDetails = patientVisitDetailList.filter(
         (patientVisitDetail: any) =>
-          patientVisitDetail.episode_id === episode.id
+          patientVisitDetail.episode.id === episode.id
       );
     });
 
     return episodes;
   },
-  async getAll3LastDataByIdentifierIDsFromDexie(ids: []) {
-    const episodes = await episodeDexie
-      .where('patientServiceIdentifier_id')
-      .anyOfIgnoreCase(ids)
+  async getAll3LastDataByIdentifierIDsFromDexie(ids: string[]) {
+    console.log('ids', ids);
+
+    const collection = episodeDexie
+      .orderBy('episodeDate')
       .reverse()
-      .limit(3)
-      .sortBy('episodeDate');
-    const referralClinicIds = episodes.map(
-      (episode: any) => episode.referralClinic_id
+      .filter((episode: Episode) =>
+        ids.includes(episode?.patientServiceIdentifier?.id ?? '')
+      );
+
+    console.log('collection', await collection.limit(3).toArray());
+
+    const episodes = await collection.limit(3).toArray();
+
+    const referralClinicIds = episodes.map((episode: any) =>
+      episode?.referralClinic?.id ? episode.referralClinic.id : ''
     );
 
-    const startStopReasonIds = episodes.map(
-      (episode: any) => episode.startStopReason_id
+    const startStopReasonIds = episodes.map((episode: any) =>
+      episode?.startStopReason?.id ? episode.startStopReason.id : ''
     );
 
-    const episodeTypeIds = episodes.map(
-      (episode: any) => episode.episodeType_id
+    const episodeTypeIds = episodes.map((episode: any) =>
+      episode?.episodeType?.id ? episode.episodeType.id : ''
     );
 
-    const clinicSectorIds = episodes.map(
-      (episode: any) => episode.clinicSector_id
+    const clinicSectorIds = episodes.map((episode: any) =>
+      episode?.clinicSector?.id ? episode.clinicSector.id : ''
     );
 
     const episodeIds = episodes.map((episode: any) => episode.id);
+
+    console.log('referralClinicIds', referralClinicIds);
+    console.log('referralClinicIds', referralClinicIds);
+    console.log('startStopReasonIds', startStopReasonIds);
+    console.log('episodeTypeIds', episodeTypeIds);
+    console.log('clinicSectorIds', clinicSectorIds);
 
     const [
       referralClinics,
@@ -688,21 +707,21 @@ export default {
     ]);
     episodes.map((episode: any) => {
       episode.referralClinic = referralClinics.find(
-        (referralClinic: any) => referralClinic.id === episode.referralClinic_id
+        (referralClinic: any) => referralClinic.id === episode.referralClinic.id
       );
       episode.startStopReason = startStopReasons.find(
         (startStopReason: any) =>
-          startStopReason.id === episode.startStopReason_id
+          startStopReason.id === episode.startStopReason.id
       );
       episode.episodeType = episodeTypes.find(
-        (episodeType: any) => episodeType.id === episode.episodeType_id
+        (episodeType: any) => episodeType.id === episode.episodeType.id
       );
       episode.clinicSector = clinicSectors.find(
-        (clinicSector: any) => clinicSector.id === episode.clinicSector_id
+        (clinicSector: any) => clinicSector.id === episode.clinicSector.id
       );
       episode.patientVisitDetails = patientVisitDetailList.filter(
         (patientVisitDetail: any) =>
-          patientVisitDetail.episode_id === episode.id
+          patientVisitDetail.episode.id === episode.id
       );
     });
 

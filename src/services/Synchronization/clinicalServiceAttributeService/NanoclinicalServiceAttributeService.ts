@@ -33,10 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie ClinicalServiceAttribute');
-    const getAllClinicalServiceAttribute =
-      clinicalServiceAttributeService.getAllClinicalServiceAttributes();
-    await clinicalServiceAttributeDexie.bulkPut(getAllClinicalServiceAttribute);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia ClinicalServiceAttribute');
+    clinicalServiceAttributeService.getMobile();
   },
 };

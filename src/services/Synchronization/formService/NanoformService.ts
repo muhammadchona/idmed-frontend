@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie Form');
-    const getAllForm = formService.getAllForms();
-    await formDexie.bulkPut(getAllForm);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia Form');
+    formService.getMobile();
   },
 };

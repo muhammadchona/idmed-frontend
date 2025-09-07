@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie Doctor');
-    const getAllDoctor = doctorService.getAlldoctors();
-    await doctorDexie.bulkPut(getAllDoctor);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia Doctor');
+    doctorService.getMobile();
   },
 };

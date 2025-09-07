@@ -95,36 +95,36 @@ export function useOffline() {
     return true;
   }
 
-  async function saveParamsFromPiniaToDexie() {
-    NanoclinicSectorService.getFromPiniaToDexie();
-    NanodrugService.getFromPiniaToDexie();
-    NanoclinicalServiceService.getFromPiniaToDexie();
-    NanoclinicalServiceAttributeService.getFromPiniaToDexie();
-    NanoidentifierTypeService.getFromPiniaToDexie();
-    NanoepisodeTypeService.getFromPiniaToDexie();
-    NanofacilityTypeService.getFromPiniaToDexie();
-    NanostartStopReasonService.getFromPiniaToDexie();
-    NanodurationService.getFromPiniaToDexie();
-    NanotherapeuticRegimenService.getFromPiniaToDexie();
-    NanotherapeuticLineService.getFromPiniaToDexie();
-    NanoformService.getFromPiniaToDexie();
-    NanodispenseTypeService.getFromPiniaToDexie();
-    NanoInteroperabilityTypeService.getFromPiniaToDexie();
-    NanoInteroperabilityAttributeService.getFromPiniaToDexie();
-    NanohealthInformationSystemService.getFromPiniaToDexie();
-    NanoPatientTransReferenceTypeService.getFromPiniaToDexie();
-    NanospetialPrescriptionMotiveService.getFromPiniaToDexie();
-    NanoprovincialServerService.getFromPiniaToDexie();
-    NanodoctorService.getFromPiniaToDexie();
-    NanodispenseModeService.getFromPiniaToDexie();
-    NanoprovinceService.getFromPiniaToDexie();
-    NanodistrictService.getFromPiniaToDexie();
-    NanoStockCenterService.getFromPiniaToDexie();
-    NanoStockOperationTypeService.getFromPiniaToDexie();
-    NanoGroupTypeService.getFromPiniaToDexie();
-    NanosystemConfigsService.getFromPiniaToDexie();
-    NanomenuService.getFromPiniaToDexie();
-    NanoclinicService.getFromPiniaToDexie();
+  async function saveParamsFromDexieToPinia() {
+    NanoclinicSectorService.getFromDexieToPinia();
+    NanodrugService.getFromDexieToPinia();
+    NanoclinicalServiceService.getFromDexieToPinia();
+    NanoclinicalServiceAttributeService.getFromDexieToPinia();
+    NanoidentifierTypeService.getFromDexieToPinia();
+    NanoepisodeTypeService.getFromDexieToPinia();
+    NanofacilityTypeService.getFromDexieToPinia();
+    NanostartStopReasonService.getFromDexieToPinia();
+    NanodurationService.getFromDexieToPinia();
+    NanotherapeuticRegimenService.getFromDexieToPinia();
+    NanotherapeuticLineService.getFromDexieToPinia();
+    NanoformService.getFromDexieToPinia();
+    NanodispenseTypeService.getFromDexieToPinia();
+    NanoInteroperabilityTypeService.getFromDexieToPinia();
+    NanoInteroperabilityAttributeService.getFromDexieToPinia();
+    NanohealthInformationSystemService.getFromDexieToPinia();
+    NanoPatientTransReferenceTypeService.getFromDexieToPinia();
+    NanospetialPrescriptionMotiveService.getFromDexieToPinia();
+    NanoprovincialServerService.getFromDexieToPinia();
+    NanodoctorService.getFromDexieToPinia();
+    NanodispenseModeService.getFromDexieToPinia();
+    NanoprovinceService.getFromDexieToPinia();
+    NanodistrictService.getFromDexieToPinia();
+    NanoStockCenterService.getFromDexieToPinia();
+    NanoStockOperationTypeService.getFromDexieToPinia();
+    NanoGroupTypeService.getFromDexieToPinia();
+    NanosystemConfigsService.getFromDexieToPinia();
+    NanomenuService.getFromDexieToPinia();
+    NanoclinicService.getFromDexieToPinia();
     return true;
   }
 
@@ -302,7 +302,7 @@ export function useOffline() {
 
   return {
     saveParamsFromBackendToDexie,
-    saveParamsFromPiniaToDexie,
+    saveParamsFromDexieToPinia,
     loadParamsDataFromBackEndToPinia,
     loadClinicsDataFromBackEndToPinia,
     loadSettingParamsToOffline,

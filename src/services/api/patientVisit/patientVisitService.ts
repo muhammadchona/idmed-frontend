@@ -238,9 +238,7 @@ export default {
   async apiGetAllByPatientId(patientId: string) {
     if (isMobile.value && !isOnline.value) {
       const resp = await patientVisitDexie
-        .where('patientId')
-        .equalsIgnoreCase(patientId)
-        .or('patient_id')
+        .where('patient_id')
         .equalsIgnoreCase(patientId)
         .toArray();
       patientVisit.save(resp);
@@ -254,13 +252,16 @@ export default {
 
   async apiGetAllPacksByPatientId(patientId: string, serviceCode: string) {
     if (isMobile.value && !isOnline.value) {
-      const patientVisits = await patientVisitDexie
-        .where('patientId')
-        .equalsIgnoreCase(patientId)
-        .or('patient_id')
-        .equalsIgnoreCase(patientId)
-        .toArray();
-      patientVisit.save(patientVisits);
+      const collection = patientVisitDexie.filter(
+        (patientVisit: PatientVisit) => patientId === patientVisit?.patient?.id
+      );
+      const episodes = await collection.toArray().then((visits) => {
+        patientVisit.save(visits);
+        return visits;
+      });
+
+      const patientVisits = await collection.toArray();
+
       const packs: any[] = [];
 
       const patientVisitIds = patientVisits.map(
@@ -275,10 +276,10 @@ export default {
 
       patientVisitDetails.map((patientVisitDetail: any) => {
         if (
-          patientVisitDetail.episode.patientServiceIdentifier.service.code ===
-          serviceCode
+          patientVisitDetail?.episode?.patientServiceIdentifier?.service
+            ?.code === serviceCode
         ) {
-          packs.push(patientVisitDetail.pack);
+          packs.push(patientVisitDetail?.pack);
         }
       });
       return packs;
@@ -322,12 +323,12 @@ export default {
       (patientVisit: any) => patientVisit.id
     );
 
-    const patientIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.patient_id
+    const patientIds = patientVisits.map((patientVisit: any) =>
+      patientVisit?.patient?.id ? patientVisit.patient.id : ''
     );
 
-    const clinicIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.clinic_id
+    const clinicIds = patientVisits.map((patientVisit: any) =>
+      patientVisit?.clinic_id ? patientVisit.clinic_id : ''
     );
 
     const [
@@ -360,32 +361,32 @@ export default {
 
     patientVisits.map((patientVisit: any) => {
       patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisit.clinic_id
+        (clinic: any) => clinic.id === patientVisit.clinic.id
       );
       patientVisit.patient = patients.find(
-        (patient: any) => patient.id === patientVisit.patient_id
+        (patient: any) => patient.id === patientVisit.patient.id
       );
       patientVisit.patientVisitDetails = patientVisitDetails.filter(
         (patientVisitDetail: any) =>
-          patientVisitDetail.patient_visit_id === patientVisit.id
+          patientVisitDetail.patientVisit.id === patientVisit.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening.patient_visit_id === patientVisit.id
+          vitalSignsScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening.patient_visit_id === patientVisit.id
+          pregnancyScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
-        (ramScreening: any) => ramScreening.patient_visit_id === patientVisit.id
+        (ramScreening: any) => ramScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening.patient_visit_id === patientVisit.id
+        (tbScreening: any) => tbScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening.patient_visit_id === patientVisit.id
+          adherenceScreening.patientVisit.id === patientVisit.id
       );
     });
 
@@ -568,7 +569,7 @@ export default {
   getLastFromPatientVisitList(patientvisitids: any) {
     return patientVisit
       .query()
-      .withAllRecursive(2)
+      .withAllRecursive(1)
       .whereIn('id', patientvisitids)
       .orderBy('visitDate', 'desc')
       .first();
@@ -654,7 +655,7 @@ export default {
     endDate: any
   ) {
     let counter = 0;
-    return patientVisitDexie.toArray().then((result) => {
+    return patientVisitDexie.toArray().then((result: any) => {
       for (const pv of result) {
         for (const pvd of pv.patientVisitDetails) {
           if (pvd.pack !== undefined) {
@@ -868,12 +869,12 @@ export default {
     const patientVisitIds = patientVisits.map(
       (patientVisit: any) => patientVisit.id
     );
-    const patientIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.patient_id
+    const patientIds = patientVisits.map((patientVisit: any) =>
+      patientVisit.patient.id ? patientVisit.patient.id : ''
     );
 
-    const clinicIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.clinic_id
+    const clinicIds = patientVisits.map((patientVisit: any) =>
+      patientVisit.clinic.id ? patientVisit.clinic.id : ''
     );
 
     const [
@@ -902,28 +903,28 @@ export default {
 
     patientVisits.map((patientVisit: any) => {
       patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisit.clinic_id
+        (clinic: any) => clinic.id === patientVisit.clinic.id
       );
       patientVisit.patient = patients.find(
-        (patient: any) => patient.id === patientVisit.patient_id
+        (patient: any) => patient.id === patientVisit.patient.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening.patient_visit_id === patientVisit.id
+          vitalSignsScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening.patient_visit_id === patientVisit.id
+          pregnancyScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
-        (ramScreening: any) => ramScreening.patient_visit_id === patientVisit.id
+        (ramScreening: any) => ramScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening.patient_visit_id === patientVisit.id
+        (tbScreening: any) => tbScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening.patient_visit_id === patientVisit.id
+          adherenceScreening.patientVisit.id === patientVisit.id
       );
     });
 
@@ -973,46 +974,48 @@ export default {
 
     patientVisits.map((patientVisit: any) => {
       patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisit.clinic_id
+        (clinic: any) => clinic.id === patientVisit.clinic.id
       );
       patientVisit.patient = patients.find(
-        (patient: any) => patient.id === patientVisit.patient_id
+        (patient: any) => patient.id === patientVisit.patient.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening.patient_visit_id === patientVisit.id
+          vitalSignsScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening.patient_visit_id === patientVisit.id
+          pregnancyScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
-        (ramScreening: any) => ramScreening.patient_visit_id === patientVisit.id
+        (ramScreening: any) => ramScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening.patient_visit_id === patientVisit.id
+        (tbScreening: any) => tbScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening.patient_visit_id === patientVisit.id
+          adherenceScreening.patientVisit.id === patientVisit.id
       );
     });
 
     return patientVisits;
   },
-  async getAllByPatientIDsFromDexie(ids: []) {
-    const patientVisits = await patientVisitDexie
-      .where('patient_id')
-      .anyOfIgnoreCase(ids)
+  async getAllByPatientIDsFromDexie(ids: string[]) {
+    const collection = patientVisitDexie
+      .orderBy('visitDate')
       .reverse()
-      .sortBy('visitDate');
+      .filter((patientVisit: PatientVisit) =>
+        ids.includes(patientVisit?.patient?.id)
+      );
+    const patientVisits = await collection.toArray();
 
     const patientVisitIds = patientVisits.map(
       (patientVisit: any) => patientVisit.id
     );
 
     const clinicIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.clinic_id
+      (patientVisit: any) => patientVisit.clinic.id
     );
 
     const [
@@ -1043,49 +1046,50 @@ export default {
 
     patientVisits.map((patientVisit: any) => {
       patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisit.clinic_id
+        (clinic: any) => clinic.id === patientVisit.clinic.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening.patient_visit_id === patientVisit.id
+          vitalSignsScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening.patient_visit_id === patientVisit.id
+          pregnancyScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
-        (ramScreening: any) => ramScreening.patient_visit_id === patientVisit.id
+        (ramScreening: any) => ramScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening.patient_visit_id === patientVisit.id
+        (tbScreening: any) => tbScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening.patient_visit_id === patientVisit.id
+          adherenceScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.patientVisitDetails = patientVisitDetailList.filter(
         (patientVisitDetail: any) =>
-          patientVisitDetail.patient_visit_id === patientVisit.id
+          patientVisitDetail.patientVisit.id === patientVisit.id
       );
     });
 
     return patientVisits;
   },
 
-  async getAll3LastDataByPatientIDsFromDexie(ids: []) {
-    const patientVisits = await patientVisitDexie
-      .where('patient_id')
-      .anyOfIgnoreCase(ids)
+  async getAll3LastDataByPatientIDsFromDexie(ids: string[]) {
+    const collection = patientVisitDexie
+      .orderBy('visitDate')
       .reverse()
-      .limit(3)
-      .sortBy('visitDate');
+      .filter((patientVisit: PatientVisit) =>
+        ids.includes(patientVisit?.patient?.id)
+      );
+    const patientVisits = await collection.limit(3).toArray();
 
     const patientVisitIds = patientVisits.map(
       (patientVisit: any) => patientVisit.id
     );
 
-    const clinicIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.clinic_id
+    const clinicIds = patientVisits.map((patientVisit: any) =>
+      patientVisit?.clinic?.id ? patientVisit.clinic.id : ''
     );
 
     const [
@@ -1116,29 +1120,29 @@ export default {
 
     patientVisits.map((patientVisit: any) => {
       patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisit.clinic_id
+        (clinic: any) => clinic.id === patientVisit.clinic.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening.patient_visit_id === patientVisit.id
+          vitalSignsScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening.patient_visit_id === patientVisit.id
+          pregnancyScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
-        (ramScreening: any) => ramScreening.patient_visit_id === patientVisit.id
+        (ramScreening: any) => ramScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening.patient_visit_id === patientVisit.id
+        (tbScreening: any) => tbScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening.patient_visit_id === patientVisit.id
+          adherenceScreening.patientVisit.id === patientVisit.id
       );
       patientVisit.patientVisitDetails = patientVisitDetailList.filter(
         (patientVisitDetail: any) =>
-          patientVisitDetail.patient_visit_id === patientVisit.id
+          patientVisitDetail.patientVisit.id === patientVisit.id
       );
     });
 

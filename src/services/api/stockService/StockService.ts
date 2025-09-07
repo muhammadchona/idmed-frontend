@@ -397,14 +397,14 @@ export default {
   },
 
   async localDbGetUsedStock(reportParams: any) {
-    return stockDexie
-      .where('drug.clinical_Service_id')
-      .equalsIgnoreCase(reportParams.clinicalService)
-      .toArray()
-      .then((rows: any) => {
-        stock.save(rows);
-        return rows;
-      });
+    const collection = stockDexie.filter(
+      (stock: Stock) =>
+        reportParams.clinicalService === stock?.clinicalService?.id
+    );
+    return await collection.toArray().then((rows: any) => {
+      stock.save(rows);
+      return rows;
+    });
   },
 
   localDbGetById(stock: any) {
@@ -417,24 +417,24 @@ export default {
       });
   },
 
-  localDbGetByStockEntranceId(stockEntrance: any) {
-    return stockDexie
-      .where('entrance_id')
-      .equalsIgnoreCase(stockEntrance.id)
-      .then((rows: any) => {
-        stock.save(rows);
-        return rows;
-      });
+  async localDbGetByStockEntranceId(stockEntrance: any) {
+    const collection = stockDexie.filter(
+      (stock: Stock) => stock.entrance.id === stockEntrance.id
+    );
+    return await collection.toArray().then((rows: any) => {
+      stock.save(rows);
+      return rows;
+    });
   },
 
-  localDbGetByDrug(drug: any) {
-    return stockDexie
-      .where('drug_id')
-      .equalsIgnoreCase(drug.id)
-      .then((rows: any) => {
-        stock.save(rows);
-        return rows;
-      });
+  async localDbGetByDrug(drug: any) {
+    const collection = stockDexie.filter(
+      (stock: Stock) => stock.drug.id === drug.id
+    );
+    return await collection.toArray().then((rows: any) => {
+      stock.save(rows);
+      return rows;
+    });
   },
 
   async hasStockMobile(drugg: any) {

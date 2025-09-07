@@ -262,7 +262,7 @@ export default {
 
   getLastPrescriptionFromPatientVisitDetails(prescriptionId: string) {
     return prescription
-      .withAllRecursive(2)
+      .withAllRecursive(1)
       .where('id', prescriptionId)
       .orderBy('prescriptionDate', 'desc')
       .first();
@@ -314,17 +314,18 @@ export default {
       .anyOf(ids)
       .reverse()
       .sortBy('prescriptionDate');
+
     const prescriptionsIds = prescriptions.map(
       (prescription: any) => prescription.id
     );
     const durationIds = prescriptions.map(
-      (prescription: any) => prescription.duration_id
+      (prescription: any) => prescription?.duration?.id ? prescription.duration.id : ''
     );
     const doctorIds = prescriptions.map(
-      (prescription: any) => prescription.doctor_id
+      (prescription: any) => prescription?.doctor?.id ? prescription.doctor.id : ''
     );
     const clinicIds = prescriptions.map(
-      (prescription: any) => prescription.clinic_id
+      (prescription: any) => prescription?.clinic?.id ? prescription.clinic.id : ''
     );
     const [clinics, durations, doctors, prescriptionDetails, prescribedDrugs] =
       await Promise.all([
@@ -341,21 +342,21 @@ export default {
 
     prescriptions.map((prescription: any) => {
       prescription.clinic = clinics.find(
-        (clinic: any) => clinic.id === prescription.clinic_id
+        (clinic: any) => clinic.id === prescription.clinic.id
       );
       prescription.duration = durations.find(
-        (duration: any) => duration.id === prescription.duration_id
+        (duration: any) => duration.id === prescription.duration.id
       );
       prescription.doctor = doctors.find(
-        (doctor: any) => doctor.id === prescription.doctor_id
+        (doctor: any) => doctor.id === prescription.doctor.id
       );
       prescription.prescriptionDetails = prescriptionDetails.filter(
         (prescriptionDetail: any) =>
-          prescriptionDetail.prescription_id === prescription.id
+          prescriptionDetail.prescription.id === prescription.id
       );
       prescription.prescribedDrugs = prescribedDrugs.filter(
         (prescribedDrug: any) =>
-          prescribedDrug.prescription_id === prescription.id
+          prescribedDrug.prescription.id === prescription.id
       );
     });
 

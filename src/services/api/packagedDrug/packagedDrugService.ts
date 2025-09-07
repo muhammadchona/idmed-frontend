@@ -183,14 +183,16 @@ export default {
     packagedDrug.flush();
   },
 
-  async getAllByIDsFromDexie(ids: []) {
-    const packagedDrugs = await packagedDrugDexie
-      .where('pack_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByIDsFromDexie(ids: string[]) {
+    const collection = packagedDrugDexie
+      .orderBy('nextPickUpDate')
+      .filter((packagedDrug: PackagedDrug) =>
+        ids.includes(packagedDrug?.pack?.id ?? '')
+      );
+    const packagedDrugs = await collection.toArray();
 
-    const drugsId = packagedDrugs.map(
-      (packagedDrug: any) => packagedDrug.drug_id
+    const drugsId = packagedDrugs.map((packagedDrug: any) =>
+      packagedDrug?.drug?.id ? packagedDrug.drug.id : ''
     );
     const [drugs] = await Promise.all([
       drugService.getAllByIDsFromDexie(drugsId),
@@ -198,7 +200,7 @@ export default {
 
     packagedDrugs.map((packagedDrug: any) => {
       packagedDrug.drug = drugs.find(
-        (drug: any) => drug.id === packagedDrug.drug_id
+        (drug: any) => drug.id === packagedDrug.drug.id
       );
     });
 
@@ -210,8 +212,8 @@ export default {
       .anyOfIgnoreCase(ids)
       .toArray();
 
-    const packIds = packagedDrugs.map(
-      (packagedDrug: any) => packagedDrug.pack_id
+    const packIds = packagedDrugs.map((packagedDrug: any) =>
+      packagedDrug?.pack?.id ? packagedDrug.pack.id : ''
     );
 
     const [packList] = await Promise.all([
@@ -220,7 +222,7 @@ export default {
 
     packagedDrugs.map((packagedDrug: any) => {
       packagedDrug.pack = packList.find(
-        (pack: any) => pack.id === packagedDrug.pack_id
+        (pack: any) => pack.id === packagedDrug.pack.id
       );
     });
     return packagedDrugs;

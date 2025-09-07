@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie FacilityType');
-    const getAllFacilityType = facilityTypeService.getAllFacilityTypes();
-    await facilityTypeDexie.bulkPut(getAllFacilityType);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia FacilityType');
+    facilityTypeService.getMobile();
   },
 };

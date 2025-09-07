@@ -33,10 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie TherapeuticRegimen');
-    const getAllTherapeuticRegimen =
-      therapeuticalRegimenService.getActiveTherapeuticalRegimens();
-    await therapeuticalRegimenDexie.bulkPut(getAllTherapeuticRegimen);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia TherapeuticRegimen');
+    therapeuticalRegimenService.getMobile();
   },
 };

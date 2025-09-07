@@ -33,10 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie stockOperationType');
-    const getAllstockOperationType =
-      StockOperationTypeService.getAllFromStorage();
-    await StockOperationTypeDexie.bulkPut(getAllstockOperationType);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia stockOperationType');
+    StockOperationTypeService.getMobile();
   },
 };

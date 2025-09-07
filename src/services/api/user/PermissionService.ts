@@ -68,7 +68,7 @@ class PermissionService {
 
   canPerformUiAction(section: string, action: string): boolean {
     if (!this.isLoaded) {
-      console.warn('Permissions not loaded yet');
+      // console.warn('Permissions not loaded yet');
       return false;
     }
 
@@ -81,7 +81,7 @@ class PermissionService {
 
   canAccessApi(url: string): boolean {
     if (!this.isLoaded) {
-      console.warn('Permissions not loaded yet');
+      // console.warn('Permissions not loaded yet');
       return false;
     }
 

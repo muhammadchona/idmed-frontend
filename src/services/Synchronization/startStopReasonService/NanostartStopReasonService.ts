@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie StartStopReason');
-    const getAllStartStopReason = startStopReasonService.getAllFromStorage();
-    await startStopReasonDexie.bulkPut(getAllStartStopReason);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia StartStopReason');
+    startStopReasonService.getMobile();
   },
 };

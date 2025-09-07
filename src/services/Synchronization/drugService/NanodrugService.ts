@@ -32,9 +32,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie Drug');
-    const getAllcDrugs = drugService.getAllDrugs();
-    await drugDexie.bulkPut(getAllcDrugs);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia Drug');
+    drugService.getMobile();
   },
 };

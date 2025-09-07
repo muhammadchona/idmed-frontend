@@ -8,8 +8,9 @@ import db from '../../../stores/dexie';
 import clinicService from '../clinicService/clinicService';
 import clinicalServiceService from '../clinicalServiceService/clinicalServiceService';
 import identifierTypeService from '../identifierTypeService/identifierTypeService';
-import { FeCompositeElement } from 'app/src-cordova/platforms/android/app/build/intermediates/assets/debug/mergeDebugAssets/www/assets/index.es.58f0f285';
 import episodeService from '../episode/episodeService';
+import Patient from 'src/pages/Patient/Patient.vue';
+import Patient from 'src/stores/models/patient/Patient';
 
 const patientServiceIdentifier = useRepo(PatientServiceIdentifier);
 const patientServiceIdentifierDexie = db[PatientServiceIdentifier.entity];
@@ -248,14 +249,33 @@ export default {
   deleteAllFromStorage() {
     patientServiceIdentifier.flush();
   },
-  identifierCurr(id: any, serviceId: string) {
-    return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
+  async identifierCurr(id: any, serviceId: string) {
+    console.log('Poooraa do ID', id);
+
+    if (isMobile.value && !isOnline.value) {
+      return await this.getAll3LastDataByIDFromDexie(id);
+    } else {
+      // const patientServiceIdentifiers = patientServiceIdentifier
+      //   .withAllRecursive(2)
+      //   .where('id', id)
+      //   .first();
+
+      const [patientServiceIdentifiers] = await Promise.all([
+        patientServiceIdentifier.withAllRecursive(2).where('id', id).first(),
+      ]);
+
+      if (!patientServiceIdentifiers) {
+        return null;
+      }
+
+      return patientServiceIdentifiers;
+    }
   },
   getAllEpisodesByIdentifierId(id: string) {
     return patientServiceIdentifier
       .withAllRecursive(2)
-      .whereHas('episodes', (query) => {
-        query.whereHas('episodeType', (query) => {
+      .whereHas('episodes', (query: any) => {
+        query.whereHas('episodeType', (query: any) => {
           query.where('code', 'INICIO');
         });
       })
@@ -278,8 +298,8 @@ export default {
   getAllIdentifierWithREferralEpisodeByPatient(patientId: string) {
     return patientServiceIdentifier
       .withAllRecursive(2)
-      .whereHas('episodes', (query) => {
-        query.whereHas('startStopReason', (query) => {
+      .whereHas('episodes', (query: any) => {
+        query.whereHas('startStopReason', (query: any) => {
           query.where('code', 'REFERIDO_PARA').orWhere('code', 'REFERIDO_DC');
         });
       })
@@ -301,18 +321,19 @@ export default {
   },
 
   async localDbGetByPatientId(patientId: string) {
-    return patientServiceIdentifierDexie
-      .where('patient_id')
-      .equalsIgnoreCase(patientId)
-      .toArray()
-      .then((result: any) => {
-        return result;
-      });
+    const collection = patientServiceIdentifierDexie.filter(
+      (identifier: PatientServiceIdentifier) =>
+        patientId === identifier?.patient?.id
+    );
+
+    return await collection.toArray().then((result: any) => {
+      return result;
+    });
   },
   getLatestIdentifierSlimByPatientId(patientId: string) {
     return patientServiceIdentifier
       .withAll()
-      .where((patientService) => {
+      .where((patientService: any) => {
         return patientService.patient_id === patientId;
       })
       .orderBy('startDate', 'desc')
@@ -322,7 +343,7 @@ export default {
   getPreferredIdentifierByPatientId(patientId: string) {
     return patientServiceIdentifier
       .withAll()
-      .where((patientService) => {
+      .where((patientService: any) => {
         console.log(patientService);
         return (
           patientService.patient_id === patientId &&
@@ -342,15 +363,23 @@ export default {
 
     const identifierTypeIds = patientServiceIdentifiers.map(
       (patientServiceIdentifier: any) =>
-        patientServiceIdentifier.identifier_type_id
+        patientServiceIdentifier?.identifierType?.id
+          ? patientServiceIdentifier.identifierType.id
+          : ''
     );
 
     const serviceIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.service_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.service?.id
+          ? patientServiceIdentifier.service.id
+          : ''
     );
 
     const clinicIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.clinic_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.clinic?.id
+          ? patientServiceIdentifier.clinic.id
+          : ''
     );
 
     const [identifierTypes, services, clinics] = await Promise.all([
@@ -361,14 +390,14 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic_id
+        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifier_type_id
+          identifierType.id === patientServiceIdentifier.identifierType.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service_id
+        (service: any) => service.id === patientServiceIdentifier.service.id
       );
     });
 
@@ -376,22 +405,31 @@ export default {
   },
 
   async getAllByPatientIDsFromDexie(id: string) {
-    const patientServiceIdentifiers = await patientServiceIdentifierDexie
-      .where('patient_id')
-      .equalsIgnoreCase(id)
-      .toArray();
+    const collection = patientServiceIdentifierDexie.filter(
+      (identifier: PatientServiceIdentifier) => id === identifier?.patient?.id
+    );
+
+    const patientServiceIdentifiers = await collection.toArray();
 
     const identifierTypeIds = patientServiceIdentifiers.map(
       (patientServiceIdentifier: any) =>
-        patientServiceIdentifier.identifier_type_id
+        patientServiceIdentifier?.identifierType?.id
+          ? patientServiceIdentifier.identifierType.id
+          : ''
     );
 
     const serviceIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.service_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.service?.id
+          ? patientServiceIdentifier.service.id
+          : ''
     );
 
     const clinicIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.clinic_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.clinic?.id
+          ? patientServiceIdentifier.clinic.id
+          : ''
     );
 
     const [identifierTypes, services, clinics] = await Promise.all([
@@ -402,24 +440,26 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic_id
+        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifier_type_id
+          identifierType.id === patientServiceIdentifier.identifierType.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service_id
+        (service: any) => service.id === patientServiceIdentifier.service.id
       );
     });
 
     return patientServiceIdentifiers;
   },
-  async getAllByPatientsIDsFromDexie(ids: []) {
-    const patientServiceIdentifiers = await patientServiceIdentifierDexie
-      .where('patient_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByPatientsIDsFromDexie(ids: string[]) {
+    const collection = patientServiceIdentifierDexie.filter(
+      (identifier: PatientServiceIdentifier) =>
+        ids.includes(identifier?.patient?.id)
+    );
+
+    const patientServiceIdentifiers = await collection.toArray();
 
     const identifierIds = patientServiceIdentifiers.map(
       (identifier: any) => identifier.id
@@ -427,15 +467,23 @@ export default {
 
     const identifierTypeIds = patientServiceIdentifiers.map(
       (patientServiceIdentifier: any) =>
-        patientServiceIdentifier.identifier_type_id
+        patientServiceIdentifier?.identifierType?.id
+          ? patientServiceIdentifier.identifierType.id
+          : ''
     );
 
     const serviceIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.service_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.service?.id
+          ? patientServiceIdentifier.service.id
+          : ''
     );
 
     const clinicIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.clinic_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.clinic?.id
+          ? patientServiceIdentifier.clinic.id
+          : ''
     );
 
     const [identifierTypes, services, clinics, episodeList] = await Promise.all(
@@ -449,44 +497,53 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic_id
+        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifier_type_id
+          identifierType.id === patientServiceIdentifier.identifierType.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service_id
+        (service: any) => service.id === patientServiceIdentifier.service.id
       );
       patientServiceIdentifier.episodes = episodeList.filter(
         (episode: any) =>
-          episode.patientServiceIdentifier_id === patientServiceIdentifier.id
+          episode.patientServiceIdentifier.id === patientServiceIdentifier.id
       );
     });
 
     return patientServiceIdentifiers;
   },
-  async getAll3LastDataByPatientsIDsFromDexie(ids: []) {
-    const patientServiceIdentifiers = await patientServiceIdentifierDexie
-      .where('patient_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAll3LastDataByPatientsIDsFromDexie(ids: string[]) {
+    const collection = patientServiceIdentifierDexie.filter(
+      (identifier: PatientServiceIdentifier) =>
+        ids.includes(identifier?.patient?.id)
+    );
 
+    const patientServiceIdentifiers = await collection.toArray();
     const identifierIds = patientServiceIdentifiers.map(
       (identifier: any) => identifier.id
     );
 
     const identifierTypeIds = patientServiceIdentifiers.map(
       (patientServiceIdentifier: any) =>
-        patientServiceIdentifier.identifier_type_id
+        patientServiceIdentifier?.identifierType?.id
+          ? patientServiceIdentifier.identifierType.id
+          : ''
     );
 
     const serviceIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.service_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.service?.id
+          ? patientServiceIdentifier.service.id
+          : ''
     );
 
     const clinicIds = patientServiceIdentifiers.map(
-      (patientServiceIdentifier: any) => patientServiceIdentifier.clinic_id
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.clinic?.id
+          ? patientServiceIdentifier.clinic.id
+          : ''
     );
 
     const [identifierTypes, services, clinics, episodeList] = await Promise.all(
@@ -500,23 +557,85 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic_id
+        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifier_type_id
+          identifierType.id === patientServiceIdentifier.identifierType.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service_id
+        (service: any) => service.id === patientServiceIdentifier.service.id
       );
       patientServiceIdentifier.episodes = episodeList.filter(
         (episode: any) =>
-          episode.patientServiceIdentifier_id === patientServiceIdentifier.id
+          episode.patientServiceIdentifier.id === patientServiceIdentifier.id
       );
     });
 
     return patientServiceIdentifiers;
   },
+
+  async getAll3LastDataByIDFromDexie(id: string) {
+    const patientServiceIdentifiers = await patientServiceIdentifierDexie
+      .where('id')
+      .equalsIgnoreCase(id)
+      .toArray();
+
+    const identifierIds = patientServiceIdentifiers.map(
+      (identifier: any) => identifier.id
+    );
+
+    const identifierTypeIds = patientServiceIdentifiers.map(
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.identifierType?.id
+          ? patientServiceIdentifier.identifierType.id
+          : ''
+    );
+
+    const serviceIds = patientServiceIdentifiers.map(
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.service?.id
+          ? patientServiceIdentifier.service.id
+          : ''
+    );
+
+    const clinicIds = patientServiceIdentifiers.map(
+      (patientServiceIdentifier: any) =>
+        patientServiceIdentifier?.clinic?.id
+          ? patientServiceIdentifier.clinic.id
+          : ''
+    );
+
+    const [identifierTypes, services, clinics, episodeList] = await Promise.all(
+      [
+        identifierTypeService.getAllByIDsFromDexie(identifierTypeIds),
+        clinicalServiceService.getAllByIDsFromDexie(serviceIds),
+        clinicService.getAllByIDsFromDexie(clinicIds),
+        episodeService.getAll3LastDataByIdentifierIDsFromDexie(identifierIds),
+      ]
+    );
+    console.log('episodeList', episodeList);
+
+    patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
+      patientServiceIdentifier.clinic = clinics.find(
+        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
+      );
+      patientServiceIdentifier.identifierType = identifierTypes.find(
+        (identifierType: any) =>
+          identifierType.id === patientServiceIdentifier.identifierType.id
+      );
+      patientServiceIdentifier.service = services.find(
+        (service: any) => service.id === patientServiceIdentifier.service.id
+      );
+      patientServiceIdentifier.episodes = episodeList.filter(
+        (episode: any) =>
+          episode.patientServiceIdentifier.id === patientServiceIdentifier.id
+      );
+    });
+
+    return patientServiceIdentifiers[0];
+  },
+
   deleteAllFromDexie() {
     patientServiceIdentifierDexie.clear();
   },

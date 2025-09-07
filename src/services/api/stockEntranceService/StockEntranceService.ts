@@ -248,15 +248,14 @@ export default {
       });
   },
 
-  apiGetAllByClinicIdMobile(id: any) {
-    return stockEntranceDexie
-      .where('clinic_id')
-      .equalsIgnoreCase(id)
-      .toArray()
-      .then((rows: any) => {
-        stockEntrance.save(rows);
-        return rows;
-      });
+  async apiGetAllByClinicIdMobile(id: any) {
+    const collection = stockEntranceDexie.filter(
+      (stockEntrance: StockEntrance) => id === stockEntrance?.clinic?.id
+    );
+    return await collection.toArray().then((rows: any) => {
+      stockEntrance.save(rows);
+      return rows;
+    });
   },
 
   // Local Storage Pinia

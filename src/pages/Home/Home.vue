@@ -214,7 +214,7 @@ import patientService from 'src/services/api/patientService/patientService';
 import { LocalStorage, SessionStorage } from 'quasar';
 import userService from 'src/services/api/user/userService';
 
-const { showloading } = useLoading();
+const { showloading, closeLoading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
 const { isProvincialInstalation } = useSystemConfig();
 
@@ -223,7 +223,7 @@ const { loadSettingParams } = useOnline();
 const {
   saveParamsFromBackendToDexie,
   loadParamsDataFromBackEndToPinia,
-  saveParamsFromPiniaToDexie,
+  saveParamsFromDexieToPinia,
   loadPatientDataToOffline,
 } = useOffline();
 const { alertWarningTitle } = useSwal();
@@ -281,11 +281,15 @@ onMounted(async () => {
         // loadParamsDataFromBackEndToPinia().then((pinia_resp) => {
         //   showloading();
         //   if (pinia_resp)
-        //     saveParamsFromPiniaToDexie().then((dexie_resp) => {
+        //     saveParamsFromDexieToPinia().then((dexie_resp) => {
         //       showloading();
         //       if (dexie_resp) loadPatientDataToOffline();
         //     });
         // });
+      } else {
+        showloading();
+        saveParamsFromDexieToPinia();
+        closeLoading();
       }
     });
   }

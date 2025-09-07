@@ -165,11 +165,15 @@ export default {
       .anyOfIgnoreCase(ids)
       .toArray();
   },
-  async getAllByPatientVisitIDsFromDexie(ids: []) {
-    return await vitalSignsScreeningDexie
-      .where('patient_visit_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByPatientVisitIDsFromDexie(ids: string[]) {
+    const collection = vitalSignsScreeningDexie.filter(
+      (vitalSignsScreening: VitalSignsScreening) =>
+        ids.includes(vitalSignsScreening?.patientVisit?.id)
+    );
+    return await collection.toArray().then((rows: any) => {
+      vitalSignsScreening.save(rows);
+      return rows;
+    });
   },
   deleteAllFromDexie() {
     vitalSignsScreeningDexie.clear();

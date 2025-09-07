@@ -141,9 +141,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie StockCenter');
-    const getAllStockCenter = StockCenterService.getAllFromStorage();
-    await StockCenterDexie.bulkPut(getAllStockCenter);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia StockCenter');
+    StockCenterService.getMobile();
   },
 };

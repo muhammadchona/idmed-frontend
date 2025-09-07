@@ -175,15 +175,15 @@ export default {
     return rows;
   },
 
-  getAllByClinicMobile(clinicId: any) {
-    return referedStockMovimentDexie
-      .where('clinic_id')
-      .equalsIgnoreCase(clinicId)
-      .toArray()
-      .then((rows: any) => {
-        referedStockMoviment.save(rows);
-        return rows;
-      });
+  async getAllByClinicMobile(clinicId: any) {
+    const collection = referedStockMovimentDexie.filter(
+      (referedStockMoviment: ReferedStockMoviment) =>
+        referedStockMoviment?.clinic?.id === clinicId
+    );
+    return await collection.toArray().then((rows: any) => {
+      referedStockMoviment.save(rows);
+      return rows;
+    });
   },
 
   async localDbGetAll() {
@@ -193,15 +193,15 @@ export default {
     });
   },
 
-  getBystockMobile(stock: any) {
-    return referedStockMovimentDexie
-      .where('stock_id')
-      .equalsIgnoreCase(stock.id)
-      .toArray()
-      .then((rows: any) => {
-        referedStockMoviment.save(rows);
-        return rows;
-      });
+  async getBystockMobile(stockId: any) {
+    const collection = referedStockMovimentDexie.filter(
+      (referedStockMoviment: ReferedStockMoviment) =>
+        referedStockMoviment?.stock?.id === stockId
+    );
+    return await collection.toArray().then((rows: any) => {
+      referedStockMoviment.save(rows);
+      return rows;
+    });
   },
 
   async deleteMobile(id: any) {

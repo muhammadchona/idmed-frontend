@@ -53,7 +53,10 @@
                 style="height: 440px"
                 class="q-pr-md"
               >
-                <ClinicServiceInfo class="q-mb-lg" />
+                <ClinicServiceInfo
+                  v-if="tab === 'clinicService'"
+                  class="q-mb-lg"
+                />
               </q-scroll-area>
             </q-tab-panel>
             <q-tab-panel name="prescription">
@@ -64,7 +67,10 @@
                 style="height: 440px"
                 class="q-pr-md"
               >
-                <PrescriptionInfo class="q-mb-lg" />
+                <PrescriptionInfo
+                  v-if="tab === 'prescription'"
+                  class="q-mb-lg"
+                />
               </q-scroll-area>
             </q-tab-panel>
             <q-tab-panel name="screening">
@@ -75,7 +81,7 @@
                 style="height: 440px"
                 class="q-pr-md"
               >
-                <PharmaceuticalAtentionInfo />
+                <PharmaceuticalAtentionInfo v-if="tab === 'screening'" />
               </q-scroll-area>
             </q-tab-panel>
           </q-tab-panels>

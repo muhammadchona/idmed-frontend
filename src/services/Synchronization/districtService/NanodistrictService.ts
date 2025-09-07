@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie District');
-    const getAllDistrict = districtService.getAllFromStorage();
-    await districtDexie.bulkPut(getAllDistrict);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia District');
+    districtService.getMobile();
   },
 };
