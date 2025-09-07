@@ -35,9 +35,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie ClinicSector');
-    const getAllclinicSector = clinicSectorService.getAllClinicSectors();
-    await clinicSectorDexie.bulkPut(getAllclinicSector);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia ClinicSector');
+    clinicSectorService.getMobile();
   },
 };

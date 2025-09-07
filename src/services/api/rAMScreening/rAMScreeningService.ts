@@ -1,3 +1,4 @@
+import { patientVisitDetailsService } from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import RAMScreening from 'src/stores/models/screening/RAMScreening';
@@ -151,20 +152,16 @@ export default {
     rAMScreening.flush();
   },
 
-
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
-    return await rAMScreeningDexie
-      .where('id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+    return await rAMScreeningDexie.where('id').anyOfIgnoreCase(ids).toArray();
   },
 
-  async getAllByPatientVisitIDsFromDexie(ids: []) {
-    return await rAMScreeningDexie
-      .where('patient_visit_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByPatientVisitIDsFromDexie(ids: string[]) {
+    const collection = rAMScreeningDexie.filter((ramScreening: RAMScreening) =>
+      ids.includes(ramScreening?.patientVisit?.id)
+    );
+    return await collection.toArray();
   },
   deleteAllFromDexie() {
     rAMScreeningDexie.clear();

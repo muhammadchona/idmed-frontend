@@ -66,7 +66,17 @@ export default {
         console.log(error);
       });
   },
-
+  getMobile() {
+    return stockOperationDexie
+      .toArray()
+      .then((rows: any) => {
+        stockOperationRepo.save(rows);
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        console.log(error);
+      });
+  },
   async apiGetAll(offset: number, max: number) {
     return api().get('/stockOperationType?offset=' + offset + '&max=' + max);
   },

@@ -33,9 +33,8 @@ export default {
       ? await identifierTypeService.getWeb(offset)
       : '';
   },
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie IdentifierType');
-    const getAllIdentifierType = identifierTypeService.getAllIdentifierTypes();
-    await identifierTypeDexie.bulkPut(getAllIdentifierType);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia IdentifierType');
+    identifierTypeService.getMobile();
   },
 };

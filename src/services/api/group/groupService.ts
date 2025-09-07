@@ -221,7 +221,7 @@ export default {
       .with('dispenseType')
       .where('endDate', null)
       .where('clinical_service_id', serviceId)
-      .whereHas('members', (query) => {
+      .whereHas('members', (query: any) => {
         query.where('patient_id', patientid).where('endDate', null);
       })
       .orderBy('startDate', 'desc')

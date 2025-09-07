@@ -200,14 +200,15 @@ export default {
       });
   },
 
-  apiGetAllByClinicIdMobile(clinicId: any) {
-    return stockDistributorDexie
-      .where('clinic_id')
-      .equalsIgnoreCase(clinicId)
-      .then((rows: any) => {
-        stockDistributor.save(rows);
-        return rows;
-      });
+  async apiGetAllByClinicIdMobile(clinicId: any) {
+    const collection = stockDistributorDexie.filter(
+      (stockDistributor: StockDistributor) =>
+        clinicId === stockDistributor?.clinic?.id
+    );
+    return await collection.toArray().then((rows: any) => {
+      stockDistributor.save(rows);
+      return rows;
+    });
   },
 
   // Local Storage Pinia

@@ -57,23 +57,27 @@ export default {
   },
 
   async getBystockMobile(stock: any) {
-    return await stockReferenceAdjustmentDexie
-      .where('stock_id')
-      .equalsIgnoreCase(stock.id)
-      .toArray()
-      .then((rows: any) => {
-        stockReferenceAdjustment.save(rows);
-        return rows;
-      });
+    const collection = stockReferenceAdjustmentDexie.filter(
+      (stockReferenceAdjustment: StockReferenceAdjustment) =>
+        stock.id === stockReferenceAdjustment?.stock?.id
+    );
+    return await collection.toArray().then((rows: any) => {
+      stockReferenceAdjustment.save(rows);
+      return rows;
+    });
   },
-  async getAllByStockIDsFromDexie(ids: []) {
-    const stockReferenceAdjustments = await stockReferenceAdjustmentDexie
-      .where('adjusted_stock_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByStockIDsFromDexie(ids: string[]) {
+    const collection = stockReferenceAdjustmentDexie.filter(
+      (stockReferenceAdjustment: StockReferenceAdjustment) =>
+        ids.includes(stockReferenceAdjustment?.adjustedStock?.id)
+    );
+    const stockReferenceAdjustments = await collection.toArray();
 
     const operationIds = stockReferenceAdjustments.map(
-      (stockReferenceAdjustment: any) => stockReferenceAdjustment.operation_id
+      (stockReferenceAdjustment: any) =>
+        stockReferenceAdjustment?.operation?.id
+          ? stockReferenceAdjustment.operation.id
+          : ''
     );
 
     const [stockOperationTypes] = await Promise.all([
@@ -83,7 +87,7 @@ export default {
     stockReferenceAdjustments.map((stockReferenceAdjustment: any) => {
       stockReferenceAdjustment.operation = stockOperationTypes.find(
         (stockOperationType: any) =>
-          stockOperationType.id === stockReferenceAdjustment.operation_id
+          stockOperationType?.id === stockReferenceAdjustment?.operation?.id
       );
     });
 

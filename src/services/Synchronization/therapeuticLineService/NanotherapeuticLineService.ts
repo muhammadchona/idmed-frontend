@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie TherapeuticLine');
-    const getAllTherapeuticLine = therapeuticLineService.getAllFromStorage();
-    await therapeuticLineDexie.bulkPut(getAllTherapeuticLine);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia TherapeuticLine');
+    therapeuticLineService.getMobile();
   },
 };

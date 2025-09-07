@@ -1,3 +1,4 @@
+import { patientTransReferenceTypeService } from 'src/services/api/patientTransReferenceServiceType/PatientTransReferenceTypeService';
 import PrescriptionDetails from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
 import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
@@ -151,7 +152,7 @@ export default {
 
   async getAllMobileByVisitId(visitIds: []) {
     const resp = await patientVisitDetailsDexie
-      .where('patientVisitId')
+      .where('patient_visit_id')
       .anyOf(visitIds)
       .toArray();
 
@@ -491,7 +492,7 @@ export default {
 
   async getMobileByPatientVisitIds(patientVisitIds: string) {
     const rows = await patientVisitDetailsDexie
-      .where('patientVisitId')
+      .where('patient_visit_id')
       .anyOf(patientVisitIds);
     patientVisitDetails.save(rows);
     return rows;
@@ -618,20 +619,24 @@ export default {
       .anyOf(ids)
       .toArray();
 
-    const patientVisitIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.patient_visit_id
+    const patientVisitIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.patientVisit?.id
+        ? patientVisitDetail.patientVisit.id
+        : ''
     );
 
-    const episodeIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.episode_id
+    const episodeIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.episode?.id ? patientVisitDetail.episode.id : ''
     );
 
-    const clinicIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.clinic_id
+    const clinicIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.clinic?.id ? patientVisitDetail.clinic.id : ''
     );
 
-    const prescriptionIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.prescription_id
+    const prescriptionIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.prescription?.id
+        ? patientVisitDetail.prescription.id
+        : ''
     );
 
     const [clinics, episodes, patientVisits, prescriptions] = await Promise.all(
@@ -645,18 +650,18 @@ export default {
 
     patientVisitDetails.map((patientVisitDetail: any) => {
       patientVisitDetail.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisitDetail.clinic_id
+        (clinic: any) => clinic.id === patientVisitDetail.clinic.id
       );
       patientVisitDetail.episode = episodes.find(
-        (episode: any) => episode.id === patientVisitDetail.episode_id
+        (episode: any) => episode.id === patientVisitDetail.episode.id
       );
       patientVisitDetail.patientVisit = patientVisits.find(
         (patientVisit: any) =>
-          patientVisit.id === patientVisitDetail.patient_visit_id
+          patientVisit.id === patientVisitDetail.patientVisit.id
       );
       patientVisitDetail.prescription = prescriptions.find(
         (prescription: any) =>
-          prescription.id === patientVisitDetail.prescription_id
+          prescription.id === patientVisitDetail.prescription.id
       );
     });
 
@@ -672,20 +677,22 @@ export default {
     //   (patientVisitDetail: any) => patientVisitDetail.patient_visit_id
     // );
 
-    const episodeIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.episode_id
+    const episodeIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.episode?.id ? patientVisitDetail.episode.id : ''
     );
 
-    const clinicIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.clinic_id
+    const clinicIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.clinic?.id ? patientVisitDetail.clinic.id : ''
     );
 
-    const prescriptionIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.prescription_id
+    const prescriptionIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.prescription?.id
+        ? patientVisitDetail.prescription.id
+        : ''
     );
 
-    const packIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.pack_id
+    const packIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
     );
 
     const [clinics, episodes, prescriptions, packs] = await Promise.all([
@@ -697,43 +704,46 @@ export default {
 
     patientVisitDetails.map((patientVisitDetail: any) => {
       patientVisitDetail.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisitDetail.clinic_id
+        (clinic: any) => clinic.id === patientVisitDetail.clinic.id
       );
       patientVisitDetail.episode = episodes.find(
-        (episode: any) => episode.id === patientVisitDetail.episode_id
+        (episode: any) => episode.id === patientVisitDetail.episode.id
       );
       patientVisitDetail.prescription = prescriptions.find(
         (prescription: any) =>
-          (prescription.id = patientVisitDetail.prescription_id)
+          prescription.id === patientVisitDetail.prescription.id
       );
       patientVisitDetail.pack = packs.find(
-        (pack: any) => pack.id === patientVisitDetail.pack_id
+        (pack: any) => pack.id === patientVisitDetail.pack.id
       );
     });
 
     return patientVisitDetails;
   },
 
-  async getAllByPatientVisitIdsFromDexie(ids: []) {
-    const patientVisitDetails = await patientVisitDetailsDexie
-      .where('patient_visit_id')
-      .anyOf(ids)
-      .toArray();
+  async getAllByPatientVisitIdsFromDexie(ids: string[]) {
+    const collection = patientVisitDetailsDexie.filter(
+      (patientVisitDetails: PatientVisitDetails) =>
+        ids.includes(patientVisitDetails?.patientVisit?.id)
+    );
+    const patientVisitDetails = await collection.toArray();
 
-    const episodeIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.episode_id
+    const episodeIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.episode?.id ? patientVisitDetail.episode.id : ''
     );
 
-    const clinicIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.clinic_id
+    const clinicIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.clinic?.id ? patientVisitDetail.clinic.id : ''
     );
 
-    const prescriptionIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.prescription_id
+    const prescriptionIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.prescription?.id
+        ? patientVisitDetail.prescription.id
+        : ''
     );
 
-    const packIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.pack_id
+    const packIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
     );
 
     const [clinics, episodes, prescriptions, packs] = await Promise.all([
@@ -744,42 +754,43 @@ export default {
     ]);
     patientVisitDetails.map((patientVisitDetail: any) => {
       patientVisitDetail.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisitDetail.clinic_id
+        (clinic: any) => clinic.id === patientVisitDetail.clini.id
       );
       patientVisitDetail.episode = episodes.find(
-        (episode: any) => episode.id === patientVisitDetail.episode_id
+        (episode: any) => episode.id === patientVisitDetail.episode.id
       );
       patientVisitDetail.prescription = prescriptions.find(
         (prescription: any) =>
-          prescription.id === patientVisitDetail.prescription_id
+          prescription.id === patientVisitDetail.prescription.id
       );
       patientVisitDetail.pack = packs.find(
-        (pack: any) => pack.id === patientVisitDetail.pack_id
+        (pack: any) => pack.id === patientVisitDetail.pack.id
       );
     });
 
     return patientVisitDetails;
   },
-  async getAllByEpisodeIDsFromDexie(ids: []) {
-    const patientVisitDetails = await patientVisitDetailsDexie
-      .where('episode_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByEpisodeIDsFromDexie(ids: string[]) {
+    const collection = patientVisitDetailsDexie.filter(
+      (patientVisitDetails: PatientVisitDetails) =>
+        ids.includes(patientVisitDetails?.episode?.id)
+    );
+    const patientVisitDetails = await collection.toArray();
 
     const patientVisitIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.patient_visit_id
+      (patientVisitDetail: any) => patientVisitDetail?.patientVisit?.id ? patientVisitDetail.patientVisit.id : ''
     );
 
     const packIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.pack_id
+      (patientVisitDetail: any) => patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
     );
 
     const clinicIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.clinic_id
+      (patientVisitDetail: any) => patientVisitDetail?.clinic?.id ? patientVisitDetail.clinic.id : ''
     );
 
     const prescriptionIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail.prescription_id
+      (patientVisitDetail: any) => patientVisitDetail?.prescription?.id ? patientVisitDetail.prescription.id : ''
     );
 
     const [clinics, packs, patientVisits, prescriptions] = await Promise.all([
@@ -791,18 +802,18 @@ export default {
 
     patientVisitDetails.map((patientVisitDetail: any) => {
       patientVisitDetail.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisitDetail.clinic_id
+        (clinic: any) => clinic.id === patientVisitDetail.clinic.id
       );
       patientVisitDetail.pack = packs.find(
-        (pack: any) => pack.id === patientVisitDetail.pack_id
+        (pack: any) => pack.id === patientVisitDetail.pack.id
       );
       patientVisitDetail.patientVisit = patientVisits.find(
         (patientVisit: any) =>
-          patientVisit.id === patientVisitDetail.patient_visit_id
+          patientVisit.id === patientVisitDetail.patientVisit.id
       );
       patientVisitDetail.prescription = prescriptions.find(
         (prescription: any) =>
-          prescription.id === patientVisitDetail.prescription_id
+          prescription.id === patientVisitDetail.prescription.id
       );
     });
 

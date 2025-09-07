@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie GroupType');
-    const getAllGroupType = groupTypeService.getAllFromStorage();
-    await groupTypeDexie.bulkPut(getAllGroupType);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia GroupType');
+    groupTypeService.getMobile();
   },
 };

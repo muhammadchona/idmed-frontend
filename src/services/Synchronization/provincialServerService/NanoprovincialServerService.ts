@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie ProvincialServer');
-    const getAllProvincialServer = provincialServerService.getAllFromStorage();
-    await provincialServerDexie.bulkPut(getAllProvincialServer);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia ProvincialServer');
+    provincialServerService.getMobile();
   },
 };

@@ -149,14 +149,17 @@ export default {
         console.log(error);
       });
   },
-  async getAllByStockIDsFromDexie(ids: []) {
-    const packagedDrugStocks = await packagedDrugStockDexie
-      .where('stock_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByStockIDsFromDexie(ids: string[]) {
+    const collection = packagedDrugStockDexie
+      .orderBy('creationDate')
+      .reverse()
+      .filter((packagedDrugStock: PackagedDrugStock) =>
+        ids.includes(packagedDrugStock?.stock?.id ?? '')
+      );
+    const packagedDrugStocks = await collection.toArray();
 
     const packagedDrugIds = packagedDrugStocks.map(
-      (packagedDrugStock: any) => packagedDrugStock.packagedDrug_id
+      (packagedDrugStock: any) => packagedDrugStock?.packagedDrug?.id ? packagedDrugStock.packagedDrug.id : ''
     );
 
     const [packagedDrugList] = await Promise.all([
@@ -166,7 +169,7 @@ export default {
     packagedDrugStocks.map((packagedDrugStock: any) => {
       packagedDrugStock.packagedDrug = packagedDrugList.find(
         (packagedDrug: any) =>
-          packagedDrug.id === packagedDrugStock.packagedDrug_id
+          packagedDrug.id === packagedDrugStock.packagedDrug.id
       );
     });
 

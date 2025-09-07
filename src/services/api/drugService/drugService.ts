@@ -259,10 +259,10 @@ export default {
   async getAllByIDsFromDexie(ids: []) {
     const drugs = await drugDexie.where('id').anyOf(ids).toArray();
 
-    const formsIds = drugs.map((drug: any) => drug.form_id);
+    const formsIds = drugs.map((drug: any) => drug?.form?.id ? drug.form.id : '');
 
     const clinicalServiceIds = drugs.map(
-      (drug: any) => drug.clinical_service_id
+      (drug: any) => drug?.clinicalService?.id ? drug.clinicalService.id : ''
     );
 
     const [forms, clinicalServices] = await Promise.all([
@@ -271,10 +271,10 @@ export default {
     ]);
 
     drugs.map((drug: any) => {
-      drug.form = forms.find((form: any) => form.id === drug.form_id);
+      drug.form = forms.find((form: any) => form.id === drug.form.id);
       drug.clinicalService = clinicalServices.find(
         (clinicalService: any) =>
-          clinicalService.id === drug.clinical_service_id
+          clinicalService.id === drug.clinicalService.id
       );
     });
     return drugs;

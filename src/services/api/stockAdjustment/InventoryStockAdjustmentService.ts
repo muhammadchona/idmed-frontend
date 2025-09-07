@@ -235,6 +235,7 @@ export default {
       console.log(error);
     }
   },
+
   async localDbGetAll() {
     try {
       const rows = await inventoryStockAdjustmentDexie.toArray();
@@ -246,33 +247,38 @@ export default {
     }
   },
 
-  getAllByClinicMobile(clinicId: any) {
-    return inventoryStockAdjustmentDexie
-      .where('clinic_id')
-      .equalsIgnoreCase(clinicId)
-      .toArray()
-      .then((rows: any) => {
-        inventoryStockAdjustment.save(rows);
-        return rows;
-      });
+  async getAllByClinicMobile(clinicId: any) {
+    const collection = inventoryStockAdjustmentDexie.filter(
+      (inventoryStockAdjustment: InventoryStockAdjustment) =>
+        clinicId === inventoryStockAdjustment?.clinic?.id
+    );
+    return await collection.toArray().then((rows: any) => {
+      inventoryStockAdjustment.save(rows);
+      return rows;
+    });
   },
-  async getAllByStockIDsFromDexie(ids: []) {
-    const inventoriesStocksAdjustiments = await inventoryStockAdjustmentDexie
-      .where('adjusted_stock_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByStockIDsFromDexie(ids: string[]) {
+    const collection = inventoryStockAdjustmentDexie.filter(
+      (inventoryStockAdjustment: InventoryStockAdjustment) =>
+        ids.includes(inventoryStockAdjustment?.patientServiceIdentifier?.id)
+    );
+    const inventoriesStocksAdjustiments = await collection.toArray();
 
     const inventoryIds = inventoriesStocksAdjustiments.map(
-      (inventoryStockAdjustiment: any) => inventoryStockAdjustiment.inventory_id
+      (inventoryStockAdjustiment: any) =>
+        inventoryStockAdjustiment?.inventory?.id
+          ? inventoryStockAdjustiment.inventory.id
+          : ''
     );
     const [inventories] = await Promise.all([
       InventoryService.getAllByIDsFromDexie(inventoryIds),
     ]);
 
     inventoriesStocksAdjustiments.map((inventoryStockAdjustiment: any) => {
-      inventoryStockAdjustiment.inventory = inventories.find(
-        (inventory: any) =>
-          inventory.id === inventoryStockAdjustiment.inventory_id
+      inventoryStockAdjustiment.inventory = inventories.find((inventory: any) =>
+        inventory.id === inventoryStockAdjustiment?.inventory?.id
+          ? inventoryStockAdjustiment.inventory.id
+          : ''
       );
     });
 

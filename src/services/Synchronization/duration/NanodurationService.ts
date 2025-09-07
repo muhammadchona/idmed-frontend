@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie Duration');
-    const getAllDuration = durationService.getAllFromStorage();
-    await durationDexie.bulkPut(getAllDuration);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia Duration');
+    durationService.getMobile();
   },
 };

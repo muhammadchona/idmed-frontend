@@ -75,6 +75,8 @@ onMounted(() => {
   init();
 });
 
+const items = ref([...Array(10000).keys()]);
+
 // Computed
 const canAddPrescription = computed(() => {
   if (isOnline.value) {

@@ -152,21 +152,22 @@ export default {
   deleteAllFromStorage() {
     tBScreening.flush();
   },
-    // Dexie Block
-    async getAllByIDsFromDexie(ids: []) {
-      return await tBScreeningDexie
-        .where('id')
-        .anyOfIgnoreCase(ids)
-        .toArray();
-    },
+  // Dexie Block
+  async getAllByIDsFromDexie(ids: []) {
+    return await tBScreeningDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
 
-    async getAllByPatientVisitIDsFromDexie(ids: []) {
-      return await tBScreeningDexie
-        .where('patient_visit_id')
-        .anyOfIgnoreCase(ids)
-        .toArray();
-    },
-    deleteAllFromDexie() {
-      tBScreeningDexie.clear();
-    },
+  async getAllByPatientVisitIDsFromDexie(ids: string[]) {
+    const collection = tBScreeningDexie.filter((tBScreening: TBScreening) =>
+      ids.includes(tBScreening?.patientVisit?.id)
+    );
+    return await collection.toArray().then((rows: any) => {
+      tBScreening.save(rows);
+      return rows;
+    });
+  },
+
+  deleteAllFromDexie() {
+    tBScreeningDexie.clear();
+  },
 };

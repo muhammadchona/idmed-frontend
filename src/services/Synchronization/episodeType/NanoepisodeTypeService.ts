@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie EpisodeType');
-    const getAllEpisodeType = episodeTypeService.getAllFromStorage();
-    await episodeTypeDexie.bulkPut(getAllEpisodeType);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia EpisodeType');
+    episodeTypeService.getMobile();
   },
 };

@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie Province');
-    const getAllProvince = provinceService.getAllProvinces();
-    await provinceDexie.bulkPut(getAllProvince);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia Province');
+    provinceService.getMobile();
   },
 };

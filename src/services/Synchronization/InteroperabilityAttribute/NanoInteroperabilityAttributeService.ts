@@ -33,12 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie InteroperabilityAttribute');
-    const getAllInteroperabilityAttribute =
-      InteroperabilityAttributeService.getAllFromStorage();
-    await InteroperabilityAttributeDexie.bulkPut(
-      getAllInteroperabilityAttribute
-    );
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia InteroperabilityAttribute');
+    InteroperabilityAttributeService.getMobile();
   },
 };

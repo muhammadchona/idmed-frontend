@@ -174,11 +174,12 @@ export default {
       .toArray();
   },
 
-  async getAllByPatientVisitIDsFromDexie(ids: []) {
-    return await pregnancyScreeningDexie
-      .where('patient_visit_id')
-      .anyOfIgnoreCase(ids)
-      .toArray();
+  async getAllByPatientVisitIDsFromDexie(ids: string[]) {
+    const collection = pregnancyScreeningDexie.filter(
+      (screening: PregnancyScreening) =>
+        ids.includes(screening?.patientVisit?.id)
+    );
+    return await collection.toArray();
   },
   deleteAllFromDexie() {
     pregnancyScreeningDexie.clear();

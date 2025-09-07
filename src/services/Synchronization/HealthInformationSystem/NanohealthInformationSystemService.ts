@@ -33,10 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie HealthInformationSystem');
-    const getAllHealthInformationSystem =
-      healthInformationSystemService.getAllFromStorage();
-    await healthInformationSystemDexie.bulkPut(getAllHealthInformationSystem);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia HealthInformationSystem');
+    healthInformationSystemService.getMobile();
   },
 };

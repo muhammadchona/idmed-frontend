@@ -33,9 +33,8 @@ export default {
       : '';
   },
 
-  async getFromPiniaToDexie() {
-    console.log('Data synced from Pinia To Dexie DispenseMode');
-    const getAllDispenseMode = dispenseModeService.getAllFromStorage();
-    await dispenseModeDexie.bulkPut(getAllDispenseMode);
+  async getFromDexieToPinia() {
+    console.log('Data synced from Dexie To Pinia DispenseMode');
+    dispenseModeService.getMobile();
   },
 };

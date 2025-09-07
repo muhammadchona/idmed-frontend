@@ -429,9 +429,13 @@ export default {
       .reverse()
       .sortBy('pickupDate');
 
-    const packsId = packs.map((pack: any) => pack.id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
+    const packsId = packs.map((pack: any) => (pack?.id ? pack.id : ''));
+    const dispenseModeIds = packs.map((pack: any) =>
+      pack?.dispenseMode?.id ? pack.dispenseMode.id : ''
+    );
+    const clinicIds = packs.map((pack: any) =>
+      pack?.clinic?.id ? pack.clinic.id : ''
+    );
 
     const [dispenseModes, packagedDrugsList, clinics] = await Promise.all([
       dispenseModeService.getAllByIDsFromDexie(dispenseModeIds),
@@ -440,12 +444,12 @@ export default {
     ]);
     packs.map((pack: any) => {
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
+        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
       );
       pack.packagedDrugs = packagedDrugsList.filter(
-        (packagedDrugs: any) => packagedDrugs.pack_id === pack.id
+        (packagedDrugs: any) => packagedDrugs.pack.id === pack.id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
     });
     return packs;
   },
@@ -499,9 +503,13 @@ export default {
       .reverse()
       .sortBy('pickupDate');
 
-    const packIds = packs.map((pack: any) => pack.id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
+    const packIds = packs.map((pack: any) => (pack?.id ? pack.id : ''));
+    const clinicIds = packs.map((pack: any) =>
+      pack?.clinic?.id ? pack.clinic.id : ''
+    );
+    const dispenseModeIds = packs.map((pack: any) =>
+      pack?.dispenseMode?.id ? pack.dispenseMode.id : ''
+    );
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -524,9 +532,9 @@ export default {
         (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
       );
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
+        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
     });
     return packs;
   },

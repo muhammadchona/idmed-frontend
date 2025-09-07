@@ -127,12 +127,14 @@ export default {
       });
   },
   async getLastByPrescriprionIdFromDexie(prescriptionId: string) {
-    const prescribedDrugs = await prescribedDrugDexie
-      .where('prescription_id')
-      .equals(prescriptionId)
-      .toArray();
-    prescribedDrug.save(prescribedDrugs);
-    return prescribedDrugs;
+    const collection = prescribedDrugDexie.filter(
+      (prescribedDrug: PrescribedDrug) =>
+        prescribedDrug?.prescription.id === prescriptionId
+    );
+    return await collection.toArray().then((prescribedDrugs: any) => {
+      prescribedDrug.save(prescribedDrugs);
+      return prescribedDrugs;
+    });
   },
   async apiGetAllByPrescriptionId(prescriptionId: string) {
     return await api()
@@ -161,14 +163,20 @@ export default {
   getLastByPrescriprionId(prescriptionId: string) {
     return prescribedDrug.where('prescription_id', prescriptionId).first();
   },
-  async getAllByPrescriprionIdListFromDexie(prescriptionIds: []) {
-    const prescribedDrugs = await prescribedDrugDexie
-      .where('prescription_id')
-      .anyOf(prescriptionIds)
-      .toArray();
+  async getAllByPrescriprionIdListFromDexie(prescriptionIds: string[]) {
+    const collection = prescribedDrugDexie.filter(
+      (prescribedDrug: PrescribedDrug) =>
+        prescriptionIds.includes(prescribedDrug?.prescription?.id)
+    );
+    const prescribedDrugs = await collection
+      .toArray()
+      .then((prescribedDrugs: any) => {
+        prescribedDrug.save(prescribedDrugs);
+        return prescribedDrugs;
+      });
 
-    const drugIds = prescribedDrugs.map(
-      (prescribedDrug: any) => prescribedDrug.drug_id
+    const drugIds = prescribedDrugs.map((prescribedDrug: any) =>
+      prescribedDrug?.drug?.id ? prescribedDrug.drug.id : ''
     );
 
     const [drugs] = await Promise.all([
@@ -177,7 +185,7 @@ export default {
 
     prescribedDrugs.map((prescribedDrug: any) => {
       prescribedDrug.drug = drugs.find(
-        (drug: any) => drug.id === prescribedDrug.drug_id
+        (drug: any) => drug.id === prescribedDrug.drug.id
       );
     });
     return prescribedDrugs;

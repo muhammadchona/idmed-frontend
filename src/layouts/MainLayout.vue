@@ -19,7 +19,11 @@
               >
               <q-item-label
                 class="text-bold text-italic"
-                style="font-family: 'Gill Sans'; font-size: 25px"
+                style="
+                  font-family: 'Gill Sans';
+                  font-size: 20px;
+                  margin-top: 20px;
+                "
                 >{{
                   currClinic !== null
                     ? currClinic.parentClinic_id !== undefined &&

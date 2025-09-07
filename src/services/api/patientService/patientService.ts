@@ -24,10 +24,12 @@ import adherenceScreeningService from '../adherenceScreening/adherenceScreeningS
 import pregnancyScreeningService from '../pregnancyScreening/pregnancyScreeningService';
 import { Notify } from 'quasar';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
+import Episode from 'src/stores/models/episode/Episode';
 
 const patient = useRepo(Patient);
 const patientDexie = db[Patient.entity];
 const patientServiceIdentifierDexie = db[PatientServiceIdentifier.entity];
+const episodeDexie = db[Episode.entity];
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -341,8 +343,8 @@ export default {
   async fetchAllPatientsByClinicSectorId(clinicSectorId: any) {
     let offset = 0;
     const max = 100; // You can adjust this number based on your API's limits
-    // const allPatients = [];
-    const allIdentifiers: PatientServiceIdentifier[] = [];
+    const allPatients: Patient[] = [];
+    const allEpisodes: Episode[] = [];
     let hasMorePatients = true;
 
     let percentage = 0;
@@ -364,40 +366,54 @@ export default {
         offset,
         max
       );
-      const patients = response.data;
+      const identifiers = response.data;
 
-      if (patients.length > 0) {
-        patients.forEach((patient: Patient) => {
-          patient?.identifiers?.forEach(
-            (identifier: PatientServiceIdentifier) => {
-              allIdentifiers.push(identifier);
+      if (identifiers.length > 0) {
+        identifiers.forEach((identifier: PatientServiceIdentifier) => {
+          allPatients.push(identifier.patient);
+          identifier?.episodes?.forEach((episode: Episode) => {
+            allEpisodes.push(episode);
+          });
+        });
+
+        if (allPatients.length > 0) {
+          patientDexie.bulkPut(allPatients).catch((e: any) => {
+            if (e.name === 'BulkError') {
+              console.error(
+                'Patient: Some raindrops did not succeed. However, ' +
+                  (100000 - e.failures.length) +
+                  ' raindrops was added successfully'
+              );
+            } else {
+              throw e; // We're only handling BulkError here.
             }
-          );
-        });
-
-        patientDexie.bulkPut(patients).catch((error: any) => {
-          console.log(error);
-        });
-
-        if (allIdentifiers.length > 0) {
-          patientServiceIdentifierDexie
-            .bulkPut(allIdentifiers)
-            .catch((e: any) => {
-              if (e.name === 'BulkError') {
-                console.error(
-                  'Some raindrops did not succeed. However, ' +
-                    (100000 - e.failures.length) +
-                    ' raindrops was added successfully'
-                );
-              } else {
-                throw e; // We're only handling BulkError here.
-              }
-            });
+          });
         }
+
+        patientServiceIdentifierDexie
+          .bulkPut(identifiers)
+          .catch((error: any) => {
+            console.log(error);
+          });
+
+        if (allEpisodes.length > 0) {
+          episodeDexie.bulkPut(allEpisodes).catch((e: any) => {
+            if (e.name === 'BulkError') {
+              console.error(
+                'Episode: Some raindrops did not succeed. However, ' +
+                  (100000 - e.failures.length) +
+                  ' raindrops was added successfully'
+              );
+            } else {
+              throw e; // We're only handling BulkError here.
+            }
+          });
+        }
+
         notif({
           caption: `${percentage}%`,
         });
-        offset += patients.length;
+        offset += identifiers.length;
       } else {
         percentage = 100;
         hasMorePatients = false;
@@ -510,22 +526,22 @@ export default {
         .query()
         .has('identifiers')
         //  .has('patientVisits')
-        .with('identifiers', (query) => {
+        .with('identifiers', (query: any) => {
           query
             .with('identifierType')
-            .with('service', (query) => {
+            .with('service', (query: any) => {
               query.withAllRecursive(1);
             })
-            .with('clinic', (query) => {
+            .with('clinic', (query: any) => {
               query.withAll();
             });
         })
         .with('province')
         .with('district')
-        .with('clinic', (query) => {
+        .with('clinic', (query: any) => {
           query.withAll();
         })
-        .where((patients) => {
+        .where((patients: any) => {
           return (
             patients.clinic_id === clinicId || patients.clinicId === clinicId
           );
@@ -538,16 +554,16 @@ export default {
     return patient
       .query()
       .has('identifiers')
-      .with('identifiers', (query) => {
+      .with('identifiers', (query: any) => {
         query
           .with('identifierType')
-          .with('service', (query) => {
+          .with('service', (query: any) => {
             query.withAllRecursive(1);
           })
-          .with('clinic', (query) => {
+          .with('clinic', (query: any) => {
             query.withAllRecursive(1);
           })
-          .with('episodes', (query) => {
+          .with('episodes', (query: any) => {
             query
               .with('episodeType')
               .with('clinicSector')
@@ -556,7 +572,7 @@ export default {
       })
       .with('province')
       .with('district')
-      .with('clinic', (query) => {
+      .with('clinic', (query: any) => {
         query.withAllRecursive(1);
       })
       .where('id', id)
@@ -571,7 +587,7 @@ export default {
         const lastNamesMatch = patient.lastNames.includes(
           patientParam.lastNames
         );
-        const identifierMatch = patient.identifiers.some((identifier) =>
+        const identifierMatch = patient.identifiers.some((identifier: any) =>
           identifier.value.includes(patientParam.identifiers[0].value)
         );
 
@@ -585,7 +601,7 @@ export default {
   getById(id: string) {
     return patient
       .query()
-      .where((patient) => {
+      .where((patient: any) => {
         return patient.id === id;
       })
       .first();
@@ -627,10 +643,10 @@ export default {
     const patientVisitDetails =
       await patientVisitDetailsService.getAllMobileByVisitId(ids);
 
-    const prescriptionIds = patientVisitDetails.map(
-      (pat: any) => pat.prescription_id
+    const prescriptionIds = patientVisitDetails.map((pat: any) =>
+      pat?.prescription?.id ? pat.prescription.id : ''
     );
-    const packIds = patientVisitDetails.map((pat: any) => pat.pack_id);
+    const packIds = patientVisitDetails.map((pat: any) => pat.pack.id);
 
     const prescriptions = await prescriptionService.getAllMobileByIds(
       prescriptionIds
@@ -674,10 +690,10 @@ export default {
 
     patients.map((patient: any) => {
       patient.patientVisits = patientVisitList.filter(
-        (patientVisit: any) => patientVisit.patient_id === patient.id
+        (patientVisit: any) => patientVisit.patient.id === patient.id
       );
       patient.identifiers = identifiers.filter(
-        (identifier: any) => identifier.patient_id === patient.id
+        (identifier: any) => identifier.patient.id === patient.id
       );
     });
 
@@ -698,10 +714,10 @@ export default {
 
     patients.map((patient: any) => {
       patient.patientVisits = patientVisitList.filter(
-        (patientVisit: any) => patientVisit.patient_id === patient.id
+        (patientVisit: any) => patientVisit.patient.id === patient.id
       );
       patient.identifiers = identifiers.filter(
-        (identifier: any) => identifier.patient_id === patient.id
+        (identifier: any) => identifier.patient.id === patient.id
       );
     });
     return patients;
@@ -724,15 +740,15 @@ export default {
 
     patients.map((patient: any) => {
       patient.patientVisits = patientVisitList.filter(
-        (patientVisit: any) => patientVisit.patient_id === patient.id
+        (patientVisit: any) => patientVisit.patient.id === patient.id
       );
       patient.identifiers = identifiers.filter(
-        (identifier: any) => identifier.patient_id === patient.id
+        (identifier: any) => identifier.patient.id === patient.id
       );
     });
-    console.log('Load parient data from dexie');
+
     patient.save(patients);
-    console.log('Load parient data from Pinia');
+
     return patients;
   },
 
