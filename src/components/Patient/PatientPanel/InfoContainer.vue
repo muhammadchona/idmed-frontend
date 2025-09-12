@@ -149,12 +149,12 @@
       </q-card>
     </q-expansion-item>
     <q-separator />
-    <!-- <q-dialog persistent v-model="showEditClinicalService">
+    <q-dialog persistent v-model="showEditClinicalService">
       <AddClinicService />
     </q-dialog>
     <q-dialog persistent v-model="showAddEditEpisode">
       <AddEditEpisode />
-    </q-dialog> -->
+    </q-dialog>
   </div>
 </template>
 
@@ -164,7 +164,7 @@ import AddEditEpisode from 'components/Patient/PatientPanel/AddEditEpisode.vue';
 import AddClinicService from 'components/Patient/PatientPanel/AddClinicService.vue';
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
-import { computed, inject, provide, ref } from 'vue';
+import { computed, inject, onMounted, provide, ref } from 'vue';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
@@ -193,7 +193,7 @@ const {
 const { canBeEdited } = usePatientServiceIdentifier();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { preferedIdentifierValue, fullName } = usePatient();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { website, isOnline, isMobile } = useSystemUtils();
 const { formatDate } = useDateUtils();
 const isNewEpisode = ref(false);
 const isClosingEpisode = ref(false);
@@ -209,9 +209,8 @@ const isCloseStep = inject('isCloseStep');
 const isReOpenStep = inject('isReOpenStep');
 
 // Computed
-const curIdentifier = computed(async () => {
-  console.log('ID defe merda', await patientServiceIdentifierService.identifierCurr(props.identifierId, ''));
-  return await patientServiceIdentifierService.identifierCurr(props.identifierId, '');
+const curIdentifier = computed(() => {
+  return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
 });
 const curEpisode = computed(() => {
   return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
@@ -343,12 +342,21 @@ const islastEpisodeClosed = computed(() => {
   }
 });
 
-const get3LastEpisodes = computed(async() => {
-  console.log('Cur ID', await curIdentifier.value);
-  const idCur = await curIdentifier.value;
-  console.log('ID Cur', idCur);
-  return await episodeService.getlast3EpisodesByIdentifier(idCur.id);
+const get3LastEpisodes = computed(() => {
+  return episodeService.getlast3EpisodesByIdentifier(curIdentifier.value.id);
 });
+
+onMounted(() => {
+  loadPatientData();
+});
+
+const loadPatientData = async () => {
+  if (isMobile.value && !isOnline.value) {
+    await patientServiceIdentifierService.getAll3LastDataByIDFromDexie(
+      props.identifierId
+    );
+  }
+};
 
 //Provide
 provide('showAddEditEpisode', showAddEditEpisode);

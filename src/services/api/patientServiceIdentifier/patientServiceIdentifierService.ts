@@ -9,7 +9,6 @@ import clinicService from '../clinicService/clinicService';
 import clinicalServiceService from '../clinicalServiceService/clinicalServiceService';
 import identifierTypeService from '../identifierTypeService/identifierTypeService';
 import episodeService from '../episode/episodeService';
-import Patient from 'src/pages/Patient/Patient.vue';
 import Patient from 'src/stores/models/patient/Patient';
 
 const patientServiceIdentifier = useRepo(PatientServiceIdentifier);
@@ -249,27 +248,8 @@ export default {
   deleteAllFromStorage() {
     patientServiceIdentifier.flush();
   },
-  async identifierCurr(id: any, serviceId: string) {
-    console.log('Poooraa do ID', id);
-
-    if (isMobile.value && !isOnline.value) {
-      return await this.getAll3LastDataByIDFromDexie(id);
-    } else {
-      // const patientServiceIdentifiers = patientServiceIdentifier
-      //   .withAllRecursive(2)
-      //   .where('id', id)
-      //   .first();
-
-      const [patientServiceIdentifiers] = await Promise.all([
-        patientServiceIdentifier.withAllRecursive(2).where('id', id).first(),
-      ]);
-
-      if (!patientServiceIdentifiers) {
-        return null;
-      }
-
-      return patientServiceIdentifiers;
-    }
+  identifierCurr(id: any, serviceId: string) {
+    return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
   },
   getAllEpisodesByIdentifierId(id: string) {
     return patientServiceIdentifier
@@ -614,7 +594,6 @@ export default {
         episodeService.getAll3LastDataByIdentifierIDsFromDexie(identifierIds),
       ]
     );
-    console.log('episodeList', episodeList);
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
@@ -633,7 +612,9 @@ export default {
       );
     });
 
-    return patientServiceIdentifiers[0];
+    patientServiceIdentifier.save(patientServiceIdentifiers);
+
+    return patientServiceIdentifiers;
   },
 
   deleteAllFromDexie() {

@@ -53,8 +53,6 @@ export function generateSchemaFromModels() {
     });
 
     schema[modelName] = fieldNames.join(', ');
-    console.log(`Schema for ${modelName}: ${schema[modelName]}`);
-    console.log('-------------------------');
   });
   return schema;
 }
