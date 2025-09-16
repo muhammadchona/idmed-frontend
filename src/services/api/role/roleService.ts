@@ -6,9 +6,11 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import RoleUiSection from 'src/stores/models/userLogin/RoleUiSection';
 
 const role = useRepo(Role);
 const roleMenuRepo = useRepo(RoleMenu);
+const roleUiSection = useRepo(RoleUiSection);
 const roleDexie = db[Role.entity];
 
 const { closeLoading, showloading } = useLoading();
@@ -81,6 +83,7 @@ export default {
       console.log(resp.data);
       if (resp.data) {
         roleMenuRepo.where('role_id', resp.data.id).delete();
+        roleUiSection.where('role_id', resp.data.id).delete();
       }
       role.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
