@@ -445,8 +445,7 @@ const updateUUID = () => {
   patientReg.value.clinic = {};
   patientReg.value.clinic.id = currClinic.value.id;
   oldHisUUID.value = patientReg.value.hisUuid;
-  // patientReg.value.identifiers = {};
-  // patientReg.value.patientVisits = {};
+
   patientReg.value.hisUuid = hisUUID.value;
   patientService
     .updateUUID(patientReg.value, sessionStorage.getItem('Btoa'))
@@ -469,10 +468,6 @@ const optionsNonFutureDate = (dateOfBirth) => {
   return dateOfBirth <= moment().format('YYYY/MM/DD');
 };
 const onChangeProvincia = () => {
-  // if (newPatient.value) {
-  //   patientReg.value = new Patient({ id: uuidv4() });
-  // }
-
   if (patientReg.value.province !== null) {
     if (patientReg.value.province.description !== patientReg.value.province) {
       patientReg.value.district = null;
@@ -653,16 +648,14 @@ const savePatient = async () => {
       )
       .then(async (response) => {
         closeLoading();
+
         if (response.data.results.length > 0) {
-          response.data.results.forEach((identifierOpenMrs) => {
+          await response.data.results.forEach((identifierOpenMrs) => {
             if (
-              identifierOpenMrs?.display === 'SERVICO TARV - TRATAMENTO' ||
+              String(identifierOpenMrs?.display).includes('TRATAMENTO') ||
               String(identifierOpenMrs?.display).includes('PREP')
             ) {
-              editPatientIdentifierFromOpenMRS(
-                patientReg.value,
-                identifierOpenMrs
-              );
+              editPatientIdentifierFromOpenMRS(patientReg, identifierOpenMrs);
             }
           });
           doSave();
@@ -674,7 +667,6 @@ const savePatient = async () => {
           doSave();
         }
       });
-    doSave();
   } else {
     doSave();
   }
@@ -701,7 +693,6 @@ const doSave = async () => {
     identifier.origin = currClinic.value.id;
   });
 
-  console.log(patientReg.value);
   if (provincialPatient.value) {
     patientServiceIdentifierService.deletePatientServiceIdentifierPiniaByPatientId(
       patientReg.value.id
@@ -712,12 +703,6 @@ const doSave = async () => {
     patientService
       .post(patientReg.value)
       .then(async () => {
-        // if (
-        //   transferencePatientData !== undefined &&
-        //   transferencePatientData.length > 0
-        // ) {
-        //   doPatientTranference(resp);
-        // } else {
         if (provincialPatient.value) {
           await patientServiceIdentifierService.apiGetAllByPatientId(
             patientReg.value.id
@@ -885,14 +870,18 @@ const initPatient = () => {
 };
 
 const editPatientIdentifierFromOpenMRS = (patientReg, identifierOpenMrs) => {
-  patientReg.identifiers.forEach((identifier) => {
+  patientReg.value.identifiers.forEach((identifier) => {
+    const serviceIdetinfier = clinicalServiceService.getbyIdWithSectors(
+      identifier.service.id
+    );
     if (
-      (identifier.service.code === 'TARV' &&
-        identifierOpenMrs.display === 'SERVICO TARV - TRATAMENTO') ||
-      (identifier.service.code === 'PREP' &&
+      (serviceIdetinfier.code === 'TARV' &&
+        String(identifierOpenMrs.display).includes('TRATAMENTO')) ||
+      (serviceIdetinfier.code === 'PREP' &&
         String(identifierOpenMrs?.display).includes('PREP'))
     ) {
       identifier.startDate = identifierOpenMrs.dateEnrolled;
+      console.log('Reposta do Programa Edita iDENTIFIER DATE', identifier);
     }
   });
 };

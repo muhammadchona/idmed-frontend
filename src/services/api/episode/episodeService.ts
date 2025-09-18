@@ -281,7 +281,6 @@ export default {
       .first();
   },
   getlast3EpisodesByIdentifier(identifierId: string) {
-    console.log('identifierId', identifierId);
     const episodes = episode
       .withAllRecursive(2)
       .where('patientServiceIdentifier_id', identifierId)
