@@ -1,3 +1,4 @@
+import { messages } from 'src/i18n';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
@@ -753,7 +754,7 @@ export default {
   },
 
   async apisearchInProvincialServer(clinicId: string, searchParam: string) {
-    const nid = searchParam
+    const nid = searchParam;
     const replacedString = searchParam.replace(/\//g, '-');
     console.log(replacedString);
     return await api()
@@ -765,16 +766,17 @@ export default {
           patient.save(resp.data);
         } else {
           alertInfo(
-            'Nenhum resultado encontrado para o identificador ' +
-              nid +
-              ''
+            'Nenhum resultado encontrado para o identificador ' + nid + ''
           );
         }
         closeLoading();
         return resp;
       })
       .catch((error) => {
-        if (String(error).includes('Network Error')) {
+        if (
+          String(error?.response?.statusText).includes('Network Error') ||
+          String(error?.response?.statusText).includes('Server Error')
+        ) {
           alertError(
             'O Servidor Provincial encontra-se desligado ou existe um problema de conexão'
           );

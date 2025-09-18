@@ -461,7 +461,6 @@ const search = () => {
     } else if (selectedDataSources.value.abbreviation === 'Província') {
       showloading();
       const nid = patientId.value.replaceAll('/', '-');
-      console.log('Current Patient', currPatient.value);
       patientService.apisearchInProvincialServer(selectedUs.value.id, nid);
       showAddButton.value = true;
     } else {
