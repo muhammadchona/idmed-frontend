@@ -348,13 +348,11 @@ const init = () => {
 };
 
 const canRemovePrescription = computed(() => {
-  // return PermissionService.canPerformUiAction('prescription', 'remove');
-  return true;
+  return PermissionService.canPerformUiAction('prescription', 'remove');
 });
 
 const canAddPack = computed(() => {
-  // return PermissionService.canPerformUiAction('prescription', 'add');
-  return true;
+  return PermissionService.canPerformUiAction('prescription', 'add');
 });
 
 const removePack = () => {
@@ -478,7 +476,7 @@ const printFilaReport = async (patientServiceIdentifier) => {
 const curIdentifier = computed(() => {
   return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
 });
-
+ 
 const validadeColor = computed(() => {
   if (prescription.value !== null && remainigDuration(prescription.value) > 0) {
     return 'text-primary';
@@ -496,6 +494,7 @@ const lastPackOnPrescription = computed(() => {
   }
 });
 
+  
 const lastLog = computed(() => {
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
     patient.value.id,
