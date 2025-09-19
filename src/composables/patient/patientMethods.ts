@@ -107,7 +107,7 @@ export function usePatient() {
 
   function preferedIdentifierValue(patient: any) {
     if (patient.identifiers.length <= 0) return 'Sem identificador';
-    let preferedId = {};
+    let preferedId = { value: null };
     Object.keys(patient.identifiers).forEach(
       function (k: any) {
         const id = patient.identifiers[k];
@@ -116,7 +116,14 @@ export function usePatient() {
         }
       }.bind(patient)
     );
-    return preferedId.value;
+
+    if (
+      preferedId?.value !== null &&
+      preferedId?.value !== undefined &&
+      preferedId?.value !== ''
+    ) {
+      return preferedId.value;
+    } else return patient?.identifiers[0]?.value;
   }
 
   function preferedIdentifierServiceId(patient: any) {

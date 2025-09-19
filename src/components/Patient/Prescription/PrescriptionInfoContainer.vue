@@ -315,9 +315,6 @@ import groupMemberService from 'src/services/api/groupMember/groupMemberService'
 import clinicService from 'src/services/api/clinicService/clinicService';
 import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
 
-import { timedComputed, profiledComputed } from '/src/utils/performanceUtils';
-import { emergencyCache } from '/src/utils/emergencyCache';
-
 //Declaration
 const { website, isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
@@ -476,10 +473,10 @@ const printFilaReport = async (patientServiceIdentifier) => {
 };
 
 // Computed
-const curIdentifier = profiledComputed('Current Indent', () => {
+const curIdentifier = computed(() => {
   return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
 });
-
+ 
 const validadeColor = computed(() => {
   if (prescription.value !== null && remainigDuration(prescription.value) > 0) {
     return 'text-primary';
@@ -487,27 +484,25 @@ const validadeColor = computed(() => {
     return 'text-red';
   }
 });
-const lastPackOnPrescription = profiledComputed(
-  'LastPck On Prescriptiom',
-  () => {
-    if (prescription.value !== null) {
-      return packService.getLastPackFromPatientVisitAndPrescription(
-        prescription.value.id
-      );
-    } else {
-      return null;
-    }
+const lastPackOnPrescription = computed(() => {
+  if (prescription.value !== null) {
+    return packService.getLastPackFromPatientVisitAndPrescription(
+      prescription.value.id
+    );
+  } else {
+    return null;
   }
-);
+});
 
-const lastLog = profiledComputed('LastLog', () => {
+  
+const lastLog = computed(() => {
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
     patient.value.id,
     curIdentifier.value.service.id
   );
 });
 
-const prescription = profiledComputed('Prescription', () => {
+const prescription = computed(() => {
   if (lastLog.value && lastLog.value.prescription) {
     return lastLog.value.prescription;
   }
@@ -520,7 +515,7 @@ const prescription = profiledComputed('Prescription', () => {
   }
 });
 
-const patientVisit = profiledComputed('Patient Visit', () => {
+const patientVisit = computed(() => {
   const listPatietVisitIds = [];
   if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
     const listPatietVisitDetails =
@@ -562,31 +557,28 @@ const patientVisit = profiledComputed('Patient Visit', () => {
   }
 });
 
-const lastPatientVisitDetails = profiledComputed(
-  'LastPatientVisitDetails',
-  () => {
-    if (patientVisit.value !== null && patientVisit.value !== undefined) {
-      if (
-        lastStartEpisode.value !== null &&
-        lastStartEpisode.value !== undefined
-      ) {
-        return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
-          patientVisit.value.id,
-          lastStartEpisode.value.id
-        );
-      } else {
-        return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
-          patientVisit.value.id,
-          lastRefferedEpisode.value.id
-        );
-      }
+const lastPatientVisitDetails = computed(() => {
+  if (patientVisit.value !== null && patientVisit.value !== undefined) {
+    if (
+      lastStartEpisode.value !== null &&
+      lastStartEpisode.value !== undefined
+    ) {
+      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+        patientVisit.value.id,
+        lastStartEpisode.value.id
+      );
     } else {
-      return null;
+      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+        patientVisit.value.id,
+        lastRefferedEpisode.value.id
+      );
     }
+  } else {
+    return null;
   }
-);
+});
 
-const lastStartEpisode = profiledComputed('Last Start Episode', () => {
+const lastStartEpisode = computed(() => {
   if (curIdentifier.value !== null) {
     return episodeService.getLastStartEpisodeWithPrescription(
       curIdentifier.value.id
@@ -596,7 +588,7 @@ const lastStartEpisode = profiledComputed('Last Start Episode', () => {
   }
 });
 
-const lastRefferedEpisode = profiledComputed('Last ref episode', () => {
+const lastRefferedEpisode = computed(() => {
   if (curIdentifier.value !== null) {
     return episodeService.getLastRefferedEpisodeWithPrescription(
       curIdentifier.value.id
@@ -606,14 +598,14 @@ const lastRefferedEpisode = profiledComputed('Last ref episode', () => {
   }
 });
 
-const lastEpisode = profiledComputed('Last Episode', () => {
+const lastEpisode = computed(() => {
   if (curIdentifier.value !== null) {
     return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
   } else {
     return [];
   }
 });
-const showEndDetails = profiledComputed('Show End Details', () => {
+const showEndDetails = computed(() => {
   return (
     lastEpisode.value !== null &&
     isCloseEpisode(lastEpisode.value) &&

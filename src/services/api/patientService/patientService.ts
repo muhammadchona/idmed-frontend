@@ -1,3 +1,4 @@
+import { messages } from 'src/i18n';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
@@ -32,7 +33,7 @@ const patientServiceIdentifierDexie = db[PatientServiceIdentifier.entity];
 const episodeDexie = db[Episode.entity];
 
 const { closeLoading } = useLoading();
-const { alertSucess, alertError } = useSwal();
+const { alertSucess, alertError, alertInfo } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const {
   isProvincialInstalation,
@@ -753,6 +754,7 @@ export default {
   },
 
   async apisearchInProvincialServer(clinicId: string, searchParam: string) {
+    const nid = searchParam;
     const replacedString = searchParam.replace(/\//g, '-');
     console.log(replacedString);
     return await api()
@@ -760,12 +762,30 @@ export default {
         `/patient/getPatientFromProvincialServer/${clinicId}/${replacedString}`
       )
       .then((resp) => {
-        patient.save(resp.data);
+        if (resp.data.length > 0) {
+          patient.save(resp.data);
+        } else {
+          alertInfo(
+            'Nenhum resultado encontrado para o identificador ' + nid + ''
+          );
+        }
         closeLoading();
         return resp;
       })
       .catch((error) => {
-        closeLoading();
+        if (
+          String(error?.response?.statusText).includes('Network Error') ||
+          String(error?.response?.statusText).includes('Server Error')
+        ) {
+          alertError(
+            'O Servidor Provincial encontra-se desligado ou existe um problema de conexão'
+          );
+          closeLoading();
+        } else {
+          console.log(error);
+          alertError('Falha inesperada, por favor contacte o administrador.');
+          closeLoading();
+        }
       });
   },
 

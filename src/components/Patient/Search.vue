@@ -458,7 +458,7 @@ const search = () => {
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
       console.log(transferencePatientData.value);
-    } else if (selectedDataSources.value.abbreviation === 'PROV') {
+    } else if (selectedDataSources.value.abbreviation === 'Província') {
       showloading();
       const nid = patientId.value.replaceAll('/', '-');
       patientService.apisearchInProvincialServer(selectedUs.value.id, nid);
@@ -528,7 +528,7 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
     pacienteOpenMRS.person.gender === 'M' ? 'Masculino' : 'Feminino';
   localpatient.value.dateOfBirth = pacienteOpenMRS.person.birthdate;
   localpatient.value.identifiers.push(
-    buildPatientIdentifierFromOpenMRS(pacienteOpenMRS.identifiers[0])
+    buildPatientIdentifierFromOpenMRS(pacienteOpenMRS)
   );
   localpatient.value.cellphone =
     cellphoneObject !== null && cellphoneObject !== undefined
@@ -555,7 +555,8 @@ const buildLocalPatientFromOpenMRS = (localpatient, pacienteOpenMRS) => {
       : null;
   return localpatient.value;
 };
-const buildPatientIdentifierFromOpenMRS = (identifierOpenMrs) => {
+const buildPatientIdentifierFromOpenMRS = (pacienteOpenMRS) => {
+  const identifierOpenMrs = pacienteOpenMRS.identifiers[0];
   let serviceCode = 'TARV';
   if (String(identifierOpenMrs.identifierType.display).includes('TARV')) {
     serviceCode = 'TARV';
@@ -620,7 +621,7 @@ const saveOpenMRSPatient = (patient) => {
         showPatientRegister.value = true;
         newPatient.value = true;
         if (selectedDataSources.value.id.length > 4) {
-          if (selectedDataSources.value.abbreviation === 'PROV') {
+          if (selectedDataSources.value.abbreviation === 'Província') {
             provincialPatient.value = true;
           } else {
             openMrsPatient.value = true;
@@ -713,7 +714,7 @@ const loadHISDataSource = () => {
     if (selectedDataSources.value.abbreviation.length <= 2) {
       closeLoading();
       isTransitIdmed.value = false;
-    } else if (selectedDataSources.value.abbreviation === 'PROV') {
+    } else if (selectedDataSources.value.abbreviation === 'Província') {
       closeLoading();
       isTransitIdmed.value = true;
     } else {
