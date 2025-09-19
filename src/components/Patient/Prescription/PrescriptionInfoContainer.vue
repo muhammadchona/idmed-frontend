@@ -351,13 +351,11 @@ const init = () => {
 };
 
 const canRemovePrescription = computed(() => {
-  // return PermissionService.canPerformUiAction('prescription', 'remove');
-  return true;
+  return PermissionService.canPerformUiAction('prescription', 'remove');
 });
 
 const canAddPack = computed(() => {
-  // return PermissionService.canPerformUiAction('prescription', 'add');
-  return true;
+  return PermissionService.canPerformUiAction('prescription', 'add');
 });
 
 const removePack = () => {
@@ -478,15 +476,9 @@ const printFilaReport = async (patientServiceIdentifier) => {
 };
 
 // Computed
-const curIdentifier = profiledComputed(
-  'Current Indent',
-  () => {
-    return patientServiceIdentifierService.identifierCurr(
-      props.identifierId,
-      ''
-    );
-  }
-);
+const curIdentifier = profiledComputed('Current Indent', () => {
+  return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
+});
 
 const validadeColor = computed(() => {
   if (prescription.value !== null && remainigDuration(prescription.value) > 0) {
@@ -515,21 +507,18 @@ const lastLog = profiledComputed('LastLog', () => {
   );
 });
 
-const prescription = profiledComputed(
-  'Prescription',
-  () => {
-    if (lastLog.value && lastLog.value.prescription) {
-      return lastLog.value.prescription;
-    }
-    if (lastPatientVisitDetails.value !== null) {
-      return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
-        lastPatientVisitDetails.value.prescription.id
-      );
-    } else {
-      return null;
-    }
+const prescription = profiledComputed('Prescription', () => {
+  if (lastLog.value && lastLog.value.prescription) {
+    return lastLog.value.prescription;
   }
-);
+  if (lastPatientVisitDetails.value !== null) {
+    return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
+      lastPatientVisitDetails.value.prescription.id
+    );
+  } else {
+    return null;
+  }
+});
 
 const patientVisit = profiledComputed('Patient Visit', () => {
   const listPatietVisitIds = [];
