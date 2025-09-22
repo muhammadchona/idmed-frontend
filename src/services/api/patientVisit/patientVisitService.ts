@@ -1,3 +1,4 @@
+import { patientVisitService } from 'src/services/api/patientVisit/patientVisitService';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
@@ -25,8 +26,17 @@ import prescribedDrugService from '../prescribedDrug/prescribedDrugService';
 import prescriptionService from '../prescription/prescriptionService';
 import prescriptionDetailsService from '../prescriptionDetails/prescriptionDetailsService';
 import { Notify } from 'quasar';
+import PregnancyScreening from 'src/stores/models/screening/PregnancyScreening';
+import RAMScreening from 'src/stores/models/screening/RAMScreening';
+import TBScreening from 'src/stores/models/screening/TBScreening';
+import VitalSignsScreening from 'src/stores/models/screening/VitalSignsScreening';
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = db[PatientVisit.entity];
+
+const pregnancyScreeningDexie = db[PregnancyScreening.entity];
+const rAMScreeningDexie = db[RAMScreening.entity];
+const tBScreeningDexie = db[TBScreening.entity];
+const vitalSignsScreeningtDexie = db[VitalSignsScreening.entity];
 
 const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -237,10 +247,12 @@ export default {
 
   async apiGetAllByPatientId(patientId: string) {
     if (isMobile.value && !isOnline.value) {
-      const resp = await patientVisitDexie
-        .where('patient_id')
-        .equalsIgnoreCase(patientId)
-        .toArray();
+      const patientIds = [];
+      patientIds.push(patientId);
+      const [patientVisitList] = await Promise.all([
+        this.getAllByPatientIDsFromDexie(patientIds),
+      ]);
+      const resp = patientVisitList;
       patientVisit.save(resp);
       return resp;
     } else {
@@ -737,7 +749,6 @@ export default {
   async getPatientVisitWithScreeningByPatientIds(patientIds: any) {
     const limit = 100; // Define your limit
     const offset = 0;
-
     const chunks = ChunkArray.chunkArrayWithOffset(patientIds, limit, offset);
 
     const allVisits = [];
@@ -759,6 +770,10 @@ export default {
       notifyInfo('Carregamento de Atencao Farmaceutica Iniciado');
       showloading();
       const patients = await patientService.getMobile();
+      const pregnancyScreenings: PregnancyScreening = [];
+      const ramScreenings: RAMScreening = [];
+      const tbScreenings: TBScreening = [];
+      const vitalSignsScreenings: VitalSignsScreening = [];
       const ids = patients.map((pat: any) => pat.id);
       const limit = 100; // Define your limit
       const offset = 0;
@@ -786,8 +801,36 @@ export default {
             chunk
           )
           .then((resp) => {
-            // patientVisit.save(resp.data);
-            patientVisitDexie.bulkPut(resp.data);
+            const patientVisitsList: PatientVisit = resp.data;
+            console.log('Lista de pv', patientVisitsList);
+            if (patientVisitsList.length > 0) {
+              patientVisitDexie.bulkPut(patientVisitsList);
+
+              patientVisitsList.forEach((pv: PatientVisit) => {
+                console.log('pv', pv);
+                pregnancyScreeningDexie
+                  .bulkPut(pv.pregnancyScreenings)
+                  .catch((error: any) => {
+                    console.log(error);
+                  });
+                rAMScreeningDexie
+                  .bulkPut(pv.ramScreenings)
+                  .catch((error: any) => {
+                    console.log(error);
+                  });
+                tBScreeningDexie
+                  .bulkPut(pv.tbScreenings)
+                  .catch((error: any) => {
+                    console.log(error);
+                  });
+                vitalSignsScreeningtDexie
+                  .bulkPut(pv.vitalSignsScreenings)
+                  .catch((error: any) => {
+                    console.log(error);
+                  });
+              });
+            }
+
             notif({
               caption: `${percentage}%`,
             });

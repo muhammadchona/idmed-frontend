@@ -143,12 +143,17 @@ export default {
       });
   },
   async getAdherenceScreeningByVisitIdMobile(id: string) {
-    const adherenceScreenings = await adherenceScreeningDexie
-      .where('patient_visit_id')
-      .equalsIgnoreCase(id)
-      .toArray();
-    adherenceScreening.save(adherenceScreenings);
-    return adherenceScreenings;
+    const collection = adherenceScreeningDexie
+      .orderBy('id')
+      .reverse()
+      .filter(
+        (adherenceScreening: AdherenceScreening) =>
+          id === adherenceScreening?.visit?.id
+      );
+    const resp = await collection.toArray();
+
+    adherenceScreening.save(resp);
+    return resp;
   },
   // Local Storage Pinia
   newInstanceEntity() {

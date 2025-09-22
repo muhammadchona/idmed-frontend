@@ -129,12 +129,16 @@ export default {
       });
   },
   async getTBScreeningsByVisitIdMobile(id: string) {
-    const tBScreenings = await tBScreeningDexie
-      .where('patient_visit_id')
-      .equalsIgnoreCase(id)
-      .toArray();
-    tBScreening.save(tBScreenings);
-    return tBScreenings;
+    const collection = tBScreeningDexie
+      .orderBy('id')
+      .reverse()
+      .filter(
+        (tBScreening: TBScreening) => id === tBScreening?.visit?.id
+      );
+    const resp = await collection.toArray();
+
+    tBScreening.save(resp);
+    return resp;
   },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);

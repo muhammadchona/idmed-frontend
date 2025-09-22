@@ -125,12 +125,17 @@ export default {
       });
   },
   async getPregnancyScreeningsByVisitIdMobile(id: string) {
-    const pregnancyScreenings = await pregnancyScreeningDexie
-      .where('patient_visit_id')
-      .equalsIgnoreCase(id)
-      .toArray();
-    pregnancyScreening.save(pregnancyScreenings);
-    return pregnancyScreenings;
+    const collection = pregnancyScreeningDexie
+      .orderBy('id')
+      .reverse()
+      .filter(
+        (pregnancyScreening: PregnancyScreening) =>
+          id === pregnancyScreening?.visit?.id
+      );
+    const resp = await collection.toArray();
+
+    pregnancyScreening.save(resp);
+    return resp;
   },
   async apiGetAll(offset: number, max: number) {
     return await api().get(

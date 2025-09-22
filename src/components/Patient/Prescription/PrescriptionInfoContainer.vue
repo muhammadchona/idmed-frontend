@@ -314,6 +314,7 @@ import StockService from 'src/services/api/stockService/StockService';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 //Declaration
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -476,7 +477,7 @@ const printFilaReport = async (patientServiceIdentifier) => {
 const curIdentifier = computed(() => {
   return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
 });
- 
+
 const validadeColor = computed(() => {
   if (prescription.value !== null && remainigDuration(prescription.value) > 0) {
     return 'text-primary';
@@ -494,7 +495,7 @@ const lastPackOnPrescription = computed(() => {
   }
 });
 
-  
+
 const lastLog = computed(() => {
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
     patient.value.id,

@@ -222,7 +222,6 @@ export default {
 
   async apisearchByParam(searchParam: string, clinicId: string) {
     const replacedString = searchParam.replace(/\//g, '-');
-    console.log(replacedString);
     return await api()
       .get(`/patient/searchByParam/${replacedString}/${clinicId}`)
       .then((resp) => {
@@ -668,7 +667,6 @@ export default {
         prescription.id
       );
     });
-
     packs.forEach((pack: any) => {
       packagedDrugService.getAllByPackIdMobile(pack.id);
     });
@@ -756,7 +754,6 @@ export default {
   async apisearchInProvincialServer(clinicId: string, searchParam: string) {
     const nid = searchParam;
     const replacedString = searchParam.replace(/\//g, '-');
-    console.log(replacedString);
     return await api()
       .get(
         `/patient/getPatientFromProvincialServer/${clinicId}/${replacedString}`
