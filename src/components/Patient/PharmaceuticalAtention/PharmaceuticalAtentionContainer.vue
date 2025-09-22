@@ -347,14 +347,25 @@ const promptToConfirm = (patientVisitParams) => {
 };
 
 const canRemovePharmaceuticalAtention = computed(() => {
-  return PermissionService.canPerformUiAction(
-    'pharmaceuticalAttention',
-    'remove'
-  );
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction(
+      'pharmaceuticalAttention',
+      'remove'
+    );
+  } else {
+    return true;
+  }
 });
 
 const canAddPharmaceuticalAtention = computed(() => {
-  return PermissionService.canPerformUiAction('pharmaceuticalAttention', 'add');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction(
+      'pharmaceuticalAttention',
+      'remove'
+    );
+  } else {
+    return true;
+  }
 });
 </script>
 
