@@ -349,11 +349,19 @@ const init = () => {
 };
 
 const canRemovePrescription = computed(() => {
-  return PermissionService.canPerformUiAction('prescription', 'remove');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('prescription', 'remove');
+  } else {
+    return true;
+  }
 });
 
 const canAddPack = computed(() => {
-  return PermissionService.canPerformUiAction('prescription', 'add');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('prescription', 'add');
+  } else {
+    return true;
+  }
 });
 
 const removePack = () => {
@@ -494,7 +502,6 @@ const lastPackOnPrescription = computed(() => {
     return null;
   }
 });
-
 
 const lastLog = computed(() => {
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(

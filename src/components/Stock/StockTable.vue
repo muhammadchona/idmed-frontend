@@ -221,7 +221,11 @@ watchEffect((isExecutedStockAlert) => {
 });
 
 const canViewStockFile = computed(() => {
-  return PermissionService.canPerformUiAction('stockFile', 'open');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('stockFile', 'open');
+  } else {
+    return true;
+  }
 });
 </script>
 <style lang="sass" scoped>

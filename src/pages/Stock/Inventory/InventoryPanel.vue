@@ -289,7 +289,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import PermissionService from 'src/services/api/user/PermissionService';
 
-const { isMobile } = useSystemUtils();
+const { isMobile, isOnline } = useSystemUtils();
 const inventoryMethod = useInventory();
 const router = useRouter();
 const { closeLoading, showloading } = useLoading();
@@ -654,7 +654,11 @@ const inventoryType = computed(() => {
 });
 
 const canCloseInventory = computed(() => {
-  return PermissionService.canPerformUiAction('inventory', 'edit');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('inventory', 'edit');
+  } else {
+    return true;
+  }
 });
 
 provide('title', title);

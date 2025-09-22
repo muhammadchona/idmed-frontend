@@ -199,6 +199,7 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import PermissionService from 'src/services/api/user/PermissionService';
 import EditClosedEpisode from 'components/Patient/PatientPanel/EditClosedEpisode.vue';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
 const {
   isReferenceEpisode,
@@ -209,6 +210,7 @@ const {
   isStartEpisode,
   checkIsReferedToRemove,
 } = useEpisode();
+const { isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { isPharmacyDDDOrAPEOrDCP, isProvincialInstalation } = useSystemConfig();
@@ -237,7 +239,6 @@ const currIdentifier = computed(() => {
   return currEpisode.value.patientServiceIdentifier;
 });
 const canEdit = computed(() => {
-  console.log(canBeEdited());
   return canBeEdited();
 });
 // Methods
@@ -336,15 +337,27 @@ const isLastEpisode = computed(() => {
 });
 
 const canCloseEpisodeService = computed(() => {
-  return PermissionService.canPerformUiAction('episode', 'close');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('episode', 'close');
+  } else {
+    return true;
+  }
 });
 
 const canEditEpisodeService = computed(() => {
-  return PermissionService.canPerformUiAction('episode', 'edit');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('episode', 'edit');
+  } else {
+    return true;
+  }
 });
 
 const canRemoveEpisodeService = computed(() => {
-  return PermissionService.canPerformUiAction('episode', 'remove');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('episode', 'remove');
+  } else {
+    return true;
+  }
 });
 
 provide('curEpisode', currEpisode);

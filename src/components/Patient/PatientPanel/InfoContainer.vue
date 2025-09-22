@@ -226,24 +226,36 @@ const lastPack = computed(() => {
 });
 
 const canEditPatientService = computed(() => {
-  return PermissionService.canPerformUiAction(
-    'patientServiceIdentifier',
-    'edit'
-  );
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction(
+      'patientServiceIdentifier',
+      'edit'
+    );
+  } else {
+    return true;
+  }
 });
 
 const canAddPatientService = computed(() => {
-  return PermissionService.canPerformUiAction(
-    'patientServiceIdentifier',
-    'add'
-  );
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction(
+      'patientServiceIdentifier',
+      'add'
+    );
+  } else {
+    return true;
+  }
 });
 
 const canClosePatientService = computed(() => {
-  return PermissionService.canPerformUiAction(
-    'patientServiceIdentifier',
-    'edit'
-  );
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction(
+      'patientServiceIdentifier',
+      'edit'
+    );
+  } else {
+    return true;
+  }
 });
 
 const isPatientActive = computed(() => {
