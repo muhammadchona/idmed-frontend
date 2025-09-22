@@ -40,7 +40,7 @@
                     columns[5].label
                   }}</q-th>
                   <q-th
-                    v-if="
+                    v-else-if="
                       (patient.isLast && !isProvincialInstalation()) ||
                       isProvincialInstalationPharmacysMode() ||
                       isProvincialInstalationMobileClinic()

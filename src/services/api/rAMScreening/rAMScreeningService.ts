@@ -128,12 +128,16 @@ export default {
       });
   },
   async getRAMScreeningByVisitIdMobile(id: string) {
-    const rAMScreenings = await rAMScreeningDexie
-      .where('patient_visit_id')
-      .equalsIgnoreCase(id)
-      .toArray();
-    rAMScreening.save(rAMScreenings);
-    return rAMScreenings;
+    const collection = rAMScreeningDexie
+      .orderBy('id')
+      .reverse()
+      .filter(
+        (rAMScreening: RAMScreening) => id === rAMScreening?.visit?.id
+      );
+    const resp = await collection.toArray();
+
+    rAMScreening.save(resp);
+    return resp;
   },
   async apiGetAll(offset: number, max: number) {
     return await api().get('/RAMScreening?offset=' + offset + '&max=' + max);

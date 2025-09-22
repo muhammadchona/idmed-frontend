@@ -80,7 +80,7 @@
   </q-card>
 </template>
 <script setup>
-import { ref, inject } from 'vue';
+import { ref, inject, onMounted } from 'vue';
 import { sendData } from 'src/services/Mobile/SendInfo';
 import UsersService from 'src/services/UsersService';
 const username = ref('');
@@ -108,4 +108,8 @@ const authUser = async () => {
     //  getStockDistributionCount();
   });
 };
+
+onMounted(() => {
+  username.value = sessionStorage.getItem('username');
+});
 </script>

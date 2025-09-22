@@ -151,10 +151,13 @@ export default {
   },
 
   async getAllMobileByVisitId(visitIds: []) {
-    const resp = await patientVisitDetailsDexie
-      .where('patient_visit_id')
-      .anyOf(visitIds)
-      .toArray();
+   const collection = patientVisitDetailsDexie
+      .orderBy('id')
+      .reverse()
+      .filter((patientVisitDetails: PatientVisitDetails) =>
+        visitIds.includes(patientVisitDetails?.patientVisit?.id)
+      );
+    const resp = await collection.toArray();
 
     patientVisitDetails.save(resp);
     return resp;
@@ -754,7 +757,7 @@ export default {
     ]);
     patientVisitDetails.map((patientVisitDetail: any) => {
       patientVisitDetail.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisitDetail.clini.id
+        (clinic: any) => clinic.id === patientVisitDetail.clinic.id
       );
       patientVisitDetail.episode = episodes.find(
         (episode: any) => episode.id === patientVisitDetail.episode.id

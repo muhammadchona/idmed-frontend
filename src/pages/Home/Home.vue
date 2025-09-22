@@ -277,21 +277,11 @@ onMounted(async () => {
           showloading();
           if (dexie_resp) loadPatientDataToOffline();
         });
-
-        // loadParamsDataFromBackEndToPinia().then((pinia_resp) => {
-        //   showloading();
-        //   if (pinia_resp)
-        //     saveParamsFromDexieToPinia().then((dexie_resp) => {
-        //       showloading();
-        //       if (dexie_resp) loadPatientDataToOffline();
-        //     });
-        // });
-      } else {
-        showloading();
-        saveParamsFromDexieToPinia();
-        closeLoading();
       }
     });
+    showloading();
+    saveParamsFromDexieToPinia();
+    closeLoading();
   }
 });
 

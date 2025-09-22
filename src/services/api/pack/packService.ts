@@ -248,13 +248,14 @@ export default {
   },
 
   getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
-    return pack
+    const packreturn =  pack
       .withAllRecursive(1)
       .whereHas('patientVisitDetails', (query) => {
         query.where('prescription_id', prescriptionId);
       })
       .orderBy('pickupDate', 'desc')
       .first();
+      return packreturn
   },
   getLastPackFromEpisode(episodeId: string) {
     return pack

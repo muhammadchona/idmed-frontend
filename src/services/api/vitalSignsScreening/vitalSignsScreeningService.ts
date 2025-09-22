@@ -133,12 +133,16 @@ export default {
       });
   },
   async getVitalSignsScreeningByVisitIdMobile(id: string) {
-    const vitalSignsScreenings = await vitalSignsScreeningDexie
-      .where('patient_visit_id')
-      .equalsIgnoreCase(id)
-      .toArray();
-    vitalSignsScreening.save(vitalSignsScreenings);
-    return vitalSignsScreenings;
+    const collection = vitalSignsScreeningDexie
+      .orderBy('id')
+      .reverse()
+      .filter(
+        (vitalSignsScreening: VitalSignsScreening) =>
+          id === vitalSignsScreening?.visit?.id
+      );
+    const resp = await collection.toArray();
+    vitalSignsScreening.save(resp);
+    return resp;
   },
   async apiGetAll(offset: number, max: number) {
     return await api().get(

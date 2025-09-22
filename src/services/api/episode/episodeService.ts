@@ -654,7 +654,6 @@ export default {
     return episodes;
   },
   async getAll3LastDataByIdentifierIDsFromDexie(ids: string[]) {
-    console.log('ids', ids);
 
     const collection = episodeDexie
       .orderBy('episodeDate')
@@ -662,8 +661,6 @@ export default {
       .filter((episode: Episode) =>
         ids.includes(episode?.patientServiceIdentifier?.id ?? '')
       );
-
-    console.log('collection', await collection.limit(3).toArray());
 
     const episodes = await collection.limit(3).toArray();
 
@@ -684,12 +681,6 @@ export default {
     );
 
     const episodeIds = episodes.map((episode: any) => episode.id);
-
-    console.log('referralClinicIds', referralClinicIds);
-    console.log('referralClinicIds', referralClinicIds);
-    console.log('startStopReasonIds', startStopReasonIds);
-    console.log('episodeTypeIds', episodeTypeIds);
-    console.log('clinicSectorIds', clinicSectorIds);
 
     const [
       referralClinics,

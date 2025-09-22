@@ -123,7 +123,7 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import prescriptionService from 'src/services/api/prescription/prescriptionService';
 //Declarations
 const { closeLoading, showloading } = useLoading();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { website, isDeskTop, isMobile, isOnline } = useSystemUtils();
 const { openDialog, checkIfPatientIsObit } = usePrescriptionDialog();
 const { preferedIdentifier } = usePatient();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
@@ -180,28 +180,11 @@ onMounted(() => {
 // Methods
 const init = async () => {
   showloading();
-  // if (patient.value === null) {
-  //   patient.value = patientService.getPatientByID(
-  //     localStorage.getItem('patientuuid')
-  //   );
-  // }
 
-  // else {
-  //   if (isMobile.value && !isOnline.value) {
-  //     await patientService.getPatientMobileWithAllByPatientId(patient.value);
-  //   } else {
-  //     // Rest Calls
-  //     await patientServiceIdentifierService.apiGetAllByPatientId(
-  //       patient.value.id
-  //     );
-  //     await patientVisitService.apiGetAllByPatientId(patient.value.id);
-  //     await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
-  //       currPatient.value.id
-  //     );
-  //     await prescriptionService.apiGetByPatientId(patient.value.id);
-  //     await packService.apiGetByPatientId(patient.value.id);
-  //   }
-  // }
+  if (isMobile.value && !isOnline.value) {
+    await patientService.getPatientMobileWithAllByPatientId(patient.value);
+  }
+
   closeLoading();
 };
 const showPatientDetails = () => {

@@ -202,9 +202,9 @@ export default {
       (prescriptionDetail: PrescriptionDetail) =>
         prescriptionId === prescriptionDetail?.prescription?.id
     );
-    return await collection.toArray().then((prescriptionDetails: any) => {
-      prescriptionDetails.save(prescriptionDetails);
-      return prescriptionDetails;
+    return await collection.toArray().then((prescriptionDetailsObject: any) => {
+      prescriptionDetails.save(prescriptionDetailsObject);
+      return prescriptionDetailsObject;
     });
   },
 
