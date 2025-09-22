@@ -5,7 +5,11 @@
       :mainContainer="true"
       bgColor="bg-primary"
       :add-visible="
-        true
+        canAddPrescription &&
+        showAddPrescriptionButton &&
+        (!isProvincialInstalation() ||
+          isProvincialInstalationPharmacysMode() ||
+          isProvincialInstalationMobileClinic())
       "
       :expandVisible="false"
       :title="title"
@@ -76,7 +80,7 @@ const items = ref([...Array(10000).keys()]);
 // Computed
 const canAddPrescription = computed(() => {
   if (isOnline.value) {
-    return true //PermissionService.canPerformUiAction('prescription', 'add');
+    PermissionService.canPerformUiAction('prescription', 'add');
   } else {
     return true;
   }
