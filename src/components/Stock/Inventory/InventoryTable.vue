@@ -204,7 +204,11 @@ watchEffect((isExecutedInventory) => {
 });
 
 const canEditInventory = computed(() => {
-  return PermissionService.canPerformUiAction('inventory', 'edit');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('inventory', 'edit');
+  } else {
+    return true;
+  }
 });
 
 provide('inventoryDetail', inventoryDetail);
