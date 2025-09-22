@@ -1,3 +1,4 @@
+import { adherenceScreeningService } from 'src/services/api/adherenceScreening/adherenceScreeningService';
 import { patientVisitService } from 'src/services/api/patientVisit/patientVisitService';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
@@ -30,6 +31,7 @@ import PregnancyScreening from 'src/stores/models/screening/PregnancyScreening';
 import RAMScreening from 'src/stores/models/screening/RAMScreening';
 import TBScreening from 'src/stores/models/screening/TBScreening';
 import VitalSignsScreening from 'src/stores/models/screening/VitalSignsScreening';
+import AdherenceScreening from 'src/stores/models/screening/AdherenceScreening';
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = db[PatientVisit.entity];
 
@@ -37,6 +39,7 @@ const pregnancyScreeningDexie = db[PregnancyScreening.entity];
 const rAMScreeningDexie = db[RAMScreening.entity];
 const tBScreeningDexie = db[TBScreening.entity];
 const vitalSignsScreeningtDexie = db[VitalSignsScreening.entity];
+const adherenceScreeningDexie = db[AdherenceScreening.entity];
 
 const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
@@ -774,6 +777,7 @@ export default {
       const ramScreenings: RAMScreening = [];
       const tbScreenings: TBScreening = [];
       const vitalSignsScreenings: VitalSignsScreening = [];
+      const adherenceScreenings: AdherenceScreening = [];
       const ids = patients.map((pat: any) => pat.id);
       const limit = 100; // Define your limit
       const offset = 0;
@@ -802,12 +806,15 @@ export default {
           )
           .then((resp) => {
             const patientVisitsList: PatientVisit = resp.data;
-            console.log('Lista de pv', patientVisitsList);
             if (patientVisitsList.length > 0) {
               patientVisitDexie.bulkPut(patientVisitsList);
 
               patientVisitsList.forEach((pv: PatientVisit) => {
-                console.log('pv', pv);
+                adherenceScreeningDexie
+                  .bulkPut(pv.adherenceScreenings)
+                  .catch((error: any) => {
+                    console.log(error);
+                  });
                 pregnancyScreeningDexie
                   .bulkPut(pv.pregnancyScreenings)
                   .catch((error: any) => {

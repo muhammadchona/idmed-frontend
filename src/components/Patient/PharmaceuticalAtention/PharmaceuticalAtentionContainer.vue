@@ -261,7 +261,7 @@ import PermissionService from 'src/services/api/user/PermissionService';
 const { isMale } = usePatient();
 const { formatDate } = useDateUtils();
 const { closeLoading, showloading } = useLoading();
-const { website } = useSystemUtils();
+const { isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const {
   isProvincialInstalation,

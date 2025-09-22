@@ -165,7 +165,7 @@ const {
 } = usePatient();
 const { idadeCalculator, getDDMMYYYFromJSDate } = useDateUtils();
 const { isProvincialInstalation } = useSystemConfig();
-const { website, isDeskTop, isMobile } = useSystemUtils();
+const { isOnline } = useSystemUtils();
 const showPatientRegister = ref(false);
 const showMergeDuplicates = ref(false);
 const newPatient = ref(false);
@@ -191,11 +191,17 @@ const init = () => {
 };
 
 const canEditPatient = computed(() => {
-  return PermissionService.canPerformUiAction('patient', 'edit');
+  if (isOnline.value)
+    return PermissionService.canPerformUiAction('patient', 'edit');
+  else return true;
 });
 
 const canUniteDup = computed(() => {
-  return PermissionService.canPerformUiAction('patient', 'unitDuplicates');
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('patient', 'unitDuplicates');
+  } else {
+    return true;
+  }
 });
 
 const editPatient = () => {
