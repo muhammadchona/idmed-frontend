@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia Duration');
-    durationService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing Duration cache from Dexie');
+    return durationService.refreshMobileCache();
   },
 };

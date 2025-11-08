@@ -332,7 +332,6 @@ const selectedDataSources = ref({
   id: 0,
   abbreviation: 'iDMED',
 });
-const patients = ref([]);
 const patientId = ref('');
 const middleNamesRef = ref();
 const newPatient = ref(false);
@@ -649,7 +648,8 @@ const goToPatientPanel = async (patient) => {
   localStorage.setItem('patientuuid', currPatient.value.id);
   localStorage.setItem('isScanScreen', false);
   if (isMobile.value && !isOnline.value) {
-    await patientService.getPatientMobileWithAllByPatientId(currPatient.value);
+    // await patientService.getPatientMobileWithAllByPatientId(currPatient.value);
+    await patientService.getPatientGraphFromDexie(currPatient.value.id);
   } else {
     deleteDexieInfo();
     localStorage.setItem('patientuuid', currPatient.value.id);
@@ -707,8 +707,9 @@ const stringContains = (stringToCheck, stringText) => {
     .includes(String(stringText).toLowerCase());
 };
 
-const loadHISDataSource = () => {
+const loadHISDataSource = async () => {
   patientService.deleteAllFromStorage();
+  patientList.value = [];
   showloading();
   if (selectedDataSources.value.id.length > 4) {
     if (selectedDataSources.value.abbreviation.length <= 2) {
@@ -733,9 +734,20 @@ const loadHISDataSource = () => {
   }
 };
 
-const patientList = computed(() => {
-  return patientService.getPatientSearchList();
-});
+/** @type {import('vue').Ref<any[]>} */
+const patientList = ref([]);
+
+const refreshPatientList = async () => {
+  loading.value = true;
+  try {
+    patientList.value = await patientService.getPatientSearchList();
+  } catch (error) {
+    console.log('Failed to load patient list', error);
+    patientList.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
 
 const localSearch = async () => {
   currPatient.value.identifiers[0].value = patientId.value;
@@ -747,10 +759,12 @@ const localSearch = async () => {
     pagination.value.rowsNumber = count.data;
     currPatient.value.limit = limit.value;
     currPatient.value.offset = offset.value;
-    patientService.apiSearch(currPatient.value);
+    await patientService.apiSearch(currPatient.value);
+    await refreshPatientList();
   } else {
-    patientService.getMobile();
-    patientServiceIdentifierService.getMobile();
+    await patientService.getMobile();
+    await patientServiceIdentifierService.getMobile();
+    await refreshPatientList();
   }
 };
 

@@ -32,8 +32,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia ClinicalService');
-    clinicalServiceService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing ClinicalService cache from Dexie');
+    return clinicalServiceService.refreshMobileCache();
   },
 };

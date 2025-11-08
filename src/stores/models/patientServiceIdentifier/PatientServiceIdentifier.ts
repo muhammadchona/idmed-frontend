@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 export default class PatientServiceIdentifier extends Model {
   static entity = 'identifiers';
   static primaryKey = 'id';
-  
+
   static fields() {
     return {
       id: this.string(() => uuidv4()),
@@ -25,6 +25,7 @@ export default class PatientServiceIdentifier extends Model {
       clinic_id: this.attr(''),
       syncStatus: this.attr(''),
       origin: this.attr(''),
+      patientId: this.attr(''), //dexieField
       // Relationships
       identifierType: this.belongsTo(IdentifierType, 'identifier_type_id'),
       service: this.belongsTo(ClinicalService, 'service_id'),

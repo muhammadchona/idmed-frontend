@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let therapeuticLineMobileCache: any[] = [];
+
+const setTherapeuticLineMobileCache = (rows: any[]) => {
+  therapeuticLineMobileCache = rows.map((row) => clone(row));
+};
+
+const getTherapeuticLineMobileCache = () =>
+  therapeuticLineMobileCache.map((row) => clone(row));
+
+const refreshTherapeuticLineMobileCache = async () => {
+  const rows = await therapeuticLineDexie.toArray();
+  setTherapeuticLineMobileCache(rows);
+  return getTherapeuticLineMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,59 +111,82 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return therapeuticLineDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        therapeuticLine.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshTherapeuticLineMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return therapeuticLineDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        therapeuticLine.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshTherapeuticLineMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return therapeuticLineDexie
-      .toArray()
-      .then((rows: any) => {
-        therapeuticLine.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshTherapeuticLineMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return therapeuticLineDexie
       .delete(paramsId)
-      .then(() => {
-        therapeuticLine.destroy(paramsId);
+      .then(async () => {
+        therapeuticLineMobileCache = therapeuticLineMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return therapeuticLineDexie
-      .bulkPut(params)
-      .then(() => {
-        therapeuticLine.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshTherapeuticLineMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticLineMobileCache().find((entry) => entry.id === id);
+    }
     return therapeuticLine
       .query()
       .where((therapeuticRegimen) => {
@@ -154,6 +197,9 @@ export default {
 
   //PINIA
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticLineMobileCache();
+    }
     return therapeuticLine.all();
   },
 
@@ -163,5 +209,11 @@ export default {
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshTherapeuticLineMobileCache();
   },
 };

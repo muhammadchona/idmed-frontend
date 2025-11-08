@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let identifierTypeMobileCache: any[] = [];
+
+const setIdentifierTypeMobileCache = (rows: any[]) => {
+  identifierTypeMobileCache = rows.map((row) => clone(row));
+};
+
+const getIdentifierTypeMobileCache = () =>
+  identifierTypeMobileCache.map((row) => clone(row));
+
+const refreshIdentifierTypeMobileCache = async () => {
+  const rows = await identifierTypeDexie.toArray();
+  setIdentifierTypeMobileCache(rows);
+  return getIdentifierTypeMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -82,57 +102,77 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return identifierTypeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        identifierType.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshIdentifierTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return identifierTypeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        identifierType.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshIdentifierTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return identifierTypeDexie
-      .toArray()
-      .then((rows: any) => {
-        identifierType.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshIdentifierTypeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return identifierTypeDexie
       .delete(paramsId)
-      .then(() => {
-        identifierType.destroy(paramsId);
+      .then(async () => {
+        identifierTypeMobileCache = identifierTypeMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
 
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return identifierTypeDexie
-      .bulkPut(params)
-      .then(() => {
-        identifierType.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshIdentifierTypeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   // Local Storage Pinia
@@ -141,6 +181,9 @@ export default {
   },
 
   getAllIdentifierTypes() {
+    if (isMobile.value && !isOnline.value) {
+      return getIdentifierTypeMobileCache();
+    }
     return identifierType.query().withAll().get();
   },
   getFromProvincial(offset: number) {
@@ -161,5 +204,11 @@ export default {
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     return await identifierTypeDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshIdentifierTypeMobileCache();
   },
 };

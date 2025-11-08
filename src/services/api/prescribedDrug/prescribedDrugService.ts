@@ -12,6 +12,59 @@ const prescribedDrugDexie = db[PrescribedDrug.entity];
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let prescribedDrugMobileCache: any[] = [];
+
+const setPrescribedDrugMobileCache = (rows: any[]) => {
+  prescribedDrugMobileCache = rows.map((row) => clone(row));
+};
+
+const getPrescribedDrugMobileCache = () =>
+  prescribedDrugMobileCache.map((row) => clone(row));
+
+const upsertPrescribedDrugCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = prescribedDrugMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      prescribedDrugMobileCache.splice(index, 1, payload);
+    } else {
+      prescribedDrugMobileCache.push(payload);
+    }
+  });
+};
+
+const removePrescribedDrugFromCache = (id: string) => {
+  prescribedDrugMobileCache = prescribedDrugMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshPrescribedDrugMobileCache = async () => {
+  const rows = await prescribedDrugDexie.toArray();
+  setPrescribedDrugMobileCache(rows);
+  return getPrescribedDrugMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -46,7 +99,16 @@ export default {
     return api()
       .post('prescribedDrug', params)
       .then((resp) => {
-        prescribedDrug.save(resp.data);
+        if (!isMobile.value) {
+          prescribedDrug.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          prescribedDrugDexie
+            .put(payload)
+            .then(() => upsertPrescribedDrugCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   getWeb(offset: number) {
@@ -54,7 +116,18 @@ export default {
       return api()
         .get('prescribedDrug?offset=' + offset + '&max=100')
         .then((resp) => {
-          prescribedDrug.save(resp.data);
+          if (!isMobile.value) {
+            prescribedDrug.save(resp.data);
+          }
+          if (isMobile.value) {
+            const payload = Array.isArray(resp.data)
+              ? resp.data.map((entry: any) => clone(entry))
+              : [clone(resp.data)];
+            prescribedDrugDexie
+              .bulkPut(payload)
+              .then(() => upsertPrescribedDrugCache(payload))
+              .catch((error) => console.log(error));
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -69,7 +142,16 @@ export default {
     return api()
       .patch('prescribedDrug/' + uuid, params)
       .then((resp) => {
-        prescribedDrug.save(resp.data);
+        if (!isMobile.value) {
+          prescribedDrug.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          prescribedDrugDexie
+            .put(payload)
+            .then(() => upsertPrescribedDrugCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   deleteWeb(uuid: string) {
@@ -77,53 +159,86 @@ export default {
       .delete('prescribedDrug/' + uuid)
       .then(() => {
         prescribedDrug.destroy(uuid);
+        if (isMobile.value) {
+          prescribedDrugDexie
+            .delete(uuid)
+            .then(() => removePrescribedDrugFromCache(uuid))
+            .catch((error) => console.log(error));
+        }
       });
   },
   // Mobile
   addMobile(params: string) {
-    return prescribedDrugDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        prescribedDrug.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return prescribedDrugDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPrescribedDrugCache(payload);
+        return payload;
+      }
+      //  prescribedDrug.save(payload);
+      return payload;
+    });
   },
   putMobile(params: string) {
-    return prescribedDrugDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        prescribedDrug.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return prescribedDrugDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPrescribedDrugCache(payload);
+        return payload;
+      }
+      prescribedDrug.save(payload);
+      return payload;
+    });
   },
   getMobile() {
     return prescribedDrugDexie
       .toArray()
       .then((rows: any) => {
+        if (isMobile.value) {
+          setPrescribedDrugMobileCache(rows);
+          return getPrescribedDrugMobileCache();
+        }
         prescribedDrug.save(rows);
+        return rows;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
     return prescribedDrugDexie
       .delete(paramsId)
       .then(() => {
-        prescribedDrug.destroy(paramsId);
+        if (isMobile.value) {
+          removePrescribedDrugFromCache(paramsId);
+        } else {
+          prescribedDrug.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile() {
     const prescribedDrugFromPinia = this.getAllFromStorageForDexie();
 
     return prescribedDrugDexie
-      .bulkAdd(prescribedDrugFromPinia)
+      .bulkPut(prescribedDrugFromPinia)
+      .then(() => {
+        if (isMobile.value) {
+          upsertPrescribedDrugCache(prescribedDrugFromPinia);
+        } else {
+          prescribedDrug.save(prescribedDrugFromPinia);
+        }
+      })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async getLastByPrescriprionIdFromDexie(prescriptionId: string) {
@@ -132,8 +247,12 @@ export default {
         prescribedDrug?.prescription.id === prescriptionId
     );
     return await collection.toArray().then((prescribedDrugs: any) => {
-      prescribedDrug.save(prescribedDrugs);
-      return prescribedDrugs;
+      if (isMobile.value) {
+        upsertPrescribedDrugCache(prescribedDrugs);
+      } else {
+        prescribedDrug.save(prescribedDrugs);
+      }
+      return prescribedDrugs.map((entry: any) => clone(entry));
     });
   },
   async apiGetAllByPrescriptionId(prescriptionId: string) {
@@ -141,6 +260,15 @@ export default {
       .get('/prescribedDrug/prescription/' + prescriptionId)
       .then((resp) => {
         prescribedDrug.save(resp.data);
+        if (isMobile.value) {
+          const payload = Array.isArray(resp.data)
+            ? resp.data.map((entry: any) => clone(entry))
+            : [clone(resp.data)];
+          prescribedDrugDexie
+            .bulkPut(payload)
+            .then(() => upsertPrescribedDrugCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
 
@@ -152,15 +280,26 @@ export default {
     return prescribedDrug.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getPrescribedDrugMobileCache();
+    }
     return prescribedDrug.all();
   },
   getAllFromStorageForDexie() {
+    if (isMobile.value) {
+      return getPrescribedDrugMobileCache();
+    }
     return prescribedDrug.makeHidden(['prescription', 'drug']).all();
   },
   deleteAllFromStorage() {
     prescribedDrug.flush();
   },
   getLastByPrescriprionId(prescriptionId: string) {
+    if (isMobile.value) {
+      return getPrescribedDrugMobileCache().find(
+        (entry) => entry.prescription_id === prescriptionId
+      );
+    }
     return prescribedDrug.where('prescription_id', prescriptionId).first();
   },
   async getAllByPrescriprionIdListFromDexie(prescriptionIds: string[]) {
@@ -171,7 +310,11 @@ export default {
     const prescribedDrugs = await collection
       .toArray()
       .then((prescribedDrugs: any) => {
-        prescribedDrug.save(prescribedDrugs);
+        if (isMobile.value) {
+          upsertPrescribedDrugCache(prescribedDrugs);
+        } else {
+          prescribedDrug.save(prescribedDrugs);
+        }
         return prescribedDrugs;
       });
 
@@ -188,9 +331,16 @@ export default {
         (drug: any) => drug.id === prescribedDrug.drug.id
       );
     });
-    return prescribedDrugs;
+    return prescribedDrugs.map((entry: any) => clone(entry));
   },
   deleteAllFromDexie() {
+    prescribedDrugMobileCache = [];
     prescribedDrugDexie.clear();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPrescribedDrugMobileCache();
   },
 };

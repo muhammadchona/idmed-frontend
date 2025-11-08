@@ -203,6 +203,7 @@ const serviceInfoVisible = ref(true);
 const showEditClinicalService = ref(false);
 
 //Injection
+const patient = inject('patient');
 const isEditStep = inject('isEditStep');
 const isCreateStep = inject('isCreateStep');
 const isCloseStep = inject('isCloseStep');
@@ -210,19 +211,46 @@ const isReOpenStep = inject('isReOpenStep');
 
 // Computed
 const curIdentifier = computed(() => {
-  return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
+  const identifiers = patient?.value?.identifiers;
+  if (Array.isArray(identifiers)) {
+    const identifier = identifiers.find(
+      (entry) => entry?.id === props.identifierId
+    );
+    if (identifier) {
+      return identifier;
+    }
+  }
+
+  const identifier = patientServiceIdentifierService.identifierCurr(
+    props.identifierId,
+    ''
+  );
+
+  return (
+    identifier ?? {
+      service: null,
+      value: '',
+      episodes: [],
+    }
+  );
 });
 const curEpisode = computed(() => {
+  if (!curIdentifier.value?.id) {
+    return null;
+  }
   return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
 });
 const lastPack = computed(() => {
-  let lastPack = packService.getLastPackFromEpisode(curEpisode.value.id);
-  if (lastPack === null) {
-    lastPack = packService.getLastPackFromPatientId(
+  if (!curEpisode.value?.id) {
+    return null;
+  }
+  let pack = packService.getLastPackFromEpisode(curEpisode.value.id);
+  if (pack === null && curEpisode.value.patientServiceIdentifier_id) {
+    pack = packService.getLastPackFromPatientId(
       curEpisode.value.patientServiceIdentifier_id
     );
   }
-  return lastPack;
+  return pack;
 });
 
 const canEditPatientService = computed(() => {
@@ -261,7 +289,7 @@ const canClosePatientService = computed(() => {
 const isPatientActive = computed(() => {
   return (
     curIdentifier.value?.endDate !== null &&
-    curIdentifier.value.endDate !== null
+    curIdentifier.value?.endDate !== undefined
   );
 });
 
@@ -355,6 +383,9 @@ const islastEpisodeClosed = computed(() => {
 });
 
 const get3LastEpisodes = computed(() => {
+  if (!curIdentifier.value?.id) {
+    return [];
+  }
   return episodeService.getlast3EpisodesByIdentifier(curIdentifier.value.id);
 });
 

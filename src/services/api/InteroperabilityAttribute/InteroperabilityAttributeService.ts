@@ -13,30 +13,50 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let interoperabilityAttributeMobileCache: any[] = [];
+
+const setInteroperabilityAttributeMobileCache = (rows: any[]) => {
+  interoperabilityAttributeMobileCache = rows.map((row) => clone(row));
+};
+
+const getInteroperabilityAttributeMobileCache = () =>
+  interoperabilityAttributeMobileCache.map((row) => clone(row));
+
+const refreshInteroperabilityAttributeMobileCache = async () => {
+  const rows = await interoperabilityAttributeDexie.toArray();
+  setInteroperabilityAttributeMobileCache(rows);
+  return getInteroperabilityAttributeMobileCache();
+};
+
 export default {
   async post(params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       return this.addMobile(params);
     } else {
       return this.postWeb(params);
     }
   },
   get(offset: number) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
       this.getWeb(offset);
     }
   },
   async patch(uuid: string, params: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       this.putMobile(params);
     } else {
       this.patchWeb(uuid, params);
     }
   },
   async delete(uuid: string) {
-    if (isMobile && !isOnline) {
+    if (isMobile.value && !isOnline.value) {
       return this.deleteMobile(uuid);
     } else {
       return this.deleteWeb(uuid);
@@ -47,9 +67,7 @@ export default {
     try {
       const resp = await api().post('interoperabilityAttribute', params);
       interoperabilityAttribute.save(resp.data);
-      // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -78,7 +96,6 @@ export default {
       interoperabilityAttribute.save(resp.data);
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
@@ -88,66 +105,82 @@ export default {
       interoperabilityAttribute.destroy(uuid);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
-      // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return interoperabilityAttributeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        interoperabilityAttribute.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshInteroperabilityAttributeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return interoperabilityAttributeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        interoperabilityAttribute.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshInteroperabilityAttributeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return interoperabilityAttributeDexie
-      .toArray()
-      .then((rows: any) => {
-        interoperabilityAttribute.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshInteroperabilityAttributeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return interoperabilityAttributeDexie
       .delete(paramsId)
-      .then(() => {
-        interoperabilityAttribute.destroy(paramsId);
+      .then(async () => {
+        interoperabilityAttributeMobileCache =
+          interoperabilityAttributeMobileCache.filter(
+            (item) => item.id !== paramsId
+          );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return interoperabilityAttributeDexie
-      .bulkPut(params)
-      .then(() => {
-        interoperabilityAttribute.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshInteroperabilityAttributeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll(offset: number, max: number) {
@@ -160,17 +193,42 @@ export default {
     return interoperabilityAttribute.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getInteroperabilityAttributeMobileCache();
+    }
     return interoperabilityAttribute.all();
   },
   saveLocalStorage(params: any) {
     return interoperabilityAttribute.save(params);
   },
-  deleteAllFromHealthSystem(healthInformationSysytemId: string) {
-    const attributes = interoperabilityAttribute
-      .where('healthInformationSystem_id', healthInformationSysytemId)
-      .get();
-    attributes.forEach((attr) => {
-      interoperabilityAttribute.destroy(attr.id);
-    });
+  async deleteAllFromHealthSystem(healthInformationSysytemId: string) {
+    if (isMobile.value && !isOnline.value) {
+      const entries = getInteroperabilityAttributeMobileCache().filter(
+        (entry) => entry.healthInformationSystem_id === healthInformationSysytemId
+      );
+      await Promise.all(
+        entries.map((entry) =>
+          interoperabilityAttributeDexie.delete(entry.id).catch((error: any) => {
+            console.log(error);
+          })
+        )
+      );
+      interoperabilityAttributeMobileCache = interoperabilityAttributeMobileCache.filter(
+        (entry) => entry.healthInformationSystem_id !== healthInformationSysytemId
+      );
+    } else {
+      const attributes = interoperabilityAttribute
+        .where('healthInformationSystem_id', healthInformationSysytemId)
+        .get();
+      attributes.forEach((attr) => {
+        interoperabilityAttribute.destroy(attr.id);
+      });
+    }
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshInteroperabilityAttributeMobileCache();
   },
 };

@@ -1,4 +1,5 @@
 import packService from 'src/services/api/pack/packService';
+import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
 export function usePrescription() {
   function calculateLeftDuration(prescription: any, weeksSupply: string) {
     if (prescription.leftDuration === 0) {
@@ -18,7 +19,16 @@ export function usePrescription() {
         ? Number(prescription.duration.weeks)
         : 0;
     let packagedWeeks = 0;
-    prescription.patientVisitDetails.forEach((pvd: any) => {
+
+    const patientVisitDetails =
+      Array.isArray(prescription.patientVisitDetails) &&
+      prescription.patientVisitDetails.length > 0
+        ? prescription.patientVisitDetails
+        : patientVisitDetailsService.getAllPatientVisitByPrescriptioId(
+            prescription.id
+          ) ?? [];
+
+    patientVisitDetails.forEach((pvd: any) => {
       if (
         (pvd.pack !== null && pvd.pack !== undefined) ||
         pvd.pack_id !== null
@@ -35,7 +45,16 @@ export function usePrescription() {
   function remainigDurationInWeeks(prescription: any) {
     const prescriptionDuration = Number(prescription.duration.weeks);
     let packagedWeeks = 0;
-    prescription.patientVisitDetails.forEach((pvd: any) => {
+
+    const patientVisitDetails =
+      Array.isArray(prescription.patientVisitDetails) &&
+      prescription.patientVisitDetails.length > 0
+        ? prescription.patientVisitDetails
+        : patientVisitDetailsService.getAllPatientVisitByPrescriptioId(
+            prescription.id
+          ) ?? [];
+
+    patientVisitDetails.forEach((pvd: any) => {
       if (pvd.pack !== null && pvd.pack !== undefined) {
         packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply);
       }
@@ -45,7 +64,15 @@ export function usePrescription() {
 
   function lastPackOnPrescription(prescription: any) {
     let lastVisit = '';
-    prescription.patientVisitDetails.forEach((visit: any) => {
+    const patientVisitDetails =
+      Array.isArray(prescription.patientVisitDetails) &&
+      prescription.patientVisitDetails.length > 0
+        ? prescription.patientVisitDetails
+        : patientVisitDetailsService.getAllPatientVisitByPrescriptioId(
+            prescription.id
+          ) ?? [];
+
+    patientVisitDetails.forEach((visit: any) => {
       if (lastVisit === null || lastVisit === '') {
         lastVisit = visit;
       } else if (visit.pack.pickupDate > lastVisit.pack.pickupDate) {

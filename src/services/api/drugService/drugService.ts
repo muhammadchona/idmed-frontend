@@ -19,6 +19,51 @@ const { alertSucess, alertError, alertWarning } = useSwal();
 const drug = useRepo(Drug);
 const drugDexie = db[Drug.entity];
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let drugMobileCache: any[] = [];
+
+const setDrugMobileCache = (rows: any[]) => {
+  drugMobileCache = rows.map((row) => clone(row));
+};
+
+const getDrugMobileCache = () => drugMobileCache.map((row) => clone(row));
+
+const refreshDrugMobileCache = async () => {
+  const rows = await drugDexie.toArray();
+  const formIds = rows.map((drug: any) =>
+    drug?.form?.id ? drug.form.id : ''
+  );
+  const clinicalServiceIds = rows.map((drug: any) =>
+    drug?.clinicalService?.id ? drug.clinicalService.id : ''
+  );
+
+  const [forms, clinicalServices, stocksList] = await Promise.all([
+    formService.getAllByIDsFromDexie(formIds),
+    clinicalServiceService.getAllByIDsFromDexie(clinicalServiceIds),
+    StockService.getAllWithPackagedDrugStocksAndAdjustmentsFromDexie(),
+  ]);
+
+  rows.forEach((entry: any) => {
+    if (entry?.form?.id) {
+      entry.form = forms.find((form: any) => form.id === entry.form.id) ?? entry.form;
+    }
+    if (entry?.clinicalService?.id) {
+      entry.clinicalService =
+        clinicalServices.find(
+          (clinicalService: any) => clinicalService.id === entry.clinicalService.id
+        ) ?? entry.clinicalService;
+    }
+    entry.stocks = stocksList.filter((stock: any) => stock.drug_id === entry.id);
+  });
+
+  setDrugMobileCache(rows);
+  return getDrugMobileCache();
+};
+
 export default {
   async post(params: string) {
     const resp = await api().post('drug', params);
@@ -112,15 +157,13 @@ export default {
 
   //Mobile
   getMobile() {
-    return drugDexie
-      .toArray()
-      .then((rows: any) => {
-        drug.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshDrugMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
 
   async getDrugsByIds(drugIds: any) {
@@ -128,13 +171,13 @@ export default {
   },
 
   async getMobileDrugById(drugId: any) {
-    return drugDexie
-      .where('id')
-      .equalsIgnoreCase(drugId)
-      .first()
-      .then((result: any) => {
-        return result;
-      });
+    if (isMobile.value && !isOnline.value) {
+      const cached = getDrugMobileCache().find((item) => item.id === drugId);
+      if (cached) {
+        return cached;
+      }
+    }
+    return drugDexie.where('id').equalsIgnoreCase(drugId).first();
   },
   async getInventoryDrugsMobile(inventoryId: any) {
     // Step 1: Query StockAdjustments table for the given inventory ID
@@ -158,23 +201,49 @@ export default {
     return Array.from(drugMap.values());
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return drugDexie
-      .bulkPut(params)
-      .then(() => {
-        drug.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshDrugMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getActiveDrugs() {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().filter((entry) => entry.active);
+    }
     return drug.query().withAllRecursive(1).where('active', true).get();
   },
   getDrugsFromListId(drugListId: []) {
+    if (isMobile.value && !isOnline.value) {
+      const cache = getDrugMobileCache();
+      return cache.filter((entry) => drugListId.includes(entry.id));
+    }
     const item = drug.query().withAllRecursive(1).find(drugListId);
     return item;
   },
   getDrugsWithValidStockInList() {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache()
+        .filter((entry) => Array.isArray(entry.stocks))
+        .filter((entry) =>
+          entry.stocks.some((stock: any) =>
+            moment(stock.expireDate, 'YYYY-MM-DD').isAfter(
+              moment().format('YYYY-MM-DD')
+            )
+          )
+        )
+        .sort((a, b) =>
+          String(a.name || '').localeCompare(String(b.name || ''))
+        );
+    }
     return drug
       .query()
       .withAllRecursive(1)
@@ -199,6 +268,9 @@ export default {
       .get();
   },
   getDrugById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().find((item) => item.id === id) ?? null;
+    }
     return drug
       .query()
       .withAllRecursive(1)
@@ -209,12 +281,21 @@ export default {
       .first();
   },
   getDrugWith1ById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().find((item) => item.id === id) ?? null;
+    }
     return drug.query().withAllRecursive(1).where('id', id).first();
   },
   getDrugWith2ById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().find((item) => item.id === id) ?? null;
+    }
     return drug.query().withAllRecursive(2).where('id', id).first();
   },
   getCleanDrugById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().find((item) => item.id === id) ?? null;
+    }
     return drug.where('id', id).first();
   },
   // Local Storage Pinia
@@ -224,10 +305,20 @@ export default {
 
   /*Pinia Methods*/
   getAllDrugs() {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().sort((a, b) =>
+        String(a.name || '').localeCompare(String(b.name || ''))
+      );
+    }
     return drug.withAllRecursive(1).orderBy('name').get();
   },
 
   getAllForAllDrugs() {
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().sort((a, b) =>
+        String(a.name || '').localeCompare(String(b.name || ''))
+      );
+    }
     return drug.orderBy('name').get();
   },
 
@@ -299,5 +390,12 @@ export default {
     });
 
     return drugsWithStock;
+  },
+
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshDrugMobileCache();
   },
 };

@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia ProvincialServer');
-    provincialServerService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing ProvincialServer cache from Dexie');
+    return provincialServerService.refreshMobileCache();
   },
 };

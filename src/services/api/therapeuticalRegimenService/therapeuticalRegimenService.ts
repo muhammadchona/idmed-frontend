@@ -13,6 +13,35 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let therapeuticRegimenMobileCache: any[] = [];
+
+const setTherapeuticRegimenMobileCache = (rows: any[]) => {
+  therapeuticRegimenMobileCache = rows.map((row) => clone(row));
+};
+
+const getTherapeuticRegimenMobileCache = () =>
+  therapeuticRegimenMobileCache.map((row) => clone(row));
+
+const refreshTherapeuticRegimenMobileCache = async () => {
+  const rows = await therapeuticRegimenDexie.toArray();
+  setTherapeuticRegimenMobileCache(rows);
+  return getTherapeuticRegimenMobileCache();
+};
+
+const matchesClinicalService = (entry: any, clinicalServiceId: string) => {
+  const candidateIds = [
+    entry?.clinical_service_id,
+    entry?.clinicalServiceId,
+    entry?.clinicalService?.id,
+  ];
+  return candidateIds.some((id) => id && id === clinicalServiceId);
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -106,58 +135,76 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return therapeuticRegimenDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        therapeuticRegimen.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshTherapeuticRegimenMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return therapeuticRegimenDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        therapeuticRegimen.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshTherapeuticRegimenMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return therapeuticRegimenDexie
-      .toArray()
-      .then((rows: any) => {
-        therapeuticRegimen.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshTherapeuticRegimenMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return therapeuticRegimenDexie
       .delete(paramsId)
-      .then(() => {
-        therapeuticRegimen.destroy(paramsId);
+      .then(async () => {
+        therapeuticRegimenMobileCache = therapeuticRegimenMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return therapeuticRegimenDexie
-      .bulkPut(params)
-      .then(() => {
-        therapeuticRegimen.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshTherapeuticRegimenMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
@@ -177,6 +224,9 @@ export default {
   },
 
   getAllTherapeuticalRegimens() {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache();
+    }
     return therapeuticRegimen
       .query()
       .with('drugs', (query) => {
@@ -191,6 +241,9 @@ export default {
   },
 
   getAllActiveTherapeuticalRegimens() {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache().filter((entry) => entry.active);
+    }
     return therapeuticRegimen
       .query()
       .with('drugs', (query) => {
@@ -204,10 +257,18 @@ export default {
   },
 
   getActiveTherapeuticalRegimens() {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache().filter((entry) => entry.active);
+    }
     return therapeuticRegimen.query().where('active', true).get();
   },
 
   getAllActiveTherapeuticalRegimensByclinicalService(clinicalServiceId: any) {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache().filter((entry) => {
+        return matchesClinicalService(entry, clinicalServiceId) && entry.active;
+      });
+    }
     return therapeuticRegimen
       .query()
       .with('drugs', (query) => {
@@ -227,6 +288,11 @@ export default {
   },
 
   getAllTherapeuticalRegimensByclinicalService(clinicalServiceId: any) {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache().filter((entry) =>
+        matchesClinicalService(entry, clinicalServiceId)
+      );
+    }
     return therapeuticRegimen
       .query()
       .with('drugs', (query) => {
@@ -240,6 +306,11 @@ export default {
   },
 
   getAllTherapeuticalByclinicalService(clinicalServiceId: any) {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache().filter((entry) => {
+        return entry.active && matchesClinicalService(entry, clinicalServiceId);
+      });
+    }
     return therapeuticRegimen
       .query()
       .with('drugs', (query) => {
@@ -253,6 +324,14 @@ export default {
       .get();
   },
   getAllActiveTherapeuticalHasNoClinicalService() {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache().filter((entry) => {
+        return (
+          entry.active &&
+          (!entry.clinical_service_id || entry.clinical_service_id === '')
+        );
+      });
+    }
     return therapeuticRegimen
       .query()
       .with('drugs', (query) => {
@@ -268,6 +347,9 @@ export default {
       .get();
   },
   getById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getTherapeuticRegimenMobileCache().find((entry) => entry.id === id);
+    }
     return therapeuticRegimen
       .query()
       .where((therapeuticRegimen) => {
@@ -281,5 +363,11 @@ export default {
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshTherapeuticRegimenMobileCache();
   },
 };

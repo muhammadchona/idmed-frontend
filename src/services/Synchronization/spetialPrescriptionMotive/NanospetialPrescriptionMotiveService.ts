@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia SpetialPrescriptionMotive');
-    spetialPrescriptionMotiveService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing SpetialPrescriptionMotive cache from Dexie');
+    return spetialPrescriptionMotiveService.refreshMobileCache();
   },
 };

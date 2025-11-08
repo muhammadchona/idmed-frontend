@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let episodeTypeMobileCache: any[] = [];
+
+const setEpisodeTypeMobileCache = (rows: any[]) => {
+  episodeTypeMobileCache = rows.map((row) => clone(row));
+};
+
+const getEpisodeTypeMobileCache = () =>
+  episodeTypeMobileCache.map((row) => clone(row));
+
+const refreshEpisodeTypeMobileCache = async () => {
+  const rows = await episodeTypeDexie.toArray();
+  setEpisodeTypeMobileCache(rows);
+  return getEpisodeTypeMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,58 +111,76 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return episodeTypeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        episodeType.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshEpisodeTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return episodeTypeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        episodeType.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshEpisodeTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return episodeTypeDexie
-      .toArray()
-      .then((rows: any) => {
-        episodeType.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshEpisodeTypeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return episodeTypeDexie
       .delete(paramsId)
-      .then(() => {
-        episodeType.destroy(paramsId);
+      .then(async () => {
+        episodeTypeMobileCache = episodeTypeMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return episodeTypeDexie
-      .bulkPut(params)
-      .then(() => {
-        episodeType.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshEpisodeTypeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll(offset: number, max: number) {
@@ -157,14 +195,28 @@ export default {
     return episodeType.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getEpisodeTypeMobileCache();
+    }
     return episodeType.all();
   },
   getEpisodeTypeByCode(code: string) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getEpisodeTypeMobileCache().find((entry) => entry.code === code) ?? null
+      );
+    }
     return episodeType.where('code', code).first();
   },
 
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     return await episodeTypeDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshEpisodeTypeMobileCache();
   },
 };

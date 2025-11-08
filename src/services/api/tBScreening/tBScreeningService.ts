@@ -13,6 +13,40 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+let tbScreeningMobileCache: any[] = [];
+
+const upsertTbScreening = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = tbScreeningMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      tbScreeningMobileCache.splice(index, 1, payload);
+    } else {
+      tbScreeningMobileCache.push(payload);
+    }
+  });
+};
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -82,10 +116,12 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    const payload = clone(toPlainObject(params));
     return tBScreeningDexie
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
-        tBScreening.save(JSON.parse(JSON.stringify(params)));
+        upsertTbScreening(payload);
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
@@ -132,9 +168,7 @@ export default {
     const collection = tBScreeningDexie
       .orderBy('id')
       .reverse()
-      .filter(
-        (tBScreening: TBScreening) => id === tBScreening?.visit?.id
-      );
+      .filter((tBScreening: TBScreening) => id === tBScreening?.visit?.id);
     const resp = await collection.toArray();
 
     tBScreening.save(resp);

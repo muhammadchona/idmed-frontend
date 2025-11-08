@@ -13,6 +13,37 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let menuMobileCache: any[] = [];
+
+const setMenuMobileCache = (rows: any[]) => {
+  menuMobileCache = rows.map((row) => clone(row));
+};
+
+const getMenuMobileCache = () => menuMobileCache.map((row) => clone(row));
+
+const refreshMenuMobileCache = async () => {
+  const rows = await menuDexie.toArray();
+  setMenuMobileCache(rows);
+  return getMenuMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -23,7 +54,7 @@ export default {
   },
   get(offset: number) {
     if (isMobile.value) {
-      this.getMobile();
+      return this.getMobile();
     } else {
       this.getWeb(offset);
     }
@@ -91,55 +122,113 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return menuDexie
+        .put(JSON.parse(JSON.stringify(params)))
+        .then(() => {
+          menu.save(JSON.parse(JSON.stringify(params)));
+        })
+        .catch((error: any) => {
+          console.log(error);
+        });
+    }
+    const payload = clone(toPlainObject(params));
     return menuDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        menu.save(JSON.parse(JSON.stringify(params)));
+      .put(payload)
+      .then(async () => {
+        await refreshMenuMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return menuDexie
+        .put(JSON.parse(JSON.stringify(params)))
+        .then(() => {
+          menu.save(JSON.parse(params));
+        })
+        .catch((error: any) => {
+          console.log(error);
+        });
+    }
+    const payload = clone(toPlainObject(params));
     return menuDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        menu.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshMenuMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
+    if (!isMobile.value) {
+      return menuDexie
+        .toArray()
+        .then((rows: any) => {
+          menu.save(rows);
+        })
+        .catch((error: any) => {
+          console.log(error);
+        });
+    }
     return menuDexie
       .toArray()
       .then((rows: any) => {
-        menu.save(rows);
+        setMenuMobileCache(rows);
+        return getMenuMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return menuDexie
+        .delete(paramsId)
+        .then(() => {
+          menu.destroy(paramsId);
+          alertSucess('O Registo foi removido com sucesso');
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
     return menuDexie
       .delete(paramsId)
       .then(() => {
-        menu.destroy(paramsId);
+        menuMobileCache = menuMobileCache.filter((entry) => entry.id !== paramsId);
         alertSucess('O Registo foi removido com sucesso');
+        return paramsId;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    const payload = toPlainObject(params);
     return menuDexie
-      .bulkPut(params)
-      .then(() => {
-        menu.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        if (isMobile.value) {
+          await refreshMenuMobileCache();
+        } else {
+          menu.save(payload);
+        }
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll() {
@@ -150,9 +239,21 @@ export default {
     return menu.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getMenuMobileCache();
+    }
     return menu.all();
   },
   getAll() {
+    if (isMobile.value) {
+      return getMenuMobileCache();
+    }
     return menu.query().withAll().get();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshMenuMobileCache();
   },
 };

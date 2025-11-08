@@ -32,8 +32,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia Drug');
-    drugService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing Drug cache from Dexie');
+    return drugService.refreshMobileCache();
   },
 };

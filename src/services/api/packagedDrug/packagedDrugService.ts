@@ -15,6 +15,59 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let packagedDrugMobileCache: any[] = [];
+
+const setPackagedDrugMobileCache = (rows: any[]) => {
+  packagedDrugMobileCache = rows.map((row) => clone(row));
+};
+
+const getPackagedDrugMobileCache = () =>
+  packagedDrugMobileCache.map((row) => clone(row));
+
+const upsertPackagedDrugCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = packagedDrugMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      packagedDrugMobileCache.splice(index, 1, payload);
+    } else {
+      packagedDrugMobileCache.push(payload);
+    }
+  });
+};
+
+const removePackagedDrugFromCache = (id: string) => {
+  packagedDrugMobileCache = packagedDrugMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshPackagedDrugMobileCache = async () => {
+  const rows = await packagedDrugDexie.toArray();
+  setPackagedDrugMobileCache(rows);
+  return getPackagedDrugMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -49,7 +102,16 @@ export default {
     return api()
       .post('packagedDrug', params)
       .then((resp) => {
-        packagedDrug.save(resp.data);
+        if (!isMobile.value) {
+          packagedDrug.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          packagedDrugDexie
+            .put(payload)
+            .then(() => upsertPackagedDrugCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   getWeb(offset: number) {
@@ -57,7 +119,18 @@ export default {
       return api()
         .get('packagedDrug?offset=' + offset + '&max=100')
         .then((resp) => {
-          packagedDrug.save(resp.data);
+          if (!isMobile.value) {
+            packagedDrug.save(resp.data);
+          }
+          if (isMobile.value) {
+            const payload = Array.isArray(resp.data)
+              ? resp.data.map((entry: any) => clone(entry))
+              : [clone(resp.data)];
+            packagedDrugDexie
+              .bulkPut(payload)
+              .then(() => upsertPackagedDrugCache(payload))
+              .catch((error) => console.log(error));
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -72,48 +145,87 @@ export default {
     return api()
       .patch('packagedDrug/' + uuid, params)
       .then((resp) => {
-        packagedDrug.save(resp.data);
+        if (!isMobile.value) {
+          packagedDrug.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          packagedDrugDexie
+            .put(payload)
+            .then(() => upsertPackagedDrugCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   deleteWeb(uuid: string) {
     return api()
       .delete('packagedDrug/' + uuid)
       .then(() => {
-        packagedDrug.destroy(uuid);
+        if (!isMobile.value) {
+          packagedDrug.destroy(uuid);
+        }
+        if (isMobile.value) {
+          packagedDrugDexie
+            .delete(uuid)
+            .then(() => removePackagedDrugFromCache(uuid))
+            .catch((error) => console.log(error));
+        }
       });
   },
   // Mobile
   addMobile(params: string) {
-    return packagedDrugDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        packagedDrug.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return packagedDrugDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPackagedDrugCache(payload);
+        return payload;
+      }
+      // packagedDrug.save(payload);
+      return payload;
+    });
   },
   putMobile(params: string) {
-    return packagedDrugDexie
-      .add(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        packagedDrug.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return packagedDrugDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPackagedDrugCache(payload);
+        return payload;
+      }
+      packagedDrug.save(payload);
+      return payload;
+    });
   },
   getMobile() {
     return packagedDrugDexie
       .toArray()
       .then((rows: any) => {
+        if (isMobile.value) {
+          setPackagedDrugMobileCache(rows);
+          return getPackagedDrugMobileCache();
+        }
         packagedDrug.save(rows);
+        return rows;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile() {
     const packagedDrugFromPinia = this.getAllFromStorageForDexie();
 
     return packagedDrugDexie
-      .bulkAdd(packagedDrugFromPinia)
+      .bulkPut(packagedDrugFromPinia)
+      .then(() => {
+        if (isMobile.value) {
+          upsertPackagedDrugCache(packagedDrugFromPinia);
+        } else {
+          packagedDrug.save(packagedDrugFromPinia);
+        }
+      })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async getAllByPackIdMobile(packId: any) {
@@ -129,7 +241,11 @@ export default {
       drugService.getAllByIDsFromDexie(drugsId),
     ]);
 
-    packagedDrug.save(packagedDrugs);
+    if (isMobile.value) {
+      upsertPackagedDrugCache(packagedDrugs);
+    } else {
+      packagedDrug.save(packagedDrugs);
+    }
 
     packagedDrugs.map((packagedDrug: any) => {
       packagedDrug.drug = drugs.find(
@@ -137,26 +253,42 @@ export default {
       );
     });
 
-    return packagedDrugs;
+    return packagedDrugs.map((entry: any) => clone(entry));
   },
 
   deleteMobile(paramsId: string) {
     return packagedDrugDexie
       .delete(paramsId)
       .then(() => {
-        packagedDrug.destroy(paramsId);
+        if (isMobile.value) {
+          removePackagedDrugFromCache(paramsId);
+        } else {
+          packagedDrug.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   async apiGetAllByPackId(packId: string) {
     return await api()
       .get('/packagedDrug/pack/' + packId)
       .then((resp) => {
-        packagedDrug.save(resp.data);
+        if (!isMobile.value) {
+          packagedDrug.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = Array.isArray(resp.data)
+            ? resp.data.map((entry: any) => clone(entry))
+            : [clone(resp.data)];
+          packagedDrugDexie
+            .bulkPut(payload)
+            .then(() => upsertPackagedDrugCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
 
@@ -164,7 +296,18 @@ export default {
     return await api()
       .get('/packagedDrug?offset=' + 0 + '&max=' + 200)
       .then((resp) => {
-        packagedDrug.save(resp.data);
+        if (!isMobile.value) {
+          packagedDrug.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = Array.isArray(resp.data)
+            ? resp.data.map((entry: any) => clone(entry))
+            : [clone(resp.data)];
+          packagedDrugDexie
+            .bulkPut(payload)
+            .then(() => upsertPackagedDrugCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   // Local Storage Pinia
@@ -172,9 +315,15 @@ export default {
     return packagedDrug.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getPackagedDrugMobileCache();
+    }
     return packagedDrug.all();
   },
   getAllFromStorageForDexie() {
+    if (isMobile.value) {
+      return getPackagedDrugMobileCache();
+    }
     return packagedDrug
       .makeHidden(['pack', 'drug', 'packagedDrugStocks'])
       .all();
@@ -203,7 +352,11 @@ export default {
         (drug: any) => drug.id === packagedDrug.drug.id
       );
     });
-
+    if (isMobile.value) {
+      upsertPackagedDrugCache(packagedDrugs);
+      return packagedDrugs.map((entry: any) => clone(entry));
+    }
+    packagedDrug.save(packagedDrugs);
     return packagedDrugs;
   },
   async getAllPackagedDrugByIDsFromDexie(ids: []) {
@@ -225,9 +378,21 @@ export default {
         (pack: any) => pack.id === packagedDrug.pack.id
       );
     });
+    if (isMobile.value) {
+      upsertPackagedDrugCache(packagedDrugs);
+      return packagedDrugs.map((entry: any) => clone(entry));
+    }
+    packagedDrug.save(packagedDrugs);
     return packagedDrugs;
   },
   deleteAllFromDexie() {
+    packagedDrugMobileCache = [];
     packagedDrugDexie.clear();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPackagedDrugMobileCache();
   },
 };

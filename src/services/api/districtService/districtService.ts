@@ -13,6 +13,58 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+const resolveId = (value: any) => {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === 'object' && parsed !== null) {
+        return parsed.id ?? value;
+      }
+      return parsed;
+    } catch {
+      return value;
+    }
+  }
+  if (typeof value === 'object' && value !== null) {
+    return value.id ?? value;
+  }
+  return value;
+};
+
+let districtMobileCache: any[] = [];
+
+const setDistrictMobileCache = (rows: any[]) => {
+  districtMobileCache = rows.map((row) => clone(row));
+};
+
+const getDistrictMobileCache = () => districtMobileCache.map((row) => clone(row));
+
+const refreshDistrictMobileCache = async () => {
+  const rows = await districtDexie.toArray();
+  setDistrictMobileCache(rows);
+  return getDistrictMobileCache();
+};
+
+const findDistrictInCache = (predicate: (entry: any) => boolean) =>
+  getDistrictMobileCache().find(predicate) ?? null;
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,58 +143,127 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return districtDexie
+        .put(JSON.parse(JSON.stringify(params)))
+        .then(() => {
+          district.save(JSON.parse(params));
+        })
+        .catch((error: any) => {
+          console.log(error);
+        });
+    }
+    const payload = clone(toPlainObject(params));
     return districtDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        district.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshDistrictMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return districtDexie
+        .put(JSON.parse(JSON.stringify(params)))
+        .then(() => {
+          district.save(JSON.parse(params));
+          // alertSucess('O Registo foi efectuado com sucesso');
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
+    const payload = clone(toPlainObject(params));
     return districtDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        district.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshDistrictMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
+    if (!isMobile.value) {
+      return districtDexie
+        .toArray()
+        .then((rows: any) => {
+          district.save(rows);
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
     return districtDexie
       .toArray()
       .then((rows: any) => {
-        district.save(rows);
+        setDistrictMobileCache(rows);
+        return getDistrictMobileCache();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return districtDexie
+        .delete(JSON.parse(paramsId))
+        .then(() => {
+          district.destroy(paramsId);
+          alertSucess('O Registo foi removido com sucesso');
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
+    const key = resolveId(paramsId);
     return districtDexie
-      .delete(JSON.parse(paramsId))
+      .delete(key)
       .then(() => {
-        district.destroy(paramsId);
+        districtMobileCache = districtMobileCache.filter(
+          (entry) => resolveId(entry) !== key
+        );
         alertSucess('O Registo foi removido com sucesso');
+        return key;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return districtDexie
+        .bulkPut(params)
+        .then(() => {
+          district.save(params);
+        })
+        .catch((error: any) => {
+          console.log(error);
+        });
+    }
+    const payload = toPlainObject(params);
     return districtDexie
-      .bulkPut(params)
-      .then(() => {
-        district.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshDistrictMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
@@ -150,6 +271,11 @@ export default {
     return await api().get('/district?offset=' + offset + '&max=' + max);
   },
   getAllDistrictByProvinceId(provinceid: string) {
+    if (isMobile.value) {
+      return getDistrictMobileCache().filter(
+        (entry) => entry.province_id === provinceid
+      );
+    }
     return district
       .query()
       .with('province')
@@ -157,6 +283,11 @@ export default {
       .get();
   },
   getAllDistrictByDescription(description: string) {
+    if (isMobile.value) {
+      return (
+        findDistrictInCache((entry) => entry.description === description) ?? null
+      );
+    }
     return district
       .query()
       .with('province')
@@ -164,9 +295,21 @@ export default {
       .first();
   },
   getDistrictById(id: string) {
+    if (isMobile.value) {
+      return findDistrictInCache((entry) => entry.id === id);
+    }
     return district.query().with('province').where('id', id).first();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getDistrictMobileCache();
+    }
     return district.all();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshDistrictMobileCache();
   },
 };

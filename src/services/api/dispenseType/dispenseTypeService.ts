@@ -4,11 +4,39 @@ import DispenseType from 'src/stores/models/dispenseType/DispenseType';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
 const { closeLoading, showloading } = useLoading();
 
 const dispenseType = useRepo(DispenseType);
 const dispenseTypeDexie = db[DispenseType.entity];
 const { isMobile, isOnline } = useSystemUtils();
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let dispenseTypeMobileCache: any[] = [];
+
+const setDispenseTypeMobileCache = (rows: any[]) => {
+  dispenseTypeMobileCache = rows.map((row) => clone(row));
+};
+
+const getDispenseTypeMobileCache = () =>
+  dispenseTypeMobileCache.map((row) => clone(row));
+
+const refreshDispenseTypeMobileCache = async () => {
+  const rows = await dispenseTypeDexie.toArray();
+  setDispenseTypeMobileCache(rows);
+  return getDispenseTypeMobileCache();
+};
+
+const filterByCodes = (codes: string[]) => {
+  const codeSet = new Set(codes.map((code) => String(code).toUpperCase()));
+  return getDispenseTypeMobileCache().filter((entry) =>
+    codeSet.has(String(entry.code || '').toUpperCase())
+  );
+};
 
 export default {
   // Axios API call
@@ -67,46 +95,59 @@ export default {
     return await api().get(`/dispenseType/${id}`);
   },
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return dispenseTypeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        dispenseType.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshDispenseTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return dispenseTypeDexie
-      .toArray()
-      .then((rows: any) => {
-        dispenseType.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshDispenseTypeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return dispenseTypeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        dispenseType.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshDispenseTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return dispenseTypeDexie
-      .bulkPut(params)
-      .then(() => {
-        dispenseType.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshDispenseTypeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   // Local Storage Pinia
@@ -114,11 +155,35 @@ export default {
     return dispenseType.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getDispenseTypeMobileCache();
+    }
     return dispenseType.all();
   },
   getAllFromDuration(weeks: number) {
     let dispenseTypeList = [];
-
+    if (isMobile.value && !isOnline.value) {
+      if (weeks < 4) {
+        dispenseTypeList = filterByCodes(['DN']);
+      } else if (weeks === 4) {
+        dispenseTypeList = filterByCodes(['DN', 'DM']);
+      } else if (weeks === 8) {
+        dispenseTypeList = filterByCodes(['DN', 'DM', 'DB']);
+      } else if (weeks === 12) {
+        dispenseTypeList = filterByCodes(['DM', 'DT', 'FRM']);
+      } else if (weeks === 16) {
+        dispenseTypeList = filterByCodes(['DM', 'DB', 'FRM']);
+      } else if (weeks === 20) {
+        dispenseTypeList = filterByCodes(['DM', 'FRM']);
+      } else if (weeks === 24) {
+        dispenseTypeList = filterByCodes(['DM', 'DB', 'DT', 'DS', 'FRM']);
+      } else {
+        dispenseTypeList = getDispenseTypeMobileCache();
+      }
+      return dispenseTypeList.sort((a, b) =>
+        String(a.id || '').localeCompare(String(b.id || ''))
+      );
+    }
     if (weeks < 4) {
       dispenseTypeList = dispenseType
         .where('code', (value: string) => {
@@ -181,6 +246,9 @@ export default {
     return dispenseTypeList;
   },
   getById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getDispenseTypeMobileCache().find((entry) => entry.id === id) ?? null;
+    }
     return dispenseType
       .query()
       .where((dispenseType) => {
@@ -190,6 +258,11 @@ export default {
   },
 
   getAllForGroupDispense() {
+    if (isMobile.value && !isOnline.value) {
+      return filterByCodes(['DM', 'DT', 'DS', 'DA']).sort((a, b) =>
+        String(a.id || '').localeCompare(String(b.id || ''))
+      );
+    }
     return dispenseType
       .where('code', (value: string) => {
         return (
@@ -203,5 +276,11 @@ export default {
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     return await dispenseTypeDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshDispenseTypeMobileCache();
   },
 };

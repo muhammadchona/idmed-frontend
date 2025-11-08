@@ -19,6 +19,62 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let prescriptionDetailsMobileCache: any[] = [];
+
+const setPrescriptionDetailsMobileCache = (rows: any[]) => {
+  prescriptionDetailsMobileCache = rows.map((row) => clone(row));
+};
+
+const getPrescriptionDetailsMobileCache = () =>
+  prescriptionDetailsMobileCache.map((row) => clone(row));
+
+const upsertPrescriptionDetailsCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = prescriptionDetailsMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      prescriptionDetailsMobileCache.splice(index, 1, payload);
+    } else {
+      prescriptionDetailsMobileCache.push(payload);
+    }
+  });
+};
+
+const removePrescriptionDetailFromCache = (id: string) => {
+  prescriptionDetailsMobileCache = prescriptionDetailsMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshPrescriptionDetailsMobileCache = async () => {
+  const rows = await prescriptionDetailsDexie.toArray();
+  setPrescriptionDetailsMobileCache(rows);
+  return getPrescriptionDetailsMobileCache();
+};
+
+const findPrescriptionDetailInCache = (predicate: (entry: any) => boolean) =>
+  getPrescriptionDetailsMobileCache().find(predicate) ?? null;
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -53,7 +109,18 @@ export default {
     return api()
       .post('prescriptionDetails', params)
       .then((resp) => {
-        prescriptionDetails.save(resp.data);
+        if (!isMobile.value) {
+          prescriptionDetails.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          prescriptionDetailsDexie
+            .put(payload)
+            .then(() => {
+              upsertPrescriptionDetailsCache(payload);
+            })
+            .catch((error) => console.log(error));
+        }
       });
   },
   getWeb(offset: number) {
@@ -61,7 +128,20 @@ export default {
       return api()
         .get('prescriptionDetails?offset=' + offset + '&max=100')
         .then((resp) => {
-          prescriptionDetails.save(resp.data);
+          if (!isMobile.value) {
+            prescriptionDetails.save(resp.data);
+          }
+          if (isMobile.value) {
+            const payload = Array.isArray(resp.data)
+              ? resp.data.map((entry: any) => clone(entry))
+              : [clone(resp.data)];
+            prescriptionDetailsDexie
+              .bulkPut(payload)
+              .then(() => {
+                upsertPrescriptionDetailsCache(payload);
+              })
+              .catch((error) => console.log(error));
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -76,7 +156,18 @@ export default {
     return api()
       .patch('prescriptionDetails/' + uuid, params)
       .then((resp) => {
-        prescriptionDetails.save(resp.data);
+        if (!isMobile.value) {
+          prescriptionDetails.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          prescriptionDetailsDexie
+            .put(payload)
+            .then(() => {
+              upsertPrescriptionDetailsCache(payload);
+            })
+            .catch((error) => console.log(error));
+        }
       });
   },
   deleteWeb(uuid: string) {
@@ -84,61 +175,109 @@ export default {
       .delete('prescriptionDetails/' + uuid)
       .then(() => {
         prescriptionDetails.destroy(uuid);
+        if (isMobile.value) {
+          prescriptionDetailsDexie
+            .delete(uuid)
+            .then(() => {
+              removePrescriptionDetailFromCache(uuid);
+            })
+            .catch((error) => console.log(error));
+        }
       });
   },
   // Mobile
   addMobile(params: string) {
-    return prescriptionDetailsDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        prescriptionDetails.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return prescriptionDetailsDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPrescriptionDetailsCache(payload);
+        return payload;
+      }
+      // prescriptionDetails.save(payload);
+      return payload;
+    });
   },
   putMobile(params: string) {
-    return prescriptionDetailsDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        prescriptionDetails.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return prescriptionDetailsDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPrescriptionDetailsCache(payload);
+        return payload;
+      }
+      prescriptionDetails.save(payload);
+      return payload;
+    });
   },
 
   getMobile() {
     return prescriptionDetailsDexie
       .toArray()
       .then((rows: any) => {
+        if (isMobile.value) {
+          setPrescriptionDetailsMobileCache(rows);
+          return getPrescriptionDetailsMobileCache();
+        }
         prescriptionDetails.save(rows);
+        return rows;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
     return prescriptionDetailsDexie
       .delete(paramsId)
       .then(() => {
-        prescriptionDetails.destroy(paramsId);
+        if (isMobile.value) {
+          removePrescriptionDetailFromCache(paramsId);
+        } else {
+          prescriptionDetails.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile() {
     const prescriptionDetailsFromPinia = this.getAllFromStorageForDexie();
 
     return prescriptionDetailsDexie
-      .bulkAdd(prescriptionDetailsFromPinia)
+      .bulkPut(prescriptionDetailsFromPinia)
+      .then(() => {
+        if (isMobile.value) {
+          upsertPrescriptionDetailsCache(prescriptionDetailsFromPinia);
+        } else {
+          prescriptionDetails.save(prescriptionDetailsFromPinia);
+        }
+      })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAllByPrescriptionId(prescriptionId: string) {
     return await api()
       .get('/prescriptionDetail/prescription/' + prescriptionId)
       .then((resp) => {
-        prescriptionDetails.save(resp.data);
+        if (!isMobile.value) {
+          prescriptionDetails.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = Array.isArray(resp.data)
+            ? resp.data.map((entry: any) => clone(entry))
+            : [clone(resp.data)];
+          prescriptionDetailsDexie
+            .bulkPut(payload)
+            .then(() => {
+              upsertPrescriptionDetailsCache(payload);
+            })
+            .catch((error) => console.log(error));
+        }
       });
   },
 
@@ -155,9 +294,15 @@ export default {
     return prescriptionDetails.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getPrescriptionDetailsMobileCache();
+    }
     return prescriptionDetails.all();
   },
   getAllFromStorageForDexie() {
+    if (isMobile.value) {
+      return getPrescriptionDetailsMobileCache();
+    }
     return prescriptionDetails
       .makeHidden([
         'prescription',
@@ -172,12 +317,20 @@ export default {
     prescriptionDetails.flush();
   },
   getPrescriptionDetailByPrescriptionID(prescriptionID: string) {
+    if (isMobile.value) {
+      return getPrescriptionDetailsMobileCache().filter(
+        (entry) => entry.prescription_id === prescriptionID
+      );
+    }
     return prescriptionDetails.withAll().where((prescriptionDetails: any) => {
       return prescriptionDetails.prescription_id === prescriptionID;
     });
   },
 
   getPrescriptionDetailByID(Id: string) {
+    if (isMobile.value) {
+      return findPrescriptionDetailInCache((entry) => entry.id === Id);
+    }
     return prescriptionDetails
       .withAll()
       .with('therapeuticRegimen', (query: any) => {
@@ -190,6 +343,11 @@ export default {
   },
 
   getLastByPrescriprionId(prescriptionId: string) {
+    if (isMobile.value) {
+      return getPrescriptionDetailsMobileCache().find(
+        (entry) => entry.prescription_id === prescriptionId
+      );
+    }
     return prescriptionDetails
       .withAllRecursive(1)
       .where('prescription_id', prescriptionId)
@@ -203,8 +361,12 @@ export default {
         prescriptionId === prescriptionDetail?.prescription?.id
     );
     return await collection.toArray().then((prescriptionDetailsObject: any) => {
-      prescriptionDetails.save(prescriptionDetailsObject);
-      return prescriptionDetailsObject;
+      if (isMobile.value) {
+        upsertPrescriptionDetailsCache(prescriptionDetailsObject);
+      } else {
+        prescriptionDetails.save(prescriptionDetailsObject);
+      }
+      return prescriptionDetailsObject.map((entry: any) => clone(entry));
     });
   },
 
@@ -274,16 +436,34 @@ export default {
         );
     });
 
+    if (isMobile.value) {
+      upsertPrescriptionDetailsCache(prescriptionsDetails);
+      return prescriptionsDetails.map((entry: any) => clone(entry));
+    }
+    prescriptionDetails.save(prescriptionsDetails);
     return prescriptionsDetails;
   },
 
   async getAllByIDsFromDexie(ids: []) {
-    return await prescriptionDetailsDexie
+    const results = await prescriptionDetailsDexie
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
+    if (isMobile.value) {
+      upsertPrescriptionDetailsCache(results);
+      return results.map((entry: any) => clone(entry));
+    }
+    prescriptionDetails.save(results);
+    return results;
   },
   deleteAllFromDexie() {
     prescriptionDetailsDexie.clear();
+    prescriptionDetailsMobileCache = [];
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPrescriptionDetailsMobileCache();
   },
 };

@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia EpisodeType');
-    episodeTypeService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing EpisodeType cache from Dexie');
+    return episodeTypeService.refreshMobileCache();
   },
 };

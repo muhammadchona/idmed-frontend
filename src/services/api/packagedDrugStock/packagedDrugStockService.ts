@@ -14,6 +14,59 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let packagedDrugStockMobileCache: any[] = [];
+
+const setPackagedDrugStockMobileCache = (rows: any[]) => {
+  packagedDrugStockMobileCache = rows.map((row) => clone(row));
+};
+
+const getPackagedDrugStockMobileCache = () =>
+  packagedDrugStockMobileCache.map((row) => clone(row));
+
+const upsertPackagedDrugStockCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = packagedDrugStockMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      packagedDrugStockMobileCache.splice(index, 1, payload);
+    } else {
+      packagedDrugStockMobileCache.push(payload);
+    }
+  });
+};
+
+const removePackagedDrugStockFromCache = (id: string) => {
+  packagedDrugStockMobileCache = packagedDrugStockMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshPackagedDrugStockMobileCache = async () => {
+  const rows = await packagedDrugStockDexie.toArray();
+  setPackagedDrugStockMobileCache(rows);
+  return getPackagedDrugStockMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile && !isOnline) {
@@ -47,7 +100,16 @@ export default {
   async postWeb(params: string) {
     try {
       const resp = await api().post('packagedDrugStock', params);
-      packagedDrugStock.save(resp.data);
+      if (!isMobile.value) {
+        packagedDrugStock.save(resp.data);
+      }
+      if (isMobile.value) {
+        const payload = clone(resp.data);
+        packagedDrugStockDexie
+          .put(payload)
+          .then(() => upsertPackagedDrugStockCache(payload))
+          .catch((error) => console.log(error));
+      }
       // alertSucess('O Registo foi efectuado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -59,7 +121,15 @@ export default {
       return api()
         .get('packagedDrugStock?offset=' + offset + '&max=100')
         .then((resp) => {
-          packagedDrugStock.save(resp.data);
+          if (!isMobile.value) {
+            packagedDrugStock.save(resp.data);
+          }
+          if (isMobile.value) {
+            packagedDrugStockDexie
+              .bulkPut(resp.data.map((entry: any) => clone(entry)))
+              .then(() => upsertPackagedDrugStockCache(resp.data))
+              .catch((error) => console.log(error));
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -76,7 +146,16 @@ export default {
   async patchWeb(uuid: string, params: string) {
     try {
       const resp = await api().patch('packagedDrugStock/' + uuid, params);
-      packagedDrugStock.save(resp.data);
+      if (!isMobile.value) {
+        packagedDrugStock.save(resp.data);
+      }
+      if (isMobile.value) {
+        const payload = clone(resp.data);
+        packagedDrugStockDexie
+          .put(payload)
+          .then(() => upsertPackagedDrugStockCache(payload))
+          .catch((error) => console.log(error));
+      }
       alertSucess('O Registo foi alterado com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -86,7 +165,15 @@ export default {
   async deleteWeb(uuid: string) {
     try {
       const resp = await api().delete('packagedDrugStock/' + uuid);
-      packagedDrugStock.destroy(uuid);
+      if (!isMobile.value) {
+        packagedDrugStock.destroy(uuid);
+      }
+      if (isMobile.value) {
+        packagedDrugStockDexie
+          .delete(uuid)
+          .then(() => removePackagedDrugStockFromCache(uuid))
+          .catch((error) => console.log(error));
+      }
       alertSucess('O Registo foi removido com sucesso');
     } catch (error: any) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -95,58 +182,91 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    const payload = clone(toPlainObject(params));
     return packagedDrugStockDexie
-      .put(JSON.parse(JSON.stringify(params)))
+      .put(payload)
       .then(() => {
-        packagedDrugStock.save(JSON.parse(JSON.stringify(params)));
+        if (isMobile.value) {
+          upsertPackagedDrugStockCache(payload);
+          return payload;
+        }
+        // packagedDrugStock.save(payload);
+        return payload;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    const payload = clone(toPlainObject(params));
     return packagedDrugStockDexie
-      .put(JSON.parse(JSON.stringify(params)))
+      .put(payload)
       .then(() => {
-        packagedDrugStock.save(JSON.parse(params));
+        if (isMobile.value) {
+          upsertPackagedDrugStockCache(payload);
+          return payload;
+        }
+        packagedDrugStock.save(payload);
+        return payload;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
     return packagedDrugStockDexie
       .toArray()
       .then((rows: any) => {
+        if (isMobile.value) {
+          setPackagedDrugStockMobileCache(rows);
+          return getPackagedDrugStockMobileCache();
+        }
         packagedDrugStock.save(rows);
+        return rows;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
     return packagedDrugStockDexie
       .delete(paramsId)
       .then(() => {
-        packagedDrugStock.destroy(paramsId);
+        if (isMobile.value) {
+          removePackagedDrugStockFromCache(paramsId);
+        } else {
+          packagedDrugStock.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    const payload = Array.isArray(params)
+      ? params.map((entry: any) => clone(entry))
+      : [clone(params)];
     return packagedDrugStockDexie
-      .bulkAdd(params)
+      .bulkPut(payload)
       .then(() => {
-        packagedDrugStock.save(params);
+        if (isMobile.value) {
+          upsertPackagedDrugStockCache(payload);
+        } else {
+          packagedDrugStock.save(payload);
+        }
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async getAllByStockIDsFromDexie(ids: string[]) {
@@ -158,8 +278,10 @@ export default {
       );
     const packagedDrugStocks = await collection.toArray();
 
-    const packagedDrugIds = packagedDrugStocks.map(
-      (packagedDrugStock: any) => packagedDrugStock?.packagedDrug?.id ? packagedDrugStock.packagedDrug.id : ''
+    const packagedDrugIds = packagedDrugStocks.map((packagedDrugStock: any) =>
+      packagedDrugStock?.packagedDrug?.id
+        ? packagedDrugStock.packagedDrug.id
+        : ''
     );
 
     const [packagedDrugList] = await Promise.all([
@@ -173,6 +295,11 @@ export default {
       );
     });
 
+    if (isMobile.value) {
+      upsertPackagedDrugStockCache(packagedDrugStocks);
+      return packagedDrugStocks.map((entry: any) => clone(entry));
+    }
+    packagedDrugStock.save(packagedDrugStocks);
     return packagedDrugStocks;
   },
   async apiGetAll() {
@@ -183,9 +310,22 @@ export default {
     return packagedDrugStock.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getPackagedDrugStockMobileCache();
+    }
     return packagedDrugStock.all();
   },
   deleteAllFromStorage() {
+    if (isMobile.value) {
+      packagedDrugStockMobileCache = [];
+      return packagedDrugStockDexie.clear();
+    }
     packagedDrugStock.flush();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPackagedDrugStockMobileCache();
   },
 };

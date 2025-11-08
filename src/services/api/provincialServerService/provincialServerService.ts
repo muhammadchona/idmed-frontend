@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let provincialServerMobileCache: any[] = [];
+
+const setProvincialServerMobileCache = (rows: any[]) => {
+  provincialServerMobileCache = rows.map((row) => clone(row));
+};
+
+const getProvincialServerMobileCache = () =>
+  provincialServerMobileCache.map((row) => clone(row));
+
+const refreshProvincialServerMobileCache = async () => {
+  const rows = await provincialServerDexie.toArray();
+  setProvincialServerMobileCache(rows);
+  return getProvincialServerMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,50 +111,76 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return provincialServerDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        provincialServer.save(JSON.parse(JSON.stringify(params)));
+      .put(payload)
+      .then(async () => {
+        await refreshProvincialServerMobileCache();
+        return payload;
+      })
+      .catch((error: any) => {
+        console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return provincialServerDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        provincialServer.save(JSON.parse(JSON.stringify(params)));
+      .put(payload)
+      .then(async () => {
+        await refreshProvincialServerMobileCache();
+        return payload;
+      })
+      .catch((error: any) => {
+        console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return provincialServerDexie
-      .toArray()
-      .then((rows: any) => {
-        provincialServer.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshProvincialServerMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return provincialServerDexie
       .delete(paramsId)
-      .then(() => {
-        provincialServer.destroy(paramsId);
+      .then(async () => {
+        provincialServerMobileCache = provincialServerMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return provincialServerDexie
-      .bulkPut(params)
-      .then(() => {
-        provincialServer.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshProvincialServerMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiFetchById(id: string) {
@@ -151,6 +197,15 @@ export default {
   },
 
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getProvincialServerMobileCache();
+    }
     return provincialServer.all();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshProvincialServerMobileCache();
   },
 };

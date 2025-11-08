@@ -40,6 +40,105 @@ const { alertSucess, alertError } = useSwal();
 const { notifySuccess, notifyInfo, notifyError } = useNotify();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let patientVisitDetailsMobileCache: any[] = [];
+
+const setPatientVisitDetailsMobileCache = (rows: any[]) => {
+  patientVisitDetailsMobileCache = rows.map((row) => clone(row));
+};
+
+const getPatientVisitDetailsMobileCache = () =>
+  patientVisitDetailsMobileCache.map((row) => clone(row));
+
+const upsertPatientVisitDetailsCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = patientVisitDetailsMobileCache.findIndex(
+      (detail) => detail.id === payload.id
+    );
+    if (index >= 0) {
+      patientVisitDetailsMobileCache.splice(index, 1, payload);
+    } else {
+      patientVisitDetailsMobileCache.push(payload);
+    }
+  });
+};
+
+const findPatientVisitDetailInCache = (
+  patientVisitId: string,
+  episodeId: string
+) => {
+  const normalizedVisitId = String(patientVisitId || '').trim().toLowerCase();
+  const normalizedEpisodeId = String(episodeId || '').trim().toLowerCase();
+  if (!normalizedVisitId || !normalizedEpisodeId) {
+    return null;
+  }
+  const matches = getPatientVisitDetailsMobileCache()
+    .filter((detail) => {
+      const visitId = String(
+        detail?.patient_visit_id ??
+          detail?.patientVisit?.id ??
+          detail?.patientVisitId ??
+          ''
+      )
+        .trim()
+        .toLowerCase();
+      const episodeIdValue = String(
+        detail?.episode_id ?? detail?.episode?.id ?? detail?.episodeId ?? ''
+      )
+        .trim()
+        .toLowerCase();
+      return (
+        visitId === normalizedVisitId && episodeIdValue === normalizedEpisodeId
+      );
+    })
+    .sort((a: any, b: any) =>
+      String(b?.pack?.pickupDate || b?.patientVisit?.visitDate || '').localeCompare(
+        String(a?.pack?.pickupDate || a?.patientVisit?.visitDate || '')
+      )
+    );
+  if (!matches.length) {
+    return null;
+  }
+  const detail = clone(matches[0]);
+  if (detail?.pack?.id) {
+    const hydratedPack = packService.getPackWithsByID(detail.pack.id);
+    if (hydratedPack) {
+      detail.pack = hydratedPack;
+    }
+  }
+  return detail;
+};
+
+const removePatientVisitDetailsFromCache = (id: string) => {
+  patientVisitDetailsMobileCache = patientVisitDetailsMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshPatientVisitDetailsMobileCache = async () => {
+  const rows = await patientVisitDetailsDexie.toArray();
+  setPatientVisitDetailsMobileCache(rows);
+  return getPatientVisitDetailsMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -109,23 +208,36 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return patientVisitDetailsDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        patientVisitDetails.save(params);
-      });
+    const payload = clone(toPlainObject(params));
+    return patientVisitDetailsDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPatientVisitDetailsCache(payload);
+        return payload;
+      }
+      patientVisitDetails.save(payload);
+      return payload;
+    });
   },
   putMobile(params: string) {
-    return patientVisitDetailsDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        patientVisitDetails.save(params);
-      });
+    const payload = clone(toPlainObject(params));
+    return patientVisitDetailsDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertPatientVisitDetailsCache(payload);
+        return payload;
+      }
+      patientVisitDetails.save(payload);
+      return payload;
+    });
   },
   async getMobile() {
     try {
       const rows = await patientVisitDetailsDexie.toArray();
+      if (isMobile.value) {
+        setPatientVisitDetailsMobileCache(rows);
+        return getPatientVisitDetailsMobileCache();
+      }
       patientVisitDetails.save(rows);
+      return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -134,7 +246,11 @@ export default {
   async deleteMobile(paramsId: string) {
     try {
       await patientVisitDetailsDexie.delete(paramsId);
-      patientVisitDetails.destroy(paramsId);
+      if (isMobile.value) {
+        removePatientVisitDetailsFromCache(paramsId);
+      } else {
+        patientVisitDetails.destroy(paramsId);
+      }
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -145,13 +261,20 @@ export default {
     const patientVisitDetailsFromPinia = this.getAllFromStorageForDexie();
     return patientVisitDetailsDexie
       .bulkPut(patientVisitDetailsFromPinia)
+      .then(async () => {
+        if (isMobile.value) {
+          await refreshPatientVisitDetailsMobileCache();
+        } else {
+          patientVisitDetails.save(patientVisitDetailsFromPinia);
+        }
+      })
       .catch((error: any) => {
         console.log(error);
       });
   },
 
   async getAllMobileByVisitId(visitIds: []) {
-   const collection = patientVisitDetailsDexie
+    const collection = patientVisitDetailsDexie
       .orderBy('id')
       .reverse()
       .filter((patientVisitDetails: PatientVisitDetails) =>
@@ -527,6 +650,9 @@ export default {
     patientVisitId: string,
     episodeId: string
   ) {
+    if (isMobile.value) {
+      return findPatientVisitDetailInCache(patientVisitId, episodeId);
+    }
     return patientVisitDetails
       .withAllRecursive(2)
       .has('prescription')
@@ -642,6 +768,10 @@ export default {
         : ''
     );
 
+    const packIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
+    );
+
     const [clinics, episodes, patientVisits, prescriptions] = await Promise.all(
       [
         clinicService.getAllByIDsFromDexie(clinicIds),
@@ -649,6 +779,21 @@ export default {
         patientVisitService.getAllByIDsFromDexie(patientVisitIds),
         prescriptionService.getAllByIDsFromDexie(prescriptionIds),
       ]
+    );
+
+    const packMap = new Map<string, any>();
+    await Promise.all(
+      packIds
+        .filter((id: string) => String(id).length > 0)
+        .map(async (id: string) => {
+          if (packMap.has(id)) {
+            return;
+          }
+          const hydratedPack = await packService.getPackWithsByID(id);
+          if (hydratedPack) {
+            packMap.set(id, hydratedPack);
+          }
+        })
     );
 
     patientVisitDetails.map((patientVisitDetail: any) => {
@@ -666,6 +811,12 @@ export default {
         (prescription: any) =>
           prescription.id === patientVisitDetail.prescription.id
       );
+      if (patientVisitDetail?.pack?.id) {
+        const pack = packMap.get(patientVisitDetail.pack.id);
+        if (pack) {
+          patientVisitDetail.pack = pack;
+        }
+      }
     });
 
     return patientVisitDetails;
@@ -749,12 +900,27 @@ export default {
       patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
     );
 
-    const [clinics, episodes, prescriptions, packs] = await Promise.all([
+    const [clinics, episodes, prescriptions] = await Promise.all([
       clinicService.getAllByIDsFromDexie(clinicIds),
       episodeService.getAllByIDsFromDexie(episodeIds),
       prescriptionService.getAllByIDsFromDexie(prescriptionIds),
-      packService.getAllByIDsFromDexie(packIds),
     ]);
+
+    const packMap = new Map<string, any>();
+    await Promise.all(
+      packIds
+        .filter((id: string) => String(id).length > 0)
+        .map(async (id: string) => {
+          if (packMap.has(id)) {
+            return;
+          }
+          const hydratedPack = await packService.getPackWithsByID(id);
+          if (hydratedPack) {
+            packMap.set(id, hydratedPack);
+          }
+        })
+    );
+
     patientVisitDetails.map((patientVisitDetail: any) => {
       patientVisitDetail.clinic = clinics.find(
         (clinic: any) => clinic.id === patientVisitDetail.clinic.id
@@ -766,12 +932,15 @@ export default {
         (prescription: any) =>
           prescription.id === patientVisitDetail.prescription.id
       );
-      patientVisitDetail.pack = packs.find(
-        (pack: any) => pack.id === patientVisitDetail.pack.id
-      );
+      if (patientVisitDetail?.pack?.id) {
+        const pack = packMap.get(patientVisitDetail.pack.id);
+        if (pack) {
+          patientVisitDetail.pack = pack;
+        }
+      }
     });
 
-    return patientVisitDetails;
+    return patientVisitDetails.map((detail: any) => clone(detail));
   },
   async getAllByEpisodeIDsFromDexie(ids: string[]) {
     const collection = patientVisitDetailsDexie.filter(
@@ -780,20 +949,24 @@ export default {
     );
     const patientVisitDetails = await collection.toArray();
 
-    const patientVisitIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail?.patientVisit?.id ? patientVisitDetail.patientVisit.id : ''
+    const patientVisitIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.patientVisit?.id
+        ? patientVisitDetail.patientVisit.id
+        : ''
     );
 
-    const packIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
+    const packIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
     );
 
-    const clinicIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail?.clinic?.id ? patientVisitDetail.clinic.id : ''
+    const clinicIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.clinic?.id ? patientVisitDetail.clinic.id : ''
     );
 
-    const prescriptionIds = patientVisitDetails.map(
-      (patientVisitDetail: any) => patientVisitDetail?.prescription?.id ? patientVisitDetail.prescription.id : ''
+    const prescriptionIds = patientVisitDetails.map((patientVisitDetail: any) =>
+      patientVisitDetail?.prescription?.id
+        ? patientVisitDetail.prescription.id
+        : ''
     );
 
     const [clinics, packs, patientVisits, prescriptions] = await Promise.all([
@@ -802,7 +975,7 @@ export default {
       patientVisitService.getAllByIDsNoRelationsFromDexie(patientVisitIds),
       prescriptionService.getAllByIDsFromDexie(prescriptionIds),
     ]);
-
+    console.log(patientVisitDetails);
     patientVisitDetails.map((patientVisitDetail: any) => {
       patientVisitDetail.clinic = clinics.find(
         (clinic: any) => clinic.id === patientVisitDetail.clinic.id
@@ -810,9 +983,11 @@ export default {
       patientVisitDetail.pack = packs.find(
         (pack: any) => pack.id === patientVisitDetail.pack.id
       );
+      console.log(patientVisits);
       patientVisitDetail.patientVisit = patientVisits.find(
         (patientVisit: any) =>
-          patientVisit.id === patientVisitDetail.patientVisit.id
+          patientVisit.id === patientVisitDetail.patientVisit?.id ||
+          patientVisitDetail.patient_visit_id
       );
       patientVisitDetail.prescription = prescriptions.find(
         (prescription: any) =>
@@ -824,5 +999,12 @@ export default {
   },
   deleteAllFromDexie() {
     patientVisitDetailsDexie.clear();
+  },
+
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPatientVisitDetailsMobileCache();
   },
 };

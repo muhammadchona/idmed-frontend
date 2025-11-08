@@ -13,6 +13,59 @@ const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let adherenceScreeningMobileCache: any[] = [];
+
+const setAdherenceScreeningMobileCache = (rows: any[]) => {
+  adherenceScreeningMobileCache = rows.map((row) => clone(row));
+};
+
+const getAdherenceScreeningMobileCache = () =>
+  adherenceScreeningMobileCache.map((row) => clone(row));
+
+const upsertAdherenceScreeningCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = adherenceScreeningMobileCache.findIndex(
+      (detail) => detail.id === payload.id
+    );
+    if (index >= 0) {
+      adherenceScreeningMobileCache.splice(index, 1, payload);
+    } else {
+      adherenceScreeningMobileCache.push(payload);
+    }
+  });
+};
+
+const removeAdherenceScreeningFromCache = (id: string) => {
+  adherenceScreeningMobileCache = adherenceScreeningMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshAdherenceScreeningMobileCache = async () => {
+  const rows = await adherenceScreeningDexie.toArray();
+  setAdherenceScreeningMobileCache(rows);
+  return getAdherenceScreeningMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -83,30 +136,40 @@ export default {
   // Mobile
   addMobile(params: string) {
     showloading();
+    const payload = clone(toPlainObject(params));
     return adherenceScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
+      .put(payload)
       .then(() => {
-        adherenceScreening.save(JSON.parse(JSON.stringify(params)));
-        // alertSucess('O Registo foi efectuado com sucesso');
+        if (isMobile.value) {
+          upsertAdherenceScreeningCache(payload);
+        } else {
+          adherenceScreening.save(payload);
+        }
         closeLoading();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   patchMobile(params: string) {
     showloading();
+    const payload = clone(toPlainObject(params));
     return adherenceScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
+      .put(payload)
       .then(() => {
-        adherenceScreening.save(JSON.parse(JSON.stringify(params)));
-        // alertSucess('O Registo foi efectuado com sucesso');
+        if (isMobile.value) {
+          upsertAdherenceScreeningCache(payload);
+        } else {
+          adherenceScreening.save(payload);
+        }
         closeLoading();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
@@ -114,24 +177,34 @@ export default {
     return adherenceScreeningDexie
       .toArray()
       .then((rows: any) => {
+        if (isMobile.value) {
+          setAdherenceScreeningMobileCache(rows);
+          closeLoading();
+          return getAdherenceScreeningMobileCache();
+        }
         adherenceScreening.save(rows);
         closeLoading();
+        return rows;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
     return adherenceScreeningDexie
       .delete(paramsId)
       .then(() => {
-        adherenceScreening.destroy(paramsId);
+        if (isMobile.value) {
+          removeAdherenceScreeningFromCache(paramsId);
+        } else {
+          adherenceScreening.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile() {

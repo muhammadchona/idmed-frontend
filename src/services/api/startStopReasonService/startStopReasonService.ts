@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let startStopReasonMobileCache: any[] = [];
+
+const setStartStopReasonMobileCache = (rows: any[]) => {
+  startStopReasonMobileCache = rows.map((row) => clone(row));
+};
+
+const getStartStopReasonMobileCache = () =>
+  startStopReasonMobileCache.map((row) => clone(row));
+
+const refreshStartStopReasonMobileCache = async () => {
+  const rows = await startStopReasonDexie.toArray();
+  setStartStopReasonMobileCache(rows);
+  return getStartStopReasonMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -82,58 +102,76 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return startStopReasonDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        startStopReason.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshStartStopReasonMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return startStopReasonDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        startStopReason.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshStartStopReasonMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return startStopReasonDexie
-      .toArray()
-      .then((rows: any) => {
-        startStopReason.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshStartStopReasonMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return startStopReasonDexie
       .delete(paramsId)
-      .then(() => {
-        startStopReason.destroy(paramsId);
+      .then(async () => {
+        startStopReasonMobileCache = startStopReasonMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return startStopReasonDexie
-      .bulkPut(params)
-      .then(() => {
-        startStopReason.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshStartStopReasonMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll(offset: number, max: number) {
@@ -148,21 +186,43 @@ export default {
     return startStopReason.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getStartStopReasonMobileCache();
+    }
     return startStopReason.all();
   },
   getAllStartReasons() {
+    if (isMobile.value && !isOnline.value) {
+      return getStartStopReasonMobileCache()
+        .filter((entry) => entry.isStartReason === true)
+        .sort((a, b) =>
+          String(a.reason || '').localeCompare(String(b.reason || ''))
+        );
+    }
     return startStopReason
       .where('isStartReason', true)
       .orderBy('reason', 'asc')
       .get();
   },
   getAllStopReasons() {
+    if (isMobile.value && !isOnline.value) {
+      return getStartStopReasonMobileCache()
+        .filter((entry) => entry.isStartReason === false)
+        .sort((a, b) =>
+          String(a.reason || '').localeCompare(String(b.reason || ''))
+        );
+    }
     return startStopReason
       .where('isStartReason', false)
       .orderBy('reason', 'asc')
       .get();
   },
   getById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getStartStopReasonMobileCache().find((entry) => entry.id === id) ?? null
+      );
+    }
     return startStopReason
       .query()
       .where((startStopReason) => {
@@ -180,6 +240,18 @@ export default {
   },
 
   getStartStopReasonByCode(code: string) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getStartStopReasonMobileCache().find((entry) => entry.code === code) ??
+        null
+      );
+    }
     return startStopReason.query().where('code', code).first();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshStartStopReasonMobileCache();
   },
 };
