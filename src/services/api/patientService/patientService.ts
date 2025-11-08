@@ -12,25 +12,20 @@ import useNotify from 'src/composables/shared/notify/UseNotify';
 import patientVisitService from '../patientVisit/patientVisitService';
 import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
 import episodeService from '../episode/episodeService';
-import prescriptionService from '../prescription/prescriptionService';
-import packService from '../pack/packService';
 import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
-import prescribedDrugService from '../prescribedDrug/prescribedDrugService';
-import prescriptionDetailsService from '../prescriptionDetails/prescriptionDetailsService';
-import packagedDrugService from '../packagedDrug/packagedDrugService';
-import vitalSignsScreeningService from '../vitalSignsScreening/vitalSignsScreeningService';
-import rAMScreeningService from '../rAMScreening/rAMScreeningService';
-import tBScreeningService from '../tBScreening/tBScreeningService';
-import adherenceScreeningService from '../adherenceScreening/adherenceScreeningService';
-import pregnancyScreeningService from '../pregnancyScreening/pregnancyScreeningService';
 import { Notify } from 'quasar';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import Episode from 'src/stores/models/episode/Episode';
+import { usePatientMobileStore } from 'src/stores/mobile/patientMobileStore';
+import packService from '../pack/packService';
+import prescriptionService from '../prescription/prescriptionService';
+import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
 
 const patient = useRepo(Patient);
 const patientDexie = db[Patient.entity];
 const patientServiceIdentifierDexie = db[PatientServiceIdentifier.entity];
 const episodeDexie = db[Episode.entity];
+const patientVisitDexie = db[PatientVisit.entity];
 
 const { closeLoading } = useLoading();
 const { alertSucess, alertError, alertInfo } = useSwal();
@@ -41,7 +36,71 @@ const {
   getUserClinics,
   getUserClinicsFromLocalStorage,
 } = useSystemConfig();
-const { notifySuccess, notifyInfo } = useNotify();
+const { notifySuccess, notifyInfo, notifyError } = useNotify();
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const sortPatientsForSearch = (patients: any[] = []) => {
+  const extractIdentifier = (patient: any) => {
+    if (!patient || !patient.identifiers) {
+      return '';
+    }
+
+    if (Array.isArray(patient.identifiers)) {
+      const prefered = patient.identifiers.find(
+        (identifier: any) => identifier && identifier.prefered
+      );
+      if (prefered?.value) {
+        return String(prefered.value);
+      }
+      const firstIdentifier = patient.identifiers.find(
+        (identifier: any) => identifier && identifier.value
+      );
+      return firstIdentifier?.value ? String(firstIdentifier.value) : '';
+    }
+
+    if (
+      typeof patient.identifiers === 'object' &&
+      patient.identifiers !== null &&
+      patient.identifiers.value
+    ) {
+      return String(patient.identifiers.value);
+    }
+
+    return '';
+  };
+
+  return [...patients].sort((a, b) => {
+    const firstNameCompare = String(a?.firstNames || '').localeCompare(
+      String(b?.firstNames || '')
+    );
+    if (firstNameCompare !== 0) {
+      return firstNameCompare;
+    }
+    const aIdentifier = extractIdentifier(a);
+    const bIdentifier = extractIdentifier(b);
+    return aIdentifier.localeCompare(bIdentifier);
+  });
+};
+
+let cachedPatientMobileStore: ReturnType<typeof usePatientMobileStore> | null =
+  null;
+
+const getPatientMobileStore = () => {
+  if (cachedPatientMobileStore) {
+    return cachedPatientMobileStore;
+  }
+
+  try {
+    cachedPatientMobileStore = usePatientMobileStore();
+    return cachedPatientMobileStore;
+  } catch (error) {
+    return null;
+  }
+};
 
 export default {
   post(params: string) {
@@ -131,22 +190,39 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return patientDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
-      patient.save(JSON.parse(JSON.stringify(params)));
+    const payload = clone(params);
+    return patientDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        const store = getPatientMobileStore();
+        store?.upsertPatient(payload);
+      } else {
+        patient.save(payload);
+      }
       return params;
     });
   },
   putMobile(params: string) {
-    return patientDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
-      patient.save(JSON.parse(JSON.stringify(params)));
+    const payload = clone(params);
+    return patientDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        const store = getPatientMobileStore();
+        store?.upsertPatient(payload);
+      } else {
+        patient.save(payload);
+      }
       return params;
     });
   },
   async getMobile() {
     try {
       const rows = await patientDexie.toArray();
-      patient.save(rows);
-      return rows;
+      if (isMobile.value) {
+        const store = getPatientMobileStore();
+        store?.setPatients(rows);
+      } else {
+        patient.save(rows);
+      }
+      return clone(rows);
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -156,7 +232,12 @@ export default {
     return patientDexie
       .delete(paramsId)
       .then(() => {
-        patient.destroy(paramsId);
+        if (isMobile.value) {
+          const store = getPatientMobileStore();
+          store?.removeById(paramsId);
+        } else {
+          patient.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
@@ -171,8 +252,11 @@ export default {
         .equalsIgnoreCase(id)
         .first()
         .then((rows: any) => {
-          patient.save(rows);
-          return rows;
+          if (rows) {
+            const store = getPatientMobileStore();
+            store?.upsertPatient(rows);
+          }
+          return clone(rows);
         });
     } else {
       return api()
@@ -185,26 +269,26 @@ export default {
   },
 
   async apiSearch(patienParam: any) {
-    patient.flush();
     if (isMobile.value && !isOnline.value) {
-      return this.getPatientByParams(patienParam)
-        .then((rows) => {
-          patient.save(rows);
-        })
-        .catch((error: any) => {
-          console.log(error);
-        });
-    } else {
+      const store = getPatientMobileStore();
+      store?.clear();
       try {
-        const resp = await api().post('/patient/search', patienParam);
-        patient.save(resp.data);
-        closeLoading();
-        return resp;
+        return await this.getPatientByParams(patienParam);
       } catch (error) {
         console.log(error);
-        closeLoading();
         return null;
       }
+    }
+    patient.flush();
+    try {
+      const resp = await api().post('/patient/search', patienParam);
+      patient.save(resp.data);
+      closeLoading();
+      return resp;
+    } catch (error) {
+      console.log(error);
+      closeLoading();
+      return null;
     }
   },
 
@@ -313,6 +397,8 @@ export default {
       alertError(
         'O Utilizador logado não tem nenhum sector clínico associado , não terá informação carregada do Servidor'
       );
+      notifyError('Não foi possível identificar o sector clínico actual.');
+      return;
     }
 
     let resp;
@@ -488,15 +574,53 @@ export default {
     return patient.getModel().$newInstance();
   },
   savePatientStorage(newPatient: any) {
-    patient.save(newPatient);
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      store?.upsertPatient(newPatient);
+    } else {
+      patient.save(newPatient);
+    }
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      return store ? store.all : [];
+    }
     return patient.all();
   },
   getAllFromStorageToDexie() {
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      const patients = store ? store.all : [];
+      return patients.map((item: any) => {
+        const cloned = clone(item);
+        delete cloned.hisSyncStatus;
+        return cloned;
+      });
+    }
     return patient.makeHidden(['hisSyncStatus']).all();
   },
   getPatientByID(id: string) {
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      const cachedPatient = store?.getById(id);
+      if (!cachedPatient) {
+        patientDexie
+          .where('id')
+          .equalsIgnoreCase(id)
+          .first()
+          .then((rows: any) => {
+            if (rows) {
+              const innerStore = getPatientMobileStore();
+              innerStore?.upsertPatient(rows);
+            }
+          })
+          .catch((error: any) => {
+            console.log(error);
+          });
+      }
+      return cachedPatient;
+    }
     return patient.withAllRecursive(2).whereId(id).first();
   },
   async deleteAllExceptIdFromStorage(id: string) {
@@ -507,12 +631,55 @@ export default {
       .delete();
   },
   deleteAllFromStorage() {
-    patient.flush();
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      store?.clear();
+    } else {
+      patient.flush();
+    }
   },
   deletePatientStorage(patientParam: any) {
-    patient.destroy(patientParam.id);
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      store?.removeById(patientParam.id);
+    } else {
+      patient.destroy(patientParam.id);
+    }
   },
-  getPatientSearchList() {
+  async getPatientSearchList() {
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      let patients = store ? store.all : [];
+
+      const hasIdentifiersWithValue = patients.some((patient: any) => {
+        if (!patient) return false;
+        const identifiers = patient.identifiers;
+        if (!Array.isArray(identifiers)) return false;
+        return identifiers.some(
+          (identifier: any) =>
+            identifier &&
+            typeof identifier.value === 'string' &&
+            identifier.value.trim().length > 0
+        );
+      });
+
+      if (!store || patients.length === 0 || !hasIdentifiersWithValue) {
+        try {
+          const hydratedPatients = await this.getAllPatientstWithAllFromDexie();
+          const refreshedStore = getPatientMobileStore();
+          if (refreshedStore) {
+            patients = refreshedStore.all;
+          } else {
+            patients = hydratedPatients;
+          }
+        } catch (error) {
+          console.log('Failed to hydrate patients from Dexie', error);
+          return [];
+        }
+      }
+
+      return sortPatientsForSearch(patients);
+    }
     return patient
       .query()
       .withAllRecursive(2)
@@ -521,6 +688,13 @@ export default {
       .get();
   },
   getPatientByClinicId(clinicId: string) {
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      const patients = store ? store.all : [];
+      return patients.filter((item: any) => {
+        return item.clinic_id === clinicId || item.clinicId === clinicId;
+      });
+    }
     return (
       patient
         .query()
@@ -551,6 +725,11 @@ export default {
   },
   getPatienWithstByID(id: string) {
     // return patient.withAllRecursive(3).whereId(id).first();
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      const patient = store?.getById(id);
+      return patient ?? null;
+    }
     return patient
       .query()
       .has('identifiers')
@@ -579,26 +758,98 @@ export default {
       .first();
   },
   async getPatientByParams(patientParam: any) {
-    const results = await patientDexie
-      .filter((patient: Patient) => {
-        const firstNamesMatch = patient.firstNames.includes(
-          patientParam.firstNames
-        );
-        const lastNamesMatch = patient.lastNames.includes(
-          patientParam.lastNames
-        );
-        const identifierMatch = patient.identifiers.some((identifier: any) =>
-          identifier.value.includes(patientParam.identifiers[0].value)
-        );
+    const searchFirstName = String(patientParam.firstNames || '').trim();
+    const searchLastName = String(patientParam.lastNames || '').trim();
+    const searchIdentifier = String(
+      patientParam?.identifiers?.[0]?.value || ''
+    ).trim();
 
-        return firstNamesMatch || lastNamesMatch || identifierMatch;
-      })
-      .toArray();
+    const [patientMatches, identifierMatches] = await Promise.all([
+      patientDexie
+        .filter((patient: Patient) => {
+          const firstNamesMatch =
+            searchFirstName.length > 0 &&
+            String(patient.firstNames || '')
+              .toLowerCase()
+              .includes(searchFirstName.toLowerCase());
+
+          const lastNamesMatch =
+            searchLastName.length > 0 &&
+            String(patient.lastNames || '')
+              .toLowerCase()
+              .includes(searchLastName.toLowerCase());
+
+          if (
+            searchIdentifier.length === 0 &&
+            searchFirstName.length === 0 &&
+            searchLastName.length === 0
+          ) {
+            return true;
+          }
+
+          if (searchIdentifier.length === 0) {
+            return firstNamesMatch || lastNamesMatch;
+          }
+
+          return (
+            firstNamesMatch || lastNamesMatch || patient.id === searchIdentifier
+          );
+        })
+        .toArray(),
+      searchIdentifier.length > 0
+        ? patientServiceIdentifierDexie
+            .filter((identifier: any) => {
+              const identifierValue = String(identifier?.value || '').trim();
+              if (!identifierValue) {
+                return false;
+              }
+              return identifierValue
+                .toLowerCase()
+                .includes(searchIdentifier.toLowerCase());
+            })
+            .toArray()
+        : Promise.resolve([]),
+    ]);
+
+    let results = patientMatches;
+
+    if (identifierMatches.length > 0) {
+      const identifierPatientIds = identifierMatches
+        .map((identifier: any) => identifier.patient_id || identifier.patientId)
+        .filter(Boolean);
+
+      if (identifierPatientIds.length > 0) {
+        const patientsFromIdentifiers = await patientDexie
+          .where('id')
+          .anyOf(identifierPatientIds)
+          .toArray();
+
+        const combinedMap = new Map<string, any>();
+        [...results, ...patientsFromIdentifiers].forEach((patient: any) => {
+          const id = String(patient.id);
+          if (!combinedMap.has(id)) {
+            combinedMap.set(id, patient);
+          }
+        });
+
+        results = Array.from(combinedMap.values());
+      }
+    }
+
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      store?.setPatients(results);
+    }
 
     return results;
   },
 
   getById(id: string) {
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      const patient = store?.getById(id);
+      return patient ?? null;
+    }
     return patient
       .query()
       .where((patient: any) => {
@@ -627,49 +878,208 @@ export default {
     return await patientDexie.count();
   },
 
-  async getPatientMobileWithAllByPatientId(patient: Patient) {
-    const patientServices =
-      await patientServiceIdentifierService.getAllMobileByPatientId(patient.id);
+  async getPatientMobileWithAllByPatientId(patient: Patient | string) {
+    if (!isMobile.value) {
+      return null;
+    }
 
-    const patientServicesIds = patientServices.map((pat: any) => pat.id);
+    const patientId = typeof patient === 'string' ? patient : patient.id;
+    const patientRecord = await patientDexie.get(patientId);
 
-    await episodeService.getAllMobileByPatientServiceIds(patientServicesIds);
+    if (!patientRecord) {
+      return null;
+    }
 
-    const patientVisits = await patientVisitService.apiGetAllByPatientId(
-      patient.id
-    );
-    const ids = patientVisits.map((pat: any) => pat.id);
+    const patientClone = clone(patientRecord);
+    patientClone.identifiers = [];
+    patientClone.patientVisits = [];
 
-    const patientVisitDetails =
-      await patientVisitDetailsService.getAllMobileByVisitId(ids);
+    const [identifierRecords, visitRecords] = await Promise.all([
+      patientServiceIdentifierService.getAllByPatientsIDsFromDexie([patientId]),
+      patientVisitService.getAllByPatientIDsFromDexie([patientId]),
+    ]);
 
-    const prescriptionIds = patientVisitDetails.map((pat: any) =>
-      pat?.prescription?.id ? pat.prescription.id : ''
-    );
-    const packIds = patientVisitDetails.map((pat: any) => pat.pack.id);
+    const identifiers = identifierRecords
+      .filter((identifier: any) => {
+        const id =
+          identifier?.patient?.id ??
+          identifier?.patient_id ??
+          identifier?.patientId ??
+          '';
+        return String(id).toLowerCase() === String(patientId).toLowerCase();
+      })
+      .map((identifier: any) => clone(identifier));
 
-    const prescriptions = await prescriptionService.getAllMobileByIds(
-      prescriptionIds
-    );
-    const packs = await packService.getAllMobileByIds(packIds);
+    const patientVisits = visitRecords
+      .filter((visit: any) => {
+        const id =
+          visit?.patient?.id ?? visit?.patient_id ?? visit?.patientId ?? '';
+        return String(id).toLowerCase() === String(patientId).toLowerCase();
+      })
+      .map((visit: any) => {
+        const visitClone = clone(visit);
+        visitClone.patientVisitDetails = (
+          visitClone.patientVisitDetails ?? []
+        ).map((detail: any) => clone(detail));
+        return visitClone;
+      });
 
-    ids.forEach((id: any) => {
-      vitalSignsScreeningService.getVitalSignsScreeningByVisitIdMobile(id);
-      rAMScreeningService.getRAMScreeningByVisitIdMobile(id);
-      tBScreeningService.getTBScreeningsByVisitIdMobile(id);
-      adherenceScreeningService.getAdherenceScreeningByVisitIdMobile(id);
-      pregnancyScreeningService.getPregnancyScreeningsByVisitIdMobile(id);
+    const identifierIds = identifiers
+      .map((identifier: any) => identifier?.id)
+      .filter(Boolean);
+
+    let enrichedEpisodes: any[] = [];
+
+    if (identifierIds.length > 0) {
+      const rawEpisodes = await episodeDexie
+        .filter((episode: any) => {
+          const identifierId =
+            episode?.patientServiceIdentifier_id ??
+            episode?.patientServiceIdentifier?.id ??
+            episode?.patientServiceIdentifierId;
+          return (
+            identifierId &&
+            identifierIds
+              .map((entry: any) => String(entry).toLowerCase())
+              .includes(String(identifierId).toLowerCase())
+          );
+        })
+        .toArray();
+
+      const episodeIds = rawEpisodes.map((episode: any) => episode.id);
+      enrichedEpisodes =
+        episodeIds.length > 0
+          ? await episodeService.getAllByIDsFromDexie(episodeIds)
+          : [];
+    }
+
+    const episodesByIdentifier = new Map<string, any[]>();
+    const baseEpisodeMap = new Map<string, any>();
+    enrichedEpisodes.forEach((episode: any) => {
+      const episodeClone = clone(episode);
+      delete episodeClone.patientVisitDetails;
+      baseEpisodeMap.set(String(episode.id), episodeClone);
+
+      const identifierId =
+        episode?.patientServiceIdentifier?.id ??
+        episode?.patientServiceIdentifier_id ??
+        episode?.patientServiceIdentifierId ??
+        null;
+
+      if (!identifierId) {
+        return;
+      }
+
+      const key = String(identifierId);
+      if (!episodesByIdentifier.has(key)) {
+        episodesByIdentifier.set(key, []);
+      }
+      const list = episodesByIdentifier.get(key)!;
+      if (!list.some((entry: any) => entry.id === episode.id)) {
+        list.push(clone(episodeClone));
+      }
     });
 
-    prescriptions.forEach((prescription: any) => {
-      prescribedDrugService.getLastByPrescriprionIdFromDexie(prescription.id);
-      prescriptionDetailsService.getLastByPrescriprionIdFromDexie(
-        prescription.id
+    patientClone.identifiers = identifiers.map((identifier: any) => {
+      const episodesForIdentifier =
+        episodesByIdentifier.get(String(identifier.id)) ?? [];
+      return {
+        ...identifier,
+        episodes: episodesForIdentifier.map((episode: any) => clone(episode)),
+      };
+    });
+
+    const packIds = new Set<string>();
+    const prescriptionIds = new Set<string>();
+
+    patientVisits.forEach((visit: any) => {
+      (visit?.patientVisitDetails ?? []).forEach((detail: any) => {
+        const packId =
+          detail?.pack?.id ?? detail?.pack_id ?? detail?.packId ?? null;
+        if (packId) {
+          packIds.add(String(packId));
+        }
+        const prescriptionId =
+          detail?.prescription?.id ??
+          detail?.prescription_id ??
+          detail?.prescriptionId ??
+          null;
+        if (prescriptionId) {
+          prescriptionIds.add(String(prescriptionId));
+        }
+      });
+    });
+
+    const packMap = new Map<string, any>();
+    if (packIds.size > 0) {
+      const hydratedPacks = await Promise.all(
+        Array.from(packIds).map(async (id) => {
+          const packRecord = await packService.getPackWithsByID(id);
+          return packRecord ? [String(id), clone(packRecord)] : null;
+        })
       );
+      hydratedPacks.forEach((entry) => {
+        if (entry) {
+          packMap.set(entry[0], entry[1]);
+        }
+      });
+    }
+
+    const prescriptionMap = new Map<string, any>();
+    if (prescriptionIds.size > 0) {
+      const prescriptions = await prescriptionService.getAllByIDsFromDexie(
+        Array.from(prescriptionIds)
+      );
+      prescriptions.forEach((prescription: any) => {
+        prescriptionMap.set(String(prescription.id), clone(prescription));
+      });
+    }
+
+    patientClone.patientVisits = patientVisits.map((visit: any) => {
+      visit.patientVisitDetails = (visit.patientVisitDetails ?? []).map(
+        (detail: any) => {
+          const detailClone = clone(detail);
+          delete detailClone.patientVisit;
+
+          const packId =
+            detailClone?.pack?.id ??
+            detailClone?.pack_id ??
+            detailClone?.packId ??
+            null;
+          if (packId && packMap.has(String(packId))) {
+            detailClone.pack = packMap.get(String(packId));
+          }
+
+          const prescriptionId =
+            detailClone?.prescription?.id ??
+            detailClone?.prescription_id ??
+            detailClone?.prescriptionId ??
+            null;
+          if (prescriptionId && prescriptionMap.has(String(prescriptionId))) {
+            detailClone.prescription = prescriptionMap.get(
+              String(prescriptionId)
+            );
+          }
+
+          const episodeId =
+            detailClone?.episode?.id ??
+            detailClone?.episode_id ??
+            detailClone?.episodeId ??
+            null;
+          if (episodeId && baseEpisodeMap.has(String(episodeId))) {
+            detailClone.episode = clone(baseEpisodeMap.get(String(episodeId)));
+          }
+          return detailClone;
+        }
+      );
+      delete visit.patient;
+      return visit;
     });
-    packs.forEach((pack: any) => {
-      packagedDrugService.getAllByPackIdMobile(pack.id);
-    });
+
+    const store = getPatientMobileStore();
+    store?.upsertPatient(patientClone);
+
+    return patientClone;
   },
 
   // Dexie Block
@@ -696,6 +1106,11 @@ export default {
       );
     });
 
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      store?.setPatients(patients);
+    }
+
     return patients;
   },
   async getPatientWithAllFromDexie(id: string) {
@@ -706,19 +1121,19 @@ export default {
 
     const patientIds = patients.map((patient: any) => patient.id);
 
-    const [patientVisitList, identifiers] = await Promise.all([
-      patientVisitService.getAllByPatientIDsFromDexie(patientIds),
+    const [identifiers, patientVisitList] = await Promise.all([
       patientServiceIdentifierService.getAllByPatientsIDsFromDexie(patientIds),
+      patientVisitService.getAllByPatientIDsFromDexie(patientIds),
     ]);
 
     patients.map((patient: any) => {
-      patient.patientVisits = patientVisitList.filter(
-        (patientVisit: any) => patientVisit.patient.id === patient.id
-      );
       patient.identifiers = identifiers.filter(
         (identifier: any) => identifier.patient.id === patient.id
       );
     });
+    patient.patientVisits = patientVisitList.filter(
+      (patientVisit: any) => patientVisit.patient.id === patient.id
+    );
     return patients;
   },
 
@@ -746,7 +1161,12 @@ export default {
       );
     });
 
-    patient.save(patients);
+    if (isMobile.value) {
+      const store = getPatientMobileStore();
+      store?.setPatients(patients);
+    } else {
+      patient.save(patients);
+    }
 
     return patients;
   },
@@ -760,7 +1180,12 @@ export default {
       )
       .then((resp) => {
         if (resp.data.length > 0) {
-          patient.save(resp.data);
+          if (isMobile.value) {
+            const store = getPatientMobileStore();
+            store?.setPatients(resp.data);
+          } else {
+            patient.save(resp.data);
+          }
         } else {
           alertInfo(
             'Nenhum resultado encontrado para o identificador ' + nid + ''
@@ -788,5 +1213,218 @@ export default {
 
   deleteAllFromDexie() {
     patientDexie.clear();
+  },
+
+  /**
+   * Returns a fully hydrated patient graph intended for mobile/offline use:
+   * patient
+   *   └─ identifiers
+   *        └─ episodes …
+   *   └─ patientVisits
+   *        └─ patientVisitDetails
+   *             ├─ pack (with packagedDrugs → drug)
+   *             └─ prescription (with prescribedDrugs)
+   */
+
+  /**
+   * Returns a fully hydrated patient graph intended for mobile/offline use:
+   * patient
+   *   └─ identifiers
+   *        └─ episodes …
+   *   └─ patientVisits
+   *        └─ patientVisitDetails
+   *             ├─ pack (with packagedDrugs → drug)
+   *             └─ prescription (with prescribedDrugs)
+   */
+  async getPatientGraphFromDexie(patientId: string) {
+    const lowerPatientId = patientId.toLowerCase();
+
+    const patientRow = await patientDexie.get(lowerPatientId);
+    if (!patientRow) {
+      return null;
+    }
+
+    const patientClone = clone(patientRow);
+
+    const [identifierRows, visitRows] = await Promise.all([
+      patientServiceIdentifierDexie
+        .where('patientId')
+        .equalsIgnoreCase(lowerPatientId)
+        .toArray(),
+      patientVisitDexie
+        .where('patientId')
+        .equalsIgnoreCase(lowerPatientId)
+        .toArray(),
+    ]);
+
+    /* identifiers + episodes */
+    const identifierIds = identifierRows.map((row) => row.id).filter(Boolean);
+
+    const episodeRows =
+      identifierIds.length > 0
+        ? await episodeDexie
+            .filter((episode: any) =>
+              identifierIds
+                .map((id) => String(id).toLowerCase())
+                .includes(
+                  String(
+                    episode?.patientServiceIdentifier_id ??
+                      episode?.patientServiceIdentifier?.id ??
+                      ''
+                  ).toLowerCase()
+                )
+            )
+            .toArray()
+        : [];
+
+    const fullEpisodes =
+      episodeRows.length > 0
+        ? await episodeService.getAllByIDsFromDexie(
+            episodeRows.map((episode: any) => episode.id)
+          )
+        : [];
+
+    const episodesByIdentifier = new Map<string, any[]>();
+    fullEpisodes.forEach((episode: any) => {
+      const identifierId =
+        episode?.patientServiceIdentifier?.id ??
+        episode?.patientServiceIdentifier_id ??
+        null;
+      if (!identifierId) {
+        return;
+      }
+      const key = String(identifierId);
+      if (!episodesByIdentifier.has(key)) {
+        episodesByIdentifier.set(key, []);
+      }
+      episodesByIdentifier.get(key)!.push(clone(episode));
+    });
+
+    patientClone.identifiers = identifierRows.map((identifier: any) => {
+      const key = String(identifier.id).toLowerCase();
+      return {
+        ...clone(identifier),
+        episodes: (episodesByIdentifier.get(key) ?? []).map((episode: any) =>
+          clone(episode)
+        ),
+      };
+    });
+
+    /* visits + visit details */
+    const visitIds = visitRows.map((row: any) => row.id);
+    const visitDetails =
+      visitIds.length > 0
+        ? await patientVisitDetailsService.getAllByPatientVisitIdsFromDexie(
+            visitIds
+          )
+        : [];
+
+    const detailsByVisit = new Map<string, any[]>();
+    visitDetails.forEach((detail: any) => {
+      const visitId =
+        detail?.patientVisit?.id ??
+        detail?.patient_visit_id ??
+        detail?.patientVisitId ??
+        '';
+      if (!visitId) {
+        return;
+      }
+      const key = String(visitId).toLowerCase();
+      if (!detailsByVisit.has(key)) {
+        detailsByVisit.set(key, []);
+      }
+      detailsByVisit.get(key)!.push(clone(detail));
+    });
+
+    const prescriptionIds: string[] = [];
+    const packIds: string[] = [];
+
+    const patientVisits = visitRows.map((visit: any) => {
+      const visitClone = clone(visit);
+      const key = String(visitClone.id).toLowerCase();
+      const details = (detailsByVisit.get(key) ?? []).map((detail) => {
+        const detailClone = clone(detail);
+
+        const prescriptionId =
+          detailClone?.prescription?.id ??
+          detailClone?.prescription_id ??
+          detailClone?.prescriptionId ??
+          null;
+        if (prescriptionId) {
+          prescriptionIds.push(String(prescriptionId));
+        }
+
+        const packId =
+          detailClone?.pack?.id ??
+          detailClone?.pack_id ??
+          detailClone?.packId ??
+          null;
+        if (packId) {
+          packIds.push(String(packId));
+        }
+
+        return detailClone;
+      });
+
+      visitClone.patientVisitDetails = details;
+      return visitClone;
+    });
+
+    /* hydrate packs + prescriptions */
+    const packMap = new Map<string, any>();
+    if (packIds.length > 0) {
+      const packs = await packService.getAllByIDsFromDexie(
+        Array.from(new Set(packIds))
+      );
+      packs.forEach((pack: any) => {
+        packMap.set(String(pack.id), clone(pack));
+      });
+    }
+
+    const prescriptionMap = new Map<string, any>();
+    if (prescriptionIds.length > 0) {
+      const prescriptions = await prescriptionService.getAllByIDsFromDexie(
+        Array.from(new Set(prescriptionIds))
+      );
+      prescriptions.forEach((prescription: any) => {
+        prescriptionMap.set(String(prescription.id), clone(prescription));
+      });
+    }
+
+    patientVisits.forEach((visit: any) => {
+      visit.patientVisitDetails = (visit.patientVisitDetails ?? []).map(
+        (detail: any) => {
+          const detailClone = clone(detail);
+
+          const packId =
+            detailClone?.pack?.id ??
+            detailClone?.pack_id ??
+            detailClone?.packId ??
+            null;
+          if (packId && packMap.has(String(packId))) {
+            detailClone.pack = packMap.get(String(packId));
+          }
+
+          const prescriptionId =
+            detailClone?.prescription?.id ??
+            detailClone?.prescription_id ??
+            detailClone?.prescriptionId ??
+            null;
+          if (prescriptionId && prescriptionMap.has(String(prescriptionId))) {
+            detailClone.prescription = prescriptionMap.get(
+              String(prescriptionId)
+            );
+          }
+
+          return detailClone;
+        }
+      );
+    });
+
+    patientClone.patientVisits = patientVisits;
+    console.log(patientClone);
+    const store = getPatientMobileStore();
+    store?.upsertPatient(patientClone);
+    return patientClone;
   },
 };

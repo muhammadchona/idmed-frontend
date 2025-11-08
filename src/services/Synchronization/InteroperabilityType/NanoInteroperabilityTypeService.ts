@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia InteroperabilityType');
-    InteroperabilityTypeService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing InteroperabilityType cache from Dexie');
+    return InteroperabilityTypeService.refreshMobileCache();
   },
 };

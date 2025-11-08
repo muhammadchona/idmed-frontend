@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia DispenseType');
-    dispenseTypeService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing DispenseType cache from Dexie');
+    return dispenseTypeService.refreshMobileCache();
   },
 };

@@ -32,6 +32,7 @@ import RAMScreening from 'src/stores/models/screening/RAMScreening';
 import TBScreening from 'src/stores/models/screening/TBScreening';
 import VitalSignsScreening from 'src/stores/models/screening/VitalSignsScreening';
 import AdherenceScreening from 'src/stores/models/screening/AdherenceScreening';
+import Patient from 'src/stores/models/patient/Patient';
 const patientVisit = useRepo(PatientVisit);
 const patientVisitDexie = db[PatientVisit.entity];
 
@@ -45,6 +46,79 @@ const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { notifySuccess, notifyInfo, notifyError } = useNotify();
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+const resolvePatientIdFromVisit = (visit: any) => {
+  const candidates = [
+    visit?.patient?.id,
+    visit?.patient_id,
+    visit?.patientId,
+    visit?.patient?.uuid,
+    visit?.patient_uuid,
+    visit?.patient?.nid,
+    visit?.patientVisitDetails?.[0]?.patient?.id,
+    visit?.patientVisitDetails?.[0]?.episode?.patient?.id,
+  ];
+  for (const candidate of candidates) {
+    const value = String(candidate ?? '').trim();
+    if (value.length > 0) {
+      return value;
+    }
+  }
+  return '';
+};
+
+let patientVisitMobileCache: any[] = [];
+
+const setPatientVisitMobileCache = (rows: any[]) => {
+  patientVisitMobileCache = rows.map((row) => clone(row));
+};
+
+const getPatientVisitMobileCache = () =>
+  patientVisitMobileCache.map((row) => clone(row));
+
+const upsertPatientVisitCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = patientVisitMobileCache.findIndex(
+      (visit) => visit.id === payload.id
+    );
+    if (index >= 0) {
+      patientVisitMobileCache.splice(index, 1, payload);
+    } else {
+      patientVisitMobileCache.push(payload);
+    }
+  });
+};
+
+const removePatientVisitFromCache = (id: string) => {
+  patientVisitMobileCache = patientVisitMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshPatientVisitMobileCache = async () => {
+  const rows = await patientVisitDexie.toArray();
+  setPatientVisitMobileCache(rows);
+  return getPatientVisitMobileCache();
+};
 
 export default {
   post(params: string) {
@@ -80,7 +154,16 @@ export default {
     return api()
       .post('patientVisit', params)
       .then((resp) => {
-        patientVisit.save(resp.data);
+        if (!isMobile.value) {
+          patientVisit.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          patientVisitDexie
+            .put(payload)
+            .then(() => upsertPatientVisitCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   getWeb(offset: number) {
@@ -88,7 +171,18 @@ export default {
       return api()
         .get('patientVisit?offset=' + offset + '&max=100')
         .then((resp) => {
-          patientVisit.save(resp.data);
+          if (!isMobile.value) {
+            patientVisit.save(resp.data);
+          }
+          if (isMobile.value) {
+            const payload = Array.isArray(resp.data)
+              ? resp.data.map((entry: any) => clone(entry))
+              : [clone(resp.data)];
+            patientVisitDexie
+              .bulkPut(payload)
+              .then(() => upsertPatientVisitCache(payload))
+              .catch((error) => console.log(error));
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -103,7 +197,16 @@ export default {
     return api()
       .patch('patientVisit/' + uuid, params)
       .then((resp) => {
-        patientVisit.save(resp.data);
+        if (!isMobile.value) {
+          patientVisit.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          patientVisitDexie
+            .put(payload)
+            .then(() => upsertPatientVisitCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   deleteWeb(uuid: string) {
@@ -111,99 +214,121 @@ export default {
       .delete('patientVisit/' + uuid)
       .then(() => {
         patientVisit.destroy(uuid);
+        if (isMobile.value) {
+          patientVisitDexie
+            .delete(uuid)
+            .then(() => removePatientVisitFromCache(uuid))
+            .catch((error) => console.log(error));
+        }
       });
   },
   // Mobile
   addMobile(params: any) {
-    params.syncStatus = 'R';
-    return patientVisitDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        params.patientVisitDetails.forEach((pvd: any) => {
-          pvd.pack.packagedDrugs.forEach((pcd: any) => {
-            pcd.packagedDrugStocks.forEach((pcs: any) => {
-              const stock = StockService.getStockById(pcs.stock.id);
-              stock.stockMoviment -= pcd.quantitySupplied;
-              StockService.patch(stock.id, stock);
-              pcs.stock_id = pcs.stock.id;
-              pcs.drug_id = pcs.drug.id;
-              // pcs.packagedDrug = pcd;
-              pcs.packagedDrug_id = pcd.id;
-              packagedDrugStockService.addMobile(pcs);
-            });
-            pvd.pack.dispenseMode_id = pvd.pack.dispenseMode.id;
-            packService.addMobile(pvd.pack);
-            pcd.pack_id = pvd.pack.id;
-            pcd.drug_id = pcd.drug.id;
-            packagedDrugService.addMobile(pcd);
+    const payload = clone(toPlainObject(params));
+    console.log(payload);
+    payload.syncStatus = 'R';
+    return patientVisitDexie.put(payload).then(() => {
+      payload.patientVisitDetails.forEach((pvd: any) => {
+        pvd.pack.packagedDrugs.forEach((pcd: any) => {
+          pcd.packagedDrugStocks.forEach((pcs: any) => {
+            const stock = StockService.getStockById(pcs.stock.id);
+            stock.stockMoviment -= pcd.quantitySupplied;
+            StockService.patch(stock.id, stock);
+            pcs.stock_id = pcs.stock.id;
+            pcs.drug_id = pcs.drug.id;
+            // pcs.packagedDrug = pcd;
+            pcs.packagedDrug_id = pcd.id;
+            packagedDrugStockService.addMobile(pcs);
           });
-          pvd.prescription.prescribedDrugs.forEach((pd: any) => {
-            pd.prescription_id = pvd.prescription.id;
-            pd.drug_id = pd.drug.id;
-            prescribedDrugService.addMobile(pd);
-          });
+          pvd.pack.dispenseMode_id = pvd.pack.dispenseMode.id;
+          packService.addMobile(pvd.pack);
+          pcd.pack_id = pvd.pack.id;
+          pcd.drug_id = pcd.drug.id;
+          packagedDrugService.addMobile(pcd);
+        });
+        pvd.prescription.prescribedDrugs.forEach((pd: any) => {
+          pd.prescription_id = pvd.prescription.id;
+          pd.drug_id = pd.drug.id;
+          prescribedDrugService.addMobile(pd);
+        });
 
-          pvd.prescription.prescriptionDetails.forEach((pds: any) => {
-            pds.prescription_id = pvd.prescription.id;
-            prescriptionDetailsService.addMobile(pds);
-          });
+        pvd.prescription.prescriptionDetails.forEach((pds: any) => {
+          pds.prescription_id = pvd.prescription.id;
+          prescriptionDetailsService.addMobile(pds);
+        });
 
-          prescriptionService.addMobile(pvd.prescription);
-          patientVisitDetailsService.addMobile(pvd);
-        });
-        params.vitalSignsScreenings.forEach((vitalSignsScreening: any) => {
-          vitalSignsScreening.patient_visit_id = params.id;
-          vitalSignsScreeningService.addMobile(vitalSignsScreening);
-        });
-        params.tbScreenings.forEach((tbScreening: any) => {
-          tbScreening.patient_visit_id = params.id;
-          tBScreeningService.addMobile(tbScreening);
-        });
-        params.pregnancyScreenings.forEach((pregnancyScreening: any) => {
-          pregnancyScreening.patient_visit_id = params.id;
-          pregnancyScreeningService.addMobile(pregnancyScreening);
-        });
-        params.adherenceScreenings.forEach((adherenceScreening: any) => {
-          adherenceScreening.patient_visit_id = params.id;
-          adherenceScreeningService.addMobile(adherenceScreening);
-        });
-        params.ramScreenings.forEach((ramScreening: any) => {
-          ramScreening.patient_visit_id = params.id;
-          rAMScreeningService.addMobile(ramScreening);
-        });
-        patientVisit.save(params);
+        prescriptionService.addMobile(pvd.prescription);
+        patientVisitDetailsService.addMobile(pvd);
       });
+      params.vitalSignsScreenings.forEach((vitalSignsScreening: any) => {
+        vitalSignsScreening.patient_visit_id = params.id;
+        vitalSignsScreeningService.addMobile(vitalSignsScreening);
+      });
+      params.tbScreenings.forEach((tbScreening: any) => {
+        tbScreening.patient_visit_id = params.id;
+        tBScreeningService.addMobile(tbScreening);
+      });
+      params.pregnancyScreenings.forEach((pregnancyScreening: any) => {
+        pregnancyScreening.patient_visit_id = params.id;
+        pregnancyScreeningService.addMobile(pregnancyScreening);
+      });
+      params.adherenceScreenings.forEach((adherenceScreening: any) => {
+        adherenceScreening.patient_visit_id = params.id;
+        adherenceScreeningService.addMobile(adherenceScreening);
+      });
+      params.ramScreenings.forEach((ramScreening: any) => {
+        ramScreening.patient_visit_id = params.id;
+        rAMScreeningService.addMobile(ramScreening);
+      });
+      if (isMobile.value) {
+        upsertPatientVisitCache(payload);
+      } else {
+        patientVisit.save(payload);
+      }
+      return payload;
+    });
   },
   putMobile(params: any) {
-    return patientVisitDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        params.vitalSignsScreenings.forEach((vitalSignsScreening: any) => {
-          vitalSignsScreeningService.addMobile(vitalSignsScreening);
-        });
-        params.tbScreenings.forEach((tbScreening: any) => {
-          tBScreeningService.addMobile(tbScreening);
-        });
-        params.pregnancyScreenings.forEach((pregnancyScreening: any) => {
-          pregnancyScreeningService.addMobile(pregnancyScreening);
-        });
-        params.adherenceScreenings.forEach((adherenceScreening: any) => {
-          adherenceScreeningService.addMobile(adherenceScreening);
-        });
-        params.ramScreenings.forEach((ramScreening: any) => {
-          rAMScreeningService.addMobile(ramScreening);
-        });
-        patientVisit.save(JSON.parse(JSON.stringify(params)));
+    const payload = clone(toPlainObject(params));
+    return patientVisitDexie.put(payload).then(() => {
+      payload.vitalSignsScreenings.forEach((vitalSignsScreening: any) => {
+        vitalSignsScreeningService.addMobile(vitalSignsScreening);
       });
+      payload.tbScreenings.forEach((tbScreening: any) => {
+        tBScreeningService.addMobile(tbScreening);
+      });
+      payload.pregnancyScreenings.forEach((pregnancyScreening: any) => {
+        pregnancyScreeningService.addMobile(pregnancyScreening);
+      });
+      payload.adherenceScreenings.forEach((adherenceScreening: any) => {
+        adherenceScreeningService.addMobile(adherenceScreening);
+      });
+      payload.ramScreenings.forEach((ramScreening: any) => {
+        rAMScreeningService.addMobile(ramScreening);
+      });
+      if (isMobile.value) {
+        upsertPatientVisitCache(payload);
+      } else {
+        patientVisit.save(payload);
+      }
+      return payload;
+    });
   },
   async getMobile() {
     const rows = await patientVisitDexie.toArray();
+    if (isMobile.value) {
+      setPatientVisitMobileCache(rows);
+      return getPatientVisitMobileCache();
+    }
     patientVisit.save(rows);
     return rows;
   },
 
   async getPatientVisitMobile() {
     const rows = await patientVisitDexie.toArray();
+    if (isMobile.value) {
+      setPatientVisitMobileCache(rows);
+    }
     const records = rows.filter(
       (row: any) =>
         row.syncStatus !== undefined &&
@@ -217,7 +342,11 @@ export default {
   async deleteMobile(paramsId: string) {
     try {
       await patientVisitDexie.delete(paramsId);
-      patientVisit.destroy(paramsId);
+      if (isMobile.value) {
+        removePatientVisitFromCache(paramsId);
+      } else {
+        patientVisit.destroy(paramsId);
+      }
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -228,6 +357,13 @@ export default {
     const patientVisitFromPinia = this.getAllFromStorage();
     return patientVisitDexie
       .bulkPut(patientVisitFromPinia)
+      .then(() => {
+        if (isMobile.value) {
+          upsertPatientVisitCache(patientVisitFromPinia);
+        } else {
+          patientVisit.save(patientVisitFromPinia);
+        }
+      })
       .catch((error: any) => {
         console.log(error);
       });
@@ -256,11 +392,22 @@ export default {
         this.getAllByPatientIDsFromDexie(patientIds),
       ]);
       const resp = patientVisitList;
-      patientVisit.save(resp);
-      return resp;
+      upsertPatientVisitCache(resp);
+      return resp.map((entry: any) => clone(entry));
     } else {
       const resp = await api().get('/patientVisit/patient/' + patientId);
-      patientVisit.save(resp.data);
+      if (!isMobile.value) {
+        patientVisit.save(resp.data);
+      }
+      if (isMobile.value) {
+        const payload = Array.isArray(resp.data)
+          ? resp.data.map((entry: any) => clone(entry))
+          : [clone(resp.data)];
+        patientVisitDexie
+          .bulkPut(payload)
+          .then(() => upsertPatientVisitCache(payload))
+          .catch((error) => console.log(error));
+      }
       return resp.data;
     }
   },
@@ -271,7 +418,11 @@ export default {
         (patientVisit: PatientVisit) => patientId === patientVisit?.patient?.id
       );
       const episodes = await collection.toArray().then((visits) => {
-        patientVisit.save(visits);
+        if (isMobile.value) {
+          upsertPatientVisitCache(visits);
+        } else {
+          patientVisit.save(visits);
+        }
         return visits;
       });
 
@@ -405,6 +556,11 @@ export default {
       );
     });
 
+    if (isMobile.value) {
+      upsertPatientVisitCache(patientVisits);
+      return patientVisits.map((entry: any) => clone(entry));
+    }
+    patientVisit.save(patientVisits);
     return patientVisits;
   },
 
@@ -537,6 +693,9 @@ export default {
     return patientVisit.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getPatientVisitMobileCache();
+    }
     return patientVisit
       .makeHidden([
         'vitalSignsScreenings',
@@ -551,6 +710,19 @@ export default {
     patientVisit.flush();
   },
   saveInStorage(patientVisitParam: any) {
+    if (isMobile.value) {
+      const payload = clone(patientVisitParam);
+      return patientVisitDexie
+        .put(payload)
+        .then(() => {
+          upsertPatientVisitCache(payload);
+          return payload;
+        })
+        .catch((error) => {
+          console.log(error);
+          throw error;
+        });
+    }
     return patientVisit.save(patientVisitParam);
   },
   getLastFourWithVitalSignByPatientId(patientId: string) {
@@ -722,7 +894,18 @@ export default {
         await api()
           .post('/patientVisitDetails/getLastAllByPatientIds/', listParams)
           .then((resp) => {
-            patientVisit.save(resp.data);
+            if (!isMobile.value) {
+              patientVisit.save(resp.data);
+            }
+            if (isMobile.value) {
+              const payload = Array.isArray(resp.data)
+                ? resp.data.map((entry: any) => clone(entry))
+                : [clone(resp.data)];
+              patientVisitDexie
+                .bulkPut(payload)
+                .then(() => upsertPatientVisitCache(payload))
+                .catch((error) => console.log(error));
+            }
           });
         // allVisits.push(...visitDetails.data);
       }
@@ -760,7 +943,18 @@ export default {
       await api()
         .post('/patientVisit/getAllLastWithScreeningByPatientIds/', chunk)
         .then((resp) => {
-          patientVisit.save(resp.data);
+          if (!isMobile.value) {
+            patientVisit.save(resp.data);
+          }
+          if (isMobile.value) {
+            const payload = Array.isArray(resp.data)
+              ? resp.data.map((entry: any) => clone(entry))
+              : [clone(resp.data)];
+            patientVisitDexie
+              .bulkPut(payload)
+              .then(() => upsertPatientVisitCache(payload))
+              .catch((error) => console.log(error));
+          }
         });
 
       // allVisits.push(...visitWithScreening.data);
@@ -1052,20 +1246,26 @@ export default {
     return patientVisits;
   },
   async getAllByPatientIDsFromDexie(ids: string[]) {
-    const collection = patientVisitDexie
-      .orderBy('visitDate')
-      .reverse()
-      .filter((patientVisit: PatientVisit) =>
-        ids.includes(patientVisit?.patient?.id)
-      );
+    const collection = patientVisitDexie.filter((patientVisit: PatientVisit) =>
+      ids.includes(patientVisit?.patient?.id)
+    );
+    // console.log(collection);
     const patientVisits = await collection.toArray();
+
+    patientVisits.sort((a, b) =>
+      String(b?.visitDate || '').localeCompare(String(a?.visitDate || ''))
+    );
 
     const patientVisitIds = patientVisits.map(
       (patientVisit: any) => patientVisit.id
     );
 
-    const clinicIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.clinic.id
+    const clinicIds = patientVisits.map((patientVisit: any) =>
+      patientVisit?.clinic?.id
+        ? patientVisit.clinic.id
+        : patientVisit?.clinic_id
+        ? patientVisit.clinic_id
+        : ''
     );
 
     const [
@@ -1095,8 +1295,10 @@ export default {
     ]);
 
     patientVisits.map((patientVisit: any) => {
+      const clinicId =
+        patientVisit?.clinic?.id ?? patientVisit?.clinic_id ?? null;
       patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisit.clinic.id
+        (clinic: any) => clinic.id === clinicId
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
@@ -1203,6 +1405,13 @@ export default {
     return await patientVisitDexie.where('id').anyOfIgnoreCase(ids).toArray();
   },
   deleteAllFromDexie() {
+    patientVisitMobileCache = [];
     patientVisitDexie.clear();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPatientVisitMobileCache();
   },
 };

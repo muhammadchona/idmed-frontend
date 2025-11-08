@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia TherapeuticLine');
-    therapeuticLineService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing TherapeuticLine cache from Dexie');
+    return therapeuticLineService.refreshMobileCache();
   },
 };

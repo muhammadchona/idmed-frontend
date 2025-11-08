@@ -1,6 +1,4 @@
-import { nSQL } from 'nano-sql';
 import ReportDatesParams from 'src/services/reports/ReportDatesParams';
-import { useRepo } from 'pinia-orm';
 import { v4 as uuidv4 } from 'uuid';
 import StockService from '../../stockService/StockService';
 import InventoryStockAdjustmentService from '../../stockAdjustment/InventoryStockAdjustmentService';
@@ -12,14 +10,56 @@ import StockOperationTypeService from '../../stockOperationTypeService/StockOper
 import DestroyedStockService from '../../destroyedStockService/DestroyedStockService';
 import ReferedStockMovimentService from '../../referedStockMovimentService/ReferedStockMovimentService';
 import db from 'src/stores/dexie';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const usedStockReportDexie = StockUsedReport.entity;
-const usedStockReportRepo = useRepo(StockUsedReport);
+const { isMobile } = useSystemUtils();
+const usedStockReportDexie = db[StockUsedReport.entity];
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let usedStockReportMobileCache: any[] = [];
+
+const setUsedStockReportCache = (rows: any[]) => {
+  usedStockReportMobileCache = rows.map((row) => clone(row));
+};
+
+const getUsedStockReportCache = () =>
+  usedStockReportMobileCache.map((row) => clone(row));
+
+const upsertUsedStockReportCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = usedStockReportMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      usedStockReportMobileCache.splice(index, 1, payload);
+    } else {
+      usedStockReportMobileCache.push(payload);
+    }
+  });
+};
+
+const removeUsedStockReportFromCache = (predicate: (row: any) => boolean) => {
+  usedStockReportMobileCache = usedStockReportMobileCache.filter(
+    (entry) => !predicate(entry)
+  );
+};
+
+const refreshUsedStockReportCache = async () => {
+  const rows = await usedStockReportDexie.toArray();
+  setUsedStockReportCache(rows);
+  return getUsedStockReportCache();
+};
 
 export default {
   async getDataLocalDb(params: any) {
     const reportParams = ReportDatesParams.determineStartEndDate(params);
-    console.log(reportParams);
+    await this.localDbDeleteByReportId(reportParams.id);
     let resultDrugsStocks = [];
     let resultDrugStocksInventory = [];
     let resultDrugStocksDestruction = [];
@@ -28,19 +68,14 @@ export default {
     let resultDrugPackaged = [];
     let arrayDrugStock = [];
     const stocks = await StockService.localDbGetAll();
-    console.log(stocks);
     const result = stocks.filter(
       (stock) =>
         stock.entrance.dateReceived >= reportParams.startDate &&
         stock.entrance.dateReceived <= reportParams.endDate &&
         stock.drug.clinical_service_id === reportParams.clinicalService
     );
-    console.log(result);
     resultDrugsStocks = this.groupedMap(result, 'drug_id');
-    console.log(resultDrugsStocks);
     arrayDrugStock = Array.from(resultDrugsStocks.keys());
-    console.log(arrayDrugStock);
-    // return arrayDrugStock
     const inventoryStockAdjustments =
       await InventoryStockAdjustmentService.localDbGetAll();
     const inventoryStocks = inventoryStockAdjustments.filter(
@@ -53,8 +88,6 @@ export default {
       inventoryStocks,
       'adjustedStock.drug.id'
     );
-    console.log(resultDrugStocksInventory);
-    // return resultDrugStocksInventory
 
     const packs = await patientVisitService.localDbGetPacks();
     const packagedDrug = [];
@@ -64,26 +97,20 @@ export default {
         pack.pickupDate >= reportParams.startDate &&
         pack.pickupDate <= reportParams.endDate
     );
-    console.log(packsDate);
     packsDate.forEach((pack) => {
       pack.packagedDrugs.forEach((item) => {
         packagedDrug.push(item);
       });
     });
-    console.log(packagedDrug);
     resultDrugPackaged = this.groupedMapChildPack(packagedDrug, 'drug_id');
-    console.log(resultDrugPackaged);
-    //  return resultDrugPackaged
     const destroyedStocks = await DestroyedStockService.localDbGetAll();
     const adjustedDestroyedStocks = [];
     let resultDestruccted = [];
-    console.log(destroyedStocks);
     resultDestruccted = destroyedStocks.filter(
       (destroyedStock) =>
         destroyedStock.date >= reportParams.startDate &&
         destroyedStock.date <= reportParams.endDate
     );
-    console.log(resultDestruccted);
     resultDestruccted.forEach((destroyedStock) => {
       destroyedStock.adjustments.forEach((destroyedAdjust) => {
         adjustedDestroyedStocks.push(destroyedAdjust);
@@ -93,18 +120,14 @@ export default {
       adjustedDestroyedStocks,
       'adjustedStock'
     );
-    console.log(resultDrugStocksDestruction);
-    //  return resultDrugStocksInventory
     const referredStocks = await ReferedStockMovimentService.localDbGetAll();
     const adjustedReferedStocks = [];
     let resultAdjustedReferred = [];
-    console.log(referredStocks);
     resultAdjustedReferred = referredStocks.filter(
       (referredStock) =>
         referredStock.date >= reportParams.startDate &&
         referredStock.date <= reportParams.endDate
     );
-    console.log(resultAdjustedReferred);
     resultAdjustedReferred.forEach((referredStock) => {
       referredStock.adjustments.forEach((referredAdjust) => {
         adjustedReferedStocks.push(referredAdjust);
@@ -114,21 +137,16 @@ export default {
       adjustedReferedStocks,
       'adjustedStock'
     );
-    console.log(resultDrugStocksReferred);
     // return resultDrugStocksReferred
     const drugsIds = Array.from(resultDrugsStocks.keys());
     const stockDestructedIds = Array.from(resultDrugStocksDestruction.keys());
     const referredStocksIds = Array.from(resultDrugStocksReferred.keys());
-    console.log(drugsIds);
-    console.log(stockDestructedIds);
-    console.log(referredStocksIds);
     for (const drug of drugsIds) {
       const drugObj = await drugService.getCleanDrugById(drug);
       const usedStock = new StockUsedReport();
       usedStock.fnmCode = drugObj.fnmCode;
       usedStock.drugName = drugObj.name;
       usedStock.actualStock = 0;
-      console.log(resultDrugsStocks.get(drugObj.id));
       usedStock.receivedStock = 0;
       usedStock.adjustment = 0;
       resultDrugsStocks.get(drugObj.id).forEach((stock) => {
@@ -184,62 +202,50 @@ export default {
           usedStock.actualStock -= drugPackaged.quantitySupplied;
         });
       }
-      console.log(usedStock);
       usedStock.reportId = reportParams.id;
       // patientHistory.period = reportParams.periodTypeView
       usedStock.year = reportParams.year;
       usedStock.endDate = reportParams.endDate;
       usedStock.id = uuidv4();
-      this.localDbAddOrUpdate(usedStock);
+      await this.localDbAddOrUpdate(usedStock);
     }
   },
 
   groupedMap(items, key) {
     return items.reduce(
       (entryMap, e) =>
-        entryMap.set(
-          e[key],
-          [...(entryMap.get(e[key]) || []), e],
-          console.log(e[key])
-        ),
+        entryMap.set(e[key], [...(entryMap.get(e[key]) || []), e]),
       new Map()
     );
   },
   groupedMapChild(items, key) {
     return items.reduce(
       (entryMap, e) =>
-        entryMap.set(
-          e.adjustedStock.drug.id,
-          [...(entryMap.get(e.adjustedStock.drug.id) || []), e],
-          console.log(e.adjustedStock.drug.id)
-        ),
+        entryMap.set(e.adjustedStock.drug.id, [
+          ...(entryMap.get(e.adjustedStock.drug.id) || []),
+          e,
+        ]),
       new Map()
     );
   },
   groupedMapChildPack(items, key) {
     return items.reduce(
       (entryMap, e) =>
-        entryMap.set(
-          e.drug.id,
-          [...(entryMap.get(e.drug.id) || []), e],
-          console.log(e.drug.id)
-        ),
+        entryMap.set(e.drug.id, [...(entryMap.get(e.drug.id) || []), e]),
       new Map()
     );
   },
   groupedMapChildAdjustments(items, key) {
     return items.reduce(
       (entryMap, e) =>
-        entryMap.set(
-          e.adjustedStock.id,
-          [...(entryMap.get(e.adjustedStock.id) || []), e],
-          console.log(e.adjustedStock.id)
-        ),
+        entryMap.set(e.adjustedStock.id, [
+          ...(entryMap.get(e.adjustedStock.id) || []),
+          e,
+        ]),
       new Map()
     );
   },
   getStockOperationTypeById(id) {
-    console.log(StockOperationType.query().where('id', id).first());
     return StockOperationType.query().where('id', id).first();
   },
   getStockOperationToVue() {
@@ -249,21 +255,55 @@ export default {
   },
 
   localDbAddOrUpdate(targetCopy: any) {
-    return db[usedStockReportDexie]
-      .add(JSON.parse(JSON.stringify(targetCopy)))
+    const payload = clone(targetCopy);
+    return usedStockReportDexie
+      .put(payload)
       .then(() => {
-        usedStockReportRepo.save(targetCopy);
+        if (isMobile.value) {
+          upsertUsedStockReportCache(payload);
+          return payload;
+        }
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
+  async localDbDeleteByReportId(reportId: any) {
+    await usedStockReportDexie
+      .where('reportId')
+      .equalsIgnoreCase(reportId)
+      .delete();
+    removeUsedStockReportFromCache((entry) => entry.reportId === reportId);
+  },
+
   async localDbGetAllByReportId(reportId: any) {
-    const records = await db[usedStockReportDexie]
+    const records = await usedStockReportDexie
       .where('reportId')
       .equalsIgnoreCase(reportId)
       .toArray();
+    if (isMobile.value) {
+      upsertUsedStockReportCache(records);
+      return records.map((entry: any) => clone(entry));
+    }
     return records;
+  },
+
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshUsedStockReportCache();
+  },
+
+  getCachedByReportId(reportId: any) {
+    if (!isMobile.value) {
+      return [];
+    }
+    return getUsedStockReportCache().filter(
+      (entry) => entry.reportId === reportId
+    );
   },
 };

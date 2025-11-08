@@ -14,6 +14,7 @@ import packagedDrugService from '../packagedDrug/packagedDrugService';
 import moment from 'moment';
 import patientVisitService from '../patientVisit/patientVisitService';
 import patientService from '../patientService/patientService';
+import drugService from '../drugService/drugService';
 
 const pack = useRepo(Pack);
 const packDexie = db[Pack.entity];
@@ -22,6 +23,100 @@ const { closeLoading } = useLoading();
 const { getMonthsDateOfTheYear, addDays } = useDateUtils();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let packMobileCache: any[] = [];
+
+const setPackMobileCache = (rows: any[]) => {
+  packMobileCache = rows.map((row) => clone(row));
+};
+
+const getPackMobileCache = () => packMobileCache.map((row) => clone(row));
+
+const findPackInCache = (predicate: (entry: any) => boolean) =>
+  getPackMobileCache().find(predicate) ?? null;
+
+const upsertPackCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = packMobileCache.findIndex((item) => item.id === payload.id);
+    if (index >= 0) {
+      packMobileCache.splice(index, 1, payload);
+    } else {
+      packMobileCache.push(payload);
+    }
+  });
+};
+
+const removePackFromCache = (id: string) => {
+  packMobileCache = packMobileCache.filter((entry) => entry.id !== id);
+};
+
+const refreshPackMobileCache = async () => {
+  const rows = await packDexie.toArray();
+  const hydratedRows = await Promise.all(
+    rows.map((entry: any) => hydratePack(entry))
+  );
+  setPackMobileCache(hydratedRows);
+  return getPackMobileCache();
+};
+
+const hydratePack = async (packRow: any) => {
+  const payload = clone(packRow);
+  if (!isMobile.value || !payload?.id) {
+    return payload;
+  }
+
+  let packagedDrugs = Array.isArray(payload.packagedDrugs)
+    ? payload.packagedDrugs.map((drug: any) => clone(drug))
+    : [];
+
+  const requireHydration =
+    packagedDrugs.length === 0 ||
+    packagedDrugs.some((entry: any) => !entry?.drug || !entry.drug.id);
+
+  if (requireHydration) {
+    packagedDrugs = await packagedDrugService.getAllByPackIdMobile(payload.id);
+  } else {
+    // lazily hydrate the drug object for entries that only have drug_id
+    packagedDrugs = await Promise.all(
+      packagedDrugs.map(async (packagedDrug: any) => {
+        if (packagedDrug?.drug?.id) {
+          return packagedDrug;
+        }
+        const drugId = packagedDrug?.drug_id ?? packagedDrug?.drug?.id ?? null;
+        if (!drugId) {
+          return packagedDrug;
+        }
+        const drugRow = await drugService.getMobileDrugById(drugId);
+        return {
+          ...packagedDrug,
+          drug: drugRow ? clone(drugRow) : packagedDrug.drug,
+        };
+      })
+    );
+  }
+
+  payload.packagedDrugs = packagedDrugs;
+  return payload;
+};
 
 export default {
   post(params: string) {
@@ -57,7 +152,16 @@ export default {
     return api()
       .post('pack', params)
       .then((resp) => {
-        pack.save(resp.data);
+        if (!isMobile.value) {
+          pack.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          packDexie
+            .put(payload)
+            .then(() => upsertPackCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   getWeb(offset: number) {
@@ -65,7 +169,18 @@ export default {
       return api()
         .get('pack?offset=' + offset + '&max=100')
         .then((resp) => {
-          pack.save(resp.data);
+          if (!isMobile.value) {
+            pack.save(resp.data);
+          }
+          if (isMobile.value) {
+            const payload = Array.isArray(resp.data)
+              ? resp.data.map((entry: any) => clone(entry))
+              : [clone(resp.data)];
+            packDexie
+              .bulkPut(payload)
+              .then(() => upsertPackCache(payload))
+              .catch((error) => console.log(error));
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -80,55 +195,105 @@ export default {
     return api()
       .patch('pack/' + uuid, params)
       .then((resp) => {
-        pack.save(resp.data);
+        if (!isMobile.value) {
+          pack.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          packDexie
+            .put(payload)
+            .then(() => upsertPackCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
   deleteWeb(uuid: string) {
     return api()
       .delete('pack/' + uuid)
       .then(() => {
-        pack.destroy(uuid);
+        if (!isMobile.value) {
+          pack.destroy(uuid);
+        }
+        if (isMobile.value) {
+          packDexie
+            .delete(uuid)
+            .then(() => removePackFromCache(uuid))
+            .catch((error) => console.log(error));
+        }
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return packDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
-      pack.save(JSON.parse(JSON.stringify(params)));
-    });
+  async addMobile(params: string) {
+    const payload = clone(toPlainObject(params));
+    await packDexie.put(payload);
+    const hydratedPack = await hydratePack(payload);
+    if (isMobile.value) {
+      upsertPackCache(hydratedPack);
+      return hydratedPack;
+    }
+    pack.save(payload);
+    return payload;
   },
-  putMobile(params: string) {
-    return packDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
-      pack.save(JSON.parse(JSON.stringify(params)));
-    });
+  async putMobile(params: string) {
+    const payload = clone(toPlainObject(params));
+    await packDexie.put(payload);
+    const hydratedPack = await hydratePack(payload);
+    if (isMobile.value) {
+      upsertPackCache(hydratedPack);
+      return hydratedPack;
+    }
+    pack.save(payload);
+    return payload;
   },
-  getMobile() {
-    return packDexie
-      .toArray()
-      .then((rows: any) => {
-        pack.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async getMobile() {
+    try {
+      const rows = await packDexie.toArray();
+      if (isMobile.value) {
+        const hydratedRows = await Promise.all(
+          rows.map((entry: any) => hydratePack(entry))
+        );
+        setPackMobileCache(hydratedRows);
+        return getPackMobileCache();
+      }
+      pack.save(rows);
+      return rows;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   },
   deleteMobile(paramsId: string) {
     return packDexie
       .delete(paramsId)
       .then(() => {
-        pack.destroy(paramsId);
+        if (isMobile.value) {
+          removePackFromCache(paramsId);
+        } else {
+          pack.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile() {
     const packsFromPinia = this.getAllFromStorageForDexie();
-    return packDexie.bulkPut(packsFromPinia).catch((error: any) => {
-      console.log(error);
-    });
+    return packDexie
+      .bulkPut(packsFromPinia)
+      .then(async () => {
+        if (isMobile.value) {
+          await refreshPackMobileCache();
+        } else {
+          pack.save(packsFromPinia);
+        }
+      })
+      .catch((error: any) => {
+        console.log(error);
+        throw error;
+      });
   },
   async apiSave(pack: any) {
     return await api().post('/pack', pack);
@@ -151,8 +316,10 @@ export default {
           max
       )
       .then((resp) => {
-        this.addMobile(resp.data);
-        pack.save(resp.data);
+        this.addBulkMobile(resp.data);
+        if (!isMobile.value) {
+          pack.save(resp.data);
+        }
       });
   },
   async apiGetByPatientId(patientid: string) {
@@ -162,7 +329,18 @@ export default {
       return await api()
         .get('pack/patient/' + patientid)
         .then((resp) => {
-          pack.save(resp.data);
+          if (!isMobile.value) {
+            pack.save(resp.data);
+          }
+          if (isMobile.value) {
+            const payload = Array.isArray(resp.data)
+              ? resp.data.map((entry: any) => clone(entry))
+              : [clone(resp.data)];
+            packDexie
+              .bulkPut(payload)
+              .then(() => upsertPackCache(payload))
+              .catch((error) => console.log(error));
+          }
         });
     }
   },
@@ -198,14 +376,23 @@ export default {
     return await api()
       .get(`/pack/${id}`)
       .then((resp) => {
-        pack.save(resp.data);
+        if (!isMobile.value) {
+          pack.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          packDexie
+            .put(payload)
+            .then(() => upsertPackCache(payload))
+            .catch((error) => console.log(error));
+        }
         return resp;
       });
   },
 
   async getPackMobileById(id: string) {
     const resp = await packDexie.where('id').equalsIgnoreCase(id).first();
-    return resp;
+    return resp ? clone(resp) : null;
   },
 
   // Local Storage Pinia
@@ -213,9 +400,15 @@ export default {
     return pack.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getPackMobileCache();
+    }
     return pack.all();
   },
   getAllFromStorageForDexie() {
+    if (isMobile.value) {
+      return getPackMobileCache();
+    }
     return pack
       .makeHidden([
         'clinic',
@@ -231,33 +424,89 @@ export default {
     pack.flush();
   },
   removeFromStorage(id: string) {
+    if (isMobile.value) {
+      removePackFromCache(id);
+      return packDexie.delete(id);
+    }
     return pack.destroy(id);
   },
 
   getPackByID(Id: string) {
+    if (isMobile.value) {
+      return findPackInCache((entry) => entry.id === Id);
+    }
     return pack.query().whereId(Id).first();
   },
 
-  getPackWithsByID(Id: string) {
-    return pack
-      .query()
-      .with('dispenseMode')
-      .with('packagedDrugs')
-      .whereId(Id)
-      .first();
+  async getPackWithsByID(Id: string) {
+    if (!isMobile.value) {
+      return pack
+        .query()
+        .with('dispenseMode')
+        .with('packagedDrugs')
+        .whereId(Id)
+        .first();
+    }
+
+    const cached = findPackInCache((entry) => entry.id === Id);
+
+    if (
+      cached &&
+      Array.isArray(cached.packagedDrugs) &&
+      cached.packagedDrugs.length
+    ) {
+      return clone(cached);
+    }
+
+    const dexieRow = await packDexie.get(Id);
+    if (!dexieRow) {
+      return null;
+    }
+
+    const hydrated = await hydratePack(dexieRow);
+    upsertPackCache(hydrated);
+    return clone(hydrated);
   },
 
   getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
-    const packreturn =  pack
+    if (isMobile.value) {
+      console.log(getPackMobileCache());
+      const packs = getPackMobileCache()
+        .filter((entry) =>
+          (entry.patientVisitDetails || []).some(
+            (detail: any) => detail.prescription_id === prescriptionId
+          )
+        )
+        .filter((entry: any) => entry !== null)
+        .sort((a, b) =>
+          String(b.pickupDate || '').localeCompare(String(a.pickupDate || ''))
+        );
+
+      return packs.length > 0 ? packs[0] : null;
+    }
+    const packreturn = pack
       .withAllRecursive(1)
       .whereHas('patientVisitDetails', (query) => {
         query.where('prescription_id', prescriptionId);
       })
       .orderBy('pickupDate', 'desc')
       .first();
-      return packreturn
+    return packreturn;
   },
   getLastPackFromEpisode(episodeId: string) {
+    if (isMobile.value) {
+      return (
+        getPackMobileCache()
+          .filter((entry) =>
+            (entry.patientVisitDetails || []).some(
+              (detail: any) => detail.episode_id === episodeId
+            )
+          )
+          .sort((a, b) =>
+            String(b.pickupDate || '').localeCompare(String(a.pickupDate || ''))
+          )[0] ?? null
+      );
+    }
     return pack
       .withAllRecursive(1)
       .whereHas('patientVisitDetails', (query) => {
@@ -268,6 +517,20 @@ export default {
   },
 
   getPacksFromPatientId(patientServiceIdentifierid: string) {
+    if (isMobile.value) {
+      return getPackMobileCache()
+        .filter((entry) =>
+          (entry.patientVisitDetails || []).some((detail: any) => {
+            const episode = detail.episode || {};
+            return (
+              episode.patientServiceIdentifier_id === patientServiceIdentifierid
+            );
+          })
+        )
+        .sort((a, b) =>
+          String(b.pickupDate || '').localeCompare(String(a.pickupDate || ''))
+        );
+    }
     return pack
       .withAllRecursive(2)
       .whereHas('patientVisitDetails', (query) => {
@@ -283,6 +546,9 @@ export default {
   },
 
   getLastPackFromPatientId(patientServiceIdentifierid: string) {
+    if (isMobile.value) {
+      return this.getPacksFromPatientId(patientServiceIdentifierid)[0] ?? null;
+    }
     return pack
       .withAllRecursive(2)
       .whereHas('patientVisitDetails', (query) => {
@@ -298,6 +564,23 @@ export default {
   },
 
   getLastPackFromPatientAndDrug(patient: string, drug: string) {
+    if (isMobile.value) {
+      const list = getPackMobileCache()
+        .filter((entry) =>
+          (entry.packagedDrugs || []).some(
+            (packagedDrug: any) => packagedDrug.drug?.id === drug.id
+          )
+        )
+        .sort((a, b) =>
+          String(b.pickupDate || '').localeCompare(String(a.pickupDate || ''))
+        )[0];
+      if (list) {
+        return (list.packagedDrugs || []).find(
+          (packagedDrug: any) => packagedDrug.drug?.id === drug.id
+        );
+      }
+      return null;
+    }
     const list = pack
       .withAllRecursive(3)
       .whereHas('packagedDrugs', (query) => {
@@ -326,6 +609,10 @@ export default {
   async getAllMobileByIds(packIds: any) {
     const resp = await packDexie.where('id').anyOf(packIds).toArray();
 
+    if (isMobile.value) {
+      upsertPackCache(resp);
+      return resp.map((entry) => clone(entry));
+    }
     pack.save(resp);
     return resp;
   },
@@ -385,6 +672,10 @@ export default {
       );
       pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
     });
+    if (isMobile.value) {
+      upsertPackCache(packs);
+      return packs.map((entry: any) => clone(entry));
+    }
     return packs;
   },
 
@@ -492,6 +783,10 @@ export default {
       );
       pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
     });
+    if (isMobile.value) {
+      upsertPackCache(packs);
+      return packs.map((entry: any) => clone(entry));
+    }
     return packs;
   },
   async getAllExpectedPacksByStartDateAndEndDateFromDexie(
@@ -540,11 +835,17 @@ export default {
     return packs;
   },
   async getPacksByIDsFromDexie(ids: []) {
-    return await packDexie
+    const results = await packDexie
       .where('id')
       .anyOfIgnoreCase(ids)
       .reverse()
       .sortBy('pickupDate');
+    if (isMobile.value) {
+      upsertPackCache(results);
+      return results.map((entry: any) => clone(entry));
+    }
+    pack.save(results);
+    return results;
   },
   async getAllAbsentPacksByStartDateAndEndDateFromDexie(
     startDate: any,
@@ -637,9 +938,24 @@ export default {
       packList.push(lastPack[0].id);
     });
 
-    return await packDexie.where('id').anyOfIgnoreCase(packList).toArray();
+    const rows = await packDexie
+      .where('id')
+      .anyOfIgnoreCase(packList)
+      .toArray();
+    if (isMobile.value) {
+      upsertPackCache(rows);
+      return rows.map((entry: any) => clone(entry));
+    }
+    return rows;
   },
   deleteAllFromDexie() {
+    packMobileCache = [];
     packDexie.clear();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPackMobileCache();
   },
 };

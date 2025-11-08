@@ -13,6 +13,26 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let clinicalServiceAttributeMobileCache: any[] = [];
+
+const setClinicalServiceAttributeMobileCache = (rows: any[]) => {
+  clinicalServiceAttributeMobileCache = rows.map((row) => clone(row));
+};
+
+const getClinicalServiceAttributeMobileCache = () =>
+  clinicalServiceAttributeMobileCache.map((row) => clone(row));
+
+const refreshClinicalServiceAttributeMobileCache = async () => {
+  const rows = await clinicalServiceAttributeDexie.toArray();
+  setClinicalServiceAttributeMobileCache(rows);
+  return getClinicalServiceAttributeMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -94,56 +114,75 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return clinicalServiceAttributeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        clinicalServiceAttribute.save(JSON.parse(JSON.stringify(params)));
+      .put(payload)
+      .then(async () => {
+        await refreshClinicalServiceAttributeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return clinicalServiceAttributeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        clinicalServiceAttribute.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshClinicalServiceAttributeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return clinicalServiceAttributeDexie
-      .toArray()
-      .then((rows: any) => {
-        clinicalServiceAttribute.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshClinicalServiceAttributeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return clinicalServiceAttributeDexie
       .delete(paramsId)
-      .then(() => {
-        clinicalServiceAttribute.destroy(paramsId);
+      .then(async () => {
+        clinicalServiceAttributeMobileCache =
+          clinicalServiceAttributeMobileCache.filter((item) => item.id !== paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return clinicalServiceAttributeDexie
-      .bulkAdd(params)
-      .then(() => {
-        clinicalServiceAttribute.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshClinicalServiceAttributeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   // Local Storage Pinia
@@ -153,6 +192,11 @@ export default {
 
   /*Pinia Methods*/
   getAllClinicalServiceAttrByClinicalService(clinicalServiceId: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getClinicalServiceAttributeMobileCache().filter(
+        (entry) => entry.service_id === clinicalServiceId
+      );
+    }
     return clinicalServiceAttribute
       .query()
       .with('clinicalServiceAttributeType')
@@ -161,12 +205,24 @@ export default {
   },
 
   getAllClinicalServiceAttributes() {
+    if (isMobile.value && !isOnline.value) {
+      return getClinicalServiceAttributeMobileCache();
+    }
     return clinicalServiceAttribute
       .query()
       .with('clinicalServiceAttributeType')
       .get();
   },
   checkWeatherAttExist(clinicalServiceId: string, att: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getClinicalServiceAttributeMobileCache().some((entry) => {
+        const typeCode =
+          entry?.clinicalServiceAttributeType?.code ??
+          entry?.clinicalServiceAttributeType?.CODE ??
+          '';
+        return entry.clinical_service_id === clinicalServiceId && typeCode === att;
+      });
+    }
     const csa = clinicalServiceAttribute
       .where('clinical_service_id', clinicalServiceId)
       .whereHas('clinicalServiceAttributeType', (query) => {
@@ -174,5 +230,11 @@ export default {
       })
       .first();
     return csa !== null && csa !== undefined;
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshClinicalServiceAttributeMobileCache();
   },
 };

@@ -158,9 +158,10 @@ onMounted(() => {
     let isNewPrescription = true;
     if (checkIfPatientIsObit(patient.value)) {
       const identifier = preferedIdentifier(patient.value);
-      const currIdentifier = patientServiceIdentifierService.curIdentifierById(
-        identifier?.id
-      );
+      const currIdentifier =
+        identifier && Array.isArray(identifier?.episodes)
+          ? identifier
+          : patientServiceIdentifierService.curIdentifierById(identifier?.id);
       const lastvisitPrescription = lastVisitPrescription(currIdentifier);
       if (identifier !== null) {
         const prescription = prescriptionService.getLocalPrescriptionById(
@@ -182,7 +183,8 @@ const init = async () => {
   showloading();
 
   if (isMobile.value && !isOnline.value) {
-    await patientService.getPatientMobileWithAllByPatientId(patient.value);
+    // await patientService.getPatientMobileWithAllByPatientId(patient.value);
+    await patientService.getPatientGraphFromDexie(patient.value.id);
   }
 
   closeLoading();

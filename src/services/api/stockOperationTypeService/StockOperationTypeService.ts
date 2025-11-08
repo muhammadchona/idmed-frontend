@@ -12,12 +12,51 @@ const { isMobile, isOnline } = useSystemUtils();
 const stockOperationRepo = useRepo(stockOperationType);
 const stockOperationDexie = db[stockOperationType.entity];
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const normalizePayload = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let stockOperationMobileCache: any[] = [];
+
+const setStockOperationMobileCache = (rows: any[]) => {
+  stockOperationMobileCache = rows.map((row) => clone(row));
+};
+
+const getStockOperationMobileCache = () =>
+  stockOperationMobileCache.map((row) => clone(row));
+
+const refreshStockOperationMobileCache = async () => {
+  const rows = await stockOperationDexie.toArray();
+  setStockOperationMobileCache(rows);
+  return getStockOperationMobileCache();
+};
+
+const findStockOperationType = (predicate: (entry: any) => boolean) =>
+  getStockOperationMobileCache().find(predicate) ?? null;
+
 export default {
   // Axios API call static async
 
   async get(offset: number) {
     if (!isOnline.value) {
       return stockOperationDexie.toArray().then((result: any) => {
+        if (isMobile.value) {
+          setStockOperationMobileCache(result);
+          return getStockOperationMobileCache();
+        }
         stockOperationRepo.save(result);
         return result;
       });
@@ -57,24 +96,43 @@ export default {
   },
   //mobile
   addBulkMobile(params: string) {
+    const payload = normalizePayload(params);
     return stockOperationDexie
-      .bulkPut(params)
-      .then(() => {
-        stockOperationRepo.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        if (isMobile.value) {
+          await refreshStockOperationMobileCache();
+        } else {
+          stockOperationRepo.save(payload);
+        }
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
+    if (!isMobile.value) {
+      return stockOperationDexie
+        .toArray()
+        .then((rows: any) => {
+          stockOperationRepo.save(rows);
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
     return stockOperationDexie
       .toArray()
       .then((rows: any) => {
-        stockOperationRepo.save(rows);
+        setStockOperationMobileCache(rows);
+        return getStockOperationMobileCache();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll(offset: number, max: number) {
@@ -82,9 +140,15 @@ export default {
   },
 
   getStockOperatinTypeByCode(code: string) {
+    if (isMobile.value) {
+      return findStockOperationType((entry) => entry.code === code);
+    }
     return stockOperationRepo.query().where('code', code).first();
   },
   getStockOperatinTypeById(Id: string) {
+    if (isMobile.value) {
+      return findStockOperationType((entry) => entry.id === Id);
+    }
     return stockOperationRepo.query().where('id', Id).first();
   },
   async getAllByIDsFromDexie(ids: []) {
@@ -92,9 +156,18 @@ export default {
   },
   //Pinia
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getStockOperationMobileCache();
+    }
     return stockOperationRepo.all();
   },
   savePinia(st: any) {
     stockOperationRepo.save(st);
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshStockOperationMobileCache();
   },
 };

@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let healthInformationSystemMobileCache: any[] = [];
+
+const setHealthInformationSystemMobileCache = (rows: any[]) => {
+  healthInformationSystemMobileCache = rows.map((row) => clone(row));
+};
+
+const getHealthInformationSystemMobileCache = () =>
+  healthInformationSystemMobileCache.map((row) => clone(row));
+
+const refreshHealthInformationSystemMobileCache = async () => {
+  const rows = await healthInformationSystemDexie.toArray();
+  setHealthInformationSystemMobileCache(rows);
+  return getHealthInformationSystemMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -82,54 +102,75 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return healthInformationSystemDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        healthInformationSystem.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshHealthInformationSystemMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inesperado nesta operação.');
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return healthInformationSystemDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        healthInformationSystem.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshHealthInformationSystemMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         alertError('Aconteceu um erro inesperado nesta operação.');
+        throw error;
       });
   },
   getMobile() {
-    return healthInformationSystemDexie
-      .toArray()
-      .then((rows: any) => {
-        healthInformationSystem.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshHealthInformationSystemMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return healthInformationSystemDexie
       .delete(paramsId)
-      .then(() => {
-        healthInformationSystem.destroy(paramsId);
+      .then(async () => {
+        healthInformationSystemMobileCache =
+          healthInformationSystemMobileCache.filter((item) => item.id !== paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
+        alertError('Aconteceu um erro inesperado nesta operação.');
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return healthInformationSystemDexie
-      .bulkPut(params)
-      .then(() => {
-        healthInformationSystem.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshHealthInformationSystemMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
@@ -158,9 +199,17 @@ export default {
     healthInformationSystem.save(healtSystem);
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getHealthInformationSystemMobileCache();
+    }
     return healthInformationSystem.all();
   },
   getAllActive() {
+    if (isMobile.value && !isOnline.value) {
+      return getHealthInformationSystemMobileCache().filter(
+        (entry) => entry.active
+      );
+    }
     return healthInformationSystem
       .with('interoperabilityAttributes')
       .where('active', true)
@@ -168,6 +217,15 @@ export default {
   },
 
   getAllHis() {
+    if (isMobile.value && !isOnline.value) {
+      return getHealthInformationSystemMobileCache();
+    }
     return healthInformationSystem.withAllRecursive(3).get();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshHealthInformationSystemMobileCache();
   },
 };

@@ -438,7 +438,6 @@ export default {
       (identifier: PatientServiceIdentifier) =>
         ids.includes(identifier?.patient?.id)
     );
-
     const patientServiceIdentifiers = await collection.toArray();
 
     const identifierIds = patientServiceIdentifiers.map(

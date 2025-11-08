@@ -13,6 +13,25 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let formMobileCache: any[] = [];
+
+const setFormMobileCache = (rows: any[]) => {
+  formMobileCache = rows.map((row) => clone(row));
+};
+
+const getFormMobileCache = () => formMobileCache.map((row) => clone(row));
+
+const refreshFormMobileCache = async () => {
+  const rows = await formDexie.toArray();
+  setFormMobileCache(rows);
+  return getFormMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,73 +110,99 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return formDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        form.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshFormMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return formDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        form.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshFormMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return formDexie
-      .toArray()
-      .then((rows: any) => {
-        form.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshFormMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return formDexie
       .delete(paramsId)
-      .then(() => {
-        form.destroy(paramsId);
+      .then(async () => {
+        formMobileCache = formMobileCache.filter((item) => item.id !== paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return formDexie
-      .bulkPut(params)
-      .then(() => {
-        form.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshFormMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
   /*Pinia Methods*/
   getAllForms() {
+    if (isMobile.value && !isOnline.value) {
+      return getFormMobileCache();
+    }
     return form.query().withAll().get();
   },
 
   getFormById(id: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getFormMobileCache().find((entry) => entry.id === id);
+    }
     return form.query().where('id', id).first();
   },
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     return await formDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshFormMobileCache();
   },
 };

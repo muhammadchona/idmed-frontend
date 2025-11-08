@@ -13,6 +13,25 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let provinceMobileCache: any[] = [];
+
+const setProvinceMobileCache = (rows: any[]) => {
+  provinceMobileCache = rows.map((row) => clone(row));
+};
+
+const getProvinceMobileCache = () => provinceMobileCache.map((row) => clone(row));
+
+const refreshProvinceMobileCache = async () => {
+  const rows = await provinceDexie.toArray();
+  setProvinceMobileCache(rows);
+  return getProvinceMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,46 +110,76 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return provinceDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
-      province.save(JSON.parse(JSON.stringify(params)));
-    });
-  },
-  putMobile(params: string) {
-    return provinceDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
-      province.save(JSON.parse(JSON.stringify(params)));
-    });
-  },
-  getMobile() {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return provinceDexie
-      .toArray()
-      .then((rows: any) => {
-        province.save(rows);
+      .put(payload)
+      .then(async () => {
+        await refreshProvinceMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
+  putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
+    return provinceDexie
+      .put(payload)
+      .then(async () => {
+        await refreshProvinceMobileCache();
+        return payload;
+      })
+      .catch((error: any) => {
+        console.log(error);
+        throw error;
+      });
+  },
+  getMobile() {
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshProvinceMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
+  },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return provinceDexie
       .delete(paramsId)
-      .then(() => {
-        province.destroy(paramsId);
+      .then(async () => {
+        provinceMobileCache = provinceMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return provinceDexie
-      .bulkPut(params)
-      .then(() => {
-        province.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshProvinceMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiFetchById(id: string) {
@@ -148,10 +197,20 @@ export default {
   },
 
   getAllProvinces() {
+    if (isMobile.value && !isOnline.value) {
+      return getProvinceMobileCache().sort((a, b) =>
+        String(a.code || '').localeCompare(String(b.code || ''))
+      );
+    }
     return province.withAllRecursive(1).orderBy('code', 'asc').get();
   },
 
   getAllProvincesById(provinceId: string) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getProvinceMobileCache().find((entry) => entry.id === provinceId) ?? null
+      );
+    }
     return province
       .withAllRecursive(1)
       .where('id', provinceId)
@@ -159,10 +218,21 @@ export default {
       .first();
   },
   getAllProvincesByCode(code: string) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getProvinceMobileCache().find((entry) => entry.code === code) ?? null
+      );
+    }
     return province
       .withAllRecursive(1)
       .where('code', code)
       .orderBy('code', 'asc')
       .first();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshProvinceMobileCache();
   },
 };

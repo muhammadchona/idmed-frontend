@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let durationMobileCache: any[] = [];
+
+const setDurationMobileCache = (rows: any[]) => {
+  durationMobileCache = rows.map((row) => clone(row));
+};
+
+const getDurationMobileCache = () =>
+  durationMobileCache.map((row) => clone(row));
+
+const refreshDurationMobileCache = async () => {
+  const rows = await durationDexie.toArray();
+  setDurationMobileCache(rows);
+  return getDurationMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,54 +111,75 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return durationDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        duration.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshDurationMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return durationDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        duration.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshDurationMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return durationDexie
-      .toArray()
-      .then((rows: any) => {
-        duration.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshDurationMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return durationDexie
       .delete(paramsId)
-      .then(() => {
-        duration.destroy(paramsId);
+      .then(async () => {
+        durationMobileCache = durationMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return durationDexie
-      .bulkPut(params)
-      .then(() => {
-        duration.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshDurationMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll(offset: number, max: number) {
@@ -153,19 +194,37 @@ export default {
     return duration.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getDurationMobileCache();
+    }
     return duration.all();
   },
 
   getDurationByWeeks(weeksSuply: any) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getDurationMobileCache().find((entry) => entry.weeks === weeksSuply) ??
+        null
+      );
+    }
     return duration.where('weeks', weeksSuply).first();
   },
 
   getDurationById(id: any) {
+    if (isMobile.value && !isOnline.value) {
+      return getDurationMobileCache().find((entry) => entry.id === id) ?? null;
+    }
     return duration.where('id', id).first();
   },
 
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     return await durationDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshDurationMobileCache();
   },
 };

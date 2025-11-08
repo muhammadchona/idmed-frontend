@@ -1,11 +1,9 @@
 import api from '../../api/apiService/apiService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import { ClinicSector } from 'src/stores/models/clinic/ClinicSector';
-import { useRepo } from 'pinia-orm';
 import db from 'src/stores/dexie';
 import synchronizationService from '../SynchronizationService';
 
-const clinicSector = useRepo(ClinicSector);
 const clinicSectorDexie = db[ClinicSector.entity];
 
 export default {
@@ -35,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia ClinicSector');
-    clinicSectorService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing ClinicSector cache from Dexie');
+    return clinicSectorService.refreshMobileCache();
   },
 };

@@ -8,10 +8,31 @@ import db from '../../../stores/dexie';
 
 const facilityType = useRepo(FacilityType);
 const facilityTypeDexie = FacilityType.entity;
+const facilityTypeTable = db[facilityTypeDexie];
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let facilityTypeMobileCache: any[] = [];
+
+const setFacilityTypeMobileCache = (rows: any[]) => {
+  facilityTypeMobileCache = rows.map((row) => clone(row));
+};
+
+const getFacilityTypeMobileCache = () =>
+  facilityTypeMobileCache.map((row) => clone(row));
+
+const refreshFacilityTypeMobileCache = async () => {
+  const rows = await facilityTypeTable.toArray();
+  setFacilityTypeMobileCache(rows);
+  return getFacilityTypeMobileCache();
+};
 
 export default {
   async post(params: string) {
@@ -91,68 +112,90 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return db[facilityTypeDexie]
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        facilityType.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
+    return facilityTypeTable
+      .put(payload)
+      .then(async () => {
+        await refreshFacilityTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
-    return db[facilityTypeDexie]
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        facilityType.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
+    return facilityTypeTable
+      .put(payload)
+      .then(async () => {
+        await refreshFacilityTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return db[facilityTypeDexie]
-      .toArray()
-      .then((rows: any) => {
-        facilityType.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshFacilityTypeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
-    return db[facilityTypeDexie]
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    return facilityTypeTable
       .delete(paramsId)
-      .then(() => {
-        facilityType.destroy(paramsId);
+      .then(async () => {
+        facilityTypeMobileCache = facilityTypeMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
-    return db[facilityTypeDexie]
-      .bulkPut(params)
-      .then(() => {
-        facilityType.save(params);
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
+    return facilityTypeTable
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshFacilityTypeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
   /*Pinia Methods*/
   getAllFacilityTypes() {
+    if (isMobile.value && !isOnline.value) {
+      return getFacilityTypeMobileCache();
+    }
     return facilityType.query().get();
   },
   getAllFacilityTypesWithoutUS() {
+    if (isMobile.value && !isOnline.value) {
+      return getFacilityTypeMobileCache().filter((entry) => entry.code !== 'US');
+    }
     return facilityType
       .query()
       .where((query: any) => {
@@ -162,6 +205,9 @@ export default {
   },
 
   getFacilityTypeClinics() {
+    if (isMobile.value && !isOnline.value) {
+      return getFacilityTypeMobileCache().filter((entry) => entry.type === 'clinic');
+    }
     return facilityType
       .query()
       .where((query: any) => {
@@ -170,6 +216,11 @@ export default {
       .get();
   },
   getFacilityTypeClinicSector() {
+    if (isMobile.value && !isOnline.value) {
+      return getFacilityTypeMobileCache().filter(
+        (entry) => entry.type === 'clinic_sector'
+      );
+    }
     return facilityType
       .query()
       .where((query: any) => {
@@ -178,6 +229,15 @@ export default {
       .get();
   },
   getFacilityTypeClinicSectorForDC() {
+    if (isMobile.value && !isOnline.value) {
+      return getFacilityTypeMobileCache().filter((entry) => {
+        return (
+          entry.type === 'clinic_sector' &&
+          entry.code !== 'PARAGEM_UNICA' &&
+          entry.code !== 'PROVEDOR'
+        );
+      });
+    }
     return facilityType
       .query()
       .where((query: any) => {
@@ -190,11 +250,24 @@ export default {
       .get();
   },
   getFacilityTypeParagemUnica() {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getFacilityTypeMobileCache().find(
+          (entry) => entry.code === 'PARAGEM_UNICA'
+        ) ?? null
+      );
+    }
     return facilityType
       .query()
       .where((query: any) => {
         return query.code === 'PARAGEM_UNICA';
       })
       .first();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshFacilityTypeMobileCache();
   },
 };

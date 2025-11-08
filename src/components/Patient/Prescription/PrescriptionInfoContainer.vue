@@ -483,27 +483,57 @@ const printFilaReport = async (patientServiceIdentifier) => {
 
 // Computed
 const curIdentifier = computed(() => {
-  return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
+  const patientIdentifiers = patient.value?.identifiers;
+  if (Array.isArray(patientIdentifiers)) {
+    const identifierFromPatient = patientIdentifiers.find(
+      (identifier) => identifier?.id === props.identifierId
+    );
+    if (identifierFromPatient) {
+      return identifierFromPatient;
+    }
+  }
+
+  const identifier = patientServiceIdentifierService.identifierCurr(
+    props.identifierId,
+    ''
+  );
+
+  return (
+    identifier ?? {
+      service: null,
+      value: '',
+      episodes: [],
+    }
+  );
 });
 
 const validadeColor = computed(() => {
   if (prescription.value !== null && remainigDuration(prescription.value) > 0) {
     return 'text-primary';
   } else {
-    return 'text-red';
+    // return 'text-red';
   }
 });
 const lastPackOnPrescription = computed(() => {
   if (prescription.value !== null) {
+    /*
     return packService.getLastPackFromPatientVisitAndPrescription(
       prescription.value.id
     );
+    */
+    if (isMobile.value && lastPatientVisitDetails.value !== null) {
+      console.log(lastPatientVisitDetails.value.pack);
+      return lastPatientVisitDetails.value.pack;
+    }
   } else {
     return null;
   }
 });
 
 const lastLog = computed(() => {
+  if (!curIdentifier.value?.service?.id) {
+    return null;
+  }
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
     patient.value.id,
     curIdentifier.value.service.id
@@ -515,9 +545,15 @@ const prescription = computed(() => {
     return lastLog.value.prescription;
   }
   if (lastPatientVisitDetails.value !== null) {
+    /*
     return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
       lastPatientVisitDetails.value.prescription.id
     );
+    */
+    if (isMobile.value && lastPatientVisitDetails.value !== null) {
+      console.log(lastPatientVisitDetails.value.prescription);
+      return lastPatientVisitDetails.value.prescription;
+    }
   } else {
     return null;
   }
@@ -525,6 +561,7 @@ const prescription = computed(() => {
 
 const patientVisit = computed(() => {
   const listPatietVisitIds = [];
+  /*
   if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
     const listPatietVisitDetails =
       patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
@@ -563,18 +600,55 @@ const patientVisit = computed(() => {
       );
     } else return null;
   }
+     */
+  if (
+    isMobile.value &&
+    lastStartEpisode.value !== null &&
+    lastStartEpisode.value !== undefined
+  ) {
+    console.log(patient.value);
+    const matchingVisits = patient.value.patientVisits.filter((visit) => {
+      if (
+        !visit.patientVisitDetails ||
+        !Array.isArray(visit.patientVisitDetails)
+      ) {
+        return false;
+      }
+
+      // Check if any detail in this visit matches the episode ID
+      return visit.patientVisitDetails.some((detail) => {
+        const detailEpisodeId = String(
+          detail?.episode?.id ?? detail?.episodeId ?? ''
+        )
+          .trim()
+          .toLowerCase();
+        return detailEpisodeId === lastStartEpisode.value.id;
+      });
+    });
+
+    // If no matches found
+    if (matchingVisits.length === 0) {
+      return null;
+    }
+    matchingVisits.sort((a, b) => {
+      const dateA = a?.visitDate ?? '';
+      const dateB = b?.visitDate ?? '';
+      return String(dateB).localeCompare(String(dateA));
+    });
+    console.log(matchingVisits[0]);
+    return matchingVisits[0];
+  }
 });
 
 const lastPatientVisitDetails = computed(() => {
   if (patientVisit.value !== null && patientVisit.value !== undefined) {
     if (
+      isMobile.value &&
       lastStartEpisode.value !== null &&
       lastStartEpisode.value !== undefined
     ) {
-      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
-        patientVisit.value.id,
-        lastStartEpisode.value.id
-      );
+      console.log(patientVisit.value);
+      return patientVisit.value.patientVisitDetails[0];
     } else {
       return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
         patientVisit.value.id,
@@ -587,7 +661,7 @@ const lastPatientVisitDetails = computed(() => {
 });
 
 const lastStartEpisode = computed(() => {
-  if (curIdentifier.value !== null) {
+  if (curIdentifier.value?.id) {
     return episodeService.getLastStartEpisodeWithPrescription(
       curIdentifier.value.id
     );
@@ -597,7 +671,7 @@ const lastStartEpisode = computed(() => {
 });
 
 const lastRefferedEpisode = computed(() => {
-  if (curIdentifier.value !== null) {
+  if (curIdentifier.value?.id) {
     return episodeService.getLastRefferedEpisodeWithPrescription(
       curIdentifier.value.id
     );
@@ -607,7 +681,7 @@ const lastRefferedEpisode = computed(() => {
 });
 
 const lastEpisode = computed(() => {
-  if (curIdentifier.value !== null) {
+  if (curIdentifier.value?.id) {
     return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
   } else {
     return [];
@@ -626,6 +700,9 @@ const isClosed = computed(() => {
 });
 
 const isPatientActiveGroupMember = computed(() => {
+  if (!curIdentifier.value?.service?.id) {
+    return null;
+  }
   return groupService.getGroupByPatientAndService(
     patient.value.id,
     curIdentifier.value.service.id

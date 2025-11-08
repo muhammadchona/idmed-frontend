@@ -7,11 +7,31 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import db from '../../../stores/dexie';
 
 const patientTransReferenceType = useRepo(PatientTransReferenceType);
-const patientTransReferenceTypeDexie = PatientTransReferenceType.entity;
+const patientTransReferenceTypeDexie = db[PatientTransReferenceType.entity];
 
 const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let patientTransReferenceTypeMobileCache: any[] = [];
+
+const setPatientTransReferenceTypeMobileCache = (rows: any[]) => {
+  patientTransReferenceTypeMobileCache = rows.map((row) => clone(row));
+};
+
+const getPatientTransReferenceTypeMobileCache = () =>
+  patientTransReferenceTypeMobileCache.map((row) => clone(row));
+
+const refreshPatientTransReferenceTypeMobileCache = async () => {
+  const rows = await patientTransReferenceTypeDexie.toArray();
+  setPatientTransReferenceTypeMobileCache(rows);
+  return getPatientTransReferenceTypeMobileCache();
+};
 
 export default {
   async post(params: string) {
@@ -94,55 +114,75 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return db[patientTransReferenceTypeDexie]
-      .add(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        patientTransReferenceType.save(JSON.parse(JSON.stringify(params)));
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
+    return patientTransReferenceTypeDexie
+      .put(payload)
+      .then(async () => {
+        await refreshPatientTransReferenceTypeMobileCache();
+        return payload;
+      })
+      .catch((error: any) => {
+        console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
-    return db[patientTransReferenceTypeDexie]
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        patientTransReferenceType.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
+    return patientTransReferenceTypeDexie
+      .put(payload)
+      .then(async () => {
+        await refreshPatientTransReferenceTypeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return db[patientTransReferenceTypeDexie]
-      .toArray()
-      .then((rows: any) => {
-        patientTransReferenceType.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshPatientTransReferenceTypeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
-    return db[patientTransReferenceTypeDexie]
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    return patientTransReferenceTypeDexie
       .delete(paramsId)
-      .then(() => {
-        patientTransReferenceType.destroy(paramsId);
+      .then(async () => {
+        patientTransReferenceTypeMobileCache =
+          patientTransReferenceTypeMobileCache.filter((item) => item.id !== paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
-    return db[patientTransReferenceTypeDexie]
-      .bulkPut(params)
-      .then(() => {
-        patientTransReferenceType.save(params);
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
+    return patientTransReferenceTypeDexie
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshPatientTransReferenceTypeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll(offset: number, max: number) {
@@ -155,9 +195,25 @@ export default {
     return patientTransReferenceType.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getPatientTransReferenceTypeMobileCache();
+    }
     return patientTransReferenceType.all();
   },
   getOperationType(operationType: string) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getPatientTransReferenceTypeMobileCache().find(
+          (entry) => entry.code === operationType
+        ) ?? null
+      );
+    }
     return patientTransReferenceType.where('code', operationType).first();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshPatientTransReferenceTypeMobileCache();
   },
 };

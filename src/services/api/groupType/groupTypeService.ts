@@ -9,6 +9,41 @@ const { isMobile, isOnline } = useSystemUtils();
 const { closeLoading, showloading } = useLoading();
 const groupType = useRepo(GroupType);
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const normalizePayload = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let groupTypeMobileCache: any[] = [];
+
+const setGroupTypeMobileCache = (rows: any[]) => {
+  groupTypeMobileCache = rows.map((row) => clone(row));
+};
+
+const getGroupTypeMobileCache = () =>
+  groupTypeMobileCache.map((row) => clone(row));
+
+const refreshGroupTypeMobileCache = async () => {
+  const rows = await nSQL(GroupType.entity).query('select').exec();
+  setGroupTypeMobileCache(rows);
+  return getGroupTypeMobileCache();
+};
+
+const findGroupTypeInCache = (predicate: (entry: any) => boolean) =>
+  getGroupTypeMobileCache().find(predicate) ?? null;
+
 export default {
   // Axios API call
   post(params: string) {
@@ -57,33 +92,53 @@ export default {
   },
   // Mobile
   putMobile(params: string) {
+    const payload = normalizePayload(params);
     return nSQL(GroupType.entity)
-      .query('upsert', params)
+      .query('upsert', payload)
       .exec()
-      .then(() => {
-        groupType.save(params);
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .then(async () => {
+        if (isMobile.value) {
+          await refreshGroupTypeMobileCache();
+        } else {
+          groupType.save(payload);
+        }
+        return payload;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
+    if (!isMobile.value) {
+      return nSQL(GroupType.entity)
+        .query('select')
+        .exec()
+        .then((rows: any) => {
+          groupType.save(rows);
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
     return nSQL(GroupType.entity)
       .query('select')
       .exec()
       .then((rows: any) => {
-        groupType.save(rows);
+        setGroupTypeMobileCache(rows);
+        return getGroupTypeMobileCache();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   get() {
     if (!isOnline.value) {
-      this.getMobile();
+      return this.getMobile();
     } else {
       this.apiGetAllWeb();
     }
@@ -93,6 +148,21 @@ export default {
     return groupType.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getGroupTypeMobileCache();
+    }
     return groupType.all();
+  },
+  getByCode(code: string) {
+    if (isMobile.value) {
+      return findGroupTypeInCache((entry) => entry.code === code);
+    }
+    return groupType.query().where('code', code).first();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshGroupTypeMobileCache();
   },
 };

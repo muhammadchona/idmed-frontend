@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia Doctor');
-    doctorService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing Doctor cache from Dexie');
+    return doctorService.refreshMobileCache();
   },
 };

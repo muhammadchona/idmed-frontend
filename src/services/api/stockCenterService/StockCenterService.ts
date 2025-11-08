@@ -13,6 +13,41 @@ const { isMobile, isOnline } = useSystemUtils();
 const stockCenter = useRepo(StockCenter);
 const stockCenterDexie = db[StockCenter.entity];
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const normalizePayload = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let stockCenterMobileCache: any[] = [];
+
+const setStockCenterMobileCache = (rows: any[]) => {
+  stockCenterMobileCache = rows.map((row) => clone(row));
+};
+
+const getStockCenterMobileCache = () =>
+  stockCenterMobileCache.map((row) => clone(row));
+
+const refreshStockCenterMobileCache = async () => {
+  const rows = await stockCenterDexie.toArray();
+  setStockCenterMobileCache(rows);
+  return getStockCenterMobileCache();
+};
+
+const findStockCenterInCache = (predicate: (entry: any) => boolean) =>
+  getStockCenterMobileCache().find(predicate) ?? null;
+
 export default {
   // Axios API call
   async apiSave(params: string) {
@@ -22,7 +57,7 @@ export default {
 
   get(offset: number) {
     if (isMobile.value && !isOnline.value) {
-      this.getMobile();
+      return this.getMobile();
     } else {
       this.getWeb(offset);
     }
@@ -67,14 +102,27 @@ export default {
 
   //mobile
   getMobile() {
+    if (!isMobile.value) {
+      return stockCenterDexie
+        .toArray()
+        .then((rows: any) => {
+          stockCenter.save(rows);
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
     return stockCenterDexie
       .toArray()
       .then((rows: any) => {
-        stockCenter.save(rows);
+        setStockCenterMobileCache(rows);
+        return getStockCenterMobileCache();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
 
@@ -98,13 +146,19 @@ export default {
   },
   //mobile
   addBulkMobile(params: string) {
+    const payload = normalizePayload(params);
     return stockCenterDexie
-      .bulkPut(params)
-      .then(() => {
-        stockCenter.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        if (isMobile.value) {
+          await refreshStockCenterMobileCache();
+        } else {
+          stockCenter.save(payload);
+        }
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
@@ -114,9 +168,23 @@ export default {
   },
 
   getStockCenter() {
+    if (isMobile.value) {
+      return (
+        findStockCenterInCache((entry) => entry.prefered === true) ?? null
+      );
+    }
     return stockCenter.withAllRecursive(3).where('prefered', true).first();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getStockCenterMobileCache();
+    }
     return stockCenter.all();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshStockCenterMobileCache();
   },
 };

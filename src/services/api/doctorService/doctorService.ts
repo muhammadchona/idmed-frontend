@@ -13,6 +13,25 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let doctorMobileCache: any[] = [];
+
+const setDoctorMobileCache = (rows: any[]) => {
+  doctorMobileCache = rows.map((row) => clone(row));
+};
+
+const getDoctorMobileCache = () => doctorMobileCache.map((row) => clone(row));
+
+const refreshDoctorMobileCache = async () => {
+  const rows = await doctorDexie.toArray();
+  setDoctorMobileCache(rows);
+  return getDoctorMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -82,58 +101,74 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return doctorDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        doctor.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshDoctorMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return doctorDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        doctor.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshDoctorMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return doctorDexie
-      .toArray()
-      .then((rows: any) => {
-        doctor.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshDoctorMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return doctorDexie
-      .put(paramsId)
-      .then(() => {
-        doctor.destroy(paramsId);
+      .delete(paramsId)
+      .then(async () => {
+        doctorMobileCache = doctorMobileCache.filter((item) => item.id !== paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return doctorDexie
-      .bulkPut(params)
-      .then(() => {
-        doctor.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshDoctorMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   // Local Storage Pinia
@@ -143,6 +178,9 @@ export default {
 
   /*Pinia Methods*/
   getAlldoctors() {
+    if (isMobile.value && !isOnline.value) {
+      return getDoctorMobileCache().filter((entry) => entry.active);
+    }
     return doctor
       .with('clinic', (query) => {
         query.with('province');
@@ -154,6 +192,9 @@ export default {
       .get();
   },
   getAllActiveAndNonActivedoctors() {
+    if (isMobile.value && !isOnline.value) {
+      return getDoctorMobileCache();
+    }
     return doctor
       .with('clinic', (query) => {
         query.with('province');
@@ -166,5 +207,11 @@ export default {
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     return await doctorDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshDoctorMobileCache();
   },
 };

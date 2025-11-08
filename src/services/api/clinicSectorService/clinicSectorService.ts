@@ -15,6 +15,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let clinicSectorMobileCache: any[] = [];
+
+const setClinicSectorMobileCache = (rows: any[]) => {
+  clinicSectorMobileCache = rows.map((row) => clone(row));
+};
+
+const getClinicSectorMobileCache = () =>
+  clinicSectorMobileCache.map((row) => clone(row));
+
+const refreshClinicSectorMobileCache = async () => {
+  const rows = await clinicSectorDexie.toArray();
+  setClinicSectorMobileCache(rows);
+  return getClinicSectorMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -88,66 +108,82 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    showloading();
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return clinicSectorDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        clinicSector.save(params);
-        // alertSucess('O Registo foi efectuado com sucesso');
-        closeLoading();
+      .put(payload)
+      .then(async () => {
+        await refreshClinicSectorMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
-    showloading();
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return clinicSectorDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        clinicSector.save(params);
-        // alertSucess('O Registo foi efectuado com sucesso');
-        closeLoading();
+      .put(payload)
+      .then(async () => {
+        await refreshClinicSectorMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    showloading();
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
     return clinicSectorDexie
       .toArray()
       .then((rows: any) => {
-        clinicSector.save(rows);
-        closeLoading();
+        setClinicSectorMobileCache(rows);
+        return getClinicSectorMobileCache();
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return clinicSectorDexie
       .delete(paramsId)
-      .then(() => {
-        clinicSector.destroy(paramsId);
+      .then(async () => {
+        clinicSectorMobileCache = clinicSectorMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return clinicSectorDexie
-      .bulkPut(params)
-      .then(() => {
-        clinicSector.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshClinicSectorMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
@@ -159,18 +195,38 @@ export default {
   /*Pinia Methods*/
   getAllClinicSectors() {
     // return clinicService.getAllClinicSectors()
+    if (isMobile.value) {
+      return getClinicSectorMobileCache();
+    }
     return clinicSector.withAll().get();
   },
 
   getClinicSectorsById(clinicSectorId: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache().find(
+        (item) => item.id === clinicSectorId
+      );
+    }
     return clinicSector.withAll().where('id', clinicSectorId).first();
   },
 
   getClinicSectorsByClinicId(clinicId: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache().filter(
+        (item) => item.parentClinic_id === clinicId
+      );
+    }
     return clinicSector.query().where('parentClinic_id', clinicId).get();
   },
 
   getClinicSectorsByFacilityTypeId(clinicId: string, facilityTypeId: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache().filter(
+        (item) =>
+          item.parentClinic_id === clinicId &&
+          item.facilityTypeId === facilityTypeId
+      );
+    }
     return clinicSector
       .query()
       .where('parentClinic_id', clinicId)
@@ -179,6 +235,11 @@ export default {
   },
 
   getClinicSectorsByIdAndFacilityTypeId(id: string, facilityTypeId: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache().filter(
+        (item) => item.id === id && item.facilityTypeId === facilityTypeId
+      );
+    }
     return clinicSector
       .query()
       .where('id', id)
@@ -187,6 +248,11 @@ export default {
   },
 
   getActivebyClinicId(clinicId: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache().filter(
+        (item) => item.active && item.parentClinic_id === clinicId
+      );
+    }
     return clinicSector
       .query()
       .with('facilityType')
@@ -196,6 +262,22 @@ export default {
       .get();
   },
   getActiveUSClinicSectorByClinic(clinicId: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache()
+        .filter((sector) => {
+          const facilityTypeCode =
+            sector?.facilityType?.code ?? sector?.facilityType?.CODE ?? '';
+          const isAllowed =
+            facilityTypeCode === 'PARAGEM_UNICA' ||
+            facilityTypeCode === 'NORMAL';
+          return (
+            sector.active &&
+            sector.parentClinic_id === clinicId &&
+            isAllowed
+          );
+        })
+        .sort((a, b) => String(a.code || '').localeCompare(b.code || ''));
+    }
     return clinicSector
       .withAllRecursive(1)
       .where('active', true)
@@ -209,9 +291,15 @@ export default {
       .get();
   },
   getClinicSectorByCode(code: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache().find((sector) => sector.code === code);
+    }
     return clinicSector.query().withAllRecursive(1).where('code', code).first();
   },
   getClinicSectorSlimByCode(code: string) {
+    if (isMobile.value) {
+      return getClinicSectorMobileCache().find((sector) => sector.code === code);
+    }
     return clinicSector.query().where('code', code).first();
   },
 
@@ -219,23 +307,12 @@ export default {
     // const dexiDatabase1 = ClinicSector.entity;
     try {
       const clinicSectors = await clinicSectorDexie.toArray();
-
-      /*
-      const clinicSectors = await db[dexiTable]
-        .where('code')
-        .equalsIgnoreCase('TesteDex')
-        .first();
-        */
-      clinicSector.save(clinicSectors);
-      console.log(clinicSectors);
-      // Fetch associated patients for each appointment
-      /*
-      const appointmentsWithPatients = await Promise.all(clinicSectors.map(async (clinicSector) => {
-        const patient = await db.patients.get(appointment.patientId);
-        return { ...appointment, patient };
-        */
+      if (isMobile.value) {
+        setClinicSectorMobileCache(clinicSectors);
+      } else {
+        clinicSector.save(clinicSectors);
+      }
       return clinicSectors;
-      // console.log('Appointments with patients:', appointmentsWithPatients);
     } catch (error) {
       console.error('Failed to get appointments:', error);
     }
@@ -243,5 +320,11 @@ export default {
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     return await clinicSectorDexie.where('id').anyOfIgnoreCase(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshClinicSectorMobileCache();
   },
 };

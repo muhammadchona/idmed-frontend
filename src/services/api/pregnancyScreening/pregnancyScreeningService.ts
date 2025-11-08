@@ -11,6 +11,59 @@ const pregnancyScreeningDexie = db[PregnancyScreening.entity];
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let pregnancyScreeningMobileCache: any[] = [];
+
+const setPregnancyScreeningMobileCache = (rows: any[]) => {
+  pregnancyScreeningMobileCache = rows.map((row) => clone(row));
+};
+
+const getPregnancyScreeningMobileCache = () =>
+  pregnancyScreeningMobileCache.map((row) => clone(row));
+
+const upsertPregnancyScreeningCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = pregnancyScreeningMobileCache.findIndex(
+      (detail) => detail.id === payload.id
+    );
+    if (index >= 0) {
+      pregnancyScreeningMobileCache.splice(index, 1, payload);
+    } else {
+      pregnancyScreeningMobileCache.push(payload);
+    }
+  });
+};
+
+const removePregnancyScreeningFromCache = (id: string) => {
+  pregnancyScreeningMobileCache = pregnancyScreeningMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshPregnancyScreeningMobileCache = async () => {
+  const rows = await pregnancyScreeningDexie.toArray();
+  setPregnancyScreeningMobileCache(rows);
+  return getPregnancyScreeningMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -80,24 +133,41 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    const payload = clone(toPlainObject(params));
     return pregnancyScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
+      .put(payload)
       .then(() => {
-        pregnancyScreening.save(JSON.parse(JSON.stringify(params)));
+        if (isMobile.value) {
+          upsertPregnancyScreeningCache(payload);
+          return payload;
+        }
+        pregnancyScreening.save(payload);
+        return payload;
       });
   },
   putMobile(params: string) {
+    const payload = clone(toPlainObject(params));
     return pregnancyScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
+      .put(payload)
       .then(() => {
-        pregnancyScreening.save(JSON.parse(JSON.stringify(params)));
+        if (isMobile.value) {
+          upsertPregnancyScreeningCache(payload);
+          return payload;
+        }
+        pregnancyScreening.save(payload);
+        return payload;
       });
   },
   getMobile() {
     return pregnancyScreeningDexie
       .toArray()
       .then((rows: any) => {
+        if (isMobile.value) {
+          setPregnancyScreeningMobileCache(rows);
+          return getPregnancyScreeningMobileCache();
+        }
         pregnancyScreening.save(rows);
+        return rows;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -108,7 +178,11 @@ export default {
     return pregnancyScreeningDexie
       .delete(paramsId)
       .then(() => {
-        pregnancyScreening.destroy(paramsId);
+        if (isMobile.value) {
+          removePregnancyScreeningFromCache(paramsId);
+        } else {
+          pregnancyScreening.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {

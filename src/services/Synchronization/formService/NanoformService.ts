@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia Form');
-    formService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing Form cache from Dexie');
+    return formService.refreshMobileCache();
   },
 };

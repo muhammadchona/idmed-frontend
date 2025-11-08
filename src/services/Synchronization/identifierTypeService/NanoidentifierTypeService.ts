@@ -1,5 +1,4 @@
 import api from '../../api/apiService/apiService';
-// import db from '../../../stores/dexie';
 import identifierTypeService from 'src/services/api/identifierTypeService/identifierTypeService';
 import SynchronizationService from '../SynchronizationService';
 import db from 'src/stores/dexie';
@@ -33,8 +32,8 @@ export default {
       ? await identifierTypeService.getWeb(offset)
       : '';
   },
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia IdentifierType');
-    identifierTypeService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing IdentifierType cache from Dexie');
+    return identifierTypeService.refreshMobileCache();
   },
 };

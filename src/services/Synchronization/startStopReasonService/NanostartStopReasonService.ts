@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia StartStopReason');
-    startStopReasonService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing StartStopReason cache from Dexie');
+    return startStopReasonService.refreshMobileCache();
   },
 };

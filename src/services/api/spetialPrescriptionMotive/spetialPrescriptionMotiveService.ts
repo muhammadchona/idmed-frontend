@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let spetialPrescriptionMotiveMobileCache: any[] = [];
+
+const setSpetialPrescriptionMotiveMobileCache = (rows: any[]) => {
+  spetialPrescriptionMotiveMobileCache = rows.map((row) => clone(row));
+};
+
+const getSpetialPrescriptionMotiveMobileCache = () =>
+  spetialPrescriptionMotiveMobileCache.map((row) => clone(row));
+
+const refreshSpetialPrescriptionMotiveMobileCache = async () => {
+  const rows = await spetialPrescriptionMotiveDexie.toArray();
+  setSpetialPrescriptionMotiveMobileCache(rows);
+  return getSpetialPrescriptionMotiveMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -82,60 +102,75 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return spetialPrescriptionMotiveDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        spetialPrescriptionMotive.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshSpetialPrescriptionMotiveMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return spetialPrescriptionMotiveDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        spetialPrescriptionMotive.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshSpetialPrescriptionMotiveMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return spetialPrescriptionMotiveDexie
-      .toArray()
-      .then((rows: any) => {
-        spetialPrescriptionMotive.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshSpetialPrescriptionMotiveMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return spetialPrescriptionMotiveDexie
       .delete(paramsId)
-      .then(() => {
-        spetialPrescriptionMotive.destroy(paramsId);
+      .then(async () => {
+        spetialPrescriptionMotiveMobileCache =
+          spetialPrescriptionMotiveMobileCache.filter((item) => item.id !== paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return spetialPrescriptionMotiveDexie
-      .bulkPut(params)
-      .then(() => {
-        spetialPrescriptionMotive.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshSpetialPrescriptionMotiveMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiGetAll(offset: number, max: number) {
@@ -150,6 +185,9 @@ export default {
     return spetialPrescriptionMotive.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getSpetialPrescriptionMotiveMobileCache();
+    }
     return spetialPrescriptionMotive.all();
   },
 
@@ -159,5 +197,11 @@ export default {
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshSpetialPrescriptionMotiveMobileCache();
   },
 };

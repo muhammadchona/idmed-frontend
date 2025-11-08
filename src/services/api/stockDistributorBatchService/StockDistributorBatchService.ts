@@ -14,6 +14,59 @@ const { isMobile, isOnline } = useSystemUtils();
 const stockDistributorBatch = useRepo(StockDistributorBatch);
 const stockDistributorBatchDexie = db[StockDistributorBatch.entity];
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let stockDistributorBatchMobileCache: any[] = [];
+
+const setStockDistributorBatchMobileCache = (rows: any[]) => {
+  stockDistributorBatchMobileCache = rows.map((row) => clone(row));
+};
+
+const getStockDistributorBatchMobileCache = () =>
+  stockDistributorBatchMobileCache.map((row) => clone(row));
+
+const upsertStockDistributorBatchCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = stockDistributorBatchMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      stockDistributorBatchMobileCache.splice(index, 1, payload);
+    } else {
+      stockDistributorBatchMobileCache.push(payload);
+    }
+  });
+};
+
+const removeStockDistributorBatchFromCache = (id: string) => {
+  stockDistributorBatchMobileCache = stockDistributorBatchMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshStockDistributorBatchMobileCache = async () => {
+  const rows = await stockDistributorBatchDexie.toArray();
+  setStockDistributorBatchMobileCache(rows);
+  return getStockDistributorBatchMobileCache();
+};
+
 export default {
   // Axios API call
   post(params: any) {
@@ -89,7 +142,16 @@ export default {
     return api()
       .post('stockDistributorBatch', params)
       .then((resp) => {
-        stockDistributorBatch.save(resp.data);
+        if (!isMobile.value) {
+          stockDistributorBatch.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          stockDistributorBatchDexie
+            .put(payload)
+            .then(() => upsertStockDistributorBatchCache(payload))
+            .catch((error) => console.log(error));
+        }
         return resp.data;
       });
   },
@@ -100,7 +162,15 @@ export default {
         .get('stockDistributorBatch?offset=' + offset + '&max=100')
         .then((resp) => {
           if (resp.data.length > 0) {
-            stockDistributorBatch.save(resp.data);
+            if (!isMobile.value) {
+              stockDistributorBatch.save(resp.data);
+            }
+            if (isMobile.value) {
+              stockDistributorBatchDexie
+                .bulkPut(resp.data.map((entry: any) => clone(entry)))
+                .then(() => upsertStockDistributorBatchCache(resp.data))
+                .catch((error) => console.log(error));
+            }
             offset = offset + 100;
             this.getWeb(offset);
           } else {
@@ -129,7 +199,16 @@ export default {
     return api()
       .patch('stockDistributorBatch/' + id, params)
       .then((resp) => {
-        stockDistributorBatch.save(resp.data);
+        if (!isMobile.value) {
+          stockDistributorBatch.save(resp.data);
+        }
+        if (isMobile.value) {
+          const payload = clone(resp.data);
+          stockDistributorBatchDexie
+            .put(payload)
+            .then(() => upsertStockDistributorBatchCache(payload))
+            .catch((error) => console.log(error));
+        }
       });
   },
 
@@ -137,22 +216,40 @@ export default {
     return api()
       .delete('stockDistributorBatch/' + id)
       .then(() => {
-        stockDistributorBatch.destroy(id);
+        if (!isMobile.value) {
+          stockDistributorBatch.destroy(id);
+        }
+        if (isMobile.value) {
+          stockDistributorBatchDexie
+            .delete(id)
+            .then(() => removeStockDistributorBatchFromCache(id))
+            .catch((error) => console.log(error));
+        }
       });
   },
 
   //Mobile
   async addMobile(params: any) {
+    const payload = clone(toPlainObject(params));
     return stockDistributorBatchDexie
-      .put(JSON.parse(JSON.stringify(params)))
+      .put(payload)
       .then(() => {
-        stockDistributorBatch.save(JSON.parse(JSON.stringify(params)));
+        if (isMobile.value) {
+          upsertStockDistributorBatchCache(payload);
+          return payload;
+        }
+        stockDistributorBatch.save(payload);
+        return payload;
       });
   },
 
   async getMobile() {
     try {
       const rows = await stockDistributorBatchDexie.toArray();
+      if (isMobile.value) {
+        setStockDistributorBatchMobileCache(rows);
+        return getStockDistributorBatchMobileCache();
+      }
       stockDistributorBatch.save(rows);
       return rows;
     } catch (error) {
@@ -162,37 +259,59 @@ export default {
   },
 
   async getFromBackEnd(offset: number) {
-    if (offset >= 0) {
-      return await api()
-        .get('stockDistributorBatch?offset=' + offset + '&max=100')
-        .then((resp) => {
-          stockDistributorBatch.addBulkMobile(resp.data);
-          console.log('Data synced from backend: stockDistributorBatch');
-          offset = offset + 100;
-          if (resp.data.length > 0) {
-            this.getFromBackEnd(offset);
-          }
-        })
-        .catch((error) => {
-          console.error('Error syncing data from backend:', error);
-          console.log(error);
-        });
+    if (offset < 0) {
+      return;
+    }
+    try {
+      const resp = await api().get(
+        'stockDistributorBatch?offset=' + offset + '&max=100'
+      );
+      const data = Array.isArray(resp.data) ? resp.data : [];
+      if (data.length > 0) {
+        await this.addBulkMobile(data);
+        console.log('Data synced from backend: stockDistributorBatch');
+        return this.getFromBackEnd(offset + 100);
+      }
+    } catch (error) {
+      console.error('Error syncing data from backend:', error);
+      console.log(error);
     }
   },
   //mobile
-  addBulkMobile(params: string) {
+  addBulkMobile(params: any) {
+    const payload = Array.isArray(params)
+      ? params.map((entry: any) => clone(entry))
+      : [clone(params)];
     return stockDistributorBatchDexie
-      .bulkAdd(params)
+      .bulkPut(payload)
       .then(() => {
-        stockDistributorBatch.save(JSON.parse(params));
+        if (isMobile.value) {
+          upsertStockDistributorBatchCache(payload);
+        } else {
+          stockDistributorBatch.save(payload);
+        }
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
 
   // Local Storage Pinia
   deleteAllFromStorage() {
+    if (isMobile.value) {
+      stockDistributorBatchMobileCache = [];
+      return stockDistributorBatchDexie.clear().catch((error: any) => {
+        console.log(error);
+        throw error;
+      });
+    }
     stockDistributorBatch.flush();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshStockDistributorBatchMobileCache();
   },
 };

@@ -14,6 +14,59 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let ramScreeningMobileCache: any[] = [];
+
+const setRamScreeningMobileCache = (rows: any[]) => {
+  ramScreeningMobileCache = rows.map((row) => clone(row));
+};
+
+const getRamScreeningMobileCache = () =>
+  ramScreeningMobileCache.map((row) => clone(row));
+
+const upsertRamScreeningCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = ramScreeningMobileCache.findIndex(
+      (detail) => detail.id === payload.id
+    );
+    if (index >= 0) {
+      ramScreeningMobileCache.splice(index, 1, payload);
+    } else {
+      ramScreeningMobileCache.push(payload);
+    }
+  });
+};
+
+const removeRamScreeningFromCache = (id: string) => {
+  ramScreeningMobileCache = ramScreeningMobileCache.filter(
+    (entry) => entry.id !== id
+  );
+};
+
+const refreshRamScreeningMobileCache = async () => {
+  const rows = await rAMScreeningDexie.toArray();
+  setRamScreeningMobileCache(rows);
+  return getRamScreeningMobileCache();
+};
+
 export default {
   post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -83,24 +136,37 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
-    return rAMScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        rAMScreening.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return rAMScreeningDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertRamScreeningCache(payload);
+        return payload;
+      }
+      rAMScreening.save(payload);
+      return payload;
+    });
   },
   putMobile(params: string) {
-    return rAMScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        rAMScreening.save(JSON.parse(JSON.stringify(params)));
-      });
+    const payload = clone(toPlainObject(params));
+    return rAMScreeningDexie.put(payload).then(() => {
+      if (isMobile.value) {
+        upsertRamScreeningCache(payload);
+        return payload;
+      }
+      rAMScreening.save(payload);
+      return payload;
+    });
   },
   getMobile() {
     return rAMScreeningDexie
       .toArray()
       .then((rows: any) => {
+        if (isMobile.value) {
+          setRamScreeningMobileCache(rows);
+          return getRamScreeningMobileCache();
+        }
         rAMScreening.save(rows);
+        return rows;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -111,7 +177,11 @@ export default {
     return rAMScreeningDexie
       .delete(paramsId)
       .then(() => {
-        rAMScreening.destroy(paramsId);
+        if (isMobile.value) {
+          removeRamScreeningFromCache(paramsId);
+        } else {
+          rAMScreening.destroy(paramsId);
+        }
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
@@ -131,9 +201,7 @@ export default {
     const collection = rAMScreeningDexie
       .orderBy('id')
       .reverse()
-      .filter(
-        (rAMScreening: RAMScreening) => id === rAMScreening?.visit?.id
-      );
+      .filter((rAMScreening: RAMScreening) => id === rAMScreening?.visit?.id);
     const resp = await collection.toArray();
 
     rAMScreening.save(resp);

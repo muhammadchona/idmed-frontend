@@ -13,6 +13,26 @@ const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+let dispenseModeMobileCache: any[] = [];
+
+const setDispenseModeMobileCache = (rows: any[]) => {
+  dispenseModeMobileCache = rows.map((row) => clone(row));
+};
+
+const getDispenseModeMobileCache = () =>
+  dispenseModeMobileCache.map((row) => clone(row));
+
+const refreshDispenseModeMobileCache = async () => {
+  const rows = await dispenseModeDexie.toArray();
+  setDispenseModeMobileCache(rows);
+  return getDispenseModeMobileCache();
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -102,10 +122,18 @@ export default {
     return dispenseMode.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value && !isOnline.value) {
+      return getDispenseModeMobileCache();
+    }
     return dispenseMode.all();
   },
 
   getAllFromDispenseModeType(dispenseModeType: string) {
+    if (isMobile.value && !isOnline.value) {
+      return getDispenseModeMobileCache().filter((entry) =>
+        String(entry.code || '').includes(dispenseModeType)
+      );
+    }
     return dispenseMode
       .where((dispenseMode: any) => {
         return dispenseMode.code.includes(dispenseModeType);
@@ -116,37 +144,45 @@ export default {
   // Dexie Block
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return dispenseModeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        dispenseMode.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshDispenseModeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return Promise.resolve(params);
+    }
+    const payload = clone(params);
     return dispenseModeDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        dispenseMode.save(JSON.parse(params));
-        // alertSucess('O Registo foi efectuado com sucesso');
+      .put(payload)
+      .then(async () => {
+        await refreshDispenseModeMobileCache();
+        return payload;
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
-    return dispenseModeDexie
-      .toArray()
-      .then((rows: any) => {
-        dispenseMode.save(rows);
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+    if (!isMobile.value) {
+      return Promise.resolve([]);
+    }
+    return refreshDispenseModeMobileCache().catch((error: any) => {
+      console.log(error);
+      throw error;
+    });
   },
   async localDbGetById(id: string) {
     return dispenseModeDexie
@@ -158,25 +194,35 @@ export default {
       });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
     return dispenseModeDexie
       .delete(paramsId)
-      .then(() => {
-        dispenseMode.destroy(paramsId);
+      .then(async () => {
+        dispenseModeMobileCache = dispenseModeMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    if (!isMobile.value) {
+      return Promise.resolve();
+    }
+    const payload = clone(params);
     return dispenseModeDexie
-      .bulkPut(params)
-      .then(() => {
-        dispenseMode.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshDispenseModeMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async getByIdFromDexie(id: string) {
@@ -184,5 +230,11 @@ export default {
   },
   async getAllByIDsFromDexie(ids: []) {
     return await dispenseModeDexie.where('id').anyOf(ids).toArray();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshDispenseModeMobileCache();
   },
 };

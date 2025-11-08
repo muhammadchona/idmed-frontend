@@ -13,6 +13,72 @@ const { closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+const resolveId = (value: any) => {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'object' && value !== null) {
+    return value.id ?? value.key ?? value;
+  }
+  return value;
+};
+
+let systemConfigsMobileCache: any[] = [];
+
+const setSystemConfigsMobileCache = (rows: any[]) => {
+  systemConfigsMobileCache = rows.map((row) => clone(row));
+};
+
+const getSystemConfigsMobileCache = () =>
+  systemConfigsMobileCache.map((row) => clone(row));
+
+const refreshSystemConfigsMobileCache = async () => {
+  const rows = await systemConfigsDexie.toArray();
+  setSystemConfigsMobileCache(rows);
+  return getSystemConfigsMobileCache();
+};
+
+const findConfigInCache = (predicate: (entry: any) => boolean) =>
+  getSystemConfigsMobileCache().find(predicate) ?? null;
+
+const matchesKey = (value: any, target: string) =>
+  String(value || '').trim().toUpperCase() === target;
+
+const findConfigByKeyInCache = (key: string) => {
+  const normalizedKey = String(key || '').trim().toUpperCase();
+  if (!normalizedKey) {
+    return null;
+  }
+  const cached = findConfigInCache((entry) =>
+    matchesKey(entry?.key, normalizedKey)
+  );
+  if (cached) {
+    return cached;
+  }
+  const piniaEntry =
+    systemConfigs
+      .all()
+      .find((entry) => matchesKey(entry?.key, normalizedKey)) ?? null;
+  return piniaEntry ? clone(piniaEntry) : null;
+};
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -91,56 +157,119 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    if (!isMobile.value) {
+      return systemConfigsDexie
+        .put(JSON.parse(JSON.stringify(params)))
+        .then(() => {
+          systemConfigs.save(JSON.parse(params));
+        })
+        .catch((error: any) => {
+          console.log(error);
+        });
+    }
+    const payload = clone(toPlainObject(params));
     return systemConfigsDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        systemConfigs.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshSystemConfigsMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   putMobile(params: string) {
+    if (!isMobile.value) {
+      return systemConfigsDexie
+        .put(JSON.parse(JSON.stringify(params)))
+        .then(() => {
+          systemConfigs.save(JSON.parse(params));
+        })
+        .catch((error: any) => {
+          console.log(error);
+        });
+    }
+    const payload = clone(toPlainObject(params));
     return systemConfigsDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        systemConfigs.save(JSON.parse(params));
+      .put(payload)
+      .then(async () => {
+        await refreshSystemConfigsMobileCache();
+        return payload;
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   getMobile() {
+    if (!isMobile.value) {
+      return systemConfigsDexie
+        .toArray()
+        .then((rows: any) => {
+          systemConfigs.save(rows);
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
     return systemConfigsDexie
       .toArray()
       .then((rows: any) => {
-        systemConfigs.save(rows);
+        setSystemConfigsMobileCache(rows);
+        return getSystemConfigsMobileCache();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   deleteMobile(paramsId: string) {
+    if (!isMobile.value) {
+      return systemConfigsDexie
+        .delete(paramsId)
+        .then(() => {
+          systemConfigs.destroy(paramsId);
+          alertSucess('O Registo foi removido com sucesso');
+        })
+        .catch((error: any) => {
+          // alertError('Aconteceu um erro inesperado nesta operação.');
+          console.log(error);
+        });
+    }
+    const key = resolveId(paramsId);
     return systemConfigsDexie
-      .delete(paramsId)
+      .delete(key)
       .then(() => {
-        systemConfigs.destroy(paramsId);
+        systemConfigsMobileCache = systemConfigsMobileCache.filter((entry) => {
+          const entryKey = resolveId(entry);
+          return entryKey !== key;
+        });
         alertSucess('O Registo foi removido com sucesso');
+        return key;
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
+        throw error;
       });
   },
   addBulkMobile(params: any) {
+    const payload = toPlainObject(params);
     return systemConfigsDexie
-      .bulkPut(params)
-      .then(() => {
-        systemConfigs.save(params);
+      .bulkPut(payload)
+      .then(async () => {
+        if (isMobile.value) {
+          await refreshSystemConfigsMobileCache();
+        } else {
+          systemConfigs.save(payload);
+        }
       })
       .catch((error: any) => {
         console.log(error);
+        throw error;
       });
   },
   async apiFetchById(id: any) {
@@ -157,9 +286,31 @@ export default {
     return systemConfigs.getModel().$newInstance();
   },
   getAllFromStorage() {
+    if (isMobile.value) {
+      return getSystemConfigsMobileCache().sort((a, b) =>
+        String(a?.description || '').localeCompare(String(b?.description || ''))
+      );
+    }
     return systemConfigs.orderBy('description').get();
   },
   getAllFromStorageWithoutMigration() {
+    if (isMobile.value) {
+      return getSystemConfigsMobileCache()
+        .filter(
+          (entry) =>
+            ![
+              'INSTALATION_TYPE',
+              'PARAMS_MIGRATION_ENGINE',
+              'STOCK_MIGRATION_ENGINE',
+              'PATIENT_MIGRATION_ENGINE',
+            ].includes(entry.key)
+        )
+        .sort((a, b) =>
+          String(a?.description || '').localeCompare(
+            String(b?.description || '')
+          )
+        );
+    }
     return systemConfigs
       .whereNotIn('key', [
         'INSTALATION_TYPE',
@@ -172,10 +323,28 @@ export default {
   },
 
   saveInStorage(systemConfigsObj: any) {
+    if (isMobile.value) {
+      const payload = toPlainObject(systemConfigsObj);
+      const persist = Array.isArray(payload)
+        ? systemConfigsDexie.bulkPut(payload)
+        : systemConfigsDexie.put(payload);
+      return persist
+        .then(async () => {
+          await refreshSystemConfigsMobileCache();
+          return systemConfigsObj;
+        })
+        .catch((error: any) => {
+          console.log(error);
+          throw error;
+        });
+    }
     return systemConfigs.save(systemConfigsObj);
   },
 
   getActiveDataMigration() {
+    if (isMobile.value) {
+      return findConfigByKeyInCache('ACTIVATE_DATA_MIGRATION');
+    }
     return systemConfigs
       .query()
       .where('key', 'ACTIVATE_DATA_MIGRATION')
@@ -183,13 +352,36 @@ export default {
   },
 
   getInstallationType() {
+    if (isMobile.value) {
+      return findConfigByKeyInCache('INSTALATION_TYPE');
+    }
     return systemConfigs.query().where('key', 'INSTALATION_TYPE').first();
   },
 
   getApiURL() {
+    if (isMobile.value) {
+      return findConfigByKeyInCache('API_URL');
+    }
     return systemConfigs.query().where('key', 'API_URL').first();
   },
   deleteAllFromStorage() {
+    if (isMobile.value) {
+      return systemConfigsDexie
+        .clear()
+        .then(() => {
+          systemConfigsMobileCache = [];
+        })
+        .catch((error: any) => {
+          console.log(error);
+          throw error;
+        });
+    }
     systemConfigs.flush();
+  },
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshSystemConfigsMobileCache();
   },
 };

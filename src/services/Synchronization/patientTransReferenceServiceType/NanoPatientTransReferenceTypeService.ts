@@ -33,8 +33,8 @@ export default {
       : '';
   },
 
-  async getFromDexieToPinia() {
-    console.log('Data synced from Dexie To Pinia PatientTransReferenceType');
-    PatientTransReferenceTypeService.getMobile();
+  async warmMobileCache() {
+    console.log('Refreshing PatientTransReferenceType cache from Dexie');
+    return PatientTransReferenceTypeService.refreshMobileCache();
   },
 };
