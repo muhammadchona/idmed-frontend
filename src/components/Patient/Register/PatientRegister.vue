@@ -693,7 +693,7 @@ const doSave = async () => {
     identifier.origin = currClinic.value.id;
   });
 
-  if (provincialPatient.value) {
+  if (provincialPatient?.value) {
     patientServiceIdentifierService.deletePatientServiceIdentifierPiniaByPatientId(
       patientReg.value.id
     );
