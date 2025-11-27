@@ -5,6 +5,7 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import db from '../../../stores/dexie';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
+import StockService from '../stockService/StockService';
 
 const { closeLoading, showloading } = useLoading();
 
@@ -144,8 +145,11 @@ export default {
   },
 
   async getStockEntrancesByIds(entranceIds: any) {
-    const rows = await stockEntranceDexie.where('id').anyOf(entranceIds).toArray();
-    if (isMobile.value) {
+    const rows = await stockEntranceDexie
+      .where('id')
+      .anyOf(entranceIds)
+      .toArray();
+    if (isMobile.value && !isOnline.value) {
       upsertStockEntranceCache(rows);
       return rows.map((entry: any) => clone(entry));
     }
@@ -159,9 +163,7 @@ export default {
     return stockEntranceDexie
       .bulkPut(stocksEntranceFromPinia)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockEntranceCache(stocksEntranceFromPinia);
-        }
+        upsertStockEntranceCache(stocksEntranceFromPinia);
       })
       .catch((error: any) => {
         console.log(error);
@@ -173,16 +175,7 @@ export default {
     return api()
       .post('stockEntrance', params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockEntrance.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockEntranceDexie
-            .put(payload)
-            .then(() => upsertStockEntranceCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockEntrance.save(resp.data);
         return resp.data;
       });
   },
@@ -192,15 +185,7 @@ export default {
       return api()
         .get('stockEntrance?offset=' + offset + '&max=100')
         .then((resp) => {
-          if (!isMobile.value) {
-            stockEntrance.save(resp.data);
-          }
-          if (isMobile.value) {
-            stockEntranceDexie
-              .bulkPut(resp.data.map((entry: any) => clone(entry)))
-              .then(() => upsertStockEntranceCache(resp.data))
-              .catch((error) => console.log(error));
-          }
+          stockEntrance.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -215,16 +200,7 @@ export default {
     return api()
       .patch('stockEntrance/' + id, params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockEntrance.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockEntranceDexie
-            .put(payload)
-            .then(() => upsertStockEntranceCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockEntrance.save(resp.data);
       });
   },
 
@@ -232,30 +208,14 @@ export default {
     return api()
       .delete('stockEntrance/' + id)
       .then(() => {
-        if (!isMobile.value) {
-          stockEntrance.destroy(id);
-        }
-        if (isMobile.value) {
-          stockEntranceDexie
-            .delete(id)
-            .then(() => removeStockEntranceFromCache(id))
-            .catch((error) => console.log(error));
-        }
+        stockEntrance.destroy(id);
       });
   },
   apiFetchByIdWeb(id: string) {
     return api()
       .get('/stockEntrance/' + id)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockEntrance.save(resp.data);
-        }
-        if (isMobile.value) {
-          stockEntranceDexie
-            .bulkPut(resp.data.map((entry: any) => clone(entry)))
-            .then(() => upsertStockEntranceCache(resp.data))
-            .catch((error) => console.log(error));
-        }
+        stockEntrance.save(resp.data);
         if (resp.data.length > 0) {
           setTimeout(this.get, 2);
         }
@@ -275,15 +235,7 @@ export default {
         )
         .then((resp) => {
           if (resp.data.length > 0) {
-            if (!isMobile.value) {
-              stockEntrance.save(resp.data);
-            }
-            if (isMobile.value) {
-              stockEntranceDexie
-                .bulkPut(resp.data.map((entry: any) => clone(entry)))
-                .then(() => upsertStockEntranceCache(resp.data))
-                .catch((error) => console.log(error));
-            }
+            stockEntrance.save(resp.data);
             offset = offset + 100;
             this.apiGetAllByClinicIdWeb(clinicId, offset, max);
           } else {
@@ -298,11 +250,7 @@ export default {
   addMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return stockEntranceDexie.put(payload).then(() => {
-      if (isMobile.value) {
-        upsertStockEntranceCache(payload);
-        return payload;
-      }
-      stockEntrance.save(payload);
+      upsertStockEntranceCache(payload);
       return payload;
     });
   },
@@ -310,11 +258,7 @@ export default {
   async putMobile(params: any) {
     const payload = clone(toPlainObject(params));
     return stockEntranceDexie.put(payload).then(() => {
-      if (isMobile.value) {
-        upsertStockEntranceCache(payload);
-        return payload;
-      }
-      stockEntrance.save(payload);
+      upsertStockEntranceCache(payload);
       return payload;
     });
   },
@@ -322,11 +266,8 @@ export default {
   async getMobile() {
     try {
       const rows = await stockEntranceDexie.toArray();
-      if (isMobile.value) {
-        setStockEntranceMobileCache(rows);
-        return getStockEntranceMobileCache();
-      }
-      stockEntrance.save(rows);
+      setStockEntranceMobileCache(rows);
+      return getStockEntranceMobileCache();
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -339,12 +280,8 @@ export default {
       .equalsIgnoreCase(stockEntrance.id)
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
-          upsertStockEntranceCache(rows);
-          return rows.map((entry: any) => clone(entry));
-        }
-        stockEntrance.save(rows);
-        return rows;
+        upsertStockEntranceCache(rows);
+        return rows.map((entry: any) => clone(entry));
       });
   },
 
@@ -353,12 +290,8 @@ export default {
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
-    if (isMobile.value) {
-      upsertStockEntranceCache(rows);
-      return rows.map((entry: any) => clone(entry));
-    }
-    stockEntrance.save(rows);
-    return rows;
+    upsertStockEntranceCache(rows);
+    return rows.map((entry: any) => clone(entry));
   },
 
   async getCountStockEntranceFromDexie() {
@@ -368,11 +301,7 @@ export default {
   async deleteMobile(paramsId: any) {
     try {
       await stockEntranceDexie.delete(paramsId);
-      if (isMobile.value) {
-        removeStockEntranceFromCache(paramsId);
-      } else {
-        stockEntrance.destroy(paramsId);
-      }
+      removeStockEntranceFromCache(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -386,12 +315,8 @@ export default {
       .equalsIgnoreCase(id)
       .first()
       .then((rows: any) => {
-        if (isMobile.value) {
-          upsertStockEntranceCache(rows);
-          return clone(rows);
-        }
-        stockEntrance.save(rows);
-        return rows;
+        upsertStockEntranceCache(rows);
+        return clone(rows);
       });
   },
 
@@ -400,12 +325,8 @@ export default {
       (stockEntrance: StockEntrance) => id === stockEntrance?.clinic?.id
     );
     return await collection.toArray().then((rows: any) => {
-      if (isMobile.value) {
-        upsertStockEntranceCache(rows);
-        return rows.map((entry: any) => clone(entry));
-      }
-      stockEntrance.save(rows);
-      return rows;
+      upsertStockEntranceCache(rows);
+      return rows.map((entry: any) => clone(entry));
     });
   },
 
@@ -415,8 +336,17 @@ export default {
   },
   // ****** PNIA
   getStockEntranceById(id: string) {
-    if (isMobile.value) {
-      return getStockEntranceMobileCache().find((entry) => entry.id === id) ?? null;
+    if (isMobile.value && !isOnline.value) {
+      const entrances = getStockEntranceMobileCache();
+      const entrance = entrances.find((e) => e.id === id);
+
+      if (!entrance) return null;
+
+      entrance.stocks = StockService.getStockMobileCache().filter(
+        (s) => s.entrance_id === id
+      );
+
+      return entrance;
     }
     return stockEntrance
       .query()
@@ -429,7 +359,7 @@ export default {
     return stockEntrance.query().where('orderNumber', number).first();
   },
   getStockEntrances() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockEntranceMobileCache().sort((a, b) =>
         String(b.dateReceived || '').localeCompare(String(a.dateReceived || ''))
       );
@@ -443,14 +373,14 @@ export default {
   },
 
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockEntranceMobileCache();
     }
     return stockEntrance.all();
   },
 
   deleteAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       stockEntranceMobileCache = [];
       return stockEntranceDexie.clear();
     }

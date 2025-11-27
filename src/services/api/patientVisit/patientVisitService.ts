@@ -157,7 +157,7 @@ export default {
         if (!isMobile.value) {
           patientVisit.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           patientVisitDexie
             .put(payload)
@@ -174,7 +174,7 @@ export default {
           if (!isMobile.value) {
             patientVisit.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -200,7 +200,7 @@ export default {
         if (!isMobile.value) {
           patientVisit.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           patientVisitDexie
             .put(payload)
@@ -214,7 +214,7 @@ export default {
       .delete('patientVisit/' + uuid)
       .then(() => {
         patientVisit.destroy(uuid);
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           patientVisitDexie
             .delete(uuid)
             .then(() => removePatientVisitFromCache(uuid))
@@ -224,10 +224,11 @@ export default {
   },
   // Mobile
   addMobile(params: any) {
+    console.log(params);
     const payload = clone(toPlainObject(params));
     console.log(payload);
     payload.syncStatus = 'R';
-    return patientVisitDexie.put(payload).then(() => {
+    return patientVisitDexie.put(payload).then(async () => {
       payload.patientVisitDetails.forEach((pvd: any) => {
         pvd.pack.packagedDrugs.forEach((pcd: any) => {
           pcd.packagedDrugStocks.forEach((pcs: any) => {
@@ -280,11 +281,11 @@ export default {
         ramScreening.patient_visit_id = params.id;
         rAMScreeningService.addMobile(ramScreening);
       });
-      if (isMobile.value) {
-        upsertPatientVisitCache(payload);
-      } else {
-        patientVisit.save(payload);
-      }
+
+      upsertPatientVisitCache(payload);
+      showloading();
+      await patientService.getPatientGraphFromDexie(payload.patient_id);
+      closeLoading();
       return payload;
     });
   },
@@ -306,7 +307,7 @@ export default {
       payload.ramScreenings.forEach((ramScreening: any) => {
         rAMScreeningService.addMobile(ramScreening);
       });
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPatientVisitCache(payload);
       } else {
         patientVisit.save(payload);
@@ -316,7 +317,7 @@ export default {
   },
   async getMobile() {
     const rows = await patientVisitDexie.toArray();
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       setPatientVisitMobileCache(rows);
       return getPatientVisitMobileCache();
     }
@@ -326,7 +327,7 @@ export default {
 
   async getPatientVisitMobile() {
     const rows = await patientVisitDexie.toArray();
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       setPatientVisitMobileCache(rows);
     }
     const records = rows.filter(
@@ -342,7 +343,7 @@ export default {
   async deleteMobile(paramsId: string) {
     try {
       await patientVisitDexie.delete(paramsId);
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         removePatientVisitFromCache(paramsId);
       } else {
         patientVisit.destroy(paramsId);
@@ -358,7 +359,7 @@ export default {
     return patientVisitDexie
       .bulkPut(patientVisitFromPinia)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPatientVisitCache(patientVisitFromPinia);
         } else {
           patientVisit.save(patientVisitFromPinia);
@@ -399,7 +400,7 @@ export default {
       if (!isMobile.value) {
         patientVisit.save(resp.data);
       }
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         const payload = Array.isArray(resp.data)
           ? resp.data.map((entry: any) => clone(entry))
           : [clone(resp.data)];
@@ -418,7 +419,7 @@ export default {
         (patientVisit: PatientVisit) => patientId === patientVisit?.patient?.id
       );
       const episodes = await collection.toArray().then((visits) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPatientVisitCache(visits);
         } else {
           patientVisit.save(visits);
@@ -493,8 +494,8 @@ export default {
       patientVisit?.patient?.id ? patientVisit.patient.id : ''
     );
 
-    const clinicIds = patientVisits.map((patientVisit: any) =>
-      patientVisit?.clinic_id ? patientVisit.clinic_id : ''
+    const clinicIds = patientVisits.map(
+      (patientVisit: any) => patientVisit?.clinic?.id ?? patientVisit.clinic_id
     );
 
     const [
@@ -534,29 +535,37 @@ export default {
       );
       patientVisit.patientVisitDetails = patientVisitDetails.filter(
         (patientVisitDetail: any) =>
-          patientVisitDetail.patientVisit.id === patientVisit.id
+          patientVisitDetail?.patientVisit?.id === patientVisit.id ||
+          patientVisitDetail?.patient_visit_id === patientVisit.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening.patientVisit.id === patientVisit.id
+          vitalSignsScreening?.patientVisit?.id === patientVisit.id ||
+          vitalSignsScreening?.patient_visit_id === patientVisit.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening.patientVisit.id === patientVisit.id
+          pregnancyScreening?.patientVisit?.id === patientVisit.id ||
+          pregnancyScreening?.patient_visit_id === patientVisit.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
-        (ramScreening: any) => ramScreening.patientVisit.id === patientVisit.id
+        (ramScreening: any) =>
+          ramScreening?.patientVisit?.id === patientVisit.id ||
+          ramScreening?.patient_visit_id === patientVisit.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening.patientVisit.id === patientVisit.id
+        (tbScreening: any) =>
+          tbScreening?.patientVisit?.id === patientVisit.id ||
+          tbScreening?.patient_visit_id === patientVisit.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening.patientVisit.id === patientVisit.id
+          adherenceScreening?.patientVisit?.id === patientVisit.id ||
+          adherenceScreening?.patient_visit_id === patientVisit.id
       );
     });
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPatientVisitCache(patientVisits);
       return patientVisits.map((entry: any) => clone(entry));
     }
@@ -693,7 +702,7 @@ export default {
     return patientVisit.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPatientVisitMobileCache();
     }
     return patientVisit
@@ -710,7 +719,7 @@ export default {
     patientVisit.flush();
   },
   saveInStorage(patientVisitParam: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const payload = clone(patientVisitParam);
       return patientVisitDexie
         .put(payload)
@@ -796,9 +805,9 @@ export default {
       .then((result: any) => {
         console.log(result);
         result.patientVisitDetails.forEach((pvd: any) => {
-          if (pvd.prescription !== undefined)
-            Prescription.insertOrUpdate({ data: pvd.prescription });
-          if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack });
+          // if (pvd.prescription !== undefined)
+          //  prescriptionService.insertOrUpdate({ data: pvd.prescription });
+          // if (pvd.pack !== undefined) Pack.insertOrUpdate({ data: pvd.pack });
         });
       });
   },
@@ -897,7 +906,7 @@ export default {
             if (!isMobile.value) {
               patientVisit.save(resp.data);
             }
-            if (isMobile.value) {
+            if (isMobile.value && !isOnline.value) {
               const payload = Array.isArray(resp.data)
                 ? resp.data.map((entry: any) => clone(entry))
                 : [clone(resp.data)];
@@ -946,7 +955,7 @@ export default {
           if (!isMobile.value) {
             patientVisit.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -1076,11 +1085,16 @@ export default {
   setPackagedDrugStockNullToSend(patientVis: any) {
     patientVis.patientVisitDetails.forEach((patientVisitDetail: any) => {
       patientVisitDetail.clinic = {};
-      patientVisitDetail.clinic.id = patientVis.clinic_id;
+      patientVisitDetail.clinic.id = patientVis.clinic_id?.trim()
+        ? patientVis.clinic_id
+        : patientVis.clinic.id;
+
       patientVisitDetail.patientVisit = {};
       patientVisitDetail.patientVisit.id = patientVis.id;
       patientVisitDetail.pack.clinic = {};
-      patientVisitDetail.pack.clinic.id = patientVis.clinic_id;
+      patientVisitDetail.pack.clinic.id = patientVis.clinic_id?.trim()
+        ? patientVis.clinic_id
+        : patientVis.clinic.id;
 
       patientVisitDetail.pack.packagedDrugs.forEach((packagedDrug: any) => {
         const drugID = packagedDrug.drug.id;
@@ -1089,7 +1103,9 @@ export default {
         packagedDrug.packagedDrugStocks = null;
       });
       patientVisitDetail.prescription.clinic = {};
-      patientVisitDetail.prescription.clinic.id = patientVis.clinic_id;
+      patientVisitDetail.prescription.clinic.id = patientVis.clinic_id?.trim()
+        ? patientVis.clinic_id
+        : patientVis.clinic.id;
 
       patientVisitDetail.prescription.prescribedDrugs.forEach(
         (prescribedDrug: any) => {
@@ -1318,9 +1334,10 @@ export default {
         (adherenceScreening: any) =>
           adherenceScreening.patientVisit.id === patientVisit.id
       );
+      console.log(patientVisit.patientVisitDetails);
       patientVisit.patientVisitDetails = patientVisitDetailList.filter(
         (patientVisitDetail: any) =>
-          patientVisitDetail.patientVisit.id === patientVisit.id
+          patientVisitDetail.patient_visit_id === patientVisit.id
       );
     });
 
@@ -1402,6 +1419,10 @@ export default {
   },
 
   async getAllByIDsNoRelationsFromDexie(ids: []) {
+    console.log(ids);
+    console.log(
+      await patientVisitDexie.where('id').anyOfIgnoreCase(ids).toArray()
+    );
     return await patientVisitDexie.where('id').anyOfIgnoreCase(ids).toArray();
   },
   deleteAllFromDexie() {

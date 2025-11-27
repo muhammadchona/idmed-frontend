@@ -102,7 +102,7 @@ export default {
         if (!isMobile.value) {
           prescribedDrug.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           prescribedDrugDexie
             .put(payload)
@@ -119,7 +119,7 @@ export default {
           if (!isMobile.value) {
             prescribedDrug.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -145,7 +145,7 @@ export default {
         if (!isMobile.value) {
           prescribedDrug.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           prescribedDrugDexie
             .put(payload)
@@ -159,7 +159,7 @@ export default {
       .delete('prescribedDrug/' + uuid)
       .then(() => {
         prescribedDrug.destroy(uuid);
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           prescribedDrugDexie
             .delete(uuid)
             .then(() => removePrescribedDrugFromCache(uuid))
@@ -171,7 +171,7 @@ export default {
   addMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return prescribedDrugDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescribedDrugCache(payload);
         return payload;
       }
@@ -182,7 +182,7 @@ export default {
   putMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return prescribedDrugDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescribedDrugCache(payload);
         return payload;
       }
@@ -194,7 +194,7 @@ export default {
     return prescribedDrugDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           setPrescribedDrugMobileCache(rows);
           return getPrescribedDrugMobileCache();
         }
@@ -211,7 +211,7 @@ export default {
     return prescribedDrugDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           removePrescribedDrugFromCache(paramsId);
         } else {
           prescribedDrug.destroy(paramsId);
@@ -230,7 +230,7 @@ export default {
     return prescribedDrugDexie
       .bulkPut(prescribedDrugFromPinia)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPrescribedDrugCache(prescribedDrugFromPinia);
         } else {
           prescribedDrug.save(prescribedDrugFromPinia);
@@ -247,7 +247,7 @@ export default {
         prescribedDrug?.prescription.id === prescriptionId
     );
     return await collection.toArray().then((prescribedDrugs: any) => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescribedDrugCache(prescribedDrugs);
       } else {
         prescribedDrug.save(prescribedDrugs);
@@ -260,7 +260,7 @@ export default {
       .get('/prescribedDrug/prescription/' + prescriptionId)
       .then((resp) => {
         prescribedDrug.save(resp.data);
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = Array.isArray(resp.data)
             ? resp.data.map((entry: any) => clone(entry))
             : [clone(resp.data)];
@@ -280,13 +280,13 @@ export default {
     return prescribedDrug.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescribedDrugMobileCache();
     }
     return prescribedDrug.all();
   },
   getAllFromStorageForDexie() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescribedDrugMobileCache();
     }
     return prescribedDrug.makeHidden(['prescription', 'drug']).all();
@@ -295,7 +295,7 @@ export default {
     prescribedDrug.flush();
   },
   getLastByPrescriprionId(prescriptionId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescribedDrugMobileCache().find(
         (entry) => entry.prescription_id === prescriptionId
       );
@@ -305,12 +305,13 @@ export default {
   async getAllByPrescriprionIdListFromDexie(prescriptionIds: string[]) {
     const collection = prescribedDrugDexie.filter(
       (prescribedDrug: PrescribedDrug) =>
+        prescriptionIds.includes(prescribedDrug.prescription_id) ||
         prescriptionIds.includes(prescribedDrug?.prescription?.id)
     );
     const prescribedDrugs = await collection
       .toArray()
       .then((prescribedDrugs: any) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPrescribedDrugCache(prescribedDrugs);
         } else {
           prescribedDrug.save(prescribedDrugs);

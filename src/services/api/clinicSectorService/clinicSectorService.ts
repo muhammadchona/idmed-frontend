@@ -195,14 +195,14 @@ export default {
   /*Pinia Methods*/
   getAllClinicSectors() {
     // return clinicService.getAllClinicSectors()
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getClinicSectorMobileCache();
     }
     return clinicSector.withAll().get();
   },
 
   getClinicSectorsById(clinicSectorId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getClinicSectorMobileCache().find(
         (item) => item.id === clinicSectorId
       );
@@ -211,7 +211,7 @@ export default {
   },
 
   getClinicSectorsByClinicId(clinicId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getClinicSectorMobileCache().filter(
         (item) => item.parentClinic_id === clinicId
       );
@@ -220,7 +220,7 @@ export default {
   },
 
   getClinicSectorsByFacilityTypeId(clinicId: string, facilityTypeId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getClinicSectorMobileCache().filter(
         (item) =>
           item.parentClinic_id === clinicId &&
@@ -235,7 +235,7 @@ export default {
   },
 
   getClinicSectorsByIdAndFacilityTypeId(id: string, facilityTypeId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getClinicSectorMobileCache().filter(
         (item) => item.id === id && item.facilityTypeId === facilityTypeId
       );
@@ -248,7 +248,7 @@ export default {
   },
 
   getActivebyClinicId(clinicId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getClinicSectorMobileCache().filter(
         (item) => item.active && item.parentClinic_id === clinicId
       );
@@ -262,7 +262,7 @@ export default {
       .get();
   },
   getActiveUSClinicSectorByClinic(clinicId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getClinicSectorMobileCache()
         .filter((sector) => {
           const facilityTypeCode =
@@ -271,9 +271,7 @@ export default {
             facilityTypeCode === 'PARAGEM_UNICA' ||
             facilityTypeCode === 'NORMAL';
           return (
-            sector.active &&
-            sector.parentClinic_id === clinicId &&
-            isAllowed
+            sector.active && sector.parentClinic_id === clinicId && isAllowed
           );
         })
         .sort((a, b) => String(a.code || '').localeCompare(b.code || ''));
@@ -291,14 +289,18 @@ export default {
       .get();
   },
   getClinicSectorByCode(code: string) {
-    if (isMobile.value) {
-      return getClinicSectorMobileCache().find((sector) => sector.code === code);
+    if (isMobile.value && !isOnline.value) {
+      return getClinicSectorMobileCache().find(
+        (sector) => sector.code === code
+      );
     }
     return clinicSector.query().withAllRecursive(1).where('code', code).first();
   },
   getClinicSectorSlimByCode(code: string) {
-    if (isMobile.value) {
-      return getClinicSectorMobileCache().find((sector) => sector.code === code);
+    if (isMobile.value && !isOnline.value) {
+      return getClinicSectorMobileCache().find(
+        (sector) => sector.code === code
+      );
     }
     return clinicSector.query().where('code', code).first();
   },
@@ -307,7 +309,7 @@ export default {
     // const dexiDatabase1 = ClinicSector.entity;
     try {
       const clinicSectors = await clinicSectorDexie.toArray();
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         setClinicSectorMobileCache(clinicSectors);
       } else {
         clinicSector.save(clinicSectors);

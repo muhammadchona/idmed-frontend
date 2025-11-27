@@ -147,15 +147,7 @@ export default {
         .get('/stock/clinic/' + clinicId + '?offset=' + offset + '&max=100')
         .then((resp) => {
           if (resp.data.length > 0) {
-            if (!isMobile.value) {
-              stock.save(resp.data);
-            }
-            if (isMobile.value) {
-              stockDexie
-                .bulkPut(resp.data.map((entry: any) => clone(entry)))
-                .then(() => upsertStockCache(resp.data))
-                .catch((error) => console.log(error));
-            }
+            stock.save(resp.data);
             offset = offset + 100;
             this.apiGetAllByClinicIdWeb(clinicId, offset);
           } else {
@@ -167,7 +159,7 @@ export default {
 
   // PINIA
   getStockByDrug(drugId: string, clinicId: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const filtered = getStockMobileCache().filter((entry) => {
         const drugMatch =
           String(entry.drug_id) === String(drugId) ||
@@ -187,25 +179,6 @@ export default {
 
         return drugMatch && clinicMatch;
       });
-
-      console.log(getStockMobileCache());
-      console.log(
-        getStockMobileCache()
-          .filter(
-            (entry) =>
-              (entry.drug_id === drugId || entry.drug?.id === drugId) &&
-              (entry.clinic_id === clinicId || entry.clinic?.id === clinicId)
-          )
-          .sort((a, b) => {
-            const dateCompare = String(b.expireDate || '').localeCompare(
-              String(a.expireDate || '')
-            );
-            if (dateCompare !== 0) {
-              return dateCompare;
-            }
-            return (b.stockMoviment || 0) - (a.stockMoviment || 0);
-          })
-      );
       return getStockMobileCache()
         .filter(
           (entry) =>
@@ -231,7 +204,7 @@ export default {
   },
 
   getValidStockWithDrug() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockMobileCache()
         .filter((entry) =>
           moment(entry.expireDate, 'YYYY-MM-DD').isAfter(
@@ -254,7 +227,7 @@ export default {
   },
 
   getValidStockByDrug(drug: any, clinicId: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockMobileCache()
         .filter((entry) => {
           const matchesDrug =
@@ -284,7 +257,7 @@ export default {
   },
 
   getValidStock() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockMobileCache()
         .filter((entry) =>
           moment(entry.expireDate, 'YYYY-MM-DD').isAfter(
@@ -310,7 +283,7 @@ export default {
   },
 
   getValidStockByDrugAndPickUpDate(drugId: string, pickupDate: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockMobileCache()
         .filter((entry) => {
           const matchesDrug =
@@ -340,7 +313,7 @@ export default {
   },
 
   getStockList(id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockMobileCache().find((entry) => entry.id === id) ?? null;
     }
     return stock
@@ -355,7 +328,7 @@ export default {
   },
 
   isBatchNumberExists(stockObj: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return (
         getStockMobileCache().filter(
           (entry) =>
@@ -373,7 +346,7 @@ export default {
     return batchNumberList.length > 0;
   },
   getStockById(id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockMobileCache().find((entry) => entry.id === id) ?? null;
     }
     return stock
@@ -390,16 +363,7 @@ export default {
     return api()
       .post('stock', params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stock.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockDexie
-            .put(payload)
-            .then(() => upsertStockCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stock.save(resp.data);
         return resp.data;
       });
   },
@@ -422,14 +386,6 @@ export default {
               }
             }
           });
-
-          if (isMobile.value) {
-            stockDexie
-              .bulkPut(stocksResp.map((entry: any) => clone(entry)))
-              .then(() => upsertStockCache(stocksResp))
-              .catch((error) => console.log(error));
-          }
-
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.get(offset, clinicId);
@@ -464,13 +420,6 @@ export default {
               stock.save(stockItem);
             }
           });
-
-          if (isMobile.value) {
-            stockDexie
-              .bulkPut(stocksResp.map((entry: any) => clone(entry)))
-              .then(() => upsertStockCache(stocksResp))
-              .catch((error) => console.log(error));
-          }
 
           offset = offset + 100;
           if (resp.data.length > 0) {
@@ -534,16 +483,7 @@ export default {
     return api()
       .patch('stock/' + id, params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stock.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockDexie
-            .put(payload)
-            .then(() => upsertStockCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stock.save(resp.data);
       });
   },
 
@@ -551,15 +491,7 @@ export default {
     return api()
       .delete('stock/' + id)
       .then(() => {
-        if (!isMobile.value) {
-          stock.destroy(id);
-        }
-        if (isMobile.value) {
-          stockDexie
-            .delete(id)
-            .then(() => removeStockFromCache(id))
-            .catch((error) => console.log(error));
-        }
+        stock.destroy(id);
       });
   },
 
@@ -568,11 +500,11 @@ export default {
   addMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return stockDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertStockCache(payload);
         return payload;
       }
-      stock.save(payload);
+      // stock.save(payload);
       return payload;
     });
   },
@@ -580,11 +512,11 @@ export default {
   async putMobile(params: any) {
     const payload = clone(toPlainObject(params));
     return stockDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertStockCache(payload);
         return payload;
       }
-      stock.save(payload);
+      //  stock.save(payload);
       return payload;
     });
   },
@@ -592,11 +524,11 @@ export default {
   async getMobile() {
     try {
       const rows = await stockDexie.toArray();
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         setStockMobileCache(rows);
         return getStockMobileCache();
       }
-      stock.save(rows);
+      // stock.save(rows);
       return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -606,7 +538,7 @@ export default {
 
   async getStocksByIds(stockIds: any) {
     const rows = await stockDexie.where('id').anyOf(stockIds).toArray();
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertStockCache(rows);
       return rows.map((entry: any) => clone(entry));
     }
@@ -619,7 +551,7 @@ export default {
       .where('id')
       .equalsIgnoreCase(stockId)
       .toArray();
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertStockCache(stocks);
       return stocks.map((entry: any) => clone(entry));
     }
@@ -629,7 +561,7 @@ export default {
   async getStocksByDrugIdMobile(drugId: any) {
     const rows = await stockDexie.toArray();
     const data = rows.filter((row) => row.drug && row.drug.id === drugId);
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertStockCache(data);
       return data.map((entry: any) => clone(entry));
     }
@@ -639,11 +571,7 @@ export default {
   async deleteMobile(id: any) {
     try {
       await stockDexie.delete(id);
-      if (isMobile.value) {
-        removeStockFromCache(id);
-      } else {
-        stock.destroy(id);
-      }
+      removeStockFromCache(id);
       // alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -654,12 +582,8 @@ export default {
   async localDbGetAll() {
     try {
       const rows = await stockDexie.toArray();
-      if (isMobile.value) {
-        setStockMobileCache(rows);
-        return getStockMobileCache();
-      }
-      stock.save(rows);
-      return rows;
+      setStockMobileCache(rows);
+      return getStockMobileCache();
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -672,12 +596,8 @@ export default {
         reportParams.clinicalService === stock?.clinicalService?.id
     );
     return await collection.toArray().then((rows: any) => {
-      if (isMobile.value) {
-        upsertStockCache(rows);
-        return rows.map((entry: any) => clone(entry));
-      }
-      stock.save(rows);
-      return rows;
+      upsertStockCache(rows);
+      return rows.map((entry: any) => clone(entry));
     });
   },
 
@@ -686,12 +606,8 @@ export default {
       .where('id')
       .equalsIgnoreCase(stock.id)
       .then((rows: any) => {
-        if (isMobile.value) {
-          upsertStockCache(rows);
-          return rows.map((entry: any) => clone(entry));
-        }
-        stock.save(rows);
-        return rows;
+        upsertStockCache(rows);
+        return rows.map((entry: any) => clone(entry));
       });
   },
 
@@ -700,12 +616,8 @@ export default {
       (stock: Stock) => stock.entrance.id === stockEntrance.id
     );
     return await collection.toArray().then((rows: any) => {
-      if (isMobile.value) {
-        upsertStockCache(rows);
-        return rows.map((entry: any) => clone(entry));
-      }
-      stock.save(rows);
-      return rows;
+      upsertStockCache(rows);
+      return rows.map((entry: any) => clone(entry));
     });
   },
 
@@ -714,12 +626,8 @@ export default {
       (stock: Stock) => stock.drug.id === drug.id
     );
     return await collection.toArray().then((rows: any) => {
-      if (isMobile.value) {
-        upsertStockCache(rows);
-        return rows.map((entry: any) => clone(entry));
-      }
-      stock.save(rows);
-      return rows;
+      upsertStockCache(rows);
+      return rows.map((entry: any) => clone(entry));
     });
   },
 
@@ -740,9 +648,7 @@ export default {
     return stockDexie
       .bulkPut(stocksFromPinia)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockCache(stocksFromPinia);
-        }
+        upsertStockCache(stocksFromPinia);
       })
       .catch((error: any) => {
         console.log(error);
@@ -750,7 +656,7 @@ export default {
   },
 
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockMobileCache();
     }
     return stock.all();
@@ -765,7 +671,9 @@ export default {
       .toArray();
 
     const stocksIds = stocks.map((stock: any) => stock.id);
-    const entranceIds = stocks.map((stock: any) => stock.entrance_id);
+    const entranceIds = stocks.map(
+      (stock: any) => stock.entrance_id ?? stock.entranceId
+    );
 
     const [
       entrances,
@@ -794,11 +702,8 @@ export default {
           referedStockAdjustment.adjusted_stock_id === stock.id
       );
     });
-    if (isMobile.value) {
-      upsertStockCache(stocks);
-      return stocks.map((entry: any) => clone(entry));
-    }
-    return stocks;
+    upsertStockCache(stocks);
+    return stocks.map((entry: any) => clone(entry));
   },
 
   async getValidStockByDrugAndPickUpDateOnline(
@@ -812,12 +717,7 @@ export default {
         .get('stock/getValidStocks/' + drugId + '/' + pickupDate)
         .then((resp) => {
           closeLoading();
-          if (!isMobile.value) {
-            stock.save(resp.data);
-          }
-          if (isMobile.value) {
-            this.addBulkMobile(resp.data);
-          }
+          stock.save(resp.data);
           return resp.data;
         });
     }
@@ -825,12 +725,6 @@ export default {
 
   // Local Storage Pinia
   deleteAllFromStorage() {
-    if (isMobile.value) {
-      stockMobileCache = [];
-      return stockDexie.clear().catch((error: any) => {
-        console.log(error);
-      });
-    }
     stock.flush();
   },
   deleteAllFromDexie() {
@@ -842,5 +736,8 @@ export default {
       return [];
     }
     return refreshStockMobileCache();
+  },
+  getStockMobileCache() {
+    return getStockMobileCache();
   },
 };

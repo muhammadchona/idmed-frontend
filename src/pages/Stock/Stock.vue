@@ -41,7 +41,7 @@ onMounted(() => {
       isExecutedDistributor.value = true;
     });
     StockService.getStockDistributorWeb(clinic.id, 0);
-  } else if (isMobile.value) {
+  } else if (isMobile.value && !isOnline.value) {
     StockEntranceService.getCountStockEntranceFromDexie().then((resp) => {
       if (resp <= 0) {
         StockDistributorBatchService.get(0);

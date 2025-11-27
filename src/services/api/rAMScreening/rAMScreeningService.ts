@@ -138,7 +138,7 @@ export default {
   addMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return rAMScreeningDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertRamScreeningCache(payload);
         return payload;
       }
@@ -149,7 +149,7 @@ export default {
   putMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return rAMScreeningDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertRamScreeningCache(payload);
         return payload;
       }
@@ -161,7 +161,7 @@ export default {
     return rAMScreeningDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           setRamScreeningMobileCache(rows);
           return getRamScreeningMobileCache();
         }
@@ -177,7 +177,7 @@ export default {
     return rAMScreeningDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           removeRamScreeningFromCache(paramsId);
         } else {
           rAMScreening.destroy(paramsId);

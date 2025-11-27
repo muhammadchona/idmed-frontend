@@ -103,7 +103,7 @@ export default {
       if (!isMobile.value) {
         packagedDrugStock.save(resp.data);
       }
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         const payload = clone(resp.data);
         packagedDrugStockDexie
           .put(payload)
@@ -124,7 +124,7 @@ export default {
           if (!isMobile.value) {
             packagedDrugStock.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             packagedDrugStockDexie
               .bulkPut(resp.data.map((entry: any) => clone(entry)))
               .then(() => upsertPackagedDrugStockCache(resp.data))
@@ -149,7 +149,7 @@ export default {
       if (!isMobile.value) {
         packagedDrugStock.save(resp.data);
       }
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         const payload = clone(resp.data);
         packagedDrugStockDexie
           .put(payload)
@@ -168,7 +168,7 @@ export default {
       if (!isMobile.value) {
         packagedDrugStock.destroy(uuid);
       }
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         packagedDrugStockDexie
           .delete(uuid)
           .then(() => removePackagedDrugStockFromCache(uuid))
@@ -186,7 +186,7 @@ export default {
     return packagedDrugStockDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPackagedDrugStockCache(payload);
           return payload;
         }
@@ -204,7 +204,7 @@ export default {
     return packagedDrugStockDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPackagedDrugStockCache(payload);
           return payload;
         }
@@ -221,7 +221,7 @@ export default {
     return packagedDrugStockDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           setPackagedDrugStockMobileCache(rows);
           return getPackagedDrugStockMobileCache();
         }
@@ -238,7 +238,7 @@ export default {
     return packagedDrugStockDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           removePackagedDrugStockFromCache(paramsId);
         } else {
           packagedDrugStock.destroy(paramsId);
@@ -258,7 +258,7 @@ export default {
     return packagedDrugStockDexie
       .bulkPut(payload)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPackagedDrugStockCache(payload);
         } else {
           packagedDrugStock.save(payload);
@@ -295,7 +295,7 @@ export default {
       );
     });
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackagedDrugStockCache(packagedDrugStocks);
       return packagedDrugStocks.map((entry: any) => clone(entry));
     }
@@ -310,13 +310,13 @@ export default {
     return packagedDrugStock.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPackagedDrugStockMobileCache();
     }
     return packagedDrugStock.all();
   },
   deleteAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       packagedDrugStockMobileCache = [];
       return packagedDrugStockDexie.clear();
     }

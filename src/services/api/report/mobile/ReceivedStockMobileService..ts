@@ -37,7 +37,9 @@ const upsertStockReceivedReportCache = (items: any | any[]) => {
   });
 };
 
-const removeStockReceivedReportFromCache = (predicate: (row: any) => boolean) => {
+const removeStockReceivedReportFromCache = (
+  predicate: (row: any) => boolean
+) => {
   stockReceivedReportMobileCache = stockReceivedReportMobileCache.filter(
     (entry) => !predicate(entry)
   );
@@ -85,10 +87,7 @@ export default {
     return stockReceivedReportDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockReceivedReportCache(payload);
-          return payload;
-        }
+        upsertStockReceivedReportCache(payload);
         return payload;
       })
       .catch((error: any) => {
@@ -110,11 +109,9 @@ export default {
       .where('reportId')
       .equalsIgnoreCase(reportId)
       .toArray();
-    if (isMobile.value) {
-      upsertStockReceivedReportCache(records);
-      return records.map((entry: any) => clone(entry));
-    }
-    return records;
+
+    upsertStockReceivedReportCache(records);
+    return records.map((entry: any) => clone(entry));
   },
 
   async refreshMobileCache() {

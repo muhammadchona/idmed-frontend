@@ -65,7 +65,7 @@ export default {
       });
   },
   async apiGetStockAlertAll(clinicId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const response = await this.localDbGetStockAlertMobile();
       stockAlert.save(response);
       return response;

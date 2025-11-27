@@ -10,11 +10,12 @@ import clinicalServiceService from '../clinicalServiceService/clinicalServiceSer
 import identifierTypeService from '../identifierTypeService/identifierTypeService';
 import episodeService from '../episode/episodeService';
 import Patient from 'src/stores/models/patient/Patient';
+import patientService from '../patientService/patientService';
 
 const patientServiceIdentifier = useRepo(PatientServiceIdentifier);
 const patientServiceIdentifierDexie = db[PatientServiceIdentifier.entity];
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 
@@ -89,21 +90,27 @@ export default {
   addMobile(params: string) {
     return patientServiceIdentifierDexie
       .add(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        patientServiceIdentifier.save(JSON.parse(JSON.stringify(params)));
+      .then(async () => {
+        // patientServiceIdentifier.save(JSON.parse(JSON.stringify(params)));
+        showloading();
+        await patientService.getPatientGraphFromDexie(params.patient_id);
+        closeLoading();
       });
   },
   putMobile(params: string) {
     return patientServiceIdentifierDexie
       .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        patientServiceIdentifier.save(JSON.parse(JSON.stringify(params)));
+      .then(async () => {
+        showloading();
+        await patientService.getPatientGraphFromDexie(params.patient_id);
+        closeLoading();
+        // patientServiceIdentifier.save(JSON.parse(JSON.stringify(params)));
       });
   },
   async getMobile() {
     try {
       const rows = await patientServiceIdentifierDexie.toArray();
-      patientServiceIdentifier.save(rows);
+      // patientServiceIdentifier.save(rows);
       return rows;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -113,7 +120,7 @@ export default {
   async deleteMobile(paramsId: string) {
     try {
       await patientServiceIdentifierDexie.delete(paramsId);
-      patientServiceIdentifier.destroy(paramsId);
+      //  patientServiceIdentifier.destroy(paramsId);
       alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -263,28 +270,53 @@ export default {
       .get();
   },
 
-  getAllIdentifierWithInicialEpisodeByPatient(patientId: string) {
-    return patientServiceIdentifier
-      .withAllRecursive(2)
-      .whereHas('episodes', (query) => {
-        query.whereHas('episodeType', (query) => {
-          query.where('code', 'INICIO');
-        });
-      })
-      .where('patient_id', patientId)
-      .get();
+  getAllIdentifierWithInicialEpisodeByPatient(patientId: string, psis: []) {
+    if (isMobile.value && !isOnline.value) {
+      const result = psis.filter(
+        (psi: any) =>
+          Array.isArray(psi?.episodes) &&
+          psi.episodes.some((ep: any) => ep?.episodeType?.code === 'INICIO')
+      );
+      return result;
+    } else {
+      return patientServiceIdentifier
+        .withAllRecursive(2)
+        .whereHas('episodes', (query) => {
+          query.whereHas('episodeType', (query) => {
+            query.where('code', 'INICIO');
+          });
+        })
+        .where('patient_id', patientId)
+        .get();
+    }
   },
 
-  getAllIdentifierWithREferralEpisodeByPatient(patientId: string) {
-    return patientServiceIdentifier
-      .withAllRecursive(2)
-      .whereHas('episodes', (query: any) => {
-        query.whereHas('startStopReason', (query: any) => {
-          query.where('code', 'REFERIDO_PARA').orWhere('code', 'REFERIDO_DC');
-        });
-      })
-      .where('patient_id', patientId)
-      .get();
+  getAllIdentifierWithREferralEpisodeByPatient(patientId: string, psis: []) {
+    if (isMobile.value && !isOnline.value) {
+      const result = psis.filter((psi: any) => {
+        const matchesPatient = psi?.patient_id === patientId;
+
+        const hasReferralEpisode =
+          Array.isArray(psi?.episodes) &&
+          psi.episodes.some(
+            (ep: any) =>
+              ep?.startStopReason?.code === 'REFERIDO_PARA' ||
+              ep?.startStopReason?.code === 'REFERIDO_DC'
+          );
+
+        return matchesPatient && hasReferralEpisode;
+      });
+    } else {
+      return patientServiceIdentifier
+        .withAllRecursive(2)
+        .whereHas('episodes', (query: any) => {
+          query.whereHas('startStopReason', (query: any) => {
+            query.where('code', 'REFERIDO_PARA').orWhere('code', 'REFERIDO_DC');
+          });
+        })
+        .where('patient_id', patientId)
+        .get();
+    }
   },
 
   curIdentifierById(id: string) {
@@ -611,7 +643,7 @@ export default {
       );
     });
 
-    patientServiceIdentifier.save(patientServiceIdentifiers);
+    // patientServiceIdentifier.save(patientServiceIdentifiers);
 
     return patientServiceIdentifiers;
   },

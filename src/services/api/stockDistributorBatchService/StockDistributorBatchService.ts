@@ -142,16 +142,7 @@ export default {
     return api()
       .post('stockDistributorBatch', params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockDistributorBatch.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockDistributorBatchDexie
-            .put(payload)
-            .then(() => upsertStockDistributorBatchCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockDistributorBatch.save(resp.data);
         return resp.data;
       });
   },
@@ -162,15 +153,7 @@ export default {
         .get('stockDistributorBatch?offset=' + offset + '&max=100')
         .then((resp) => {
           if (resp.data.length > 0) {
-            if (!isMobile.value) {
-              stockDistributorBatch.save(resp.data);
-            }
-            if (isMobile.value) {
-              stockDistributorBatchDexie
-                .bulkPut(resp.data.map((entry: any) => clone(entry)))
-                .then(() => upsertStockDistributorBatchCache(resp.data))
-                .catch((error) => console.log(error));
-            }
+            stockDistributorBatch.save(resp.data);
             offset = offset + 100;
             this.getWeb(offset);
           } else {
@@ -199,16 +182,7 @@ export default {
     return api()
       .patch('stockDistributorBatch/' + id, params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockDistributorBatch.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockDistributorBatchDexie
-            .put(payload)
-            .then(() => upsertStockDistributorBatchCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockDistributorBatch.save(resp.data);
       });
   },
 
@@ -216,42 +190,25 @@ export default {
     return api()
       .delete('stockDistributorBatch/' + id)
       .then(() => {
-        if (!isMobile.value) {
-          stockDistributorBatch.destroy(id);
-        }
-        if (isMobile.value) {
-          stockDistributorBatchDexie
-            .delete(id)
-            .then(() => removeStockDistributorBatchFromCache(id))
-            .catch((error) => console.log(error));
-        }
+        stockDistributorBatch.destroy(id);
       });
   },
 
   //Mobile
   async addMobile(params: any) {
     const payload = clone(toPlainObject(params));
-    return stockDistributorBatchDexie
-      .put(payload)
-      .then(() => {
-        if (isMobile.value) {
-          upsertStockDistributorBatchCache(payload);
-          return payload;
-        }
-        stockDistributorBatch.save(payload);
-        return payload;
-      });
+    return stockDistributorBatchDexie.put(payload).then(async () => {
+      upsertStockDistributorBatchCache(payload);
+      await getStockDistributorBatchMobileCache();
+      return payload;
+    });
   },
 
   async getMobile() {
     try {
       const rows = await stockDistributorBatchDexie.toArray();
-      if (isMobile.value) {
-        setStockDistributorBatchMobileCache(rows);
-        return getStockDistributorBatchMobileCache();
-      }
-      stockDistributorBatch.save(rows);
-      return rows;
+      setStockDistributorBatchMobileCache(rows);
+      return getStockDistributorBatchMobileCache();
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -285,11 +242,7 @@ export default {
     return stockDistributorBatchDexie
       .bulkPut(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockDistributorBatchCache(payload);
-        } else {
-          stockDistributorBatch.save(payload);
-        }
+        upsertStockDistributorBatchCache(payload);
       })
       .catch((error: any) => {
         console.log(error);
@@ -299,7 +252,7 @@ export default {
 
   // Local Storage Pinia
   deleteAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       stockDistributorBatchMobileCache = [];
       return stockDistributorBatchDexie.clear().catch((error: any) => {
         console.log(error);

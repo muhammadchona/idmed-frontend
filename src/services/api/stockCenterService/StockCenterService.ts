@@ -150,11 +150,7 @@ export default {
     return stockCenterDexie
       .bulkPut(payload)
       .then(async () => {
-        if (isMobile.value) {
-          await refreshStockCenterMobileCache();
-        } else {
-          stockCenter.save(payload);
-        }
+        await refreshStockCenterMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
@@ -168,15 +164,13 @@ export default {
   },
 
   getStockCenter() {
-    if (isMobile.value) {
-      return (
-        findStockCenterInCache((entry) => entry.prefered === true) ?? null
-      );
+    if (isMobile.value && !isOnline.value) {
+      return findStockCenterInCache((entry) => entry.prefered === true) ?? null;
     }
     return stockCenter.withAllRecursive(3).where('prefered', true).first();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockCenterMobileCache();
     }
     return stockCenter.all();

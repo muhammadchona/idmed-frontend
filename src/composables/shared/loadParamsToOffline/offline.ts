@@ -80,87 +80,69 @@ import StockDistributorService from 'src/services/api/stockDistributorService/St
 import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
+import NanoClinicalServiceAttrTypeService from 'src/services/Synchronization/clinicalServiceAttrTypeService/NanoClinicalServiceAttrTypeService';
+import NanoclinicSectorTypeService from 'src/services/Synchronization/clinicSectorTypeService/NanoclinicSectorTypeService';
 // import { useLoading } from '../loading/loading';
 
 // const { closeLoading, showloading } = useLoading();
 
 export function useOffline() {
   async function loadClinicsDataFromBackEndToPinia() {
-    await NanoclinicService.getFromBackEndToPinia(0);
+    await NanoclinicService.getFromBackEnd(0);
     await NanosystemConfigsService.getFromBackEndToPinia(0);
     await NanomenuService.getFromBackEndToPinia(0);
     return true;
   }
 
-  async function loadParamsDataFromBackEndToPinia() {
-    await NanoclinicSectorService.getFromBackEndToPinia(0);
-    await NanodrugService.getFromBackEndToPinia(0);
-    await NanoclinicalServiceService.getFromBackEndToPinia(0);
-    await NanoclinicalServiceAttributeService.getFromBackEndToPinia(0);
-    await NanoidentifierTypeService.getFromBackEndToPinia(0);
-    await NanoepisodeTypeService.getFromBackEndToPinia(0);
-    await NanofacilityTypeService.getFromBackEndToPinia(0);
-    await NanostartStopReasonService.getFromBackEndToPinia(0);
-    await NanodurationService.getFromBackEndToPinia(0);
-    await NanotherapeuticRegimenService.getFromBackEndToPinia(0);
-    await NanotherapeuticLineService.getFromBackEndToPinia(0);
-    await NanoformService.getFromBackEndToPinia(0);
-    await NanodispenseTypeService.getFromBackEndToPinia(0);
-    await NanoInteroperabilityTypeService.getFromBackEndToPinia(0);
-    await NanoInteroperabilityAttributeService.getFromBackEndToPinia(0);
-    await NanohealthInformationSystemService.getFromBackEndToPinia(0);
-    await NanoPatientTransReferenceTypeService.getFromBackEndToPinia(0);
-    await NanospetialPrescriptionMotiveService.getFromBackEndToPinia(0);
-    await NanoprovincialServerService.getFromBackEndToPinia(0);
-    await NanodoctorService.getFromBackEndToPinia(0);
-    await NanodispenseModeService.getFromBackEndToPinia(0);
-    await NanoprovinceService.getFromBackEndToPinia(0);
-    await NanodistrictService.getFromBackEndToPinia(0);
-    await NanoStockCenterService.getFromBackEndToPinia(0);
-    await NanoStockOperationTypeService.getFromBackEndToPinia(0);
-    await NanoGroupTypeService.getFromBackEndToPinia(0);
-
-    return true;
-  }
-
-  async function saveParamsFromDexieToPinia() {
-    await clinicSectorService.refreshMobileCache();
-    await drugService.refreshMobileCache();
-    await clinicalServiceService.refreshMobileCache();
-    await clinicalServiceAttributeService.refreshMobileCache();
-    await identifierTypeService.refreshMobileCache();
-    await episodeTypeService.refreshMobileCache();
-    await facilityTypeService.refreshMobileCache();
-    await startStopReasonService.refreshMobileCache();
-    await durationService.refreshMobileCache();
-    await therapeuticalRegimenService.refreshMobileCache();
-    await therapeuticLineService.refreshMobileCache();
-    await formService.refreshMobileCache();
-    await dispenseTypeService.refreshMobileCache();
-    await interoperabilityTypeService.refreshMobileCache();
-    await interoperabilityAttributeService.refreshMobileCache();
-    await healthInformationSystemService.refreshMobileCache();
-    await patientTransReferenceTypeService.refreshMobileCache();
-    await spetialPrescriptionMotiveService.refreshMobileCache();
-    await provincialServerService.refreshMobileCache();
-    await doctorService.refreshMobileCache();
-    await dispenseModeService.refreshMobileCache();
-    await provinceService.refreshMobileCache();
-    await districtService.refreshMobileCache();
-    await stockCenterService.refreshMobileCache();
-    await stockOperationTypeService.refreshMobileCache();
-    await groupTypeService.refreshMobileCache();
-    await systemConfigsService.refreshMobileCache();
-    await menuService.refreshMobileCache();
-    await clinicService.refreshMobileCache();
+  async function loadParamsFromDexieToCache() {
+    try {
+      await clinicSectorService.refreshMobileCache();
+      await episodeService.refreshMobileCache();
+      await drugService.refreshMobileCache();
+      await clinicalServiceService.refreshMobileCache();
+      await clinicalServiceAttributeService.refreshMobileCache();
+      await identifierTypeService.refreshMobileCache();
+      await episodeTypeService.refreshMobileCache();
+      await facilityTypeService.refreshMobileCache();
+      await startStopReasonService.refreshMobileCache();
+      await durationService.refreshMobileCache();
+      await therapeuticalRegimenService.refreshMobileCache();
+      await therapeuticLineService.refreshMobileCache();
+      await formService.refreshMobileCache();
+      await dispenseTypeService.refreshMobileCache();
+      await interoperabilityTypeService.refreshMobileCache();
+      await interoperabilityAttributeService.refreshMobileCache();
+      await healthInformationSystemService.refreshMobileCache();
+      await patientTransReferenceTypeService.refreshMobileCache();
+      await spetialPrescriptionMotiveService.refreshMobileCache();
+      await provincialServerService.refreshMobileCache();
+      await doctorService.refreshMobileCache();
+      await dispenseModeService.refreshMobileCache();
+      await provinceService.refreshMobileCache();
+      await districtService.refreshMobileCache();
+      await stockCenterService.refreshMobileCache();
+      await stockOperationTypeService.refreshMobileCache();
+      await groupTypeService.refreshMobileCache();
+      await systemConfigsService.refreshMobileCache();
+      await menuService.refreshMobileCache();
+      await clinicService.refreshMobileCache();
+      // await drugService.refreshDrugMobileCache();
+      console.log('Charge during saveParamsFromDexieToPinia');
+    } catch (err) {
+      console.error('Failed during saveParamsFromDexieToPinia', err);
+      throw err;
+    }
     return true;
   }
 
   async function saveParamsFromBackendToDexie() {
+    NanoclinicService.getFromBackEnd(0);
+    NanoClinicalServiceAttrTypeService.getFromBackEnd(0);
     NanoclinicSectorService.getFromBackEnd(0);
     NanodrugService.getFromBackEnd(0);
     NanoclinicalServiceService.getFromBackEnd(0);
-    NanoclinicalServiceAttributeService.getFromBackEnd(0);
+    // NanoclinicalServiceAttributeService.getFromBackEnd(0);
+    NanoClinicalServiceAttrTypeService.getFromBackEnd(0);
     NanoidentifierTypeService.getFromBackEnd(0);
     NanoepisodeTypeService.getFromBackEnd(0);
     NanofacilityTypeService.getFromBackEnd(0);
@@ -185,18 +167,16 @@ export function useOffline() {
     NanoGroupTypeService.getFromBackEnd(0);
     NanosystemConfigsService.getFromBackEnd(0);
     NanomenuService.getFromBackEnd(0);
-    NanoclinicService.getFromBackEnd(0);
+    loadParamsFromDexieToCache();
     return true;
   }
 
   async function loadSettingParamsToOffline() {
-    //  await NanoclinicSectorTypeService.getFromBackEnd(0);
     //  await NanoclinicSectorService.getFromBackEnd(0);
     //NanoclinicService.getFromBackEnd(0);
     NanoclinicSectorService.getFromBackEnd(0);
     NanodrugService.getFromBackEnd(0);
     NanoclinicalServiceService.getFromBackEnd(0);
-    NanoclinicalServiceAttributeService.getFromBackEnd(0);
     NanoidentifierTypeService.getFromBackEnd(0);
     NanoepisodeTypeService.getFromBackEnd(0);
     NanofacilityTypeService.getFromBackEnd(0);
@@ -216,6 +196,7 @@ export function useOffline() {
     NanoprovincialServerService.getFromBackEnd(0);
     NanodoctorService.getFromBackEnd(0);
     NanodispenseModeService.getFromBackEnd(0);
+    // NanoclinicSectorTypeService.getFromBackEnd(0);
     // NanogroupTypeService.getFromBackEnd(0);
     NanoprovinceService.getFromBackEnd(0);
     NanodistrictService.getFromBackEnd(0);
@@ -298,6 +279,7 @@ export function useOffline() {
     episodeService.deleteAllFromStorage();
     packagedDrugService.deleteAllFromStorage();
     packService.deleteAllFromStorage();
+    loadPatientDataToOffline;
     appointmentService.deleteAllFromStorage();
     groupMemberService.deleteAllFromStorage();
     groupService.deleteAllFromStorage();
@@ -330,8 +312,7 @@ export function useOffline() {
 
   return {
     saveParamsFromBackendToDexie,
-    saveParamsFromDexieToPinia,
-    loadParamsDataFromBackEndToPinia,
+    loadParamsFromDexieToCache,
     loadClinicsDataFromBackEndToPinia,
     loadSettingParamsToOffline,
     loadPatientDataToOffline,

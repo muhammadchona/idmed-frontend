@@ -414,14 +414,14 @@ const checkStockList = async () => {
 };
 
 onMounted(async () => {
-  checkStockList();
+  await checkStockList();
 });
 
 watch(
   () => curPack.value.weeksSupply,
   async (oldp, newp) => {
     if (oldp !== newp) {
-      checkStockList();
+      await checkStockList();
     }
   }
 );

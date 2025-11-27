@@ -178,7 +178,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { useEpisode } from 'src/composables/episode/episodeMethods';
 import episodeService from 'src/services/api/episode/episodeService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import clinicService from 'src/services/api/clinicService/clinicService';
+
 // Declaration
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
   useDateUtils();
@@ -192,6 +194,7 @@ const submitting = ref(false);
 const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
 const { isReferenceOrTransferenceEpisode } = useEpisode();
 const { isOnlyPharmacyDDDO, isOnlyComunitaryDispense } = useSystemConfig();
+const { isMobile, isOnline } = useSystemUtils();
 //Inject
 const patient = inject('patient');
 const closePrescriptionOption = inject('closePrescriptionOption');
@@ -210,13 +213,15 @@ const dispenseModes = computed(() => {
 
 const getIdentifierWithInicialEpisode = computed(() => {
   return patientServiceIdentifierService.getAllIdentifierWithInicialEpisodeByPatient(
-    patient.value.id
+    patient.value.id,
+    patient.value.identifiers
   );
 });
 
 const getIdentifierWithRefferalEpisode = computed(() => {
   return patientServiceIdentifierService.getAllIdentifierWithREferralEpisodeByPatient(
-    patient.value.id
+    patient.value.id,
+    patient.value.identifiers
   );
 });
 
@@ -250,10 +255,12 @@ const init = () => {
 
 const doValidationToDispense = () => {
   curPatientVisit.value.clinic = {};
-  curPatientVisit.value.clinic.id = patient.value.clinic_id;
+  curPatientVisit.value.clinic.id =
+    patient.value.clinic_id ?? patient.value.clinic.id;
   curPatientVisit.value.patient = {};
   curPatientVisit.value.patient.id = patient.value.id;
-
+  curPatientVisit.value.patientId = patient.value.id;
+  curPatientVisit.value.patient_id = patient.value.id;
   curPatientVisit.value.origin = currClinic.value.id;
   submitting.value = true;
   if (
@@ -268,11 +275,13 @@ const doValidationToDispense = () => {
       curPatientVisit.value.visitDate = patientVisitDetail.pack.pickupDate;
       patientVisitDetail.origin = currClinic.value.id;
       patientVisitDetail.clinic = {};
-      patientVisitDetail.clinic.id = patient.value.clinic_id;
+      patientVisitDetail.clinic.id =
+        patient.value.clinic_id ?? patient.value.clinic.id;
       patientVisitDetail.episode = {};
       patientVisitDetail.episode.id = patientVisitDetail.episode_id;
       patientVisitDetail.pack.clinic = {};
-      patientVisitDetail.pack.clinic.id = patient.value.clinic_id;
+      patientVisitDetail.pack.clinic.id =
+        patient.value.clinic_id ?? patient.value.clinic.id;
       patientVisitDetail.pack.dispenseMode = {};
       patientVisitDetail.pack.dispenseMode.id = dispenseMode.value.id;
       patientVisitDetail.pack.syncStatus = 'R';
@@ -291,7 +300,8 @@ const doValidationToDispense = () => {
         packagedDrug.origin = currClinic.value.id;
       });
       patientVisitDetail.prescription.clinic = {};
-      patientVisitDetail.prescription.clinic.id = patient.value.clinic_id;
+      patientVisitDetail.prescription.clinic.id =
+        patient.value.clinic_id ?? patient.value.clinic.id;
 
       if (patientVisitDetail.prescription.origin !== patient.value.clinic_id) {
         patientVisitDetail.prescription.origin = currClinic.value.id;
@@ -308,13 +318,14 @@ const doValidationToDispense = () => {
           }
         }
       );
+
       const checkEpisode = episodeService.getEpisodeById(
         patientVisitDetail.episode_id
       );
       const lastEpisode = episodeService.lastEpisodeByIdentifier(
-        checkEpisode.patientServiceIdentifier_id
+        checkEpisode.patientServiceIdentifier_id ??
+          checkEpisode.patientServiceIdentifierId
       );
-
       if (isReferenceOrTransferenceEpisode(lastEpisode)) {
         patientVisitDetail.pack.isreferral = true;
       }
@@ -325,9 +336,11 @@ const doValidationToDispense = () => {
         submitting.value = false;
         alertSucess('Dispensa efectuada com sucesso');
         closePrescriptionOption();
-        patient.value.identifiers.forEach((identifiers) => {
-          patientServiceIdentifierService.apiFetchById(identifiers.id);
-        });
+        if (isOnline.value) {
+          patient.value.identifiers.forEach((identifiers) => {
+            patientServiceIdentifierService.apiFetchById(identifiers.id);
+          });
+        }
       })
       .catch((error) => {
         submitting.value = false;

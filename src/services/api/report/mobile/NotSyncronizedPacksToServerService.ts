@@ -64,7 +64,7 @@ export default {
         notSyncronizedPacksToServer.dispenseMode = dispenseMode.description;
         notSyncronizedPacksToServer.clinicalService =
           clinicalService.description;
-        notSyncronizedPacksToServer.clinic = pack.clinic.clinicName;
+        //  notSyncronizedPacksToServer.clinic = pack?.clinic?.clinicName;
         notSyncronizedPacksToServer.id = uuidv4();
         this.localDbAddOrUpdate(notSyncronizedPacksToServer);
         console.log(notSyncronizedPacksToServer);

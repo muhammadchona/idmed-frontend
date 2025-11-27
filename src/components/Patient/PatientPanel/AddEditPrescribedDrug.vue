@@ -117,10 +117,11 @@ import { computed, inject, onMounted, ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import patientService from 'src/services/api/patientService/patientService';
-
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 //Declatarion
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
   useDateUtils();
+const { isMobile, isOnline } = useSystemUtils();
 const prescribedDrug = ref(new PrescribedDrug({ id: uuidv4() }));
 const showOnlyOfRegimen = ref(false);
 const amtPerTimesForPediatric = ref([
@@ -193,8 +194,13 @@ const submitForm = () => {
 };
 
 const idadePaciente = computed(() => {
-  const paciente = patientService.getById(curIdentifier.patient_id);
-  return idadeCalculator(getDDMMYYYFromJSDate(paciente.dateOfBirth));
+  let patient;
+  if (isMobile.value && !isOnline.value) {
+    patient = curIdentifier.patient;
+  } else {
+    patient = patientService.getById(curIdentifier.patient_id);
+  }
+  return idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth));
 });
 
 const getDrugs = computed(() => {
@@ -239,24 +245,23 @@ const drugs = computed(() => {
 // Method
 const filterFnDrugs = (val, update, abort) => {
   const stringOptions = getDrugs.value;
+  const decorateDrug = (drug) => {
+    if (
+      drug &&
+      !String(drug.name).includes(String(drug.form.description).substring(0, 4))
+    ) {
+      return {
+        ...JSON.parse(JSON.stringify(drug)),
+        name: `${drug.name} - (${drug.packSize} ${String(
+          drug.form.description
+        ).substring(0, 4)})`,
+      };
+    }
+    return JSON.parse(JSON.stringify(drug));
+  };
   if (val === '') {
     update(() => {
-      optionsDrugs.value = stringOptions.map((drug) => {
-        if (
-          !String(drug.name).includes(
-            String(drug.form.description).substring(0, 4)
-          )
-        ) {
-          drug.name = String(drug.name)
-            .concat(' - (')
-            .concat(drug.packSize)
-            .concat(' ')
-            .concat(String(drug.form.description).substring(0, 4))
-            .concat(')');
-        }
-
-        return drug;
-      });
+      optionsDrugs.value = stringOptions.map((drug) => decorateDrug(drug));
     });
   } else if (stringOptions.length === 0) {
     update(() => {
@@ -265,7 +270,7 @@ const filterFnDrugs = (val, update, abort) => {
   } else {
     update(() => {
       optionsDrugs.value = stringOptions
-        .map((drug) => drug)
+        .map((drug) => decorateDrug(drug))
         .filter((drug) => {
           return (
             drug && drug.name.toLowerCase().indexOf(val.toLowerCase()) !== -1

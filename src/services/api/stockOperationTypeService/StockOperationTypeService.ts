@@ -100,11 +100,7 @@ export default {
     return stockOperationDexie
       .bulkPut(payload)
       .then(async () => {
-        if (isMobile.value) {
-          await refreshStockOperationMobileCache();
-        } else {
-          stockOperationRepo.save(payload);
-        }
+        await refreshStockOperationMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
@@ -140,13 +136,13 @@ export default {
   },
 
   getStockOperatinTypeByCode(code: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findStockOperationType((entry) => entry.code === code);
     }
     return stockOperationRepo.query().where('code', code).first();
   },
   getStockOperatinTypeById(Id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findStockOperationType((entry) => entry.id === Id);
     }
     return stockOperationRepo.query().where('id', Id).first();
@@ -156,7 +152,7 @@ export default {
   },
   //Pinia
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockOperationMobileCache();
     }
     return stockOperationRepo.all();

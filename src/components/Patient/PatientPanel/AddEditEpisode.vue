@@ -443,7 +443,7 @@ const { fullName, age } = usePatient();
 const { isReferenceOrTransferenceEpisode, hasVisits } = useEpisode();
 const { remainigDurationInWeeks } = usePrescription();
 const { closeLoading, showloading } = useLoading();
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 
 const submitting = ref(false);
 const closureEpisode = ref(new Episode({ id: uuidv4() }));
@@ -902,6 +902,7 @@ const submitForm = () => {
   }
 };
 const doSave = async () => {
+  let serviceIdentifier = curIdentifier.value;
   if (isNewEpisode.value) {
     episode.value.episodeType =
       episodeTypeService.getEpisodeTypeByCode('INICIO');
@@ -918,6 +919,9 @@ const doSave = async () => {
     episode.value.patientServiceIdentifier.id = curIdentifier.value.id;
     episode.value.patientServiceIdentifier_id = curIdentifier.value.id;
     episode.value.origin = currClinic.value.id;
+    if (isMobile.value && !isOnline.value) {
+      episode.value.patientServiceIdentifier = serviceIdentifier;
+    }
   } else {
     episode.value.creationDate = new Date();
     episode.value.clinicSector_id = episode.value.clinicSector.id;

@@ -114,16 +114,7 @@ export default {
     return api()
       .post('stockDistributor', params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockDistributor.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockDistributorDexie
-            .put(payload)
-            .then(() => upsertStockDistributorCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockDistributor.save(resp.data);
         return resp.data;
       });
   },
@@ -134,15 +125,7 @@ export default {
         .get('stockDistributor?offset=' + offset + '&max=100')
         .then((resp) => {
           if (resp.data.length > 0) {
-            if (!isMobile.value) {
-              stockDistributor.save(resp.data);
-            }
-            if (isMobile.value) {
-              stockDistributorDexie
-                .bulkPut(resp.data.map((entry: any) => clone(entry)))
-                .then(() => upsertStockDistributorCache(resp.data))
-                .catch((error) => console.log(error));
-            }
+            stockDistributor.save(resp.data);
             offset = offset + 100;
             this.getWeb(offset);
           } else {
@@ -156,16 +139,7 @@ export default {
     return api()
       .patch('stockDistributor/' + id, params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockDistributor.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockDistributorDexie
-            .put(payload)
-            .then(() => upsertStockDistributorCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockDistributor.save(resp.data);
       });
   },
 
@@ -173,34 +147,22 @@ export default {
     return api()
       .delete('stockDistributor/' + id)
       .then(() => {
-        if (!isMobile.value) {
-          stockDistributor.destroy(id);
-        }
-        if (isMobile.value) {
-          stockDistributorDexie
-            .delete(id)
-            .then(() => removeStockDistributorFromCache(id))
-            .catch((error) => console.log(error));
-        }
+        stockDistributor.destroy(id);
       });
   },
   async apiFetchByIdWeb(id: string) {
-    const resp = await api().get('/stockDistributor/' + id);
-    const payload = clone(resp.data);
-    if (isMobile.value) {
-      await stockDistributorDexie.put(payload);
-      upsertStockDistributorCache(payload);
-    } else {
-      stockDistributor.save(payload);
-    }
-    if (Array.isArray(payload) && payload.length > 0) {
-      setTimeout(() => this.get(0), 2);
-    }
-    return payload;
+    return api()
+      .get('/stockDistributor/' + id)
+      .then((resp) => {
+        stockDistributor.save(resp.data);
+        if (resp.data.length > 0) {
+          setTimeout(this.get, 2);
+        }
+      });
   },
 
   async apiGetAllByClinicIdWeb(clinicId: string, offset: number, max: number) {
-    const resp = await api().get(
+    return await api().get(
       '/stockDistributor/clinic/' +
         clinicId +
         '?offset=' +
@@ -208,18 +170,6 @@ export default {
         '&max=' +
         max
     );
-    const data = Array.isArray(resp.data) ? resp.data : [];
-    if (data.length > 0) {
-      if (isMobile.value) {
-        await stockDistributorDexie.bulkPut(
-          data.map((entry: any) => clone(entry))
-        );
-        upsertStockDistributorCache(data);
-      } else {
-        stockDistributor.save(data);
-      }
-    }
-    return data;
   },
 
   //Mobile
@@ -227,16 +177,10 @@ export default {
   //Mobile
   async addMobile(params: any) {
     const payload = clone(toPlainObject(params));
-    return stockDistributorDexie
-      .put(payload)
-      .then(() => {
-        if (isMobile.value) {
-          upsertStockDistributorCache(payload);
-          return payload;
-        }
-        stockDistributor.save(payload);
-        return payload;
-      });
+    return stockDistributorDexie.put(payload).then(() => {
+      upsertStockDistributorCache(payload);
+      return payload;
+    });
   },
 
   async getFromBackEnd(offset: number) {
@@ -266,11 +210,7 @@ export default {
     return stockDistributorDexie
       .bulkPut(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockDistributorCache(payload);
-        } else {
-          stockDistributor.save(payload);
-        }
+        upsertStockDistributorCache(payload);
       })
       .catch((error: any) => {
         console.log(error);
@@ -281,12 +221,8 @@ export default {
   async getMobile() {
     try {
       const rows = await stockDistributorDexie.toArray();
-      if (isMobile.value) {
-        setStockDistributorMobileCache(rows);
-        return getStockDistributorMobileCache();
-      }
-      stockDistributor.save(rows);
-      return rows;
+      setStockDistributorMobileCache(rows);
+      return getStockDistributorMobileCache();
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
@@ -296,11 +232,7 @@ export default {
   async deleteMobile(id: any) {
     try {
       await stockDistributorDexie.delete(id);
-      if (isMobile.value) {
-        removeStockDistributorFromCache(id);
-      } else {
-        stockDistributor.destroy(id);
-      }
+      removeStockDistributorFromCache(id);
       // alertSucess('O Registo foi removido com sucesso');
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -310,16 +242,10 @@ export default {
 
   async putMobile(params: any) {
     const payload = clone(toPlainObject(params));
-    return stockDistributorDexie
-      .put(payload)
-      .then(() => {
-        if (isMobile.value) {
-          upsertStockDistributorCache(payload);
-          return payload;
-        }
-        stockDistributor.save(payload);
-        return payload;
-      });
+    return stockDistributorDexie.put(payload).then(() => {
+      upsertStockDistributorCache(payload);
+      return payload;
+    });
   },
 
   apiFetchByIdMobile(id: any) {
@@ -327,12 +253,8 @@ export default {
       .where('id')
       .equalsIgnoreCase(id)
       .then((rows: any) => {
-        if (isMobile.value) {
-          upsertStockDistributorCache(rows);
-          return rows.map((entry: any) => clone(entry));
-        }
-        stockDistributor.save(rows);
-        return rows;
+        upsertStockDistributorCache(rows);
+        return rows.map((entry: any) => clone(entry));
       });
   },
 
@@ -342,12 +264,8 @@ export default {
         clinicId === stockDistributor?.clinic?.id
     );
     return await collection.toArray().then((rows: any) => {
-      if (isMobile.value) {
-        upsertStockDistributorCache(rows);
-        return rows.map((entry: any) => clone(entry));
-      }
-      stockDistributor.save(rows);
-      return rows;
+      upsertStockDistributorCache(rows);
+      return rows.map((entry: any) => clone(entry));
     });
   },
 
@@ -357,8 +275,11 @@ export default {
   },
   // ****** PNIA
   getStockDistributorById(id: string) {
-    if (isMobile.value) {
-      return getStockDistributorMobileCache().find((entry) => entry.id === id) ?? null;
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getStockDistributorMobileCache().find((entry) => entry.id === id) ??
+        null
+      );
     }
     return stockDistributor
       .query()
@@ -369,7 +290,7 @@ export default {
   },
 
   getStockDistributorServices(clinicId: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockDistributorMobileCache()
         .filter(
           (entry) =>
@@ -391,14 +312,11 @@ export default {
   },
 
   getStockDistributorConfirmation(clinicId: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockDistributorMobileCache()
         .filter((entry) =>
           (entry.drugDistributors || []).some((dist: any) => {
-            return (
-              dist.clinic_id === clinicId ||
-              dist.clinic?.id === clinicId
-            );
+            return dist.clinic_id === clinicId || dist.clinic?.id === clinicId;
           })
         )
         .sort((a, b) =>
@@ -418,7 +336,7 @@ export default {
       .get();
   },
   deleteAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       stockDistributorMobileCache = [];
       return stockDistributorDexie.clear().catch((error: any) => {
         console.log(error);

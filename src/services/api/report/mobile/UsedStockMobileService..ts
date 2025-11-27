@@ -259,10 +259,7 @@ export default {
     return usedStockReportDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertUsedStockReportCache(payload);
-          return payload;
-        }
+        upsertUsedStockReportCache(payload);
         return payload;
       })
       .catch((error: any) => {
@@ -284,11 +281,8 @@ export default {
       .where('reportId')
       .equalsIgnoreCase(reportId)
       .toArray();
-    if (isMobile.value) {
-      upsertUsedStockReportCache(records);
-      return records.map((entry: any) => clone(entry));
-    }
-    return records;
+    upsertUsedStockReportCache(records);
+    return records.map((entry: any) => clone(entry));
   },
 
   async refreshMobileCache() {

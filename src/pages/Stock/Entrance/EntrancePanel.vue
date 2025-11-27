@@ -709,6 +709,25 @@ let stock = '';
 const orderNumberRef = ref('');
 const notesRef = ref('');
 
+const cloneDrug = (drug) =>
+  drug === null || drug === undefined ? drug : JSON.parse(JSON.stringify(drug));
+
+const formatDrugName = (drug) => {
+  if (!drug || !drug.name) return '';
+  const suffix = String(drug?.form?.description || '').substring(0, 4);
+  if (!suffix || String(drug.name).includes(suffix)) {
+    return drug.name;
+  }
+  return `${drug.name} - (${drug.packSize ?? ''} ${suffix})`;
+};
+
+const decorateDrugOption = (drug) => {
+  const cloned = cloneDrug(drug);
+  if (!cloned) return cloned;
+  cloned.name = formatDrugName(cloned);
+  return cloned;
+};
+
 const goBack = () => {
   router.go(-1);
 };
@@ -722,24 +741,12 @@ const blockDataPassada = (date) => {
 };
 
 const filterFn = (val, update, abort) => {
-  const stringOptions = activeDrugs.value;
+  const stringOptions = (activeDrugs.value || []).map((drug) =>
+    decorateDrugOption(drug)
+  );
   if (val === '') {
     update(() => {
-      return (drugs.value = stringOptions.map((drug) => {
-        if (
-          !String(drug.name).includes(
-            String(drug.form.description).substring(0, 4)
-          )
-        ) {
-          drug.name = String(drug.name)
-            .concat(' - (')
-            .concat(drug.packSize)
-            .concat(' ')
-            .concat(String(drug.form.description).substring(0, 4))
-            .concat(')');
-        }
-        return drug;
-      }));
+      drugs.value = stringOptions;
     });
   } else if (stringOptions.length === 0) {
     update(() => {
@@ -747,13 +754,13 @@ const filterFn = (val, update, abort) => {
     });
   } else {
     update(() => {
-      drugs.value = stringOptions
-        .map((drug) => drug)
-        .filter((drug) => {
-          return (
-            drug && drug.name.toLowerCase().indexOf(val.toLowerCase()) !== -1
-          );
-        });
+      drugs.value = stringOptions.filter((drug) => {
+        return (
+          drug &&
+          drug.name &&
+          drug.name.toLowerCase().indexOf(val.toLowerCase()) !== -1
+        );
+      });
     });
   }
 };
@@ -764,6 +771,9 @@ const init = () => {
   );
   orderNumber.value = currStockEntrance.value.orderNumber;
   notes.value = currStockEntrance.value.notes;
+  if (isMobile.value && !isOnline.value) {
+    StockCenterService.refreshMobileCache();
+  }
 };
 
 const cancelOperation = () => {
@@ -980,6 +990,8 @@ const doSave = (stock) => {
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic = {};
   stock.clinic.id = clinicService.currClinic().id;
+  stock.clinic_id = stock.clinic.id;
+  stock.clinicId = stock.clinic.id;
   stock.center = {};
   stock.center.id = StockCenterService.getStockCenter().id;
   stock.entrance = currStockEntrance;
@@ -1034,7 +1046,7 @@ const fetchStockEntrance = () => {
 
 const cancel = (stock) => {
   if (isEditionStep.value) {
-    stock.drug = selectedStock.value.drug;
+    stock.drug = cloneDrug(selectedStock.value.drug);
     stock.expireDate = selectedStock.value.expireDate;
     stock.batchNumber = selectedStock.value.batchNumber;
     stock.unitsReceived = selectedStock.value.unitsReceived;
@@ -1051,7 +1063,10 @@ const removeFromList = (stock) => {
 };
 
 const initStockEdition = (stock) => {
-  selectedStock.value = Object.assign({}, stock);
+  selectedStock.value = {
+    ...stock,
+    drug: cloneDrug(stock.drug),
+  };
   if (step.value === 'edit' || step.value === 'create') {
     alertError(
       'Por favor concluir ou cancelar a operação em curso antes de iniciar a edição deste registo.'
@@ -1089,20 +1104,21 @@ const loadStockList = () => {
   if (currStockEntrance.value.stocks.length > 0) {
     Object.keys(currStockEntrance.value.stocks).forEach(
       function (k) {
-        const stock = StockService.getStockList(
+        const originalStock = StockService.getStockList(
           currStockEntrance.value.stocks[k].id
         );
-        stock.auxExpireDate = dateUtils.getDDMMYYYFromJSDate(stock.expireDate);
-        stock.drug.name =
-          stock.drug.name +
-          ' (' +
-          stock.drug.packSize +
-          ' ' +
-          String(
-            getDrugFirstLevelById(stock.drug.id).form.description
-          ).substring(0, 4) +
-          ')';
-        stockList.value.push(stock);
+        if (!originalStock) return;
+        const mutableStock = {
+          ...originalStock,
+          drug: cloneDrug(originalStock.drug),
+        };
+        mutableStock.auxExpireDate = dateUtils.getDDMMYYYFromJSDate(
+          mutableStock.expireDate
+        );
+        if (mutableStock.drug) {
+          mutableStock.drug.name = formatDrugName(mutableStock.drug);
+        }
+        stockList.value.push(mutableStock);
       }.bind(this)
     );
   }

@@ -45,7 +45,7 @@ export default {
       return this.postWeb(params);
     }
   },
-   get(offset: number) {
+  get(offset: number) {
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
@@ -293,5 +293,12 @@ export default {
       return [];
     }
     return refreshClinicalServiceMobileCache();
+  },
+
+  getClinicalServiceMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return getClinicalServiceMobileCache();
   },
 };

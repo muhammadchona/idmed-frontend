@@ -192,7 +192,7 @@ export default {
   addMobile(params: string) {
     const payload = clone(params);
     return patientDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         const store = getPatientMobileStore();
         store?.upsertPatient(payload);
       } else {
@@ -204,7 +204,7 @@ export default {
   putMobile(params: string) {
     const payload = clone(params);
     return patientDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         const store = getPatientMobileStore();
         store?.upsertPatient(payload);
       } else {
@@ -216,11 +216,9 @@ export default {
   async getMobile() {
     try {
       const rows = await patientDexie.toArray();
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         const store = getPatientMobileStore();
         store?.setPatients(rows);
-      } else {
-        patient.save(rows);
       }
       return clone(rows);
     } catch (error) {
@@ -232,7 +230,7 @@ export default {
     return patientDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const store = getPatientMobileStore();
           store?.removeById(paramsId);
         } else {
@@ -574,7 +572,7 @@ export default {
     return patient.getModel().$newInstance();
   },
   savePatientStorage(newPatient: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       store?.upsertPatient(newPatient);
     } else {
@@ -582,14 +580,14 @@ export default {
     }
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       return store ? store.all : [];
     }
     return patient.all();
   },
   getAllFromStorageToDexie() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       const patients = store ? store.all : [];
       return patients.map((item: any) => {
@@ -601,7 +599,7 @@ export default {
     return patient.makeHidden(['hisSyncStatus']).all();
   },
   getPatientByID(id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       const cachedPatient = store?.getById(id);
       if (!cachedPatient) {
@@ -631,7 +629,7 @@ export default {
       .delete();
   },
   deleteAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       store?.clear();
     } else {
@@ -639,7 +637,7 @@ export default {
     }
   },
   deletePatientStorage(patientParam: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       store?.removeById(patientParam.id);
     } else {
@@ -647,7 +645,7 @@ export default {
     }
   },
   async getPatientSearchList() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       let patients = store ? store.all : [];
 
@@ -665,20 +663,27 @@ export default {
 
       if (!store || patients.length === 0 || !hasIdentifiersWithValue) {
         try {
-          const hydratedPatients = await this.getAllPatientstWithAllFromDexie();
-          const refreshedStore = getPatientMobileStore();
+          /*
+                    const refreshedStore = getPatientMobileStore();
           if (refreshedStore) {
             patients = refreshedStore.all;
-          } else {
-            patients = hydratedPatients;
+            const store = getPatientMobileStore();
+            store?.setPatients(patients);
+            console.log(patients);
           }
+            */
         } catch (error) {
           console.log('Failed to hydrate patients from Dexie', error);
           return [];
         }
       }
-
-      return sortPatientsForSearch(patients);
+      const hydratedPatients =
+        await this.getAllPatientstWithIdentifierFromDexie();
+      console.log(hydratedPatients);
+      const store1 = getPatientMobileStore();
+      store1?.setPatients(hydratedPatients);
+      console.log(patients);
+      return hydratedPatients;
     }
     return patient
       .query()
@@ -688,7 +693,7 @@ export default {
       .get();
   },
   getPatientByClinicId(clinicId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       const patients = store ? store.all : [];
       return patients.filter((item: any) => {
@@ -725,7 +730,7 @@ export default {
   },
   getPatienWithstByID(id: string) {
     // return patient.withAllRecursive(3).whereId(id).first();
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       const patient = store?.getById(id);
       return patient ?? null;
@@ -836,7 +841,7 @@ export default {
       }
     }
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       store?.setPatients(results);
     }
@@ -845,7 +850,7 @@ export default {
   },
 
   getById(id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       const patient = store?.getById(id);
       return patient ?? null;
@@ -1106,7 +1111,30 @@ export default {
       );
     });
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
+      const store = getPatientMobileStore();
+      store?.setPatients(patients);
+    }
+
+    return patients;
+  },
+
+  async getAllPatientstWithIdentifierFromDexie() {
+    const patients = await patientDexie.toArray();
+
+    const patientIds = patients.map((patient: any) => patient.id);
+
+    const [identifiers] = await Promise.all([
+      patientServiceIdentifierService.getAllByPatientsIDsFromDexie(patientIds),
+    ]);
+
+    patients.map((patient: any) => {
+      patient.identifiers = identifiers.filter(
+        (identifier: any) => identifier.patient.id === patient.id
+      );
+    });
+
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       store?.setPatients(patients);
     }
@@ -1161,7 +1189,7 @@ export default {
       );
     });
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const store = getPatientMobileStore();
       store?.setPatients(patients);
     } else {
@@ -1180,7 +1208,7 @@ export default {
       )
       .then((resp) => {
         if (resp.data.length > 0) {
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const store = getPatientMobileStore();
             store?.setPatients(resp.data);
           } else {
@@ -1254,7 +1282,7 @@ export default {
       patientVisitDexie
         .where('patientId')
         .equalsIgnoreCase(lowerPatientId)
-        .toArray(),
+        .sortBy('visitDate'),
     ]);
 
     /* identifiers + episodes */

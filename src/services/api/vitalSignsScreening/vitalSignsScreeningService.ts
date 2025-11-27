@@ -139,11 +139,7 @@ export default {
     return vitalSignsScreeningDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertVitalSignsScreeningCache(payload);
-          return payload;
-        }
-        vitalSignsScreening.save(payload);
+        upsertVitalSignsScreeningCache(payload);
         return payload;
       })
       .catch((error: any) => {
@@ -154,27 +150,17 @@ export default {
   },
   putMobile(params: string) {
     const payload = clone(toPlainObject(params));
-    return vitalSignsScreeningDexie
-      .put(payload)
-      .then(() => {
-        if (isMobile.value) {
-          upsertVitalSignsScreeningCache(payload);
-          return payload;
-        }
-        vitalSignsScreening.save(payload);
-        return payload;
-      });
+    return vitalSignsScreeningDexie.put(payload).then(() => {
+      upsertVitalSignsScreeningCache(payload);
+      return payload;
+    });
   },
   getMobile() {
     return vitalSignsScreeningDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
-          setVitalSignsScreeningMobileCache(rows);
-          return getVitalSignsScreeningMobileCache();
-        }
-        vitalSignsScreening.save(rows);
-        return rows;
+        setVitalSignsScreeningMobileCache(rows);
+        return getVitalSignsScreeningMobileCache();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -185,11 +171,7 @@ export default {
     return vitalSignsScreeningDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
-          removeVitalSignsScreeningFromCache(paramsId);
-        } else {
-          vitalSignsScreening.destroy(paramsId);
-        }
+        removeVitalSignsScreeningFromCache(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {

@@ -97,7 +97,7 @@ export default {
       .query('upsert', payload)
       .exec()
       .then(async () => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           await refreshGroupTypeMobileCache();
         } else {
           groupType.save(payload);
@@ -148,13 +148,13 @@ export default {
     return groupType.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getGroupTypeMobileCache();
     }
     return groupType.all();
   },
   getByCode(code: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findGroupTypeInCache((entry) => entry.code === code);
     }
     return groupType.query().where('code', code).first();
