@@ -304,6 +304,7 @@ import StockDestructionAdjustmentService from 'src/services/api/stockAdjustment/
 import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/InventoryStockAdjustmentService';
 import InventoryService from 'src/services/api/inventoryService/InventoryService';
 import eventBus from '../../utils/eventbus';
+import NanoclinicService from '../../services/Synchronization/clinicService/NanoclinicService';
 const { notifyError, notifySuccess } = useNotify();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
@@ -412,6 +413,7 @@ const authUser = async () => {
     submitting.value = true;
     if (isOnline.value) {
       loginOnline(encodedStringBtoA);
+      if (isMobile.value) NanoclinicService.getMainClinic();
     } else {
       const users = await UsersService.getMobile();
       if (users.length === 0 && isMobile.value) {

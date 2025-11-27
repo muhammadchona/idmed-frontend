@@ -112,7 +112,7 @@ export default {
         if (!isMobile.value) {
           prescriptionDetails.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           prescriptionDetailsDexie
             .put(payload)
@@ -131,7 +131,7 @@ export default {
           if (!isMobile.value) {
             prescriptionDetails.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -159,7 +159,7 @@ export default {
         if (!isMobile.value) {
           prescriptionDetails.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           prescriptionDetailsDexie
             .put(payload)
@@ -175,7 +175,7 @@ export default {
       .delete('prescriptionDetails/' + uuid)
       .then(() => {
         prescriptionDetails.destroy(uuid);
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           prescriptionDetailsDexie
             .delete(uuid)
             .then(() => {
@@ -189,7 +189,7 @@ export default {
   addMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return prescriptionDetailsDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescriptionDetailsCache(payload);
         return payload;
       }
@@ -200,7 +200,7 @@ export default {
   putMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return prescriptionDetailsDexie.put(payload).then(() => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescriptionDetailsCache(payload);
         return payload;
       }
@@ -213,7 +213,7 @@ export default {
     return prescriptionDetailsDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           setPrescriptionDetailsMobileCache(rows);
           return getPrescriptionDetailsMobileCache();
         }
@@ -230,7 +230,7 @@ export default {
     return prescriptionDetailsDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           removePrescriptionDetailFromCache(paramsId);
         } else {
           prescriptionDetails.destroy(paramsId);
@@ -249,7 +249,7 @@ export default {
     return prescriptionDetailsDexie
       .bulkPut(prescriptionDetailsFromPinia)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertPrescriptionDetailsCache(prescriptionDetailsFromPinia);
         } else {
           prescriptionDetails.save(prescriptionDetailsFromPinia);
@@ -267,7 +267,7 @@ export default {
         if (!isMobile.value) {
           prescriptionDetails.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = Array.isArray(resp.data)
             ? resp.data.map((entry: any) => clone(entry))
             : [clone(resp.data)];
@@ -294,13 +294,13 @@ export default {
     return prescriptionDetails.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescriptionDetailsMobileCache();
     }
     return prescriptionDetails.all();
   },
   getAllFromStorageForDexie() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescriptionDetailsMobileCache();
     }
     return prescriptionDetails
@@ -317,7 +317,7 @@ export default {
     prescriptionDetails.flush();
   },
   getPrescriptionDetailByPrescriptionID(prescriptionID: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescriptionDetailsMobileCache().filter(
         (entry) => entry.prescription_id === prescriptionID
       );
@@ -328,7 +328,7 @@ export default {
   },
 
   getPrescriptionDetailByID(Id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findPrescriptionDetailInCache((entry) => entry.id === Id);
     }
     return prescriptionDetails
@@ -343,7 +343,7 @@ export default {
   },
 
   getLastByPrescriprionId(prescriptionId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescriptionDetailsMobileCache().find(
         (entry) => entry.prescription_id === prescriptionId
       );
@@ -361,7 +361,7 @@ export default {
         prescriptionId === prescriptionDetail?.prescription?.id
     );
     return await collection.toArray().then((prescriptionDetailsObject: any) => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescriptionDetailsCache(prescriptionDetailsObject);
       } else {
         prescriptionDetails.save(prescriptionDetailsObject);
@@ -373,6 +373,7 @@ export default {
   async getLastByPrescriprionIdListFromDexie(prescriptionIds: string[]) {
     const collection = prescriptionDetailsDexie.filter(
       (prescriptionDetail: PrescriptionDetail) =>
+        prescriptionIds.includes(prescriptionDetail.prescription_id) ||
         prescriptionIds.includes(prescriptionDetail?.prescription?.id)
     );
     const prescriptionsDetails = await collection.toArray();
@@ -436,7 +437,7 @@ export default {
         );
     });
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPrescriptionDetailsCache(prescriptionsDetails);
       return prescriptionsDetails.map((entry: any) => clone(entry));
     }
@@ -449,7 +450,7 @@ export default {
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPrescriptionDetailsCache(results);
       return results.map((entry: any) => clone(entry));
     }

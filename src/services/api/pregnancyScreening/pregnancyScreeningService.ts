@@ -134,35 +134,31 @@ export default {
   // Mobile
   addMobile(params: string) {
     const payload = clone(toPlainObject(params));
-    return pregnancyScreeningDexie
-      .put(payload)
-      .then(() => {
-        if (isMobile.value) {
-          upsertPregnancyScreeningCache(payload);
-          return payload;
-        }
-        pregnancyScreening.save(payload);
+    return pregnancyScreeningDexie.put(payload).then(() => {
+      if (isMobile.value && !isOnline.value) {
+        upsertPregnancyScreeningCache(payload);
         return payload;
-      });
+      }
+      pregnancyScreening.save(payload);
+      return payload;
+    });
   },
   putMobile(params: string) {
     const payload = clone(toPlainObject(params));
-    return pregnancyScreeningDexie
-      .put(payload)
-      .then(() => {
-        if (isMobile.value) {
-          upsertPregnancyScreeningCache(payload);
-          return payload;
-        }
-        pregnancyScreening.save(payload);
+    return pregnancyScreeningDexie.put(payload).then(() => {
+      if (isMobile.value && !isOnline.value) {
+        upsertPregnancyScreeningCache(payload);
         return payload;
-      });
+      }
+      pregnancyScreening.save(payload);
+      return payload;
+    });
   },
   getMobile() {
     return pregnancyScreeningDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           setPregnancyScreeningMobileCache(rows);
           return getPregnancyScreeningMobileCache();
         }
@@ -178,7 +174,7 @@ export default {
     return pregnancyScreeningDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           removePregnancyScreeningFromCache(paramsId);
         } else {
           pregnancyScreening.destroy(paramsId);

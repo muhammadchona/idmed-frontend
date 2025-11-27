@@ -93,7 +93,9 @@ export default {
           const clinics = resp?.data?.filter(
             (item: any) => !String(item?.entity).includes('clinicSector')
           );
-
+          if (isMobile.value && !isOnline.value) {
+            this.addBulkMobile(resp.data);
+          }
           clinic.save(clinics);
           offset = offset + 100;
           if (resp.data.length > 0) {
@@ -283,13 +285,13 @@ export default {
     return clinic.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics();
     }
     return clinic.query().withAllRecursive(1).get();
   },
   getClinicsByDistrictId(districtid: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics().filter(
         (entry) => entry.district_id === districtid
       );
@@ -307,8 +309,8 @@ export default {
   currClinic() {
     const instalationType = systemConfigsService.getInstallationType();
     const clinicUser = localStorage.getItem('clinicUsers');
-    if (isMobile.value) {
-      const clinics = getCachedClinics();
+    if (isMobile.value && !isOnline.value) {
+      const clinics = getClinicMobileCache();
       if (
         instalationType !== null &&
         ((clinicUser === 'undefined' && !isProvincialInstalation()) ||
@@ -328,9 +330,7 @@ export default {
           const arrayOfSectors = clinicUser.split(',');
           sectorCode = arrayOfSectors[0];
         }
-        return (
-          clinics.find((entry) => entry.code === sectorCode) ?? null
-        );
+        return clinics.find((entry) => entry.code === sectorCode) ?? null;
       }
       return null;
     }
@@ -362,7 +362,7 @@ export default {
   },
 
   getAllClinics() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics().filter((entry) => entry.type === 'CLINIC');
     }
     return clinic
@@ -377,7 +377,7 @@ export default {
   },
 
   getAllClinicSectors() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics().filter(
         (entry) => entry.type === 'CLINIC_SECTOR'
       );
@@ -386,7 +386,7 @@ export default {
   },
 
   getAllClinicsAndClinicSectors() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics();
     }
     return clinic
@@ -420,16 +420,17 @@ export default {
     let orderedList: any[] = [];
     const mapaListas = new Map();
 
-    if (isMobile.value) {
-      const cachedClinics = clinics && clinics.length ? clinics : getCachedClinics();
+    if (isMobile.value && !isOnline.value) {
+      const cachedClinics =
+        clinics && clinics.length ? clinics : getCachedClinics();
       provinces.forEach((prov) => {
         listaFinal = cachedClinics
           .filter(
-            (x) =>
-              x.province &&
-              x.province.description === prov.description
+            (x) => x.province && x.province.description === prov.description
           )
-          .sort((a, b) => (a.clinicName || '').localeCompare(b.clinicName || ''));
+          .sort((a, b) =>
+            (a.clinicName || '').localeCompare(b.clinicName || '')
+          );
         if (listaFinal.length > 0 && prov !== undefined) {
           mapaListas.set(prov.description, listaFinal);
         }
@@ -458,7 +459,7 @@ export default {
     return orderedList;
   },
   getAllPrivateFromDistrict(districtId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics()
         .filter((entry) => {
           const facilityType = entry.facilityType;
@@ -487,7 +488,7 @@ export default {
       .get();
   },
   getAllUSFromDistrict(districtId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics()
         .filter((entry) => {
           const facilityType = entry.facilityType;
@@ -516,7 +517,7 @@ export default {
   },
 
   getAllofAllUSFromDistrict(districtId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics()
         .filter((entry) => {
           const facilityType = entry.facilityType;
@@ -543,7 +544,7 @@ export default {
   },
 
   getAllActiveUSWithoutMain() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics()
         .filter((entry) => {
           const facilityType = entry.facilityType;
@@ -564,7 +565,7 @@ export default {
       .get();
   },
   getById(id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return ensureClinicFromCache((entry) => entry.id === id);
     }
     return clinic
@@ -576,7 +577,7 @@ export default {
       .first();
   },
   getByCode(code: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return ensureClinicFromCache((entry) => entry.code === code);
     }
     return clinic
@@ -588,7 +589,7 @@ export default {
       .first();
   },
   getActivebyClinicId(clinicId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics().filter(
         (entry) => entry.active && entry.parentClinic_id === clinicId
       );
@@ -603,7 +604,7 @@ export default {
   },
 
   getActivebyClinicCodeinList(clinicCode: [string]) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getCachedClinics().filter((entry) =>
         clinicCode.includes(entry.code)
       );
@@ -634,12 +635,39 @@ export default {
   },
 
   async getAllByIDsFromDexie(ids: []) {
-    return await clinicDexie.where('id').anyOfIgnoreCase(ids).toArray();
+    // 1. Keep only **non-empty strings**
+    const validIds = ids
+      .filter((id) => typeof id === 'string')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+
+    // 2. If nothing valid, no need to hit Dexie
+    if (validIds.length === 0) {
+      return [];
+    }
+
+    // 3. Safe call: all values are clean strings
+    return clinicDexie.where('id').anyOfIgnoreCase(validIds).toArray();
+    //  return await clinicDexie.where('id').anyOfIgnoreCase(ids).toArray();
   },
   async refreshMobileCache() {
     if (!isMobile.value) {
       return [];
     }
     return this.getMobile();
+  },
+
+  putBulkMobile(payload: string) {
+    return clinicDexie
+      .bulkPut(payload)
+      .then(async () => {
+        await refreshClinicMobileCache();
+        closeLoading();
+        return payload;
+      })
+      .catch((error: any) => {
+        // alertError('Aconteceu um erro inesperado nesta operação.');
+        throw error;
+      });
   },
 };

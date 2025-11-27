@@ -24,23 +24,42 @@ const clone = (payload: any) =>
     ? payload
     : JSON.parse(JSON.stringify(payload));
 
-let drugMobileCache: any[] = [];
-
-const setDrugMobileCache = (rows: any[]) => {
-  drugMobileCache = rows.map((row) => clone(row));
+const freezeDeep = (payload: any) => {
+  if (payload === null || payload === undefined) return payload;
+  if (Array.isArray(payload)) {
+    payload.forEach((item) => freezeDeep(item));
+    return Object.freeze(payload);
+  }
+  if (typeof payload === 'object') {
+    Object.keys(payload).forEach((key) => freezeDeep(payload[key]));
+    return Object.freeze(payload);
+  }
+  return payload;
 };
 
-const getDrugMobileCache = () => drugMobileCache.map((row) => clone(row));
+let drugMobileCache: any[] = [];
+
+const prepareCacheEntry = (row: any) => {
+  const cloned = clone(row);
+  return isMobile.value ? freezeDeep(cloned) : cloned;
+};
+
+const setDrugMobileCache = (rows: any[]) => {
+  drugMobileCache = rows.map((row) => prepareCacheEntry(row));
+};
+
+const getDrugMobileCache = () =>
+  isMobile.value ? drugMobileCache : drugMobileCache.map((row) => clone(row));
 
 const refreshDrugMobileCache = async () => {
   const rows = await drugDexie.toArray();
-  const formIds = rows.map((drug: any) =>
-    drug?.form?.id ? drug.form.id : ''
-  );
+  const formIds = rows.map((drug: any) => (drug?.form?.id ? drug.form.id : ''));
   const clinicalServiceIds = rows.map((drug: any) =>
-    drug?.clinicalService?.id ? drug.clinicalService.id : ''
+    drug?.clinicalService?.id
+      ? drug.clinicalService.id
+      : drug.clinical_service_id
   );
-
+  console.log(rows);
   const [forms, clinicalServices, stocksList] = await Promise.all([
     formService.getAllByIDsFromDexie(formIds),
     clinicalServiceService.getAllByIDsFromDexie(clinicalServiceIds),
@@ -49,18 +68,24 @@ const refreshDrugMobileCache = async () => {
 
   rows.forEach((entry: any) => {
     if (entry?.form?.id) {
-      entry.form = forms.find((form: any) => form.id === entry.form.id) ?? entry.form;
+      entry.form =
+        forms.find((form: any) => form.id === entry.form.id) ?? entry.form;
     }
-    if (entry?.clinicalService?.id) {
+    if (entry?.clinicalService?.id || entry?.clinical_service_id) {
+      const id = entry?.clinicalService?.id ?? entry?.clinical_service_id;
+
       entry.clinicalService =
         clinicalServices.find(
-          (clinicalService: any) => clinicalService.id === entry.clinicalService.id
+          (clinicalService: any) => clinicalService.id === id
         ) ?? entry.clinicalService;
     }
-    entry.stocks = stocksList.filter((stock: any) => stock.drug_id === entry.id);
+    entry.stocks = stocksList.filter(
+      (stock: any) => stock.drug_id === entry.id
+    );
   });
 
   setDrugMobileCache(rows);
+  console.log(rows);
   return getDrugMobileCache();
 };
 
@@ -76,24 +101,22 @@ export default {
     } else {
       if (offset >= 0) {
         // showloading();
-        return await (
-          api()
-            .get('drug?offset=' + offset + '&max=100', {
-              onDownloadProgress(progressEvent) {
-                // showloading();
-              },
-            })
-            // .get('drug?offset=' + offset + '&max=100')
-            .then((resp) => {
-              drug.save(resp.data);
-              offset = offset + 100;
-              if (resp.data.length > 0) {
-                this.get(offset);
-              } else {
-                closeLoading();
-              }
-            })
-        );
+        return await api()
+          .get('drug?offset=' + offset + '&max=100', {
+            onDownloadProgress(progressEvent) {
+              // showloading();
+            },
+          })
+          // .get('drug?offset=' + offset + '&max=100')
+          .then((resp) => {
+            drug.save(resp.data);
+            offset = offset + 100;
+            if (resp.data.length > 0) {
+              this.get(offset);
+            } else {
+              closeLoading();
+            }
+          });
       }
     }
   },
@@ -258,14 +281,23 @@ export default {
       .get();
   },
   getActiveDrugsByRegimen(regimenId: string) {
-    return drug
-      .query()
-      .withAllRecursive(2)
-      .where('active', true)
-      .whereHas('therapeuticRegimenList', (query) => {
-        query.where('id', regimenId);
-      })
-      .get();
+    if (isMobile.value && !isOnline.value) {
+      return getDrugMobileCache().filter(
+        (d) =>
+          d?.active === true && // where('active', true)
+          Array.isArray(d?.therapeuticRegimenList) &&
+          d.therapeuticRegimenList.some((reg: any) => reg?.id === regimenId) // whereHas(...)
+      );
+    } else {
+      return drug
+        .query()
+        .withAllRecursive(2)
+        .where('active', true)
+        .whereHas('therapeuticRegimenList', (query) => {
+          query.where('id', regimenId);
+        })
+        .get();
+    }
   },
   getDrugById(id: string) {
     if (isMobile.value && !isOnline.value) {
@@ -350,10 +382,12 @@ export default {
   async getAllByIDsFromDexie(ids: []) {
     const drugs = await drugDexie.where('id').anyOf(ids).toArray();
 
-    const formsIds = drugs.map((drug: any) => drug?.form?.id ? drug.form.id : '');
+    const formsIds = drugs.map((drug: any) =>
+      drug?.form?.id ? drug.form.id : ''
+    );
 
-    const clinicalServiceIds = drugs.map(
-      (drug: any) => drug?.clinicalService?.id ? drug.clinicalService.id : ''
+    const clinicalServiceIds = drugs.map((drug: any) =>
+      drug?.clinicalService?.id ? drug.clinicalService.id : ''
     );
 
     const [forms, clinicalServices] = await Promise.all([
@@ -364,8 +398,7 @@ export default {
     drugs.map((drug: any) => {
       drug.form = forms.find((form: any) => form.id === drug.form.id);
       drug.clinicalService = clinicalServices.find(
-        (clinicalService: any) =>
-          clinicalService.id === drug.clinicalService.id
+        (clinicalService: any) => clinicalService.id === drug.clinicalService.id
       );
     });
     return drugs;
@@ -396,6 +429,6 @@ export default {
     if (!isMobile.value) {
       return [];
     }
-    return refreshDrugMobileCache();
+    return await refreshDrugMobileCache();
   },
 };

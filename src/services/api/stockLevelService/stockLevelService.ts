@@ -100,16 +100,7 @@ export default {
     return api()
       .post('stockLevel', params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockLevel.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockLevelDexie
-            .put(payload)
-            .then(() => upsertStockLevelCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockLevel.save(resp.data);
       });
   },
   getWeb(offset: number) {
@@ -117,15 +108,7 @@ export default {
       return api()
         .get('stockLevel?offset=' + offset + '&max=100')
         .then((resp) => {
-          if (!isMobile.value) {
-            stockLevel.save(resp.data);
-          }
-          if (isMobile.value) {
-            stockLevelDexie
-              .bulkPut(resp.data.map((entry: any) => clone(entry)))
-              .then(() => upsertStockLevelCache(resp.data))
-              .catch((error) => console.log(error));
-          }
+          stockLevel.save(resp.data);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -150,31 +133,14 @@ export default {
     return api()
       .patch('stockLevel/' + uuid, params)
       .then((resp) => {
-        if (!isMobile.value) {
-          stockLevel.save(resp.data);
-        }
-        if (isMobile.value) {
-          const payload = clone(resp.data);
-          stockLevelDexie
-            .put(payload)
-            .then(() => upsertStockLevelCache(payload))
-            .catch((error) => console.log(error));
-        }
+        stockLevel.save(resp.data);
       });
   },
   deleteWeb(uuid: string) {
     return api()
       .delete('stockLevel/' + uuid)
       .then(() => {
-        if (!isMobile.value) {
-          stockLevel.destroy(uuid);
-        }
-        if (isMobile.value) {
-          stockLevelDexie
-            .delete(uuid)
-            .then(() => removeStockLevelFromCache(uuid))
-            .catch((error) => console.log(error));
-        }
+        stockLevel.destroy(uuid);
       });
   },
   // Mobile
@@ -183,11 +149,7 @@ export default {
     return stockLevelDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockLevelCache(payload);
-          return payload;
-        }
-        stockLevel.save(payload);
+        upsertStockLevelCache(payload);
         return payload;
       })
       .catch((error: any) => {
@@ -200,12 +162,7 @@ export default {
     return stockLevelDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockLevelCache(payload);
-          return payload;
-        }
-        stockLevel.save(payload);
-        // alertSucess('O Registo foi efectuado com sucesso');
+        upsertStockLevelCache(payload);
         return payload;
       })
       .catch((error: any) => {
@@ -218,12 +175,8 @@ export default {
     return stockLevelDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
-          setStockLevelMobileCache(rows);
-          return getStockLevelMobileCache();
-        }
-        stockLevel.save(rows);
-        return rows;
+        setStockLevelMobileCache(rows);
+        return getStockLevelMobileCache();
       })
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -235,11 +188,7 @@ export default {
     return stockLevelDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
-          removeStockLevelFromCache(paramsId);
-        } else {
-          stockLevel.destroy(paramsId);
-        }
+        removeStockLevelFromCache(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
@@ -255,11 +204,7 @@ export default {
     return stockLevelDexie
       .bulkPut(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertStockLevelCache(payload);
-        } else {
-          stockLevel.save(payload);
-        }
+        upsertStockLevelCache(payload);
       })
       .catch((error: any) => {
         console.log(error);
@@ -273,7 +218,7 @@ export default {
 
   /*Pinia Methods*/
   getAllstockLevels() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getStockLevelMobileCache();
     }
     return stockLevel.get();
@@ -297,7 +242,7 @@ export default {
   },
 
   getStockLevel(clinicSectorId: any, drugId: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return (
         getStockLevelMobileCache().find((entry) => {
           const clinicMatch =
@@ -316,8 +261,9 @@ export default {
       .first();
     return obj;
   },
+  //verificar se apagano logout
   deleteAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       stockLevelMobileCache = [];
       return stockLevelDexie.clear().catch((error: any) => {
         console.log(error);

@@ -24,6 +24,19 @@ const clone = (payload: any) =>
     ? payload
     : JSON.parse(JSON.stringify(payload));
 
+const freezeDeep = (payload: any) => {
+  if (payload === null || payload === undefined) return payload;
+  if (Array.isArray(payload)) {
+    payload.forEach((item) => freezeDeep(item));
+    return Object.freeze(payload);
+  }
+  if (typeof payload === 'object') {
+    Object.keys(payload).forEach((key) => freezeDeep(payload[key]));
+    return Object.freeze(payload);
+  }
+  return payload;
+};
+
 const toPlainObject = (payload: any) => {
   if (typeof payload === 'string') {
     try {
@@ -38,14 +51,19 @@ const toPlainObject = (payload: any) => {
 
 let prescriptionMobileCache: any[] = [];
 
+const prepareCacheEntry = (row: any) => {
+  const cloned = clone(row);
+  return isMobile.value ? freezeDeep(cloned) : cloned;
+};
+
 const setPrescriptionMobileCache = (rows: any[]) => {
-  prescriptionMobileCache = rows.map((row) => clone(row));
+  prescriptionMobileCache = rows.map((row) => prepareCacheEntry(row));
 };
 
 const upsertPrescriptionMobileCache = (items: any | any[]) => {
   const entries = Array.isArray(items) ? items : [items];
   entries.forEach((entry) => {
-    const payload = clone(entry);
+    const payload = prepareCacheEntry(entry);
     const index = prescriptionMobileCache.findIndex(
       (item) => item.id === payload.id
     );
@@ -64,7 +82,9 @@ const removePrescriptionFromCache = (id: string) => {
 };
 
 const getPrescriptionMobileCache = () =>
-  prescriptionMobileCache.map((row) => clone(row));
+  isMobile.value
+    ? prescriptionMobileCache
+    : prescriptionMobileCache.map((row) => clone(row));
 
 const refreshPrescriptionMobileCache = async () => {
   const rows = await prescriptionDexie.toArray();
@@ -112,7 +132,7 @@ export default {
         if (!isMobile.value) {
           prescription.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           prescriptionDexie
             .put(payload)
@@ -131,7 +151,7 @@ export default {
           if (!isMobile.value) {
             prescription.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -159,7 +179,7 @@ export default {
         if (!isMobile.value) {
           prescription.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           prescriptionDexie
             .put(payload)
@@ -175,7 +195,7 @@ export default {
       .delete('prescription/' + uuid)
       .then(() => {
         prescription.destroy(uuid);
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           prescriptionDexie
             .delete(uuid)
             .then(() => {
@@ -189,7 +209,7 @@ export default {
   addMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return prescriptionDexie.put(payload).then(async () => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescriptionMobileCache(payload);
         return payload;
       }
@@ -200,7 +220,7 @@ export default {
   putMobile(params: string) {
     const payload = clone(toPlainObject(params));
     return prescriptionDexie.put(payload).then(async () => {
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         upsertPrescriptionMobileCache(payload);
         return payload;
       }
@@ -211,7 +231,7 @@ export default {
   async getMobile() {
     try {
       const rows = await prescriptionDexie.toArray();
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         setPrescriptionMobileCache(rows);
         return getPrescriptionMobileCache();
       }
@@ -224,7 +244,7 @@ export default {
   async deleteMobile(paramsId: string) {
     try {
       await prescriptionDexie.delete(paramsId);
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         removePrescriptionFromCache(paramsId);
       } else {
         prescription.destroy(paramsId);
@@ -243,7 +263,7 @@ export default {
     return prescriptionDexie
       .bulkPut(prescriptionFromPinia)
       .then(async () => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           await refreshPrescriptionMobileCache();
         } else {
           prescription.save(prescriptionFromPinia);
@@ -304,7 +324,7 @@ export default {
         if (!isMobile.value) {
           prescription.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           prescriptionDexie
             .put(payload)
@@ -338,7 +358,7 @@ export default {
           if (!isMobile.value) {
             prescription.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -370,13 +390,13 @@ export default {
     return prescription.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescriptionMobileCache();
     }
     return prescription.all();
   },
   getAllFromStorageForDexie() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPrescriptionMobileCache();
     }
     return prescription
@@ -395,7 +415,7 @@ export default {
     prescription.flush();
   },
   getPrescriptionByID(Id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findPrescriptionInCache((entry) => entry.id === Id);
     }
     return prescription
@@ -407,13 +427,13 @@ export default {
       .first();
   },
   getLocalPrescriptionById(Id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findPrescriptionInCache((entry) => entry.id === Id);
     }
     return prescription.withAllRecursive(2).where('id', Id).first();
   },
   getLastPrescriptionFromPatientVisit(patientVisitId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return (
         getPrescriptionMobileCache()
           .filter((entry) => entry.id === patientVisitId)
@@ -433,7 +453,7 @@ export default {
   },
 
   getLastPrescriptionFromPatientVisitDetails(prescriptionId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       console.log(getPrescriptionMobileCache());
       return (
         getPrescriptionMobileCache()
@@ -454,7 +474,7 @@ export default {
   },
 
   removeFromStorage(prescriptionId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       removePrescriptionFromCache(prescriptionId);
       return prescriptionDexie.delete(prescriptionId);
     }
@@ -467,7 +487,7 @@ export default {
       .anyOf(prescriptionIds)
       .toArray();
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPrescriptionMobileCache(resp);
       return resp.map((entry) => clone(entry));
     }
@@ -545,15 +565,17 @@ export default {
       );
       prescription.prescriptionDetails = prescriptionDetails.filter(
         (prescriptionDetail: any) =>
-          prescriptionDetail.prescription.id === prescription.id
+          prescriptionDetail?.prescription?.id === prescription.id ||
+          prescriptionDetail?.prescription_id === prescription.id
       );
       prescription.prescribedDrugs = prescribedDrugs.filter(
         (prescribedDrug: any) =>
-          prescribedDrug.prescription.id === prescription.id
+          prescribedDrug?.prescription?.id === prescription.id ||
+          prescribedDrug?.prescription_id === prescription.id
       );
     });
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPrescriptionMobileCache(prescriptions);
       return prescriptions.map((entry) => clone(entry));
     }

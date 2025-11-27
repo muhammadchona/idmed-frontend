@@ -53,7 +53,7 @@ export default {
     }
   },
   get(offset: number) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return this.getMobile();
     } else {
       this.getWeb(offset);
@@ -90,6 +90,9 @@ export default {
         .get('menu?offset=' + offset + '&max=100')
         .then((resp) => {
           menu.save(resp.data);
+          if (isMobile.value && !isOnline.value) {
+            this.addBulkMobile(resp.data);
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -205,7 +208,9 @@ export default {
     return menuDexie
       .delete(paramsId)
       .then(() => {
-        menuMobileCache = menuMobileCache.filter((entry) => entry.id !== paramsId);
+        menuMobileCache = menuMobileCache.filter(
+          (entry) => entry.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
         return paramsId;
       })
@@ -220,7 +225,7 @@ export default {
     return menuDexie
       .bulkPut(payload)
       .then(async () => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           await refreshMenuMobileCache();
         } else {
           menu.save(payload);
@@ -239,13 +244,13 @@ export default {
     return menu.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getMenuMobileCache();
     }
     return menu.all();
   },
   getAll() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getMenuMobileCache();
     }
     return menu.query().withAll().get();

@@ -659,9 +659,14 @@ const getImcValue = () => {
 
 // Computed
 const verifyHasSameDay = () => {
-  const visits = patientVisitService.getAllWithVitalSignByPatientId(
-    patient.value.id
-  );
+  let visits = [];
+  if (isMobile.value && !isOnline.value) {
+    visits = patient.value.patientVisits;
+  } else {
+    visits = patientVisitService.getAllWithVitalSignByPatientId(
+      patient.value.id
+    );
+  }
 
   for (const visit of visits) {
     if (

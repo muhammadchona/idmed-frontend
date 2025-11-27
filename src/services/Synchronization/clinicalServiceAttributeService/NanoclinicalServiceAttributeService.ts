@@ -10,7 +10,11 @@ export default {
   async getFromBackEnd(offset: number) {
     if (offset >= 0) {
       return await api()
-        .get('clinicalServiceAttribute?offset=' + offset + '&max=100')
+        .get(
+          'clinicalServiceClinicalServiceAttributeType?offset=' +
+            offset +
+            '&max=100'
+        )
         .then((resp) => {
           clinicalServiceAttributeDexie.bulkPut(resp.data);
           console.log('Data synced from backend: ClinicalServiceAttribute');

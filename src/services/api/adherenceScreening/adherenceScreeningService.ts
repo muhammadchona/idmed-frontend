@@ -140,11 +140,7 @@ export default {
     return adherenceScreeningDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertAdherenceScreeningCache(payload);
-        } else {
-          adherenceScreening.save(payload);
-        }
+        upsertAdherenceScreeningCache(payload);
         closeLoading();
         return payload;
       })
@@ -159,11 +155,7 @@ export default {
     return adherenceScreeningDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
-          upsertAdherenceScreeningCache(payload);
-        } else {
-          adherenceScreening.save(payload);
-        }
+        upsertAdherenceScreeningCache(payload);
         closeLoading();
         return payload;
       })
@@ -177,14 +169,9 @@ export default {
     return adherenceScreeningDexie
       .toArray()
       .then((rows: any) => {
-        if (isMobile.value) {
-          setAdherenceScreeningMobileCache(rows);
-          closeLoading();
-          return getAdherenceScreeningMobileCache();
-        }
-        adherenceScreening.save(rows);
+        setAdherenceScreeningMobileCache(rows);
         closeLoading();
-        return rows;
+        return getAdherenceScreeningMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
@@ -195,11 +182,7 @@ export default {
     return adherenceScreeningDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
-          removeAdherenceScreeningFromCache(paramsId);
-        } else {
-          adherenceScreening.destroy(paramsId);
-        }
+        removeAdherenceScreeningFromCache(paramsId);
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {

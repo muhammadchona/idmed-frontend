@@ -155,7 +155,7 @@ export default {
         if (!isMobile.value) {
           pack.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           packDexie
             .put(payload)
@@ -172,7 +172,7 @@ export default {
           if (!isMobile.value) {
             pack.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -198,7 +198,7 @@ export default {
         if (!isMobile.value) {
           pack.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           packDexie
             .put(payload)
@@ -214,7 +214,7 @@ export default {
         if (!isMobile.value) {
           pack.destroy(uuid);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           packDexie
             .delete(uuid)
             .then(() => removePackFromCache(uuid))
@@ -227,7 +227,7 @@ export default {
     const payload = clone(toPlainObject(params));
     await packDexie.put(payload);
     const hydratedPack = await hydratePack(payload);
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackCache(hydratedPack);
       return hydratedPack;
     }
@@ -238,7 +238,7 @@ export default {
     const payload = clone(toPlainObject(params));
     await packDexie.put(payload);
     const hydratedPack = await hydratePack(payload);
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackCache(hydratedPack);
       return hydratedPack;
     }
@@ -248,7 +248,7 @@ export default {
   async getMobile() {
     try {
       const rows = await packDexie.toArray();
-      if (isMobile.value) {
+      if (isMobile.value && !isOnline.value) {
         const hydratedRows = await Promise.all(
           rows.map((entry: any) => hydratePack(entry))
         );
@@ -266,7 +266,7 @@ export default {
     return packDexie
       .delete(paramsId)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           removePackFromCache(paramsId);
         } else {
           pack.destroy(paramsId);
@@ -284,7 +284,7 @@ export default {
     return packDexie
       .bulkPut(packsFromPinia)
       .then(async () => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           await refreshPackMobileCache();
         } else {
           pack.save(packsFromPinia);
@@ -332,7 +332,7 @@ export default {
           if (!isMobile.value) {
             pack.save(resp.data);
           }
-          if (isMobile.value) {
+          if (isMobile.value && !isOnline.value) {
             const payload = Array.isArray(resp.data)
               ? resp.data.map((entry: any) => clone(entry))
               : [clone(resp.data)];
@@ -379,7 +379,7 @@ export default {
         if (!isMobile.value) {
           pack.save(resp.data);
         }
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           const payload = clone(resp.data);
           packDexie
             .put(payload)
@@ -400,13 +400,13 @@ export default {
     return pack.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPackMobileCache();
     }
     return pack.all();
   },
   getAllFromStorageForDexie() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPackMobileCache();
     }
     return pack
@@ -424,7 +424,7 @@ export default {
     pack.flush();
   },
   removeFromStorage(id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       removePackFromCache(id);
       return packDexie.delete(id);
     }
@@ -432,7 +432,7 @@ export default {
   },
 
   getPackByID(Id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findPackInCache((entry) => entry.id === Id);
     }
     return pack.query().whereId(Id).first();
@@ -469,7 +469,7 @@ export default {
   },
 
   getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       console.log(getPackMobileCache());
       const packs = getPackMobileCache()
         .filter((entry) =>
@@ -494,7 +494,7 @@ export default {
     return packreturn;
   },
   getLastPackFromEpisode(episodeId: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return (
         getPackMobileCache()
           .filter((entry) =>
@@ -517,7 +517,7 @@ export default {
   },
 
   getPacksFromPatientId(patientServiceIdentifierid: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getPackMobileCache()
         .filter((entry) =>
           (entry.patientVisitDetails || []).some((detail: any) => {
@@ -546,7 +546,7 @@ export default {
   },
 
   getLastPackFromPatientId(patientServiceIdentifierid: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return this.getPacksFromPatientId(patientServiceIdentifierid)[0] ?? null;
     }
     return pack
@@ -564,7 +564,7 @@ export default {
   },
 
   getLastPackFromPatientAndDrug(patient: string, drug: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const list = getPackMobileCache()
         .filter((entry) =>
           (entry.packagedDrugs || []).some(
@@ -609,7 +609,7 @@ export default {
   async getAllMobileByIds(packIds: any) {
     const resp = await packDexie.where('id').anyOf(packIds).toArray();
 
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackCache(resp);
       return resp.map((entry) => clone(entry));
     }
@@ -637,11 +637,13 @@ export default {
     startDate: any,
     endDate: any
   ) {
-    const packs = await packDexie
-      .where('pickupDate')
-      .between(startDate, endDate, true, true)
-      .reverse()
-      .sortBy('pickupDate');
+    const packs = (
+      await packDexie
+        .where('pickupDate')
+        .between(startDate, endDate, true, true)
+        .reverse()
+        .sortBy('pickupDate')
+    ).filter((p) => p.syncStatus === 'R');
 
     const packIds = packs.map((pack: any) => pack.id);
     const clinicIds = packs.map((pack: any) => pack.clinic_id);
@@ -672,7 +674,7 @@ export default {
       );
       pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
     });
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackCache(packs);
       return packs.map((entry: any) => clone(entry));
     }
@@ -739,7 +741,9 @@ export default {
         (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
       );
       pack.packagedDrugs = packagedDrugsList.filter(
-        (packagedDrugs: any) => packagedDrugs.pack.id === pack.id
+        (packagedDrugs: any) =>
+          packagedDrugs?.pack?.id === pack.id ||
+          packagedDrugs.pack_id === pack.id
       );
       pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
     });
@@ -783,7 +787,7 @@ export default {
       );
       pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
     });
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackCache(packs);
       return packs.map((entry: any) => clone(entry));
     }
@@ -840,7 +844,7 @@ export default {
       .anyOfIgnoreCase(ids)
       .reverse()
       .sortBy('pickupDate');
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackCache(results);
       return results.map((entry: any) => clone(entry));
     }
@@ -942,7 +946,7 @@ export default {
       .where('id')
       .anyOfIgnoreCase(packList)
       .toArray();
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       upsertPackCache(rows);
       return rows.map((entry: any) => clone(entry));
     }

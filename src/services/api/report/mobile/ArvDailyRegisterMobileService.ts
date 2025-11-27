@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import packService from '../../pack/packService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 
-const { isMobile } = useSystemUtils();
+const { isMobile, isOnline } = useSystemUtils();
 const arvDailyRegisterReportDexie = db[ArvDailyRegisterTempReport.entity];
 
 const clone = (payload: any) =>
@@ -145,7 +145,7 @@ export default {
     return arvDailyRegisterReportDexie
       .put(payload)
       .then(() => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertArvDailyRegisterCache(payload);
           return payload;
         }
@@ -171,7 +171,7 @@ export default {
       .equalsIgnoreCase(reportId)
       .toArray()
       .then((result: []) => {
-        if (isMobile.value) {
+        if (isMobile.value && !isOnline.value) {
           upsertArvDailyRegisterCache(result);
           return result.map((entry: any) => clone(entry));
         }

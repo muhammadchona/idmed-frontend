@@ -141,6 +141,7 @@
                 v-for="episode in get3LastEpisodes"
                 :key="episode.id"
                 :episodeId="episode.id"
+                :episode="episode"
                 :isLast="episode?.isLast"
               />
             </span>
@@ -289,7 +290,8 @@ const canClosePatientService = computed(() => {
 const isPatientActive = computed(() => {
   return (
     curIdentifier.value?.endDate !== null &&
-    curIdentifier.value?.endDate !== undefined
+    curIdentifier.value?.endDate !== undefined &&
+    curIdentifier.value?.endDate !== ''
   );
 });
 
@@ -386,7 +388,18 @@ const get3LastEpisodes = computed(() => {
   if (!curIdentifier.value?.id) {
     return [];
   }
-  return episodeService.getlast3EpisodesByIdentifier(curIdentifier.value.id);
+  if (isMobile.value && !isOnline.value) {
+    const episodes = curIdentifier.value.episodes;
+    if (episodes?.length > 1) {
+      episodes[0].isLast = true;
+      episodes[1].isLast = false;
+    } else if (episodes.length > 0) {
+      episodes[0].isLast = true;
+    }
+    return episodes;
+  } else {
+    return episodeService.getlast3EpisodesByIdentifier(curIdentifier.value.id);
+  }
 });
 
 onMounted(() => {

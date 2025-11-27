@@ -12,7 +12,13 @@ export default {
       return await api()
         .get('doctor?offset=' + offset + '&max=100')
         .then((resp) => {
-          doctorDexie.bulkPut(resp.data);
+          const doctors = resp.data
+            .filter((doc) => doc.active)
+            .map((doc) => ({
+              ...doc,
+              fullName: `${doc.firstnames} ${doc.lastname}`.trim(),
+            }));
+          doctorDexie.bulkPut(doctors);
           console.log('Data synced from backend: Doctor');
           offset = offset + 100;
           if (resp.data.length > 0) {

@@ -511,23 +511,22 @@ const validadeColor = computed(() => {
   if (prescription.value !== null && remainigDuration(prescription.value) > 0) {
     return 'text-primary';
   } else {
-    // return 'text-red';
+    return 'text-red';
   }
 });
 const lastPackOnPrescription = computed(() => {
-  if (prescription.value !== null) {
-    /*
-    return packService.getLastPackFromPatientVisitAndPrescription(
-      prescription.value.id
-    );
-    */
-    if (isMobile.value && lastPatientVisitDetails.value !== null) {
-      console.log(lastPatientVisitDetails.value.pack);
-      return lastPatientVisitDetails.value.pack;
-    }
-  } else {
+  const lastPrescription = prescription.value;
+  const lastDetail = lastPatientVisitDetails.value;
+  if (!lastPrescription) {
     return null;
   }
+  if (isMobile.value && !isOnline.value && lastDetail) {
+    return lastDetail.pack ?? null;
+  }
+
+  return packService.getLastPackFromPatientVisitAndPrescription(
+    lastPrescription.id
+  );
 });
 
 const lastLog = computed(() => {
@@ -541,50 +540,34 @@ const lastLog = computed(() => {
 });
 
 const prescription = computed(() => {
-  if (lastLog.value && lastLog.value.prescription) {
-    return lastLog.value.prescription;
+  const lastDetail = lastPatientVisitDetails.value;
+  const lastLogRx = lastLog.value?.prescription;
+
+  if (lastLogRx) {
+    return lastLogRx;
   }
-  if (lastPatientVisitDetails.value !== null) {
-    /*
-    return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
-      lastPatientVisitDetails.value.prescription.id
-    );
-    */
-    if (isMobile.value && lastPatientVisitDetails.value !== null) {
-      console.log(lastPatientVisitDetails.value.prescription);
-      return lastPatientVisitDetails.value.prescription;
-    }
-  } else {
+
+  if (!lastDetail) {
     return null;
   }
+  if (isMobile.value && !isOnline.value) {
+    return lastDetail.prescription ?? null;
+  }
+  return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
+    lastDetail.prescription.id
+  );
 });
 
 const patientVisit = computed(() => {
   const listPatietVisitIds = [];
-  /*
-  if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
-    const listPatietVisitDetails =
-      patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
-        lastStartEpisode.value.id
-      );
-
+  if (isOnline.value) {
     if (
-      listPatietVisitDetails !== null &&
-      listPatietVisitDetails !== undefined
-    ) {
-      listPatietVisitDetails.forEach((patientvisitdetails) => {
-        listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
-      });
-    }
-    return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
-  } else {
-    if (
-      lastRefferedEpisode.value !== null &&
-      lastRefferedEpisode.value !== undefined
+      lastStartEpisode.value !== null &&
+      lastStartEpisode.value !== undefined
     ) {
       const listPatietVisitDetails =
         patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
-          lastRefferedEpisode.value.id
+          lastStartEpisode.value.id
         );
 
       if (
@@ -598,15 +581,35 @@ const patientVisit = computed(() => {
       return patientVisitService.getLastFromPatientVisitList(
         listPatietVisitIds
       );
-    } else return null;
-  }
-     */
-  if (
+    } else {
+      if (
+        lastRefferedEpisode.value !== null &&
+        lastRefferedEpisode.value !== undefined
+      ) {
+        const listPatietVisitDetails =
+          patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
+            lastRefferedEpisode.value.id
+          );
+
+        if (
+          listPatietVisitDetails !== null &&
+          listPatietVisitDetails !== undefined
+        ) {
+          listPatietVisitDetails.forEach((patientvisitdetails) => {
+            listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+          });
+        }
+        return patientVisitService.getLastFromPatientVisitList(
+          listPatietVisitIds
+        );
+      } else return null;
+    }
+  } else if (
     isMobile.value &&
+    !isOnline.value &&
     lastStartEpisode.value !== null &&
     lastStartEpisode.value !== undefined
   ) {
-    console.log(patient.value);
     const matchingVisits = patient.value.patientVisits.filter((visit) => {
       if (
         !visit.patientVisitDetails ||
@@ -615,7 +618,6 @@ const patientVisit = computed(() => {
         return false;
       }
 
-      // Check if any detail in this visit matches the episode ID
       return visit.patientVisitDetails.some((detail) => {
         const detailEpisodeId = String(
           detail?.episode?.id ?? detail?.episodeId ?? ''
@@ -635,7 +637,6 @@ const patientVisit = computed(() => {
       const dateB = b?.visitDate ?? '';
       return String(dateB).localeCompare(String(dateA));
     });
-    console.log(matchingVisits[0]);
     return matchingVisits[0];
   }
 });
@@ -647,7 +648,6 @@ const lastPatientVisitDetails = computed(() => {
       lastStartEpisode.value !== null &&
       lastStartEpisode.value !== undefined
     ) {
-      console.log(patientVisit.value);
       return patientVisit.value.patientVisitDetails[0];
     } else {
       return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
@@ -662,9 +662,14 @@ const lastPatientVisitDetails = computed(() => {
 
 const lastStartEpisode = computed(() => {
   if (curIdentifier.value?.id) {
-    return episodeService.getLastStartEpisodeWithPrescription(
-      curIdentifier.value.id
-    );
+    if (isMobile.value && !isOnline.value) {
+      const episodes = curIdentifier.value.episodes;
+      return episodes[0];
+    } else {
+      return episodeService.getLastStartEpisodeWithPrescription(
+        curIdentifier.value.id
+      );
+    }
   } else {
     return null;
   }
@@ -726,6 +731,7 @@ provide('curIdentifier', curIdentifier);
 provide('prescription', prescription);
 provide('showPrescriptionDetails', showPrescriptionDetails);
 provide('validadeColor', validadeColor);
+provide('lastPatientVisit', patientVisit);
 </script>
 
 <style>

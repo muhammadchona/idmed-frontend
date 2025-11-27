@@ -369,7 +369,7 @@ const closeInventory = () => {
 const doProcessAndClose = async () => {
   let inventory = {};
 
-  if (isMobile.value) {
+  if (isMobile.value && !isOnline.value) {
     inventory = InventoryService.getInvnetoryById(currInventory.value.id);
     inventory.open = false;
   } else {

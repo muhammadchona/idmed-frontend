@@ -148,9 +148,17 @@ const closeButtonActions = () => {
 };
 
 const patientVisits = computed(() => {
-  return patientVisitService.getLastFourWithVitalSignByPatientId(
-    patient.value.id
-  );
+  if (isMobile.value && !isOnline.value) {
+    return patient.value.patientVisits.filter(
+      (visit) =>
+        Array.isArray(visit.vitalSignsScreenings) &&
+        visit.vitalSignsScreenings.length > 0
+    );
+  } else {
+    return patientVisitService.getLastFourWithVitalSignByPatientId(
+      patient.value.id
+    );
+  }
 });
 const showAddButton = computed(() => {
   if (hasEpisodes(patient.value)) {

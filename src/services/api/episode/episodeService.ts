@@ -15,13 +15,67 @@ import clinicService from '../clinicService/clinicService';
 import startStopReasonService from '../startStopReasonService/startStopReasonService';
 import episodeTypeService from '../episodeType/episodeTypeService';
 import clinicSectorService from '../clinicSectorService/clinicSectorService';
+import patientService from '../patientService/patientService';
 
 const episode = useRepo(Episode);
 const episodeDexie = db[Episode.entity];
 
-const { closeLoading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
+
+const clone = (payload: any) =>
+  payload === undefined || payload === null
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
+
+const toPlainObject = (payload: any) => {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload);
+    } catch (error) {
+      console.log(error);
+      return payload;
+    }
+  }
+  return payload;
+};
+
+let episodeMobileCache: any[] = [];
+
+const setEpisodeMobileCache = (rows: any[]) => {
+  episodeMobileCache = rows.map((row) => clone(row));
+};
+
+const upsertEpisodeMobileCache = (items: any | any[]) => {
+  const entries = Array.isArray(items) ? items : [items];
+  entries.forEach((entry) => {
+    const payload = clone(entry);
+    const index = episodeMobileCache.findIndex(
+      (item) => item.id === payload.id
+    );
+    if (index >= 0) {
+      episodeMobileCache.splice(index, 1, payload);
+    } else {
+      episodeMobileCache.push(payload);
+    }
+  });
+};
+
+const removeEpisodeFromCache = (id: string) => {
+  episodeMobileCache = episodeMobileCache.filter((entry) => entry.id !== id);
+};
+
+const getEpisodeMobileCache = () => episodeMobileCache.map((row) => clone(row));
+
+const refreshEpisodeMobileCache = async () => {
+  const rows = await episodeDexie.toArray();
+  setEpisodeMobileCache(rows);
+  return getEpisodeMobileCache();
+};
+
+const findEpisodeInCache = (predicate: (entry: any) => boolean) =>
+  getEpisodeMobileCache().find(predicate) ?? null;
 
 export default {
   post(params: string) {
@@ -95,10 +149,16 @@ export default {
   },
   // Mobile
   addMobile(params: string) {
+    console.log(params);
     return episodeDexie
       .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        episode.save(params);
+      .then(async () => {
+        // episode.save(params);
+        showloading();
+        await patientService.getPatientGraphFromDexie(
+          localStorage.getItem('patientuuid')
+        );
+        closeLoading();
       })
       .catch((error: any) => {
         console.log(error);
@@ -274,11 +334,28 @@ export default {
   },
   // TODO: Revisar estes métodos que parecem duplicados
   lastEpisodeByIdentifier(identifierId: string) {
-    return episode
-      .withAllRecursive(2)
-      .where('patientServiceIdentifier_id', identifierId)
-      .orderBy('episodeDate', 'desc')
-      .first();
+    if (isMobile.value && !isOnline.value) {
+      return (
+        getEpisodeMobileCache()
+          .filter((ep) => {
+            const id =
+              ep?.patientServiceIdentifier_id ?? ep?.patientServiceIdentifierId;
+
+            return id === identifierId;
+          })
+          .sort((a, b) => {
+            const d1 = new Date(a.episodeDate).getTime() || 0;
+            const d2 = new Date(b.episodeDate).getTime() || 0;
+            return d2 - d1; // latest first
+          })[0] || null
+      );
+    } else {
+      return episode
+        .withAllRecursive(2)
+        .where('patientServiceIdentifier_id', identifierId)
+        .orderBy('episodeDate', 'desc')
+        .first();
+    }
   },
   getlast3EpisodesByIdentifier(identifierId: string) {
     const episodes = episode
@@ -296,11 +373,16 @@ export default {
     return episodes;
   },
   getEpisodeById(id: string) {
-    return episode
-      .withAllRecursive(2)
-      .where('id', id)
-      .orderBy('episodeDate', 'desc')
-      .first();
+    if (isMobile.value && !isOnline.value) {
+      console.log(getEpisodeMobileCache());
+      return getEpisodeMobileCache().find((ep) => ep.id === id) || null;
+    } else {
+      return episode
+        .withAllRecursive(2)
+        .where('id', id)
+        .orderBy('episodeDate', 'desc')
+        .first();
+    }
   },
 
   /*
@@ -366,15 +448,27 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
-  getLastStartEpisodeByIdentifier(identifierId: string) {
-    return episode
-      .withAllRecursive(1)
-      .where('patientServiceIdentifier_id', identifierId)
-      .whereHas('episodeType', (query) => {
-        query.where('code', 'INICIO');
-      })
-      .orderBy('episodeDate', 'desc')
-      .first();
+  getLastStartEpisodeByIdentifier(identifierId: string, episodes: Episode[]) {
+    if (isMobile.value && !isOnline.value) {
+      return (
+        episodes
+          .filter((ep: Episode) => ep?.episodeType?.code === 'INICIO')
+          .sort(
+            (a: any, b: any) =>
+              new Date(b.episodeDate).getTime() -
+              new Date(a.episodeDate).getTime()
+          )[0] || null // 3) .first()
+      );
+    } else {
+      return episode
+        .withAllRecursive(1)
+        .where('patientServiceIdentifier_id', identifierId)
+        .whereHas('episodeType', (query) => {
+          query.where('code', 'INICIO');
+        })
+        .orderBy('episodeDate', 'desc')
+        .first();
+    }
   },
   getLastRefferalEpisodeByIdentifier(patientIdentifierid: string) {
     return episode
@@ -496,6 +590,7 @@ export default {
       episodeTypes,
       clinicSectors,
       patientServiceIdentifiers,
+      patientVisitDetails,
     ] = await Promise.all([
       clinicService.getAllByIDsFromDexie(referralClinicIds),
       startStopReasonService.getAllByIDsFromDexie(startStopReasonIds),
@@ -504,7 +599,9 @@ export default {
       patientServiceIdentifierService.getAllByIDsFromDexie(
         patientServiceIdentifierIds
       ),
+      patientVisitDetailsService.getPatientVisitDetailsByEpisodeIds(ids),
     ]);
+    console.log(patientVisitDetails);
     episodes.map((episode: any) => {
       episode.referralClinic = referralClinics.find(
         (referralClinic: any) => referralClinic.id === episode.referralClinic.id
@@ -522,6 +619,10 @@ export default {
       episode.patientServiceIdentifier = patientServiceIdentifiers.find(
         (patientServiceIdentifier: any) =>
           patientServiceIdentifier.id === episode.patientServiceIdentifier.id
+      );
+      episode.patientVisitDetails = patientVisitDetails.filter(
+        (patientVisitDetail: any) =>
+          patientVisitDetail.episode.id === episode.id
       );
     });
 
@@ -654,7 +755,6 @@ export default {
     return episodes;
   },
   async getAll3LastDataByIdentifierIDsFromDexie(ids: string[]) {
-
     const collection = episodeDexie
       .orderBy('episodeDate')
       .reverse()
@@ -719,5 +819,12 @@ export default {
   },
   deleteAllFromDexie() {
     episodeDexie.clear();
+  },
+
+  async refreshMobileCache() {
+    if (!isMobile.value) {
+      return [];
+    }
+    return refreshEpisodeMobileCache();
   },
 };

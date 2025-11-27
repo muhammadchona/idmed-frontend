@@ -54,7 +54,8 @@ const setDistrictMobileCache = (rows: any[]) => {
   districtMobileCache = rows.map((row) => clone(row));
 };
 
-const getDistrictMobileCache = () => districtMobileCache.map((row) => clone(row));
+const getDistrictMobileCache = () =>
+  districtMobileCache.map((row) => clone(row));
 
 const refreshDistrictMobileCache = async () => {
   const rows = await districtDexie.toArray();
@@ -271,7 +272,7 @@ export default {
     return await api().get('/district?offset=' + offset + '&max=' + max);
   },
   getAllDistrictByProvinceId(provinceid: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getDistrictMobileCache().filter(
         (entry) => entry.province_id === provinceid
       );
@@ -283,9 +284,10 @@ export default {
       .get();
   },
   getAllDistrictByDescription(description: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return (
-        findDistrictInCache((entry) => entry.description === description) ?? null
+        findDistrictInCache((entry) => entry.description === description) ??
+        null
       );
     }
     return district
@@ -295,13 +297,13 @@ export default {
       .first();
   },
   getDistrictById(id: string) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findDistrictInCache((entry) => entry.id === id);
     }
     return district.query().with('province').where('id', id).first();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getDistrictMobileCache();
     }
     return district.all();

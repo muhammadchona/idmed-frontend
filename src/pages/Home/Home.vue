@@ -222,8 +222,7 @@ const { loadSettingParams } = useOnline();
 
 const {
   saveParamsFromBackendToDexie,
-  loadParamsDataFromBackEndToPinia,
-  saveParamsFromDexieToPinia,
+  loadParamsFromDexieToCache,
   loadPatientDataToOffline,
 } = useOffline();
 const { alertWarningTitle } = useSwal();
@@ -280,7 +279,7 @@ onMounted(async () => {
       }
     });
     showloading();
-    saveParamsFromDexieToPinia();
+    loadParamsFromDexieToCache();
     closeLoading();
   }
 });

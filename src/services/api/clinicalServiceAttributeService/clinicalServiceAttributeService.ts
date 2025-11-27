@@ -5,6 +5,7 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import db from '../../../stores/dexie';
+import clinicalServiceService from '../clinicalServiceService/clinicalServiceService';
 
 const clinicalServiceAttribute = useRepo(ClinicalServiceAttribute);
 const clinicalServiceAttributeDexie = db[ClinicalServiceAttribute.entity];
@@ -162,7 +163,9 @@ export default {
       .delete(paramsId)
       .then(async () => {
         clinicalServiceAttributeMobileCache =
-          clinicalServiceAttributeMobileCache.filter((item) => item.id !== paramsId);
+          clinicalServiceAttributeMobileCache.filter(
+            (item) => item.id !== paramsId
+          );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {
@@ -215,12 +218,18 @@ export default {
   },
   checkWeatherAttExist(clinicalServiceId: string, att: string) {
     if (isMobile.value && !isOnline.value) {
-      return getClinicalServiceAttributeMobileCache().some((entry) => {
-        const typeCode =
-          entry?.clinicalServiceAttributeType?.code ??
-          entry?.clinicalServiceAttributeType?.CODE ??
-          '';
-        return entry.clinical_service_id === clinicalServiceId && typeCode === att;
+      console.log(getClinicalServiceAttributeMobileCache());
+      console.log(clinicalServiceService.getClinicalServiceMobileCache());
+      const services = clinicalServiceService.getClinicalServiceMobileCache();
+      console.log(att);
+      return services.some((service) => {
+        // 1. Must match the clinicalServiceId
+        if (service.id !== clinicalServiceId) return false;
+
+        // 2. Now check the attributes
+        const attributes = service.clinicalServiceAttributes || [];
+
+        return attributes.some((attr) => attr?.code === att);
       });
     }
     const csa = clinicalServiceAttribute

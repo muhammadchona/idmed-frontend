@@ -148,7 +148,9 @@ export default {
     return doctorDexie
       .delete(paramsId)
       .then(async () => {
-        doctorMobileCache = doctorMobileCache.filter((item) => item.id !== paramsId);
+        doctorMobileCache = doctorMobileCache.filter(
+          (item) => item.id !== paramsId
+        );
         alertSucess('O Registo foi removido com sucesso');
       })
       .catch((error: any) => {

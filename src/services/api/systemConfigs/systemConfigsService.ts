@@ -59,10 +59,14 @@ const findConfigInCache = (predicate: (entry: any) => boolean) =>
   getSystemConfigsMobileCache().find(predicate) ?? null;
 
 const matchesKey = (value: any, target: string) =>
-  String(value || '').trim().toUpperCase() === target;
+  String(value || '')
+    .trim()
+    .toUpperCase() === target;
 
 const findConfigByKeyInCache = (key: string) => {
-  const normalizedKey = String(key || '').trim().toUpperCase();
+  const normalizedKey = String(key || '')
+    .trim()
+    .toUpperCase();
   if (!normalizedKey) {
     return null;
   }
@@ -125,6 +129,9 @@ export default {
         .get('systemConfigs?offset=' + offset + '&max=100')
         .then((resp) => {
           systemConfigs.save(resp.data);
+          if (isMobile.value && !isOnline.value) {
+            this.addBulkMobile(resp.data);
+          }
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);
@@ -203,17 +210,6 @@ export default {
       });
   },
   getMobile() {
-    if (!isMobile.value) {
-      return systemConfigsDexie
-        .toArray()
-        .then((rows: any) => {
-          systemConfigs.save(rows);
-        })
-        .catch((error: any) => {
-          // alertError('Aconteceu um erro inesperado nesta operação.');
-          console.log(error);
-        });
-    }
     return systemConfigsDexie
       .toArray()
       .then((rows: any) => {
@@ -261,11 +257,7 @@ export default {
     return systemConfigsDexie
       .bulkPut(payload)
       .then(async () => {
-        if (isMobile.value) {
-          await refreshSystemConfigsMobileCache();
-        } else {
-          systemConfigs.save(payload);
-        }
+        await refreshSystemConfigsMobileCache();
       })
       .catch((error: any) => {
         console.log(error);
@@ -286,7 +278,7 @@ export default {
     return systemConfigs.getModel().$newInstance();
   },
   getAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getSystemConfigsMobileCache().sort((a, b) =>
         String(a?.description || '').localeCompare(String(b?.description || ''))
       );
@@ -294,7 +286,7 @@ export default {
     return systemConfigs.orderBy('description').get();
   },
   getAllFromStorageWithoutMigration() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return getSystemConfigsMobileCache()
         .filter(
           (entry) =>
@@ -323,7 +315,7 @@ export default {
   },
 
   saveInStorage(systemConfigsObj: any) {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       const payload = toPlainObject(systemConfigsObj);
       const persist = Array.isArray(payload)
         ? systemConfigsDexie.bulkPut(payload)
@@ -342,7 +334,7 @@ export default {
   },
 
   getActiveDataMigration() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findConfigByKeyInCache('ACTIVATE_DATA_MIGRATION');
     }
     return systemConfigs
@@ -352,20 +344,20 @@ export default {
   },
 
   getInstallationType() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findConfigByKeyInCache('INSTALATION_TYPE');
     }
     return systemConfigs.query().where('key', 'INSTALATION_TYPE').first();
   },
 
   getApiURL() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return findConfigByKeyInCache('API_URL');
     }
     return systemConfigs.query().where('key', 'API_URL').first();
   },
   deleteAllFromStorage() {
-    if (isMobile.value) {
+    if (isMobile.value && !isOnline.value) {
       return systemConfigsDexie
         .clear()
         .then(() => {

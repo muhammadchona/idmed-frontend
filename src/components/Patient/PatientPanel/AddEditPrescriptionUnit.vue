@@ -566,6 +566,11 @@ import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPr
 import CameraDialog from '../PatientPanel/UploadPicture.vue';
 
 const { isMobile, isOnline } = useSystemUtils();
+
+const deepClone = (payload) =>
+  payload === null || payload === undefined
+    ? payload
+    : JSON.parse(JSON.stringify(payload));
 //props
 const props = defineProps(['identifier']);
 const showCamera = ref(false);
@@ -755,73 +760,119 @@ const durations = computed(() => {
   return durationService.getAllFromStorage();
 });
 const lastStartEpisode = computed(() => {
-  return episodeService.getLastStartEpisodeByIdentifier(props.identifier.id);
+  return episodeService.getLastStartEpisodeByIdentifier(
+    props.identifier.id,
+    props.identifier?.episodes
+  );
 });
 const lastRefferalEpisode = computed(() => {
   return episodeService.getLastRefferalEpisodeByIdentifier(props.identifier.id);
 });
 const lastPatientVisit = computed(() => {
-  const listPatietVisitIds = [];
-  if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
-    const listPatietVisitDetails =
-      patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
-        lastStartEpisode.value.id
-      );
+  if (
+    isMobile.value &&
+    !isOnline.value &&
+    lastStartEpisode.value !== null &&
+    lastStartEpisode.value !== undefined
+  ) {
+    const matchingVisits = patient.value.patientVisits.filter((visit) => {
+      if (
+        !visit.patientVisitDetails ||
+        !Array.isArray(visit.patientVisitDetails)
+      ) {
+        return false;
+      }
 
-    if (
-      listPatietVisitDetails !== null &&
-      listPatietVisitDetails !== undefined &&
-      listPatietVisitDetails.length !== 0
-    ) {
-      listPatietVisitDetails.forEach((patientvisitdetails) => {
-        listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+      // Check if any detail in this visit matches the episode ID
+      return visit.patientVisitDetails.some((detail) => {
+        const detailEpisodeId = String(
+          detail?.episode?.id ?? detail?.episodeId ?? ''
+        )
+          .trim()
+          .toLowerCase();
+        return detailEpisodeId === lastStartEpisode.value.id;
       });
-    } else {
-      const listPatientVisits = patientVisitService.getAllFromPatient(
-        patient.value.id
-      );
-      listPatientVisits.forEach((patientvisit) => {
-        listPatietVisitIds.push(patientvisit.id);
-      });
+    });
+
+    if (matchingVisits.length === 0) {
+      return null;
     }
-    return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
+    matchingVisits.sort((a, b) => {
+      const dateA = a?.visitDate ?? '';
+      const dateB = b?.visitDate ?? '';
+      return String(dateB).localeCompare(String(dateA));
+    });
+    return matchingVisits[0];
   } else {
-    return null;
+    const listPatietVisitIds = [];
+    if (
+      lastStartEpisode.value !== null &&
+      lastStartEpisode.value !== undefined
+    ) {
+      const listPatietVisitDetails =
+        patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
+          lastStartEpisode.value.id
+        );
+
+      if (
+        listPatietVisitDetails !== null &&
+        listPatietVisitDetails !== undefined &&
+        listPatietVisitDetails.length !== 0
+      ) {
+        listPatietVisitDetails.forEach((patientvisitdetails) => {
+          listPatietVisitIds.push(patientvisitdetails.patient_visit_id);
+        });
+      } else {
+        const listPatientVisits = patientVisitService.getAllFromPatient(
+          patient.value.id
+        );
+        listPatientVisits.forEach((patientvisit) => {
+          listPatietVisitIds.push(patientvisit.id);
+        });
+      }
+      return patientVisitService.getLastFromPatientVisitList(
+        listPatietVisitIds
+      );
+    } else {
+      return null;
+    }
   }
 });
 
 const lastPatientVisitDetails = computed(() => {
   if (lastPatientVisit.value !== null && lastPatientVisit.value !== undefined) {
+    if (!lastStartEpisode.value) {
+      return null;
+    }
+
+    if (isMobile.value && !isOnline.value) {
+      return lastPatientVisit.value.patientVisitDetails?.[0] ?? null;
+    }
     const lastPatientVisitDetailsFromEpisode =
       patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
         lastPatientVisit.value.id,
         lastStartEpisode.value.id
       );
-    if (
-      lastPatientVisitDetailsFromEpisode === null ||
-      lastPatientVisitDetailsFromEpisode === undefined
-    ) {
+
+    if (lastPatientVisitDetailsFromEpisode == null) {
       const patientVisitsDetailsByIdentifier =
         patientVisitDetailsService.getAllWithAllRecursiveFromPatientAndClinicService(
           patient.value.id,
           props.identifier.service.id
         );
+
       if (
-        patientVisitsDetailsByIdentifier !== null &&
-        patientVisitsDetailsByIdentifier !== undefined &&
-        patientVisitsDetailsByIdentifier.length !== 0
+        patientVisitsDetailsByIdentifier &&
+        patientVisitsDetailsByIdentifier.length > 0
       ) {
         return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
           lastPatientVisit.value.id
         );
-      } else {
-        return null;
       }
-    } else {
-      return lastPatientVisitDetailsFromEpisode;
+
+      return null;
     }
-  } else {
-    return null;
+    return lastPatientVisitDetailsFromEpisode;
   }
 });
 
@@ -876,32 +927,36 @@ const optionsNonFutureDate = (date) => {
   return date <= moment().format('YYYY/MM/DD');
 };
 const getLastPrescriptionData = () => {
-  if (lastPrescription.value !== null && lastPrescription.value !== undefined) {
+  const lastPrescriptionSnapshot = deepClone(lastPrescription.value);
+  if (
+    lastPrescriptionSnapshot !== null &&
+    lastPrescriptionSnapshot !== undefined
+  ) {
     curPrescriptionDetail.value.therapeuticRegimen =
-      lastPrescription.value.prescriptionDetails[0].therapeuticRegimen;
+      lastPrescriptionSnapshot.prescriptionDetails[0].therapeuticRegimen;
     curPrescriptionDetail.value.therapeutic_regimen_id =
-      lastPrescription.value.prescriptionDetails[0].therapeuticRegimen.id;
+      lastPrescriptionSnapshot.prescriptionDetails[0].therapeuticRegimen.id;
 
     curPrescriptionDetail.value.therapeuticLine =
-      lastPrescription.value.prescriptionDetails[0].therapeuticLine;
+      lastPrescriptionSnapshot.prescriptionDetails[0].therapeuticLine;
     curPrescriptionDetail.value.therapeutic_line_id =
-      lastPrescription.value.prescriptionDetails[0].therapeuticLine.id;
+      lastPrescriptionSnapshot.prescriptionDetails[0].therapeuticLine.id;
 
     curPrescriptionDetail.value.dispense_type_id =
-      lastPrescription.value.prescriptionDetails[0].dispenseType.id;
+      lastPrescriptionSnapshot.prescriptionDetails[0].dispenseType.id;
     curPrescriptionDetail.value.dispenseType =
-      lastPrescription.value.prescriptionDetails[0].dispenseType;
+      lastPrescriptionSnapshot.prescriptionDetails[0].dispenseType;
 
-    curPrescription.value.duration = lastPrescription.value.duration;
-    curPrescription.value.duration_id = lastPrescription.value.duration.id;
+    curPrescription.value.duration = lastPrescriptionSnapshot.duration;
+    curPrescription.value.duration_id = lastPrescriptionSnapshot.duration.id;
     delete curPrescription.value.duration['prescriptions'];
-    curPrescription.value.doctor = lastPrescription.value.doctor;
-    curPrescription.value.doctor_id = lastPrescription.value.doctor.id;
+    curPrescription.value.doctor = lastPrescriptionSnapshot.doctor;
+    curPrescription.value.doctor_id = lastPrescriptionSnapshot.doctor.id;
     curPrescription.value.patientStatus = 'Manutenção';
 
-    curPrescription.value.patientType = lastPrescription.value.patientType;
+    curPrescription.value.patientType = lastPrescriptionSnapshot.patientType;
     curPrescription.value.prescribedDrugs =
-      lastPrescription.value.prescribedDrugs;
+      lastPrescriptionSnapshot.prescribedDrugs || [];
 
     curPrescription.value.prescribedDrugs.forEach((prescribedDrug) => {
       prescribedDrug.id = uuidv4();
@@ -966,11 +1021,11 @@ const init = () => {
     );
     getLastPrescriptionData();
   } else {
+    const mutableLastPrescription = deepClone(lastPrescription.value);
     prescriptionDate.value = getDDMMYYYFromJSDate(
-      lastPrescription.value.prescriptionDate
+      mutableLastPrescription.prescriptionDate
     );
-    curPrescription.value = lastPrescription.value;
-    // curPrescription.value.patientVisitDetails = [];
+    curPrescription.value = mutableLastPrescription;
     curPrescription.value.syncStatus = 'N';
     curPrescription.value.prescriptionDetails.forEach((prescriptionDetail) => {
       prescriptionDetail.prescription = null;
@@ -1247,18 +1302,13 @@ const addPackagedDrugs = () => {
           const qtyRemain = getQtyRemain(
             packagedDrug,
             lastPack.value.weeksSupply
-            //          curPrescription.value.duration.weeks
           );
           quantityRemainAux = Number(qtyRemain) + Number(item.quantityRemain);
           packagedDrug.quantityRemain = quantityRemainAux;
         }
       });
     } else {
-      const qtyRemain = getQtyRemain(
-        packagedDrug,
-        curPack.value.weeksSupply
-        //     curPrescription.value.duration.weeks
-      );
+      const qtyRemain = getQtyRemain(packagedDrug, curPack.value.weeksSupply);
       packagedDrug.quantityRemain = qtyRemain;
     }
     prescribedDrug.quantityRemain = quantityRemainAux;

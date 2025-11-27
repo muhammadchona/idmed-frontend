@@ -210,12 +210,12 @@ const {
   isStartEpisode,
   checkIsReferedToRemove,
 } = useEpisode();
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { isPharmacyDDDOrAPEOrDCP, isProvincialInstalation } = useSystemConfig();
 //Props
-const props = defineProps(['episodeId', 'isLast']);
+const props = defineProps(['episodeId', 'isLast', 'episode']);
 //Inject
 const showAddEditEpisode = inject('showAddEditEpisode');
 const isNewEpisode = inject('isNewEpisode');
@@ -224,7 +224,11 @@ const isClosingEpisode = inject('isClosingEpisode');
 const showEditClosedEpisode = ref(false);
 //Computed
 const currEpisode = computed(() => {
-  return episodeService.getEpisodeById(props.episodeId);
+  if (isMobile.value && !isOnline.value) {
+    return props.episode;
+  } else {
+    return episodeService.getEpisodeById(props.episodeId);
+  }
 });
 const lastPack = computed(() => {
   let lastPack = packService.getLastPackFromEpisode(props.episodeId);
@@ -328,10 +332,14 @@ const doOnConfirm = () => {
 
 const isLastEpisode = computed(() => {
   if (currEpisode.value !== null) {
-    return (
-      episodeService.lastEpisodeByIdentifier(currIdentifier.value.id).id ===
-      currEpisode.value.id
-    );
+    if (isMobile.value && !isOnline.value) {
+      return props.episode;
+    } else {
+      return (
+        episodeService.lastEpisodeByIdentifier(currIdentifier.value.id).id ===
+        currEpisode.value.id
+      );
+    }
   }
   return true;
 });

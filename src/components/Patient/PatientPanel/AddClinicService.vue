@@ -823,6 +823,7 @@ const doSave = async () => {
     );
   }
   let clinical_service_id = identifier.value.service.id;
+  const service = identifier.value.service;
   identifier.value.patient = {};
   identifier.value.patient.id = patient.value.id;
   identifier.value.service = {};
@@ -845,8 +846,10 @@ const doSave = async () => {
       identifier.value.syncStatus = 'U';
     }
     identifier.value.patient_id = patient.value.id;
+    identifier.value.patientId = patient.value.id;
     identifier.value.service_id = identifier.value.service.id;
     identifier.value.identifier_type_id = identifier.value.identifierType.id;
+    identifier.value.service = service;
   }
   await patientServiceIdentifierService
     .apiSave(identifier.value, isCreateStep.value)
