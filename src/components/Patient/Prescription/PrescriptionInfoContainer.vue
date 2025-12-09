@@ -630,7 +630,11 @@ const patientVisit = computed(() => {
 
     // If no matches found
     if (matchingVisits.length === 0) {
-      return null;
+      return patient.value.patientVisits.sort((a, b) => {
+        const dateA = a?.visitDate ?? '';
+        const dateB = b?.visitDate ?? '';
+        return String(dateB).localeCompare(String(dateA));
+      })[0];
     }
     matchingVisits.sort((a, b) => {
       const dateA = a?.visitDate ?? '';
@@ -645,10 +649,20 @@ const lastPatientVisitDetails = computed(() => {
   if (patientVisit.value !== null && patientVisit.value !== undefined) {
     if (
       isMobile.value &&
+      !isOnline.value &&
       lastStartEpisode.value !== null &&
       lastStartEpisode.value !== undefined
     ) {
       return patientVisit.value.patientVisitDetails[0];
+    } else if (
+      isOnline.value &&
+      lastStartEpisode.value !== null &&
+      lastStartEpisode.value !== undefined
+    ) {
+      return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+        patientVisit.value.id,
+        lastStartEpisode.value.id
+      );
     } else {
       return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
         patientVisit.value.id,

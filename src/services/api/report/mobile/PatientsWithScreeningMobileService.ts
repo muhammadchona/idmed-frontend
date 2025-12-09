@@ -54,7 +54,10 @@ export default {
             patient.dateOfBirth
           );
           patientsWithPregnancyScreening.visitDate = patientVisit.visitDate;
-          patientsWithPregnancyScreening.clinic = patientVisit.clinic;
+          patientsWithPregnancyScreening.clinic =
+            patientVisit.clinic !== undefined
+              ? patientVisit.clinic
+              : clinicService.currClinic();
 
           if (patientVisit.pregnancyScreenings[0].pregnant === true) {
             patientsWithPregnancyScreening.isPregnant = 'Sim';
@@ -109,7 +112,10 @@ export default {
             patient.dateOfBirth
           );
           patientsWithAdherenceScreenings.visitDate = patientVisit.visitDate;
-          patientsWithAdherenceScreenings.clinic = patientVisit.clinic;
+          patientsWithAdherenceScreenings.clinic =
+            patientVisit.clinic !== undefined
+              ? patientVisit.clinic
+              : clinicService.currClinic();
 
           this.localDbAddOrUpdate(patientsWithAdherenceScreenings);
           console.log(patientsWithAdherenceScreenings);
@@ -159,9 +165,7 @@ export default {
         tbScreeningReport.age = idadeCalculator(patient.dateOfBirth);
         tbScreeningReport.gender = patient.gender;
         tbScreeningReport.dateRegister = patientVisit.visitDate;
-        tbScreeningReport.clinic = clinicService.getById(
-          patientVisit.clinic.id
-        ).clinicName;
+        tbScreeningReport.clinic = clinicService.currClinic().clinicName;
         tbScreeningReport.reportId = reportParams.id;
         tbScreeningReport.year = reportParams.year;
         tbScreeningReport.endDate = reportParams.endDate;
@@ -227,9 +231,7 @@ export default {
         ramScreeningReport.age = idadeCalculator(patient.dateOfBirth);
         ramScreeningReport.gender = patient.gender;
         ramScreeningReport.dateRegister = patientVisit.visitDate;
-        ramScreeningReport.clinic = clinicService.getById(
-          patientVisit.clinic.id
-        ).clinicName;
+        ramScreeningReport.clinic = clinicService.currClinic().clinicName;
         ramScreeningReport.reportId = reportParams.id;
         ramScreeningReport.year = reportParams.year;
         ramScreeningReport.endDate = reportParams.endDate;

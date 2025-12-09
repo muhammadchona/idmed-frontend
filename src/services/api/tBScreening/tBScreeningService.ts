@@ -197,7 +197,9 @@ export default {
 
   async getAllByPatientVisitIDsFromDexie(ids: string[]) {
     const collection = tBScreeningDexie.filter((tBScreening: TBScreening) =>
-      ids.includes(tBScreening?.patientVisit?.id)
+      ids.includes(
+        tBScreening?.patientVisit?.id || tBScreening?.patient_visit_id
+      )
     );
     return await collection.toArray().then((rows: any) => {
       tBScreening.save(rows);
