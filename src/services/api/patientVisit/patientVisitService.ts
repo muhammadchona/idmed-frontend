@@ -1240,25 +1240,50 @@ export default {
         (patient: any) => patient.id === patientVisit.patient.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
-        (vitalSignsScreening: any) =>
-          vitalSignsScreening.patientVisit.id === patientVisit.id
+        (vitalSignsScreening: any) => {
+          const visitId =
+            vitalSignsScreening.patientVisit?.id ??
+            vitalSignsScreening.patient_visit_id ??
+            null;
+
+          return String(visitId) === String(patientVisit.id);
+        }
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
-        (pregnancyScreening: any) =>
-          pregnancyScreening.patientVisit.id === patientVisit.id
+        (pregnancyScreening: any) => {
+          const visitId =
+            pregnancyScreening.patientVisit?.id ??
+            pregnancyScreening.patient_visit_id ??
+            null;
+
+          return String(visitId) === String(patientVisit.id);
+        }
       );
-      patientVisit.ramScreenings = ramScreenings.filter(
-        (ramScreening: any) => ramScreening.patientVisit.id === patientVisit.id
-      );
-      patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening.patientVisit.id === patientVisit.id
-      );
+      patientVisit.ramScreenings = ramScreenings.filter((ramScreening: any) => {
+        const visitId =
+          ramScreening.patientVisit?.id ??
+          ramScreening.patient_visit_id ??
+          null;
+
+        return String(visitId) === String(patientVisit.id);
+      });
+      patientVisit.tbScreenings = tbScreenings.filter((tbScreening: any) => {
+        const visitId =
+          tbScreening.patientVisit?.id ?? tbScreening.patient_visit_id ?? null;
+
+        return String(visitId) === String(patientVisit.id);
+      });
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
-        (adherenceScreening: any) =>
-          adherenceScreening.patientVisit.id === patientVisit.id
+        (adherenceScreening: any) => {
+          const visitId =
+            adherenceScreening.patientVisit?.id ??
+            adherenceScreening.patient_visit_id ??
+            null;
+
+          return String(visitId) === String(patientVisit.id);
+        }
       );
     });
-
     return patientVisits;
   },
   async getAllByPatientIDsFromDexie(ids: string[]) {

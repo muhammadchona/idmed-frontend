@@ -795,7 +795,11 @@ const lastPatientVisit = computed(() => {
     });
 
     if (matchingVisits.length === 0) {
-      return null;
+      return patient.value.patientVisits.sort((a, b) => {
+        const dateA = a?.visitDate ?? '';
+        const dateB = b?.visitDate ?? '';
+        return String(dateB).localeCompare(String(dateA));
+      })[0];
     }
     matchingVisits.sort((a, b) => {
       const dateA = a?.visitDate ?? '';

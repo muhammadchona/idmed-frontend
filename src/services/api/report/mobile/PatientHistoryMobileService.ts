@@ -39,6 +39,7 @@ export default {
           : '';
 
       if (identifier.service.id === reportParams.clinicalService) {
+        const currClinic = clinicService.currClinic();
         const patientHistory = new patientHistoryReport();
         patientHistory.reportId = reportParams.id;
         patientHistory.year = reportParams.year;
@@ -56,8 +57,8 @@ export default {
         patientHistory.age = idadeReportCalculator(patient.dateOfBirth);
         patientHistory.dispenseMode = pack.dispenseMode.description;
         patientHistory.clinicalService = identifier.service.description;
-        patientHistory.clinic = pack.clinic.clinicName;
-        patientHistory.clinicsector = clinicService.currClinic().clinicName;
+        patientHistory.clinic = currClinic.parentClinic.clinicName;
+        patientHistory.clinicsector = currClinic.clinicName;
         patientHistory.id = uuidv4();
         this.localDbAddOrUpdate(patientHistory);
         console.log(patientHistory);

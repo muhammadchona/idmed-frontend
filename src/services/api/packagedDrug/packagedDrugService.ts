@@ -367,8 +367,15 @@ export default {
       .anyOfIgnoreCase(ids)
       .toArray();
 
-    const packIds = packagedDrugs.map((packagedDrug: any) =>
-      packagedDrug?.pack?.id ? packagedDrug.pack.id : ''
+    const packIds = Array.from(
+      new Set(
+        packagedDrugs
+          .map(
+            (packagedDrug: any) =>
+              packagedDrug?.pack_id ?? packagedDrug?.pack?.id ?? ''
+          )
+          .filter((id: string) => !!id)
+      )
     );
 
     const [packList] = await Promise.all([
@@ -376,9 +383,10 @@ export default {
     ]);
 
     packagedDrugs.map((packagedDrug: any) => {
-      packagedDrug.pack = packList.find(
-        (pack: any) => pack.id === packagedDrug.pack.id
-      );
+      const packId =
+        packagedDrug?.pack_id ?? packagedDrug?.pack?.id ?? undefined;
+      packagedDrug.pack =
+        packList.find((pack: any) => pack.id === packId) ?? packagedDrug.pack;
     });
     if (isMobile.value && !isOnline.value) {
       upsertPackagedDrugCache(packagedDrugs);

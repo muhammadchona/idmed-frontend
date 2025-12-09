@@ -273,15 +273,24 @@ export default {
     const collection = packagedDrugStockDexie
       .orderBy('creationDate')
       .reverse()
-      .filter((packagedDrugStock: PackagedDrugStock) =>
-        ids.includes(packagedDrugStock?.stock?.id ?? '')
-      );
+      .filter((packagedDrugStock: PackagedDrugStock) => {
+        const stockId =
+          packagedDrugStock?.stock_id ?? packagedDrugStock?.stock?.id ?? '';
+        return ids.includes(stockId);
+      });
     const packagedDrugStocks = await collection.toArray();
 
-    const packagedDrugIds = packagedDrugStocks.map((packagedDrugStock: any) =>
-      packagedDrugStock?.packagedDrug?.id
-        ? packagedDrugStock.packagedDrug.id
-        : ''
+    const packagedDrugIds = Array.from(
+      new Set(
+        packagedDrugStocks
+          .map(
+            (packagedDrugStock: any) =>
+              packagedDrugStock?.packagedDrug_id ??
+              packagedDrugStock?.packagedDrug?.id ??
+              ''
+          )
+          .filter((id: string) => !!id)
+      )
     );
 
     const [packagedDrugList] = await Promise.all([
@@ -289,10 +298,13 @@ export default {
     ]);
 
     packagedDrugStocks.map((packagedDrugStock: any) => {
-      packagedDrugStock.packagedDrug = packagedDrugList.find(
-        (packagedDrug: any) =>
-          packagedDrug.id === packagedDrugStock.packagedDrug.id
-      );
+      const packagedDrugId =
+        packagedDrugStock?.packagedDrug_id ??
+        packagedDrugStock?.packagedDrug?.id;
+      packagedDrugStock.packagedDrug =
+        packagedDrugList.find(
+          (packagedDrug: any) => packagedDrug.id === packagedDrugId
+        ) ?? packagedDrugStock.packagedDrug;
     });
 
     if (isMobile.value && !isOnline.value) {
