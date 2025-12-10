@@ -66,8 +66,7 @@ export default {
           const clinics = resp?.data?.filter(
             (item: any) => !String(item?.entity).includes('clinicSector')
           );
-
-          clinic.save(clinics);
+          if (clinics) clinic.save(clinics);
           offset = offset + 100;
           if (resp.data.length > 0) {
             this.getWeb(offset);

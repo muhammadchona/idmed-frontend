@@ -80,7 +80,7 @@ const items = ref([...Array(10000).keys()]);
 // Computed
 const canAddPrescription = computed(() => {
   if (isOnline.value) {
-    PermissionService.canPerformUiAction('prescription', 'add');
+    return PermissionService.canPerformUiAction('prescription', 'add');
   } else {
     return true;
   }
