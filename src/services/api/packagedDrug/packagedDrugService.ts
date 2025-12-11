@@ -333,14 +333,12 @@ export default {
   },
 
   async getAllByIDsFromDexie(ids: string[]) {
-    const collection = packagedDrugDexie
-      .orderBy('nextPickUpDate')
-      .filter(
-        (packagedDrug: PackagedDrug) =>
-          ids.includes(packagedDrug.pack_id) ||
-          ids.includes(packagedDrug?.pack?.id ?? '')
-      );
-    const packagedDrugs = await collection.toArray();
+    const packagedDrugs = await packagedDrugDexie
+      .filter((p: PackagedDrug) => {
+        const match = ids.includes(p?.pack?.id) || ids.includes(p?.pack_id);
+        return match;
+      })
+      .toArray();
 
     const drugsId = packagedDrugs.map((packagedDrug: any) =>
       packagedDrug?.drug?.id ? packagedDrug.drug.id : ''

@@ -779,9 +779,13 @@ export default {
     ]);
 
     packs.map((pack: any) => {
-      pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
-      );
+      pack.patientvisitDetails = patientVisitDetails.find((detail: any) => {
+        const d1 = detail.pack_id ? String(detail.pack_id).trim() : null;
+        const d2 = detail.packId ? String(detail.packId).trim() : null;
+        const p = pack.id ? String(pack.id).trim() : null;
+
+        return d1 === p || d2 === p;
+      });
       pack.dispenseMode = dispenseModes.find(
         (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
       );
