@@ -740,10 +740,23 @@ export default {
 
   // Dexie Block
   async getPatientVisitDetailsByPackIdFromDexie(packIds: string) {
-    return await patientVisitDetailsDexie
+    const resultSnake = await patientVisitDetailsDexie
       .where('pack_id')
       .anyOf(packIds)
-      .toArray();
+      .toArray()
+      .catch(() => []); // field may not exist
+
+    const resultCamel = await patientVisitDetailsDexie
+      .where('packId')
+      .anyOf(packIds)
+      .toArray()
+      .catch(() => []);
+
+    const merged = [...resultSnake, ...resultCamel];
+
+    const unique = Array.from(new Map(merged.map((v) => [v.id, v])).values());
+
+    return unique;
   },
   async getByIdFromDexie(id: string) {
     return patientVisitDetailsDexie.get(id);

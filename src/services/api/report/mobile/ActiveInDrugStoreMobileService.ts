@@ -62,8 +62,8 @@ export default {
 
       activePatient.clinic = clinic.clinicName;
       activePatient.district = clinic.district.description;
-
-      activePatient.nid = identifier.value;
+      console.log(identifier);
+      activePatient.nid = identifier?.value;
       activePatient.firstNames = patient.firstNames;
       activePatient.middleNames = patient.middleNames;
       activePatient.lastNames = patient.lastNames;
