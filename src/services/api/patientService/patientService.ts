@@ -996,6 +996,7 @@ export default {
 
     const packIds = new Set<string>();
     const prescriptionIds = new Set<string>();
+    const patientVisitDetails = [];
 
     patientVisits.forEach((visit: any) => {
       (visit?.patientVisitDetails ?? []).forEach((detail: any) => {
@@ -1012,6 +1013,7 @@ export default {
         if (prescriptionId) {
           prescriptionIds.add(String(prescriptionId));
         }
+        patientVisitDetails.push(detail);
       });
     });
 
@@ -1035,7 +1037,12 @@ export default {
       const prescriptions = await prescriptionService.getAllByIDsFromDexie(
         Array.from(prescriptionIds)
       );
+
       prescriptions.forEach((prescription: any) => {
+        prescription.patientvisitDetails = patientVisitDetails.find(
+          (patientVisitDetail: any) =>
+            patientVisitDetail.prescriptionId === prescription.id
+        );
         prescriptionMap.set(String(prescription.id), clone(prescription));
       });
     }
@@ -1366,13 +1373,13 @@ export default {
 
     const prescriptionIds: string[] = [];
     const packIds: string[] = [];
-
+    const patientVisitDetails = [];
     const patientVisits = visitRows.map((visit: any) => {
       const visitClone = clone(visit);
       const key = String(visitClone.id).toLowerCase();
       const details = (detailsByVisit.get(key) ?? []).map((detail) => {
         const detailClone = clone(detail);
-
+        patientVisitDetails.push(detailClone);
         const prescriptionId =
           detailClone?.prescription?.id ??
           detailClone?.prescription_id ??
@@ -1414,7 +1421,12 @@ export default {
       const prescriptions = await prescriptionService.getAllByIDsFromDexie(
         Array.from(new Set(prescriptionIds))
       );
+
       prescriptions.forEach((prescription: any) => {
+        prescription.patientVisitDetails = patientVisitDetails.filter(
+          (patientVisitDetail: any) =>
+            patientVisitDetail.prescriptionId === prescription.id
+        );
         prescriptionMap.set(String(prescription.id), clone(prescription));
       });
     }
