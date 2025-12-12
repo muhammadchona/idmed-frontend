@@ -1,5 +1,9 @@
 import packService from 'src/services/api/pack/packService';
 import patientVisitDetailsService from 'src/services/api/patientVisitDetails/patientVisitDetailsService';
+
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+
+const { website, isMobile, isOnline } = useSystemUtils();
 export function usePrescription() {
   function calculateLeftDuration(prescription: any, weeksSupply: string) {
     if (prescription.leftDuration === 0) {
@@ -30,13 +34,21 @@ export function usePrescription() {
 
     patientVisitDetails.forEach((pvd: any) => {
       if (
-        (pvd.pack !== null && pvd.pack !== undefined) ||
-        pvd.pack_id !== null
+        (isOnline.value && pvd.pack !== null && pvd.pack !== undefined) ||
+        (isOnline.value && pvd.pack_id !== null)
       ) {
-        pvd.pack = packService.getPackWithsByID(pvd.pack_id);
+        pvd.pack = packService.getPackWithsByID(
+          pvd.pack_id === undefined ? pvd.packId : pvd.pack_id
+        );
         if (pvd.pack !== null) {
           packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply);
         }
+      } else if (
+        isMobile.value &&
+        pvd.pack !== null &&
+        pvd.pack !== undefined
+      ) {
+        packagedWeeks = Number(packagedWeeks + pvd.pack.weeksSupply);
       }
     });
     return Number((prescriptionDuration - packagedWeeks) / 4);
