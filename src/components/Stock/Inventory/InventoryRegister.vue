@@ -15,6 +15,7 @@
               class="col q-ml-md q-mb-md"
               v-model="currInventory.startDate"
               ref="startDateRef"
+              readonly
               lazy-rules
               label="Data do Inventário *"
             >
