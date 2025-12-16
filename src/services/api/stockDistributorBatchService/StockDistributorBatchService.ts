@@ -154,6 +154,7 @@ export default {
         .then((resp) => {
           if (resp.data.length > 0) {
             stockDistributorBatch.save(resp.data);
+            // this.addBulkMobile(resp.data);
             offset = offset + 100;
             this.getWeb(offset);
           } else {

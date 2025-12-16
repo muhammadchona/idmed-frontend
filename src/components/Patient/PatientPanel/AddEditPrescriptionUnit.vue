@@ -917,6 +917,10 @@ const patientServiceIdentifierFromEpisode = computed(() => {
 });
 
 const lastPack = computed(() => {
+  if (isMobile.value && !isOnline.value && lastPatientVisitDetails.value) {
+    console.log(lastPatientVisitDetails.value.pack);
+    return lastPatientVisitDetails.value.pack ?? null;
+  }
   if (lastPrescription.value !== null && lastPrescription.value !== undefined) {
     return packService.getLastPackFromPatientVisitAndPrescription(
       lastPrescription.value.id

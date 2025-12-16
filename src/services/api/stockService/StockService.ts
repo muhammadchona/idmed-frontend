@@ -416,9 +416,10 @@ export default {
               stock.save(stockItem);
             }
             */
-            if (!isMobile.value) {
-              stock.save(stockItem);
-            }
+            //   if (!isMobile.value) {
+            stock.save(stockItem);
+            // this.addMobile(stockItem);
+            // }
           });
 
           offset = offset + 100;

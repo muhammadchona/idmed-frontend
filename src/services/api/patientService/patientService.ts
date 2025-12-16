@@ -1412,6 +1412,11 @@ export default {
         Array.from(new Set(packIds))
       );
       packs.forEach((pack: any) => {
+        pack.patientVisitDetails = patientVisitDetails.filter(
+          (patientVisitDetail: any) =>
+            patientVisitDetail.packId === pack.id ||
+            patientVisitDetail.pack_id === pack.id
+        );
         packMap.set(String(pack.id), clone(pack));
       });
     }
@@ -1425,7 +1430,8 @@ export default {
       prescriptions.forEach((prescription: any) => {
         prescription.patientVisitDetails = patientVisitDetails.filter(
           (patientVisitDetail: any) =>
-            patientVisitDetail.prescriptionId === prescription.id
+            patientVisitDetail.prescriptionId === prescription.id ||
+            patientVisitDetail.prescription_id === prescription.id
         );
         prescriptionMap.set(String(prescription.id), clone(prescription));
       });
