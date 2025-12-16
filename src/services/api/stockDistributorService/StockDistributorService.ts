@@ -275,12 +275,14 @@ export default {
   },
   // ****** PNIA
   getStockDistributorById(id: string) {
+    /*
     if (isMobile.value && !isOnline.value) {
       return (
         getStockDistributorMobileCache().find((entry) => entry.id === id) ??
         null
       );
     }
+         */
     return stockDistributor
       .query()
       .with('drugDistributors')
@@ -290,6 +292,7 @@ export default {
   },
 
   getStockDistributorServices(clinicId: any) {
+    /*
     if (isMobile.value && !isOnline.value) {
       return getStockDistributorMobileCache()
         .filter(
@@ -302,6 +305,7 @@ export default {
           )
         );
     }
+        */
     return stockDistributor
       .query()
       .with('clinic')
@@ -312,6 +316,7 @@ export default {
   },
 
   getStockDistributorConfirmation(clinicId: any) {
+    /*
     if (isMobile.value && !isOnline.value) {
       return getStockDistributorMobileCache()
         .filter((entry) =>
@@ -325,6 +330,7 @@ export default {
           )
         );
     }
+        */
     return stockDistributor
       .query()
       .with('clinic')
@@ -336,6 +342,7 @@ export default {
       .get();
   },
   deleteAllFromStorage() {
+    /*
     if (isMobile.value && !isOnline.value) {
       stockDistributorMobileCache = [];
       return stockDistributorDexie.clear().catch((error: any) => {
@@ -343,6 +350,7 @@ export default {
         throw error;
       });
     }
+      */
     stockDistributor.flush();
   },
   async refreshMobileCache() {
