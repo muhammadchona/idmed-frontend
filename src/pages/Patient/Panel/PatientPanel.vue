@@ -128,6 +128,7 @@ const { openDialog, checkIfPatientIsObit } = usePrescriptionDialog();
 const { preferedIdentifier } = usePatient();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
 const { remainigDuration } = usePrescription();
+const { hasEpisodes } = usePatient();
 const { alertError } = useSwal();
 const tab = ref('clinicService');
 const showPrescriptionDialog = ref(false);
@@ -156,22 +157,27 @@ onMounted(() => {
   init();
   if (isScanScreen) {
     let isNewPrescription = true;
-    if (checkIfPatientIsObit(patient.value)) {
-      const identifier = preferedIdentifier(patient.value);
-      const currIdentifier = patientServiceIdentifierService.curIdentifierById(
-        identifier?.id
-      );
-      const lastvisitPrescription = lastVisitPrescription(currIdentifier);
-      if (identifier !== null) {
-        const prescription = prescriptionService.getLocalPrescriptionById(
-          lastvisitPrescription?.prescription?.id
+    if (!checkIfPatientIsObit(patient.value)) {
+      if (hasEpisodes(patient.value)) {
+        const identifier = preferedIdentifier(patient.value);
+        const currIdentifier =
+          patientServiceIdentifierService.curIdentifierById(identifier?.id);
+        const lastvisitPrescription = lastVisitPrescription(currIdentifier);
+        if (identifier !== null) {
+          const prescription = prescriptionService.getLocalPrescriptionById(
+            lastvisitPrescription?.prescription?.id
+          );
+          if (remainigDuration(prescription) > 0) isNewPrescription = false;
+        }
+        openDialog(isNewPrescription);
+      } else {
+        alertError(
+          'O paciente não possui histórico clínico. A dispensa de medicamentos não pode ser efetuada.'
         );
-        if (remainigDuration(prescription) > 0) isNewPrescription = false;
       }
-      openDialog(isNewPrescription);
     } else {
       alertError(
-        'O paciente encontra-se no estado de óbito. A dispensa de medicamentos não pode ser efetuada.'
+        'O paciente encontra-se no estado de óbito ou transferido Para. A dispensa de medicamentos não pode ser efetuada.'
       );
     }
   }
