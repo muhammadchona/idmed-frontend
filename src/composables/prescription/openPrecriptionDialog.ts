@@ -16,13 +16,15 @@ export function usePrescriptionDialog() {
   };
 
   const checkIfPatientIsObit = (patient: Patient) => {
+    let result = false;
     if (hasEpisodes(patient)) {
       if (hasNoObitOrTransferedForEpisode(patient)) {
-        return true;
+        result = false;
       } else {
-        return false;
+        result = true;
       }
     }
+    return result;
   };
 
   return {
