@@ -13,8 +13,6 @@ export default {
   async getDataLocalDb(params: any) {
     const reportParams = ReportDatesParams.determineStartEndDate(params);
 
-    console.log(reportParams);
-
     const [activePacks] = await Promise.all([
       packService.getAllPacksByStartDateAndEndDateFromDexie(
         reportParams.startDate,
@@ -23,22 +21,22 @@ export default {
     ]);
 
     for (const pack of activePacks) {
-      const patient = pack.patientvisitDetails.patientVisit.patient;
+      const patient = pack?.patientvisitDetails?.patientVisit?.patient;
       const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
+        pack?.patientvisitDetails?.episode?.patientServiceIdentifier;
       const prescriptionDetails =
-        pack.patientvisitDetails.prescription.prescriptionDetails;
+        pack?.patientvisitDetails?.prescription?.prescriptionDetails;
       const therapeuticRegimen =
-        prescriptionDetails.length > 0
+        prescriptionDetails?.length > 0
           ? prescriptionDetails[0].therapeuticRegimen
           : '';
 
       const dispenseType =
-        prescriptionDetails.length > 0
+        prescriptionDetails?.length > 0
           ? prescriptionDetails[0].dispenseType
           : '';
 
-      if (identifier.service.id === reportParams.clinicalService) {
+      if (identifier?.service?.id === reportParams.clinicalService) {
         const currClinic = clinicService.currClinic();
         const patientHistory = new patientHistoryReport();
         patientHistory.reportId = reportParams.id;

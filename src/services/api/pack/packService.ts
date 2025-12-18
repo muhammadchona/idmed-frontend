@@ -1,3 +1,4 @@
+import { to } from './../../../../node_modules/colorjs.io/types/src/color.d';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import Pack from 'src/stores/models/packaging/Pack';
@@ -637,17 +638,15 @@ export default {
     startDate: any,
     endDate: any
   ) {
-    const packs = (
-      await packDexie
-        .where('pickupDate')
-        .between(startDate, endDate, true, true)
-        .reverse()
-        .sortBy('pickupDate')
-    ).filter((p) => p.syncStatus === 'R');
+    const packs = await packDexie
+      .where('pickupDate')
+      .between(startDate, endDate, true, true)
+      .sortBy('pickupDate');
+    // .filter((p) => p.syncStatus === 'R');
 
     const packIds = packs.map((pack: any) => pack.id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
+    const clinicIds = packs.map((pack: any) => pack.clinic.id);
+    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode.id);
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -667,18 +666,96 @@ export default {
 
     packs.map((pack: any) => {
       pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
+        (patientVisitDetail: any) => patientVisitDetail.pack.id === pack.id
       );
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
+        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
     });
     if (isMobile.value && !isOnline.value) {
       upsertPackCache(packs);
       return packs.map((entry: any) => clone(entry));
     }
     return packs;
+  },
+
+  async getStatisticBarReportPacksByStartDateAndEndDateFromDexie(
+    startDate: any,
+    endDate: any
+  ) {
+    const packs = await packDexie
+      .where('pickupDate')
+      .between(startDate, endDate, true, true)
+      .sortBy('pickupDate');
+
+    const packIds = packs.map((pack: any) => pack.id);
+
+    const [patientvisitDetailsList] = await Promise.all([
+      patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexieForStatisticBar(
+        packIds
+      ),
+    ]);
+
+    packs.map((pack: any) => {
+      pack.patientvisitDetails = patientvisitDetailsList.find(
+        (patientVisitDetail: any) => patientVisitDetail.pack.id === pack.id
+      );
+    });
+    upsertPackCache(packs);
+    return packs.map((entry: any) => clone(entry));
+  },
+
+  async getStatisticBarReportPacksInYear(year: number) {
+    const periods = getMonthsDateOfTheYear(year);
+    // Map each period to a promise to get packs from Dexie
+    return await Promise.all(
+      periods.map((period) =>
+        this.getStatisticBarReportPacksByStartDateAndEndDateFromDexie(
+          period.startDate,
+          period.endDate
+        )
+      )
+    );
+  },
+
+async getLineBarDispensedPacksByStartDateAndEndDateFromDexie(
+    startDate: any,
+    endDate: any
+  ) {
+    const packs = await packDexie
+      .where('pickupDate')
+      .between(startDate, endDate, true, true)
+      .sortBy('pickupDate');
+
+    const packIds = packs.map((pack: any) => pack.id);
+
+    const [patientvisitDetailsList] = await Promise.all([
+      patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexieForLineBarDispensedPacks(
+        packIds
+      ),
+    ]);
+
+    packs.map((pack: any) => {
+      pack.patientvisitDetails = patientvisitDetailsList.find(
+        (patientVisitDetail: any) => patientVisitDetail.pack.id === pack.id
+      );
+    });
+    upsertPackCache(packs);
+    return packs.map((entry: any) => clone(entry));
+  },
+
+  async getLineBarDispensedPacksInYear(year: number) {
+    const periods = getMonthsDateOfTheYear(year);
+    // Map each period to a promise to get packs from Dexie
+    return await Promise.all(
+      periods.map((period) =>
+        this.getLineBarDispensedPacksByStartDateAndEndDateFromDexie(
+          period.startDate,
+          period.endDate
+        )
+      )
+    );
   },
 
   async getTotalPacksInYear(year: number) {
@@ -712,7 +789,7 @@ export default {
     });
 
     return await Promise.all([
-      this.getAllActivePatientByEndDateFromDexie(startDate, endDate),
+      this.getAllActivePatientByEndDateFromDexietoDasboard(startDate, endDate),
     ]);
   },
 
@@ -720,7 +797,7 @@ export default {
     const packs = await packDexie
       .where('id')
       .anyOf(ids)
-      .reverse()
+      // .reverse()
       .sortBy('pickupDate');
 
     const packsId = packs.map((pack: any) => (pack?.id ? pack.id : ''));
@@ -755,12 +832,12 @@ export default {
       .where('pickupDate')
       .belowOrEqual(endDate)
       .and((item: any) => item.nextPickUpDate >= endDate)
-      .reverse()
+      // .reverse()
       .sortBy('pickupDate');
 
     const packIds = packs.map((pack: any) => pack.id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
+    const clinicIds = packs.map((pack: any) => pack.clinic.id);
+    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode.id);
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -787,9 +864,9 @@ export default {
         return d1 === p || d2 === p;
       });
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
+        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
     });
     if (isMobile.value && !isOnline.value) {
       upsertPackCache(packs);
@@ -797,6 +874,40 @@ export default {
     }
     return packs;
   },
+
+  // Dashboard Active Patients
+  async getAllActivePatientByEndDateFromDexietoDasboard(
+    startDate: any,
+    endDate: any
+  ) {
+    const packs = await packDexie
+      .where('pickupDate')
+      .belowOrEqual(endDate)
+      .and((item: any) => item.nextPickUpDate >= endDate)
+      // .reverse()
+      .sortBy('pickupDate');
+
+    const packIds = packs.map((pack: any) => pack.id);
+
+    const [patientvisitDetailsList] = await Promise.all([
+      patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexieForDasboard(
+        packIds
+      ),
+    ]);
+
+    packs.map((pack: any) => {
+      pack.patientvisitDetails = patientvisitDetailsList.find((detail: any) => {
+        const d1 = detail.pack_id ? String(detail.pack_id).trim() : null;
+        const d2 = detail.packId ? String(detail.packId).trim() : null;
+        const p = pack.id ? String(pack.id).trim() : null;
+
+        return d1 === p || d2 === p;
+      });
+    });
+    upsertPackCache(packs);
+    return packs.map((entry: any) => clone(entry));
+  },
+
   async getAllExpectedPacksByStartDateAndEndDateFromDexie(
     startDate: any,
     endDate: any
@@ -804,7 +915,7 @@ export default {
     const packs = await packDexie
       .where('nextPickUpDate')
       .between(startDate, endDate, true, true)
-      .reverse()
+      // .reverse()
       .sortBy('pickupDate');
 
     const packIds = packs.map((pack: any) => (pack?.id ? pack.id : ''));
@@ -833,7 +944,7 @@ export default {
 
     packs.map((pack: any) => {
       pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
+        (patientVisitDetail: any) => patientVisitDetail.pack.id === pack.id
       );
       pack.dispenseMode = dispenseModes.find(
         (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
@@ -846,7 +957,7 @@ export default {
     const results = await packDexie
       .where('id')
       .anyOfIgnoreCase(ids)
-      .reverse()
+      // .reverse()
       .sortBy('pickupDate');
     if (isMobile.value && !isOnline.value) {
       upsertPackCache(results);
@@ -871,12 +982,12 @@ export default {
           moment(endDate).diff(moment(item.nextPickUpDate), 'days') < 60 &&
           listPatientLastPack.find((pack: any) => pack.id === item.id)
       )
-      .reverse()
+      // .reverse()
       .sortBy('pickupDate');
 
     const packIds = packs.map((pack: any) => pack.id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
+    const clinicIds = packs.map((pack: any) => pack.clinic.id);
+    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode.id);
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -899,9 +1010,9 @@ export default {
         (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
       );
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
+        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
     });
     return packs;
   },

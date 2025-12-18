@@ -1120,6 +1120,30 @@ export default {
   },
 
   //Dexie Block
+
+  async getAllAndPatientsByIDsFromDexie(ids: []) {
+    const patientVisits = await patientVisitDexie
+      .where('id')
+      .anyOfIgnoreCase(ids)
+      .toArray();
+
+    const patientIds = patientVisits.map((patientVisit: any) =>
+      patientVisit.patient.id ? patientVisit.patient.id : ''
+    );
+
+    const [patients] = await Promise.all([
+      patientService.getAllByIDsFromDexie(patientIds),
+    ]);
+
+    patientVisits.map((patientVisit: any) => {
+      patientVisit.patient = patients.find(
+        (patient: any) => patient.id === patientVisit.patient.id
+      );
+    });
+
+    return patientVisits;
+  },
+
   async getAllByIDsFromDexie(ids: []) {
     const patientVisits = await patientVisitDexie
       .where('id')

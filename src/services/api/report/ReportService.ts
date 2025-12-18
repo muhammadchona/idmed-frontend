@@ -749,23 +749,23 @@ export default {
     const dispensesPerMonthsByGenderInYear: any[] = [];
 
     const [dataPacksList] = await Promise.all([
-      packService.getTotalPacksInYear(year),
+      packService.getLineBarDispensedPacksInYear(year),
     ]);
     for (let i = 0; i < dataPacksList.length; i++) {
       const dataMonths = dataPacksList[i];
 
       for (const data of dataMonths) {
-        const patientvisitDetail = data.patientvisitDetails;
-        const patientVisit = patientvisitDetail.patientVisit;
-        const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
-        const episode = patientvisitDetail.episode;
-        const identifier = episode.patientServiceIdentifier;
-        const service = identifier.service;
-        const patient = patientVisit.patient;
+        const patientvisitDetail = data?.patientvisitDetails;
+        const patientVisit = patientvisitDetail?.patientVisit;
+        const prescription = patientvisitDetail?.prescription;
+        const prescriptionDetails = prescription?.prescriptionDetails;
+        const episode = patientvisitDetail?.episode;
+        const identifier = episode?.patientServiceIdentifier;
+        const service = identifier?.service;
+        const patient = patientVisit?.patient;
         let dispenseType = '';
 
-        if (service.code === serviceCode) {
+        if (service?.code === serviceCode) {
           if (prescription !== null && prescription !== undefined) {
             dispenseType =
               prescriptionDetails.length > 0
@@ -774,7 +774,7 @@ export default {
           }
         }
 
-        if (service.code === serviceCode) {
+        if (service?.code === serviceCode) {
           const existingItem = dispensesPerMonthsByGenderInYear.find((item) => {
             return (
               item.faixa === patient.gender &&
@@ -803,23 +803,23 @@ export default {
     const dispensesPerMonthsByAgeInYear: any[] = [];
 
     const [dataPacksList] = await Promise.all([
-      packService.getTotalPacksInYear(year),
+      packService.getLineBarDispensedPacksInYear(year),
     ]);
     for (let i = 0; i < dataPacksList.length; i++) {
       const dataMonths = dataPacksList[i];
 
       for (const data of dataMonths) {
-        const patientvisitDetail = data.patientvisitDetails;
-        const patientVisit = patientvisitDetail.patientVisit;
-        const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
-        const episode = patientvisitDetail.episode;
-        const identifier = episode.patientServiceIdentifier;
-        const service = identifier.service;
-        const patient = patientVisit.patient;
+        const patientvisitDetail = data?.patientvisitDetails;
+        const patientVisit = patientvisitDetail?.patientVisit;
+        const prescription = patientvisitDetail?.prescription;
+        const prescriptionDetails = prescription?.prescriptionDetails;
+        const episode = patientvisitDetail?.episode;
+        const identifier = episode?.patientServiceIdentifier;
+        const service = identifier?.service;
+        const patient = patientVisit?.patient;
         let dispenseType = '';
 
-        if (service.code === serviceCode) {
+        if (service?.code === serviceCode) {
           if (prescription !== null && prescription !== undefined) {
             dispenseType =
               prescriptionDetails.length > 0
@@ -869,33 +869,33 @@ export default {
       const dataMonths = dataPacksList[i];
 
       for (const data of dataMonths) {
-        const patientvisitDetail = data.patientvisitDetails;
-        const patientVisit = patientvisitDetail.patientVisit;
-        const episode = patientvisitDetail.episode;
-        const identifier = episode.patientServiceIdentifier;
-        const service = identifier.service;
-        const patient = patientVisit.patient;
+        const patientvisitDetail = data?.patientvisitDetails;
+        const patientVisit = patientvisitDetail?.patientVisit;
+        const episode = patientvisitDetail?.episode;
+        const identifier = episode?.patientServiceIdentifier;
+        const service = identifier?.service;
+        const patient = patientVisit?.patient;
 
         const existingItem = patientsInService.find((item) => {
           return (
-            item.patient_id === patient.id && service.code === item.service
+            item.patient_id === patient?.id && service?.code === item.service
           );
         });
 
         const existingService = patientsInYear.find((item) => {
-          return item.service === service.code;
+          return item.service === service?.code;
         });
 
         if (!existingItem) {
           patientsInService.push({
-            service: service.code,
-            patient_id: patient.id,
+            service: service?.code,
+            patient_id: patient?.id,
           });
           if (existingService) {
             existingService.quantity++;
           } else {
             patientsInYear.push({
-              service: service.code,
+              service: service?.code,
               quantity: 1,
             });
           }
@@ -918,23 +918,23 @@ export default {
       const dataMonths = dataPacksList[i];
 
       for (const data of dataMonths) {
-        const patientvisitDetail = data.patientvisitDetails;
-        const patientVisit = patientvisitDetail.patientVisit;
-        const episode = patientvisitDetail.episode;
-        const identifier = episode.patientServiceIdentifier;
-        const service = identifier.service;
-        const patient = patientVisit.patient;
-        if (service.code === serviceCode) {
+        const patientvisitDetail = data?.patientvisitDetails;
+        const patientVisit = patientvisitDetail?.patientVisit;
+        const episode = patientvisitDetail?.episode;
+        const identifier = episode?.patientServiceIdentifier;
+        const service = identifier?.service;
+        const patient = patientVisit?.patient;
+        if (service?.code === serviceCode) {
           const existingItem = patientsInService.find((item) => {
             return (
-              item.patient_id === patient.id &&
-              service.code === item.service &&
-              item.gender === patient.gender
+              item.patient_id === patient?.id &&
+              service?.code === item.service &&
+              item.gender === patient?.gender
             );
           });
           const existingService = patientsInYear.find((item) => {
             return (
-              item.service === service.code && item.gender === patient.gender
+              item.service === service?.code && item.gender === patient?.gender
             );
           });
 
@@ -965,32 +965,32 @@ export default {
     const patientsInService: any[] = [];
 
     const [dataPacksList] = await Promise.all([
-      packService.getTotalPacksInYear(year),
+      packService.getLineBarDispensedPacksInYear(year),
     ]);
     for (let i = 0; i < dataPacksList.length; i++) {
       const dataMonths = dataPacksList[i];
 
       for (const data of dataMonths) {
-        const patientvisitDetail = data.patientvisitDetails;
-        const patientVisit = patientvisitDetail.patientVisit;
-        const episode = patientvisitDetail.episode;
-        const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
-        const identifier = episode.patientServiceIdentifier;
-        const service = identifier.service;
-        const patient = patientVisit.patient;
+        const patientvisitDetail = data?.patientvisitDetails;
+        const patientVisit = patientvisitDetail?.patientVisit;
+        const episode = patientvisitDetail?.episode;
+        const prescription = patientvisitDetail?.prescription;
+        const prescriptionDetails = prescription?.prescriptionDetails;
+        const identifier = episode?.patientServiceIdentifier;
+        const service = identifier?.service;
+        const patient = patientVisit?.patient;
         let dispenseType = '';
 
-        if (service.code === serviceCode) {
+        if (service?.code === serviceCode) {
           if (prescription !== null && prescription !== undefined) {
             dispenseType =
-              prescriptionDetails.length > 0
+              prescriptionDetails?.length > 0
                 ? prescriptionDetails[0].dispenseType.description
                 : '';
           }
           const existingItem = patientsInService.find((item) => {
             return (
-              service.code === item.service &&
+              service?.code === item.service &&
               item.faixa ===
                 (this.calcularIdade(patient.dateOfBirth) >= 15
                   ? 'ADULTO'
@@ -1023,25 +1023,25 @@ export default {
     const dispensesPerMonthsInYear: any[] = [];
 
     const [dataPacksList] = await Promise.all([
-      packService.getTotalPacksInYear(year),
+      packService.getStatisticBarReportPacksInYear(year),
     ]);
 
     for (let i = 0; i < dataPacksList.length; i++) {
       const dataMonths = dataPacksList[i];
 
       for (const data of dataMonths) {
-        const patientvisitDetail = data.patientvisitDetails;
-        const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
-        const episode = patientvisitDetail.episode;
-        const identifier = episode.patientServiceIdentifier;
-        const service = identifier.service;
+        const patientvisitDetail = data?.patientvisitDetails;
+        const prescription = patientvisitDetail?.prescription;
+        const prescriptionDetails = prescription?.prescriptionDetails;
+        const episode = patientvisitDetail?.episode;
+        const identifier = episode?.patientServiceIdentifier;
+        const service = identifier?.service;
         let dispenseType = '';
 
-        if (service.code === serviceCode) {
+        if (service?.code === serviceCode) {
           if (prescription !== null && prescription !== undefined) {
             dispenseType =
-              prescriptionDetails.length > 0
+              prescriptionDetails?.length > 0
                 ? prescriptionDetails[0].dispenseType.code
                 : '';
           }
@@ -1050,7 +1050,7 @@ export default {
             return (
               item.dispense_type === dispenseType &&
               item.month === i &&
-              service.code === serviceCode
+              service?.code === serviceCode
             );
           });
 
