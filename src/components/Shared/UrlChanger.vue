@@ -49,6 +49,9 @@ const saveURLBackend = () => {
 
 const isValidUrl = (url) => {
   try {
+    if (url.includes('5000')) {
+      return false;
+    }
     new URL(url);
     return true;
   } catch (error) {

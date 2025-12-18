@@ -272,7 +272,7 @@ export default {
   async getAllByStockIDsFromDexie(ids: string[]) {
     const collection = packagedDrugStockDexie
       .orderBy('creationDate')
-      .reverse()
+      // .reverse()
       .filter((packagedDrugStock: PackagedDrugStock) => {
         const stockId =
           packagedDrugStock?.stock_id ?? packagedDrugStock?.stock?.id ?? '';

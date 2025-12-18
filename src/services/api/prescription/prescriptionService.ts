@@ -521,11 +521,40 @@ export default {
   async getByIdFromDexie(id: string) {
     return prescriptionDexie.get(id);
   },
+
+  async getAllAndPrescriptionDetailsByIDsFromDexie(ids: []) {
+    const prescriptions = await prescriptionDexie
+      .where('id')
+      .anyOf(ids)
+      // .reverse()
+      .sortBy('prescriptionDate');
+
+    const prescriptionsIds = prescriptions.map(
+      (prescription: any) => prescription.id
+    );
+    const [prescriptionDetails] = await Promise.all([
+      prescriptionDetailsService.getLastByPrescriprionIdListFromDexie(
+        prescriptionsIds
+      ),
+    ]);
+
+    prescriptions.forEach((prescription: any) => {
+      prescription.prescriptionDetails = prescriptionDetails.filter(
+        (prescriptionDetail: any) =>
+          prescriptionDetail?.prescription?.id === prescription.id ||
+          prescriptionDetail?.prescription_id === prescription.id
+      );
+    });
+
+    upsertPrescriptionMobileCache(prescriptions);
+    return prescriptions.map((entry: any) => clone(entry));
+  },
+
   async getAllByIDsFromDexie(ids: []) {
     const prescriptions = await prescriptionDexie
       .where('id')
       .anyOf(ids)
-      .reverse()
+      // .reverse()
       .sortBy('prescriptionDate');
 
     const prescriptionsIds = prescriptions.map(
@@ -582,6 +611,7 @@ export default {
     prescription.save(prescriptions);
     return prescriptions;
   },
+
   deleteAllFromDexie() {
     prescriptionMobileCache = [];
     return prescriptionDexie.clear();

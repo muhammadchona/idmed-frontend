@@ -758,6 +758,171 @@ export default {
 
     return unique;
   },
+
+  // PatientVisitDetails for Statistic Bar
+  async getPatientVisitDetailsByPackIdFromDexieForStatisticBar(
+    packIds: string
+  ) {
+    const resultSnake = await patientVisitDetailsDexie
+      .where('pack_id')
+      .anyOf(packIds)
+      .toArray()
+      .catch(() => []); // field may not exist
+
+    const resultCamel = await patientVisitDetailsDexie
+      .where('packId')
+      .anyOf(packIds)
+      .toArray()
+      .catch(() => []);
+
+    const merged = [...resultSnake, ...resultCamel];
+
+    const unique = Array.from(new Map(merged.map((v) => [v.id, v])).values());
+
+    const episodeIds = unique.map((patientVisitDetail: any) =>
+      patientVisitDetail?.episode?.id ? patientVisitDetail.episode.id : ''
+    );
+
+    const prescriptionIds = unique.map((patientVisitDetail: any) =>
+      patientVisitDetail?.prescription?.id
+        ? patientVisitDetail.prescription.id
+        : ''
+    );
+
+    const [episodes, prescriptions] = await Promise.all([
+      episodeService.getAllAndIdentifiersByIDsFromDexie(episodeIds),
+        prescriptionService.getAllAndPrescriptionDetailsByIDsFromDexie(
+          prescriptionIds
+        ),
+    ]);
+
+    unique.map((patientVisitDetail: any) => {
+      patientVisitDetail.episode = episodes.find(
+        (episode: any) => episode.id === patientVisitDetail.episode.id
+      );
+      patientVisitDetail.prescription = prescriptions.find(
+        (prescription: any) =>
+          prescription.id === patientVisitDetail.prescription.id
+      );
+    });
+
+    return unique;
+  },
+
+  // PatientVisitDetails for Dasboard Actie Patients
+  async getPatientVisitDetailsByPackIdFromDexieForDasboard(packIds: string) {
+    const resultSnake = await patientVisitDetailsDexie
+      .where('pack_id')
+      .anyOf(packIds)
+      .toArray()
+      .catch(() => []); // field may not exist
+
+    const resultCamel = await patientVisitDetailsDexie
+      .where('packId')
+      .anyOf(packIds)
+      .toArray()
+      .catch(() => []);
+
+    const merged = [...resultSnake, ...resultCamel];
+
+    const unique = Array.from(new Map(merged.map((v) => [v.id, v])).values());
+
+    const patientVisitIds = unique.map((patientVisitDetail: any) => {
+      return (
+        patientVisitDetail?.patientVisit?.id ??
+        patientVisitDetail?.patient_visit_id ??
+        patientVisitDetail?.patientVisitId ??
+        ''
+      );
+    });
+
+    const episodeIds = unique.map((patientVisitDetail: any) =>
+      patientVisitDetail?.episode?.id ? patientVisitDetail.episode.id : ''
+    );
+
+    const [episodes, patientVisits] = await Promise.all([
+      episodeService.getAllAndIdentifiersByIDsFromDexie(episodeIds),
+      patientVisitService.getAllAndPatientsByIDsFromDexie(patientVisitIds),
+    ]);
+
+    unique.map((patientVisitDetail: any) => {
+      patientVisitDetail.episode = episodes.find(
+        (episode: any) => episode.id === patientVisitDetail.episode.id
+      );
+      patientVisitDetail.patientVisit =
+        patientVisits.find(
+          (patientVisit: any) =>
+            patientVisit.id === patientVisitDetail.patientVisit.id
+        ) ?? null;
+    });
+
+    return unique;
+  },
+
+  async getPatientVisitDetailsByPackIdFromDexieForLineBarDispensedPacks(
+    packIds: string
+  ) {
+    const resultSnake = await patientVisitDetailsDexie
+      .where('pack_id')
+      .anyOf(packIds)
+      .toArray()
+      .catch(() => []); // field may not exist
+
+    const resultCamel = await patientVisitDetailsDexie
+      .where('packId')
+      .anyOf(packIds)
+      .toArray()
+      .catch(() => []);
+
+    const merged = [...resultSnake, ...resultCamel];
+
+    const unique = Array.from(new Map(merged.map((v) => [v.id, v])).values());
+
+    const patientVisitIds = unique.map((patientVisitDetail: any) => {
+      return (
+        patientVisitDetail?.patientVisit?.id ??
+        patientVisitDetail?.patient_visit_id ??
+        patientVisitDetail?.patientVisitId ??
+        ''
+      );
+    });
+
+    const episodeIds = unique.map((patientVisitDetail: any) =>
+      patientVisitDetail?.episode?.id ? patientVisitDetail.episode.id : ''
+    );
+
+     const prescriptionIds = unique.map((patientVisitDetail: any) =>
+       patientVisitDetail?.prescription?.id
+         ? patientVisitDetail.prescription.id
+         : ''
+     );
+
+    const [episodes, patientVisits, prescriptions] = await Promise.all([
+      episodeService.getAllAndIdentifiersByIDsFromDexie(episodeIds),
+      patientVisitService.getAllAndPatientsByIDsFromDexie(patientVisitIds),
+      prescriptionService.getAllAndPrescriptionDetailsByIDsFromDexie(
+        prescriptionIds
+      ),
+    ]);
+
+    unique.map((patientVisitDetail: any) => {
+      patientVisitDetail.episode = episodes.find(
+        (episode: any) => episode.id === patientVisitDetail.episode.id
+      );
+      patientVisitDetail.patientVisit =
+        patientVisits.find(
+          (patientVisit: any) =>
+            patientVisit.id === patientVisitDetail.patientVisit.id
+        ) ?? null;
+        patientVisitDetail.prescription = prescriptions.find(
+          (prescription: any) =>
+            prescription.id === patientVisitDetail.prescription.id
+        );
+    });
+
+    return unique;
+  },
+
   async getByIdFromDexie(id: string) {
     return patientVisitDetailsDexie.get(id);
   },

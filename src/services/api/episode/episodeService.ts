@@ -555,11 +555,40 @@ export default {
   },
 
   //Dexie Block
+
+  async getAllAndIdentifiersByIDsFromDexie(ids: string[]) {
+    const episodes = await episodeDexie
+      .where('id')
+      .anyOfIgnoreCase(ids)
+      // .reverse()
+      .sortBy('episodeDate');
+
+    const patientServiceIdentifierIds = episodes.map((episode: any) =>
+      episode?.patientServiceIdentifier?.id
+        ? episode.patientServiceIdentifier.id
+        : ''
+    );
+
+    const [patientServiceIdentifiers] = await Promise.all([
+      patientServiceIdentifierService.getAllByIDsFromDexie(
+        patientServiceIdentifierIds
+      ),
+    ]);
+    episodes.map((episode: any) => {
+      episode.patientServiceIdentifier = patientServiceIdentifiers.find(
+        (patientServiceIdentifier: any) =>
+          patientServiceIdentifier.id === episode.patientServiceIdentifier.id
+      );
+    });
+
+    return episodes;
+  },
+
   async getAllByIDsFromDexie(ids: string[]) {
     const episodes = await episodeDexie
       .where('id')
       .anyOfIgnoreCase(ids)
-      .reverse()
+      // .reverse()
       .sortBy('episodeDate');
 
     const referralClinicIds = episodes.map((episode: any) =>
@@ -601,7 +630,6 @@ export default {
       ),
       patientVisitDetailsService.getPatientVisitDetailsByEpisodeIds(ids),
     ]);
-    console.log(patientVisitDetails);
     episodes.map((episode: any) => {
       episode.referralClinic = referralClinics.find(
         (referralClinic: any) => referralClinic.id === episode.referralClinic.id
