@@ -10,6 +10,7 @@
             dense
             outlined
             option-label="abbreviation"
+            v-if="canLoadPatient"
             v-model="selectedDataSources"
             :options="dataSources"
             @update:model-value="loadHISDataSource()"
@@ -306,6 +307,7 @@ import patientServiceIdentifierService from 'src/services/api/patientServiceIden
 import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
 import provinceService from 'src/services/api/provinceService/provinceService';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import PermissionService from 'src/services/api/user/PermissionService';
 
 const { alertSucess, alertError, alertInfo } = useSwal();
 const { closeLoading, showloading } = useLoading();
@@ -354,7 +356,7 @@ const pagination = ref({
 const actualPage = ref(1);
 const actualRowsPerPage = ref(5);
 const isTransitIdmed = ref(false);
-const showAddButton = ref(false);
+const showAddButton = ref(true);
 const selectedProvince = ref(null);
 const selectedDistrict = ref(null);
 const selectedUs = ref(null);
@@ -787,6 +789,14 @@ const checkOpenMRS = (his) => {
       }
     });
 };
+
+const canLoadPatient = computed(() => {
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('patient', 'load');
+  } else {
+    return true;
+  }
+});
 
 const provinces = computed(() => {
   return provinceService.getAllProvinces();

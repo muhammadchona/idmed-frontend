@@ -203,6 +203,7 @@ import ReferedStockMoviment from '../../../stores/models/stockrefered/ReferedSto
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useSwal } from 'src/composables/shared/dialog/dialog';
 import StockService from 'src/services/api/stockService/StockService';
+import PermissionService from 'src/services/api/user/PermissionService';
 // components
 
 import ListHeader from 'components/Stock/StockFile/StockFileListHeader.vue';
@@ -514,7 +515,11 @@ const isDisplayStep = computed(() => {
 });
 
 const addVisible = computed(() => {
-  return stockExpiteStatus.value !== 'Expired' || step.value !== 'edit';
+  return (
+    stockExpiteStatus.value !== 'Expired' ||
+    step.value !== 'edit' ||
+    canAddStockData.value
+  );
 });
 
 const isPosetiveAdjustment = computed(() => {
@@ -534,6 +539,14 @@ const headerColor = computed(() => {
     return 'bg-orange-5';
   } else {
     return 'bg-grey-6';
+  }
+});
+
+const canAddStockData = computed(() => {
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('stockEntrance', 'add');
+  } else {
+    return true;
   }
 });
 
