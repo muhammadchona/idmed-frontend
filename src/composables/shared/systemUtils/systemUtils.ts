@@ -25,6 +25,7 @@ export function useSystemUtils() {
       'APE',
       'CLINICA_MOVEL',
       'BRIGADA_MOVEL',
+      'PARAGEM_UNICA',
     ];
 
     return (

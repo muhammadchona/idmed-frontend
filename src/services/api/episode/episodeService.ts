@@ -374,7 +374,6 @@ export default {
   },
   getEpisodeById(id: string) {
     if (isMobile.value && !isOnline.value) {
-      console.log(getEpisodeMobileCache());
       return getEpisodeMobileCache().find((ep) => ep.id === id) || null;
     } else {
       return episode

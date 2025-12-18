@@ -295,7 +295,10 @@ export function useStock() {
     // Merge the results and calculate the total incomes
     const result = stockEntrances.map((entrance) => {
       const totalIncomes = stocks
-        .filter((stock) => stock.entrance_id === entrance.id)
+        .filter((stock) => {
+          const entranceId = stock.entrance_id ?? stock.entranceId;
+          return entranceId === entrance.id;
+        })
         .reduce((sum, stock) => sum + stock.unitsReceived, 0);
       return {
         incomes: totalIncomes,
@@ -643,7 +646,10 @@ export function useStock() {
     // Merge the results and calculate the total incomes
     const result = stockEntrances.map((entrance) => {
       const totalIncomes = stocks
-        .filter((stock) => stock.entrance_id === entrance.id)
+        .filter((stock) => {
+          const entranceId = stock.entrance_id ?? stock.entranceId;
+          return entranceId === entrance.id;
+        })
         .reduce((sum, stock) => sum + stock.unitsReceived, 0);
       return {
         incomes: totalIncomes,

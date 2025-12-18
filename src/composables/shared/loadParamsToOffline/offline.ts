@@ -82,9 +82,9 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 import clinicSectorService from 'src/services/api/clinicSectorService/clinicSectorService';
 import NanoClinicalServiceAttrTypeService from 'src/services/Synchronization/clinicalServiceAttrTypeService/NanoClinicalServiceAttrTypeService';
 import NanoclinicSectorTypeService from 'src/services/Synchronization/clinicSectorTypeService/NanoclinicSectorTypeService';
-// import { useLoading } from '../loading/loading';
+import { useLoading } from '../loading/loading';
 
-// const { closeLoading, showloading } = useLoading();
+const { closeLoading, showloading } = useLoading();
 
 export function useOffline() {
   async function loadClinicsDataFromBackEndToPinia() {
@@ -96,8 +96,8 @@ export function useOffline() {
 
   async function loadParamsFromDexieToCache() {
     try {
+      showloading();
       await clinicSectorService.refreshMobileCache();
-      await episodeService.refreshMobileCache();
       await drugService.refreshMobileCache();
       await clinicalServiceService.refreshMobileCache();
       await clinicalServiceAttributeService.refreshMobileCache();
@@ -122,11 +122,13 @@ export function useOffline() {
       await districtService.refreshMobileCache();
       await stockCenterService.refreshMobileCache();
       await stockOperationTypeService.refreshMobileCache();
-      await groupTypeService.refreshMobileCache();
+      // await groupTypeService.refreshMobileCache();
       await systemConfigsService.refreshMobileCache();
       await menuService.refreshMobileCache();
       await clinicService.refreshMobileCache();
+      await episodeService.refreshMobileCache();
       // await drugService.refreshDrugMobileCache();
+      closeLoading();
       console.log('Charge during saveParamsFromDexieToPinia');
     } catch (err) {
       console.error('Failed during saveParamsFromDexieToPinia', err);
@@ -231,6 +233,7 @@ export function useOffline() {
     //     //    addBulkToMobile();
     //   }
     // });
+    loadParamsFromDexieToCache();
   }
 
   async function addBulkToMobile() {

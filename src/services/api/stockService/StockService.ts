@@ -418,7 +418,7 @@ export default {
             */
             //   if (!isMobile.value) {
             stock.save(stockItem);
-            // this.addMobile(stockItem);
+            this.addMobile(stockItem);
             // }
           });
 

@@ -59,7 +59,6 @@ const refreshDrugMobileCache = async () => {
       ? drug.clinicalService.id
       : drug.clinical_service_id
   );
-  console.log(rows);
   const [forms, clinicalServices, stocksList] = await Promise.all([
     formService.getAllByIDsFromDexie(formIds),
     clinicalServiceService.getAllByIDsFromDexie(clinicalServiceIds),
@@ -85,7 +84,6 @@ const refreshDrugMobileCache = async () => {
   });
 
   setDrugMobileCache(rows);
-  console.log(rows);
   return getDrugMobileCache();
 };
 
