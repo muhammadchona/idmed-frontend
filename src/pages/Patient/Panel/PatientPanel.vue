@@ -125,7 +125,7 @@ import prescriptionService from 'src/services/api/prescription/prescriptionServi
 const { closeLoading, showloading } = useLoading();
 const { website, isDeskTop, isMobile, isOnline } = useSystemUtils();
 const { openDialog, checkIfPatientIsObit } = usePrescriptionDialog();
-const { preferedIdentifier } = usePatient();
+const { preferedIdentifier, hasEpisodes } = usePatient();
 const { lastVisitPrescription } = usePatientServiceIdentifier();
 const { remainigDuration } = usePrescription();
 const { alertError } = useSwal();
@@ -154,25 +154,29 @@ const thumbStyle = ref({
 // Hook
 onMounted(() => {
   init();
-  if (isScanScreen) {
+    if (isScanScreen) {
     let isNewPrescription = true;
-    if (checkIfPatientIsObit(patient.value)) {
-      const identifier = preferedIdentifier(patient.value);
-      const currIdentifier =
-        identifier && Array.isArray(identifier?.episodes)
-          ? identifier
-          : patientServiceIdentifierService.curIdentifierById(identifier?.id);
-      const lastvisitPrescription = lastVisitPrescription(currIdentifier);
-      if (identifier !== null) {
-        const prescription = prescriptionService.getLocalPrescriptionById(
-          lastvisitPrescription?.prescription?.id
+    if (!checkIfPatientIsObit(patient.value)) {
+      if (hasEpisodes(patient.value)) {
+        const identifier = preferedIdentifier(patient.value);
+        const currIdentifier =
+          patientServiceIdentifierService.curIdentifierById(identifier?.id);
+        const lastvisitPrescription = lastVisitPrescription(currIdentifier);
+        if (identifier !== null) {
+          const prescription = prescriptionService.getLocalPrescriptionById(
+            lastvisitPrescription?.prescription?.id
+          );
+          if (remainigDuration(prescription) > 0) isNewPrescription = false;
+        }
+        openDialog(isNewPrescription);
+      } else {
+        alertError(
+          'O paciente não possui histórico clínico. A dispensa de medicamentos não pode ser efetuada.'
         );
-        if (remainigDuration(prescription) > 0) isNewPrescription = false;
       }
-      openDialog(isNewPrescription);
     } else {
       alertError(
-        'O paciente encontra-se no estado de óbito. A dispensa de medicamentos não pode ser efetuada.'
+        'O paciente encontra-se no estado de óbito ou transferido Para. A dispensa de medicamentos não pode ser efetuada.'
       );
     }
   }
