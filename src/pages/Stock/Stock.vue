@@ -50,6 +50,7 @@ onMounted(() => {
           isExecutedDistributor.value = true;
         });
         StockService.getStockDistributorWeb(clinic.id, 0);
+        StockEntranceService.getFromBackEnd(0, currClinic.id);
       }
     });
   }

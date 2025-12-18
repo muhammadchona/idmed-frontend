@@ -265,6 +265,7 @@ export function useOffline() {
     DrugDistributorService.get(0);
     StockDistributorService.get(0);
     StockService.getStockDistributorWeb(clinicService.currClinic().id, 0);
+    StockEntranceService.getFromBackEnd(0, clinicService.currClinic().id);
   }
 
   function deleteStorageInfo() {
