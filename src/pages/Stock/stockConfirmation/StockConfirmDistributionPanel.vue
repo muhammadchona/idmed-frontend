@@ -133,7 +133,10 @@
                   </q-td>
 
                   <q-td key="options" :props="props">
-                    <div class="col" v-if="props.row.status === 'P'">
+                    <div
+                      class="row items-center q-gutter-md"
+                      v-if="props.row.status === 'P'"
+                    >
                       <q-btn
                         :loading="submitting"
                         flat

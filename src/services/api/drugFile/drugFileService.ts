@@ -37,7 +37,7 @@ export default {
             closeLoading();
           }
         });
-    }getDrugFileSummary
+    }
   },
   async patch(id: string, params: string) {
     const resp = await api().patch('drug?id=eq.' + id, params);

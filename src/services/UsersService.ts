@@ -55,6 +55,11 @@ export default {
     return api()
       .post('/login', params)
       .then((resp) => {
+        localStorage.setItem('clinicUsers', resp.data.clinicUsers);
+        localStorage.setItem(
+          'userFacilityTypeCode',
+          resp.data.userFacilityTypeCode
+        );
         if (isMobile.value && !isOnline.value) {
           this.addMobile(resp.data);
           localStorage.setItem(

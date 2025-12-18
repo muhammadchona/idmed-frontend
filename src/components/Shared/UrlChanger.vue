@@ -38,6 +38,11 @@ onMounted(() => {
 const saveURLBackend = () => {
   urlBackend.value = urlBackend.value.concat('/api');
 
+  if (urlBackend.value.includes('5000')) {
+    alertError('A URL não pode conter 5000');
+    return;
+  }
+
   if (urlBackend.value && isValidUrl(urlBackend.value)) {
     localStorage.setItem('backend_url', urlBackend.value);
     sessionStorage.setItem('backend_url', urlBackend.value);
