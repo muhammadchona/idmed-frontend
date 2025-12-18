@@ -653,7 +653,7 @@ import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
 import { useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-
+import PermissionService from 'src/services/api/user/PermissionService';
 // import { v4 as uuidv4 } from 'uuid'
 
 // componentsgetFromBackEnd
@@ -1140,6 +1140,15 @@ const isGuiaDisplayStep = computed(() => {
 const currClinic = computed(() => {
   return clinicService.currClinic();
 });
+
+const canAddStockData = computed(() => {
+  if (isOnline.value) {
+    return PermissionService.canPerformUiAction('stockEntrance', 'add');
+  } else {
+    return true;
+  }
+});
+
 provide('title', title);
 </script>
 

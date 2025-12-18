@@ -100,7 +100,7 @@
         color="orange-5"
         label="Editar"
         class="col"
-        :disable="!canEditPatient && !disableEditButton"
+        :disable="isEditDisabled"
         @click="editPatient"
       />
     </div>
@@ -190,12 +190,6 @@ const init = () => {
   }
 };
 
-const canEditPatient = computed(() => {
-  if (isOnline.value)
-    return PermissionService.canPerformUiAction('patient', 'edit');
-  else return true;
-});
-
 const canUniteDup = computed(() => {
   if (isOnline.value) {
     return PermissionService.canPerformUiAction('patient', 'unitDuplicates');
@@ -231,17 +225,23 @@ const closeMergePatient = () => {
 const dataSources = computed(() => {
   return healthInformationSystemService.getAllActive();
 });
-const disableEditButton = computed(() => {
-  if (patient.value !== null) {
-    if (hasNoObitOrTransferedForEpisode(patient.value)) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  return false;
+const canEditPatient = computed(() => {
+  return PermissionService.canPerformUiAction('patient', 'edit');
 });
 
+const patientHasObitOrTransferred = computed(() => {
+  return patient.value ? hasNoObitOrTransferedForEpisode(patient.value) : false;
+});
+
+const isEditDisabled = computed(() => {
+  if (canEditPatient.value && patientHasObitOrTransferred.value) {
+    return false;
+  } else {
+    if (canEditPatient.value && !patientHasObitOrTransferred.value) {
+      return true;
+    }
+  }
+});
 const generateBarcode = async () => {
   submitting.value = true;
   try {

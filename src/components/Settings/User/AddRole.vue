@@ -56,7 +56,6 @@
             :rows="menus"
             :columns="columns"
             row-key="id"
-            v-model:pagination="pagination"
             :rows-per-page-options="[8, 16, 0]"
             binary-state-sort
             flat
@@ -143,7 +142,7 @@
             </template>
           </q-table>
         </q-card-section>
-        <q-scroll-observer @scroll="scrollHandler" />
+        <q-scroll-observer />
       </q-scroll-area>
       <q-card-actions align="right" class="q-mb-md q-mr-sm">
         <q-btn label="Cancelar" color="red" @click="$emit('close')" />
@@ -234,7 +233,6 @@ const menus = computed(() => {
   const menus = menuService
     .getAllFromStorage()
     .filter((arrayItem) => arrayItem.code !== '08');
-
   return menus.map(({ pivot, ...menu }) => menu);
 });
 
@@ -248,7 +246,13 @@ const uiSectionsByMenu = computed(() => {
 });
 */
 const getSectionsForMenu = (menuId) => {
-  return uiSections.value.filter((section) => section.menu_id === menuId);
+  return uiSections.value
+    .filter((section) => section.menu_id === menuId)
+    .sort((a, b) =>
+      a.displayName.localeCompare(b.displayName, undefined, {
+        sensitivity: 'base',
+      })
+    );
 };
 onMounted(() => {
   if (isCreateStep.value) {
@@ -496,7 +500,6 @@ const selectSectionsForMenuWhenEdit = (menuId) => {
 const getSectionsByCategories = (menuId) => {
   // Get all sections for this menu
   const sections = getSectionsForMenu(menuId);
-
   // Initialize result structure with categories
   const categorizedSections = Object.keys(sectionCategories).map(
     (category) => ({
