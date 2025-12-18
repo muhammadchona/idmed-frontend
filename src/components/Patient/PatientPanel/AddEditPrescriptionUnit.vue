@@ -904,6 +904,9 @@ const lastPrescription = computed(() => {
 });
 
 const patientServiceIdentifierFromEpisode = computed(() => {
+  if (isMobile.value && !isOnline.value && lastPatientVisitDetails.value) {
+    return lastPatientVisitDetails.value.episode;
+  }
   if (
     lastPatientVisitDetails.value !== null &&
     lastPatientVisitDetails.value !== undefined

@@ -276,11 +276,12 @@ onMounted(async () => {
           showloading();
           if (dexie_resp) loadPatientDataToOffline();
         });
+      } else {
+        showloading();
+        loadParamsFromDexieToCache();
+        closeLoading();
       }
     });
-    showloading();
-    loadParamsFromDexieToCache();
-    closeLoading();
   }
 });
 

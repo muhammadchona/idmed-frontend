@@ -58,8 +58,8 @@ export default {
     const stocks = await StockService.localDbGetAll();
     const reportDatas = stocks.filter(
       (stock) =>
-        stock.entrance.dateReceived >= reportParams.startDate &&
-        stock.entrance.dateReceived <= reportParams.endDate &&
+        stock.entrance?.dateReceived >= reportParams.startDate &&
+        stock.entrance?.dateReceived <= reportParams.endDate &&
         stock.drug.clinicalService.id === reportParams.clinicalService
     );
 

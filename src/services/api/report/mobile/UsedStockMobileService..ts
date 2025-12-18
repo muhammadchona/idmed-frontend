@@ -70,8 +70,8 @@ export default {
     const stocks = await StockService.localDbGetAll();
     const result = stocks.filter(
       (stock) =>
-        stock.entrance.dateReceived >= reportParams.startDate &&
-        stock.entrance.dateReceived <= reportParams.endDate &&
+        stock.entrance?.dateReceived >= reportParams.startDate &&
+        stock.entrance?.dateReceived <= reportParams.endDate &&
         stock.drug.clinical_service_id === reportParams.clinicalService
     );
     resultDrugsStocks = this.groupedMap(result, 'drug_id');
@@ -206,6 +206,7 @@ export default {
       // patientHistory.period = reportParams.periodTypeView
       usedStock.year = reportParams.year;
       usedStock.endDate = reportParams.endDate;
+      usedStock.startDate = reportParams.startDate;
       usedStock.id = uuidv4();
       await this.localDbAddOrUpdate(usedStock);
     }

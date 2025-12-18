@@ -343,7 +343,7 @@ export default {
       if (!entrance) return null;
 
       entrance.stocks = StockService.getStockMobileCache().filter(
-        (s) => s.entrance_id === id
+        (s) => s.entrance_id === id || s.entranceId === id
       );
 
       return entrance;
