@@ -7,6 +7,7 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import ReferedStockMovimentService from 'src/services/api/referedStockMovimentService/ReferedStockMovimentService';
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import clinicService from 'src/services/api/clinicService/clinicService';
 
 const dateUtils = useDateUtils();
 
@@ -35,8 +36,12 @@ export function useStock() {
 
   async function localDbGetStockBalanceByDrug(drug: any) {
     let balance = 0;
+    const clinic = clinicService.currClinic();
     const result = await StockService.getStocksByDrugIdMobile(drug.id);
-    for (const item of result) {
+    const results = result.filter((result1) => {
+      return result1.clinicId === clinic.id;
+    });
+    for (const item of results) {
       balance += Number(item.stockMoviment);
       // Stock.insert({ data: result })
     }
