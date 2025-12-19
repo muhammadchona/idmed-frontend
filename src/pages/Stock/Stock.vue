@@ -49,7 +49,6 @@ onMounted(() => {
         StockDistributorService.get(0).then(() => {
           isExecutedDistributor.value = true;
         });
-        console.log(clinic.id);
         StockService.getStockDistributorWeb(clinic.id, 0);
         StockService.getFromBackEnd(0, clinic.id);
         StockEntranceService.getFromBackEnd(0, clinic.id);
