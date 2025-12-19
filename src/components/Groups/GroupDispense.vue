@@ -168,6 +168,7 @@ import { useGroupMemberPrescription } from 'src/composables/group/groupMemberPre
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription';
 // import isOnline from 'is-online';
 
 const {
@@ -287,11 +288,23 @@ const checkMembersPrescriptionsDuration = () => {
 
   selectedGroup.value.members.forEach((member) => {
     let remainingDuration = 0;
-    if (member.groupMemberPrescriptions[0] !== null) {
-      remainingDuration = usePrescription().remainigDurationInWeeks(
-        member.groupMemberPrescriptions[0].prescription
-      );
+    let lastPrescription = null;
+    if (member.groupMemberPrescriptions[0] === null) {
+      lastPrescription = useEpisode().lastVisit(
+        member.patient.identifiers[0].episodes[0]
+      ).prescription;
+      const newGroupMemberPrescription = new GroupMemberPrescription();
+      newGroupMemberPrescription.id = uuidv4();
+      newGroupMemberPrescription.prescription = lastPrescription;
+      newGroupMemberPrescription.member = member;
+      newGroupMemberPrescription.save();
+    } else {
+      lastPrescription = member.groupMemberPrescriptions[0].prescription;
     }
+
+    remainingDuration =
+      usePrescription().remainigDurationInWeeks(lastPrescription);
+
     if (
       remainingDuration <
       durationService.getDurationById(drugsDuration.value.id).weeks

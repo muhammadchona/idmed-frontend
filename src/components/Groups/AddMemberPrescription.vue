@@ -111,6 +111,8 @@ import groupMemberPrescriptionService from 'src/services/api/GroupMemberPrescrip
 import GroupMemberPrescription from 'src/stores/models/group/GroupMemberPrescription';
 import { v4 as uuidv4 } from 'uuid';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import { route } from 'quasar/wrappers';
+import { useRouter } from 'vue-router';
 // Declaration
 const {
   idadeCalculator,
@@ -129,6 +131,7 @@ const curPatientVisit = ref(
   })
 );
 const { isOnline } = useSystemUtils();
+const router = useRouter();
 
 //Inject
 const patient = inject('patient');
@@ -176,7 +179,6 @@ const doValidationToDispense = () => {
     member: selectedMember.value,
     used: false,
   });
-
 
   const groupId = memberPrescription.member.group.id;
   const patientId = memberPrescription.member.patient.id;
@@ -273,5 +275,4 @@ provide('selectedMember', selectedMember);
 .box-border {
   border: 1px solid $grey-4;
 }
-
 </style>
