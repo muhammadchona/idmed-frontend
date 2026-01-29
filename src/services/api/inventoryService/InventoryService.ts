@@ -98,10 +98,11 @@ export default {
       .where('endDate', (value: Date) => {
         const startDateMoment = moment(value, 'YYYY-MM-DD');
         return (
-          startDateMoment.isSameOrAfter(startDate) &&
+          // startDateMoment.isSameOrAfter(startDate) &&
           startDateMoment.isSameOrBefore(endDate)
         );
       })
+      .orderBy('endDate', 'desc')
       .first();
   },
 
