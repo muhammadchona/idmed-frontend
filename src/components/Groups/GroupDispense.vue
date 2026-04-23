@@ -32,6 +32,11 @@
             class="col"
             v-model="pickupDate"
             @update:model-value="determineNextPickUpDate()"
+            ref="pickupDateRef"
+            :rules="[
+              (val) =>
+                (val && val.length > 0) || 'Introduza a data de levantamento',
+            ]"
             label="Data de Levantamento"
           >
             <template v-slot:append>
@@ -61,6 +66,7 @@
             bg-color="white"
             outlined
             @blur="determineNextPickUpDate()"
+            ref="drugDuationRef"
             v-model="drugsDuration"
             :options="durations"
             option-value="id"
@@ -76,7 +82,12 @@
             label="Proximo Levantamento"
             bg-color="white"
             class="col"
-            ref="nextPickupDate"
+            ref="nextPickupDateRef"
+            :rules="[
+              (val) =>
+                (val && val.length > 0) ||
+                'Introduza a data do próximo levantamento',
+            ]"
           >
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
@@ -99,6 +110,7 @@
             class="q-mx-sm col"
             bg-color="white"
             outlined
+            ref="dispenseModeRef"
             v-model="dispenseMode"
             :options="dispenseModes"
             option-value="id"
@@ -189,6 +201,11 @@ const nextPDate = ref('');
 const pickupDate = ref('');
 const drugsDuration = ref('');
 const dispenseMode = ref('');
+
+const pickupDateRef = ref(null);
+const drugDuationRef = ref(null);
+const nextPickupDateRef = ref(null);
+const dispenseModeRef = ref(null);
 
 const clinic = inject('clinic');
 let curGroupPackHeader = reactive(ref(new GroupPackHeader({ id: uuidv4() })));
@@ -297,7 +314,7 @@ const checkMembersPrescriptionsDuration = () => {
       newGroupMemberPrescription.id = uuidv4();
       newGroupMemberPrescription.prescription = lastPrescription;
       newGroupMemberPrescription.member = member;
-      newGroupMemberPrescription.save();
+      member.groupMemberPrescriptions.push(newGroupMemberPrescription);
     } else {
       lastPrescription = member.groupMemberPrescriptions[0].prescription;
     }
@@ -344,51 +361,71 @@ const checkMembersPrescriptionsDuration = () => {
 
 const doFormValidation = () => {
   submitting.value = true;
-  const momentPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(pickupDate);
-  const nextPickUpDate = getDateFormatYYYYMMDDFromDDMMYYYY(getNextPickUpDate());
-  const momentNextPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(nextPDate);
-  let prescriptionError = checkMembersPrescriptions();
-  prescriptionError = checkMembersPrescriptionsDuration();
-  if (prescriptionError !== null) {
-    alertError(prescriptionError);
-    submitting.value = false;
-  } else if (pickupDate.value === '' || pickupDate.value === undefined) {
-    alertError(prescriptionError);
-    submitting.value = false;
-  } else if (
-    extractHyphenDateFromDMYConvertYMD(pickupDate) >
-    moment().format('YYYY-MM-DD')
+
+  pickupDateRef.value.validate();
+  drugDuationRef.value.validate();
+  nextPickupDateRef.value.validate();
+  dispenseModeRef.value.validate();
+  if (
+    !pickupDateRef.value.hasError &&
+    !drugDuationRef.value.hasError &&
+    !nextPickupDateRef.value.hasError &&
+    !dispenseModeRef.value.hasError
   ) {
-    alertError('A data da dispensa indicada é maior que a data da corrente.');
-    submitting.value = false;
-  } else if (moment(momentPickUpdate).isBefore(nextPickUpDate, 'day')) {
-    alertError(
-      'A data da dispensa não pode ser anterior a ' +
-        getDDMMYYYFromJSDate(getNextPickUpDate())
+    const momentPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(pickupDate);
+    const nextPickUpDate = getDateFormatYYYYMMDDFromDDMMYYYY(
+      getNextPickUpDate()
     );
-    submitting.value = false;
-  } else if (drugsDuration.value === '') {
-    alertError('Por favor, o período para o qual está a efectuar a dispensa.');
-    submitting.value = false;
-  } else if (nextPDate.value === '' || nextPDate.value === undefined) {
-    alertError('Por favor, indique a data do próximo levantamento.');
-    submitting.value = false;
-  } else if (moment(momentNextPickUpdate).isBefore(momentPickUpdate)) {
-    alertError(
-      'A data do próximo levantamento não pode ser anterior a data do levantamento.'
-    );
-    submitting.value = false;
-  } else if (dispenseMode.value === '') {
-    alertError('Por favor indicar o modo de dispensa.');
-    submitting.value = false;
-  } else {
-    const prescriptionDateError = checkMembersPrescriptionsDate(pickupDate);
-    if (prescriptionDateError !== null) {
-      alertError(prescriptionDateError);
+    const momentNextPickUpdate = getDateFormatYYYYMMDDFromDDMMYYYY(nextPDate);
+    let prescriptionError = checkMembersPrescriptions();
+    prescriptionError = checkMembersPrescriptionsDuration();
+
+    if (prescriptionError !== null) {
+      alertError(prescriptionError);
+      submitting.value = false;
+    } else if (pickupDate.value === '' || pickupDate.value === undefined) {
+      alertError(prescriptionError);
+      submitting.value = false;
+    } else if (
+      extractHyphenDateFromDMYConvertYMD(pickupDate) >
+      moment().format('YYYY-MM-DD')
+    ) {
+      alertError('A data da dispensa indicada é maior que a data da corrente.');
+      submitting.value = false;
+    } else if (moment(momentPickUpdate).isBefore(nextPickUpDate, 'day')) {
+      alertError(
+        'A data da dispensa não pode ser anterior a ' +
+          getDDMMYYYFromJSDate(getNextPickUpDate())
+      );
+      submitting.value = false;
+    } else if (drugsDuration.value === '') {
+      alertError(
+        'Por favor, o período para o qual está a efectuar a dispensa.'
+      );
+      submitting.value = false;
+    } else if (nextPDate.value === '' || nextPDate.value === undefined) {
+      alertError('Por favor, indique a data do próximo levantamento.');
+      submitting.value = false;
+    } else if (moment(momentNextPickUpdate).isBefore(momentPickUpdate)) {
+      alertError(
+        'A data do próximo levantamento não pode ser anterior a data do levantamento.'
+      );
+      submitting.value = false;
+    } else if (dispenseMode.value === '') {
+      alertError('Por favor indicar o modo de dispensa.');
       submitting.value = false;
     } else {
-      generatepacks();
+      const prescriptionDateError = checkMembersPrescriptionsDate(pickupDate);
+      if (prescriptionDateError !== null) {
+        alertError(prescriptionDateError);
+        submitting.value = false;
+      } else {
+        generatepacks();
+      }
     }
+  } else {
+    submitting.value = false;
+    return;
   }
 };
 
@@ -756,11 +793,11 @@ const savePatientVisitDetails = (groupPacks, i) => {
       curGroupPackHeader.value.group_id = selectedGroup.value.id;
       curGroupPackHeader.value.group = null;
       groupPackHeaderService.apiSave(curGroupPackHeader.value).then((resp) => {
-        alertSucess('Operação efectuada com sucesso.');
         submitting.value = false;
         showNewPackingForm.value = false;
         loadedData.value = false;
         executeGetGroupMembers();
+        alertSucess('Operação efectuada com sucesso.');
         closeLoading();
         // $emit('getGroupMembers', false)
         //  emit('getGroupMembers');
@@ -825,6 +862,7 @@ const savePatientVisitDetails = (groupPacks, i) => {
           loadedData.value = false;
           executeGetGroupMembers();
           alertSucess('Operação efectuada com sucesso.');
+          closeLoading();
         })
         .catch((error) => {
           submitting.value = false;
@@ -841,6 +879,7 @@ const savePatientVisitDetails = (groupPacks, i) => {
             }
           }
           alertError('error', listErrors);
+          closeLoading();
         });
     }
   }
