@@ -153,7 +153,7 @@ export default {
     return duration.getModel().$newInstance();
   },
   getAllFromStorage() {
-    return duration.all();
+    return duration.orderBy('weeks', 'asc').get();
   },
 
   getDurationByWeeks(weeksSuply: any) {

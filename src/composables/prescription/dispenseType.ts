@@ -1,4 +1,7 @@
 export function useDispenseType() {
+  function isDD(dispenseType: any) {
+    return dispenseType.code === 'DD';
+  }
   function isDN(dispenseType: any) {
     return dispenseType.code === 'DN';
   }
@@ -24,7 +27,9 @@ export function useDispenseType() {
   }
 
   function getRelatedWeeks(dispenseType: any) {
-    if (isDN(dispenseType)) {
+    if (isDD(dispenseType)) {
+      return 0;
+    } else if (isDN(dispenseType)) {
       return 1;
     } else if (isDM(dispenseType)) {
       return 4;
@@ -39,5 +44,5 @@ export function useDispenseType() {
     }
   }
 
-  return { isDS, isDB, isDM, isDT, isDA, getRelatedWeeks };
+  return { isDD, isDN, isDS, isDB, isDM, isDT, isDA, getRelatedWeeks };
 }
