@@ -8,7 +8,9 @@ export function usePrescribedDrug() {
   function getQtyPrescribed(prescribedDrug: any, weeks: any) {
     if (weeks === null || weeks === '') return 0;
     let lostDays = parseInt(String((weeks / 4) * 2));
-    if (weeks <= 1) lostDays = 0;
+    if (weeks === 0) lostDays = 1;
+    if (weeks === 1) lostDays = 0;
+
     const days = parseInt(String(weeks * 7 + lostDays));
 
     let qty = 0;

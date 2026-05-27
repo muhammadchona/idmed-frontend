@@ -212,9 +212,12 @@ const determineNextPickUpDate = (pickupDate, weeks) => {
   if (date.isValid(extractHyphenDateFromDMYConvertYMD(pickupDate))) {
     const newDate = getDateFromHyphenDDMMYYYY(pickupDate);
     let lostDays = parseInt((weeks / 4) * 2);
-    if (weeks <= 1) {
+    if (0 < weeks && weeks <= 1) {
       lostDays = 0;
+    } else if (weeks === 0) {
+      lostDays = 1;
     }
+
     const daysToAdd = parseInt(weeks * 7 + lostDays);
     nextPDate.value = getDDMMYYYFromJSDate(
       date.addToDate(newDate, { days: daysToAdd })

@@ -1395,10 +1395,10 @@ const addPatientVisitDetail = async () => {
   } else if (curPatientVisitDetail.value.pack.packagedDrugs.length === 0) {
     submittingValidateDispense.value = false;
     alertError('Deve ter pelo menos um medicamento para efectuar a dispensa');
-  } else if (Number(curPatientVisitDetail.value.pack.weeksSupply) <= 0) {
+  } else if (Number(curPatientVisitDetail.value.pack.weeksSupply) < 0) {
     submittingValidateDispense.value = false;
     alertError(
-      'Por favor indicar o período para o qual pretende efectuar a dispensa de medicamento' +
+      'Por favor indicar o período para o qual pretende efectuar a dispensa de medicamento ' +
         props.identifier.service.code
     );
   } else if (

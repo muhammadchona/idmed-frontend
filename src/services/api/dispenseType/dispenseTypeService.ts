@@ -119,7 +119,7 @@ export default {
   getAllFromDuration(weeks: number) {
     let dispenseTypeList = [];
 
-    if (weeks < 4) {
+    if (0 < weeks && weeks < 4) {
       dispenseTypeList = dispenseType
         .where('code', (value: string) => {
           return value === 'DN';
@@ -171,6 +171,13 @@ export default {
             value === 'DS' ||
             value === 'FRM'
           );
+        })
+        .orderBy('id', 'asc')
+        .get();
+    } else if (weeks === 0) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DD';
         })
         .orderBy('id', 'asc')
         .get();
