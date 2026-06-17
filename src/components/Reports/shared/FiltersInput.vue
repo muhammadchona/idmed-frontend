@@ -373,7 +373,7 @@ const filteredPeriodTypes = computed(() => {
 });
 
 const initProcessing = ref(false);
-const errorCountAux = 0;
+const errorCountAux = ref(0);
 const retrievingFromLocalStore = ref(false);
 
 const periodTypeSelect = ref(null);
@@ -482,7 +482,7 @@ const blockDataFutura = (date) => {
 };
 
 const errorCount = (value) => {
-  errorCountAux = value;
+  errorCountAux.value = value;
 };
 
 const validateFilersReport = () => {
@@ -512,7 +512,7 @@ const validateFilersReport = () => {
   if (ref !== null) {
     submitForm.value.click();
   }
-  if (countErr === 0 && errorCountAux === 0) {
+  if (countErr === 0 && errorCountAux.value === 0) {
     processReport();
   }
 };

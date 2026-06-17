@@ -181,6 +181,13 @@ export default {
         })
         .orderBy('id', 'asc')
         .get();
+    } else if (weeks === 48) {
+      dispenseTypeList = dispenseType
+        .where('code', (value: string) => {
+          return value === 'DA';
+        })
+        .orderBy('id', 'asc')
+        .get();
     } else {
       dispenseTypeList = dispenseType.orderBy('id', 'asc').all();
     }
