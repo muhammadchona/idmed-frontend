@@ -168,10 +168,7 @@ const props = defineProps(['drugFromInventoryPanel', 'inventory']);
 const { alertSucess, alertError } = useSwal();
 const { showloading, closeLoading } = useLoading();
 
-
-const {
-  getDateFromHyphenDDMMYYYY,
-} = useDateUtils();
+const { getDateFromHyphenDDMMYYYY } = useDateUtils();
 
 const columns = [
   {
@@ -214,10 +211,10 @@ const adjustments = ref([]);
 const isNewAdjustment = ref(false);
 const numberOfValidStockPerDrug = ref(0);
 const step = ref('display');
-const infoContainerVisible = true;
+const infoContainerVisible = ref(true);
 
 const expandLess = (value) => {
-  infoContainerVisible = !value;
+  infoContainerVisible.value = !value;
 };
 
 onMounted(() => {
