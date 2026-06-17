@@ -727,6 +727,9 @@ const filterFn = (val, update, abort) => {
     update(() => {
       return (drugs.value = stringOptions.map((drug) => {
         if (
+          drug.name &&
+          drug.form &&
+          drug.form.description &&
           !String(drug.name).includes(
             String(drug.form.description).substring(0, 4)
           )
