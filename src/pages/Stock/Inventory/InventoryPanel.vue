@@ -56,7 +56,6 @@
             <q-input
               dense
               outlined
-              disable
               class="col q-ma-sm"
               v-model="closeDate"
               ref="dataFecho"
@@ -604,7 +603,10 @@ const blockData = (date) => {
     return date === moment(endDate).format('YYYY/MM/DD');
   } else {
     closeDate.value = moment(currentDate).format('DD-MM-YYYY');
-    return date === moment(currentDate).format('YYYY/MM/DD');
+    return (
+      date <= moment(currentDate).format('YYYY/MM/DD') &&
+      date > inventory.endDate
+    );
   }
 };
 

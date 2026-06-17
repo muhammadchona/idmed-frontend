@@ -1,5 +1,5 @@
-import { adherenceScreeningService } from 'src/services/api/adherenceScreening/adherenceScreeningService';
-import { patientVisitService } from 'src/services/api/patientVisit/patientVisitService';
+// import { adherenceScreeningService } from 'src/services/api/adherenceScreening/adherenceScreeningService';
+// import { patientVisitService } from 'src/services/api/patientVisit/patientVisitService';
 import { useRepo } from 'pinia-orm';
 import api from '../apiService/apiService';
 import PatientVisit from 'src/stores/models/patientVisit/PatientVisit';
