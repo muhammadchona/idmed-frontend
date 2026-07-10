@@ -25,7 +25,7 @@ export default {
       return this.postWeb(params);
     }
   },
-   get(offset: number) {
+  get(offset: number) {
     if (isMobile.value && !isOnline.value) {
       this.getMobile();
     } else {
@@ -217,9 +217,11 @@ export default {
 
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
-    return await clinicalServiceDexie
+    const cls = await clinicalServiceDexie
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
+
+    return cls;
   },
 };

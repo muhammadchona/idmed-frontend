@@ -83,12 +83,16 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return packagedDrugDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        packagedDrug.save(JSON.parse(JSON.stringify(params)));
-      });
+  async addMobile(params: string) {
+    try {
+      const pd = await packagedDrugDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      packagedDrug.save(JSON.parse(JSON.stringify(params)));
+      return pd;
+    } catch (error) {
+      console.log(error);
+    }
   },
   putMobile(params: string) {
     return packagedDrugDexie
@@ -133,7 +137,7 @@ export default {
 
     packagedDrugs.map((packagedDrug: any) => {
       packagedDrug.drug = drugs.find(
-        (drug: any) => drug.id === packagedDrug.drug_id
+        (drug: any) => drug?.id === packagedDrug?.drug_id
       );
     });
 
@@ -184,27 +188,26 @@ export default {
   },
 
   async getAllByIDsFromDexie(ids: string[]) {
-    const collection = packagedDrugDexie
+    const collection = await packagedDrugDexie
       .orderBy('nextPickUpDate')
       .filter((packagedDrug: PackagedDrug) =>
         ids.includes(packagedDrug?.pack?.id ?? '')
-      );
-    const packagedDrugs = await collection.toArray();
-
-    const drugsId = packagedDrugs.map((packagedDrug: any) =>
+      )
+      .toArray();
+    const drugsId = collection.map((packagedDrug: any) =>
       packagedDrug?.drug?.id ? packagedDrug.drug.id : ''
     );
+
     const [drugs] = await Promise.all([
       drugService.getAllByIDsFromDexie(drugsId),
     ]);
 
-    packagedDrugs.map((packagedDrug: any) => {
+    collection.map((packagedDrug: any) => {
       packagedDrug.drug = drugs.find(
         (drug: any) => drug.id === packagedDrug.drug.id
       );
     });
-
-    return packagedDrugs;
+    return collection;
   },
   async getAllPackagedDrugByIDsFromDexie(ids: []) {
     const packagedDrugs = await packagedDrugDexie
@@ -225,6 +228,7 @@ export default {
         (pack: any) => pack.id === packagedDrug.pack.id
       );
     });
+    packagedDrug.save(packagedDrugs);
     return packagedDrugs;
   },
   deleteAllFromDexie() {

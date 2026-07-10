@@ -87,12 +87,16 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return prescriptionDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        prescription.save(JSON.parse(JSON.stringify(params)));
-      });
+  async addMobile(params: string) {
+    try {
+      const pres = await prescriptionDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      prescription.save(JSON.parse(JSON.stringify(params)));
+      return pres;
+    } catch (error) {
+      console.error(error);
+    }
   },
   putMobile(params: string) {
     return prescriptionDexie
@@ -273,13 +277,17 @@ export default {
   },
 
   async getAllMobileByIds(prescriptionIds: any) {
-    const resp = await prescriptionDexie
-      .where('id')
-      .anyOf(prescriptionIds)
-      .toArray();
+    try {
+      const resp = await prescriptionDexie
+        .where('id')
+        .anyOf(prescriptionIds)
+        .toArray();
 
-    prescription.save(resp);
-    return resp;
+      prescription.save(resp);
+      return resp;
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   async getPrescriptionsByIds(prescriptionIds: any) {
@@ -318,14 +326,14 @@ export default {
     const prescriptionsIds = prescriptions.map(
       (prescription: any) => prescription.id
     );
-    const durationIds = prescriptions.map(
-      (prescription: any) => prescription?.duration?.id ? prescription.duration.id : ''
+    const durationIds = prescriptions.map((prescription: any) =>
+      prescription?.duration?.id ? prescription.duration.id : ''
     );
-    const doctorIds = prescriptions.map(
-      (prescription: any) => prescription?.doctor?.id ? prescription.doctor.id : ''
+    const doctorIds = prescriptions.map((prescription: any) =>
+      prescription?.doctor?.id ? prescription.doctor.id : ''
     );
-    const clinicIds = prescriptions.map(
-      (prescription: any) => prescription?.clinic?.id ? prescription.clinic.id : ''
+    const clinicIds = prescriptions.map((prescription: any) =>
+      prescription?.clinic?.id ? prescription.clinic.id : ''
     );
     const [clinics, durations, doctors, prescriptionDetails, prescribedDrugs] =
       await Promise.all([
@@ -342,21 +350,21 @@ export default {
 
     prescriptions.map((prescription: any) => {
       prescription.clinic = clinics.find(
-        (clinic: any) => clinic.id === prescription.clinic.id
+        (clinic: any) => clinic?.id === prescription?.clinic?.id
       );
       prescription.duration = durations.find(
-        (duration: any) => duration.id === prescription.duration.id
+        (duration: any) => duration?.id === prescription?.duration?.id
       );
       prescription.doctor = doctors.find(
-        (doctor: any) => doctor.id === prescription.doctor.id
+        (doctor: any) => doctor?.id === prescription?.doctor?.id
       );
       prescription.prescriptionDetails = prescriptionDetails.filter(
         (prescriptionDetail: any) =>
-          prescriptionDetail.prescription.id === prescription.id
+          prescriptionDetail?.prescription?.id === prescription?.id
       );
       prescription.prescribedDrugs = prescribedDrugs.filter(
         (prescribedDrug: any) =>
-          prescribedDrug.prescription.id === prescription.id
+          prescribedDrug?.prescription?.id === prescription?.id
       );
     });
 

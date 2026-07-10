@@ -80,7 +80,6 @@ const rows = ref([]);
 const getMigrationProgressDetails = () => {
   ReportService.apiMigrationStatusDetails(props.stage).then((resp) => {
     rows.value = resp.data;
-    console.log(rows);
     closeLoading();
   });
 };

@@ -970,7 +970,8 @@ const init = () => {
       lastPrescription.value.prescriptionDate
     );
     curPrescription.value = lastPrescription.value;
-    // curPrescription.value.patientVisitDetails = [];
+  //  curPrescription.value.patientVisitDetails = [];
+    curPrescription.value.groupMemberPrescription = [];
     curPrescription.value.syncStatus = 'N';
     curPrescription.value.prescriptionDetails.forEach((prescriptionDetail) => {
       prescriptionDetail.prescription = null;
@@ -1054,8 +1055,6 @@ const validateForm = () => {
     spetialMotiveRef.value.validate();
   }
   if (attachedPrescription.value) {
-    console.log(attachedPrescription.value);
-    console.log(curPrescription.value.value);
     // const imageBase64 = attachedPrescription.value.split(',')[1];
     // curPrescription.value.photo = attachedPrescription.value;
     // curPrescription.value.photoName = attachedPrescription.value.name;
@@ -1272,33 +1271,32 @@ const generatePacks = async (packagedDrug) => {
 
   let quantitySupplied = packagedDrug.quantitySupplied;
   const pickupDate = curPack.value.pickupDate;
-  StockService.getValidStockByDrugAndPickUpDateOnline(
+  const stocks = await StockService.getValidStockByDrugAndPickUpDateOnline(
     packagedDrug.drug.id,
     pickupDate
-  ).then((stocks) => {
-    let i = 0;
-    while (quantitySupplied > 0) {
-      const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
+  );
+  let i = 0;
+  while (quantitySupplied > 0) {
+    const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
 
-      if (stocks[i].stockMoviment >= quantitySupplied) {
-        quantitySupplied = 0;
-        packagedDrugStock.quantitySupplied = packagedDrug.quantitySupplied;
-      } else {
-        quantitySupplied = Number(quantitySupplied - stocks[i].stockMoviment);
-        packagedDrugStock.quantitySupplied = stocks[i].stockMoviment;
+    if (stocks[i].stockMoviment >= quantitySupplied) {
+      quantitySupplied = 0;
+      packagedDrugStock.quantitySupplied = packagedDrug.quantitySupplied;
+    } else {
+      quantitySupplied = Number(quantitySupplied - stocks[i].stockMoviment);
+      packagedDrugStock.quantitySupplied = stocks[i].stockMoviment;
 
-        i = i + 1;
-      }
-      packagedDrugStock.drug = {};
-      packagedDrugStock.drug.id = packagedDrug.drug.id;
-      packagedDrugStock.stock = {};
-      packagedDrugStock.stock.id = stocks[i].id;
-      packagedDrugStock.creationDate = moment().format('YYYY-MM-DD');
-
-      packagedDrugStocks.push(packagedDrugStock);
+      i = i + 1;
     }
-    packagedDrug.packagedDrugStocks = packagedDrugStocks;
-  });
+    packagedDrugStock.drug = {};
+    packagedDrugStock.drug.id = packagedDrug.drug.id;
+    packagedDrugStock.stock = {};
+    packagedDrugStock.stock.id = stocks[i].id;
+    packagedDrugStock.creationDate = moment().format('YYYY-MM-DD');
+
+    packagedDrugStocks.push(packagedDrugStock);
+  }
+  packagedDrug.packagedDrugStocks = packagedDrugStocks;
 };
 
 const checkStockToPack = async () => {
@@ -1315,7 +1313,7 @@ const checkStockToPack = async () => {
       indexToRemove.push(i);
     } else {
       if (isMobile.value && !isOnline.value) {
-        generatePacks(packageDrug);
+        await generatePacks(packageDrug);
       }
     }
   }
@@ -1853,7 +1851,6 @@ const handleImageCaptured = (imageData) => {
   // Update the q-file model value
   attachedPrescription.value = file;
   if (file.name === undefined || file.name === null) file.name = fileName;
-  console.log(curPrescription.value);
 };
 
 const byteArrayToBase64 = (byteArray) => {

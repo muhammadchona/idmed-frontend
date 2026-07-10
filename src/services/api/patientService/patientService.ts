@@ -628,48 +628,70 @@ export default {
   },
 
   async getPatientMobileWithAllByPatientId(patient: Patient) {
-    const patientServices =
-      await patientServiceIdentifierService.getAllMobileByPatientId(patient.id);
+    try {
+      const patientServices =
+        await patientServiceIdentifierService.getAllMobileByPatientId(
+          patient.id
+        );
+      const patientServicesIds = patientServices.map((pat: any) => {
+        return pat?.id;
+      });
 
-    const patientServicesIds = patientServices.map((pat: any) => pat.id);
+      await episodeService.getAllMobileByPatientServiceIds(patientServicesIds);
 
-    await episodeService.getAllMobileByPatientServiceIds(patientServicesIds);
-
-    const patientVisits = await patientVisitService.apiGetAllByPatientId(
-      patient.id
-    );
-    const ids = patientVisits.map((pat: any) => pat.id);
-
-    const patientVisitDetails =
-      await patientVisitDetailsService.getAllMobileByVisitId(ids);
-
-    const prescriptionIds = patientVisitDetails.map((pat: any) =>
-      pat?.prescription?.id ? pat.prescription.id : ''
-    );
-    const packIds = patientVisitDetails.map((pat: any) => pat.pack.id);
-
-    const prescriptions = await prescriptionService.getAllMobileByIds(
-      prescriptionIds
-    );
-    const packs = await packService.getAllMobileByIds(packIds);
-
-    ids.forEach((id: any) => {
-      vitalSignsScreeningService.getVitalSignsScreeningByVisitIdMobile(id);
-      rAMScreeningService.getRAMScreeningByVisitIdMobile(id);
-      tBScreeningService.getTBScreeningsByVisitIdMobile(id);
-      adherenceScreeningService.getAdherenceScreeningByVisitIdMobile(id);
-      pregnancyScreeningService.getPregnancyScreeningsByVisitIdMobile(id);
-    });
-
-    prescriptions.forEach((prescription: any) => {
-      prescribedDrugService.getLastByPrescriprionIdFromDexie(prescription.id);
-      prescriptionDetailsService.getLastByPrescriprionIdFromDexie(
-        prescription.id
+      const patientVisits = await patientVisitService.apiGetAllByPatientId(
+        patient.id
       );
-    });
-    packs.forEach((pack: any) => {
-      packagedDrugService.getAllByPackIdMobile(pack.id);
-    });
+      const ids = patientVisits.map((pat: any) => pat.id);
+
+      const patientVisitDetails =
+        await patientVisitDetailsService.getAllMobileByVisitId(ids);
+
+      const prescriptionIds = patientVisitDetails.map((pat: any) => {
+        return pat?.prescription?.id ? pat.prescription.id : '';
+      });
+      const packIds = patientVisitDetails.map((pat: any) => {
+        return pat.pack.id;
+      });
+      const prescriptions = await prescriptionService.getAllMobileByIds(
+        prescriptionIds
+      );
+      const packs = await packService.getAllMobileByIds(packIds);
+      ids.forEach(async (id: any) => {
+        try {
+          await vitalSignsScreeningService.getVitalSignsScreeningByVisitIdMobile(
+            id
+          );
+          await rAMScreeningService.getRAMScreeningByVisitIdMobile(id);
+          await tBScreeningService.getTBScreeningsByVisitIdMobile(id);
+          await adherenceScreeningService.getAdherenceScreeningByVisitIdMobile(
+            id
+          );
+          await pregnancyScreeningService.getPregnancyScreeningsByVisitIdMobile(
+            id
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      });
+      prescriptions.forEach(async (prescription: any) => {
+        try {
+          await prescribedDrugService.getLastByPrescriprionIdFromDexie(
+            prescription?.id
+          );
+          await prescriptionDetailsService.getLastByPrescriprionIdFromDexie(
+            prescription?.id
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      });
+      packs.forEach((pack: any) => {
+        packagedDrugService.getAllByPackIdMobile(pack?.id);
+      });
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   // Dexie Block
@@ -689,10 +711,10 @@ export default {
 
     patients.map((patient: any) => {
       patient.patientVisits = patientVisitList.filter(
-        (patientVisit: any) => patientVisit.patient.id === patient.id
+        (patientVisit: any) => patientVisit?.patient?.id === patient?.id
       );
       patient.identifiers = identifiers.filter(
-        (identifier: any) => identifier.patient.id === patient.id
+        (identifier: any) => identifier?.patient?.id === patient?.id
       );
     });
 
@@ -713,10 +735,10 @@ export default {
 
     patients.map((patient: any) => {
       patient.patientVisits = patientVisitList.filter(
-        (patientVisit: any) => patientVisit.patient.id === patient.id
+        (patientVisit: any) => patientVisit?.patient?.id === patient?.id
       );
       patient.identifiers = identifiers.filter(
-        (identifier: any) => identifier.patient.id === patient.id
+        (identifier: any) => identifier?.patient?.id === patient?.id
       );
     });
     return patients;
@@ -739,10 +761,10 @@ export default {
 
     patients.map((patient: any) => {
       patient.patientVisits = patientVisitList.filter(
-        (patientVisit: any) => patientVisit.patient.id === patient.id
+        (patientVisit: any) => patientVisit?.patient?.id === patient?.id
       );
       patient.identifiers = identifiers.filter(
-        (identifier: any) => identifier.patient.id === patient.id
+        (identifier: any) => identifier?.patient?.id === patient?.id
       );
     });
 

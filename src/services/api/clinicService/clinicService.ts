@@ -401,6 +401,10 @@ export default {
   },
 
   async getAllByIDsFromDexie(ids: []) {
-    return await clinicDexie.where('id').anyOfIgnoreCase(ids).toArray();
+    const clinics = await clinicDexie
+      .where('id')
+      .anyOfIgnoreCase(ids)
+      .toArray();
+    return clinics;
   },
 };

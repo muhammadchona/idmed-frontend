@@ -488,17 +488,17 @@ export default {
 
     stocks.map((stock: any) => {
       stock.entrance = entrances.find(
-        (entrance: any) => entrance.id === stock.entrance_id
+        (entrance: any) => entrance?.id === stock?.entrance_id
       );
       stock.packagedDrugStocks = packagedDrugStockList.filter(
-        (packagedDrugStock: any) => packagedDrugStock.stock_id === stock.id
+        (packagedDrugStock: any) => packagedDrugStock?.stock_id === stock?.id
       );
       stock.adjustments = inventoryStockAdjustmentsList.filter(
-        (stockAdjustment: any) => stockAdjustment.adjusted_stock_id === stock.id
+        (stockAdjustment: any) => stockAdjustment?.adjusted_stock_id === stock?.id
       );
       stock.referedAdjustments = referedStockAdjustmentsList.filter(
         (referedStockAdjustment: any) =>
-          referedStockAdjustment.adjusted_stock_id === stock.id
+          referedStockAdjustment?.adjusted_stock_id === stock?.id
       );
     });
 

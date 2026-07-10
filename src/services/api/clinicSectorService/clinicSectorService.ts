@@ -242,6 +242,11 @@ export default {
   },
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
-    return await clinicSectorDexie.where('id').anyOfIgnoreCase(ids).toArray();
+    const clinicSectorItem = await clinicSectorDexie
+      .where('id')
+      .anyOfIgnoreCase(ids)
+      .toArray();
+
+    return clinicSectorItem;
   },
 };

@@ -87,12 +87,16 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return prescriptionDetailsDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        prescriptionDetails.save(JSON.parse(JSON.stringify(params)));
-      });
+  async addMobile(params: string) {
+    try {
+      const pd = await prescriptionDetailsDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      prescriptionDetails.save(JSON.parse(JSON.stringify(params)));
+      return pd;
+    } catch (error) {
+      console.error(error);
+    }
   },
   putMobile(params: string) {
     return prescriptionDetailsDexie
@@ -198,14 +202,20 @@ export default {
 
   // Dexie Block
   async getLastByPrescriprionIdFromDexie(prescriptionId: string) {
-    const collection = prescriptionDetailsDexie.filter(
-      (prescriptionDetail: PrescriptionDetail) =>
-        prescriptionId === prescriptionDetail?.prescription?.id
-    );
-    return await collection.toArray().then((prescriptionDetailsObject: any) => {
-      prescriptionDetails.save(prescriptionDetailsObject);
-      return prescriptionDetailsObject;
-    });
+    try {
+      const collection = prescriptionDetailsDexie.filter(
+        (prescriptionDetail: PrescriptionDetail) =>
+          prescriptionId === prescriptionDetail?.prescription?.id
+      );
+      return await collection
+        .toArray()
+        .then((prescriptionDetailsObject: any) => {
+          prescriptionDetails.save(prescriptionDetailsObject);
+          return prescriptionDetailsObject;
+        });
+    } catch (error) {
+      console.error(error);
+    }
   },
 
   async getLastByPrescriprionIdListFromDexie(prescriptionIds: string[]) {
@@ -213,27 +223,27 @@ export default {
       (prescriptionDetail: PrescriptionDetail) =>
         prescriptionIds.includes(prescriptionDetail?.prescription?.id)
     );
-    const prescriptionsDetails = await collection.toArray();
+    const prescriptionsDetailsItems = await collection.toArray();
 
-    const therapeuticLineIds = prescriptionsDetails.map(
+    const therapeuticLineIds = prescriptionsDetailsItems.map(
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.therapeuticLine?.id
           ? prescriptionsDetail.therapeuticLine.id
           : ''
     );
-    const therapeuticRegimenIds = prescriptionsDetails.map(
+    const therapeuticRegimenIds = prescriptionsDetailsItems.map(
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.therapeuticRegimen?.id
           ? prescriptionsDetail.therapeuticRegimen.id
           : ''
     );
-    const dispenseTypeIds = prescriptionsDetails.map(
+    const dispenseTypeIds = prescriptionsDetailsItems.map(
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.dispenseType?.id
           ? prescriptionsDetail.dispenseType.id
           : ''
     );
-    const spetialPrescriptionMotiveIds = prescriptionsDetails.map(
+    const spetialPrescriptionMotiveIds = prescriptionsDetailsItems.map(
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.spetialPrescriptionMotive?.id
           ? prescriptionsDetail.spetialPrescriptionMotive.id
@@ -253,28 +263,29 @@ export default {
         spetialPrescriptionMotiveIds
       ),
     ]);
-    prescriptionsDetails.map((prescriptionsDetail: any) => {
+    prescriptionsDetailsItems.map((prescriptionsDetail: any) => {
       prescriptionsDetail.therapeuticLine = therapeuticLines.find(
         (therapeuticLine: any) =>
-          therapeuticLine.id === prescriptionsDetail?.therapeuticLine?.id
+          therapeuticLine?.id === prescriptionsDetail?.therapeuticLine?.id
       );
       prescriptionsDetail.therapeuticRegimen = therapeuticRegimens.find(
         (therapeuticRegimen: any) =>
-          therapeuticRegimen.id === prescriptionsDetail?.therapeuticRegimen?.id
+          therapeuticRegimen?.id === prescriptionsDetail?.therapeuticRegimen?.id
       );
       prescriptionsDetail.dispenseType = dispenseTypes.find(
         (dispenseType: any) =>
-          dispenseType.id === prescriptionsDetail?.dispenseType?.id
+          dispenseType?.id === prescriptionsDetail?.dispenseType?.id
       );
       prescriptionsDetail.spetialPrescriptionMotive =
         spetialPrescriptionMotives.find(
           (spetialPrescriptionMotive: any) =>
-            spetialPrescriptionMotive.id ===
+            spetialPrescriptionMotive?.id ===
             prescriptionsDetail?.spetialPrescriptionMotive?.id
         );
+      prescriptionDetails.save(prescriptionsDetail);
     });
 
-    return prescriptionsDetails;
+    return prescriptionsDetailsItems;
   },
 
   async getAllByIDsFromDexie(ids: []) {

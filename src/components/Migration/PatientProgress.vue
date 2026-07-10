@@ -92,7 +92,6 @@ const chartOptions = ref({
 watch(
   () => props.data,
   (newVal, oldVal) => {
-    console.log(newVal);
     series.value[0] = newVal.stage_progress.toFixed(2);
   }
 );

@@ -197,7 +197,6 @@ const startCamera = async () => {
             .play()
             .then(() => {
               isStreamActive.value = true;
-              console.log('Camera restarted after discard');
             })
             .catch((err) => {
               console.error('Error playing video:', err);
@@ -264,7 +263,6 @@ const saveImage = () => {
       prescription.value.photo = Array.from(bytes);
 
       // You can now send this to your backend
-      console.log('Image captured and converted to bytes');
 
       // Close the dialog
       cameraDialog.value = false;

@@ -360,7 +360,6 @@ onMounted(async () => {
   showloading();
   const tarvClinicalService =
     clinicalServiceService.getClinicalServiceByCode('TARV');
-  console.log(patient.value.id);
   curIdentifier.value =
     patientServiceIdentifierService.getPreferredIdentifierByPatientId(
       patient.value.id
@@ -409,7 +408,6 @@ const search = async () => {
         patientVisitsToDelete.value,
         'visitDate'
       );
-      console.log(patientVisitsToDelete.value);
       ageCalculatedPatientToDelete.value = moment().diff(
         moment(patient.value.dateOfBirth, 'YYYY-MM-DD'),
         'years'

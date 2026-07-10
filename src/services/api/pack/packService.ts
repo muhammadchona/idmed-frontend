@@ -91,10 +91,14 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return packDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
+  async addMobile(params: string) {
+    try {
+      const packaged = await packDexie.add(JSON.parse(JSON.stringify(params)));
       pack.save(JSON.parse(JSON.stringify(params)));
-    });
+      return packaged;
+    } catch (error) {
+      console.error(error);
+    }
   },
   putMobile(params: string) {
     return packDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
@@ -248,14 +252,14 @@ export default {
   },
 
   getLastPackFromPatientVisitAndPrescription(prescriptionId: string) {
-    const packreturn =  pack
+    const packreturn = pack
       .withAllRecursive(1)
       .whereHas('patientVisitDetails', (query) => {
         query.where('prescription_id', prescriptionId);
       })
       .orderBy('pickupDate', 'desc')
       .first();
-      return packreturn
+    return packreturn;
   },
   getLastPackFromEpisode(episodeId: string) {
     return pack
@@ -324,10 +328,14 @@ export default {
   },
 
   async getAllMobileByIds(packIds: any) {
-    const resp = await packDexie.where('id').anyOf(packIds).toArray();
+    try {
+      const resp = await packDexie.where('id').anyOf(packIds).toArray();
 
-    pack.save(resp);
-    return resp;
+      pack.save(resp);
+      return resp;
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   async getPacksByIds(packIds: any) {
@@ -437,7 +445,6 @@ export default {
     const clinicIds = packs.map((pack: any) =>
       pack?.clinic?.id ? pack.clinic.id : ''
     );
-
     const [dispenseModes, packagedDrugsList, clinics] = await Promise.all([
       dispenseModeService.getAllByIDsFromDexie(dispenseModeIds),
       packagedDrugService.getAllByIDsFromDexie(packsId),
@@ -445,12 +452,14 @@ export default {
     ]);
     packs.map((pack: any) => {
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
+        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode?.id
       );
       pack.packagedDrugs = packagedDrugsList.filter(
-        (packagedDrugs: any) => packagedDrugs.pack.id === pack.id
+        (packagedDrugs: any) => packagedDrugs?.pack?.id === pack?.id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
+      pack.clinic = clinics.find(
+        (clinic: any) => clinic?.id === pack?.clinic?.id
+      );
     });
     return packs;
   },
@@ -485,12 +494,14 @@ export default {
 
     packs.map((pack: any) => {
       pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
+        (patientVisitDetail: any) => patientVisitDetail?.pack_id === pack?.id
       );
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
+        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode_id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.clinic = clinics.find(
+        (clinic: any) => clinic?.id === pack?.clinic_id
+      );
     });
     return packs;
   },
@@ -530,12 +541,14 @@ export default {
 
     packs.map((pack: any) => {
       pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
+        (patientVisitDetail: any) => patientVisitDetail?.pack_id === pack?.id
       );
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode.id
+        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode?.id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic.id);
+      pack.clinic = clinics.find(
+        (clinic: any) => clinic?.id === pack?.clinic?.id
+      );
     });
     return packs;
   },
@@ -590,9 +603,11 @@ export default {
         (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
       );
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
+        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode_id
       );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.clinic = clinics.find(
+        (clinic: any) => clinic?.id === pack?.clinic_id
+      );
     });
     return packs;
   },

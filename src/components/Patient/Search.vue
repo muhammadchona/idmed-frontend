@@ -651,7 +651,7 @@ const goToPatientPanel = async (patient) => {
   localStorage.setItem('patientuuid', currPatient.value.id);
   localStorage.setItem('isScanScreen', false);
   if (isMobile.value && !isOnline.value) {
-    await patientService.getPatientMobileWithAllByPatientId(currPatient.value);
+    console.warn('Buscando Paciente no Dexie');
   } else {
     deleteDexieInfo();
     localStorage.setItem('patientuuid', currPatient.value.id);

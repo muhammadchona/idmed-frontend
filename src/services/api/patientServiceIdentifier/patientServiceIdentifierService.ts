@@ -129,16 +129,17 @@ export default {
       });
   },
   async getAllMobileByPatientId(patientId: string) {
-    const collection = await patientServiceIdentifierDexie
-      .orderBy('startDate')
-      .filter(
-        (identifier: PatientServiceIdentifier) =>
-          identifier?.patient?.id === patientId
-      );
-
-    const resp = await collection.toArray();
-    patientServiceIdentifier.save(resp);
-    return resp;
+    try {
+      const collection = await patientServiceIdentifierDexie
+        .orderBy('startDate')
+        .filter((identifier: PatientServiceIdentifier) => {
+          return String(identifier?.patient.id).includes(patientId);
+        })
+        .toArray();
+      return collection;
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   async apiSave(identifier: any, isNew: boolean) {
@@ -370,14 +371,14 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
+        (clinic: any) => clinic?.id === patientServiceIdentifier?.clinic?.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifierType.id
+          identifierType?.id === patientServiceIdentifier?.identifierType?.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service.id
+        (service: any) => service?.id === patientServiceIdentifier?.service?.id
       );
     });
 
@@ -420,14 +421,14 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
+        (clinic: any) => clinic?.id === patientServiceIdentifier?.clinic?.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifierType.id
+          identifierType?.id === patientServiceIdentifier?.identifierType?.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service.id
+        (service: any) => service?.id === patientServiceIdentifier?.service?.id
       );
     });
 
@@ -477,18 +478,18 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
+        (clinic: any) => clinic?.id === patientServiceIdentifier?.clinic?.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifierType.id
+          identifierType?.id === patientServiceIdentifier?.identifierType?.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service.id
+        (service: any) => service?.id === patientServiceIdentifier?.service?.id
       );
       patientServiceIdentifier.episodes = episodeList.filter(
         (episode: any) =>
-          episode.patientServiceIdentifier.id === patientServiceIdentifier.id
+          episode?.patientServiceIdentifier?.id === patientServiceIdentifier?.id
       );
     });
 
@@ -537,18 +538,18 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
+        (clinic: any) => clinic?.id === patientServiceIdentifier?.clinic?.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifierType.id
+          identifierType?.id === patientServiceIdentifier?.identifierType?.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service.id
+        (service: any) => service?.id === patientServiceIdentifier?.service?.id
       );
       patientServiceIdentifier.episodes = episodeList.filter(
         (episode: any) =>
-          episode.patientServiceIdentifier.id === patientServiceIdentifier.id
+          episode?.patientServiceIdentifier?.id === patientServiceIdentifier?.id
       );
     });
 
@@ -597,22 +598,20 @@ export default {
 
     patientServiceIdentifiers.map((patientServiceIdentifier: any) => {
       patientServiceIdentifier.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientServiceIdentifier.clinic.id
+        (clinic: any) => clinic?.id === patientServiceIdentifier?.clinic?.id
       );
       patientServiceIdentifier.identifierType = identifierTypes.find(
         (identifierType: any) =>
-          identifierType.id === patientServiceIdentifier.identifierType.id
+          identifierType?.id === patientServiceIdentifier?.identifierType?.id
       );
       patientServiceIdentifier.service = services.find(
-        (service: any) => service.id === patientServiceIdentifier.service.id
+        (service: any) => service?.id === patientServiceIdentifier?.service?.id
       );
       patientServiceIdentifier.episodes = episodeList.filter(
         (episode: any) =>
-          episode.patientServiceIdentifier.id === patientServiceIdentifier.id
+          episode?.patientServiceIdentifier?.id === patientServiceIdentifier?.id
       );
     });
-
-    patientServiceIdentifier.save(patientServiceIdentifiers);
 
     return patientServiceIdentifiers;
   },

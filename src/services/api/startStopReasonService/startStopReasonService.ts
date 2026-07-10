@@ -173,10 +173,11 @@ export default {
 
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
-    return await startStopReasonDexie
+    const str = await startStopReasonDexie
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
+    return str;
   },
 
   getStartStopReasonByCode(code: string) {

@@ -251,7 +251,6 @@ const doValidationToDispense = () => {
     .apiSave(memberPrescription)
     .then((resp1) => {
       selectedMember.value.groupMemberPrescriptions[0] = memberPrescription;
-      console.log(selectedMember.value.groupMemberPrescription);
       executeGetGroupMembers();
       alertSucess('Prescrição gravada com sucesso');
       submitting.value = false;

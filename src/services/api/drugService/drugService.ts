@@ -274,7 +274,7 @@ export default {
       drug.form = forms.find((form: any) => form.id === drug.form.id);
       drug.clinicalService = clinicalServices.find(
         (clinicalService: any) =>
-          clinicalService.id === drug.clinicalService.id
+          clinicalService?.id === drug.clinicalService?.id
       );
     });
     return drugs;
@@ -294,7 +294,7 @@ export default {
 
     drugsWithStock.map((drug: any) => {
       drug.stocks = stocksList.filter(
-        (stock: any) => stock.drug_id === drug.id
+        (stock: any) => stock?.drug_id === drug?.id
       );
     });
 

@@ -93,14 +93,12 @@ const chartOptions = ref({
 watch(
   () => props.data,
   (newVal, oldVal) => {
-    console.log(newVal);
     series.value[0] = newVal.stage_progress.toFixed(2);
   }
 );
 onMounted(() => {
   // currClinic = new Clinic(SessionStorage.getItem('currClinic'));
   // alert(SessionStorage.  getItem('currClinic').id)
-  console.log(series);
   // series.value = ref[0];
 });
 

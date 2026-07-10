@@ -78,7 +78,6 @@ tooltip: {
                const utentBirthDate = moment(birthDate)
                const todayDate = moment(new Date())
                const idade = todayDate.diff(utentBirthDate, 'years')
-               console.log(idade)
                return idade
             }
         },
@@ -98,7 +97,6 @@ tooltip: {
     const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
    const map = this.patientAdultsTarv.reduce((a, b) => {
   const m = toDate(b.startDate).getMonth()
-  console.log(m)
   a[m] = (a[m] || 0) + 1
   monthsPresent.push(month[+m])
      return a
@@ -110,7 +108,6 @@ tooltip: {
    }
   result = result.sort(function (a, b) {
   // sort based on the value in the monthNames object
-  console.log(+moment(a.key, 'MMM') - moment(b.key, 'MMM'))
   return +moment(a.key, 'MMM') - moment(b.key, 'MMM')
 })
   return result
@@ -121,7 +118,6 @@ tooltip: {
     const month = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
    const map = this.patientChildsTarv.reduce((a, b) => {
   const m = toDate(b.startDate).getMonth()
-  console.log(m)
   a[m] = (a[m] || 0) + 1
   monthsPresent.push(month[+m])
      return a
@@ -133,7 +129,6 @@ tooltip: {
    }
   result = result.sort(function (a, b) {
   // sort based on the value in the monthNames object
-  console.log(+moment(a.key, 'MMM') - moment(b.key, 'MMM'))
   return +moment(a.key, 'MMM') - moment(b.key, 'MMM')
 })
   return result
@@ -156,7 +151,6 @@ tooltip: {
                               })
                                .whereHas('episodes', (query) => {
                               query.where((episodes) => {
-                                  console.log(episodes)
                                    return episodes.notes === 'Inicio ao tratamento'
                               })
                               }).get()
@@ -177,7 +171,6 @@ tooltip: {
                               })
                                .whereHas('episodes', (query) => {
                               query.where((episodes) => {
-                                  console.log(episodes)
                                    return episodes.notes === 'Inicio ao tratamento'
                               })
                               }).get()
@@ -216,7 +209,6 @@ tooltip: {
     })
   //   this.Nmap = new Map()
  Episode.apiGetAllByClinicId('ff8081817c668dcc017c66dc3d330002').then(resp => {
-       console.log(this.patientMensTarv)
           this.$q.loading.hide()
       }) */
         this.Nmap = this.getAdultPatientsByMonth()

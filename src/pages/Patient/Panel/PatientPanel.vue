@@ -188,7 +188,10 @@ const init = async () => {
   showloading();
 
   if (isMobile.value && !isOnline.value) {
-    await patientService.getPatientMobileWithAllByPatientId(patient.value);
+    const patient = await patientService.getPatientByID(
+      localStorage.getItem('patientuuid')
+    );
+    await patientService.getPatientMobileWithAllByPatientId(patient);
   }
 
   closeLoading();

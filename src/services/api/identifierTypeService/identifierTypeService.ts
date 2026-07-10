@@ -160,6 +160,10 @@ export default {
   },
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
-    return await identifierTypeDexie.where('id').anyOfIgnoreCase(ids).toArray();
+    const idfs = await identifierTypeDexie
+      .where('id')
+      .anyOfIgnoreCase(ids)
+      .toArray();
+    return idfs;
   },
 };

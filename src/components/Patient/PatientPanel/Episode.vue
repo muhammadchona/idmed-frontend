@@ -295,7 +295,6 @@ const removeEpisode = () => {
     );
   } else {
     alertWarningAction('Deseja remover o Histórico Clínico?').then((result) => {
-      console.log(result);
       if (result) {
         doOnConfirm();
       } else {
