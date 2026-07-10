@@ -421,7 +421,6 @@ const removePack = () => {
             packService.removeFromStorage(packIdToRemove);
 
             closeLoading();
-            console.log(resp);
             alertSucess('Dispensa removida com sucesso');
           })
           .catch((error) => {

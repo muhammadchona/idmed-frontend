@@ -416,19 +416,15 @@ const getForm = (id) => {
 };
 
 const removePrescribedDrug = (prescribedDrug) => {
-  console.log(selectedGroup);
   const pack = membersDispenses.value.get(props.member);
   const newPackagedDrugs = pack.packagedDrugs.filter((prescDr) => {
     return prescDr.drug.id !== prescribedDrug.drug.id;
   });
   pack.packagedDrugs = newPackagedDrugs;
-  console.log(pack);
 };
 
 const addPrescribedDrug = (prescribedDrug, visitDetails) => {
-  console.log(visitDetails);
   visitDetails = curVisitDetails;
-  console.log(visitDetails);
   //  prescribedDrug.prescription_id = visitDetails.prescription.id
   const pack = membersDispenses.value.get(props.member);
   const psdrugExists = pack.packagedDrugs.some((pd) => {
@@ -442,7 +438,6 @@ const addPrescribedDrug = (prescribedDrug, visitDetails) => {
     );
   } else {
     pack.packagedDrugs.push(new PackagedDrug(prescribedDrug));
-    console.log(pack.packagedDrugs);
   }
   showAddEditDrug.value = false;
 };

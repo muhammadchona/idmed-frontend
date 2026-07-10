@@ -1,7 +1,10 @@
 import Dexie from 'dexie';
 import { schema } from './index';
 
-const db = new Dexie('idmed');
+const db = new Dexie('idmed', {
+  indexedDB: window.indexedDB,
+  IDBKeyRange: window.IDBKeyRange,
+});
 
 db.version(1).stores(schema);
 

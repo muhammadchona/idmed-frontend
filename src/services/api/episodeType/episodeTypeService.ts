@@ -165,6 +165,10 @@ export default {
 
   // Dexie Block
   async getAllByIDsFromDexie(ids: []) {
-    return await episodeTypeDexie.where('id').anyOfIgnoreCase(ids).toArray();
+    const ept = await episodeTypeDexie
+      .where('id')
+      .anyOfIgnoreCase(ids)
+      .toArray();
+    return ept;
   },
 };

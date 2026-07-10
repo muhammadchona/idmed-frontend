@@ -79,12 +79,16 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return pregnancyScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        pregnancyScreening.save(JSON.parse(JSON.stringify(params)));
-      });
+  async addMobile(params: string) {
+    try {
+      const pregnancy = await pregnancyScreeningDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      pregnancyScreening.save(JSON.parse(JSON.stringify(params)));
+      return pregnancy;
+    } catch (error) {
+      console.log(error);
+    }
   },
   putMobile(params: string) {
     return pregnancyScreeningDexie
@@ -125,17 +129,21 @@ export default {
       });
   },
   async getPregnancyScreeningsByVisitIdMobile(id: string) {
-    const collection = pregnancyScreeningDexie
-      .orderBy('id')
-      .reverse()
-      .filter(
-        (pregnancyScreening: PregnancyScreening) =>
-          id === pregnancyScreening?.visit?.id
-      );
-    const resp = await collection.toArray();
+    try {
+      const collection = pregnancyScreeningDexie
+        .orderBy('id')
+        .reverse()
+        .filter(
+          (pregnancyScreening: PregnancyScreening) =>
+            id === pregnancyScreening?.visit?.id
+        );
+      const resp = await collection.toArray();
 
-    pregnancyScreening.save(resp);
-    return resp;
+      pregnancyScreening.save(resp);
+      return resp;
+    } catch (error) {
+      console.error(error);
+    }
   },
   async apiGetAll(offset: number, max: number) {
     return await api().get(

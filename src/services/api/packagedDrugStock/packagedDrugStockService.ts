@@ -94,17 +94,19 @@ export default {
     }
   },
   // Mobile
-  addMobile(params: string) {
-    return packagedDrugStockDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        packagedDrugStock.save(JSON.parse(JSON.stringify(params)));
-      })
-      .catch((error: any) => {
-        // alertError('Aconteceu um erro inesperado nesta operação.');
-        console.log(error);
-      });
+  async addMobile(params: string) {
+    try {
+      const pds = await packagedDrugStockDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      packagedDrugStock.save(JSON.parse(JSON.stringify(params)));
+      return pds;
+    } catch (error: any) {
+      // alertError('Aconteceu um erro inesperado nesta operação.');
+      console.log(error);
+    }
   },
+
   putMobile(params: string) {
     return packagedDrugStockDexie
       .put(JSON.parse(JSON.stringify(params)))
@@ -158,8 +160,10 @@ export default {
       );
     const packagedDrugStocks = await collection.toArray();
 
-    const packagedDrugIds = packagedDrugStocks.map(
-      (packagedDrugStock: any) => packagedDrugStock?.packagedDrug?.id ? packagedDrugStock.packagedDrug.id : ''
+    const packagedDrugIds = packagedDrugStocks.map((packagedDrugStock: any) =>
+      packagedDrugStock?.packagedDrug?.id
+        ? packagedDrugStock.packagedDrug.id
+        : ''
     );
 
     const [packagedDrugList] = await Promise.all([
@@ -169,7 +173,7 @@ export default {
     packagedDrugStocks.map((packagedDrugStock: any) => {
       packagedDrugStock.packagedDrug = packagedDrugList.find(
         (packagedDrug: any) =>
-          packagedDrug.id === packagedDrugStock.packagedDrug.id
+          packagedDrug?.id === packagedDrugStock?.packagedDrug?.id
       );
     });
 

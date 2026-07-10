@@ -81,7 +81,18 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
+  async addMobile(params: string) {
+    try {
+      const adherence = await adherenceScreeningDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      adherenceScreening.save(JSON.parse(JSON.stringify(params)));
+      return adherence;
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  putMobile(params: string) {
     showloading();
     return adherenceScreeningDexie
       .put(JSON.parse(JSON.stringify(params)))
@@ -143,17 +154,21 @@ export default {
       });
   },
   async getAdherenceScreeningByVisitIdMobile(id: string) {
-    const collection = adherenceScreeningDexie
-      .orderBy('id')
-      .reverse()
-      .filter(
-        (adherenceScreening: AdherenceScreening) =>
-          id === adherenceScreening?.visit?.id
-      );
-    const resp = await collection.toArray();
+    try {
+      const collection = adherenceScreeningDexie
+        .orderBy('id')
+        .reverse()
+        .filter(
+          (adherenceScreening: AdherenceScreening) =>
+            id === adherenceScreening?.visit?.id
+        );
+      const resp = await collection.toArray();
 
-    adherenceScreening.save(resp);
-    return resp;
+      adherenceScreening.save(resp);
+      return resp;
+    } catch (error) {
+      console.error(error);
+    }
   },
   // Local Storage Pinia
   newInstanceEntity() {

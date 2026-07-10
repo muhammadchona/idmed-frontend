@@ -81,7 +81,18 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
+  async addMobile(params: string) {
+    try {
+      const vs = await vitalSignsScreeningDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      vitalSignsScreening.save(JSON.parse(JSON.stringify(params)));
+      return vs;
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  putMobile(params: string) {
     return vitalSignsScreeningDexie
       .put(JSON.parse(JSON.stringify(params)))
       .then(() => {
@@ -91,13 +102,6 @@ export default {
       .catch((error: any) => {
         // alertError('Aconteceu um erro inesperado nesta operação.');
         console.log(error);
-      });
-  },
-  putMobile(params: string) {
-    return vitalSignsScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        vitalSignsScreening.save(JSON.parse(JSON.stringify(params)));
       });
   },
   getMobile() {
@@ -133,16 +137,20 @@ export default {
       });
   },
   async getVitalSignsScreeningByVisitIdMobile(id: string) {
-    const collection = vitalSignsScreeningDexie
-      .orderBy('id')
-      .reverse()
-      .filter(
-        (vitalSignsScreening: VitalSignsScreening) =>
-          id === vitalSignsScreening?.visit?.id
-      );
-    const resp = await collection.toArray();
-    vitalSignsScreening.save(resp);
-    return resp;
+    try {
+      const collection = vitalSignsScreeningDexie
+        .orderBy('id')
+        .reverse()
+        .filter(
+          (vitalSignsScreening: VitalSignsScreening) =>
+            id === vitalSignsScreening?.visit?.id
+        );
+      const resp = await collection.toArray();
+      vitalSignsScreening.save(resp);
+      return resp;
+    } catch (error) {
+      console.error(error);
+    }
   },
   async apiGetAll(offset: number, max: number) {
     return await api().get(

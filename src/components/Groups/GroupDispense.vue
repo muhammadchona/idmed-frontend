@@ -716,7 +716,6 @@ const generatepacks = async () => {
   showloading();
   let errorMsg = 'Não existe stock suficiente do medicamento [';
   initGroupPackHeader();
-  console.log(selectedGroup.value.members);
   generateCurrGroupPackHeader().then((drugErrors) => {
     if (
       drugErrors !== undefined &&

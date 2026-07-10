@@ -80,12 +80,16 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return prescribedDrugDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        prescribedDrug.save(JSON.parse(JSON.stringify(params)));
-      });
+  async addMobile(params: string) {
+    try {
+      const pd = await prescribedDrugDexie.add(
+        JSON.parse(JSON.stringify(params))
+      );
+      prescribedDrug.save(JSON.parse(JSON.stringify(params)));
+      return pd;
+    } catch (error) {
+      console.log(error);
+    }
   },
   putMobile(params: string) {
     return prescribedDrugDexie
@@ -127,14 +131,18 @@ export default {
       });
   },
   async getLastByPrescriprionIdFromDexie(prescriptionId: string) {
-    const collection = prescribedDrugDexie.filter(
-      (prescribedDrug: PrescribedDrug) =>
-        prescribedDrug?.prescription.id === prescriptionId
-    );
-    return await collection.toArray().then((prescribedDrugs: any) => {
-      prescribedDrug.save(prescribedDrugs);
-      return prescribedDrugs;
-    });
+    try {
+      const collection = prescribedDrugDexie.filter(
+        (prescribedDrug: PrescribedDrug) =>
+          prescribedDrug?.prescription?.id === prescriptionId
+      );
+      return await collection.toArray().then((prescribedDrugs: any) => {
+        prescribedDrug.save(prescribedDrugs);
+        return prescribedDrugs;
+      });
+    } catch (error) {
+      console.log(error);
+    }
   },
   async apiGetAllByPrescriptionId(prescriptionId: string) {
     return await api()

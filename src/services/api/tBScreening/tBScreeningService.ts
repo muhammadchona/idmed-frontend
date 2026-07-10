@@ -81,15 +81,14 @@ export default {
       });
   },
   // Mobile
-  addMobile(params: string) {
-    return tBScreeningDexie
-      .put(JSON.parse(JSON.stringify(params)))
-      .then(() => {
-        tBScreening.save(JSON.parse(JSON.stringify(params)));
-      })
-      .catch((error: any) => {
-        console.log(error);
-      });
+  async addMobile(params: string) {
+    try {
+      const tb = await tBScreeningDexie.add(JSON.parse(JSON.stringify(params)));
+      tBScreening.save(JSON.parse(JSON.stringify(params)));
+      return tb;
+    } catch (error) {
+      console.log(error);
+    }
   },
   putMobile(params: string) {
     return tBScreeningDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
@@ -129,16 +128,18 @@ export default {
       });
   },
   async getTBScreeningsByVisitIdMobile(id: string) {
-    const collection = tBScreeningDexie
-      .orderBy('id')
-      .reverse()
-      .filter(
-        (tBScreening: TBScreening) => id === tBScreening?.visit?.id
-      );
-    const resp = await collection.toArray();
+    try {
+      const collection = tBScreeningDexie
+        .orderBy('id')
+        .reverse()
+        .filter((tBScreening: TBScreening) => id === tBScreening?.visit?.id);
+      const resp = await collection.toArray();
 
-    tBScreening.save(resp);
-    return resp;
+      tBScreening.save(resp);
+      return resp;
+    } catch (error) {
+      console.error(error);
+    }
   },
   async apiGetAll(offset: number, max: number) {
     return this.get(offset);

@@ -159,9 +159,11 @@ export default {
 
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
-    return await therapeuticLineDexie
+    const therapeuticLineDexieItems = await therapeuticLineDexie
       .where('id')
       .anyOfIgnoreCase(ids)
       .toArray();
+
+    return therapeuticLineDexieItems;
   },
 };

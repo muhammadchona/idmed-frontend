@@ -113,16 +113,7 @@ const canAddPatientService = computed(() => {
 
 //Hook
 onMounted(() => {
-  // console.log(isProvincialInstalation());
-  // console.log(isProvincialInstalationMobileClinic());
-  /*
-  console.log(isProvincialInstalation());
-  console.log(isProvincialInstalationPharmacysMode());
-  console.log(isProvincialInstalationMobileClinic());
-  console.log(
-    !isProvincialInstalation() || !isProvincialInstalationPharmacysMode()
-  );
-  */
+
 });
 
 //Method
