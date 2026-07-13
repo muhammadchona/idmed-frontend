@@ -179,7 +179,8 @@ export default {
   },
   async getAllByPatientVisitIDsFromDexie(ids: string[]) {
     const collection = vitalSignsScreeningDexie.filter(
-      (vitalSignsScreening: VitalSignsScreening) =>
+      (vitalSignsScreening: any) =>
+        ids.includes(vitalSignsScreening?.patient_visit_id) ||
         ids.includes(vitalSignsScreening?.patientVisit?.id)
     );
     return await collection.toArray().then((rows: any) => {

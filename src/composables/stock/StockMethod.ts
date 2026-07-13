@@ -718,9 +718,9 @@ export function useStock() {
       for (const pvdObj of pvd.patientVisitDetails) {
         // if (pvd.pack.pickupDate > new Date()) {
         if (pvdObj.pack !== undefined) {
-          for (const pcd of pvdObj.pack.packagedDrugs) {
-            for (const pcdStockObj of pcd.packagedDrugStocks) {
-              if (pcdStockObj.stock.id === stockId) {
+          for (const pcd of pvdObj.pack.packagedDrugs ?? []) {
+            for (const pcdStockObj of pcd.packagedDrugStocks ?? []) {
+              if (pcdStockObj?.stock?.id === stockId) {
                 const recordFile = {};
                 //drugQuantitySupplied += Number(pcd.quantitySupplied);
                 recordFile.stockId = pcdStockObj.stock.id;

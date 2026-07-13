@@ -36,11 +36,11 @@ export function sendData() {
             patient.syncStatus = 'S';
             // Get Childs TO Update
             patientService.putMobile(patient);
-            setTimeout(apiSendPatients(patientsToSync, i), 200);
+            setTimeout(() => apiSendPatients(patientsToSync, i), 200);
           })
           .catch((error) => {
             i = i + 1;
-            setTimeout(apiSendPatients(patientsToSync, i), 200);
+            setTimeout(() => apiSendPatients(patientsToSync, i), 200);
             console.log(error);
           });
       } else {
@@ -73,14 +73,14 @@ export function sendData() {
             // Get Childs TO Update
             patientServiceIdentifierService.putMobile(identifier);
             setTimeout(
-              apiSendPatientServiceIdentifier(identifiersToSync, i),
+              () => apiSendPatientServiceIdentifier(identifiersToSync, i),
               200
             );
           })
           .catch((error) => {
             i = i + 1;
             setTimeout(
-              apiSendPatientServiceIdentifier(identifiersToSync, i),
+              () => apiSendPatientServiceIdentifier(identifiersToSync, i),
               200
             );
             console.log(error);
@@ -113,11 +113,11 @@ export function sendData() {
             // episode.id = resp.response.data.id
             // Get Childs TO Update
             episodeService.putMobile(episode);
-            setTimeout(apiSendEpisode(episodesToSync, i), 200);
+            setTimeout(() => apiSendEpisode(episodesToSync, i), 200);
           })
           .catch((error) => {
             i = i + 1;
-            setTimeout(apiSendEpisode(episodesToSync, i), 200);
+            setTimeout(() => apiSendEpisode(episodesToSync, i), 200);
             console.log(error);
           });
       } else {
@@ -150,11 +150,11 @@ export function sendData() {
           // patientVisit.id = resp.response.data.id
           // Get Childs TO Update
           patientVisitService.putMobile(patientVisit);
-          setTimeout(apiSendPatientVisit(patientVisitToSync, i), 200);
+          setTimeout(() => apiSendPatientVisit(patientVisitToSync, i), 200);
         })
         .catch((error) => {
           i = i + 1;
-          setTimeout(apiSendPatientVisit(patientVisitToSync, i), 200);
+          setTimeout(() => apiSendPatientVisit(patientVisitToSync, i), 200);
           console.log(error);
         });
     } else {
@@ -187,7 +187,7 @@ export function sendData() {
             group.syncStatus = 'S';
             // groupService.putMobile(group).then((group) => {
             console.log('Group_Syncronized: ', group);
-            setTimeout(this.apiSendGroups(groupsToSync, i), 200);
+            setTimeout(() => apiSendGroups(groupsToSync, i), 200);
             // })
           })
           .catch((error) => {

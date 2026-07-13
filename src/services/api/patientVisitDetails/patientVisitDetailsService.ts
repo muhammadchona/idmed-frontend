@@ -160,7 +160,11 @@ export default {
       const collection = patientVisitDetailsDexie
         .orderBy('id')
         .reverse()
-        .filter((pvd: any) => visitIds.includes(pvd?.patientVisit?.id));
+        .filter(
+          (pvd: any) =>
+            visitIds.includes(pvd?.patient_visit_id) ||
+            visitIds.includes(pvd?.patientVisit?.id)
+        );
       const resp = await collection.toArray();
       patientVisitDetails.save(resp);
       return resp;
@@ -732,30 +736,46 @@ export default {
 
   async getAllByPatientVisitIdsFromDexie(ids: string[]) {
     try {
-      const collection = patientVisitDetailsDexie.filter((pvd: any) =>
-        ids.includes(pvd?.patientVisit?.id)
+      const collection = patientVisitDetailsDexie.filter(
+        (pvd: any) =>
+          ids.includes(pvd?.patient_visit_id) ||
+          ids.includes(pvd?.patientVisit?.id)
       );
       const patientVisitDetailsItems = await collection.toArray();
 
       const episodeIds = patientVisitDetailsItems.map(
         (patientVisitDetail: any) =>
-          patientVisitDetail?.episode?.id ? patientVisitDetail.episode.id : ''
+          patientVisitDetail?.episode?.id
+            ? patientVisitDetail.episode.id
+            : patientVisitDetail?.episode_id
+            ? patientVisitDetail.episode_id
+            : ''
       );
 
       const clinicIds = patientVisitDetailsItems.map(
         (patientVisitDetail: any) =>
-          patientVisitDetail?.clinic?.id ? patientVisitDetail.clinic.id : ''
+          patientVisitDetail?.clinic?.id
+            ? patientVisitDetail.clinic.id
+            : patientVisitDetail?.clinic_id
+            ? patientVisitDetail.clinic_id
+            : ''
       );
 
       const prescriptionIds = patientVisitDetailsItems.map(
         (patientVisitDetail: any) =>
           patientVisitDetail?.prescription?.id
             ? patientVisitDetail.prescription.id
+            : patientVisitDetail?.prescription_id
+            ? patientVisitDetail.prescription_id
             : ''
       );
 
       const packIds = patientVisitDetailsItems.map((patientVisitDetail: any) =>
-        patientVisitDetail?.pack?.id ? patientVisitDetail.pack.id : ''
+        patientVisitDetail?.pack?.id
+          ? patientVisitDetail.pack.id
+          : patientVisitDetail?.pack_id
+          ? patientVisitDetail.pack_id
+          : ''
       );
 
       const [clinics, episodes, prescriptions, packs] = await Promise.all([
@@ -766,17 +786,24 @@ export default {
       ]);
       patientVisitDetailsItems.map((patientVisitDetail: any) => {
         patientVisitDetail.clinic = clinics.find(
-          (clinic: any) => clinic?.id === patientVisitDetail?.clinic?.id
+          (clinic: any) =>
+            clinic?.id === patientVisitDetail?.clinic_id ||
+            clinic?.id === patientVisitDetail?.clinic?.id
         );
         patientVisitDetail.episode = episodes.find(
-          (episode: any) => episode?.id === patientVisitDetail?.episode?.id
+          (episode: any) =>
+            episode?.id === patientVisitDetail?.episode_id ||
+            episode?.id === patientVisitDetail?.episode?.id
         );
         patientVisitDetail.prescription = prescriptions.find(
           (prescription: any) =>
-            prescription?.id === patientVisitDetail?.prescription.id
+            prescription?.id === patientVisitDetail?.prescription_id ||
+            prescription?.id === patientVisitDetail?.prescription?.id
         );
         patientVisitDetail.pack = packs.find(
-          (pack: any) => pack?.id === patientVisitDetail?.pack?.id
+          (pack: any) =>
+            pack?.id === patientVisitDetail?.pack_id ||
+            pack?.id === patientVisitDetail?.pack?.id
         );
       });
       patientVisitDetails.save(patientVisitDetailsItems);

@@ -327,13 +327,25 @@ export default {
       (prescription: any) => prescription.id
     );
     const durationIds = prescriptions.map((prescription: any) =>
-      prescription?.duration?.id ? prescription.duration.id : ''
+      prescription?.duration?.id
+        ? prescription.duration.id
+        : prescription?.duration_id
+        ? prescription.duration_id
+        : ''
     );
     const doctorIds = prescriptions.map((prescription: any) =>
-      prescription?.doctor?.id ? prescription.doctor.id : ''
+      prescription?.doctor?.id
+        ? prescription.doctor.id
+        : prescription?.doctor_id
+        ? prescription.doctor_id
+        : ''
     );
     const clinicIds = prescriptions.map((prescription: any) =>
-      prescription?.clinic?.id ? prescription.clinic.id : ''
+      prescription?.clinic?.id
+        ? prescription.clinic.id
+        : prescription?.clinic_id
+        ? prescription.clinic_id
+        : ''
     );
     const [clinics, durations, doctors, prescriptionDetails, prescribedDrugs] =
       await Promise.all([
@@ -350,20 +362,28 @@ export default {
 
     prescriptions.map((prescription: any) => {
       prescription.clinic = clinics.find(
-        (clinic: any) => clinic?.id === prescription?.clinic?.id
+        (clinic: any) =>
+          clinic?.id === prescription?.clinic_id ||
+          clinic?.id === prescription?.clinic?.id
       );
       prescription.duration = durations.find(
-        (duration: any) => duration?.id === prescription?.duration?.id
+        (duration: any) =>
+          duration?.id === prescription?.duration_id ||
+          duration?.id === prescription?.duration?.id
       );
       prescription.doctor = doctors.find(
-        (doctor: any) => doctor?.id === prescription?.doctor?.id
+        (doctor: any) =>
+          doctor?.id === prescription?.doctor_id ||
+          doctor?.id === prescription?.doctor?.id
       );
       prescription.prescriptionDetails = prescriptionDetails.filter(
         (prescriptionDetail: any) =>
+          prescriptionDetail?.prescription_id === prescription?.id ||
           prescriptionDetail?.prescription?.id === prescription?.id
       );
       prescription.prescribedDrugs = prescribedDrugs.filter(
         (prescribedDrug: any) =>
+          prescribedDrug?.prescription_id === prescription?.id ||
           prescribedDrug?.prescription?.id === prescription?.id
       );
     });

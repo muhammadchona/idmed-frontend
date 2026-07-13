@@ -370,7 +370,9 @@ export default {
 
   async getStocksByDrugIdMobile(drugId: any) {
     const rows = await stockDexie.toArray();
-    const data = rows.filter((row) => row.drug && row.drug.id === drugId);
+    const data = rows.filter(
+      (row: any) => row.drug_id === drugId || row.drug?.id === drugId
+    );
     return data;
   },
 
@@ -440,7 +442,10 @@ export default {
   async hasStockMobile(drugg: any) {
     try {
       const rows = await stockDexie.toArray();
-      const stocks = rows.filter((row) => row.drug && row.drug.id === drugg.id);
+      const stocks = rows.filter(
+        (row) =>
+          (row.drug && row.drug.id === drugg.id) || row.drug_id === drugg.id
+      );
       return stocks.length > 0;
     } catch (error) {
       // alertError('Aconteceu um erro inesperado nesta operação.');
@@ -494,7 +499,8 @@ export default {
         (packagedDrugStock: any) => packagedDrugStock?.stock_id === stock?.id
       );
       stock.adjustments = inventoryStockAdjustmentsList.filter(
-        (stockAdjustment: any) => stockAdjustment?.adjusted_stock_id === stock?.id
+        (stockAdjustment: any) =>
+          stockAdjustment?.adjusted_stock_id === stock?.id
       );
       stock.referedAdjustments = referedStockAdjustmentsList.filter(
         (referedStockAdjustment: any) =>

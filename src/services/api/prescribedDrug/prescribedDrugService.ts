@@ -173,7 +173,8 @@ export default {
   },
   async getAllByPrescriprionIdListFromDexie(prescriptionIds: string[]) {
     const collection = prescribedDrugDexie.filter(
-      (prescribedDrug: PrescribedDrug) =>
+      (prescribedDrug: any) =>
+        prescriptionIds.includes(prescribedDrug?.prescription_id) ||
         prescriptionIds.includes(prescribedDrug?.prescription?.id)
     );
     const prescribedDrugs = await collection
@@ -184,7 +185,11 @@ export default {
       });
 
     const drugIds = prescribedDrugs.map((prescribedDrug: any) =>
-      prescribedDrug?.drug?.id ? prescribedDrug.drug.id : ''
+      prescribedDrug?.drug?.id
+        ? prescribedDrug.drug.id
+        : prescribedDrug?.drug_id
+        ? prescribedDrug.drug_id
+        : ''
     );
 
     const [drugs] = await Promise.all([
@@ -193,7 +198,9 @@ export default {
 
     prescribedDrugs.map((prescribedDrug: any) => {
       prescribedDrug.drug = drugs.find(
-        (drug: any) => drug.id === prescribedDrug.drug.id
+        (drug: any) =>
+          drug.id === prescribedDrug?.drug_id ||
+          drug.id === prescribedDrug?.drug?.id
       );
     });
     return prescribedDrugs;

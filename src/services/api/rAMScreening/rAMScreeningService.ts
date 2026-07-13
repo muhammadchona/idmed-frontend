@@ -168,8 +168,10 @@ export default {
   },
 
   async getAllByPatientVisitIDsFromDexie(ids: string[]) {
-    const collection = rAMScreeningDexie.filter((ramScreening: RAMScreening) =>
-      ids.includes(ramScreening?.patientVisit?.id)
+    const collection = rAMScreeningDexie.filter(
+      (ramScreening: any) =>
+        ids.includes(ramScreening?.patient_visit_id) ||
+        ids.includes(ramScreening?.patientVisit?.id)
     );
     return await collection.toArray();
   },

@@ -440,10 +440,14 @@ export default {
 
     const packsId = packs.map((pack: any) => (pack?.id ? pack.id : ''));
     const dispenseModeIds = packs.map((pack: any) =>
-      pack?.dispenseMode?.id ? pack.dispenseMode.id : ''
+      pack?.dispenseMode?.id
+        ? pack.dispenseMode.id
+        : pack?.dispenseMode_id
+        ? pack.dispenseMode_id
+        : ''
     );
     const clinicIds = packs.map((pack: any) =>
-      pack?.clinic?.id ? pack.clinic.id : ''
+      pack?.clinic?.id ? pack.clinic.id : pack?.clinic_id ? pack.clinic_id : ''
     );
     const [dispenseModes, packagedDrugsList, clinics] = await Promise.all([
       dispenseModeService.getAllByIDsFromDexie(dispenseModeIds),
@@ -452,13 +456,18 @@ export default {
     ]);
     packs.map((pack: any) => {
       pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode?.id
+        (dispenseMode: any) =>
+          dispenseMode?.id === pack?.dispenseMode_id ||
+          dispenseMode?.id === pack?.dispenseMode?.id
       );
       pack.packagedDrugs = packagedDrugsList.filter(
-        (packagedDrugs: any) => packagedDrugs?.pack?.id === pack?.id
+        (packagedDrugs: any) =>
+          packagedDrugs?.pack_id === pack?.id ||
+          packagedDrugs?.pack?.id === pack?.id
       );
       pack.clinic = clinics.find(
-        (clinic: any) => clinic?.id === pack?.clinic?.id
+        (clinic: any) =>
+          clinic?.id === pack?.clinic_id || clinic?.id === pack?.clinic?.id
       );
     });
     return packs;

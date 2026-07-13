@@ -220,7 +220,8 @@ export default {
 
   async getLastByPrescriprionIdListFromDexie(prescriptionIds: string[]) {
     const collection = prescriptionDetailsDexie.filter(
-      (prescriptionDetail: PrescriptionDetail) =>
+      (prescriptionDetail: any) =>
+        prescriptionIds.includes(prescriptionDetail?.prescription_id) ||
         prescriptionIds.includes(prescriptionDetail?.prescription?.id)
     );
     const prescriptionsDetailsItems = await collection.toArray();
@@ -229,24 +230,32 @@ export default {
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.therapeuticLine?.id
           ? prescriptionsDetail.therapeuticLine.id
+          : prescriptionsDetail?.therapeutic_line_id
+          ? prescriptionsDetail.therapeutic_line_id
           : ''
     );
     const therapeuticRegimenIds = prescriptionsDetailsItems.map(
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.therapeuticRegimen?.id
           ? prescriptionsDetail.therapeuticRegimen.id
+          : prescriptionsDetail?.therapeutic_regimen_id
+          ? prescriptionsDetail.therapeutic_regimen_id
           : ''
     );
     const dispenseTypeIds = prescriptionsDetailsItems.map(
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.dispenseType?.id
           ? prescriptionsDetail.dispenseType.id
+          : prescriptionsDetail?.dispense_type_id
+          ? prescriptionsDetail.dispense_type_id
           : ''
     );
     const spetialPrescriptionMotiveIds = prescriptionsDetailsItems.map(
       (prescriptionsDetail: any) =>
         prescriptionsDetail?.spetialPrescriptionMotive?.id
           ? prescriptionsDetail.spetialPrescriptionMotive.id
+          : prescriptionsDetail?.spetialPrescriptionMotive_id
+          ? prescriptionsDetail.spetialPrescriptionMotive_id
           : ''
     );
 
@@ -266,21 +275,27 @@ export default {
     prescriptionsDetailsItems.map((prescriptionsDetail: any) => {
       prescriptionsDetail.therapeuticLine = therapeuticLines.find(
         (therapeuticLine: any) =>
+          therapeuticLine?.id === prescriptionsDetail?.therapeutic_line_id ||
           therapeuticLine?.id === prescriptionsDetail?.therapeuticLine?.id
       );
       prescriptionsDetail.therapeuticRegimen = therapeuticRegimens.find(
         (therapeuticRegimen: any) =>
+          therapeuticRegimen?.id ===
+            prescriptionsDetail?.therapeutic_regimen_id ||
           therapeuticRegimen?.id === prescriptionsDetail?.therapeuticRegimen?.id
       );
       prescriptionsDetail.dispenseType = dispenseTypes.find(
         (dispenseType: any) =>
+          dispenseType?.id === prescriptionsDetail?.dispense_type_id ||
           dispenseType?.id === prescriptionsDetail?.dispenseType?.id
       );
       prescriptionsDetail.spetialPrescriptionMotive =
         spetialPrescriptionMotives.find(
           (spetialPrescriptionMotive: any) =>
             spetialPrescriptionMotive?.id ===
-            prescriptionsDetail?.spetialPrescriptionMotive?.id
+              prescriptionsDetail?.spetialPrescriptionMotive_id ||
+            spetialPrescriptionMotive?.id ===
+              prescriptionsDetail?.spetialPrescriptionMotive?.id
         );
       prescriptionDetails.save(prescriptionsDetail);
     });

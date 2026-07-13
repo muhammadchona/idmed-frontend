@@ -189,7 +189,8 @@ export default {
 
   async getAllByPatientVisitIDsFromDexie(ids: string[]) {
     const collection = pregnancyScreeningDexie.filter(
-      (screening: PregnancyScreening) =>
+      (screening: any) =>
+        ids.includes(screening?.patient_visit_id) ||
         ids.includes(screening?.patientVisit?.id)
     );
     return await collection.toArray();

@@ -190,12 +190,18 @@ export default {
   async getAllByIDsFromDexie(ids: string[]) {
     const collection = await packagedDrugDexie
       .orderBy('nextPickUpDate')
-      .filter((packagedDrug: PackagedDrug) =>
-        ids.includes(packagedDrug?.pack?.id ?? '')
+      .filter(
+        (packagedDrug: any) =>
+          ids.includes(packagedDrug?.pack_id) ||
+          ids.includes(packagedDrug?.pack?.id ?? '')
       )
       .toArray();
     const drugsId = collection.map((packagedDrug: any) =>
-      packagedDrug?.drug?.id ? packagedDrug.drug.id : ''
+      packagedDrug?.drug?.id
+        ? packagedDrug.drug.id
+        : packagedDrug?.drug_id
+        ? packagedDrug.drug_id
+        : ''
     );
 
     const [drugs] = await Promise.all([
@@ -204,7 +210,9 @@ export default {
 
     collection.map((packagedDrug: any) => {
       packagedDrug.drug = drugs.find(
-        (drug: any) => drug.id === packagedDrug.drug.id
+        (drug: any) =>
+          drug.id === packagedDrug?.drug_id ||
+          drug.id === packagedDrug?.drug?.id
       );
     });
     return collection;

@@ -367,11 +367,19 @@ export default {
     );
 
     const patientIds = patientVisits.map((patientVisit: any) =>
-      patientVisit?.patient?.id ? patientVisit.patient.id : ''
+      patientVisit?.patient?.id
+        ? patientVisit.patient.id
+        : patientVisit?.patient_id
+        ? patientVisit.patient_id
+        : ''
     );
 
     const clinicIds = patientVisits.map((patientVisit: any) =>
-      patientVisit?.clinic_id ? patientVisit.clinic_id : ''
+      patientVisit?.clinic_id
+        ? patientVisit.clinic_id
+        : patientVisit?.clinic?.id
+        ? patientVisit.clinic.id
+        : ''
     );
 
     const [
@@ -404,32 +412,43 @@ export default {
 
     patientVisits.map((patientVisit: any) => {
       patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic.id === patientVisit?.clinic?.id
+        (clinic: any) =>
+          clinic.id === patientVisit?.clinic_id ||
+          clinic.id === patientVisit?.clinic?.id
       );
       patientVisit.patient = patients.find(
-        (patient: any) => patient.id === patientVisit?.patient?.id
+        (patient: any) =>
+          patient.id === patientVisit?.patient_id ||
+          patient.id === patientVisit?.patient?.id
       );
       patientVisit.patientVisitDetails = patientVisitDetails.filter(
         (patientVisitDetail: any) =>
+          patientVisitDetail?.patient_visit_id === patientVisit?.id ||
           patientVisitDetail?.patientVisit?.id === patientVisit?.id
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
+          vitalSignsScreening?.patient_visit_id === patientVisit?.id ||
           vitalSignsScreening?.patientVisit?.id === patientVisit?.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
+          pregnancyScreening?.patient_visit_id === patientVisit?.id ||
           pregnancyScreening?.patientVisit?.id === patientVisit?.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
         (ramScreening: any) =>
+          ramScreening?.patient_visit_id === patientVisit?.id ||
           ramScreening?.patientVisit?.id === patientVisit?.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening?.patientVisit?.id === patientVisit?.id
+        (tbScreening: any) =>
+          tbScreening?.patient_visit_id === patientVisit?.id ||
+          tbScreening?.patientVisit?.id === patientVisit?.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
+          adherenceScreening?.patient_visit_id === patientVisit?.id ||
           adherenceScreening?.patientVisit?.id === patientVisit?.id
       );
     });
@@ -908,7 +927,10 @@ export default {
     }
   },
 
-  setPackagedDrugStockNullToSend(patientVis: any) {
+  setPackagedDrugStockNullToSend(patientVisOriginal: any) {
+    // Deep copy so the stripped payload sent to the backend does not
+    // corrupt the original visit, which is written back to Dexie after sync
+    const patientVis = JSON.parse(JSON.stringify(patientVisOriginal));
     patientVis.patientVisitDetails.forEach((patientVisitDetail: any) => {
       patientVisitDetail.clinic = {};
       patientVisitDetail.clinic.id = patientVis?.clinic_id;
