@@ -1,6 +1,45 @@
 <template>
-  <div class="box-border">
-    <div class="q-ma-md">
+  <div
+    v-if="isMobile && showServiceDrugsManagement"
+    class="tablet-validated-prescription-summary"
+  >
+    <div class="tablet-summary-fields">
+      <div><small>Data</small><strong>{{ prescriptionDate }}</strong></div>
+      <div v-if="hasTherapeuticalRegimen">
+        <small>Regime</small>
+        <strong>{{ curPrescriptionDetail.therapeuticRegimen?.description }}</strong>
+      </div>
+      <div v-if="hasTherapeuticalLine">
+        <small>Linha</small>
+        <strong>{{ curPrescriptionDetail.therapeuticLine?.description }}</strong>
+      </div>
+      <div>
+        <small>Duração</small>
+        <strong>{{ curPrescription.duration?.description }}</strong>
+      </div>
+      <div>
+        <small>Clínico</small>
+        <strong>{{ curPrescription.doctor?.fullName }}</strong>
+      </div>
+    </div>
+    <q-btn
+      unelevated
+      dense
+      color="red"
+      :disable="validateDispense || !isNewPrescription"
+      label="Invalidar Prescrição"
+      @click="restorePrescriptionForm"
+    />
+  </div>
+  <div
+    v-show="!isMobile || !showServiceDrugsManagement"
+    class="box-border"
+    :class="{ 'tablet-prescription-unit': isMobile }"
+  >
+    <div
+      v-memo="[getPrescriptionFormMemoToken()]"
+      class="q-ma-md prescription-unit-body"
+    >
       <div class="row">
         <q-input
           dense
@@ -167,110 +206,29 @@
           </template>
         </q-banner>
         <q-table
+          class="prescribed-drugs-table"
           flat
           bordered
           dense
           hide-bottom
-          :rows="curPrescription.prescribedDrugs"
+          :rows="prescribedDrugRows"
           :columns="columns"
           row-key="id"
         >
           <template #body="props">
             <q-tr no-hover :props="props">
               <q-td key="drug" :props="props">
-                {{
-                  getDrugById(props.row.drug.id) !== null &&
-                  getDrugById(props.row.drug.id) !== undefined
-                    ? getDrugById(props.row.drug.id).name.includes(
-                        String(
-                          getDrugFirstLevelById(props.row.drug.id).form
-                            .description
-                        ).substring(0, 4)
-                      )
-                      ? getDrugById(props.row.drug.id).name
-                      : getDrugById(props.row.drug.id).name +
-                        ' - (' +
-                        getDrugById(props.row.drug.id).packSize +
-                        ' ' +
-                        String(
-                          getDrugFirstLevelById(props.row.drug.id).form
-                            .description
-                        ).substring(0, 4) +
-                        ')'
-                    : ''
-                }}
+                {{ props.row.displayName }}
               </q-td>
               <q-td key="dosage" :props="props">
-                {{
-                  getDrugById(props.row.drug.id) !== null &&
-                  getDrugById(props.row.drug.id) !== undefined
-                    ? getDrugFirstLevelById(props.row.drug.id).form.howToUse +
-                      ' ' +
-                      props.row.amtPerTime +
-                      '   ' +
-                      getDrugFirstLevelById(props.row.drug.id).form.unit +
-                      ' - ' +
-                      props.row.timesPerDay +
-                      ' vez(es) por ' +
-                      props.row.form
-                    : ''
-                }}
+                {{ props.row.displayDosage }}
               </q-td>
               <q-td auto-width key="packs" :props="props">
-                {{
-                  getQtyPrescribed(props.row, curPrescription.duration.weeks) >
-                  0
-                    ? getQtyPrescribed(
-                        props.row,
-                        curPrescription.duration.weeks
-                      )
-                    : 1
-                }}
-                <em
-                  v-if="
-                    getDrugFirstLevelById(props.row.drug.id).clinicalService
-                      .code === 'TARV'
-                  "
-                >
-                  Frasco(s)
-                </em>
-                <em v-else
-                  >{{
-                    getDrugFirstLevelById(props.row.drug.id).form.description
-                  }}(s)</em
-                >
+                {{ props.row.displayQuantity }}
+                <em>{{ props.row.displayQuantityUnit }}</em>
               </q-td>
               <q-td auto-width key="packs" :props="props">
-                <em
-                  v-if="
-                    getDrugFirstLevelById(props.row.drug.id).clinicalService
-                      .code === 'TARV'
-                  "
-                >
-                  {{
-                    Math.floor(
-                      getQtyRemain(props.row, curPrescription.duration.weeks) /
-                        props.row.drug.packSize
-                    )
-                  }}
-                  Frasco(s) e
-                  {{
-                    getQtyRemain(props.row, curPrescription.duration.weeks) +
-                    ' ' +
-                    getDrugFirstLevelById(props.row.drug.id).form.unit
-                  }}
-                </em>
-                <em v-else>
-                  {{
-                    Math.floor(
-                      getQtyRemain(props.row, curPrescription.duration.weeks) /
-                        props.row.drug.packSize
-                    )
-                  }}
-                  {{
-                    getDrugFirstLevelById(props.row.drug.id).form.description
-                  }}(s)
-                </em>
+                <em>{{ props.row.displayRemaining }}</em>
               </q-td>
               <q-td key="options" :props="props">
                 <q-btn
@@ -279,7 +237,7 @@
                   color="red"
                   icon="delete"
                   :disable="showServiceDrugsManagement || !isNewPrescription"
-                  @click="deleteRow(props.row)"
+                  @click="deleteRow(props.row.source)"
                 />
               </q-td>
             </q-tr>
@@ -287,6 +245,7 @@
         </q-table>
         <q-separator color="grey-13" size="1px" class="q-mb-sm" />
       </div>
+      <template v-if="secondaryControlsReady">
       <div>
         <div class="row items-center q-mb-xs">
           <span class="text-subtitle2">Informação Adicional</span>
@@ -494,23 +453,31 @@
           "
           label="Invalidar Prescricão"
           class="all-pointer-events"
-          @click="showServiceDrugsManagement = false"
+          @click="restorePrescriptionForm"
         />
+      </div>
+      </template>
+      <div
+        v-else
+        class="row items-center justify-center q-pa-md text-grey-7"
+      >
+        <q-spinner color="primary" size="2em" />
       </div>
     </div>
   </div>
   <div
     class=""
     v-if="
-      (showServiceDrugsManagement && selectedMember == null) ||
-      (!isNewPrescription && selectedMember == null)
+      secondaryControlsReady &&
+      ((showServiceDrugsManagement && selectedMember == null) ||
+        (!isNewPrescription && selectedMember == null))
     "
   >
     <div>
       <ServiceDrugsManagement />
     </div>
   </div>
-  <q-dialog persistent v-model="showAddEditDrug">
+  <q-dialog v-if="showAddEditDrug" persistent v-model="showAddEditDrug">
     <AddEditPrescribedDrug />
   </q-dialog>
 </template>
@@ -519,10 +486,12 @@
 import {
   computed,
   inject,
+  nextTick,
   onMounted,
   provide,
   reactive,
   ref,
+  shallowRef,
   watch,
 } from 'vue';
 import { date } from 'quasar';
@@ -611,6 +580,9 @@ const reasonsForUpdate = ref(['Falência Terapeutica', 'Alergia', 'Outro']);
 const patientStatusOption = ref(['Inicio', 'Manutenção']);
 const showServiceDrugsManagement = ref(false);
 const showAddEditDrug = ref(false);
+const secondaryControlsReady = ref(!isMobile.value);
+const mobileFormRenderFrozen = ref(false);
+const frozenPrescriptionFormMemoToken = {};
 const prescribedDrugs = ref([]);
 const optionsspetialPrescriptionMotives = ref([]);
 const optionstherapeuticRegimens = ref([]);
@@ -630,24 +602,14 @@ const columns = [
   {
     name: 'drug',
     align: 'left',
-    field: (row) => row.drug.name,
+    field: (row) => row.displayName,
     label: 'Medicamento',
     sortable: true,
   },
   {
     name: 'dosage',
     align: 'left',
-    field: (row) =>
-      row.drug.form.howToUse +
-      ' ' +
-      row.amtPerTime +
-      ' ' +
-      row.drug.form.unit +
-      ' ' +
-      row.timesPerDay +
-      ' vez(es)' +
-      ' por ' +
-      row.form,
+    field: (row) => row.displayDosage,
     label: 'Toma',
     sortable: false,
   },
@@ -655,10 +617,7 @@ const columns = [
     name: 'packs',
     align: 'center',
     style: 'width: 20px',
-    field: (row) =>
-      getQtyPrescribed(row, curPrescription.value.duration.weeks) > 0
-        ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
-        : 1,
+    field: (row) => row.displayQuantity,
     label: 'Quantidade',
     sortable: false,
   },
@@ -666,10 +625,7 @@ const columns = [
     name: 'packs',
     align: 'center',
     style: 'width: 20px',
-    field: (row) =>
-      getQtyPrescribed(row, curPrescription.value.duration.weeks) > 0
-        ? getQtyPrescribed(row, curPrescription.value.duration.weeks)
-        : 1,
+    field: (row) => row.displayRemaining,
     label: 'Sobra',
     sortable: false,
   },
@@ -754,13 +710,56 @@ const dispenseTypes = computed(() => {
 const durations = computed(() => {
   return durationService.getAllFromStorage();
 });
+const prescribedDrugRows = computed(() => {
+  const weeks = curPrescription.value.duration?.weeks;
+  return (curPrescription.value.prescribedDrugs ?? []).map((source) => {
+    const drugId = source.drug.id;
+    const drug = getDrugById(drugId);
+    const firstLevelDrug = getDrugFirstLevelById(drugId);
+    const form = firstLevelDrug.form;
+    const formPrefix = String(form.description).substring(0, 4);
+    const quantity = getQtyPrescribed(source, weeks);
+    const remaining = getQtyRemain(source, weeks);
+    const isTarv = firstLevelDrug.clinicalService.code === 'TARV';
+
+    return {
+      id: source.id,
+      source,
+      displayName: drug
+        ? drug.name.includes(formPrefix)
+          ? drug.name
+          : `${drug.name} - (${drug.packSize} ${formPrefix})`
+        : '',
+      displayDosage: drug
+        ? `${form.howToUse} ${source.amtPerTime}   ${form.unit} - ${source.timesPerDay} vez(es) por ${source.form}`
+        : '',
+      displayQuantity: quantity > 0 ? quantity : 1,
+      displayQuantityUnit: isTarv ? 'Frasco(s)' : `${form.description}(s)`,
+      displayRemaining: isTarv
+        ? `${Math.floor(remaining / source.drug.packSize)} Frasco(s) e ${remaining} ${form.unit}`
+        : `${Math.floor(remaining / source.drug.packSize)} ${form.description}(s)`,
+    };
+  });
+});
+const mobilePrescriptionContext = shallowRef(null);
 const lastStartEpisode = computed(() => {
-  return episodeService.getLastStartEpisodeByIdentifier(props.identifier.id);
+  if (isMobile.value) {
+    return mobilePrescriptionContext.value?.lastStartEpisode ?? null;
+  }
+  return episodeService.getLastStartEpisodeForPrescription(props.identifier.id);
 });
 const lastRefferalEpisode = computed(() => {
-  return episodeService.getLastRefferalEpisodeByIdentifier(props.identifier.id);
+  if (isMobile.value) {
+    return mobilePrescriptionContext.value?.lastRefferalEpisode ?? null;
+  }
+  return episodeService.getLastRefferalEpisodeForPrescription(
+    props.identifier.id
+  );
 });
 const lastPatientVisit = computed(() => {
+  if (isMobile.value) {
+    return mobilePrescriptionContext.value?.lastPatientVisit ?? null;
+  }
   const listPatietVisitIds = [];
   if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
     const listPatietVisitDetails =
@@ -784,16 +783,21 @@ const lastPatientVisit = computed(() => {
         listPatietVisitIds.push(patientvisit.id);
       });
     }
-    return patientVisitService.getLastFromPatientVisitList(listPatietVisitIds);
+    return patientVisitService.getLastFromPatientVisitListWithoutRelations(
+      listPatietVisitIds
+    );
   } else {
     return null;
   }
 });
 
 const lastPatientVisitDetails = computed(() => {
+  if (isMobile.value) {
+    return mobilePrescriptionContext.value?.lastPatientVisitDetails ?? null;
+  }
   if (lastPatientVisit.value !== null && lastPatientVisit.value !== undefined) {
     const lastPatientVisitDetailsFromEpisode =
-      patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisitAndEpisode(
+      patientVisitDetailsService.getPrescriptionContextFromPatientVisitAndEpisode(
         lastPatientVisit.value.id,
         lastStartEpisode.value.id
       );
@@ -802,16 +806,15 @@ const lastPatientVisitDetails = computed(() => {
       lastPatientVisitDetailsFromEpisode === undefined
     ) {
       const patientVisitsDetailsByIdentifier =
-        patientVisitDetailsService.getAllWithAllRecursiveFromPatientAndClinicService(
+        patientVisitDetailsService.hasFromPatientAndClinicService(
           patient.value.id,
           props.identifier.service.id
         );
       if (
         patientVisitsDetailsByIdentifier !== null &&
-        patientVisitsDetailsByIdentifier !== undefined &&
-        patientVisitsDetailsByIdentifier.length !== 0
+        patientVisitsDetailsByIdentifier !== undefined
       ) {
-        return patientVisitDetailsService.getLastPatientVisitDetailFromPatientVisit(
+        return patientVisitDetailsService.getPrescriptionContextFromPatientVisit(
           lastPatientVisit.value.id
         );
       } else {
@@ -826,6 +829,9 @@ const lastPatientVisitDetails = computed(() => {
 });
 
 const lastLog = computed(() => {
+  if (isMobile.value) {
+    return mobilePrescriptionContext.value?.lastLog ?? null;
+  }
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
     patient.value.id,
     props.identifier.service.id
@@ -833,6 +839,9 @@ const lastLog = computed(() => {
 });
 
 const lastPrescription = computed(() => {
+  if (isMobile.value) {
+    return mobilePrescriptionContext.value?.lastPrescription ?? null;
+  }
   if (lastLog.value && lastLog.value.prescription) {
     return lastLog.value.prescription;
   }
@@ -840,15 +849,19 @@ const lastPrescription = computed(() => {
     lastPatientVisitDetails.value !== null &&
     lastPatientVisitDetails.value !== undefined
   ) {
-    return prescriptionService.getLastPrescriptionFromPatientVisitDetails(
-      lastPatientVisitDetails.value.prescription.id
-    );
+    return lastPatientVisitDetails.value.prescription;
   } else {
     return null;
   }
 });
 
 const patientServiceIdentifierFromEpisode = computed(() => {
+  if (isMobile.value) {
+    return (
+      mobilePrescriptionContext.value?.patientServiceIdentifierFromEpisode ??
+      null
+    );
+  }
   if (
     lastPatientVisitDetails.value !== null &&
     lastPatientVisitDetails.value !== undefined
@@ -862,7 +875,17 @@ const patientServiceIdentifierFromEpisode = computed(() => {
 });
 
 const lastPack = computed(() => {
+  if (isMobile.value) {
+    return mobilePrescriptionContext.value?.lastPack ?? null;
+  }
   if (lastPrescription.value !== null && lastPrescription.value !== undefined) {
+    if (
+      lastPatientVisitDetails.value?.prescription?.id ===
+        lastPrescription.value.id &&
+      lastPatientVisitDetails.value?.pack
+    ) {
+      return lastPatientVisitDetails.value.pack;
+    }
     return packService.getLastPackFromPatientVisitAndPrescription(
       lastPrescription.value.id
     );
@@ -870,6 +893,93 @@ const lastPack = computed(() => {
     return null;
   }
 });
+
+const prepareMobilePrescriptionContext = () => {
+  const context = {
+    lastStartEpisode:
+      episodeService.getLastStartEpisodeForPrescription(props.identifier.id),
+    lastRefferalEpisode:
+      episodeService.getLastRefferalEpisodeForPrescription(props.identifier.id),
+    lastPatientVisit: null,
+    lastPatientVisitDetails: null,
+    lastLog:
+      pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
+        patient.value.id,
+        props.identifier.service.id
+      ),
+    lastPrescription: null,
+    patientServiceIdentifierFromEpisode: null,
+    lastPack: null,
+  };
+
+  if (context.lastStartEpisode) {
+    const patientVisitIds = [];
+    const visitDetails =
+      patientVisitDetailsService.getAllPatientVisitDetailsFromEpisode(
+        context.lastStartEpisode.id
+      );
+
+    if (visitDetails?.length) {
+      visitDetails.forEach((detail) => {
+        patientVisitIds.push(detail.patient_visit_id);
+      });
+    } else {
+      patientVisitService.getAllFromPatient(patient.value.id).forEach((visit) => {
+        patientVisitIds.push(visit.id);
+      });
+    }
+
+    context.lastPatientVisit =
+      patientVisitService.getLastFromPatientVisitListWithoutRelations(
+        patientVisitIds
+      );
+  }
+
+  if (context.lastPatientVisit && context.lastStartEpisode) {
+    context.lastPatientVisitDetails =
+      patientVisitDetailsService.getPrescriptionContextFromPatientVisitAndEpisode(
+        context.lastPatientVisit.id,
+        context.lastStartEpisode.id
+      );
+
+    if (!context.lastPatientVisitDetails) {
+      const hasMatchingVisit =
+        patientVisitDetailsService.hasFromPatientAndClinicService(
+          patient.value.id,
+          props.identifier.service.id
+        );
+      if (hasMatchingVisit) {
+        context.lastPatientVisitDetails =
+          patientVisitDetailsService.getPrescriptionContextFromPatientVisit(
+            context.lastPatientVisit.id
+          );
+      }
+    }
+  }
+
+  context.lastPrescription =
+    context.lastLog?.prescription ??
+    context.lastPatientVisitDetails?.prescription ??
+    null;
+
+  if (context.lastPatientVisitDetails?.episode?.id) {
+    context.patientServiceIdentifierFromEpisode = episodeService.getEpisodeById(
+      context.lastPatientVisitDetails.episode.id
+    );
+  }
+
+  if (context.lastPrescription) {
+    context.lastPack =
+      context.lastPatientVisitDetails?.prescription?.id ===
+        context.lastPrescription.id && context.lastPatientVisitDetails?.pack
+        ? context.lastPatientVisitDetails.pack
+        : packService.getLastPackFromPatientVisitAndPrescription(
+            context.lastPrescription.id
+          );
+  }
+
+  mobilePrescriptionContext.value = context;
+};
 
 // Methods
 const optionsNonFutureDate = (date) => {
@@ -1136,7 +1246,9 @@ const checkIfExistsAnyQuanityRemainForDispense = () => {
 };
 const totalRemainAcumulado = (drug) => {
   let totalAcumulado = 0;
-  const lastPackAux = packService.getLastPackFromPatientAndDrug(patient, drug);
+  const lastPackAux = isMobile.value
+    ? packService.getLastPackagedDrugForMobile(drug)
+    : packService.getLastPackFromPatientAndDrug(patient, drug);
   if (lastPackAux !== undefined && lastPackAux !== null) {
     totalAcumulado = Number(lastPackAux.quantityRemain);
   }
@@ -1168,7 +1280,26 @@ const checkPrescribedDrugActive = () => {
   return drugs;
 };
 
-const allGoodvalidatedForm = () => {
+const getPrescriptionFormMemoToken = () => {
+  if (isMobile.value && mobileFormRenderFrozen.value) {
+    return frozenPrescriptionFormMemoToken;
+  }
+  // A new token keeps normal editing and all web rendering unchanged.
+  return {};
+};
+
+const restorePrescriptionForm = () => {
+  mobileFormRenderFrozen.value = false;
+  showServiceDrugsManagement.value = false;
+};
+
+const allGoodvalidatedForm = async () => {
+  if (isMobile.value) {
+    mobileFormRenderFrozen.value = true;
+    // Capture the current valid form DOM before changing the domain objects.
+    await nextTick();
+  }
+
   curPrescription.value.leftDuration = remainigDuration(curPrescription.value);
 
   curPrescription.value.prescriptionDetails = [];
@@ -1346,10 +1477,12 @@ const addPatientVisitDetail = async () => {
 
   let quantityRemainAux = 0;
   curPatientVisitDetail.value.pack.packagedDrugs.forEach((packagedDrug) => {
-    const lastPackagedDrug = packService.getLastPackFromPatientAndDrug(
-      patient,
-      packagedDrug.drug
-    );
+    const lastPackagedDrug = isMobile.value
+      ? packService.getLastPackagedDrugForMobile(packagedDrug.drug)
+      : packService.getLastPackFromPatientAndDrug(
+          patient,
+          packagedDrug.drug
+        );
 
     if (lastPackagedDrug !== null && lastPackagedDrug !== undefined) {
       const qtyRemain = getQtyRemain(
@@ -1864,7 +1997,15 @@ const byteArrayToBase64 = (byteArray) => {
 
 // Hook
 onMounted(() => {
+  if (isMobile.value) prepareMobilePrescriptionContext();
   init();
+  if (isMobile.value) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        secondaryControlsReady.value = true;
+      });
+    });
+  }
 });
 
 watch(attachedPrescription, (newFile) => {
@@ -1906,5 +2047,137 @@ provide('lastPrescription', lastPrescription);
 }
 .box-border {
   border: 1px solid $grey-4;
+}
+
+.tablet-prescription-unit .prescription-unit-body {
+  margin: 4px 7px !important;
+}
+
+.tablet-prescription-unit .q-field--dense .q-field__control,
+.tablet-prescription-unit .q-field--dense .q-field__marginal {
+  height: 36px;
+  min-height: 36px;
+}
+
+.tablet-prescription-unit .q-field--with-bottom {
+  padding-bottom: 10px;
+}
+
+.tablet-prescription-unit .q-mb-md {
+  margin-bottom: 5px !important;
+}
+
+.tablet-prescription-unit .q-mb-sm {
+  margin-bottom: 3px !important;
+}
+
+.tablet-prescription-unit .q-mt-sm {
+  margin-top: 3px !important;
+}
+
+.tablet-prescription-unit .q-separator.q-mb-sm {
+  margin-bottom: 3px !important;
+}
+
+.tablet-prescription-unit .q-banner {
+  min-height: 30px;
+}
+
+.tablet-prescription-unit .q-banner__content {
+  min-height: 30px;
+  padding: 2px 8px;
+}
+
+.tablet-prescription-unit .q-banner__actions {
+  padding: 0 4px;
+}
+
+.tablet-prescription-unit .prescribed-drugs-table .q-table__middle {
+  max-height: 104px;
+}
+
+.tablet-prescription-unit .prescribed-drugs-table th,
+.tablet-prescription-unit .prescribed-drugs-table td {
+  height: 28px;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.tablet-prescription-unit .prescribed-drugs-table .q-btn {
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.tablet-prescription-unit .q-item__label--caption {
+  padding-right: 4px;
+}
+
+.tablet-prescription-unit .q-radio,
+.tablet-prescription-unit .q-checkbox {
+  min-height: 34px;
+}
+
+.tablet-prescription-unit .q-file {
+  margin-top: 2px;
+}
+
+.tablet-prescription-unit,
+.tablet-prescription-unit > *,
+.tablet-prescription-unit .q-table__container {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tablet-prescription-unit .q-table {
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+.tablet-prescription-unit .q-table th,
+.tablet-prescription-unit .q-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tablet-validated-prescription-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid $grey-4;
+  background: $grey-2;
+}
+
+.tablet-summary-fields {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tablet-summary-fields > div {
+  min-width: 0;
+}
+
+.tablet-summary-fields small,
+.tablet-summary-fields strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tablet-summary-fields small {
+  color: $grey-7;
+  font-size: 10px;
+}
+
+.tablet-summary-fields strong {
+  font-size: 12px;
 }
 </style>

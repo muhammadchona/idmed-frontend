@@ -110,6 +110,26 @@ export default {
       console.log(error);
     }
   },
+  async getMobilePatientSearchIdentifiers() {
+    const rows = await patientServiceIdentifierDexie.toArray();
+    return rows.map((identifier: any) => ({
+      id: identifier.id,
+      patient_id:
+        identifier.patient_id ?? identifier.patientId ?? identifier.patient?.id,
+      value: identifier.value,
+      prefered: identifier.prefered,
+      startDate: identifier.startDate,
+      endDate: identifier.endDate,
+      reopenDate: identifier.reopenDate,
+      state: identifier.state,
+      service_id:
+        identifier.service_id ?? identifier.serviceId ?? identifier.service?.id,
+      identifier_type_id:
+        identifier.identifier_type_id ??
+        identifier.identifierTypeId ??
+        identifier.identifierType?.id,
+    }));
+  },
   async deleteMobile(paramsId: string) {
     try {
       await patientServiceIdentifierDexie.delete(paramsId);
@@ -251,6 +271,70 @@ export default {
   },
   identifierCurr(id: any, serviceId: string) {
     return patientServiceIdentifier.withAllRecursive(2).where('id', id).first();
+  },
+  identifierForMobilePrescriptionDisplay(id: string) {
+    return patientServiceIdentifier
+      .query()
+      .with('service')
+      .with('identifierType')
+      .where('id', id)
+      .first();
+  },
+  identifierForMobilePatientPanel(id: string) {
+    return patientServiceIdentifier
+      .query()
+      .with('service')
+      .with('identifierType')
+      .with('clinic')
+      .with('episodes', (episodeQuery: any) => {
+        episodeQuery
+          .with('episodeType')
+          .with('startStopReason')
+          .with('clinicSector')
+          .with('patientVisitDetails');
+      })
+      .where('id', id)
+      .first();
+  },
+  savePatientIdentifiersStorage(rows: any[]) {
+    patientServiceIdentifier.save(rows);
+  },
+  saveMobilePatientPanelIdentifiersStorage(rows: any[] = []) {
+    patientServiceIdentifier.save(
+      rows.map((rawIdentifier: any) => {
+        const {
+          identifierType,
+          service,
+          patient,
+          episodes,
+          clinic,
+          ...identifierFields
+        } = rawIdentifier;
+        return {
+          ...identifierFields,
+          identifier_type_id:
+            rawIdentifier.identifier_type_id ??
+            rawIdentifier.identifierTypeId ??
+            identifierType?.id ??
+            '',
+          service_id:
+            rawIdentifier.service_id ??
+            rawIdentifier.serviceId ??
+            service?.id ??
+            '',
+          patient_id:
+            rawIdentifier.patient_id ??
+            rawIdentifier.patientId ??
+            patient?.id ??
+            '',
+          clinic_id:
+            rawIdentifier.clinic_id ??
+            rawIdentifier.clinicId ??
+            clinic?.id ??
+            '',
+        };
+      })
+    );
   },
   getAllEpisodesByIdentifierId(id: string) {
     return patientServiceIdentifier

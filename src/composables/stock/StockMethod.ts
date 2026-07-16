@@ -7,6 +7,10 @@ import InventoryStockAdjustmentService from 'src/services/api/stockAdjustment/In
 import ReferedStockMovimentService from 'src/services/api/referedStockMovimentService/ReferedStockMovimentService';
 import DestroyedStockService from 'src/services/api/destroyedStockService/DestroyedStockService';
 import { useDateUtils } from 'src/composables/shared/dateUtils/dateUtils';
+import clinicService from 'src/services/api/clinicService/clinicService';
+import StockOperationTypeService from 'src/services/api/stockOperationTypeService/StockOperationTypeService';
+import packagedDrugStockService from 'src/services/api/packagedDrugStock/packagedDrugStockService';
+import packagedDrugService from 'src/services/api/packagedDrug/packagedDrugService';
 
 const dateUtils = useDateUtils();
 
@@ -33,14 +37,146 @@ export function useStock() {
 
   // Drug File
 
-  async function localDbGetStockBalanceByDrug(drug: any) {
+  async function localDbGetStockBalanceByDrug(
+    drug: any,
+    clinicId = clinicService.currClinic()?.id
+  ) {
     let balance = 0;
     const result = await StockService.getStocksByDrugIdMobile(drug.id);
     for (const item of result) {
-      balance += Number(item.stockMoviment);
-      // Stock.insert({ data: result })
+      const stockClinicId =
+        item.clinic_id ?? item.clinicId ?? item.clinic?.id ?? '';
+      if (clinicId && stockClinicId !== clinicId) continue;
+
+      // The backend stock-alert balance starts with received units and applies
+      // only adjustments owned by the selected clinic. Stock records downloaded
+      // for a sector can also embed the parent pharmacy's opposite adjustment;
+      // including it would subtract the same transfer twice.
+      balance += Number(item.unitsReceived ?? item.stockMoviment ?? 0);
+      for (const adjustment of item.adjustments ?? []) {
+        const adjustmentClinicId =
+          adjustment.clinic_id ??
+          adjustment.clinicId ??
+          adjustment.clinic?.id ??
+          '';
+        if (clinicId && adjustmentClinicId !== clinicId) continue;
+
+        const operationId =
+          adjustment.operation_id ??
+          adjustment.operationId ??
+          adjustment.operation?.id;
+        const operationCode =
+          adjustment.operation?.code ??
+          StockOperationTypeService.getStockOperatinTypeById(operationId)?.code;
+        const adjustedValue = Number(adjustment.adjustedValue ?? 0);
+        if (operationCode === 'AJUSTE_POSETIVO') {
+          balance += adjustedValue;
+        } else if (operationCode === 'AJUSTE_NEGATIVO') {
+          balance -= adjustedValue;
+        }
+      }
     }
-    return balance;
+    // A newly created offline visit is not part of the downloaded backend
+    // ledger yet. Subtract it once until the next complete stock download.
+    return balance - (await localDbGetPendingQuantitySuppliedByDrug(drug));
+  }
+
+  async function localDbGetCurrentStockMovementByDrug(
+    drug: any,
+    clinicId = clinicService.currClinic()?.id
+  ) {
+    const result = await StockService.getStocksByDrugIdMobile(drug.id);
+    return result.reduce((total: number, item: any) => {
+      const stockClinicId =
+        item.clinic_id ?? item.clinicId ?? item.clinic?.id ?? '';
+      if (clinicId && stockClinicId !== clinicId) return total;
+      return total + Number(item.stockMoviment ?? 0);
+    }, 0);
+  }
+
+  async function localDbGetPendingQuantitySuppliedByDrug(drug: any) {
+    const visits = await patientVisitService.getPatientVisitMobile();
+    let quantity = 0;
+
+    for (const visit of visits) {
+      if (visit.syncStatus === 'S') continue;
+      for (const detail of visit.patientVisitDetails ?? []) {
+        for (const packagedDrug of detail.pack?.packagedDrugs ?? []) {
+          const drugId = packagedDrug.drug_id ?? packagedDrug.drug?.id;
+          if (drugId === drug.id) {
+            quantity += Number(packagedDrug.quantitySupplied ?? 0);
+          }
+        }
+      }
+    }
+    return quantity;
+  }
+
+  async function getPackagedDrugMovementsForStocks(
+    stocks: any[],
+    includeUnallocatedDrugMovements = false
+  ) {
+    const stockIds = stocks.map((stock: any) => stock.id).filter(Boolean);
+    const standaloneRows =
+      await packagedDrugStockService.getAllByStockIDsRawFromDexie(stockIds);
+    const combinedRows = [
+      ...stocks.flatMap((stock: any) =>
+        (stock.packagedDrugStocks ?? []).map((item: any) => ({
+          ...item,
+          resolvedStockId:
+            item.stock_id ?? item.stockId ?? item.stock?.id ?? stock.id,
+        }))
+      ),
+      ...standaloneRows.map((item: any) => ({
+        ...item,
+        resolvedStockId: item.stock_id ?? item.stockId ?? item.stock?.id ?? '',
+      })),
+    ];
+
+    if (includeUnallocatedDrugMovements && stocks.length > 0) {
+      const firstStock = stocks[0];
+      const drugId =
+        firstStock.drug_id ?? firstStock.drugId ?? firstStock.drug?.id;
+      const clinicId =
+        firstStock.clinic_id ?? firstStock.clinicId ?? firstStock.clinic?.id;
+      const allocatedPackagedDrugIds = new Set(
+        combinedRows
+          .map(
+            (item: any) =>
+              item.packagedDrug_id ??
+              item.packagedDrugId ??
+              item.packagedDrug?.id
+          )
+          .filter(Boolean)
+      );
+      const packagedDrugs =
+        await packagedDrugService.getByDrugAndOriginWithPackMobile(
+          drugId,
+          clinicId
+        );
+      combinedRows.push(
+        ...packagedDrugs
+          .filter((item: any) => !allocatedPackagedDrugIds.has(item.id))
+          .map((item: any) => ({
+            ...item,
+            resolvedStockId: '',
+          }))
+      );
+    }
+
+    const uniqueRows = new Map<string, any>();
+    for (const item of combinedRows) {
+      const key =
+        item.id ??
+        [
+          item.resolvedStockId,
+          item.packagedDrug_id ?? item.packagedDrugId ?? item.packagedDrug?.id,
+          item.creationDate,
+          item.quantitySupplied,
+        ].join(':');
+      if (!uniqueRows.has(key)) uniqueRows.set(key, item);
+    }
+    return [...uniqueRows.values()];
   }
 
   async function localDbGetQuantitySuppliedByDrug(drug: any) {
@@ -286,17 +422,17 @@ export function useStock() {
     const recordFileList = [];
     // Query stocks table to get all records matching the drug_id
     const stocks = await StockService.getStocksByDrugIdMobile(drug.id);
-    const entranceIds = stocks.map(
-      (stock) => stock.entrance_id || stock.entranceId
-    );
+    const getEntranceId = (stock: any) =>
+      stock.entrance_id ?? stock.entranceId ?? stock.entrance?.id;
+    const entranceIds = stocks.map(getEntranceId).filter(Boolean);
     const stockEntrances = await StockEntranceService.getStockEntrancesByIds(
       entranceIds
     );
     // Merge the results and calculate the total incomes
     const result = stockEntrances.map((entrance) => {
       const totalIncomes = stocks
-        .filter((stock) => stock.entrance_id === entrance.id)
-        .reduce((sum, stock) => sum + stock.unitsReceived, 0);
+        .filter((stock) => getEntranceId(stock) === entrance.id)
+        .reduce((sum, stock) => sum + Number(stock.unitsReceived ?? 0), 0);
       return {
         incomes: totalIncomes,
         dateReceived: entrance.dateReceived,
@@ -359,37 +495,36 @@ export function useStock() {
 
   async function getPacksDrugFile(drug: any) {
     const recordFileList = [];
-    const drugQuantitySupplied = 0;
-    const result = await patientVisitService.getPatientVisitMobile();
+    const stocks = await StockService.getStocksByDrugIdMobile(drug.id);
+    const movements = await getPackagedDrugMovementsForStocks(stocks, true);
 
-    for (const pvd of result) {
-      for (const pvdObj of pvd.patientVisitDetails) {
-        if (pvdObj.pack !== undefined) {
-          for (const pcd of pvdObj.pack.packagedDrugs) {
-            if (pcd.drug.id === drug.id) {
-              const recordFile = {};
-              // drugQuantitySupplied += Number(pcd.quantitySupplied);
-              recordFile.id = uuidv4();
-              recordFile.eventDate = pvdObj.pack.pickupDate;
-              recordFile.year = new Date(pvdObj.pack.pickupDate).getFullYear();
-              recordFile.month = dateUtils.returnEstatisticMonth(
-                new Date(pvdObj.pack.pickupDate)
-              ); // new Date(pvdObj.pack.pickupDate).getMonth();
-              recordFile.moviment = 'Saídas';
-              recordFile.orderNumber = '';
-              recordFile.incomes = 0;
-              recordFile.outcomes = Number(pcd.quantitySupplied);
-              recordFile.posetiveAdjustment = 0;
-              recordFile.negativeAdjustment = 0;
-              recordFile.loses = 0;
-              recordFile.balance = 0;
-              recordFile.code = 'SAIDA';
-              recordFile.notes = '';
-              recordFileList.push(recordFile);
-            }
-          }
-        }
-      }
+    for (const movement of movements) {
+      const eventDate =
+        movement.creationDate ??
+        movement.pack?.pickupDate ??
+        movement.packagedDrug?.creationDate ??
+        movement.packagedDrug?.pack?.pickupDate;
+      if (!eventDate) continue;
+      const movementDate = new Date(eventDate);
+      if (Number.isNaN(movementDate.getTime())) continue;
+
+      const recordFile = {};
+      recordFile.id = uuidv4();
+      recordFile.eventDate = eventDate;
+      recordFile.year = movementDate.getFullYear();
+      recordFile.month = dateUtils.returnEstatisticMonth(movementDate);
+      recordFile.moviment = 'Saídas';
+      recordFile.orderNumber = '';
+      recordFile.incomes = 0;
+      recordFile.outcomes = Number(movement.quantitySupplied ?? 0);
+      recordFile.posetiveAdjustment = 0;
+      recordFile.negativeAdjustment = 0;
+      recordFile.loses = 0;
+      recordFile.balance = 0;
+      recordFile.code = 'SAIDA';
+      recordFile.stockId = movement.resolvedStockId;
+      recordFile.notes = '';
+      recordFileList.push(recordFile);
     }
 
     const resultList = [];
@@ -633,9 +768,9 @@ export function useStock() {
     const recordFileList = [];
     // Query stocks table to get all records matching the stockId pattern
     const stocks = await StockService.getBystockMobile(stockId);
-    const entranceIds = stocks.map(
-      (stock) => stock.entrance_id || stock.entranceId
-    );
+    const getEntranceId = (stock: any) =>
+      stock.entrance_id ?? stock.entranceId ?? stock.entrance?.id;
+    const entranceIds = stocks.map(getEntranceId).filter(Boolean);
     // Query stockEntrances table to get all records matching the entrance_ids
     const stockEntrances = await StockEntranceService.getStockEntrancesByIds(
       entranceIds
@@ -643,13 +778,14 @@ export function useStock() {
     // Merge the results and calculate the total incomes
     const result = stockEntrances.map((entrance) => {
       const totalIncomes = stocks
-        .filter((stock) => stock.entrance_id === entrance.id)
-        .reduce((sum, stock) => sum + stock.unitsReceived, 0);
+        .filter((stock) => getEntranceId(stock) === entrance.id)
+        .reduce((sum, stock) => sum + Number(stock.unitsReceived ?? 0), 0);
       return {
         incomes: totalIncomes,
         dateReceived: entrance.dateReceived,
         orderNumber: entrance.orderNumber,
-        stockId: stocks.find((stock) => stock.entrance_id === entrance.id)?.id,
+        stockId: stocks.find((stock) => getEntranceId(stock) === entrance.id)
+          ?.id,
       };
     });
 
@@ -710,39 +846,34 @@ export function useStock() {
 
   async function getPacksDrugFileBatch(stockId: any) {
     const recordFileList = [];
-    const drugQuantitySupplied = 0;
+    const stocks = await StockService.getBystockMobile(stockId);
+    const movements = await getPackagedDrugMovementsForStocks(stocks);
 
-    const result = await patientVisitService.getPatientVisitMobile();
+    for (const movement of movements) {
+      const eventDate =
+        movement.creationDate ??
+        movement.pack?.pickupDate ??
+        movement.packagedDrug?.creationDate ??
+        movement.packagedDrug?.pack?.pickupDate;
+      if (!eventDate) continue;
+      const movementDate = new Date(eventDate);
+      if (Number.isNaN(movementDate.getTime())) continue;
 
-    for (const pvd of result) {
-      for (const pvdObj of pvd.patientVisitDetails) {
-        // if (pvd.pack.pickupDate > new Date()) {
-        if (pvdObj.pack !== undefined) {
-          for (const pcd of pvdObj.pack.packagedDrugs ?? []) {
-            for (const pcdStockObj of pcd.packagedDrugStocks ?? []) {
-              if (pcdStockObj?.stock?.id === stockId) {
-                const recordFile = {};
-                //drugQuantitySupplied += Number(pcd.quantitySupplied);
-                recordFile.stockId = pcdStockObj.stock.id;
-                recordFile.id = uuidv4();
-                recordFile.eventDate = pvdObj.pack.pickupDate;
-                recordFile.moviment = 'Saídas';
-                recordFile.orderNumber = '';
-                recordFile.incomes = 0;
-                recordFile.outcomes = pcd.quantitySupplied;
-                recordFile.posetiveAdjustment = 0;
-                recordFile.negativeAdjustment = 0;
-                recordFile.loses = 0;
-                recordFile.balance = 0;
-                recordFile.code = 'SAIDA';
-                recordFile.notes = '';
-                recordFileList.push(recordFile);
-              }
-            }
-          }
-        }
-        // }
-      }
+      const recordFile = {};
+      recordFile.stockId = stockId;
+      recordFile.id = uuidv4();
+      recordFile.eventDate = eventDate;
+      recordFile.moviment = 'Saídas';
+      recordFile.orderNumber = '';
+      recordFile.incomes = 0;
+      recordFile.outcomes = Number(movement.quantitySupplied ?? 0);
+      recordFile.posetiveAdjustment = 0;
+      recordFile.negativeAdjustment = 0;
+      recordFile.loses = 0;
+      recordFile.balance = 0;
+      recordFile.code = 'SAIDA';
+      recordFile.notes = '';
+      recordFileList.push(recordFile);
     }
 
     const resultList = [];
@@ -782,6 +913,8 @@ export function useStock() {
     formatDate,
     getClassName,
     localDbGetStockBalanceByDrug,
+    localDbGetCurrentStockMovementByDrug,
+    localDbGetPendingQuantitySuppliedByDrug,
     localDbGetQuantitySuppliedByDrug,
     getDestructionsDrugFile,
     getAdjustmentsDrugFile,

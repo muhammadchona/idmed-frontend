@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="{ 'tablet-service-drugs': isMobile }">
     <PrescriptionDrugsListHeader
       :addVisible="true"
       :mainContainer="false"
@@ -8,9 +8,9 @@
       Medicamentos para
       {{ curIdentifier.service.code }}
     </PrescriptionDrugsListHeader>
-    <div class="col prescription-box q-pa-md q-mb-md">
+    <div class="col prescription-box q-pa-md q-mb-md service-drugs-table-box">
       <q-table
-        class="col"
+        class="col service-drugs-table"
         dense
         :rows="curPack.packagedDrugs"
         :columns="columns"
@@ -36,7 +36,10 @@
         <template #body="props">
           <q-tr no-hover :props="props">
             <q-td :props="props" :style="{ color: props.row.color }" key="drug">
-              {{
+              <template v-if="isMobile">
+                {{ getMobileDrugDisplay(props.row).name }}
+              </template>
+              <template v-else>{{
                 getDrugById(props.row.drug.id) !== null &&
                 getDrugById(props.row.drug.id) !== undefined
                   ? getDrugById(props.row.drug.id).name.includes(
@@ -56,14 +59,17 @@
                       ).substring(0, 4) +
                       ')'
                   : ''
-              }}
+              }}</template>
             </q-td>
             <q-td
               :props="props"
               :style="{ color: props.row.color }"
               key="dosage"
             >
-              {{
+              <template v-if="isMobile">
+                {{ getMobileDrugDisplay(props.row).dosage }}
+              </template>
+              <template v-else>{{
                 getDrugById(props.row.drug.id) !== null &&
                 getDrugById(props.row.drug.id) !== undefined
                   ? getDrugFirstLevelById(props.row.drug.id).form !== null &&
@@ -86,7 +92,7 @@
                       ' vez(es) por ' +
                       props.row.form
                   : ''
-              }}
+              }}</template>
             </q-td>
             <q-td
               :style="{ color: props.row.color }"
@@ -96,8 +102,11 @@
               key="packs"
             >
               {{ props.row.quantitySupplied }}
+              <em v-if="isMobile">
+                {{ getMobileDrugDisplay(props.row).quantityUnit }}
+              </em>
               <em
-                v-if="
+                v-else-if="
                   getDrugFirstLevelById(props.row.drug.id).clinicalService
                     .code === 'TARV'
                 "
@@ -115,8 +124,11 @@
               key="quantityRemain"
               :props="props"
             >
+              <em v-if="isMobile">
+                {{ getMobileDrugDisplay(props.row).remaining }}
+              </em>
               <em
-                v-if="
+                v-else-if="
                   getDrugFirstLevelById(props.row.drug.id).clinicalService
                     .code === 'TARV'
                 "
@@ -223,7 +235,15 @@
 </template>
 
 <script setup>
-import { inject, onMounted, provide, reactive, ref, watch } from 'vue';
+import {
+  inject,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue';
 import AddEditPrescribedDrug from 'components/Patient/PatientPanel/AddEditPrescribedDrug.vue';
 import PrescriptionDrugsListHeader from 'components/Patient/Prescription/PrescriptionDrugsListHeader.vue';
 import { usePrescribedDrug } from 'src/composables/prescription/prescribedDrugMethods';
@@ -233,6 +253,8 @@ import { useSwal } from 'src/composables/shared/dialog/dialog';
 import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
 import { usePrescription } from 'src/composables/prescription/prescriptionMethods';
 import drugService from 'src/services/api/drugService/drugService';
+import formService from 'src/services/api/formService/formService';
+import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
 import { v4 as uuidv4 } from 'uuid';
 import { debounce } from 'lodash';
 import { useDrug } from 'src/composables/drug/drugMethods';
@@ -291,6 +313,7 @@ const submittingPrescribedDrug = reactive(ref(false));
 
 const qtySuppliedFlag = ref(0);
 const drugsDuration = ref('');
+const mobileDrugDisplayCache = shallowRef(new Map());
 // Injection
 const curPrescription = inject('curPrescription');
 const curPatientVisitDetail = inject('curPatientVisitDetail');
@@ -355,6 +378,43 @@ const addPackagedDrug = async (prescribedDrug) => {
 };
 const getDrugById = (drugID) => {
   return drugService.getCleanDrugById(drugID);
+};
+
+const getMobileDrugDisplay = (packagedDrug) => {
+  const cacheKey = packagedDrug.id;
+  const cached = mobileDrugDisplayCache.value.get(cacheKey);
+  if (cached) return cached;
+
+  const drug = getDrugById(packagedDrug.drug.id);
+  const form = formService.getFormById(drug.form_id);
+  const clinicalService =
+    clinicalServiceService.getClinicalServiceById(drug.clinical_service_id);
+  const formPrefix = String(form.description).substring(0, 4);
+  const remaining = getQtyRemain(
+    packagedDrug,
+    curPrescription.value.duration.weeks
+  );
+  const isTarv = clinicalService.code === 'TARV';
+
+  const display = {
+    name: drug
+      ? drug.name.includes(formPrefix)
+        ? drug.name
+        : `${drug.name} - (${drug.packSize} ${formPrefix})`
+      : '',
+    dosage: drug
+      ? form
+        ? `${form.howToUse} ${packagedDrug.amtPerTime}   ${form.unit} - ${packagedDrug.timesPerDay} vez(es) por ${packagedDrug.form}`
+        : `Tomar ${packagedDrug.amtPerTime}    - ${packagedDrug.timesPerDay} vez(es) por ${packagedDrug.form}`
+      : '',
+    quantityUnit: isTarv ? 'Frasco(s)' : `${form.description}(s)`,
+    remaining: isTarv
+      ? `${Math.floor(remaining / packagedDrug.drug.packSize)} Frasco(s) e ${remaining} ${form.unit}`
+      : `${Math.floor(remaining / packagedDrug.drug.packSize)} ${form.description}(s)`,
+  };
+
+  mobileDrugDisplayCache.value.set(cacheKey, display);
+  return display;
 };
 
 const checkStock = async (packagedDrug) => {
@@ -436,4 +496,67 @@ provide('curPrescription', curPrescription);
 provide('lastPrescription', lastPrescription);
 </script>
 
-<style></style>
+<style lang="scss">
+.tablet-service-drugs {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.tablet-service-drugs .service-drugs-table-box {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 6px !important;
+  margin-bottom: 3px !important;
+}
+
+.tablet-service-drugs .service-drugs-table,
+.tablet-service-drugs .q-table__middle {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tablet-service-drugs .q-table {
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+.tablet-service-drugs .q-table th,
+.tablet-service-drugs .q-table td {
+  height: 32px;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tablet-service-drugs .q-banner {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tablet-service-drugs .q-banner__content,
+.tablet-service-drugs .q-banner__actions {
+  min-width: 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.tablet-service-drugs .q-banner .q-field {
+  width: 170px !important;
+  min-width: 0;
+}
+
+.tablet-service-drugs .q-mt-sm {
+  margin-top: 3px !important;
+}
+
+.tablet-service-drugs .q-mb-sm {
+  margin-bottom: 3px !important;
+}
+</style>

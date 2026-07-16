@@ -44,7 +44,7 @@
           </div>
         </q-toolbar>
         <div class="" v-if="!website">
-          <q-tab-panels v-model="tab" animated>
+          <q-tab-panels v-model="tab" animated keep-alive>
             <q-tab-panel name="clinicService">
               <q-scroll-area
                 :thumb-style="thumbStyle"
@@ -54,7 +54,7 @@
                 class="q-pr-md"
               >
                 <ClinicServiceInfo
-                  v-if="tab === 'clinicService'"
+                  v-if="visitedMobileTabs.clinicService"
                   class="q-mb-lg"
                 />
               </q-scroll-area>
@@ -68,7 +68,9 @@
                 class="q-pr-md"
               >
                 <PrescriptionInfo
-                  v-if="tab === 'prescription'"
+                  v-if="
+                    visitedMobileTabs.prescription && mobileClinicalDataReady
+                  "
                   class="q-mb-lg"
                 />
               </q-scroll-area>
@@ -81,7 +83,11 @@
                 style="height: 440px"
                 class="q-pr-md"
               >
-                <PharmaceuticalAtentionInfo v-if="tab === 'screening'" />
+                <PharmaceuticalAtentionInfo
+                  v-if="
+                    visitedMobileTabs.screening && mobileClinicalDataReady
+                  "
+                />
               </q-scroll-area>
             </q-tab-panel>
           </q-tab-panels>
@@ -104,7 +110,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, provide, ref } from 'vue';
+import { computed, onMounted, provide, reactive, ref, watch } from 'vue';
 import patientService from 'src/services/api/patientService/patientService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import TitleBar from 'src/components/Shared/TitleBar.vue';
@@ -131,6 +137,15 @@ const { remainigDuration } = usePrescription();
 const { hasEpisodes } = usePatient();
 const { alertError } = useSwal();
 const tab = ref('clinicService');
+const visitedMobileTabs = reactive({
+  clinicService: true,
+  prescription: false,
+  screening: false,
+});
+const mobileClinicalDataReady = ref(
+  website.value || !isMobile.value || isOnline.value
+);
+let mobileClinicalDataPromise = null;
 const showPrescriptionDialog = ref(false);
 const showPatientInfo = ref(false);
 const isScanScreen = localStorage.getItem('isScanScreen') === 'true';
@@ -183,18 +198,64 @@ onMounted(() => {
   }
 });
 
+watch(tab, async (selectedTab) => {
+  if (website.value || !(selectedTab in visitedMobileTabs)) return;
+
+  if (selectedTab === 'prescription' || selectedTab === 'screening') {
+    await ensureMobileClinicalData();
+  }
+  visitedMobileTabs[selectedTab] = true;
+});
+
 // Methods
 const init = async () => {
   showloading();
 
   if (isMobile.value && !isOnline.value) {
-    const patient = await patientService.getPatientByID(
-      localStorage.getItem('patientuuid')
-    );
-    await patientService.getPatientMobileWithAllByPatientId(patient);
+    const patientId = localStorage.getItem('patientuuid');
+    const currentPatient = patientService.getForMobilePatientPanel(patientId);
+    if (currentPatient === null || currentPatient.identifiers.length === 0) {
+      const storedPatient = patientService.getById(patientId);
+      if (storedPatient !== null) {
+        if (isScanScreen) {
+          await patientService.getPatientMobileWithAllByPatientId(
+            storedPatient
+          );
+          mobileClinicalDataReady.value = true;
+        } else {
+          await patientService.getPatientMobilePanelContextByPatientId(
+            storedPatient
+          );
+        }
+      }
+    }
   }
 
   closeLoading();
+};
+const ensureMobileClinicalData = async () => {
+  if (mobileClinicalDataReady.value) return;
+  if (mobileClinicalDataPromise !== null) {
+    await mobileClinicalDataPromise;
+    return;
+  }
+
+  const selectedPatient = patientService.getById(
+    localStorage.getItem('patientuuid')
+  );
+  if (selectedPatient === null) return;
+
+  showloading();
+  mobileClinicalDataPromise = patientService
+    .getPatientMobilePrescriptionContextByPatientId(selectedPatient)
+    .then(() => {
+      mobileClinicalDataReady.value = true;
+    })
+    .finally(() => {
+      mobileClinicalDataPromise = null;
+      closeLoading();
+    });
+  await mobileClinicalDataPromise;
 };
 const showPatientDetails = () => {
   showPatientInfo.value = !showPatientInfo.value;
@@ -202,6 +263,11 @@ const showPatientDetails = () => {
 
 // Computed
 const patient = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return patientService.getForMobilePatientPanel(
+      localStorage.getItem('patientuuid')
+    );
+  }
   return patientService.getPatientByID(localStorage.getItem('patientuuid'));
 });
 

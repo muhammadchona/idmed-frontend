@@ -25,7 +25,8 @@ import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 const serviceCode = inject('serviceCode');
 const year = inject('year');
 const currClinic = inject('currClinic');
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
+const tabletOffline = isMobile.value && !isOnline.value;
 const { isProvincialInstalation, localProvincialInstalationCode } =
   useSystemConfig();
 
@@ -44,7 +45,7 @@ const monthsX = [
   'DEC',
 ];
 
-const loading = ref(false);
+const loading = ref(tabletOffline);
 
 const chartOptions = {
   chart: {
@@ -52,7 +53,7 @@ const chartOptions = {
   },
   colors: ['#F44336', '#ff6600', '#13c185', '#13a6c1'],
   animations: {
-    enabled: true,
+    enabled: !tabletOffline,
     easing: 'easeinout',
     speed: 2000,
   },
@@ -74,7 +75,7 @@ const chartOptions = {
   },
   stroke: {
     show: true,
-    curve: 'smooth',
+    curve: tabletOffline ? 'straight' : 'smooth',
     lineCap: 'butt',
     colors: undefined,
     width: 2,

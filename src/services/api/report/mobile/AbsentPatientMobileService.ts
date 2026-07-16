@@ -5,7 +5,6 @@ import db from 'src/stores/dexie';
 import packService from '../../pack/packService';
 import { v4 as uuidv4 } from 'uuid';
 
-
 const absentPatientReport = db[AbsentPatientReport.entity];
 
 export default {
@@ -24,22 +23,24 @@ export default {
     ]);
 
     let lastDispensations = activePacks.reduce((acc: any, record: any) => {
-      const existingRecord =
-        acc[record.patientvisitDetails.patientVisit.patient.id];
+      const patientId = record?.patientvisitDetails?.patientVisit?.patient?.id;
+      if (!patientId) return acc;
+      const existingRecord = acc[patientId];
       if (
         !existingRecord ||
         new Date(record.pickupDate) > new Date(existingRecord.pickupDate)
       ) {
-        acc[record.patientvisitDetails.patientVisit.patient.id] = record;
+        acc[patientId] = record;
       }
       return acc;
     }, []);
 
     lastDispensations = Object.values(lastDispensations);
     for (const pack of lastDispensations) {
-      const patient = pack.patientvisitDetails.patientVisit.patient;
+      const patient = pack?.patientvisitDetails?.patientVisit?.patient;
       const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
+        pack?.patientvisitDetails?.episode?.patientServiceIdentifier;
+      if (!patient || !identifier?.service) continue;
 
       if (identifier.service.id === reportParams.clinicalService) {
         const absentPatientReport = new AbsentPatientReport();
@@ -64,7 +65,7 @@ export default {
           absentPatientReport.year = reportParams.year;
           absentPatientReport.endDate = reportParams.endDate;
           absentPatientReport.id = uuidv4();
-          this.localDbAddOrUpdate(absentPatientReport);
+          await this.localDbAddOrUpdate(absentPatientReport);
         }
       }
     }
@@ -72,7 +73,9 @@ export default {
 
   groupedPatientVisits(patientVisitDetails: any) {
     const result = patientVisitDetails.filter(
-      (patientVisitDetail: any) => patientVisitDetail.pack !== undefined
+      (patientVisitDetail: any) =>
+        patientVisitDetail?.pack !== undefined &&
+        patientVisitDetail?.patientVisit?.patient
     );
     const sortedArray = result.sort(
       (a, b) =>
@@ -85,7 +88,8 @@ export default {
 
   groupedMapChild(items: []) {
     return items.reduce((entryMap, e) => {
-      const patientId = e.patientVisit.patient.id;
+      const patientId = e?.patientVisit?.patient?.id;
+      if (!patientId) return entryMap;
       if (!entryMap.has(patientId)) {
         entryMap.set(patientId, e);
       }

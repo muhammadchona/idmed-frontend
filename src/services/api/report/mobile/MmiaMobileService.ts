@@ -33,43 +33,40 @@ export default {
       let ajusteNegativoForaPeriodo = Number(0);
       let ajusteNegativoDentroPeriodo = Number(0);
 
-      drug.stocks.map((stock: any) => {
+      (drug?.stocks ?? []).forEach((stock: any) => {
         if (
+          stock?.entrance?.dateReceived &&
           moment(stock.entrance.dateReceived) >=
             moment(reportParams.startDate) &&
           moment(stock.entrance.dateReceived) <= moment(reportParams.endDate)
         ) {
           entradasDentroPeriodo += stock.unitsReceived;
-        } else {
-          if (
-            moment(stock.entrance.dateReceived) < moment(reportParams.startDate)
-          ) {
-            entradasForaPeriodo += stock.unitsReceived;
-          }
+        } else if (
+          stock?.entrance?.dateReceived &&
+          moment(stock.entrance.dateReceived) < moment(reportParams.startDate)
+        ) {
+          entradasForaPeriodo += stock.unitsReceived;
         }
 
-        stock.packagedDrugStocks.map((packagedDrugStock: any) => {
+        (stock?.packagedDrugStocks ?? []).forEach((packagedDrugStock: any) => {
+          const pickupDate = packagedDrugStock?.packagedDrug?.pack?.pickupDate;
+          if (!pickupDate) return;
           if (
-            moment(packagedDrugStock.packagedDrug.pack.pickupDate) >=
-              moment(reportParams.startDate) &&
-            moment(packagedDrugStock.packagedDrug.pack.pickupDate) <=
-              moment(reportParams.endDate)
+            moment(pickupDate) >= moment(reportParams.startDate) &&
+            moment(pickupDate) <= moment(reportParams.endDate)
           ) {
             saidasDentroPeriodo += packagedDrugStock.quantitySupplied;
           } else {
-            if (
-              moment(packagedDrugStock.packagedDrug.pack.pickupDate) <
-              moment(reportParams.startDate)
-            ) {
+            if (moment(pickupDate) < moment(reportParams.startDate)) {
               saidasForaPeriodo += packagedDrugStock.quantitySupplied;
             }
           }
         });
 
-        stock.adjustments.map((adjustment: any) => {
+        (stock?.adjustments ?? []).forEach((adjustment: any) => {
           if (
-            adjustment.inventory.endDate !== null &&
-            adjustment.inventory.endDate !== undefined
+            adjustment?.inventory?.endDate !== null &&
+            adjustment?.inventory?.endDate !== undefined
           ) {
             if (
               moment(adjustment.inventory.endDate) >=
@@ -77,9 +74,9 @@ export default {
               moment(adjustment.inventory.endDate) <=
                 moment(reportParams.endDate)
             ) {
-              if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+              if (adjustment?.operation?.code === 'AJUSTE_POSETIVO') {
                 ajustePositivoDentroPeriodo += adjustment.adjustedValue;
-              } else if (adjustment.operation.code === 'AJUSTE_NEGATIVO') {
+              } else if (adjustment?.operation?.code === 'AJUSTE_NEGATIVO') {
                 ajusteNegativoDentroPeriodo += adjustment.adjustedValue;
               }
             } else {
@@ -87,9 +84,9 @@ export default {
                 moment(adjustment.inventory.endDate) <
                 moment(reportParams.startDate)
               ) {
-                if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+                if (adjustment?.operation?.code === 'AJUSTE_POSETIVO') {
                   ajustePositivoForaPeriodo += adjustment.adjustedValue;
-                } else if (adjustment.operation.code === 'AJUSTE_NEGATIVO') {
+                } else if (adjustment?.operation?.code === 'AJUSTE_NEGATIVO') {
                   ajusteNegativoForaPeriodo += adjustment.adjustedValue;
                 }
               }
@@ -97,7 +94,7 @@ export default {
           }
         });
 
-        stock.referedAdjustments.map((adjustment: any) => {
+        (stock?.referedAdjustments ?? []).forEach((adjustment: any) => {
           if (
             adjustment.captureDate !== null &&
             adjustment.captureDate !== undefined
@@ -107,18 +104,18 @@ export default {
                 moment(reportParams.startDate) &&
               moment(adjustment.captureDate) <= moment(reportParams.endDate)
             ) {
-              if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+              if (adjustment?.operation?.code === 'AJUSTE_POSETIVO') {
                 ajustePositivoDentroPeriodo += adjustment.adjustedValue;
-              } else if (adjustment.operation.code === 'AJUSTE_NEGATIVO') {
+              } else if (adjustment?.operation?.code === 'AJUSTE_NEGATIVO') {
                 ajusteNegativoDentroPeriodo += adjustment.adjustedValue;
               }
             } else {
               if (
                 moment(adjustment.captureDate) < moment(reportParams.startDate)
               ) {
-                if (adjustment.operation.code === 'AJUSTE_POSETIVO') {
+                if (adjustment?.operation?.code === 'AJUSTE_POSETIVO') {
                   ajustePositivoForaPeriodo += adjustment.adjustedValue;
-                } else if (adjustment.operation.code === 'AJUSTE_NEGATIVO') {
+                } else if (adjustment?.operation?.code === 'AJUSTE_NEGATIVO') {
                   ajusteNegativoForaPeriodo += adjustment.adjustedValue;
                 }
               }
@@ -127,7 +124,9 @@ export default {
         });
       });
       const mmiaReport = new MmiaStockReport();
-      mmiaReport.unit = String(drug.packSize).concat(' ' + drug.form.code);
+      mmiaReport.unit = String(drug.packSize).concat(
+        ' ' + (drug?.form?.code ?? '')
+      );
       mmiaReport.fnmCode = drug.fnmCode;
       mmiaReport.drugName = drug.name;
       mmiaReport.balance =
@@ -145,16 +144,17 @@ export default {
         Number(mmiaReport.lossesAdjustments) -
         Number(mmiaReport.outcomes);
       console.log('O REPORT ', mmiaReport);
-      if (drug.stocks.length > 0) {
-        mmiaReport.expireDate = moment(drug.stocks[0].expireDate).format(
-          'DD-MM-YYYY'
-        );
+      if ((drug?.stocks ?? []).length > 0) {
+        const expireDate = drug.stocks[0]?.expireDate;
+        if (expireDate) {
+          mmiaReport.expireDate = moment(expireDate).format('DD-MM-YYYY');
+        }
       }
       mmiaReport.reportId = reportParams.id;
       mmiaReport.year = reportParams.year;
       mmiaReport.endDate = reportParams.endDate;
       mmiaReport.id = uuidv4();
-      this.localDbAddOrUpdateStockReport(mmiaReport);
+      await this.localDbAddOrUpdateStockReport(mmiaReport);
     }
 
     return reportParams;
@@ -170,18 +170,19 @@ export default {
       ),
     ]);
 
-    packsInPeriod.map((pack: any) => {
-      const patientVisitDetail = pack.patientvisitDetails;
-      const prescription = patientVisitDetail.prescription;
-      const prescriptionDetails = prescription?.prescriptionDetails[0];
-      const episode = patientVisitDetail.episode;
+    packsInPeriod.forEach((pack: any) => {
+      const patientVisitDetail = pack?.patientvisitDetails;
+      const prescription = patientVisitDetail?.prescription;
+      const prescriptionDetails = prescription?.prescriptionDetails?.[0];
+      const episode = patientVisitDetail?.episode;
       const therapeuticalRegimen = prescriptionDetails
         ? prescriptionDetails.therapeuticRegimen
-        : '';
+        : undefined;
 
       const therapeuticalLine = prescriptionDetails
         ? prescriptionDetails.therapeuticLine
-        : '';
+        : undefined;
+      if (!episode || !therapeuticalRegimen || !therapeuticalLine) return;
       const regSubReport = new MmiaRegimenSubReport();
       regSubReport.id = uuidv4();
       regSubReport.reportId = reportParams.id;
@@ -281,13 +282,26 @@ export default {
       ),
     ]);
 
-    packsInPeriod.map(async (pack: any) => {
-      const patientVisitDetail = pack.patientvisitDetails;
-      const patientVisit = patientVisitDetail.patientVisit;
-      const episode = patientVisitDetail.episode;
-      const service = episode.patientServiceIdentifier.service;
-      const prescription = patientVisitDetail.prescription;
-      const prescriptionDetails = prescription?.prescriptionDetails[0];
+    for (const newRegimenSubReport of listRegimenSubReport) {
+      await this.localDbAddOrUpdateReportRegimen(newRegimenSubReport);
+    }
+
+    for (const pack of packsInPeriod) {
+      const patientVisitDetail = pack?.patientvisitDetails;
+      const patientVisit = patientVisitDetail?.patientVisit;
+      const episode = patientVisitDetail?.episode;
+      const service = episode?.patientServiceIdentifier?.service;
+      const prescription = patientVisitDetail?.prescription;
+      const prescriptionDetails = prescription?.prescriptionDetails?.[0];
+      if (
+        !patientVisit?.patient ||
+        !episode?.startStopReason ||
+        !service ||
+        !prescription ||
+        !prescriptionDetails
+      ) {
+        continue;
+      }
       const dispenseType =
         prescriptionDetails.dispenseType !== null &&
         prescriptionDetails.dispenseType !== undefined
@@ -353,9 +367,6 @@ export default {
         curMmiaReport.totalPacientesTransferido++;
       }
 
-      for (const newRegimenSubReport of listRegimenSubReport) {
-        this.localDbAddOrUpdateReportRegimen(newRegimenSubReport);
-      }
       if (prescriptionDetails !== null && prescriptionDetails !== undefined) {
         if (dispenseType === 'DM') {
           totalDM++;
@@ -365,129 +376,114 @@ export default {
           totalDsM0++;
         }
       }
+    }
 
-      curMmiaReport.dsM1 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DS',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 1),
-          this.determineDate(reportParams.endDate, 1)
-        );
-      curMmiaReport.dsM2 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DS',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 2),
-          this.determineDate(reportParams.endDate, 2)
-        );
-      curMmiaReport.dsM3 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DS',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 3),
-          this.determineDate(reportParams.endDate, 3)
-        );
-      curMmiaReport.dsM4 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DS',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 4),
-          this.determineDate(reportParams.endDate, 4)
-        );
-      curMmiaReport.dsM5 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DS',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 5),
-          this.determineDate(reportParams.endDate, 5)
-        );
-      curMmiaReport.dtM1 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DT',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 1),
-          this.determineDate(reportParams.endDate, 1)
-        );
-      curMmiaReport.dtM2 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DT',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 2),
-          this.determineDate(reportParams.endDate, 2)
-        );
-
-      curMmiaReport.dbM0 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DB',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 1),
-          this.determineDate(reportParams.endDate, 1)
-        );
-
-      curMmiaReport.dbM1 =
-        await patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
-          'DB',
-          reportParams.clinicalService,
-          this.determineDate(reportParams.startDate, 2),
-          this.determineDate(reportParams.endDate, 2)
-        );
-    });
+    [
+      curMmiaReport.dsM1,
+      curMmiaReport.dsM2,
+      curMmiaReport.dsM3,
+      curMmiaReport.dsM4,
+      curMmiaReport.dsM5,
+      curMmiaReport.dtM1,
+      curMmiaReport.dtM2,
+      curMmiaReport.dbM0,
+      curMmiaReport.dbM1,
+    ] = await Promise.all([
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DS',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 1),
+        this.determineDate(reportParams.endDate, 1)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DS',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 2),
+        this.determineDate(reportParams.endDate, 2)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DS',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 3),
+        this.determineDate(reportParams.endDate, 3)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DS',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 4),
+        this.determineDate(reportParams.endDate, 4)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DS',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 5),
+        this.determineDate(reportParams.endDate, 5)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DT',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 1),
+        this.determineDate(reportParams.endDate, 1)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DT',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 2),
+        this.determineDate(reportParams.endDate, 2)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DB',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 1),
+        this.determineDate(reportParams.endDate, 1)
+      ),
+      patientVisitDetailsService.countPacksByDispenseTypeAndServiceOnPeriod(
+        'DB',
+        reportParams.clinicalService,
+        this.determineDate(reportParams.startDate, 2),
+        this.determineDate(reportParams.endDate, 2)
+      ),
+    ]);
     curMmiaReport.dM = totalDM;
     curMmiaReport.dtM0 = totalDtM0;
     curMmiaReport.dsM0 = totalDsM0;
     curMmiaReport.id = uuidv4();
-    this.localDbAddOrUpdateMmia(curMmiaReport);
+    await this.localDbAddOrUpdateMmia(curMmiaReport);
   },
 
   determineDate(date: any, month: any) {
     return moment(date, 'DD-MM-YYYY').subtract(month, 'months');
   },
   isReferido(episode: any) {
-    return episode.startStopReason.code === 'TRANSFERIDO_DE';
+    return episode?.startStopReason?.code === 'TRANSFERIDO_DE';
   },
   groupedMap(items: any, key: any) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e[key],
-          [...(entryMap.get(e[key]) || []), e],
-          console.log(e[key])
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.[key];
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   groupedMapChild(items: any, key: any) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e.adjustedStock.drug.id,
-          [...(entryMap.get(e.adjustedStock.drug.id) || []), e],
-          console.log(e.adjustedStock.drug.id)
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.adjustedStock?.drug?.id;
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   groupedMapChildPack(items: any, key: any) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e.drug.id,
-          [...(entryMap.get(e.drug.id) || []), e],
-          console.log(e.drug.id)
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.drug?.id ?? e?.drug_id;
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   groupedMapChildAdjustments(items: any, key: any) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e.adjustedStock.id,
-          [...(entryMap.get(e.adjustedStock.id) || []), e],
-          console.log(e.adjustedStock.id)
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.adjustedStock?.id;
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   getStockOperationTypeById(id: any) {
     return StockOperationTypeService.getStockOperatinTypeById(id);

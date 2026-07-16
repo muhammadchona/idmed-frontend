@@ -80,6 +80,11 @@ const patient = inject('patient');
 //Computed
 const currIdentifier = computed(() => {
   if (preferedIdentifier(patient.value) !== null) {
+    if (isMobile.value && !isOnline.value) {
+      return patientServiceIdentifierService.identifierForMobilePatientPanel(
+        preferedIdentifier(patient.value).id
+      );
+    }
     return patientServiceIdentifierService.identifierCurr(
       preferedIdentifier(patient.value).id,
       preferedIdentifier(patient.value).service_id

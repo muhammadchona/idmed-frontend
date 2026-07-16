@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, provide } from 'vue';
+import { onMounted, ref, computed, provide, defineAsyncComponent } from 'vue';
 // import { uuid } from 'uuid'
 import { uid, LocalStorage } from 'quasar';
 import ClinicalService from '../../stores/models/ClinicalService/ClinicalService';
@@ -93,57 +93,153 @@ import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import TitleBar from 'components/Shared/TitleBar.vue';
 import MenuMobile from 'components/Reports/Menus/ListReportMenuMobile.vue';
 import ListReportMenu from 'components/Reports/Menus/ListReportMenu.vue';
-import ActivesInDrugStore from 'components/Reports/Patient/ActivesInDrugStore.vue';
-import GuestList from 'components/Reports/Patient/GuestList.vue';
-import PatientsWithouDispense from 'components/Reports/Patient/PatientsWihoutDispense.vue';
-import ImportedPatientList from 'components/Reports/Patient/ImportedPatientList.vue';
-import TransferedFrom from 'components/Reports/Patient/TransferedFrom.vue';
-import TransferedTo from 'components/Reports/Patient/TransferedTo.vue';
-import Mmia from 'components/Reports/ClinicManagement/Mmia.vue';
-import LinhasTerapeuticasUsadas from 'components/Reports/ClinicManagement/LinhasUsadas.vue';
-import SegundasLinhas from 'components/Reports/ClinicManagement/SegundasLinhas.vue';
-import PatientsAbandonment from 'components/Reports/ClinicManagement/PatientsAbandonment.vue';
-import PatientsAbandonmentReturned from 'components/Reports/ClinicManagement/PatientsAbandonmentReturned.vue';
-import Balancete from 'components/Reports/stock/Balancete.vue';
-import ReferredPatients from 'components/Reports/ReferralManagement/ReferredPatients.vue';
-import ReferredBackPatients from 'components/Reports/ReferralManagement/ReferredBackPatients.vue';
-import ReferredPatientDispenseHistory from 'components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue';
-import AbsentReferredPatients from 'components/Reports/ReferralManagement/AbsentReferredPatients.vue';
-import ReceivedStock from 'components/Reports/stock/ReceivedStock.vue';
-import UsedStock from 'components/Reports/stock/UsedStock.vue';
-import QuantityRemain from 'components/Reports/stock/QuantityRemain.vue';
-import ArvDailyRegister from 'components/Reports/monitoring/ArvDailyRegister.vue';
-import AbsentPatients from 'components/Reports/ClinicManagement/AbsentPatients.vue';
-import AbsentPatientsApss from 'components/Reports/ClinicManagement/AbsentPatientsApss.vue';
-import AbsentPatientsDT from 'components/Reports/ClinicManagement/AbsentPatientsDT.vue';
-import AbsentPatientsDS from 'components/Reports/ClinicManagement/AbsentPatientsDS.vue';
-import PatientHistory from 'components/Reports/ClinicManagement/PatientHistory.vue';
-import PatientHistoryPREP from 'components/Reports/ClinicManagement/prep/PatientHistory.vue';
-import PatientHistoryTPT from 'components/Reports/ClinicManagement/tpt/PatientHistory.vue';
-import NotSynchronizedPack from 'components/Reports/monitoring/NotSynchronizedPack.vue';
-import PossiblePatientDuplicates from 'components/Reports/monitoring/PossiblePatientDuplicates.vue';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import clinicalServiceService from 'src/services/api/clinicalServiceService/clinicalServiceService';
-import RegisteredInIdmed from 'src/components/Reports/monitoring/RegisteredInIdmed.vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
-import TBScreening from 'components/Reports/Patient/TBScreening.vue';
-import RAMScreening from 'components/Reports/Patient/RAMScreening.vue';
-import PacksByDrugBottles from 'src/components/Reports/monitoring/PacksByDrugBottles.vue';
-import PatientWithPregnancyScreening from 'src/components/Reports/Patient/PatientsWithPregnancyScreening.vue';
-import NotSynchronizedPackToServer from 'components/Reports/monitoring/NotSyncronizedPacksToServer.vue';
-import PatientsMonitoredForAdherence from 'components/Reports/Patient/PatientsMonitoredForAdherence.vue';
-import PatientsPickedUpMedsAtUS from 'components/Reports/Patient/PatientsPickedUpMedsAtUS.vue';
-import ErrorLogPatientUpdateSesp from 'components/Reports/monitoring/ErrorLogPatientUpdateSesp.vue';
-// NOVOS REPORTS COM REUTILIZACAO DE CONTROLLER
 
-import SemiannualDispensation from 'components/Reports/ClinicManagement/SemiannualDispensation.vue';
-import QuarterlyDispensation from 'components/Reports/ClinicManagement/QuarterlyDispensation.vue';
-import PrepDailyRegister from 'components/Reports/monitoring/prep/PrepDailyRegister.vue';
-import TptDailyRegister from 'components/Reports/monitoring/tpt/TptDailyRegister.vue';
-import partialInventory from 'components/Reports/stock/InventoryPartial.vue';
-import generalInventory from 'components/Reports/stock/InventoryGeneral.vue';
-import expectedOfDay from 'components/Reports/Patient/expectedOfDay.vue';
-import MmiaTb from 'components/Reports/ClinicManagement/tpt/MmiaTb.vue';
+// Report panels are loaded only when selected. Their names and public props
+// remain unchanged; this only keeps report/chart/export code out of the
+// initial Reports screen chunk.
+const ActivesInDrugStore = defineAsyncComponent(() =>
+  import('components/Reports/Patient/ActivesInDrugStore.vue')
+);
+const GuestList = defineAsyncComponent(() =>
+  import('components/Reports/Patient/GuestList.vue')
+);
+const PatientsWithouDispense = defineAsyncComponent(() =>
+  import('components/Reports/Patient/PatientsWihoutDispense.vue')
+);
+const ImportedPatientList = defineAsyncComponent(() =>
+  import('components/Reports/Patient/ImportedPatientList.vue')
+);
+const TransferedFrom = defineAsyncComponent(() =>
+  import('components/Reports/Patient/TransferedFrom.vue')
+);
+const TransferedTo = defineAsyncComponent(() =>
+  import('components/Reports/Patient/TransferedTo.vue')
+);
+const Mmia = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/Mmia.vue')
+);
+const LinhasTerapeuticasUsadas = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/LinhasUsadas.vue')
+);
+const SegundasLinhas = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/SegundasLinhas.vue')
+);
+const PatientsAbandonment = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/PatientsAbandonment.vue')
+);
+const PatientsAbandonmentReturned = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/PatientsAbandonmentReturned.vue')
+);
+const Balancete = defineAsyncComponent(() =>
+  import('components/Reports/stock/Balancete.vue')
+);
+const ReferredPatients = defineAsyncComponent(() =>
+  import('components/Reports/ReferralManagement/ReferredPatients.vue')
+);
+const ReferredBackPatients = defineAsyncComponent(() =>
+  import('components/Reports/ReferralManagement/ReferredBackPatients.vue')
+);
+const ReferredPatientDispenseHistory = defineAsyncComponent(() =>
+  import(
+    'components/Reports/ReferralManagement/ReferredPatientDispenseHistory.vue'
+  )
+);
+const AbsentReferredPatients = defineAsyncComponent(() =>
+  import('components/Reports/ReferralManagement/AbsentReferredPatients.vue')
+);
+const ReceivedStock = defineAsyncComponent(() =>
+  import('components/Reports/stock/ReceivedStock.vue')
+);
+const UsedStock = defineAsyncComponent(() =>
+  import('components/Reports/stock/UsedStock.vue')
+);
+const QuantityRemain = defineAsyncComponent(() =>
+  import('components/Reports/stock/QuantityRemain.vue')
+);
+const ArvDailyRegister = defineAsyncComponent(() =>
+  import('components/Reports/monitoring/ArvDailyRegister.vue')
+);
+const AbsentPatients = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/AbsentPatients.vue')
+);
+const AbsentPatientsApss = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/AbsentPatientsApss.vue')
+);
+const AbsentPatientsDT = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/AbsentPatientsDT.vue')
+);
+const AbsentPatientsDS = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/AbsentPatientsDS.vue')
+);
+const PatientHistory = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/PatientHistory.vue')
+);
+const PatientHistoryPREP = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/prep/PatientHistory.vue')
+);
+const PatientHistoryTPT = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/tpt/PatientHistory.vue')
+);
+const NotSynchronizedPack = defineAsyncComponent(() =>
+  import('components/Reports/monitoring/NotSynchronizedPack.vue')
+);
+const PossiblePatientDuplicates = defineAsyncComponent(() =>
+  import('components/Reports/monitoring/PossiblePatientDuplicates.vue')
+);
+const RegisteredInIdmed = defineAsyncComponent(() =>
+  import('src/components/Reports/monitoring/RegisteredInIdmed.vue')
+);
+const TBScreening = defineAsyncComponent(() =>
+  import('components/Reports/Patient/TBScreening.vue')
+);
+const RAMScreening = defineAsyncComponent(() =>
+  import('components/Reports/Patient/RAMScreening.vue')
+);
+const PacksByDrugBottles = defineAsyncComponent(() =>
+  import('src/components/Reports/monitoring/PacksByDrugBottles.vue')
+);
+const PatientWithPregnancyScreening = defineAsyncComponent(() =>
+  import('src/components/Reports/Patient/PatientsWithPregnancyScreening.vue')
+);
+const NotSynchronizedPackToServer = defineAsyncComponent(() =>
+  import('components/Reports/monitoring/NotSyncronizedPacksToServer.vue')
+);
+const PatientsMonitoredForAdherence = defineAsyncComponent(() =>
+  import('components/Reports/Patient/PatientsMonitoredForAdherence.vue')
+);
+const PatientsPickedUpMedsAtUS = defineAsyncComponent(() =>
+  import('components/Reports/Patient/PatientsPickedUpMedsAtUS.vue')
+);
+const ErrorLogPatientUpdateSesp = defineAsyncComponent(() =>
+  import('components/Reports/monitoring/ErrorLogPatientUpdateSesp.vue')
+);
+const SemiannualDispensation = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/SemiannualDispensation.vue')
+);
+const QuarterlyDispensation = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/QuarterlyDispensation.vue')
+);
+const PrepDailyRegister = defineAsyncComponent(() =>
+  import('components/Reports/monitoring/prep/PrepDailyRegister.vue')
+);
+const TptDailyRegister = defineAsyncComponent(() =>
+  import('components/Reports/monitoring/tpt/TptDailyRegister.vue')
+);
+const partialInventory = defineAsyncComponent(() =>
+  import('components/Reports/stock/InventoryPartial.vue')
+);
+const generalInventory = defineAsyncComponent(() =>
+  import('components/Reports/stock/InventoryGeneral.vue')
+);
+const expectedOfDay = defineAsyncComponent(() =>
+  import('components/Reports/Patient/expectedOfDay.vue')
+);
+const MmiaTb = defineAsyncComponent(() =>
+  import('components/Reports/ClinicManagement/tpt/MmiaTb.vue')
+);
 
 const { closeLoading, showloading } = useLoading();
 

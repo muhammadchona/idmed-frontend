@@ -55,18 +55,19 @@ export default {
     if (offset >= 0) {
       return await api()
         .get('/stock/clinic/' + clinicId + '?offset=' + offset + '&max=100')
-        .then((resp) => {
+        .then(async (resp) => {
           stock.save(resp.data);
-          this.addBulkMobile(resp.data);
+          await stockDexie.bulkPut(resp.data);
           console.log('Data synced from backend: stock');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset, clinicId);
+            return this.getFromBackEnd(offset, clinicId);
           }
+          return true;
         })
         .catch((error) => {
           console.error('Error syncing data from backend:', error);
-          console.log(error);
+          throw error;
         });
     }
   },
@@ -356,6 +357,11 @@ export default {
     }
   },
 
+  async ensureMobileStockLoaded() {
+    if (stock.all().length > 0) return;
+    await this.getMobile();
+  },
+
   async getStocksByIds(stockIds: any) {
     return stockDexie.where('id').anyOf(stockIds).toArray();
   },
@@ -396,6 +402,10 @@ export default {
       // alertError('Aconteceu um erro inesperado nesta operação.');
       console.log(error);
     }
+  },
+
+  async getCountStockFromDexie() {
+    return await stockDexie.count();
   },
 
   async localDbGetUsedStock(reportParams: any) {

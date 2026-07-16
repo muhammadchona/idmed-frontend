@@ -51,7 +51,7 @@
             <q-route-tab
               exact
               default
-              :to="'/home'"
+              :to="isMobile ? '/' : '/home'"
               name="home"
               icon="home"
               label="Inicial"
@@ -250,7 +250,7 @@ import { useOffline } from 'src/composables/shared/loadParamsToOffline/offline';
 import { wipeData } from 'src/services/Mobile/WipeData';
 import UsersService from 'src/services/UsersService';
 import loginDialog from 'src/components/Shared/LoginDialog.vue';
-const { website } = useSystemUtils();
+const { website, isMobile, isOnline } = useSystemUtils();
 const {
   isProvincialInstalation,
   isProvincialInstalationPharmacysMode,
@@ -264,7 +264,6 @@ const tab = ref('home');
 const mobile = ref(false);
 
 const { notifyError } = useNotify();
-const { isOnline } = useSystemUtils();
 const { getPatientsToSend, getGroupsToSend } = sendData();
 const { getPatientsVisitToWipe } = wipeData();
 const {
@@ -276,6 +275,14 @@ const stockDistributionCount = ref(0);
 
 const logoutTimer = ref(null);
 const showLoginScreen = ref(false);
+const activityEvents = [
+  'click',
+  'mousemove',
+  'mousedown',
+  'scroll',
+  'keypress',
+  'load',
+];
 
 // Função para fazer o logout
 const logout = () => {
@@ -319,16 +326,7 @@ onMounted(async () => {
   }
 
   // Definir os eventos e adicionar os ouvintes
-  const events = [
-    'click',
-    'mousemove',
-    'mousedown',
-    'scroll',
-    'keypress',
-    'load',
-  ];
-
-  events.forEach((event) => {
+  activityEvents.forEach((event) => {
     window.addEventListener(event, resetTimer);
   });
 
@@ -340,6 +338,9 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   // Certifique-se de limpar o timer antes de desmontar o componente
   clearTimeout(logoutTimer.value);
+  activityEvents.forEach((event) => {
+    window.removeEventListener(event, resetTimer);
+  });
 });
 
 const activateMigration = computed(() => {

@@ -24,7 +24,10 @@ export default {
     ]);
 
     for (const patientVisit of patientVisitList) {
-      if (patientVisit.pregnancyScreenings.length > 0) {
+      if (
+        (patientVisit?.pregnancyScreenings ?? []).length > 0 &&
+        patientVisit?.patient?.id
+      ) {
         const patientsWithPregnancyScreening =
           new PatientsWithScreeningReport();
 
@@ -34,8 +37,9 @@ export default {
         const patient = await patientService.getPatientByIdMobile(
           patientVisit.patient.id
         );
+        if (!patient) continue;
 
-        let identifier = patient.identifiers[0];
+        const identifier = patient?.identifiers?.[0];
 
         patientsWithPregnancyScreening.reportId = reportParams.id;
         patientsWithPregnancyScreening.startDate = startDate;
@@ -62,7 +66,7 @@ export default {
             patientsWithPregnancyScreening.isPregnant = 'Não';
           }
 
-          this.localDbAddOrUpdate(patientsWithPregnancyScreening);
+          await this.localDbAddOrUpdate(patientsWithPregnancyScreening);
           console.log(patientsWithPregnancyScreening);
         }
       }
@@ -80,7 +84,10 @@ export default {
     ]);
 
     for (const patientVisit of patientVisitList) {
-      if (patientVisit.adherenceScreenings.length > 0) {
+      if (
+        (patientVisit?.adherenceScreenings ?? []).length > 0 &&
+        patientVisit?.patient?.id
+      ) {
         const patientsWithAdherenceScreenings =
           new PatientsWithScreeningReport();
         const endDate = moment(params.endDate).format('YYYY-MM-DD');
@@ -95,8 +102,9 @@ export default {
         const patient = await patientService.getPatientByIdMobile(
           patientVisit.patient.id
         );
+        if (!patient) continue;
 
-        let identifier = patient.identifiers[0];
+        const identifier = patient?.identifiers?.[0];
 
         if (identifier) {
           patientsWithAdherenceScreenings.nid = identifier.value;
@@ -111,7 +119,7 @@ export default {
           patientsWithAdherenceScreenings.visitDate = patientVisit.visitDate;
           patientsWithAdherenceScreenings.clinic = patientVisit.clinic;
 
-          this.localDbAddOrUpdate(patientsWithAdherenceScreenings);
+          await this.localDbAddOrUpdate(patientsWithAdherenceScreenings);
           console.log(patientsWithAdherenceScreenings);
         }
       }
@@ -129,17 +137,21 @@ export default {
     ]);
     for (const patientVisit of patientVisitList) {
       const tbScreening =
-        patientVisit.tbScreenings.length > 0
+        (patientVisit?.tbScreenings ?? []).length > 0
           ? patientVisit.tbScreenings[0]
           : [];
       const tbScreeningReport = new PatientsWithScreeningReport();
 
-      if (patientVisit.tbScreenings.length > 0) {
+      if (
+        (patientVisit?.tbScreenings ?? []).length > 0 &&
+        patientVisit?.patient?.id
+      ) {
         const patient = await patientService.getPatientByIdMobile(
           patientVisit.patient.id
         );
+        if (!patient) continue;
 
-        let identifier = patient.identifiers[0];
+        let identifier = patient?.identifiers?.[0];
 
         if (!identifier) {
           const idents =
@@ -148,6 +160,7 @@ export default {
             );
           identifier = idents[0];
         }
+        if (!identifier) continue;
         tbScreeningReport.id = uuidv4();
         tbScreeningReport.nid = identifier.value;
         tbScreeningReport.name =
@@ -159,9 +172,8 @@ export default {
         tbScreeningReport.age = idadeCalculator(patient.dateOfBirth);
         tbScreeningReport.gender = patient.gender;
         tbScreeningReport.dateRegister = patientVisit.visitDate;
-        tbScreeningReport.clinic = clinicService.getById(
-          patientVisit.clinic.id
-        ).clinicName;
+        tbScreeningReport.clinic =
+          clinicService.getById(patientVisit?.clinic?.id)?.clinicName ?? '';
         tbScreeningReport.reportId = reportParams.id;
         tbScreeningReport.year = reportParams.year;
         tbScreeningReport.endDate = reportParams.endDate;
@@ -179,7 +191,7 @@ export default {
           tbScreeningReport.wasTBScreened = 'Não';
         }
 
-        this.localDbAddOrUpdate(tbScreeningReport);
+        await this.localDbAddOrUpdate(tbScreeningReport);
       }
     }
   },
@@ -197,17 +209,21 @@ export default {
 
     for (const patientVisit of patientVisitList) {
       const ramScreening =
-        patientVisit.ramScreenings.length > 0
+        (patientVisit?.ramScreenings ?? []).length > 0
           ? patientVisit.ramScreenings[0]
           : [];
       const ramScreeningReport = new PatientsWithScreeningReport();
 
-      if (patientVisit.ramScreenings.length > 0) {
+      if (
+        (patientVisit?.ramScreenings ?? []).length > 0 &&
+        patientVisit?.patient?.id
+      ) {
         const patient = await patientService.getPatientByIdMobile(
           patientVisit.patient.id
         );
+        if (!patient) continue;
 
-        let identifier = patient.identifiers[0];
+        let identifier = patient?.identifiers?.[0];
 
         if (!identifier) {
           const idents =
@@ -216,6 +232,7 @@ export default {
             );
           identifier = idents[0];
         }
+        if (!identifier) continue;
         ramScreeningReport.id = uuidv4();
         ramScreeningReport.nid = identifier.value;
         ramScreeningReport.name =
@@ -227,9 +244,8 @@ export default {
         ramScreeningReport.age = idadeCalculator(patient.dateOfBirth);
         ramScreeningReport.gender = patient.gender;
         ramScreeningReport.dateRegister = patientVisit.visitDate;
-        ramScreeningReport.clinic = clinicService.getById(
-          patientVisit.clinic.id
-        ).clinicName;
+        ramScreeningReport.clinic =
+          clinicService.getById(patientVisit?.clinic?.id)?.clinicName ?? '';
         ramScreeningReport.reportId = reportParams.id;
         ramScreeningReport.year = reportParams.year;
         ramScreeningReport.endDate = reportParams.endDate;
@@ -244,7 +260,7 @@ export default {
           ramScreeningReport.wasRAMScreened = 'Não';
         }
 
-        this.localDbAddOrUpdate(ramScreeningReport);
+        await this.localDbAddOrUpdate(ramScreeningReport);
       }
     }
   },

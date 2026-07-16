@@ -23,20 +23,21 @@ export default {
     ]);
 
     for (const pack of activePacks) {
-      const patient = pack.patientvisitDetails.patientVisit.patient;
-      const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
+      const details = pack?.patientvisitDetails;
+      const patient = details?.patientVisit?.patient;
+      const identifier = details?.episode?.patientServiceIdentifier;
+      if (!patient || !identifier?.service) continue;
       const prescriptionDetails =
-        pack.patientvisitDetails.prescription.prescriptionDetails;
+        details?.prescription?.prescriptionDetails ?? [];
       const therapeuticRegimen =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticRegimen
-          : '';
+          : undefined;
 
       const dispenseType =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].dispenseType
-          : '';
+          : undefined;
 
       if (identifier.service.id === reportParams.clinicalService) {
         const patientHistory = new patientHistoryReport();
@@ -44,7 +45,7 @@ export default {
         patientHistory.year = reportParams.year;
         patientHistory.startDate = reportParams.startDate;
         patientHistory.endDate = reportParams.endDate;
-        patientHistory.dispenseType = dispenseType.description;
+        patientHistory.dispenseType = dispenseType?.description ?? '';
         patientHistory.nid = identifier.value;
         patientHistory.firstNames = patient.firstNames;
         patientHistory.middleNames = patient.middleNames;
@@ -52,14 +53,16 @@ export default {
         patientHistory.cellphone = patient.cellphone;
         patientHistory.pickUpDate = pack.pickupDate;
         patientHistory.nexPickUpDate = pack.nextPickUpDate;
-        patientHistory.therapeuticalRegimen = therapeuticRegimen.description;
+        patientHistory.therapeuticalRegimen =
+          therapeuticRegimen?.description ?? '';
         patientHistory.age = idadeReportCalculator(patient.dateOfBirth);
-        patientHistory.dispenseMode = pack.dispenseMode.description;
+        patientHistory.dispenseMode = pack?.dispenseMode?.description ?? '';
         patientHistory.clinicalService = identifier.service.description;
-        patientHistory.clinic = pack.clinic.clinicName;
-        patientHistory.clinicsector = clinicService.currClinic().clinicName;
+        patientHistory.clinic = pack?.clinic?.clinicName ?? '';
+        patientHistory.clinicsector =
+          clinicService.currClinic()?.clinicName ?? '';
         patientHistory.id = uuidv4();
-        this.localDbAddOrUpdate(patientHistory);
+        await this.localDbAddOrUpdate(patientHistory);
         console.log(patientHistory);
       }
     }

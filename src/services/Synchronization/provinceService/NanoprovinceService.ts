@@ -11,17 +11,18 @@ export default {
     if (offset >= 0) {
       return await api()
         .get('province?offset=' + offset + '&max=100')
-        .then((resp) => {
-          provinceDexie.bulkPut(resp.data);
+        .then(async (resp) => {
+          await provinceDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Province');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset);
+            return this.getFromBackEnd(offset);
           }
         })
         .catch((error) => {
           console.error('Error syncing data from backend:', error);
           console.log(error);
+          throw error;
         });
     }
   },
@@ -35,6 +36,6 @@ export default {
 
   async getFromDexieToPinia() {
     console.log('Data synced from Dexie To Pinia Province');
-    provinceService.getMobile();
+    return provinceService.getMobile();
   },
 };

@@ -14,17 +14,18 @@ export default {
     if (offset >= 0) {
       return await api()
         .get('menu?offset=' + offset + '&max=100')
-        .then((resp) => {
-          menuDexie.bulkPut(resp.data);
+        .then(async (resp) => {
+          await menuDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Menu');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset);
+            return this.getFromBackEnd(offset);
           }
         })
         .catch((error) => {
           console.error('Error syncing data from backend:', error);
           console.log(error);
+          throw error;
         });
     }
   },
@@ -38,6 +39,6 @@ export default {
 
   async getFromDexieToPinia() {
     console.log('Data synced from Dexie To Pinia Menu');
-    menuService.getMobile();
+    return menuService.getMobile();
   },
 };

@@ -22,7 +22,8 @@ import apexchart from 'vue3-apexcharts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
+const tabletOffline = isMobile.value && !isOnline.value;
 
 const month = [
   'JAN',
@@ -39,7 +40,7 @@ const month = [
   'DEC',
 ];
 
-const loading = ref(false);
+const loading = ref(tabletOffline);
 const series = ref([
   {
     name: 'series-1',
@@ -50,7 +51,8 @@ const series = ref([
 const clinic = inject('currClinic');
 const serviceCode = inject('serviceCode');
 const year = inject('year');
-const { isProvincialInstalation, localProvincialInstalationCode } = useSystemConfig();
+const { isProvincialInstalation, localProvincialInstalationCode } =
+  useSystemConfig();
 
 const loaded = computed(() => {
   return !loading.value;
@@ -78,13 +80,13 @@ const chartOptions = {
     },
   },
   animations: {
-    enabled: true,
+    enabled: !tabletOffline,
     easing: 'easeinout',
     speed: 1000,
   },
   stroke: {
     show: true,
-    curve: 'smooth',
+    curve: tabletOffline ? 'straight' : 'smooth',
     lineCap: 'butt',
     colors: undefined,
     width: 5,
@@ -109,7 +111,11 @@ const chartOptions = {
 };
 
 onMounted(() => {
-  getPatientsFirstDispenseByGender();
+  // watchEffect already starts this request during setup. On a slower tablet,
+  // starting it again while ApexCharts is mounting can corrupt its SVG path.
+  if (!(isMobile.value && !isOnline.value)) {
+    getPatientsFirstDispenseByGender();
+  }
 });
 
 watchEffect(() => {
@@ -121,7 +127,9 @@ function getPatientsFirstDispenseByGender() {
   const fm = { name: 'Feminino', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
   const ms = {
     name: 'Masculino',
-    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    // The tablet chart has a 12-month axis and must not receive extra points.
+    // Keep the existing web series behavior unchanged.
+    data: Array(tabletOffline ? 12 : 15).fill(0),
   };
 
   if (isProvincialInstalation()) {
@@ -180,7 +188,11 @@ function getPatientsFirstDispenseByGender() {
 }
 
 watch([serviceCode, year], () => {
-  getPatientsFirstDispenseByGender();
+  // watchEffect tracks these values and refreshes the offline tablet series.
+  // Retain the original explicit refresh for web-online installations.
+  if (!(isMobile.value && !isOnline.value)) {
+    getPatientsFirstDispenseByGender();
+  }
   chartOptions.title = {
     ...chartOptions.title,
     ...{

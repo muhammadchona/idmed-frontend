@@ -90,13 +90,23 @@ const closeSection = (params) => {
   }
 };
 
-const initReportProcessing = (params) => {
-  PatientsWithScreeningMobileService.getDataLocalDbMonitoredForAdherence(
-    params
-  );
-  progress.value = 100;
-  params.progress = 100;
-  updateParamsOnLocalStrage(params, isReportClosed);
+const initReportProcessing = async (params) => {
+  try {
+    await PatientsWithScreeningMobileService.getDataLocalDbMonitoredForAdherence(
+      params
+    );
+    progress.value = 100;
+    params.progress = 100;
+    updateParamsOnLocalStrage(params, isReportClosed);
+  } catch (error) {
+    console.error(
+      'Unable to generate the offline adherence screening report',
+      error
+    );
+    progress.value = 0;
+    params.progress = 0;
+    alertError('Não foi possível gerar o relatório no tablet');
+  }
 };
 
 const getProcessingStatus = (params) => {

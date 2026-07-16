@@ -19,28 +19,31 @@ export default {
     ]);
 
     for (const pack of activePacks) {
-      const patient = pack.patientvisitDetails.patientVisit.patient;
-      const episode = pack.patientvisitDetails.episode;
-      const prescriptionDetails =
-        pack.patientvisitDetails.prescription.prescriptionDetails;
-      const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
+      const details = pack?.patientvisitDetails;
+      const patient = details?.patientVisit?.patient;
+      const episode = details?.episode;
+      const identifier = episode?.patientServiceIdentifier;
+      if (!patient || !episode || !identifier?.service) continue;
+      const prescription = details?.prescription;
+      const prescriptionDetails = prescription?.prescriptionDetails ?? [];
       const therapeuticLine =
-        prescriptionDetails.length > 0 ? prescriptionDetails[0].therapeuticLine
-          : '';
+        prescriptionDetails.length > 0
+          ? prescriptionDetails[0].therapeuticLine
+          : undefined;
       const therapeuticRegimen =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticRegimen
-          : '';
-      const patientType =
-        pack.patientvisitDetails.prescription.patientType === 'N/A'
-          ? pack.patientvisitDetails.prescription.patientStatus
-          : pack.patientvisitDetails.prescription.patientType;
+          : undefined;
+      const patientType = prescription
+        ? prescription.patientType === 'N/A'
+          ? prescription.patientStatus
+          : prescription.patientType
+        : '';
 
       const dispenseType =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].dispenseType
-          : '';
+          : undefined;
 
       if (identifier.service.id === reportParams.clinicalService) {
         const arvDailyRegisterReport = new ArvDailyRegisterTempReport();
@@ -56,7 +59,8 @@ export default {
           ' ' +
           patient.lastNames;
         arvDailyRegisterReport.patientType = patientType;
-        arvDailyRegisterReport.startReason = episode.startStopReason.reason;
+        arvDailyRegisterReport.startReason =
+          episode?.startStopReason?.reason ?? '';
         const age = this.idadeCalculator(patient.dateOfBirth);
         arvDailyRegisterReport.ageGroup_0_4 =
           age >= 0 && age < 4 ? 'Sim' : 'Nao';
@@ -68,16 +72,19 @@ export default {
           age >= 15 ? 'Sim' : 'Nao';
         arvDailyRegisterReport.pickUpDate = pack.pickupDate;
         arvDailyRegisterReport.nexPickUpDate = pack.nextPickUpDate;
-        arvDailyRegisterReport.regime = therapeuticRegimen.description;
-        arvDailyRegisterReport.dispensationType = dispenseType.description;
-        arvDailyRegisterReport.therapeuticLine = therapeuticLine.description;
-        arvDailyRegisterReport.clinic = pack.clinic.clinicName;
+        arvDailyRegisterReport.regime = therapeuticRegimen?.description ?? '';
+        arvDailyRegisterReport.dispensationType =
+          dispenseType?.description ?? '';
+        arvDailyRegisterReport.therapeuticLine =
+          therapeuticLine?.description ?? '';
+        arvDailyRegisterReport.clinic = pack?.clinic?.clinicName ?? '';
         arvDailyRegisterReport.prep =
           identifier.service.code === 'PREP' ? 'Sim' : '';
         arvDailyRegisterReport.ppe =
           identifier.service.code === 'PPE' ? 'Sim' : '';
         const drugQuantityTemps = [];
-        for (const packagedDrug of pack.packagedDrugs) {
+        for (const packagedDrug of pack?.packagedDrugs ?? []) {
+          if (!packagedDrug?.drug) continue;
           const drugQuantityTemp = {};
           drugQuantityTemp.drugName = packagedDrug.drug.name;
           drugQuantityTemp.quantity = packagedDrug.quantitySupplied;
@@ -87,7 +94,7 @@ export default {
         }
         console.log(drugQuantityTemps);
         arvDailyRegisterReport.drugQuantityTemps = drugQuantityTemps;
-        this.localDbAddOrUpdate(arvDailyRegisterReport);
+        await this.localDbAddOrUpdate(arvDailyRegisterReport);
       }
     }
   },

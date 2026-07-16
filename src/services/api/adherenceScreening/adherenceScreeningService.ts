@@ -191,10 +191,16 @@ export default {
       .toArray();
   },
 
-  async getAllByPatientVisitIDsFromDexie(ids: []) {
+  async getAllByPatientVisitIDsFromDexie(ids: string[]) {
     return await adherenceScreeningDexie
-      .where('patient_visit_id')
-      .anyOfIgnoreCase(ids)
+      .filter((screening: any) =>
+        ids.includes(
+          screening?.patient_visit_id ??
+            screening?.patientVisitId ??
+            screening?.patientVisit?.id ??
+            screening?.visit?.id
+        )
+      )
       .toArray();
   },
   deleteAllFromDexie() {

@@ -411,41 +411,47 @@ const onRequest = async (props) => {
     loading.value = true;
   }
   // emulate server
-  setTimeout(() => {
-    // update rowsCount with appropriate value
-    // pagination.value.rowsNumber = getRowsNumberCount(filter);
+  setTimeout(
+    () => {
+      // update rowsCount with appropriate value
+      // pagination.value.rowsNumber = getRowsNumberCount(filter);
 
-    // get all rows if "All" (0) is selected
-    const fetchCount =
-      rowsPerPage === 0 ? pagination.value.rowsNumber : rowsPerPage;
+      // get all rows if "All" (0) is selected
+      const fetchCount =
+        rowsPerPage === 0 ? pagination.value.rowsNumber : rowsPerPage;
 
-    // calculate starting row of data
-    const startRow = (page - 1) * rowsPerPage;
-    currPatient.value.limit = rowsPerPage;
+      // calculate starting row of data
+      const startRow = (page - 1) * rowsPerPage;
+      currPatient.value.limit = rowsPerPage;
 
-    currPatient.value.offset = startRow;
-    offset.value = startRow;
+      currPatient.value.offset = startRow;
+      offset.value = startRow;
 
-    if (page !== actualPage.value || rowsPerPage !== actualRowsPerPage.value) {
-      actualPage.value = page;
-      actualRowsPerPage.value = rowsPerPage;
-      currPatient.value.limit = limit.value;
-      currPatient.value.offset = offset.value;
-      patientService.apiSearch(currPatient.value);
-    }
+      if (
+        page !== actualPage.value ||
+        rowsPerPage !== actualRowsPerPage.value
+      ) {
+        actualPage.value = page;
+        actualRowsPerPage.value = rowsPerPage;
+        currPatient.value.limit = limit.value;
+        currPatient.value.offset = offset.value;
+        patientService.apiSearch(currPatient.value);
+      }
 
-    // clear out existing data and add new
-    // rows.value.splice(0, rows.value.length, ...returnedData);
+      // clear out existing data and add new
+      // rows.value.splice(0, rows.value.length, ...returnedData);
 
-    // don't forget to update local pagination object
-    pagination.value.page = page;
-    pagination.value.rowsPerPage = rowsPerPage;
-    pagination.value.sortBy = sortBy;
-    pagination.value.descending = descending;
-    //   pagination.value.rowsNumber = 5;
-    // ...and turn of loading indicator
-    loading.value = false;
-  }, 1500);
+      // don't forget to update local pagination object
+      pagination.value.page = page;
+      pagination.value.rowsPerPage = rowsPerPage;
+      pagination.value.sortBy = sortBy;
+      pagination.value.descending = descending;
+      //   pagination.value.rowsNumber = 5;
+      // ...and turn of loading indicator
+      loading.value = false;
+    },
+    isMobile.value ? 0 : 1500
+  );
 };
 
 // Methods
@@ -453,7 +459,7 @@ const clearSearchParams = () => {
   currPatient.value = new Patient({ id: uuidv4() });
   currPatient.value.clinic = clinic.value;
   patientService.deleteAllFromStorage();
-  // patients.value = [];
+  if (isMobile.value && !isOnline.value) patients.value = [];
 };
 
 const search = () => {
@@ -646,13 +652,16 @@ const closePatient = () => {
 const goToPatientPanel = async (patient) => {
   showloading();
   deleteStorageWithoutPatientInfo();
-  await patientService.deleteAllExceptIdFromStorage(patient.id);
   currPatient.value = patient;
   localStorage.setItem('patientuuid', currPatient.value.id);
   localStorage.setItem('isScanScreen', false);
   if (isMobile.value && !isOnline.value) {
     console.warn('Buscando Paciente no Dexie');
+    patientService.deleteAllFromStorage();
+    patientService.saveMobilePatientPanelStorage(patient);
+    await patientService.getPatientMobilePanelContextByPatientId(patient);
   } else {
+    await patientService.deleteAllExceptIdFromStorage(patient.id);
     deleteDexieInfo();
     localStorage.setItem('patientuuid', currPatient.value.id);
     await patientService.getPatientByID(currPatient.value.id);
@@ -736,6 +745,7 @@ const loadHISDataSource = () => {
 };
 
 const patientList = computed(() => {
+  if (isMobile.value && !isOnline.value) return patients.value;
   return patientService.getPatientSearchList();
 });
 
@@ -751,8 +761,31 @@ const localSearch = async () => {
     currPatient.value.offset = offset.value;
     patientService.apiSearch(currPatient.value);
   } else {
-    patientService.getMobile();
-    patientServiceIdentifierService.getMobile();
+    const [rows, searchIdentifiers] = await Promise.all([
+      patientService.getAllPatientFromDexie(),
+      patientServiceIdentifierService.getMobilePatientSearchIdentifiers(),
+    ]);
+    const identifiersByPatient = new Map();
+    searchIdentifiers.forEach((identifier) => {
+      const patientIdentifiers =
+        identifiersByPatient.get(identifier.patient_id) ?? [];
+      patientIdentifiers.push(identifier);
+      identifiersByPatient.set(identifier.patient_id, patientIdentifiers);
+    });
+    patients.value = rows
+      .map((patient) => ({
+        ...patient,
+        identifiers: identifiersByPatient.get(patient.id) ?? [],
+      }))
+      .sort((left, right) => {
+      const byName = String(left?.firstNames ?? '').localeCompare(
+        String(right?.firstNames ?? '')
+      );
+      if (byName !== 0) return byName;
+      return String(preferedIdentifierValue(left)).localeCompare(
+        String(preferedIdentifierValue(right))
+      );
+      });
   }
 };
 

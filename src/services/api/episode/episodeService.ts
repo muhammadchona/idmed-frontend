@@ -307,6 +307,92 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
+  getForMobilePatientPanel(id: string) {
+    return episode
+      .query()
+      .with('episodeType')
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier', (identifierQuery: any) => {
+        identifierQuery.with('service');
+      })
+      .with('patientVisitDetails')
+      .where('id', id)
+      .first();
+  },
+  getLast3ForMobilePatientPanel(identifierId: string) {
+    const episodes = episode
+      .query()
+      .with('episodeType')
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier', (identifierQuery: any) => {
+        identifierQuery.with('service');
+      })
+      .with('patientVisitDetails')
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('episodeDate', 'desc')
+      .limit(3)
+      .get();
+    if (episodes.length > 1) {
+      episodes[0].isLast = true;
+      episodes[1].isLast = false;
+    } else if (episodes.length > 0) {
+      episodes[0].isLast = true;
+    }
+    return episodes;
+  },
+  saveEpisodesStorage(rows: any[]) {
+    episode.save(rows);
+  },
+  saveMobilePatientPanelEpisodesStorage(rows: any[] = []) {
+    episode.save(
+      rows.map((rawEpisode: any) => {
+        const {
+          episodeType,
+          clinicSector,
+          patientServiceIdentifier,
+          startStopReason,
+          referralClinic,
+          clinic,
+          patientVisitDetails,
+          ...episodeFields
+        } = rawEpisode;
+        return {
+          ...episodeFields,
+          episodeType_id:
+            rawEpisode.episodeType_id ??
+            rawEpisode.episodeTypeId ??
+            episodeType?.id ??
+            '',
+          clinicSector_id:
+            rawEpisode.clinicSector_id ??
+            rawEpisode.clinicSectorId ??
+            clinicSector?.id ??
+            '',
+          patientServiceIdentifier_id:
+            rawEpisode.patientServiceIdentifier_id ??
+            rawEpisode.patientServiceIdentifierId ??
+            patientServiceIdentifier?.id ??
+            '',
+          startStopReason_id:
+            rawEpisode.startStopReason_id ??
+            rawEpisode.startStopReasonId ??
+            startStopReason?.id ??
+            '',
+          referralClinic_id:
+            rawEpisode.referralClinic_id ??
+            rawEpisode.referralClinicId ??
+            referralClinic?.id ??
+            '',
+          // Preserve visit links when they are embedded in an episode. Most
+          // offline rows do not contain them; prescription context loads the
+          // complete records lazily when that tab is opened.
+          patientVisitDetails,
+        };
+      })
+    );
+  },
 
   /*
   lastEpisode() {
@@ -350,6 +436,21 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
+  getLastStartEpisodeForMobilePrescriptionDisplay(identifierId: string) {
+    return episode
+      .query()
+      .with('episodeType')
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier')
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'INICIO');
+      })
+      .has('patientVisitDetails')
+      .where('patientServiceIdentifier_id', identifierId)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
   getLastRefferedEpisodeWithPrescription(patientIdentifierid: string) {
     return episode
       .withAllRecursive(2)
@@ -358,6 +459,21 @@ export default {
       })
       .has('patientVisitDetails')
       .where('patientServiceIdentifier_id', patientIdentifierid)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+  getLastReferredEpisodeForMobilePrescriptionDisplay(identifierId: string) {
+    return episode
+      .query()
+      .with('episodeType')
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier')
+      .whereHas('startStopReason', (query) => {
+        query.where('code', 'REFERIDO_DC').orWhere('code', 'REFERIDO_PARA');
+      })
+      .has('patientVisitDetails')
+      .where('patientServiceIdentifier_id', identifierId)
       .orderBy('episodeDate', 'desc')
       .first();
   },
@@ -381,9 +497,37 @@ export default {
       .orderBy('episodeDate', 'desc')
       .first();
   },
+  getLastStartEpisodeForPrescription(identifierId: string) {
+    return episode
+      .query()
+      .with('episodeType')
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier')
+      .where('patientServiceIdentifier_id', identifierId)
+      .whereHas('episodeType', (query) => {
+        query.where('code', 'INICIO');
+      })
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
   getLastRefferalEpisodeByIdentifier(patientIdentifierid: string) {
     return episode
       .withAllRecursive(2)
+      .whereHas('startStopReason', (query) => {
+        query.where('code', 'REFERIDO_DC').orWhere('code', 'REFERIDO_PARA');
+      })
+      .where('patientServiceIdentifier_id', patientIdentifierid)
+      .orderBy('episodeDate', 'desc')
+      .first();
+  },
+  getLastRefferalEpisodeForPrescription(patientIdentifierid: string) {
+    return episode
+      .query()
+      .with('episodeType')
+      .with('startStopReason')
+      .with('clinicSector')
+      .with('patientServiceIdentifier')
       .whereHas('startStopReason', (query) => {
         query.where('code', 'REFERIDO_DC').orWhere('code', 'REFERIDO_PARA');
       })

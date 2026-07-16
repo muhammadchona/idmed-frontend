@@ -136,6 +136,14 @@ export default {
         return result;
       });
   },
+  async getMobileDrugByIdOrBackend(drugId: string) {
+    const localDrug = await this.getMobileDrugById(drugId);
+    if (localDrug) return localDrug;
+
+    const resp = await api().get('drug/' + drugId);
+    await drugDexie.put(resp.data);
+    return resp.data;
+  },
   async getInventoryDrugsMobile(inventoryId: any) {
     // Step 1: Query StockAdjustments table for the given inventory ID
     const adjustments =

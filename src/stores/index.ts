@@ -3,6 +3,13 @@ import { createPinia, setActivePinia } from 'pinia';
 import { Router } from 'vue-router';
 import nanosSqlDatabase from 'src/stores/nanosSqlDatabase';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { Platform } from 'quasar';
+import {
+  getOrmStoreIds,
+  shouldSkipOrmLocalStoragePersistence,
+} from 'src/stores/mobilePersistencePolicy';
+
+const ormStoreIds = getOrmStoreIds(nanosSqlDatabase.getEntities());
 
 /* When adding new properties to stores, you should also
  * extend the `PiniaCustomProperties` interface.
@@ -28,7 +35,19 @@ export default store((/* { ssrContext } */) => {
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)
 
-  pinia.use(piniaPluginPersistedstate);
+  pinia.use((context) => {
+    if (
+      shouldSkipOrmLocalStoragePersistence(
+        Platform.is.mobile,
+        context.store.$id,
+        ormStoreIds
+      )
+    ) {
+      return;
+    }
+
+    return piniaPluginPersistedstate(context);
+  });
 
   // pinia.use(persistedStateDexiePlugin());
 

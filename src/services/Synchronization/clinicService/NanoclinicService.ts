@@ -17,12 +17,12 @@ export default {
     if (offset >= 0) {
       return await api()
         .get('clinic?offset=' + offset + '&max=100')
-        .then((resp) => {
-          clinicDexie.bulkPut(resp.data);
+        .then(async (resp) => {
+          await clinicDexie.bulkPut(resp.data);
           console.log('Data synced from backend: Clinic');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset);
+            return this.getFromBackEnd(offset);
           } else {
             closeLoading();
           }
@@ -31,6 +31,7 @@ export default {
           console.error('Error syncing data from backend:', error);
           console.log(error);
           closeLoading();
+          throw error;
         });
     }
   },
@@ -44,6 +45,6 @@ export default {
 
   async getFromDexieToPinia() {
     console.log('Data synced from Dexie To Pinia Clinic');
-    clinicService.getMobile();
+    return clinicService.getMobile();
   },
 };

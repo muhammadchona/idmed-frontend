@@ -15,29 +15,29 @@ export default {
     const stocks = await StockService.localDbGetAll();
     const reportDatas = stocks.filter(
       (stock) =>
-        stock.entrance.dateReceived >= reportParams.startDate &&
-        stock.entrance.dateReceived <= reportParams.endDate &&
-        stock.drug.clinicalService.id === reportParams.clinicalService
+        stock?.entrance?.dateReceived >= reportParams.startDate &&
+        stock?.entrance?.dateReceived <= reportParams.endDate &&
+        stock?.drug?.clinicalService?.id === reportParams.clinicalService
     );
 
-    reportDatas.forEach((reportData) => {
+    for (const reportData of reportDatas) {
       const stockReceived = new StockReceivedReport();
       stockReceived.reportId = reportParams.id;
       // patientHistory.period = reportParams.periodTypeView
       stockReceived.year = reportParams.year;
       stockReceived.startDate = reportParams.startDate;
       stockReceived.endDate = reportParams.endDate;
-      stockReceived.orderNumber = reportData.entrance.orderNumber;
-      stockReceived.drugName = reportData.drug.name;
+      stockReceived.orderNumber = reportData?.entrance?.orderNumber ?? '';
+      stockReceived.drugName = reportData?.drug?.name ?? '';
       stockReceived.expiryDate = reportData.expireDate;
       stockReceived.dateReceived = reportData.entrance.dateReceived;
       stockReceived.unitsReceived = reportData.unitsReceived;
       stockReceived.manufacture = reportData.manufacture;
       stockReceived.batchNumber = reportData.batchNumber;
       stockReceived.id = uuidv4();
-      this.localDbAddOrUpdate(stockReceived);
+      await this.localDbAddOrUpdate(stockReceived);
       console.log(stockReceived);
-    });
+    }
   },
 
   async localDbAddOrUpdate(targetCopy: any) {

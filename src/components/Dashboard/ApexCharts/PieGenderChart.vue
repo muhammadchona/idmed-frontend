@@ -22,7 +22,8 @@ import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
+const tabletOffline = isMobile.value && !isOnline.value;
 const { isProvincialInstalation } = useSystemConfig();
 
 const clinic = inject('currClinic');
@@ -30,13 +31,13 @@ const loaded = computed(() => !loading.value);
 const serviceCode = inject('serviceCode');
 const year = inject('year');
 
-const loading = ref(false);
+const loading = ref(tabletOffline);
 const series = ref([]);
 const chartOptions = {
   labels: ['Feminino', 'Masculino'],
   colors: ['#FF1493', '#0096FF'],
   animations: {
-    enabled: true,
+    enabled: !tabletOffline,
     easing: 'easeinout',
     speed: 2000,
   },

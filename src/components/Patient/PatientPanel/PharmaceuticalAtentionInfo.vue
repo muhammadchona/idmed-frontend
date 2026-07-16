@@ -22,7 +22,11 @@
           <PharmaceuticalAtentionContainer />
         </span>
       </div>
-      <q-dialog persistent v-model="showAddPharmaceuticalAtention">
+      <q-dialog
+        persistent
+        v-model="showAddPharmaceuticalAtention"
+        :maximized="isMobile"
+      >
         <AddEditPharmaceuticalAtention />
       </q-dialog>
     </div>

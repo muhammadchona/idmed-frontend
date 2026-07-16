@@ -12,17 +12,8 @@ import useNotify from 'src/composables/shared/notify/UseNotify';
 import patientVisitService from '../patientVisit/patientVisitService';
 import patientVisitDetailsService from '../patientVisitDetails/patientVisitDetailsService';
 import episodeService from '../episode/episodeService';
-import prescriptionService from '../prescription/prescriptionService';
-import packService from '../pack/packService';
 import patientServiceIdentifierService from '../patientServiceIdentifier/patientServiceIdentifierService';
-import prescribedDrugService from '../prescribedDrug/prescribedDrugService';
-import prescriptionDetailsService from '../prescriptionDetails/prescriptionDetailsService';
 import packagedDrugService from '../packagedDrug/packagedDrugService';
-import vitalSignsScreeningService from '../vitalSignsScreening/vitalSignsScreeningService';
-import rAMScreeningService from '../rAMScreening/rAMScreeningService';
-import tBScreeningService from '../tBScreening/tBScreeningService';
-import adherenceScreeningService from '../adherenceScreening/adherenceScreeningService';
-import pregnancyScreeningService from '../pregnancyScreening/pregnancyScreeningService';
 import { Notify } from 'quasar';
 import PatientServiceIdentifier from 'src/stores/models/patientServiceIdentifier/PatientServiceIdentifier';
 import Episode from 'src/stores/models/episode/Episode';
@@ -343,8 +334,6 @@ export default {
   async fetchAllPatientsByClinicSectorId(clinicSectorId: any) {
     let offset = 0;
     const max = 100; // You can adjust this number based on your API's limits
-    const allPatients: Patient[] = [];
-    const allEpisodes: Episode[] = [];
     let hasMorePatients = true;
 
     let percentage = 0;
@@ -369,46 +358,59 @@ export default {
       const identifiers = response.data;
 
       if (identifiers.length > 0) {
+        const pagePatients: Patient[] = [];
+        const pageEpisodes: Episode[] = [];
+
         identifiers.forEach((identifier: PatientServiceIdentifier) => {
-          allPatients.push(identifier.patient);
+          pagePatients.push(identifier.patient);
           identifier?.episodes?.forEach((episode: Episode) => {
-            allEpisodes.push(episode);
+            pageEpisodes.push(episode);
           });
         });
 
-        if (allPatients.length > 0) {
-          patientDexie.bulkPut(allPatients).catch((e: any) => {
-            if (e.name === 'BulkError') {
-              console.error(
-                'Patient: Some raindrops did not succeed. However, ' +
-                  (100000 - e.failures.length) +
-                  ' raindrops was added successfully'
-              );
-            } else {
-              throw e; // We're only handling BulkError here.
-            }
-          });
+        const pageWrites: Promise<unknown>[] = [];
+
+        if (pagePatients.length > 0) {
+          pageWrites.push(
+            patientDexie.bulkPut(pagePatients).catch((e: any) => {
+              if (e.name === 'BulkError') {
+                console.error(
+                  'Patient: Some raindrops did not succeed. However, ' +
+                    (pagePatients.length - e.failures.length) +
+                    ' raindrops was added successfully'
+                );
+              } else {
+                throw e; // We're only handling BulkError here.
+              }
+            })
+          );
         }
 
-        patientServiceIdentifierDexie
-          .bulkPut(identifiers)
-          .catch((error: any) => {
-            console.log(error);
-          });
+        pageWrites.push(
+          patientServiceIdentifierDexie
+            .bulkPut(identifiers)
+            .catch((error: any) => {
+              console.log(error);
+            })
+        );
 
-        if (allEpisodes.length > 0) {
-          episodeDexie.bulkPut(allEpisodes).catch((e: any) => {
-            if (e.name === 'BulkError') {
-              console.error(
-                'Episode: Some raindrops did not succeed. However, ' +
-                  (100000 - e.failures.length) +
-                  ' raindrops was added successfully'
-              );
-            } else {
-              throw e; // We're only handling BulkError here.
-            }
-          });
+        if (pageEpisodes.length > 0) {
+          pageWrites.push(
+            episodeDexie.bulkPut(pageEpisodes).catch((e: any) => {
+              if (e.name === 'BulkError') {
+                console.error(
+                  'Episode: Some raindrops did not succeed. However, ' +
+                    (pageEpisodes.length - e.failures.length) +
+                    ' raindrops was added successfully'
+                );
+              } else {
+                throw e; // We're only handling BulkError here.
+              }
+            })
+          );
         }
+
+        await Promise.all(pageWrites);
 
         notif({
           caption: `${percentage}%`,
@@ -427,7 +429,7 @@ export default {
       timeout: 2500, // we will timeout it in 2.5s
       caption: `${percentage}%`,
     });
-    return hasMorePatients;
+    return true;
   },
 
   async fetchAllPatientsForDCP(clinicId: string) {
@@ -452,7 +454,7 @@ export default {
       }
     }
 
-    return hasMorePatients;
+    return true;
   },
 
   /*
@@ -490,6 +492,32 @@ export default {
   savePatientStorage(newPatient: any) {
     patient.save(newPatient);
   },
+  saveMobilePatientPanelStorage(rawPatient: any) {
+    const {
+      province,
+      district,
+      postoAdministrativo,
+      bairro,
+      clinic,
+      his,
+      identifiers,
+      appointments,
+      members,
+      patientVisits,
+      attributes,
+      ...patientFields
+    } = rawPatient;
+    patient.save({
+      ...patientFields,
+      province_id: rawPatient.province_id ?? province?.id ?? '',
+      district_id: rawPatient.district_id ?? district?.id ?? '',
+      postoAdministrativo_id:
+        rawPatient.postoAdministrativo_id ?? postoAdministrativo?.id ?? '',
+      bairro_id: rawPatient.bairro_id ?? bairro?.id ?? '',
+      clinic_id: rawPatient.clinic_id ?? clinic?.id ?? '',
+      his_id: rawPatient.his_id ?? his?.id ?? '',
+    });
+  },
   getAllFromStorage() {
     return patient.all();
   },
@@ -498,6 +526,30 @@ export default {
   },
   getPatientByID(id: string) {
     return patient.withAllRecursive(2).whereId(id).first();
+  },
+  getForMobilePatientPanel(id: string) {
+    return patient
+      .query()
+      .with('province')
+      .with('district')
+      .with('postoAdministrativo')
+      .with('bairro')
+      .with('clinic')
+      .with('identifiers', (identifierQuery: any) => {
+        identifierQuery
+          .with('identifierType')
+          .with('service')
+          .with('clinic')
+          .with('episodes', (episodeQuery: any) => {
+            episodeQuery
+              .with('episodeType')
+              .with('startStopReason')
+              .with('clinicSector')
+              .with('patientVisitDetails');
+          });
+      })
+      .whereId(id)
+      .first();
   },
   async deleteAllExceptIdFromStorage(id: string) {
     patient
@@ -629,6 +681,15 @@ export default {
 
   async getPatientMobileWithAllByPatientId(patient: Patient) {
     try {
+      await this.getPatientMobilePanelContextByPatientId(patient);
+      await this.getPatientMobilePrescriptionContextByPatientId(patient);
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
+  async getPatientMobilePanelContextByPatientId(patient: Patient) {
+    try {
       const patientServices =
         await patientServiceIdentifierService.getAllMobileByPatientId(
           patient.id
@@ -637,58 +698,45 @@ export default {
         return pat?.id;
       });
 
-      await episodeService.getAllMobileByPatientServiceIds(patientServicesIds);
+      patientServiceIdentifierService.saveMobilePatientPanelIdentifiersStorage(
+        patientServices
+      );
+      const episodes =
+        await episodeService.getAllMobileByPatientServiceIds(
+          patientServicesIds
+        );
+      episodeService.saveMobilePatientPanelEpisodesStorage(episodes);
+    } catch (error) {
+      console.log(error);
+    }
+  },
 
+  async getPatientMobilePrescriptionContextByPatientId(patient: Patient) {
+    try {
+      // This bulk loader hydrates visit details, prescriptions, packs and every
+      // screening relation from Dexie. Packaged drugs need one explicit bulk
+      // save because Pinia ORM does not normalize that second nested level when
+      // the parent patient visits are saved.
       const patientVisits = await patientVisitService.apiGetAllByPatientId(
         patient.id
       );
-      const ids = patientVisits.map((pat: any) => pat.id);
-
-      const patientVisitDetails =
-        await patientVisitDetailsService.getAllMobileByVisitId(ids);
-
-      const prescriptionIds = patientVisitDetails.map((pat: any) => {
-        return pat?.prescription?.id ? pat.prescription.id : '';
-      });
-      const packIds = patientVisitDetails.map((pat: any) => {
-        return pat.pack.id;
-      });
-      const prescriptions = await prescriptionService.getAllMobileByIds(
-        prescriptionIds
+      const patientVisitIds = new Set(
+        patientVisits.map((visit: any) => visit.id)
       );
-      const packs = await packService.getAllMobileByIds(packIds);
-      ids.forEach(async (id: any) => {
-        try {
-          await vitalSignsScreeningService.getVitalSignsScreeningByVisitIdMobile(
-            id
-          );
-          await rAMScreeningService.getRAMScreeningByVisitIdMobile(id);
-          await tBScreeningService.getTBScreeningsByVisitIdMobile(id);
-          await adherenceScreeningService.getAdherenceScreeningByVisitIdMobile(
-            id
-          );
-          await pregnancyScreeningService.getPregnancyScreeningsByVisitIdMobile(
-            id
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      });
-      prescriptions.forEach(async (prescription: any) => {
-        try {
-          await prescribedDrugService.getLastByPrescriprionIdFromDexie(
-            prescription?.id
-          );
-          await prescriptionDetailsService.getLastByPrescriprionIdFromDexie(
-            prescription?.id
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      });
-      packs.forEach((pack: any) => {
-        packagedDrugService.getAllByPackIdMobile(pack?.id);
-      });
+      const packIds = [
+        ...new Set(
+          patientVisitDetailsService
+            .getAllFromStorage()
+            .filter((details: any) =>
+              patientVisitIds.has(
+                details?.patient_visit_id ?? details?.patientVisitId
+              )
+            )
+            .map((details: any) => details?.pack_id ?? details?.pack?.id)
+            .filter(Boolean)
+        ),
+      ];
+      await packagedDrugService.getAllByPackIDsMobile(packIds);
     } catch (error) {
       console.log(error);
     }

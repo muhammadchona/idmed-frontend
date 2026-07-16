@@ -22,7 +22,8 @@ import reportService from 'src/services/api/report/ReportService.ts';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 
-const { isOnline } = useSystemUtils();
+const { isOnline, isMobile } = useSystemUtils();
+const tabletOffline = isMobile.value && !isOnline.value;
 
 const month = [
   'JAN',
@@ -44,7 +45,7 @@ const year = inject('year');
 const currClinic = inject('currClinic');
 const { isProvincialInstalation } = useSystemConfig();
 
-const loading = ref(false);
+const loading = ref(tabletOffline);
 // const clinic = computed(() => Clinic.query().where('id', SessionStorage.getItem('currClinic').id).first());
 const chartOptions = {
   chart: {
@@ -65,13 +66,13 @@ const chartOptions = {
     },
   },
   animations: {
-    enabled: true,
+    enabled: !tabletOffline,
     easing: 'easeinout',
     speed: 1000,
   },
   stroke: {
     show: true,
-    curve: 'smooth',
+    curve: tabletOffline ? 'straight' : 'smooth',
     lineCap: 'butt',
     colors: undefined,
     width: 5,

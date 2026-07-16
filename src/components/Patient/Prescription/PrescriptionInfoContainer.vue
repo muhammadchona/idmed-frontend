@@ -293,7 +293,17 @@
 <script setup>
 import { date } from 'quasar';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
-import { computed, inject, onMounted, provide, reactive, ref } from 'vue';
+import {
+  computed,
+  inject,
+  onBeforeMount,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import PackInfo from 'components/Patient/Prescription/PackInfo.vue';
@@ -310,7 +320,6 @@ import { usePrescription } from 'src/composables/prescription/prescriptionMethod
 import groupService from 'src/services/api/group/groupService';
 import PrescriptionDetailsView from 'components/Patient/Prescription/PrescriptionDetailsView.vue';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
-import StockService from 'src/services/api/stockService/StockService';
 import groupMemberService from 'src/services/api/groupMember/groupMemberService';
 import clinicService from 'src/services/api/clinicService/clinicService';
 import pocPrescriptionLogService from 'src/services/api/pocPrescriptionLog/pocPrescriptionLogService';
@@ -328,19 +337,119 @@ const loadingFilaPDF = reactive(ref(false));
 const showPrescriptionDetails = ref(false);
 
 //props
-const props = defineProps(['identifierId']);
+const props = defineProps(['identifierId', 'displayVersion']);
 
 // Inject
 const editPrescriptionOption = inject('editPrescriptionOption');
+const refreshPrescriptionInfo = inject('refreshPrescriptionInfo');
 const patient = inject('patient');
+const mobilePrescriptionContext = shallowRef(null);
+
+const prepareMobilePrescriptionContext = () => {
+  if (!isMobile.value || isOnline.value) return;
+
+  const identifier =
+    patientServiceIdentifierService.identifierForMobilePrescriptionDisplay(
+      props.identifierId
+    );
+  const startEpisode = identifier
+    ? episodeService.getLastStartEpisodeForMobilePrescriptionDisplay(
+        identifier.id
+      )
+    : null;
+  const referredEpisode = identifier
+    ? episodeService.getLastReferredEpisodeForMobilePrescriptionDisplay(
+        identifier.id
+      )
+    : null;
+  const prescriptionEpisode = startEpisode ?? referredEpisode;
+
+  let visit = null;
+  let visitDetails = null;
+  if (prescriptionEpisode) {
+    const episodeVisitDetails =
+      patientVisitDetailsService.getMobilePrescriptionReferencesFromEpisode(
+        prescriptionEpisode.id
+      );
+    const visitIds = episodeVisitDetails.map(
+      (details) => details.patient_visit_id
+    );
+    visit = patientVisitService.getLastForMobilePrescriptionDisplay(visitIds);
+    if (visit) {
+      visitDetails =
+        episodeVisitDetails.find(
+          (details) => details.patient_visit_id === visit.id
+        ) ?? null;
+    }
+  }
+
+  const log = identifier?.service?.id
+    ? pocPrescriptionLogService.getLastForMobilePrescriptionDisplay(
+        patient.value.id,
+        identifier.service.id
+      )
+    : null;
+  const currentPrescription =
+    log?.prescription ??
+    (visitDetails?.prescription_id
+      ? prescriptionService.getForMobilePrescriptionDisplay(
+          visitDetails.prescription_id
+        )
+      : null);
+  const prescriptionVisitDetails = currentPrescription
+    ? patientVisitDetailsService.getAllPatientVisitByPrescriptioId(
+        currentPrescription.id
+      )
+    : [];
+  const lastPack = currentPrescription
+    ? packService.getLastPackByIdsForMobilePrescriptionDisplay(
+        prescriptionVisitDetails
+          .map((details) => details.pack_id)
+          .filter(Boolean)
+      )
+    : null;
+
+  if (visitDetails) {
+    visitDetails = {
+      ...visitDetails,
+      prescription: currentPrescription,
+      pack:
+        packService.getPackWithsByID(visitDetails.pack_id) ?? lastPack ?? null,
+    };
+  }
+
+  mobilePrescriptionContext.value = {
+    identifier,
+    startEpisode,
+    referredEpisode,
+    lastEpisode: identifier
+      ? episodeService.lastEpisode(identifier.id)
+      : null,
+    visit,
+    visitDetails,
+    log,
+    prescription: currentPrescription,
+    pack: lastPack,
+    activeGroup: identifier?.service?.id
+      ? groupService.getGroupByPatientAndService(
+          patient.value.id,
+          identifier.service.id
+        )
+      : null,
+  };
+};
+
+onBeforeMount(prepareMobilePrescriptionContext);
+
+watch(
+  () => props.displayVersion,
+  () => prepareMobilePrescriptionContext()
+);
 
 //Hook
 onMounted(() => {
   showloading();
   init();
-  if (isMobile.value && !isOnline.value) {
-    StockService.get(0);
-  }
 });
 //Methods
 const init = () => {
@@ -403,6 +512,8 @@ const removePack = () => {
               patient.value.id
             );
 
+            refreshPrescriptionInfo?.();
+
             closeLoading();
             console.log(resp);
             alertSucess('Dispensa removida com sucesso');
@@ -419,6 +530,8 @@ const removePack = () => {
           .delete(lastPatientVisitDetails.value.id)
           .then((resp) => {
             packService.removeFromStorage(packIdToRemove);
+
+            refreshPrescriptionInfo?.();
 
             closeLoading();
             alertSucess('Dispensa removida com sucesso');
@@ -452,6 +565,7 @@ const removePrescription = async () => {
             await patientVisitDetailsService.apiGetPatientVisitDetailsByPatientId(
               patient.value.id
             );
+            refreshPrescriptionInfo?.();
             closeLoading();
             console.log(resp);
           })
@@ -482,6 +596,9 @@ const printFilaReport = async (patientServiceIdentifier) => {
 
 // Computed
 const curIdentifier = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.identifier ?? null;
+  }
   return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
 });
 
@@ -493,6 +610,9 @@ const validadeColor = computed(() => {
   }
 });
 const lastPackOnPrescription = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.pack ?? null;
+  }
   if (prescription.value !== null) {
     return packService.getLastPackFromPatientVisitAndPrescription(
       prescription.value.id
@@ -503,6 +623,9 @@ const lastPackOnPrescription = computed(() => {
 });
 
 const lastLog = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.log ?? null;
+  }
   return pocPrescriptionLogService.getLastPrescriptionLogByPatientIdAndClinicalServiceId(
     patient.value.id,
     curIdentifier.value.service.id
@@ -510,6 +633,9 @@ const lastLog = computed(() => {
 });
 
 const prescription = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.prescription ?? null;
+  }
   if (lastLog.value && lastLog.value.prescription) {
     return lastLog.value.prescription;
   }
@@ -523,6 +649,9 @@ const prescription = computed(() => {
 });
 
 const patientVisit = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.visit ?? null;
+  }
   const listPatietVisitIds = [];
   if (lastStartEpisode.value !== null && lastStartEpisode.value !== undefined) {
     const listPatietVisitDetails =
@@ -565,6 +694,9 @@ const patientVisit = computed(() => {
 });
 
 const lastPatientVisitDetails = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.visitDetails ?? null;
+  }
   if (patientVisit.value !== null && patientVisit.value !== undefined) {
     if (
       lastStartEpisode.value !== null &&
@@ -586,6 +718,9 @@ const lastPatientVisitDetails = computed(() => {
 });
 
 const lastStartEpisode = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.startEpisode ?? null;
+  }
   if (curIdentifier.value !== null) {
     return episodeService.getLastStartEpisodeWithPrescription(
       curIdentifier.value.id
@@ -596,6 +731,9 @@ const lastStartEpisode = computed(() => {
 });
 
 const lastRefferedEpisode = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.referredEpisode ?? null;
+  }
   if (curIdentifier.value !== null) {
     return episodeService.getLastRefferedEpisodeWithPrescription(
       curIdentifier.value.id
@@ -606,6 +744,9 @@ const lastRefferedEpisode = computed(() => {
 });
 
 const lastEpisode = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.lastEpisode ?? null;
+  }
   if (curIdentifier.value !== null) {
     return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
   } else {
@@ -625,6 +766,9 @@ const isClosed = computed(() => {
 });
 
 const isPatientActiveGroupMember = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return mobilePrescriptionContext.value?.activeGroup ?? null;
+  }
   return groupService.getGroupByPatientAndService(
     patient.value.id,
     curIdentifier.value.service.id

@@ -261,6 +261,33 @@ export default {
       .first();
     return packreturn;
   },
+  getLastPackForMobilePrescriptionDisplay(prescriptionId: string) {
+    return pack
+      .query()
+      .with('clinic')
+      .with('dispenseMode')
+      .with('packagedDrugs', (drugQuery: any) => {
+        drugQuery.with('drug');
+      })
+      .whereHas('patientVisitDetails', (query) => {
+        query.where('prescription_id', prescriptionId);
+      })
+      .orderBy('pickupDate', 'desc')
+      .first();
+  },
+  getLastPackByIdsForMobilePrescriptionDisplay(packIds: string[]) {
+    if (packIds.length === 0) return null;
+    return pack
+      .query()
+      .with('clinic')
+      .with('dispenseMode')
+      .with('packagedDrugs', (drugQuery: any) => {
+        drugQuery.with('drug');
+      })
+      .whereIn('id', packIds)
+      .orderBy('pickupDate', 'desc')
+      .first();
+  },
   getLastPackFromEpisode(episodeId: string) {
     return pack
       .withAllRecursive(1)
@@ -317,6 +344,25 @@ export default {
     }
   },
 
+  // Mobile rendering/validation equivalent of getLastPackFromPatientAndDrug.
+  // It preserves the same pack filter and pickup-date ordering, but loads only
+  // the packagedDrugs relation that the caller reads.
+  getLastPackagedDrugForMobile(drug: any) {
+    const lastPack = pack
+      .query()
+      .with('packagedDrugs')
+      .whereHas('packagedDrugs', (query) => {
+        query.where('drug_id', drug.id);
+      })
+      .orderBy('pickupDate', 'desc')
+      .first();
+
+    if (lastPack == null) return undefined;
+    return lastPack.packagedDrugs.find(
+      (packagedDrug: any) => packagedDrug.drug_id === drug.id
+    );
+  },
+
   checkIfExistsAnyQuanityRemainForDispense(packagedDrugs: any) {
     let counter = 0;
     for (const pd of packagedDrugs) {
@@ -364,9 +410,24 @@ export default {
       .reverse()
       .sortBy('pickupDate');
 
-    const packIds = packs.map((pack: any) => pack.id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
+    // Mobile downloads may contain either flattened foreign keys or their
+    // already-resolved objects. Dexie's anyOfIgnoreCase only accepts strings,
+    // so never pass missing relationships to it.
+    const validStringIds = (values: any[]) => [
+      ...new Set(
+        values.filter(
+          (value: any) => typeof value === 'string' && value.length > 0
+        )
+      ),
+    ];
+    const getClinicId = (pack: any) =>
+      pack?.clinic_id ?? pack?.clinicId ?? pack?.clinic?.id;
+    const getDispenseModeId = (pack: any) =>
+      pack?.dispenseMode_id ?? pack?.dispenseModeId ?? pack?.dispenseMode?.id;
+
+    const packIds = validStringIds(packs.map((pack: any) => pack?.id));
+    const clinicIds = validStringIds(packs.map(getClinicId));
+    const dispenseModeIds = validStringIds(packs.map(getDispenseModeId));
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -374,8 +435,10 @@ export default {
       ),
     ]);
 
-    const patientVisitDetailsIds = patientvisitDetailsList.map(
-      (patientvisitDetail: any) => patientvisitDetail.id
+    const patientVisitDetailsIds = validStringIds(
+      patientvisitDetailsList.map(
+        (patientvisitDetail: any) => patientvisitDetail?.id
+      )
     );
 
     const [clinics, dispenseModes, patientVisitDetails] = await Promise.all([
@@ -385,13 +448,20 @@ export default {
     ]);
 
     packs.map((pack: any) => {
-      pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
-      );
-      pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode.id === pack.dispenseMode_id
-      );
-      pack.clinic = clinics.find((clinic: any) => clinic.id === pack.clinic_id);
+      pack.patientvisitDetails =
+        patientVisitDetails.find(
+          (patientVisitDetail: any) =>
+            (patientVisitDetail?.pack_id ??
+              patientVisitDetail?.packId ??
+              patientVisitDetail?.pack?.id) === pack.id
+        ) ?? pack.patientvisitDetails;
+      pack.dispenseMode =
+        dispenseModes.find(
+          (dispenseMode: any) => dispenseMode?.id === getDispenseModeId(pack)
+        ) ?? pack.dispenseMode;
+      pack.clinic =
+        clinics.find((clinic: any) => clinic?.id === getClinicId(pack)) ??
+        pack.clinic;
     });
     return packs;
   },
@@ -481,9 +551,21 @@ export default {
       .reverse()
       .sortBy('pickupDate');
 
-    const packIds = packs.map((pack: any) => pack.id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
+    const validStringIds = (values: any[]) => [
+      ...new Set(
+        values.filter(
+          (value: any) => typeof value === 'string' && value.length > 0
+        )
+      ),
+    ];
+    const getClinicId = (pack: any) =>
+      pack?.clinic_id ?? pack?.clinicId ?? pack?.clinic?.id;
+    const getDispenseModeId = (pack: any) =>
+      pack?.dispenseMode_id ?? pack?.dispenseModeId ?? pack?.dispenseMode?.id;
+
+    const packIds = validStringIds(packs.map((pack: any) => pack?.id));
+    const clinicIds = validStringIds(packs.map(getClinicId));
+    const dispenseModeIds = validStringIds(packs.map(getDispenseModeId));
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -491,8 +573,10 @@ export default {
       ),
     ]);
 
-    const patientVisitDetailsIds = patientvisitDetailsList.map(
-      (patientvisitDetail: any) => patientvisitDetail.id
+    const patientVisitDetailsIds = validStringIds(
+      patientvisitDetailsList.map(
+        (patientvisitDetail: any) => patientvisitDetail?.id
+      )
     );
 
     const [clinics, dispenseModes, patientVisitDetails] = await Promise.all([
@@ -502,15 +586,20 @@ export default {
     ]);
 
     packs.map((pack: any) => {
-      pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail?.pack_id === pack?.id
-      );
-      pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode_id
-      );
-      pack.clinic = clinics.find(
-        (clinic: any) => clinic?.id === pack?.clinic_id
-      );
+      pack.patientvisitDetails =
+        patientVisitDetails.find(
+          (patientVisitDetail: any) =>
+            (patientVisitDetail?.pack_id ??
+              patientVisitDetail?.packId ??
+              patientVisitDetail?.pack?.id) === pack?.id
+        ) ?? pack.patientvisitDetails;
+      pack.dispenseMode =
+        dispenseModes.find(
+          (dispenseMode: any) => dispenseMode?.id === getDispenseModeId(pack)
+        ) ?? pack.dispenseMode;
+      pack.clinic =
+        clinics.find((clinic: any) => clinic?.id === getClinicId(pack)) ??
+        pack.clinic;
     });
     return packs;
   },
@@ -524,13 +613,21 @@ export default {
       .reverse()
       .sortBy('pickupDate');
 
-    const packIds = packs.map((pack: any) => (pack?.id ? pack.id : ''));
-    const clinicIds = packs.map((pack: any) =>
-      pack?.clinic?.id ? pack.clinic.id : ''
-    );
-    const dispenseModeIds = packs.map((pack: any) =>
-      pack?.dispenseMode?.id ? pack.dispenseMode.id : ''
-    );
+    const validStringIds = (values: any[]) => [
+      ...new Set(
+        values.filter(
+          (value: any) => typeof value === 'string' && value.length > 0
+        )
+      ),
+    ];
+    const getClinicId = (pack: any) =>
+      pack?.clinic_id ?? pack?.clinicId ?? pack?.clinic?.id;
+    const getDispenseModeId = (pack: any) =>
+      pack?.dispenseMode_id ?? pack?.dispenseModeId ?? pack?.dispenseMode?.id;
+
+    const packIds = validStringIds(packs.map((pack: any) => pack?.id));
+    const clinicIds = validStringIds(packs.map(getClinicId));
+    const dispenseModeIds = validStringIds(packs.map(getDispenseModeId));
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -538,8 +635,10 @@ export default {
       ),
     ]);
 
-    const patientVisitDetailsIds = patientvisitDetailsList.map(
-      (patientvisitDetail: any) => patientvisitDetail.id
+    const patientVisitDetailsIds = validStringIds(
+      patientvisitDetailsList.map(
+        (patientvisitDetail: any) => patientvisitDetail?.id
+      )
     );
 
     const [clinics, dispenseModes, patientVisitDetails] = await Promise.all([
@@ -549,22 +648,30 @@ export default {
     ]);
 
     packs.map((pack: any) => {
-      pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail?.pack_id === pack?.id
-      );
-      pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode?.id
-      );
-      pack.clinic = clinics.find(
-        (clinic: any) => clinic?.id === pack?.clinic?.id
-      );
+      pack.patientvisitDetails =
+        patientVisitDetails.find(
+          (patientVisitDetail: any) =>
+            (patientVisitDetail?.pack_id ??
+              patientVisitDetail?.packId ??
+              patientVisitDetail?.pack?.id) === pack?.id
+        ) ?? pack.patientvisitDetails;
+      pack.dispenseMode =
+        dispenseModes.find(
+          (dispenseMode: any) => dispenseMode?.id === getDispenseModeId(pack)
+        ) ?? pack.dispenseMode;
+      pack.clinic =
+        clinics.find((clinic: any) => clinic?.id === getClinicId(pack)) ??
+        pack.clinic;
     });
     return packs;
   },
   async getPacksByIDsFromDexie(ids: []) {
+    const validIds = [...new Set(ids ?? [])].filter(
+      (id: any) => typeof id === 'string' && id.length > 0
+    );
     return await packDexie
       .where('id')
-      .anyOfIgnoreCase(ids)
+      .anyOfIgnoreCase(validIds)
       .reverse()
       .sortBy('pickupDate');
   },
@@ -587,9 +694,21 @@ export default {
       .reverse()
       .sortBy('pickupDate');
 
-    const packIds = packs.map((pack: any) => pack.id);
-    const clinicIds = packs.map((pack: any) => pack.clinic_id);
-    const dispenseModeIds = packs.map((pack: any) => pack.dispenseMode_id);
+    const validStringIds = (values: any[]) => [
+      ...new Set(
+        values.filter(
+          (value: any) => typeof value === 'string' && value.length > 0
+        )
+      ),
+    ];
+    const getClinicId = (pack: any) =>
+      pack?.clinic_id ?? pack?.clinicId ?? pack?.clinic?.id;
+    const getDispenseModeId = (pack: any) =>
+      pack?.dispenseMode_id ?? pack?.dispenseModeId ?? pack?.dispenseMode?.id;
+
+    const packIds = validStringIds(packs.map((pack: any) => pack?.id));
+    const clinicIds = validStringIds(packs.map(getClinicId));
+    const dispenseModeIds = validStringIds(packs.map(getDispenseModeId));
 
     const [patientvisitDetailsList] = await Promise.all([
       patientVisitDetailsService.getPatientVisitDetailsByPackIdFromDexie(
@@ -597,8 +716,10 @@ export default {
       ),
     ]);
 
-    const patientVisitDetailsIds = patientvisitDetailsList.map(
-      (patientvisitDetail: any) => patientvisitDetail.id
+    const patientVisitDetailsIds = validStringIds(
+      patientvisitDetailsList.map(
+        (patientvisitDetail: any) => patientvisitDetail?.id
+      )
     );
 
     const [clinics, dispenseModes, patientVisitDetails] = await Promise.all([
@@ -608,15 +729,20 @@ export default {
     ]);
 
     packs.map((pack: any) => {
-      pack.patientvisitDetails = patientVisitDetails.find(
-        (patientVisitDetail: any) => patientVisitDetail.pack_id === pack.id
-      );
-      pack.dispenseMode = dispenseModes.find(
-        (dispenseMode: any) => dispenseMode?.id === pack?.dispenseMode_id
-      );
-      pack.clinic = clinics.find(
-        (clinic: any) => clinic?.id === pack?.clinic_id
-      );
+      pack.patientvisitDetails =
+        patientVisitDetails.find(
+          (patientVisitDetail: any) =>
+            (patientVisitDetail?.pack_id ??
+              patientVisitDetail?.packId ??
+              patientVisitDetail?.pack?.id) === pack?.id
+        ) ?? pack.patientvisitDetails;
+      pack.dispenseMode =
+        dispenseModes.find(
+          (dispenseMode: any) => dispenseMode?.id === getDispenseModeId(pack)
+        ) ?? pack.dispenseMode;
+      pack.clinic =
+        clinics.find((clinic: any) => clinic?.id === getClinicId(pack)) ??
+        pack.clinic;
     });
     return packs;
   },
@@ -626,22 +752,22 @@ export default {
       patientService.getAllPatientstWithAllFromDexie(),
     ]);
     patients.map((patient: any) => {
-      const identifierList = patient.identifiers;
+      const identifierList = patient?.identifiers ?? [];
       const lastPack = [];
       let episodeList = [];
       let lastPatinetVisitDetailsPacks: any[] = [];
 
       if (identifierList.length > 0) {
         for (const identifier of identifierList) {
-          if (identifier.service.code === 'TARV') {
-            episodeList = identifier.episodes;
+          if (identifier?.service?.code === 'TARV') {
+            episodeList = identifier?.episodes ?? [];
           }
         }
       }
 
       if (episodeList.length > 0) {
         for (const episode of episodeList) {
-          if (episode.patientVisitDetails.length > 0) {
+          if ((episode?.patientVisitDetails ?? []).length > 0) {
             lastPatinetVisitDetailsPacks = episode.patientVisitDetails;
             break;
           }
@@ -658,7 +784,10 @@ export default {
           lastPack.push(patientVisitdetails?.pack);
         }
       }
-      packList.push(lastPack[0].id);
+      const lastPackId = lastPack[0]?.id;
+      if (typeof lastPackId === 'string' && lastPackId.length > 0) {
+        packList.push(lastPackId);
+      }
     });
 
     return await packDexie.where('id').anyOfIgnoreCase(packList).toArray();

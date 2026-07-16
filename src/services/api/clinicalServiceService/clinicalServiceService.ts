@@ -215,6 +215,10 @@ export default {
     return clinicalService.query().where('code', code).first();
   },
 
+  getClinicalServiceById(clinicalServiceId: string) {
+    return clinicalService.query().where('id', clinicalServiceId).first();
+  },
+
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
     const cls = await clinicalServiceDexie

@@ -13,7 +13,7 @@
       :loadingSave="loadingSave"
       ><span class="text-blue-grey-8"
         >Nr. do Lote: {{ stock.batchNumber }} - [Saldo Actual:
-        {{ stock.stockMoviment }}] - [Validade:
+        {{ displayedStockBalance }}] - [Validade:
         <span :class="getValidadeLabelColor">{{ getValidade }}</span
         >]</span
       >
@@ -492,6 +492,13 @@ const generateDrugBatchEventSummary = () => {
 
 const stock = computed(() => {
   return props.stockInfo;
+});
+
+const displayedStockBalance = computed(() => {
+  if (!isOnline.value && drugEventList.value.length > 0) {
+    return drugEventList.value[0].balance;
+  }
+  return stock.value.stockMoviment;
 });
 
 const getValidade = computed(() => {

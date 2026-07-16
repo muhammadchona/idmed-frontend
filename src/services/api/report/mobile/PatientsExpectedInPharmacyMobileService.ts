@@ -28,24 +28,25 @@ export default {
     ]);
 
     for (const pack of activePacks) {
-      const patient = pack.patientvisitDetails.patientVisit.patient;
+      const details = pack?.patientvisitDetails;
+      const patient = details?.patientVisit?.patient;
+      const identifier = details?.episode?.patientServiceIdentifier;
+      if (!patient || !identifier?.service) continue;
       const prescriptionDetails =
-        pack.patientvisitDetails.prescription.prescriptionDetails;
-      const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
+        details?.prescription?.prescriptionDetails ?? [];
 
       const therapeuticRegimen =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticRegimen
-          : '';
+          : undefined;
 
       const dispenseType =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].dispenseType
-          : '';
+          : undefined;
       if (identifier.service.id === reportParams.clinicalService) {
         const patientExpectedReports = new PatientExpectedReport();
-        patientExpectedReports.dispenseType = dispenseType.description;
+        patientExpectedReports.dispenseType = dispenseType?.description ?? '';
         patientExpectedReports.reportId = reportParams.id;
         patientExpectedReports.year = reportParams.year;
         patientExpectedReports.startDate = reportParams.startDate;
@@ -58,12 +59,13 @@ export default {
         patientExpectedReports.pickUpDate = pack.pickupDate;
         patientExpectedReports.nextPickUpDate = pack.nextPickUpDate;
         patientExpectedReports.therapeuticRegimen =
-          therapeuticRegimen.description;
-        patientExpectedReports.dispenseMode = pack.dispenseMode.description;
+          therapeuticRegimen?.description ?? '';
+        patientExpectedReports.dispenseMode =
+          pack?.dispenseMode?.description ?? '';
         patientExpectedReports.clinicalService = identifier.service.description;
-        patientExpectedReports.clinic = pack.clinic.clinicName;
+        patientExpectedReports.clinic = pack?.clinic?.clinicName ?? '';
         patientExpectedReports.id = uuidv4();
-        this.localDbAddOrUpdate(patientExpectedReports);
+        await this.localDbAddOrUpdate(patientExpectedReports);
         console.log(patientExpectedReports);
       }
     }
@@ -76,35 +78,44 @@ export default {
       );
 
     for (const patientVisitDetail of patientVisitDetailsList) {
-      if (patientVisitDetail.pack !== undefined) {
+      if (
+        patientVisitDetail?.pack !== undefined &&
+        patientVisitDetail?.prescription?.id &&
+        patientVisitDetail?.episode?.id &&
+        patientVisitDetail?.episode?.patientServiceIdentifier?.id
+      ) {
         const patientExpectedReports = new PatientExpectedReport();
         const prescriptionDetails =
-          patientVisitDetail.prescription.prescriptionDetails;
+          patientVisitDetail.prescription?.prescriptionDetails ?? [];
         let prescription = patientVisitDetail.prescription;
 
         prescription = await prescriptionService.getPrescriptionMobileById(
           prescription.id
         );
+        if (!prescription) continue;
 
         const dispenseType = dispenseTypeService.getById(
           prescriptionDetails.length > 0
-            ? prescriptionDetails[0].dispenseType.id
+            ? prescriptionDetails[0]?.dispenseType?.id ?? ''
             : ''
         );
         let patientVisit = patientVisitDetail.patientVisit;
-        if (patientVisit === null) {
+        if (!patientVisit) {
           patientVisit = await patientVisitService.getAllMobileById(
             patientVisitDetail.patient_visit_id
           );
         }
+        if (!patientVisit?.patient?.id) continue;
         const patient = await patientService.getPatientByIdMobile(
           patientVisit.patient.id
         );
+        if (!patient) continue;
         const episode = await episodeService.apiFetchById(
           patientVisitDetail.episode.id
         );
+        if (!episode?.patientServiceIdentifier?.id) continue;
 
-        let identifier = patient.identifiers.find(
+        let identifier = (patient?.identifiers ?? []).find(
           (identifier: Object) =>
             identifier.id === episode.patientServiceIdentifier.id
         );
@@ -113,26 +124,26 @@ export default {
             patientVisitDetail.episode.patientServiceIdentifier.id
           );
 
-        if (identifier) {
+        if (identifier?.service?.id) {
           // const serviceIdentifier = identifier
           const pack = patientVisitDetail.pack;
           const clinic = patientVisitDetail.clinic;
-          const prescriptionDetails = prescription.prescriptionDetails;
+          const prescriptionDetails = prescription?.prescriptionDetails ?? [];
           const clinicalService = await clinicalServiceService.localDbGetById(
             identifier.service.id
           );
           const therapeuticRegimen =
             await therapeuticalRegimenService.getInMobileById(
               prescriptionDetails.length > 0
-                ? prescriptionDetails[0].therapeuticRegimen.id
+                ? prescriptionDetails[0]?.therapeuticRegimen?.id ?? ''
                 : ''
             );
           const dispenseMode = await dispenseModeService.localDbGetById(
-            pack.dispenseMode.id
+            pack?.dispenseMode?.id ?? pack?.dispenseMode_id ?? ''
           );
           // const episode = reportData.episode
           // const dispenseMode = DispenseMode.localDbGetById(pack.dispenseMode.id)
-          patientExpectedReports.dispenseType = dispenseType.description;
+          patientExpectedReports.dispenseType = dispenseType?.description ?? '';
 
           patientExpectedReports.reportId = reportParams.id;
           // patientHistory.period = reportParams.periodTypeView
@@ -148,13 +159,14 @@ export default {
           patientExpectedReports.pickUpDate = pack.pickupDate;
           patientExpectedReports.nextPickUpDate = pack.nextPickUpDate;
           patientExpectedReports.therapeuticRegimen =
-            therapeuticRegimen.description;
+            therapeuticRegimen?.description ?? '';
 
-          patientExpectedReports.dispenseMode = dispenseMode.description;
-          patientExpectedReports.clinicalService = clinicalService.description;
-          patientExpectedReports.clinic = clinic.clinicName;
+          patientExpectedReports.dispenseMode = dispenseMode?.description ?? '';
+          patientExpectedReports.clinicalService =
+            clinicalService?.description ?? '';
+          patientExpectedReports.clinic = clinic?.clinicName ?? '';
           patientExpectedReports.id = uuidv4();
-          this.localDbAddOrUpdate(patientExpectedReports);
+          await this.localDbAddOrUpdate(patientExpectedReports);
           console.log(patientExpectedReports);
         }
       }

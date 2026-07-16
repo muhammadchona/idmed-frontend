@@ -21,7 +21,7 @@ export default {
     console.log(patientVisitList);
     const grouped = this.groupAndSumByDrugFromPatientVisits(patientVisitList);
     console.log(grouped);
-    Object.values(grouped).forEach(async (drug) => {
+    for (const drug of Object.values(grouped)) {
       const packsByDrugBottle = new PacksByDrugBottles();
       const endDate = moment(params.endDate).format('YYYY-MM-DD');
       const startDate = moment(params.startDate).format('YYYY-MM-DD');
@@ -31,11 +31,12 @@ export default {
       packsByDrugBottle.year = reportParams.year;
       packsByDrugBottle.id = uuidv4();
       const drugMobile = await drugService.getMobileDrugById(drug.drug_id);
+      if (!drugMobile) continue;
       packsByDrugBottle.drugName = drugMobile.name;
       packsByDrugBottle.bottles_packed = drug.quantitySupplied;
-      this.localDbAddOrUpdate(packsByDrugBottle);
+      await this.localDbAddOrUpdate(packsByDrugBottle);
       console.log(packsByDrugBottle);
-    });
+    }
   },
 
   localDbAddOrUpdate(data: any) {
@@ -66,13 +67,15 @@ export default {
 
   groupAndSumByDrugFromPatientVisits(patientVisits: []) {
     return patientVisits.reduce((acc, visit) => {
-      visit.patientVisitDetails.forEach((detail: any) => {
-        detail.pack.packagedDrugs.forEach((drug: any) => {
-          const { drug_id, quantitySupplied } = drug;
+      (visit?.patientVisitDetails ?? []).forEach((detail: any) => {
+        (detail?.pack?.packagedDrugs ?? []).forEach((drug: any) => {
+          const drug_id = drug?.drug_id ?? drug?.drug?.id;
+          const quantitySupplied = Number(drug?.quantitySupplied ?? 0);
+          if (!drug_id) return;
           if (!acc[drug_id]) {
             acc[drug_id] = { drug_id, quantitySupplied: 0 };
           }
-          acc[drug_id].quantitySupplied += parseFloat(quantitySupplied);
+          acc[drug_id].quantitySupplied += quantitySupplied;
         });
       });
       return acc;

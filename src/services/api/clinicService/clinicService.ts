@@ -19,6 +19,21 @@ const { alertSucess, alertError, alertWarning } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { isProvincialInstalation } = useSystemConfig();
 
+const currentClinicQuery = () =>
+  clinic
+    .query()
+    .with('facilityType')
+    .with('province')
+    .with('district')
+    .with('nationalClinic')
+    .with('parentClinic', (parentClinicQuery: any) => {
+      parentClinicQuery
+        .with('facilityType')
+        .with('province')
+        .with('district')
+        .with('nationalClinic');
+    });
+
 export default {
   async post(params: string) {
     if (isMobile.value && !isOnline.value) {
@@ -211,8 +226,7 @@ export default {
         (clinicUser === '' && !isProvincialInstalation()) ||
         String(clinicUser).includes('NORMAL'))
     ) {
-      return clinic
-        .withAllRecursive(2)
+      return currentClinicQuery()
         .where('mainClinic', true)
         .where('id', instalationType.description)
         .first();
@@ -223,7 +237,7 @@ export default {
         sectorCode = arrayOfSectors[0];
       }
 
-      return this.getByCode(sectorCode);
+      return currentClinicQuery().where('code', sectorCode).first();
     }
     return null;
   },

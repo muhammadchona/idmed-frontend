@@ -175,4 +175,30 @@ export default {
       .orderBy('prescriptionDate', 'desc')
       .first();
   },
+  getLastForMobilePrescriptionDisplay(
+    patientId: string,
+    clinicalServiceId: string
+  ) {
+    return pocPrescriptionLog
+      .query()
+      .with('prescription', (prescriptionQuery: any) => {
+        prescriptionQuery
+          .with('clinic')
+          .with('doctor')
+          .with('duration')
+          .with('prescriptionDetails', (detailsQuery: any) => {
+            detailsQuery
+              .with('therapeuticRegimen')
+              .with('therapeuticLine')
+              .with('dispenseType');
+          })
+          .with('prescribedDrugs', (drugQuery: any) => {
+            drugQuery.with('drug');
+          });
+      })
+      .where('patient_id', patientId)
+      .where('clinical_service_id', clinicalServiceId)
+      .orderBy('prescriptionDate', 'desc')
+      .first();
+  },
 };

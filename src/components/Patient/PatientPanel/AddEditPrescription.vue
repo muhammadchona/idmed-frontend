@@ -1,7 +1,13 @@
 <template>
-  <q-card style="width: 1350px; max-width: 110vw">
+  <q-card
+    style="width: 1350px; max-width: 110vw"
+    :class="{ 'tablet-prescription-card': !website }"
+  >
     <q-card-section style="max-height: 50vh" class="q-pa-none bg-green-2">
-      <div class="row items-center text-subtitle1 q-pa-md">
+      <div
+        class="row items-center text-subtitle1 q-pa-md"
+        :class="{ 'tablet-prescription-patient-header': !website }"
+      >
         <q-icon :name="patient.gender == 'Feminino' ? 'female' : 'male'" size="md" color="primary" />
         <div class="text-bold text-grey-10 q-ml-sm">
           {{ fullName(patient) }}
@@ -23,15 +29,31 @@
           {{ idadeCalculator(getDDMMYYYFromJSDate(patient.dateOfBirth)) }}
           Anos de Idade
         </div>
-        <div class="absolute-top-right q-pa-md">
+        <div
+          class="absolute-top-right q-pa-md"
+          :class="{ 'tablet-prescription-close': !website }"
+        >
           <q-btn flat v-close-popup round dense icon="close" @click="closePrescriptionOption" />
         </div>
       </div>
       <q-separator />
     </q-card-section>
-    <q-scroll-area style="height: 800px" class="q-pr-md">
-      <q-card-section>
-        <q-list bordered>
+    <q-scroll-area
+      style="height: 800px"
+      class="q-pr-md"
+      :class="{ 'tablet-prescription-scroll': !website }"
+    >
+      <q-card-section
+        :class="{ 'tablet-prescription-content': !website }"
+      >
+        <div
+          v-if="!prescriptionIdentifiersReady"
+          class="column items-center justify-center q-pa-xl text-grey-7"
+        >
+          <q-spinner color="primary" size="3em" />
+          <div class="q-mt-md">A preparar a prescrição...</div>
+        </div>
+        <q-list v-else bordered>
           <q-expansion-item v-for="identifier in getIdentifierWithInicialEpisode.length > 0
             ? getIdentifierWithInicialEpisode
             : getIdentifierWithRefferalEpisode" :key="identifier.id" group="somegroup" dense :label="'Prescrição ' +
@@ -48,14 +70,27 @@
               <q-card-section>
                 <ListHeader bgColor="bg-grey-6">Informação da Prescrição
                 </ListHeader>
-                <add-edit-prescription-unit :identifier="identifier" />
+                <KeepAlive>
+                  <add-edit-prescription-unit
+                    v-if="
+                      website ||
+                      (prescriptionUnitsReady &&
+                        (selected_model[identifier.service.code] ||
+                          (selected_model[identifier.service.code] ===
+                            undefined &&
+                            identifier.service.code === 'TARV')))
+                    "
+                    :key="identifier.id"
+                    :identifier="identifier"
+                  />
+                </KeepAlive>
               </q-card-section>
             </q-card>
             <q-separator />
           </q-expansion-item>
         </q-list>
-        <div class="row q-mt-xs">
-          <q-banner dense inline-actions class="col text-white q-pa-none bg-orange-4">
+        <div class="row q-mt-xs tablet-dispense-mode-row">
+          <q-banner dense inline-actions class="col text-white q-pa-none bg-orange-4 tablet-dispense-mode">
             <div class="q-pa-md">
               <div class="q-gutter-sm">
                 <q-radio v-model="mds" checked-icon="task_alt" unchecked-icon="panorama_fish_eye" val="US_"
@@ -74,18 +109,26 @@
           </q-banner>
         </div>
       </q-card-section>
-      <q-card-actions>
-        <div class="row q-mt-xl q-pt-md">
-          <span class="text-right absolute-bottom q-mb-lg q-mr-md q-mt-xl no-pointer-events">
-            <q-btn label="Cancelar" color="red" class="all-pointer-events" @click="closePrescriptionOption" />
-            <q-btn :label="dispenseLabel" loader :disable="curPatientVisit.patientVisitDetails.length === 0"
-              :loading="submitting" @click="doValidationToDispense()" color="primary"
-              class="q-ml-md all-pointer-events">
-            </q-btn>
-          </span>
-        </div>
-      </q-card-actions>
     </q-scroll-area>
+    <q-card-actions
+      align="right"
+      :class="{ 'tablet-prescription-actions': !website }"
+    >
+      <q-btn
+        label="Cancelar"
+        color="red"
+        @click="closePrescriptionOption"
+      />
+      <q-btn
+        :label="dispenseLabel"
+        loader
+        :disable="curPatientVisit.patientVisitDetails.length === 0"
+        :loading="submitting"
+        @click="doValidationToDispense()"
+        color="primary"
+        class="q-ml-md"
+      />
+    </q-card-actions>
   </q-card>
 </template>
 
@@ -107,6 +150,7 @@ import { useEpisode } from 'src/composables/episode/episodeMethods';
 import episodeService from 'src/services/api/episode/episodeService';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import clinicService from 'src/services/api/clinicService/clinicService';
+import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
 // Declaration
 const { idadeCalculator, getDDMMYYYFromJSDate, getYYYYMMDDFromJSDate } =
   useDateUtils();
@@ -117,16 +161,39 @@ const dispenseMode = ref();
 const selected_model = ref([]);
 const selectedMember = ref(null);
 const submitting = ref(false);
+const mobileInitialEpisodeIdentifiers = ref([]);
+const mobileReferralEpisodeIdentifiers = ref([]);
 const curPatientVisit = ref(new PatientVisit({ id: uuidv4() }));
 const { isReferenceOrTransferenceEpisode } = useEpisode();
 const { isOnlyPharmacyDDDO, isOnlyComunitaryDispense } = useSystemConfig();
+const { isOnline } = useSystemUtils();
 //Inject
 const patient = inject('patient');
+const website = inject('website');
 const closePrescriptionOption = inject('closePrescriptionOption');
+const prescriptionIdentifiersReady = ref(website.value);
+const prescriptionUnitsReady = ref(website.value);
 
 //Hook
 onMounted(() => {
   init();
+  if (!website.value) {
+    requestAnimationFrame(() => {
+      mobileInitialEpisodeIdentifiers.value =
+        patientServiceIdentifierService.getAllIdentifierWithInicialEpisodeByPatient(
+          patient.value.id
+        );
+      mobileReferralEpisodeIdentifiers.value =
+        patientServiceIdentifierService.getAllIdentifierWithREferralEpisodeByPatient(
+          patient.value.id
+        );
+      prescriptionIdentifiersReady.value = true;
+
+      requestAnimationFrame(() => {
+        prescriptionUnitsReady.value = true;
+      });
+    });
+  }
 });
 
 // Computed
@@ -137,12 +204,14 @@ const dispenseModes = computed(() => {
 });
 
 const getIdentifierWithInicialEpisode = computed(() => {
+  if (!website.value) return mobileInitialEpisodeIdentifiers.value;
   return patientServiceIdentifierService.getAllIdentifierWithInicialEpisodeByPatient(
     patient.value.id
   );
 });
 
 const getIdentifierWithRefferalEpisode = computed(() => {
+  if (!website.value) return mobileReferralEpisodeIdentifiers.value;
   return patientServiceIdentifierService.getAllIdentifierWithREferralEpisodeByPatient(
     patient.value.id
   );
@@ -253,9 +322,11 @@ const doValidationToDispense = () => {
         submitting.value = false;
         alertSucess('Dispensa efectuada com sucesso');
         closePrescriptionOption();
-        patient.value.identifiers.forEach((identifiers) => {
-          patientServiceIdentifierService.apiFetchById(identifiers.id);
-        });
+        if (website.value || isOnline.value) {
+          patient.value.identifiers.forEach((identifiers) => {
+            patientServiceIdentifierService.apiFetchById(identifiers.id);
+          });
+        }
       })
       .catch((error) => {
         submitting.value = false;
@@ -277,5 +348,83 @@ provide('selectedMember', selectedMember);
 
 .box-border {
   border: 1px solid $grey-4;
+}
+
+.tablet-prescription-card {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tablet-prescription-patient-header {
+  min-height: 38px;
+  padding: 4px 12px !important;
+}
+
+.tablet-prescription-close {
+  padding: 2px 8px !important;
+}
+
+.tablet-prescription-scroll {
+  height: auto !important;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding-right: 0 !important;
+  overflow: hidden;
+}
+
+.tablet-prescription-scroll .q-scrollarea__content {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.tablet-prescription-scroll .q-scrollarea__container {
+  overflow-x: hidden !important;
+}
+
+.tablet-prescription-content {
+  padding: 5px 8px 0 !important;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.tablet-prescription-card .q-expansion-item__container > .q-item {
+  min-height: 34px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.tablet-prescription-card .q-expansion-item__content > .q-card > .q-card__section {
+  padding: 5px 7px !important;
+}
+
+.tablet-prescription-card .tablet-dispense-mode .q-banner__content {
+  min-height: 42px;
+  padding: 2px 8px;
+}
+
+.tablet-prescription-card .tablet-dispense-mode .q-pa-md {
+  padding: 2px 6px !important;
+}
+
+.tablet-prescription-card .tablet-dispense-mode .q-radio {
+  min-height: 32px;
+}
+
+.tablet-prescription-card .tablet-dispense-mode .q-field {
+  margin: 2px 6px !important;
+}
+
+.tablet-prescription-actions {
+  min-height: 44px;
+  flex: 0 0 44px;
+  padding: 4px 10px !important;
+  border-top: 1px solid $grey-4;
+  background: white;
+  z-index: 2;
 }
 </style>

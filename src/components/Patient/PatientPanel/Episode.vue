@@ -210,7 +210,7 @@ const {
   isStartEpisode,
   checkIsReferedToRemove,
 } = useEpisode();
-const { isOnline } = useSystemUtils();
+const { isMobile, isOnline } = useSystemUtils();
 const { alertSucess, alertError, alertInfo, alertWarningAction } = useSwal();
 const { closeLoading, showloading } = useLoading();
 const { isPharmacyDDDOrAPEOrDCP, isProvincialInstalation } = useSystemConfig();
@@ -224,6 +224,9 @@ const isClosingEpisode = inject('isClosingEpisode');
 const showEditClosedEpisode = ref(false);
 //Computed
 const currEpisode = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return episodeService.getForMobilePatientPanel(props.episodeId);
+  }
   return episodeService.getEpisodeById(props.episodeId);
 });
 const lastPack = computed(() => {

@@ -82,7 +82,7 @@ const closeSection = (params) => {
   }
 };
 
-const initReportProcessing = (params) => {
+const initReportProcessing = async (params) => {
   progress.value = 0.001;
   if (isOnline.value) {
     updateParamsOnLocalStrage(params, isReportClosed);
@@ -95,38 +95,50 @@ const initReportProcessing = (params) => {
     );
   } else {
     updateParamsOnLocalStrage(params, isReportClosed);
-    PatientHistoryMobileService.getDataLocalDb(params);
-    progress.value = 100;
-    params.progress = 100;
+    try {
+      await PatientHistoryMobileService.getDataLocalDb(params);
+      progress.value = 100;
+      params.progress = 100;
+      updateParamsOnLocalStrage(params, isReportClosed);
+    } catch (error) {
+      progress.value = 0;
+      console.error(
+        'Unable to prepare the offline patient history report',
+        error
+      );
+      alertError('Não foi possível preparar o relatório');
+    }
   }
 };
 
 const getProcessingStatus = (params) => {
-  Report.getProcessingStatus('historicoLevantamentoReport', params).then(
-    (resp) => {
-      if (resp.data.progress > 0.001) {
-        progress.value = resp.data.progress;
-        if (progress.value < 100) {
-          updateParamsOnLocalStrage(params, isReportClosed);
-          params.progress = resp.data.progress;
+  if (isOnline.value) {
+    Report.getProcessingStatus('historicoLevantamentoReport', params).then(
+      (resp) => {
+        if (resp.data.progress > 0.001) {
+          progress.value = resp.data.progress;
+          if (progress.value < 100) {
+            updateParamsOnLocalStrage(params, isReportClosed);
+            params.progress = resp.data.progress;
+            setTimeout(() => {
+              getProcessingStatus(params);
+            }, 3000);
+          } else {
+            progress.value = 100;
+            params.progress = 100;
+            updateParamsOnLocalStrage(params, isReportClosed);
+          }
+        } else {
           setTimeout(() => {
             getProcessingStatus(params);
           }, 3000);
-        } else {
-          progress.value = 100;
-          params.progress = 100;
-          updateParamsOnLocalStrage(params, isReportClosed);
         }
-      } else {
-        setTimeout(() => {
-          getProcessingStatus(params);
-        }, 3000);
       }
-    }
-  );
+    );
+  }
 };
 
-const generateReport = (id, fileType) => {
+const generateReport = async (id, fileType) => {
   //  UID da tab corrente
   if (isOnline.value) {
     Report.printReport('historicoLevantamentoReport', id, fileType).then(
@@ -162,28 +174,45 @@ const generateReport = (id, fileType) => {
       }
     );
   } else {
-    PatientHistoryMobileService.localDbGetAllByReportId(id).then((reports) => {
+    try {
+      const reports = await PatientHistoryMobileService.localDbGetAllByReportId(
+        id
+      );
+      if (!reports?.length) {
+        alertError('Não existem Dados para o período selecionado');
+        downloadingPdf.value = false;
+        downloadingXls.value = false;
+        return;
+      }
       const firstReg = reports[0];
       if (fileType === 'PDF') {
-        patientHistoryTS.downloadPDF(
+        await patientHistoryTS.downloadPDF(
           '',
           moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
           moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
           reports,
-          '',
+          'prep',
           downloadingPdf
         );
       } else {
-        patientHistoryTS.downloadExcel(
+        await patientHistoryTS.downloadExcel(
           '',
           moment(new Date(firstReg.startDate)).format('DD-MM-YYYY'),
           moment(new Date(firstReg.endDate)).format('DD-MM-YYYY'),
           reports,
-          '',
+          'prep',
           downloadingXls
         );
       }
-    });
+    } catch (error) {
+      downloadingPdf.value = false;
+      downloadingXls.value = false;
+      console.error(
+        'Unable to print the offline patient history report',
+        error
+      );
+      alertError('Não foi possível imprimir o relatório');
+    }
   }
 };
 

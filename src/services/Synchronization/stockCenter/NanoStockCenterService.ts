@@ -17,17 +17,18 @@ export default {
     if (offset >= 0) {
       return await api()
         .get('stockCenter?offset=' + offset + '&max=100')
-        .then((resp) => {
-          StockCenterDexie.bulkPut(resp.data);
+        .then(async (resp) => {
+          await StockCenterDexie.bulkPut(resp.data);
           console.log('Data synced from backend: stockCenter');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset);
+            return this.getFromBackEnd(offset);
           }
         })
         .catch((error) => {
           console.error('Error syncing data from backend:', error);
           console.log(error);
+          throw error;
         });
     }
   },
@@ -143,6 +144,6 @@ export default {
 
   async getFromDexieToPinia() {
     console.log('Data synced from Dexie To Pinia StockCenter');
-    StockCenterService.getMobile();
+    return StockCenterService.getMobile();
   },
 };

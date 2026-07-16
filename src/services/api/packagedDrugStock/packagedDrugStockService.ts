@@ -179,6 +179,14 @@ export default {
 
     return packagedDrugStocks;
   },
+  async getAllByStockIDsRawFromDexie(ids: string[]) {
+    if (ids.length === 0) return [];
+    return await packagedDrugStockDexie
+      .filter((item: any) =>
+        ids.includes(item.stock_id ?? item.stockId ?? item.stock?.id ?? '')
+      )
+      .toArray();
+  },
   async apiGetAll() {
     return await api().get('/packagedDrugStock?offset=' + 0 + '&max=' + 200);
   },

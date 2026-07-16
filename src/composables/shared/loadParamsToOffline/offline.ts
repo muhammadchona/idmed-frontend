@@ -52,6 +52,7 @@ import NanomenuService from 'src/services/Synchronization/menu/NanomenuService';
 import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
+import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 // import { useLoading } from '../loading/loading';
 
 // const { closeLoading, showloading } = useLoading();
@@ -96,68 +97,87 @@ export function useOffline() {
   }
 
   async function saveParamsFromDexieToPinia() {
-    NanoclinicSectorService.getFromDexieToPinia();
-    NanodrugService.getFromDexieToPinia();
-    NanoclinicalServiceService.getFromDexieToPinia();
-    NanoclinicalServiceAttributeService.getFromDexieToPinia();
-    NanoidentifierTypeService.getFromDexieToPinia();
-    NanoepisodeTypeService.getFromDexieToPinia();
-    NanofacilityTypeService.getFromDexieToPinia();
-    NanostartStopReasonService.getFromDexieToPinia();
-    NanodurationService.getFromDexieToPinia();
-    NanotherapeuticRegimenService.getFromDexieToPinia();
-    NanotherapeuticLineService.getFromDexieToPinia();
-    NanoformService.getFromDexieToPinia();
-    NanodispenseTypeService.getFromDexieToPinia();
-    NanoInteroperabilityTypeService.getFromDexieToPinia();
-    NanoInteroperabilityAttributeService.getFromDexieToPinia();
-    NanohealthInformationSystemService.getFromDexieToPinia();
-    NanoPatientTransReferenceTypeService.getFromDexieToPinia();
-    NanospetialPrescriptionMotiveService.getFromDexieToPinia();
-    NanoprovincialServerService.getFromDexieToPinia();
-    NanodoctorService.getFromDexieToPinia();
-    NanodispenseModeService.getFromDexieToPinia();
-    NanoprovinceService.getFromDexieToPinia();
-    NanodistrictService.getFromDexieToPinia();
-    NanoStockCenterService.getFromDexieToPinia();
-    NanoStockOperationTypeService.getFromDexieToPinia();
-    NanoGroupTypeService.getFromDexieToPinia();
-    NanosystemConfigsService.getFromDexieToPinia();
-    NanomenuService.getFromDexieToPinia();
-    NanoclinicService.getFromDexieToPinia();
+    await Promise.all([
+      NanoclinicSectorService.getFromDexieToPinia(),
+      NanodrugService.getFromDexieToPinia(),
+      NanoclinicalServiceService.getFromDexieToPinia(),
+      NanoclinicalServiceAttributeService.getFromDexieToPinia(),
+      NanoidentifierTypeService.getFromDexieToPinia(),
+      NanoepisodeTypeService.getFromDexieToPinia(),
+      NanofacilityTypeService.getFromDexieToPinia(),
+      NanostartStopReasonService.getFromDexieToPinia(),
+      NanodurationService.getFromDexieToPinia(),
+      NanotherapeuticRegimenService.getFromDexieToPinia(),
+      NanotherapeuticLineService.getFromDexieToPinia(),
+      NanoformService.getFromDexieToPinia(),
+      NanodispenseTypeService.getFromDexieToPinia(),
+      NanoInteroperabilityTypeService.getFromDexieToPinia(),
+      NanoInteroperabilityAttributeService.getFromDexieToPinia(),
+      NanohealthInformationSystemService.getFromDexieToPinia(),
+      NanoPatientTransReferenceTypeService.getFromDexieToPinia(),
+      NanospetialPrescriptionMotiveService.getFromDexieToPinia(),
+      NanoprovincialServerService.getFromDexieToPinia(),
+      NanodoctorService.getFromDexieToPinia(),
+      NanodispenseModeService.getFromDexieToPinia(),
+      NanoprovinceService.getFromDexieToPinia(),
+      NanodistrictService.getFromDexieToPinia(),
+      NanoStockCenterService.getFromDexieToPinia(),
+      NanoStockOperationTypeService.getFromDexieToPinia(),
+      NanoGroupTypeService.getFromDexieToPinia(),
+      NanosystemConfigsService.getFromDexieToPinia(),
+      NanomenuService.getFromDexieToPinia(),
+      NanoclinicService.getFromDexieToPinia(),
+    ]);
     return true;
   }
 
   async function saveParamsFromBackendToDexie() {
-    NanoclinicSectorService.getFromBackEnd(0);
-    NanodrugService.getFromBackEnd(0);
-    NanoclinicalServiceService.getFromBackEnd(0);
-    NanoclinicalServiceAttributeService.getFromBackEnd(0);
-    NanoidentifierTypeService.getFromBackEnd(0);
-    NanoepisodeTypeService.getFromBackEnd(0);
-    NanofacilityTypeService.getFromBackEnd(0);
-    NanostartStopReasonService.getFromBackEnd(0);
-    NanodurationService.getFromBackEnd(0);
-    NanotherapeuticRegimenService.getFromBackEnd(0);
-    NanotherapeuticLineService.getFromBackEnd(0);
-    NanoformService.getFromBackEnd(0);
-    NanodispenseTypeService.getFromBackEnd(0);
-    NanoInteroperabilityTypeService.getFromBackEnd(0);
-    NanoInteroperabilityAttributeService.getFromBackEnd(0);
-    NanohealthInformationSystemService.getFromBackEnd(0);
-    NanoPatientTransReferenceTypeService.getFromBackEnd(0);
-    NanospetialPrescriptionMotiveService.getFromBackEnd(0);
-    NanoprovincialServerService.getFromBackEnd(0);
-    NanodoctorService.getFromBackEnd(0);
-    NanodispenseModeService.getFromBackEnd(0);
-    NanoprovinceService.getFromBackEnd(0);
-    NanodistrictService.getFromBackEnd(0);
-    NanoStockCenterService.getFromBackEnd(0);
-    NanoStockOperationTypeService.getFromBackEnd(0);
-    NanoGroupTypeService.getFromBackEnd(0);
-    NanosystemConfigsService.getFromBackEnd(0);
-    NanomenuService.getFromBackEnd(0);
-    NanoclinicService.getFromBackEnd(0);
+    const batches = [
+      [
+        () => NanosystemConfigsService.getFromBackEnd(0),
+        () => NanoclinicService.getFromBackEnd(0),
+        () => NanoclinicSectorService.getFromBackEnd(0),
+        () => NanomenuService.getFromBackEnd(0),
+        () => NanoprovinceService.getFromBackEnd(0),
+        () => NanodistrictService.getFromBackEnd(0),
+      ],
+      [
+        () => NanoclinicalServiceService.getFromBackEnd(0),
+        () => NanoclinicalServiceAttributeService.getFromBackEnd(0),
+        () => NanoidentifierTypeService.getFromBackEnd(0),
+        () => NanoepisodeTypeService.getFromBackEnd(0),
+        () => NanofacilityTypeService.getFromBackEnd(0),
+        () => NanostartStopReasonService.getFromBackEnd(0),
+      ],
+      [
+        () => NanodrugService.getFromBackEnd(0),
+        () => NanodurationService.getFromBackEnd(0),
+        () => NanotherapeuticRegimenService.getFromBackEnd(0),
+        () => NanotherapeuticLineService.getFromBackEnd(0),
+        () => NanoformService.getFromBackEnd(0),
+        () => NanodispenseTypeService.getFromBackEnd(0),
+      ],
+      [
+        () => NanoInteroperabilityTypeService.getFromBackEnd(0),
+        () => NanoInteroperabilityAttributeService.getFromBackEnd(0),
+        () => NanohealthInformationSystemService.getFromBackEnd(0),
+        () => NanoPatientTransReferenceTypeService.getFromBackEnd(0),
+        () => NanospetialPrescriptionMotiveService.getFromBackEnd(0),
+        () => NanoprovincialServerService.getFromBackEnd(0),
+      ],
+      [
+        () => NanodoctorService.getFromBackEnd(0),
+        () => NanodispenseModeService.getFromBackEnd(0),
+        () => NanoStockCenterService.getFromBackEnd(0),
+        () => NanoStockOperationTypeService.getFromBackEnd(0),
+        () => NanoGroupTypeService.getFromBackEnd(0),
+      ],
+    ];
+
+    for (const batch of batches) {
+      await Promise.all(batch.map((load) => load()));
+    }
+
     return true;
   }
 
@@ -201,7 +221,7 @@ export function useOffline() {
   }
 
   async function loadPatientDataToOffline() {
-    await patientService.doPatientsBySectorGet();
+    const patientsLoaded = await patientService.doPatientsBySectorGet();
     // .then((resp) => {
     // if (!resp) {
     //  patientService.addBulkMobile();
@@ -209,19 +229,46 @@ export function useOffline() {
     // }
     // });
 
-    await patientVisitDetailsService.doPatientVisitServiceBySectorGet();
+    const visitDetailsLoaded =
+      await patientVisitDetailsService.doPatientVisitServiceBySectorGet();
     // .then((resp) => {
     //   if (resp) {
     //     //  addBulkToMobile();
     //   }
     // });
 
-    await patientVisitService.getAllLast3VisitsWithScreeningByPatientIds();
+    const screeningsLoaded =
+      await patientVisitService.getAllLast3VisitsWithScreeningByPatientIds();
     // .then((resp) => {
     //   if (resp) {
     //     //    addBulkToMobile();
     //   }
     // });
+    return Boolean(patientsLoaded && visitDetailsLoaded && screeningsLoaded);
+  }
+
+  async function loadStockDataToOffline() {
+    const clinicId = clinicService.currClinic()?.id;
+    if (!clinicId) {
+      throw new Error('Unable to download stock without the current clinic');
+    }
+
+    await Promise.all([
+      StockService.getFromBackEnd(0, clinicId),
+      StockEntranceService.getFromBackEnd(0, clinicId),
+    ]);
+    await Promise.all([
+      StockService.getMobile(),
+      StockEntranceService.getMobile(),
+    ]);
+    try {
+      await StockAlertService.syncMobileStockAlertSnapshot(clinicId);
+    } catch (error) {
+      // Stock remains usable offline even if the derived alert snapshot could
+      // not be downloaded. Stock Alert will use the clinic-aware local ledger.
+      console.warn('Unable to cache the mobile stock-alert snapshot', error);
+    }
+    return true;
   }
 
   async function addBulkToMobile() {
@@ -307,6 +354,7 @@ export function useOffline() {
     loadClinicsDataFromBackEndToPinia,
     loadSettingParamsToOffline,
     loadPatientDataToOffline,
+    loadStockDataToOffline,
     deleteStorageInfo,
     deleteStorageWithoutPatientInfo,
     loadSettingParamsInOfflineMode,

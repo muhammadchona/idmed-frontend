@@ -32,7 +32,16 @@ import RAMScreening from 'src/stores/models/screening/RAMScreening';
 import TBScreening from 'src/stores/models/screening/TBScreening';
 import VitalSignsScreening from 'src/stores/models/screening/VitalSignsScreening';
 import AdherenceScreening from 'src/stores/models/screening/AdherenceScreening';
+import PatientVisitDetailsModel from 'src/stores/models/patientVisitDetails/PatientVisitDetails';
+import Pack from 'src/stores/models/packaging/Pack';
+import PackagedDrug from 'src/stores/models/packagedDrug/PackagedDrug';
+import PackagedDrugStock from 'src/stores/models/packagedDrug/PackagedDrugStock';
+import Prescription from 'src/stores/models/prescription/Prescription';
+import PrescribedDrug from 'src/stores/models/prescriptionDrug/PrescribedDrug';
+import PrescriptionDetail from 'src/stores/models/prescriptionDetails/PrescriptionDetail';
+import Stock from 'src/stores/models/stock/Stock';
 const patientVisit = useRepo(PatientVisit);
+const stock = useRepo(Stock);
 const patientVisitDexie = db[PatientVisit.entity];
 
 const pregnancyScreeningDexie = db[PregnancyScreening.entity];
@@ -40,11 +49,25 @@ const rAMScreeningDexie = db[RAMScreening.entity];
 const tBScreeningDexie = db[TBScreening.entity];
 const vitalSignsScreeningtDexie = db[VitalSignsScreening.entity];
 const adherenceScreeningDexie = db[AdherenceScreening.entity];
+const patientVisitDetailsDexie = db[PatientVisitDetailsModel.entity];
+const packDexie = db[Pack.entity];
+const packagedDrugDexie = db[PackagedDrug.entity];
+const packagedDrugStockDexie = db[PackagedDrugStock.entity];
+const prescriptionDexie = db[Prescription.entity];
+const prescribedDrugDexie = db[PrescribedDrug.entity];
+const prescriptionDetailsDexie = db[PrescriptionDetail.entity];
+const stockDexie = db[Stock.entity];
 
 const { showloading, closeLoading } = useLoading();
 const { alertSucess, alertError } = useSwal();
 const { isMobile, isOnline } = useSystemUtils();
 const { notifySuccess, notifyInfo, notifyError } = useNotify();
+
+const getScreeningPatientVisitId = (screening: any) =>
+  screening?.patient_visit_id ??
+  screening?.patientVisitId ??
+  screening?.patientVisit?.id ??
+  screening?.visit?.id;
 
 export default {
   post(params: string) {
@@ -118,14 +141,135 @@ export default {
     try {
       console.log('Inicia gravacao da Dispensa');
       params.syncStatus = 'R';
-      await patientVisitDexie.add(JSON.parse(JSON.stringify(params)));
+      const visitDetails = params.patientVisitDetails ?? [];
+      const stockUpdates = new Map<string, any>();
 
-      await this.savePatientVisitDetails(params);
-      await this.saveScreeningsMobile(params);
+      for (const pvd of visitDetails) {
+        const pack = pvd.pack;
+        const prescription = pvd.prescription;
 
-      patientVisit.save(params);
+        for (const pcd of pack.packagedDrugs ?? []) {
+          for (const pcs of pcd.packagedDrugStocks ?? []) {
+            const currentStock =
+              stockUpdates.get(pcs.stock.id) ??
+              StockService.getStockById(pcs.stock.id);
+            currentStock.stockMoviment -= pcd.quantitySupplied;
+            stockUpdates.set(currentStock.id, currentStock);
+
+            pcs.stock_id = pcs.stock.id;
+            pcs.drug_id = pcs.drug.id;
+            pcs.packagedDrug_id = pcd.id;
+          }
+          pcd.pack_id = pack.id;
+          pcd.drug_id = pcd.drug.id;
+        }
+
+        pack.dispenseMode_id = pack.dispenseMode.id;
+
+        for (const pd of prescription.prescribedDrugs ?? []) {
+          pd.prescription_id = prescription.id;
+          pd.drug_id = pd.drug.id;
+        }
+        for (const detail of prescription.prescriptionDetails ?? []) {
+          detail.prescription_id = prescription.id;
+        }
+        prescription.groupMemberPrescription = [];
+
+        pvd.prescription_id = prescription.id;
+        pvd.pack_id = pack.id;
+      }
+
+      const screeningGroups = [
+        params.vitalSignsScreenings ?? [],
+        params.tbScreenings ?? [],
+        params.pregnancyScreenings ?? [],
+        params.adherenceScreenings ?? [],
+        params.ramScreenings ?? [],
+      ];
+      screeningGroups.flat().forEach((screening) => {
+        screening.patient_visit_id = params.id;
+      });
+
+      const serialized = JSON.parse(JSON.stringify(params));
+      const storedVisitDetails = serialized.patientVisitDetails ?? [];
+      const storedPacks = storedVisitDetails.map((pvd: any) => pvd.pack);
+      const storedPackagedDrugs = storedPacks.flatMap(
+        (pack: any) => pack.packagedDrugs ?? []
+      );
+      const storedPackagedDrugStocks = storedPackagedDrugs.flatMap(
+        (packagedDrug: any) => packagedDrug.packagedDrugStocks ?? []
+      );
+      const storedPrescriptions = storedVisitDetails.map(
+        (pvd: any) => pvd.prescription
+      );
+      const storedPrescribedDrugs = storedPrescriptions.flatMap(
+        (prescription: any) => prescription.prescribedDrugs ?? []
+      );
+      const storedPrescriptionDetails = storedPrescriptions.flatMap(
+        (prescription: any) => prescription.prescriptionDetails ?? []
+      );
+      const serializedStockUpdates = JSON.parse(
+        JSON.stringify([...stockUpdates.values()])
+      );
+      const bulkAddIfAny = (table: any, rows: any[]) =>
+        rows.length > 0 ? table.bulkAdd(rows) : Promise.resolve();
+
+      await db.transaction(
+        'rw',
+        [
+          patientVisitDexie,
+          patientVisitDetailsDexie,
+          packDexie,
+          packagedDrugDexie,
+          packagedDrugStockDexie,
+          prescriptionDexie,
+          prescribedDrugDexie,
+          prescriptionDetailsDexie,
+          stockDexie,
+          vitalSignsScreeningtDexie,
+          tBScreeningDexie,
+          pregnancyScreeningDexie,
+          adherenceScreeningDexie,
+          rAMScreeningDexie,
+        ],
+        async () => {
+          await patientVisitDexie.add(serialized);
+          await Promise.all([
+            bulkAddIfAny(patientVisitDetailsDexie, storedVisitDetails),
+            bulkAddIfAny(packDexie, storedPacks),
+            bulkAddIfAny(packagedDrugDexie, storedPackagedDrugs),
+            bulkAddIfAny(packagedDrugStockDexie, storedPackagedDrugStocks),
+            bulkAddIfAny(prescriptionDexie, storedPrescriptions),
+            bulkAddIfAny(prescribedDrugDexie, storedPrescribedDrugs),
+            bulkAddIfAny(prescriptionDetailsDexie, storedPrescriptionDetails),
+            bulkAddIfAny(
+              vitalSignsScreeningtDexie,
+              serialized.vitalSignsScreenings ?? []
+            ),
+            bulkAddIfAny(tBScreeningDexie, serialized.tbScreenings ?? []),
+            bulkAddIfAny(
+              pregnancyScreeningDexie,
+              serialized.pregnancyScreenings ?? []
+            ),
+            bulkAddIfAny(
+              adherenceScreeningDexie,
+              serialized.adherenceScreenings ?? []
+            ),
+            bulkAddIfAny(rAMScreeningDexie, serialized.ramScreenings ?? []),
+            serializedStockUpdates.length > 0
+              ? stockDexie.bulkPut(serializedStockUpdates)
+              : Promise.resolve(),
+          ]);
+        }
+      );
+
+      if (serializedStockUpdates.length > 0) {
+        stock.save(serializedStockUpdates);
+      }
+      patientVisit.save(serialized);
     } catch (error) {
       console.log(error);
+      throw error;
     }
   },
 
@@ -428,28 +572,23 @@ export default {
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening?.patient_visit_id === patientVisit?.id ||
-          vitalSignsScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(vitalSignsScreening) === patientVisit?.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening?.patient_visit_id === patientVisit?.id ||
-          pregnancyScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(pregnancyScreening) === patientVisit?.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
         (ramScreening: any) =>
-          ramScreening?.patient_visit_id === patientVisit?.id ||
-          ramScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(ramScreening) === patientVisit?.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
         (tbScreening: any) =>
-          tbScreening?.patient_visit_id === patientVisit?.id ||
-          tbScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(tbScreening) === patientVisit?.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening?.patient_visit_id === patientVisit?.id ||
-          adherenceScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(adherenceScreening) === patientVisit?.id
       );
     });
 
@@ -633,6 +772,25 @@ export default {
     return patientVisit
       .query()
       .withAllRecursive(2)
+      .whereIn('id', patientvisitids)
+      .orderBy('visitDate', 'desc')
+      .first();
+  },
+  getLastFromPatientVisitListWithoutRelations(patientvisitids: any) {
+    return patientVisit
+      .query()
+      .whereIn('id', patientvisitids)
+      .orderBy('visitDate', 'desc')
+      .first();
+  },
+  getLastForMobilePrescriptionDisplay(patientvisitids: any) {
+    return patientVisit
+      .query()
+      .with('tbScreenings')
+      .with('pregnancyScreenings')
+      .with('adherenceScreenings')
+      .with('ramScreenings')
+      .with('vitalSignsScreenings')
       .whereIn('id', patientvisitids)
       .orderBy('visitDate', 'desc')
       .first();
@@ -852,38 +1010,26 @@ export default {
             '/patientVisit/getAllLast3VisitsWithScreeningByPatientIds/',
             chunk
           )
-          .then((resp) => {
+          .then(async (resp) => {
             const patientVisitsList: PatientVisit = resp.data;
             if (patientVisitsList.length > 0) {
-              patientVisitDexie.bulkPut(patientVisitsList);
+              const screeningWrites: Promise<unknown>[] = [
+                patientVisitDexie.bulkPut(patientVisitsList),
+              ];
 
               patientVisitsList.forEach((pv: PatientVisit) => {
-                adherenceScreeningDexie
-                  .bulkPut(pv.adherenceScreenings)
-                  .catch((error: any) => {
-                    console.log(error);
-                  });
-                pregnancyScreeningDexie
-                  .bulkPut(pv.pregnancyScreenings)
-                  .catch((error: any) => {
-                    console.log(error);
-                  });
-                rAMScreeningDexie
-                  .bulkPut(pv.ramScreenings)
-                  .catch((error: any) => {
-                    console.log(error);
-                  });
-                tBScreeningDexie
-                  .bulkPut(pv.tbScreenings)
-                  .catch((error: any) => {
-                    console.log(error);
-                  });
-                vitalSignsScreeningtDexie
-                  .bulkPut(pv.vitalSignsScreenings)
-                  .catch((error: any) => {
-                    console.log(error);
-                  });
+                screeningWrites.push(
+                  adherenceScreeningDexie.bulkPut(pv.adherenceScreenings ?? []),
+                  pregnancyScreeningDexie.bulkPut(pv.pregnancyScreenings ?? []),
+                  rAMScreeningDexie.bulkPut(pv.ramScreenings ?? []),
+                  tBScreeningDexie.bulkPut(pv.tbScreenings ?? []),
+                  vitalSignsScreeningtDexie.bulkPut(
+                    pv.vitalSignsScreenings ?? []
+                  )
+                );
               });
+
+              await Promise.all(screeningWrites);
             }
 
             notif({
@@ -901,6 +1047,7 @@ export default {
               color: 'red',
               textColor: 'white',
             });
+            throw error;
           });
 
         // allVisits.push(...visitWithScreening.data);
@@ -962,21 +1109,36 @@ export default {
 
   //Dexie Block
   async getAllByIDsFromDexie(ids: []) {
+    const validIds = [
+      ...new Set(
+        (ids ?? []).filter((id: any) => typeof id === 'string' && id.length > 0)
+      ),
+    ];
     const patientVisits = await patientVisitDexie
       .where('id')
-      .anyOfIgnoreCase(ids)
+      .anyOfIgnoreCase(validIds)
       .toArray();
 
-    const patientVisitIds = patientVisits.map(
-      (patientVisit: any) => patientVisit.id
-    );
-    const patientIds = patientVisits.map((patientVisit: any) =>
-      patientVisit.patient.id ? patientVisit.patient.id : ''
-    );
+    const patientVisitIds = patientVisits
+      .map((patientVisit: any) => patientVisit?.id)
+      .filter((id: any) => typeof id === 'string' && id.length > 0);
+    const patientIds = patientVisits
+      .map(
+        (patientVisit: any) =>
+          patientVisit?.patient_id ??
+          patientVisit?.patientId ??
+          patientVisit?.patient?.id
+      )
+      .filter((id: any) => typeof id === 'string' && id.length > 0);
 
-    const clinicIds = patientVisits.map((patientVisit: any) =>
-      patientVisit.clinic.id ? patientVisit.clinic.id : ''
-    );
+    const clinicIds = patientVisits
+      .map(
+        (patientVisit: any) =>
+          patientVisit?.clinic_id ??
+          patientVisit?.clinicId ??
+          patientVisit?.clinic?.id
+      )
+      .filter((id: any) => typeof id === 'string' && id.length > 0);
 
     const [
       clinics,
@@ -1003,30 +1165,39 @@ export default {
     ]);
 
     patientVisits.map((patientVisit: any) => {
-      patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic?.id === patientVisit?.clinic?.id
-      );
-      patientVisit.patient = patients.find(
-        (patient: any) => patient?.id === patientVisit?.patient?.id
-      );
+      const clinicId =
+        patientVisit?.clinic_id ??
+        patientVisit?.clinicId ??
+        patientVisit?.clinic?.id;
+      const patientId =
+        patientVisit?.patient_id ??
+        patientVisit?.patientId ??
+        patientVisit?.patient?.id;
+      patientVisit.clinic =
+        clinics.find((clinic: any) => clinic?.id === clinicId) ??
+        patientVisit.clinic;
+      patientVisit.patient =
+        patients.find((patient: any) => patient?.id === patientId) ??
+        patientVisit.patient;
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(vitalSignsScreening) === patientVisit?.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(pregnancyScreening) === patientVisit?.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
         (ramScreening: any) =>
-          ramScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(ramScreening) === patientVisit?.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening?.patientVisit?.id === patientVisit?.id
+        (tbScreening: any) =>
+          getScreeningPatientVisitId(tbScreening) === patientVisit?.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(adherenceScreening) === patientVisit?.id
       );
     });
 
@@ -1039,16 +1210,27 @@ export default {
       .between(startDate, endDate, true, true)
       .toArray();
 
-    const patientVisitIds = patientVisits.map(
-      (patientVisit: any) => patientVisit?.id
-    );
-    const patientIds = patientVisits.map(
-      (patientVisit: any) => patientVisit?.patient_id
-    );
+    const validStringIds = (values: any[]) => [
+      ...new Set(
+        values.filter(
+          (value: any) => typeof value === 'string' && value.length > 0
+        )
+      ),
+    ];
+    const getPatientId = (patientVisit: any) =>
+      patientVisit?.patient_id ??
+      patientVisit?.patientId ??
+      patientVisit?.patient?.id;
+    const getClinicId = (patientVisit: any) =>
+      patientVisit?.clinic_id ??
+      patientVisit?.clinicId ??
+      patientVisit?.clinic?.id;
 
-    const clinicIds = patientVisits.map(
-      (patientVisit: any) => patientVisit?.clinic_id
+    const patientVisitIds = validStringIds(
+      patientVisits.map((patientVisit: any) => patientVisit?.id)
     );
+    const patientIds = validStringIds(patientVisits.map(getPatientId));
+    const clinicIds = validStringIds(patientVisits.map(getClinicId));
 
     const [
       clinics,
@@ -1075,30 +1257,33 @@ export default {
     ]);
 
     patientVisits.map((patientVisit: any) => {
-      patientVisit.clinic = clinics.find(
-        (clinic: any) => clinic?.id === patientVisit?.clinic?.id
-      );
-      patientVisit.patient = patients.find(
-        (patient: any) => patient?.id === patientVisit?.patient?.id
-      );
+      patientVisit.clinic =
+        clinics.find(
+          (clinic: any) => clinic?.id === getClinicId(patientVisit)
+        ) ?? patientVisit.clinic;
+      patientVisit.patient =
+        patients.find(
+          (patient: any) => patient?.id === getPatientId(patientVisit)
+        ) ?? patientVisit.patient;
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(vitalSignsScreening) === patientVisit?.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(pregnancyScreening) === patientVisit?.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
         (ramScreening: any) =>
-          ramScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(ramScreening) === patientVisit?.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening?.patientVisit?.id === patientVisit?.id
+        (tbScreening: any) =>
+          getScreeningPatientVisitId(tbScreening) === patientVisit?.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(adherenceScreening) === patientVisit?.id
       );
     });
 
@@ -1153,22 +1338,23 @@ export default {
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(vitalSignsScreening) === patientVisit?.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(pregnancyScreening) === patientVisit?.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
         (ramScreening: any) =>
-          ramScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(ramScreening) === patientVisit?.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening?.patientVisit?.id === patientVisit?.id
+        (tbScreening: any) =>
+          getScreeningPatientVisitId(tbScreening) === patientVisit?.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(adherenceScreening) === patientVisit?.id
       );
       patientVisit.patientVisitDetails = patientVisitDetailList.filter(
         (patientVisitDetail: any) =>
@@ -1228,22 +1414,23 @@ export default {
       );
       patientVisit.vitalSignsScreenings = vitalSignsScreenings.filter(
         (vitalSignsScreening: any) =>
-          vitalSignsScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(vitalSignsScreening) === patientVisit?.id
       );
       patientVisit.pregnancyScreenings = pregnancyScreenings.filter(
         (pregnancyScreening: any) =>
-          pregnancyScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(pregnancyScreening) === patientVisit?.id
       );
       patientVisit.ramScreenings = ramScreenings.filter(
         (ramScreening: any) =>
-          ramScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(ramScreening) === patientVisit?.id
       );
       patientVisit.tbScreenings = tbScreenings.filter(
-        (tbScreening: any) => tbScreening?.patientVisit?.id === patientVisit?.id
+        (tbScreening: any) =>
+          getScreeningPatientVisitId(tbScreening) === patientVisit?.id
       );
       patientVisit.adherenceScreenings = adherenceScreenings.filter(
         (adherenceScreening: any) =>
-          adherenceScreening?.patientVisit?.id === patientVisit?.id
+          getScreeningPatientVisitId(adherenceScreening) === patientVisit?.id
       );
       patientVisit.patientVisitDetails = patientVisitDetailList.filter(
         (patientVisitDetail: any) =>
@@ -1255,7 +1442,13 @@ export default {
   },
 
   async getAllByIDsNoRelationsFromDexie(ids: []) {
-    return await patientVisitDexie.where('id').anyOfIgnoreCase(ids).toArray();
+    const validIds = [...new Set(ids ?? [])].filter(
+      (id: any) => typeof id === 'string' && id.length > 0
+    );
+    return await patientVisitDexie
+      .where('id')
+      .anyOfIgnoreCase(validIds)
+      .toArray();
   },
   deleteAllFromDexie() {
     patientVisitDexie.clear();

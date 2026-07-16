@@ -21,13 +21,16 @@ export default {
       ),
     ]);
     let lastDispensations = activePacks.reduce((acc: any, record: any) => {
-      const existingRecord =
-        acc[record.patientvisitDetails.patientVisit.patient.id];
+      const patientId = record?.patientvisitDetails?.patientVisit?.patient?.id;
+      if (!patientId) {
+        return acc;
+      }
+      const existingRecord = acc[patientId];
       if (
         !existingRecord ||
         new Date(record.pickupDate) > new Date(existingRecord.pickupDate)
       ) {
-        acc[record.patientvisitDetails.patientVisit.patient.id] = record;
+        acc[patientId] = record;
       }
       return acc;
     }, []);
@@ -35,33 +38,38 @@ export default {
     lastDispensations = Object.values(lastDispensations);
 
     for (const pack of lastDispensations) {
-      const patient = pack.patientvisitDetails.patientVisit.patient;
-      const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
-      const prescriptionDetails =
-        pack.patientvisitDetails.prescription.prescriptionDetails;
+      const patientvisitDetails = pack?.patientvisitDetails;
+      const patient = patientvisitDetails?.patientVisit?.patient;
+      const identifier = patientvisitDetails?.episode?.patientServiceIdentifier;
+      if (!patient || !identifier) {
+        continue;
+      }
+
+      const prescription = patientvisitDetails?.prescription;
+      const prescriptionDetails = prescription?.prescriptionDetails ?? [];
       const therapeuticLine =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticLine
-          : '';
+          : undefined;
       const therapeuticRegimen =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticRegimen
-          : '';
-      const patientType =
-        pack.patientvisitDetails.prescription.patientType === 'N/A'
-          ? pack.patientvisitDetails.prescription.patientStatus
-          : pack.patientvisitDetails.prescription.patientType;
+          : undefined;
+      const patientType = prescription
+        ? prescription.patientType === 'N/A'
+          ? prescription.patientStatus
+          : prescription.patientType
+        : '';
 
       const activePatient = new ActiveInDrugStore();
       activePatient.reportId = reportParams.id;
       activePatient.year = reportParams.year;
       activePatient.startDate = reportParams.startDate;
       activePatient.endDate = reportParams.endDate;
-      activePatient.province = clinic.province.description;
+      activePatient.province = clinic?.province?.description ?? '';
 
-      activePatient.clinic = clinic.clinicName;
-      activePatient.district = clinic.district.description;
+      activePatient.clinic = clinic?.clinicName ?? '';
+      activePatient.district = clinic?.district?.description ?? '';
 
       activePatient.nid = identifier.value;
       activePatient.firstNames = patient.firstNames;
@@ -71,17 +79,19 @@ export default {
       activePatient.patientType = patientType;
       activePatient.pickupDate = pack.pickupDate;
       activePatient.nextPickUpDate = pack.nextPickUpDate;
-      activePatient.therapeuticRegimen = therapeuticRegimen.description;
-      activePatient.therapeuticLine = therapeuticLine.description;
+      activePatient.therapeuticRegimen = therapeuticRegimen?.description ?? '';
+      activePatient.therapeuticLine = therapeuticLine?.description ?? '';
       activePatient.age = idadeReportCalculator(patient.dateOfBirth);
       activePatient.id = uuidv4();
-      this.localDbAddOrUpdate(activePatient);
+      await this.localDbAddOrUpdate(activePatient);
     }
   },
   groupedPatientVisits(patientVisitDetails: any, reportParams: any) {
     // &&  moment(patientVisitDetail.pack.nextPickUpDate).add(3, 'd').isAfter( moment(reportParams.endDate)
     const result = patientVisitDetails.filter(
-      (patientVisitDetail) => patientVisitDetail.pack !== undefined
+      (patientVisitDetail) =>
+        patientVisitDetail?.pack !== undefined &&
+        patientVisitDetail?.patientVisit?.patient
     );
     const sortedArray = result.sort((a, b) => {
       return a.patientVisit.visitDate - b.patientVisit.visitDate;
@@ -94,14 +104,11 @@ export default {
   },
 
   groupedMapChild(items: any) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(e.patientVisit.patient.id, [
-          ...(entryMap.get(e.patientVisit.patient.id) || []),
-          e,
-        ]),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const patientId = e?.patientVisit?.patient?.id;
+      if (!patientId) return entryMap;
+      return entryMap.set(patientId, [...(entryMap.get(patientId) || []), e]);
+    }, new Map());
   },
 
   localDbAddOrUpdate(data: any) {

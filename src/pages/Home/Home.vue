@@ -213,6 +213,18 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 import patientService from 'src/services/api/patientService/patientService';
 import { LocalStorage, SessionStorage } from 'quasar';
 import userService from 'src/services/api/user/userService';
+import StockService from 'src/services/api/stockService/StockService';
+import {
+  initializeMobileOfflineHomeOnce,
+  initializeMobileOnlineHomeOnce,
+} from 'src/composables/shared/sessionInitialization/mobileHomeInitialization';
+import {
+  completeOfflineBootstrap,
+  failOfflineBootstrap,
+  getOfflineBootstrapState,
+  shouldRunOfflineBootstrap,
+  updateOfflineBootstrapStage,
+} from 'src/services/Mobile/OfflineBootstrapStatus';
 
 const { showloading, closeLoading } = useLoading();
 const { website, isMobile, isOnline } = useSystemUtils();
@@ -225,6 +237,7 @@ const {
   loadParamsDataFromBackEndToPinia,
   saveParamsFromDexieToPinia,
   loadPatientDataToOffline,
+  loadStockDataToOffline,
 } = useOffline();
 const { alertWarningTitle } = useSwal();
 
@@ -266,22 +279,77 @@ const menusVisible = (name) => {
 };
 
 onMounted(async () => {
-  if (website.value || (isMobile.value && isOnline.value)) {
+  // Keep the existing web-online initialization path unchanged.
+  if (website.value) {
     showloading();
     loadSettingParams();
-  } else {
-    patientService.getCountPatientFromDexie().then((resp) => {
-      if (resp <= 0) {
-        showloading();
-        saveParamsFromBackendToDexie().then((dexie_resp) => {
-          showloading();
-          if (dexie_resp) loadPatientDataToOffline();
-        });
-      }
+  } else if (isMobile.value && isOnline.value) {
+    await initializeMobileOnlineHomeOnce(() => {
+      showloading();
+      return loadSettingParams();
     });
-    showloading();
-    saveParamsFromDexieToPinia();
-    closeLoading();
+  } else {
+    await initializeMobileOfflineHomeOnce(async () => {
+      const resp = await patientService.getCountPatientFromDexie();
+      const clinicId = clinic.value?.id ?? 'default';
+      const previousBootstrap = getOfflineBootstrapState(clinicId);
+      let bootstrapStage =
+        previousBootstrap !== null && previousBootstrap.status !== 'completed'
+          ? previousBootstrap.stage
+          : 'reference_data';
+
+      if (shouldRunOfflineBootstrap(clinicId, resp)) {
+        try {
+          if (bootstrapStage === 'reference_data') {
+            showloading();
+            updateOfflineBootstrapStage(clinicId, bootstrapStage);
+            await saveParamsFromBackendToDexie();
+            bootstrapStage = 'patient_data';
+          }
+
+          if (bootstrapStage === 'patient_data') {
+            updateOfflineBootstrapStage(clinicId, bootstrapStage);
+            showloading();
+            const patientDataLoaded = await loadPatientDataToOffline();
+            if (!patientDataLoaded) {
+              throw new Error('Offline patient data download did not complete');
+            }
+            bootstrapStage = 'session_hydration';
+          }
+
+          const stockCount = await StockService.getCountStockFromDexie();
+          if (stockCount <= 0) {
+            showloading();
+            await loadStockDataToOffline();
+          }
+
+          updateOfflineBootstrapStage(clinicId, bootstrapStage);
+          showloading();
+          await saveParamsFromDexieToPinia();
+          const patientCount = await patientService.getCountPatientFromDexie();
+          completeOfflineBootstrap(clinicId, patientCount);
+          closeLoading();
+          return;
+        } catch (error) {
+          failOfflineBootstrap(clinicId, bootstrapStage, error);
+          closeLoading();
+          throw error;
+        }
+      }
+
+      // Stock is facility data, independent from whether patients were already
+      // bootstrapped. Repair tablets whose patient database exists while the
+      // operational stock database is empty.
+      const stockCount = await StockService.getCountStockFromDexie();
+      if (stockCount <= 0) {
+        showloading();
+        await loadStockDataToOffline();
+      }
+
+      showloading();
+      await saveParamsFromDexieToPinia();
+      closeLoading();
+    });
   }
 });
 

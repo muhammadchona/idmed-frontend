@@ -72,18 +72,19 @@ export default {
             '&max=' +
             100
         )
-        .then((resp) => {
+        .then(async (resp) => {
           stockEntrance.save(resp.data);
-          this.addBulkMobile(resp.data);
+          await stockEntranceDexie.bulkPut(resp.data);
           console.log('Data synced from backend: stockEntrance');
           offset = offset + 100;
           if (resp.data.length > 0) {
-            this.getFromBackEnd(offset, clinicId);
+            return this.getFromBackEnd(offset, clinicId);
           }
+          return true;
         })
         .catch((error) => {
           console.error('Error syncing data from backend:', error);
-          console.log(error);
+          throw error;
         });
     }
   },

@@ -2,6 +2,7 @@ import { nSQL } from 'nano-sql';
 import ReportDatesParams from 'src/services/reports/ReportDatesParams';
 import moment from 'moment';
 import ArvDailyRegisterTempReport from 'src/stores/models/report/monitoring/ArvDailyRegisterTempReport';
+import packService from '../../pack/packService';
 
 // const activeInDrugStore = useRepo(ActiveInDrugStore);
 
@@ -18,29 +19,31 @@ export default {
     ]);
 
     for (const pack of activePacks) {
-      const patient = pack.patientvisitDetails.patientVisit.patient;
-      const episode = pack.patientvisitDetails.episode;
-      const prescriptionDetails =
-        pack.patientvisitDetails.prescription.prescriptionDetails;
-      const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
+      const details = pack?.patientvisitDetails;
+      const patient = details?.patientVisit?.patient;
+      const episode = details?.episode;
+      const identifier = episode?.patientServiceIdentifier;
+      if (!patient || !episode || !identifier?.service) continue;
+      const prescription = details?.prescription;
+      const prescriptionDetails = prescription?.prescriptionDetails ?? [];
       const therapeuticLine =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticLine
-          : '';
+          : undefined;
       const therapeuticRegimen =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticRegimen
-          : '';
-      const patientType =
-        pack.patientvisitDetails.prescription.patientType === 'N/A'
-          ? pack.patientvisitDetails.prescription.patientStatus
-          : pack.patientvisitDetails.prescription.patientType;
+          : undefined;
+      const patientType = prescription
+        ? prescription.patientType === 'N/A'
+          ? prescription.patientStatus
+          : prescription.patientType
+        : '';
 
       const dispenseType =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].dispenseType
-          : '';
+          : undefined;
 
       if (identifier.service.id === reportParams.clinicalService) {
         const tptDailyRegisterReport = new ArvDailyRegisterTempReport();
@@ -56,7 +59,8 @@ export default {
           ' ' +
           patient.lastNames;
         tptDailyRegisterReport.patientType = patientType;
-        tptDailyRegisterReport.startReason = episode.startStopReason.reason;
+        tptDailyRegisterReport.startReason =
+          episode?.startStopReason?.reason ?? '';
         const age = this.idadeCalculator(patient.dateOfBirth);
         tptDailyRegisterReport.ageGroup_0_4 =
           age >= 0 && age < 4 ? 'Sim' : 'Nao';
@@ -68,16 +72,19 @@ export default {
           age >= 15 ? 'Sim' : 'Nao';
         tptDailyRegisterReport.pickUpDate = pack.pickupDate;
         tptDailyRegisterReport.nexPickUpDate = pack.nextPickUpDate;
-        tptDailyRegisterReport.regime = therapeuticRegimen.description;
-        tptDailyRegisterReport.dispensationType = dispenseType.description;
-        tptDailyRegisterReport.therapeuticLine = therapeuticLine.description;
-        tptDailyRegisterReport.clinic = pack.clinic.clinicName;
+        tptDailyRegisterReport.regime = therapeuticRegimen?.description ?? '';
+        tptDailyRegisterReport.dispensationType =
+          dispenseType?.description ?? '';
+        tptDailyRegisterReport.therapeuticLine =
+          therapeuticLine?.description ?? '';
+        tptDailyRegisterReport.clinic = pack?.clinic?.clinicName ?? '';
         tptDailyRegisterReport.prep =
           identifier.service.code === 'TPT' ? 'Sim' : '';
         tptDailyRegisterReport.ppe =
           identifier.service.code === 'PPE' ? 'Sim' : '';
         const drugQuantityTemps = [];
-        for (const packagedDrug of pack.packagedDrugs) {
+        for (const packagedDrug of pack?.packagedDrugs ?? []) {
+          if (!packagedDrug?.drug) continue;
           const drugQuantityTemp = {};
           drugQuantityTemp.drugName = packagedDrug.drug.name;
           drugQuantityTemp.quantity = packagedDrug.quantitySupplied;
@@ -87,7 +94,7 @@ export default {
         }
         console.log(drugQuantityTemps);
         tptDailyRegisterReport.drugQuantityTemps = drugQuantityTemps;
-        this.localDbAddOrUpdate(tptDailyRegisterReport);
+        await this.localDbAddOrUpdate(tptDailyRegisterReport);
       }
     }
   },

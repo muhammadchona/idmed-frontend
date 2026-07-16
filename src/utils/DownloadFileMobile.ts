@@ -1,74 +1,90 @@
 import moment from 'moment';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { FileViewer } from '@capacitor/file-viewer';
+
+const stopLoading = (loading: any) => {
+  if (loading && typeof loading === 'object' && 'value' in loading) {
+    loading.value = false;
+  }
+};
+
+const blobToBase64 = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const result = String(reader.result ?? '');
+      resolve(result.includes(',') ? result.split(',')[1] : result);
+    };
+    reader.readAsDataURL(blob);
+  });
+
+const bytesToBase64 = (bytes: Uint8Array) => {
+  const chunkSize = 0x8000;
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, offset + chunkSize)
+    );
+  }
+  return btoa(binary);
+};
+
+const toBase64 = async (data: any): Promise<string> => {
+  if (data instanceof Blob) return blobToBase64(data);
+  if (data instanceof ArrayBuffer) return bytesToBase64(new Uint8Array(data));
+  if (ArrayBuffer.isView(data)) {
+    return bytesToBase64(
+      new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+    );
+  }
+  if (typeof data === 'string') {
+    if (data.startsWith('data:')) return data.split(',')[1] ?? '';
+    return btoa(data);
+  }
+  throw new TypeError('Unsupported report file data');
+};
+
 export default {
-  downloadFile(fileName, fileType, blop, loading) {
+  async downloadFile(
+    fileName: string,
+    fileType: string,
+    fileData: any,
+    loading?: any
+  ) {
     const titleFile =
       fileName + moment(new Date()).format('DD-MM-YYYY_HHmmss') + fileType;
-    console.log('result' + titleFile);
-    saveBlob2File(titleFile, blop);
 
-    function saveBlob2File(fileName, blob) {
-      const folder = cordova.file.externalRootDirectory + 'Download';
-      console.log('Dir', folder);
-      window.resolveLocalFileSystemURL(
-        folder,
-        function (dirEntry) {
-          createFile(dirEntry, fileName, blob);
-        },
-        onErrorLoadFs
-      );
-    }
+    try {
+      const data = await toBase64(fileData);
+      let savedFile;
+      try {
+        savedFile = await Filesystem.writeFile({
+          path: titleFile,
+          data,
+          directory: Directory.Documents,
+          recursive: true,
+        });
+      } catch (documentsError) {
+        console.warn(
+          'Unable to save the report in Documents; using app cache',
+          documentsError
+        );
+        savedFile = await Filesystem.writeFile({
+          path: titleFile,
+          data,
+          directory: Directory.Cache,
+          recursive: true,
+        });
+      }
 
-    function createFile(dirEntry, fileName, blob) {
-      dirEntry.getFile(
-        fileName,
-        { create: true, exclusive: false },
-        function (fileEntry) {
-          writeFile(fileEntry, blob);
-        },
-        onErrorCreateFile
-      );
-    }
-
-    function writeFile(fileEntry, dataObj) {
-      fileEntry.createWriter(function (fileWriter) {
-        fileWriter.onwriteend = function () {
-          console.log('Successful file write...');
-          openFile();
-        };
-
-        fileWriter.onerror = function (error) {
-          loading.value = false;
-          console.log('Failed file write: ' + error);
-        };
-        fileWriter.write(dataObj);
-      });
-    }
-
-    function onErrorLoadFs(error) {
-      loading.value = false;
-      console.log(error);
-    }
-
-    function onErrorCreateFile(error) {
-      loading.value = false;
-      console.log('errorr: ' + error.toString());
-    }
-
-    function openFile() {
-      const strTitle = titleFile;
-      const folder =
-        cordova.file.externalRootDirectory + 'Download/' + strTitle;
-      const documentURL = decodeURIComponent(folder);
-      cordova.plugins.fileOpener2.open(documentURL, 'application/pdf', {
-        error: function (e) {
-          loading.value = false;
-          console.log('Report not processed: ' + e + documentURL);
-        },
-        success: function () {
-          loading.value = false;
-          console.log('Report processed');
-        },
-      });
+      await FileViewer.openDocumentFromLocalPath({ path: savedFile.uri });
+      return savedFile.uri;
+    } catch (error) {
+      console.error('Unable to save or open the mobile report', error);
+      throw error;
+    } finally {
+      stopLoading(loading);
     }
   },
 };

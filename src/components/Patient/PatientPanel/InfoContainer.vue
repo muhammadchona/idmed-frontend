@@ -210,9 +210,17 @@ const isReOpenStep = inject('isReOpenStep');
 
 // Computed
 const curIdentifier = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return patientServiceIdentifierService.identifierForMobilePatientPanel(
+      props.identifierId
+    );
+  }
   return patientServiceIdentifierService.identifierCurr(props.identifierId, '');
 });
 const curEpisode = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return episodeService.lastEpisode(curIdentifier.value.id);
+  }
   return episodeService.lastEpisodeByIdentifier(curIdentifier.value.id);
 });
 const lastPack = computed(() => {
@@ -326,6 +334,11 @@ const clinicalServiceHeaderColor = computed(() => {
 });
 
 const lastEpisode = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return curIdentifier.value != null
+      ? episodeService.lastEpisode(curIdentifier.value.id)
+      : new Episode();
+  }
   return curIdentifier.value != null
     ? episodeService.lastEpisodeByIdentifier(curIdentifier.value.id)
     : new Episode();
@@ -355,6 +368,11 @@ const islastEpisodeClosed = computed(() => {
 });
 
 const get3LastEpisodes = computed(() => {
+  if (isMobile.value && !isOnline.value) {
+    return episodeService.getLast3ForMobilePatientPanel(
+      curIdentifier.value.id
+    );
+  }
   return episodeService.getlast3EpisodesByIdentifier(curIdentifier.value.id);
 });
 

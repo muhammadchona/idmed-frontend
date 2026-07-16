@@ -18,31 +18,33 @@ export default {
     ]);
 
     for (const pack of activePacks) {
-      const patientVisit = pack.patientvisitDetails.patientVisit;
-      const patient = pack.patientvisitDetails.patientVisit.patient;
-      const identifier =
-        pack.patientvisitDetails.episode.patientServiceIdentifier;
-      const clinicalService =
-        pack.patientvisitDetails.episode.patientServiceIdentifier.service;
+      const details = pack?.patientvisitDetails;
+      const patientVisit = details?.patientVisit;
+      const patient = patientVisit?.patient;
+      const identifier = details?.episode?.patientServiceIdentifier;
+      const clinicalService = identifier?.service;
+      if (!patientVisit || !patient || !identifier || !clinicalService)
+        continue;
 
       const prescriptionDetails =
-        pack.patientvisitDetails.prescription.prescriptionDetails;
+        details?.prescription?.prescriptionDetails ?? [];
       const therapeuticRegimen =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].therapeuticRegimen
-          : '';
+          : undefined;
 
       const dispenseType =
         prescriptionDetails.length > 0
           ? prescriptionDetails[0].dispenseType
-          : '';
+          : undefined;
 
       const dispenseMode = pack.dispenseMode;
 
       if (patientVisit.syncStatus === 'R') {
         const notSyncronizedPacksToServer = new NotSyncronizedPacksToServer();
 
-        notSyncronizedPacksToServer.dispenseType = dispenseType.description;
+        notSyncronizedPacksToServer.dispenseType =
+          dispenseType?.description ?? '';
 
         notSyncronizedPacksToServer.reportId = reportParams.id;
         notSyncronizedPacksToServer.year = reportParams.year;
@@ -57,16 +59,17 @@ export default {
         notSyncronizedPacksToServer.pickUpDate = pack.pickupDate;
         notSyncronizedPacksToServer.nexPickUpDate = pack.nextPickUpDate;
         notSyncronizedPacksToServer.therapeuticalRegimen =
-          therapeuticRegimen.description;
+          therapeuticRegimen?.description ?? '';
         notSyncronizedPacksToServer.age = this.idadeCalculator(
           patient.dateOfBirth
         );
-        notSyncronizedPacksToServer.dispenseMode = dispenseMode.description;
+        notSyncronizedPacksToServer.dispenseMode =
+          dispenseMode?.description ?? '';
         notSyncronizedPacksToServer.clinicalService =
           clinicalService.description;
-        notSyncronizedPacksToServer.clinic = pack.clinic.clinicName;
+        notSyncronizedPacksToServer.clinic = pack?.clinic?.clinicName ?? '';
         notSyncronizedPacksToServer.id = uuidv4();
-        this.localDbAddOrUpdate(notSyncronizedPacksToServer);
+        await this.localDbAddOrUpdate(notSyncronizedPacksToServer);
         console.log(notSyncronizedPacksToServer);
       }
     }

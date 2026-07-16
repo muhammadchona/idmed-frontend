@@ -217,6 +217,36 @@ export default {
     });
     return collection;
   },
+  async getAllByPackIDsMobile(ids: string[]) {
+    if (ids.length === 0) return [];
+
+    const packagedDrugs = await this.getAllByIDsFromDexie(ids);
+    const normalizedPackagedDrugs = packagedDrugs.map((item: any) => ({
+      ...item,
+      pack_id: item?.pack_id ?? item?.packId ?? item?.pack?.id,
+      drug_id: item?.drug_id ?? item?.drugId ?? item?.drug?.id,
+    }));
+    packagedDrug.save(normalizedPackagedDrugs);
+    return normalizedPackagedDrugs;
+  },
+  async getByDrugAndOriginWithPackMobile(drugId: string, origin: string) {
+    const rows = await packagedDrugDexie
+      .filter(
+        (item: any) =>
+          (item.drug_id ?? item.drugId ?? item.drug?.id) === drugId &&
+          item.origin === origin
+      )
+      .toArray();
+    const packIds = rows
+      .map((item: any) => item.pack_id ?? item.packId ?? item.pack?.id)
+      .filter(Boolean);
+    const packs = await packService.getPacksByIDsFromDexie(packIds);
+    const packsById = new Map(packs.map((item: any) => [item.id, item]));
+    return rows.map((item: any) => ({
+      ...item,
+      pack: packsById.get(item.pack_id ?? item.packId ?? item.pack?.id),
+    }));
+  },
   async getAllPackagedDrugByIDsFromDexie(ids: []) {
     const packagedDrugs = await packagedDrugDexie
       .where('id')

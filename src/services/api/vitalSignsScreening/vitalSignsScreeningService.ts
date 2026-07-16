@@ -178,10 +178,13 @@ export default {
       .toArray();
   },
   async getAllByPatientVisitIDsFromDexie(ids: string[]) {
-    const collection = vitalSignsScreeningDexie.filter(
-      (vitalSignsScreening: any) =>
-        ids.includes(vitalSignsScreening?.patient_visit_id) ||
-        ids.includes(vitalSignsScreening?.patientVisit?.id)
+    const collection = vitalSignsScreeningDexie.filter((screening: any) =>
+      ids.includes(
+        screening?.patient_visit_id ??
+          screening?.patientVisitId ??
+          screening?.patientVisit?.id ??
+          screening?.visit?.id
+      )
     );
     return await collection.toArray().then((rows: any) => {
       vitalSignsScreening.save(rows);

@@ -271,30 +271,25 @@ const focusInput = () => {
   }
 };
 
+const handleDocumentKeydown = (event) => {
+  if (event.key === 'Enter' && inputBuffer.length > 0) {
+    processCompleteBarcode(inputBuffer);
+    event.preventDefault(); // Prevent form submission
+  }
+};
+
 onMounted(() => {
   focusInput();
 
   // Direct DOM event listener for keydown events
   // document.addEventListener('keydown', handleBarcodeInput);
 
-  document.addEventListener('click', () => {
-    if (!isProcessing) {
-      // focusInput();
-    }
-  });
-
   // Add a keydown listener to detect Enter key
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && inputBuffer.length > 0) {
-      processCompleteBarcode(inputBuffer);
-      event.preventDefault(); // Prevent form submission
-    }
-  });
+  document.addEventListener('keydown', handleDocumentKeydown);
 });
 
 onBeforeUnmount(() => {
-  // Clean up event listener
-  document.removeEventListener('keydown', handleBarcodeInput);
+  document.removeEventListener('keydown', handleDocumentKeydown);
 });
 
 const handleInputChange = (value) => {

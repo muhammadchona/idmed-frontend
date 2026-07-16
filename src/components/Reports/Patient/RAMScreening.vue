@@ -89,14 +89,30 @@ const initReportProcessing = async (params) => {
       getProcessingStatus(params);
     }); */
   } else {
-    PatientsWithScreeningMobileService.getDataLocalDbRAM(params);
-    progress.value = 100;
-    params.progress = 100;
-    updateParamsOnLocalStrage(params, isReportClosed);
+    try {
+      await PatientsWithScreeningMobileService.getDataLocalDbRAM(params);
+      progress.value = 100;
+      params.progress = 100;
+      updateParamsOnLocalStrage(params, isReportClosed);
+    } catch (error) {
+      console.error(
+        'Unable to generate the offline RAM screening report',
+        error
+      );
+      progress.value = 0;
+      params.progress = 0;
+      alertError('Não foi possível gerar o relatório no tablet');
+    }
   }
 };
 
 const getProcessingStatus = (params) => {
+  if (!isOnline.value) {
+    progress.value = 100;
+    params.progress = 100;
+    return;
+  }
+
   Report.getProcessingStatus('TBScreening', params).then((resp) => {
     if (resp.data.progress > 0.001) {
       progress.value = resp.data.progress;

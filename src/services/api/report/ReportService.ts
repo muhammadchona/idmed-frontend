@@ -756,9 +756,15 @@ export default {
 
       for (const data of dataMonths) {
         const patientvisitDetail = data.patientvisitDetails;
+        if (
+          !patientvisitDetail?.patientVisit?.patient ||
+          !patientvisitDetail?.episode?.patientServiceIdentifier?.service
+        ) {
+          continue;
+        }
         const patientVisit = patientvisitDetail.patientVisit;
         const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
+        const prescriptionDetails = prescription?.prescriptionDetails ?? [];
         const episode = patientvisitDetail.episode;
         const identifier = episode.patientServiceIdentifier;
         const service = identifier.service;
@@ -810,9 +816,15 @@ export default {
 
       for (const data of dataMonths) {
         const patientvisitDetail = data.patientvisitDetails;
+        if (
+          !patientvisitDetail?.patientVisit?.patient ||
+          !patientvisitDetail?.episode?.patientServiceIdentifier?.service
+        ) {
+          continue;
+        }
         const patientVisit = patientvisitDetail.patientVisit;
         const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
+        const prescriptionDetails = prescription?.prescriptionDetails ?? [];
         const episode = patientvisitDetail.episode;
         const identifier = episode.patientServiceIdentifier;
         const service = identifier.service;
@@ -870,6 +882,12 @@ export default {
 
       for (const data of dataMonths) {
         const patientvisitDetail = data.patientvisitDetails;
+        if (
+          !patientvisitDetail?.patientVisit?.patient ||
+          !patientvisitDetail?.episode?.patientServiceIdentifier?.service
+        ) {
+          continue;
+        }
         const patientVisit = patientvisitDetail.patientVisit;
         const episode = patientvisitDetail.episode;
         const identifier = episode.patientServiceIdentifier;
@@ -919,6 +937,12 @@ export default {
 
       for (const data of dataMonths) {
         const patientvisitDetail = data.patientvisitDetails;
+        if (
+          !patientvisitDetail?.patientVisit?.patient ||
+          !patientvisitDetail?.episode?.patientServiceIdentifier?.service
+        ) {
+          continue;
+        }
         const patientVisit = patientvisitDetail.patientVisit;
         const episode = patientvisitDetail.episode;
         const identifier = episode.patientServiceIdentifier;
@@ -972,10 +996,16 @@ export default {
 
       for (const data of dataMonths) {
         const patientvisitDetail = data.patientvisitDetails;
+        if (
+          !patientvisitDetail?.patientVisit?.patient ||
+          !patientvisitDetail?.episode?.patientServiceIdentifier?.service
+        ) {
+          continue;
+        }
         const patientVisit = patientvisitDetail.patientVisit;
         const episode = patientvisitDetail.episode;
         const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
+        const prescriptionDetails = prescription?.prescriptionDetails ?? [];
         const identifier = episode.patientServiceIdentifier;
         const service = identifier.service;
         const patient = patientVisit.patient;
@@ -985,7 +1015,7 @@ export default {
           if (prescription !== null && prescription !== undefined) {
             dispenseType =
               prescriptionDetails.length > 0
-                ? prescriptionDetails[0].dispenseType.description
+                ? prescriptionDetails[0]?.dispenseType?.description ?? ''
                 : '';
           }
           const existingItem = patientsInService.find((item) => {
@@ -1031,8 +1061,11 @@ export default {
 
       for (const data of dataMonths) {
         const patientvisitDetail = data.patientvisitDetails;
+        if (!patientvisitDetail?.episode?.patientServiceIdentifier?.service) {
+          continue;
+        }
         const prescription = patientvisitDetail.prescription;
-        const prescriptionDetails = prescription.prescriptionDetails;
+        const prescriptionDetails = prescription?.prescriptionDetails ?? [];
         const episode = patientvisitDetail.episode;
         const identifier = episode.patientServiceIdentifier;
         const service = identifier.service;
@@ -1042,7 +1075,7 @@ export default {
           if (prescription !== null && prescription !== undefined) {
             dispenseType =
               prescriptionDetails.length > 0
-                ? prescriptionDetails[0].dispenseType.code
+                ? prescriptionDetails[0]?.dispenseType?.code ?? ''
                 : '';
           }
 

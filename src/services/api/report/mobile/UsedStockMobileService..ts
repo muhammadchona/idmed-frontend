@@ -31,9 +31,10 @@ export default {
     console.log(stocks);
     const result = stocks.filter(
       (stock) =>
-        stock.entrance.dateReceived >= reportParams.startDate &&
-        stock.entrance.dateReceived <= reportParams.endDate &&
-        stock.drug.clinical_service_id === reportParams.clinicalService
+        stock?.entrance?.dateReceived >= reportParams.startDate &&
+        stock?.entrance?.dateReceived <= reportParams.endDate &&
+        (stock?.drug?.clinical_service_id ??
+          stock?.drug?.clinicalService?.id) === reportParams.clinicalService
     );
     console.log(result);
     resultDrugsStocks = this.groupedMap(result, 'drug_id');
@@ -45,9 +46,9 @@ export default {
       await InventoryStockAdjustmentService.localDbGetAll();
     const inventoryStocks = inventoryStockAdjustments.filter(
       (inventoryStock) =>
-        inventoryStock.inventory.startDate >= reportParams.startDate &&
-        inventoryStock.inventory.endDate <= reportParams.endDate &&
-        arrayDrugStock.includes(inventoryStock.adjustedStock.drug.id)
+        inventoryStock?.inventory?.startDate >= reportParams.startDate &&
+        inventoryStock?.inventory?.endDate <= reportParams.endDate &&
+        arrayDrugStock.includes(inventoryStock?.adjustedStock?.drug?.id)
     );
     resultDrugStocksInventory = this.groupedMapChild(
       inventoryStocks,
@@ -66,7 +67,7 @@ export default {
     );
     console.log(packsDate);
     packsDate.forEach((pack) => {
-      pack.packagedDrugs.forEach((item) => {
+      (pack?.packagedDrugs ?? []).forEach((item) => {
         packagedDrug.push(item);
       });
     });
@@ -85,7 +86,7 @@ export default {
     );
     console.log(resultDestruccted);
     resultDestruccted.forEach((destroyedStock) => {
-      destroyedStock.adjustments.forEach((destroyedAdjust) => {
+      (destroyedStock?.adjustments ?? []).forEach((destroyedAdjust) => {
         adjustedDestroyedStocks.push(destroyedAdjust);
       });
     });
@@ -106,7 +107,7 @@ export default {
     );
     console.log(resultAdjustedReferred);
     resultAdjustedReferred.forEach((referredStock) => {
-      referredStock.adjustments.forEach((referredAdjust) => {
+      (referredStock?.adjustments ?? []).forEach((referredAdjust) => {
         adjustedReferedStocks.push(referredAdjust);
       });
     });
@@ -124,6 +125,7 @@ export default {
     console.log(referredStocksIds);
     for (const drug of drugsIds) {
       const drugObj = await drugService.getCleanDrugById(drug);
+      if (!drugObj) continue;
       const usedStock = new StockUsedReport();
       usedStock.fnmCode = drugObj.fnmCode;
       usedStock.drugName = drugObj.name;
@@ -131,6 +133,7 @@ export default {
       console.log(resultDrugsStocks.get(drugObj.id));
       usedStock.receivedStock = 0;
       usedStock.adjustment = 0;
+      usedStock.stockIssued = 0;
       resultDrugsStocks.get(drugObj.id).forEach((stock) => {
         usedStock.receivedStock += stock.unitsReceived;
         usedStock.actualStock += stock.unitsReceived;
@@ -153,10 +156,10 @@ export default {
                   StockOperationTypeService.getStockOperatinTypeById(
                     referredAdjustment.operation.id
                   );
-                if (operation.code === 'AJUSTE_POSETIVO') {
+                if (operation?.code === 'AJUSTE_POSETIVO') {
                   usedStock.adjustment += referredAdjustment.adjustedValue;
                   usedStock.actualStock += referredAdjustment.adjustedValue;
-                } else if (operation.code === 'AJUSTE_NEGATIVO') {
+                } else if (operation?.code === 'AJUSTE_NEGATIVO') {
                   usedStock.adjustment -= referredAdjustment.adjustedValue;
                   usedStock.actualStock -= referredAdjustment.adjustedValue;
                 }
@@ -170,10 +173,10 @@ export default {
           ? []
           : resultDrugStocksInventory.get(drugObj.id);
       for (const inventoryAdjustment of inventoryAdjustmentList) {
-        if (inventoryAdjustment.operation.code === 'AJUSTE_POSETIVO') {
+        if (inventoryAdjustment?.operation?.code === 'AJUSTE_POSETIVO') {
           usedStock.adjustment += inventoryAdjustment.adjustedValue;
           usedStock.actualStock += inventoryAdjustment.adjustedValue;
-        } else if (inventoryAdjustment.operation.code === 'AJUSTE_NEGATIVO') {
+        } else if (inventoryAdjustment?.operation?.code === 'AJUSTE_NEGATIVO') {
           usedStock.adjustment -= inventoryAdjustment.adjustedValue;
           usedStock.actualStock -= inventoryAdjustment.adjustedValue;
         }
@@ -190,53 +193,37 @@ export default {
       usedStock.year = reportParams.year;
       usedStock.endDate = reportParams.endDate;
       usedStock.id = uuidv4();
-      this.localDbAddOrUpdate(usedStock);
+      await this.localDbAddOrUpdate(usedStock);
     }
   },
 
   groupedMap(items, key) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e[key],
-          [...(entryMap.get(e[key]) || []), e],
-          console.log(e[key])
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.[key];
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   groupedMapChild(items, key) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e.adjustedStock.drug.id,
-          [...(entryMap.get(e.adjustedStock.drug.id) || []), e],
-          console.log(e.adjustedStock.drug.id)
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.adjustedStock?.drug?.id;
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   groupedMapChildPack(items, key) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e.drug.id,
-          [...(entryMap.get(e.drug.id) || []), e],
-          console.log(e.drug.id)
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.drug?.id ?? e?.drug_id;
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   groupedMapChildAdjustments(items, key) {
-    return items.reduce(
-      (entryMap, e) =>
-        entryMap.set(
-          e.adjustedStock.id,
-          [...(entryMap.get(e.adjustedStock.id) || []), e],
-          console.log(e.adjustedStock.id)
-        ),
-      new Map()
-    );
+    return items.reduce((entryMap, e) => {
+      const value = e?.adjustedStock?.id;
+      if (!value) return entryMap;
+      return entryMap.set(value, [...(entryMap.get(value) || []), e]);
+    }, new Map());
   },
   getStockOperationTypeById(id) {
     console.log(StockOperationType.query().where('id', id).first());

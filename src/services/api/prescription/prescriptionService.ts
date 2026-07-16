@@ -253,6 +253,25 @@ export default {
       .whereId(Id)
       .first();
   },
+  getForMobilePrescriptionDisplay(id: string) {
+    return prescription
+      .query()
+      .with('clinic')
+      .with('doctor')
+      .with('duration')
+      .with('patientVisitDetails')
+      .with('prescriptionDetails', (detailsQuery: any) => {
+        detailsQuery
+          .with('therapeuticRegimen')
+          .with('therapeuticLine')
+          .with('dispenseType');
+      })
+      .with('prescribedDrugs', (drugQuery: any) => {
+        drugQuery.with('drug');
+      })
+      .where('id', id)
+      .first();
+  },
   getLocalPrescriptionById(Id: string) {
     return prescription.withAllRecursive(2).where('id', Id).first();
   },

@@ -21,9 +21,14 @@
           v-for="identifier in patient.identifiers"
           :key="identifier.id"
           :identifierId="identifier.id"
+          :displayVersion="prescriptionDisplayVersion"
         />
       </div>
-      <q-dialog persistent v-model="showAddPrescription">
+      <q-dialog
+        persistent
+        :maximized="isMobile"
+        v-model="showAddPrescription"
+      >
         <AddEditPrescription />
       </q-dialog>
     </div>
@@ -35,13 +40,14 @@ import AddEditPrescription from 'components/Patient/PatientPanel/AddEditPrescrip
 import ListHeader from 'components/Shared/ListHeader.vue';
 import EmptyList from 'components/Shared/ListEmpty.vue';
 import PrescriptionInfoContainer from 'components/Patient/Prescription/PrescriptionInfoContainer.vue';
-import { computed, provide, inject, onMounted, ref } from 'vue';
+import { computed, provide, inject, onMounted, ref, watch } from 'vue';
 import { usePatient } from 'src/composables/patient/patientMethods';
 import { useLoading } from 'src/composables/shared/loading/loading';
 import { useSystemConfig } from 'src/composables/systemConfigs/SystemConfigs';
 import { usePrescriptionDialog } from 'src/composables/prescription/openPrecriptionDialog';
 import PermissionService from 'src/services/api/user/PermissionService';
 import { useSystemUtils } from 'src/composables/shared/systemUtils/systemUtils';
+import StockService from 'src/services/api/stockService/StockService';
 
 //Declaration
 const {
@@ -68,14 +74,13 @@ const patient = inject('patient');
 const { showPrescriptionDialog, isNewPrescription } = usePrescriptionDialog();
 
 const showAddPrescription = showPrescriptionDialog;
+const prescriptionDisplayVersion = ref(0);
 
 //OnMouted
 onMounted(() => {
   showloading();
   init();
 });
-
-const items = ref([...Array(10000).keys()]);
 
 // Computed
 const canAddPrescription = computed(() => {
@@ -111,12 +116,20 @@ const init = async () => {
   closeLoading();
 };
 
-const newPrescriptionOption = () => {
+const prepareMobilePrescriptionEditing = async () => {
+  if (isMobile.value && !isOnline.value) {
+    await StockService.ensureMobileStockLoaded();
+  }
+};
+
+const newPrescriptionOption = async () => {
+  await prepareMobilePrescriptionEditing();
   isNewPrescription.value = true;
   showAddPrescription.value = true;
 };
 
-const editPrescriptionOption = () => {
+const editPrescriptionOption = async () => {
+  await prepareMobilePrescriptionEditing();
   isNewPrescription.value = false;
   showAddPrescription.value = true;
 };
@@ -124,6 +137,16 @@ const editPrescriptionOption = () => {
 const closePrescriptionOption = () => {
   showAddPrescription.value = false;
 };
+
+const refreshPrescriptionInfo = () => {
+  if (isMobile.value && !isOnline.value) {
+    prescriptionDisplayVersion.value += 1;
+  }
+};
+
+watch(showAddPrescription, (isOpen, wasOpen) => {
+  if (wasOpen && !isOpen) refreshPrescriptionInfo();
+});
 
 provide('title', title);
 provide('bgColor', bgColor);
@@ -133,6 +156,7 @@ provide('isNewPrescription', isNewPrescription);
 provide('showAddPrescription', showAddPrescription);
 provide('editPrescriptionOption', editPrescriptionOption);
 provide('closePrescriptionOption', closePrescriptionOption);
+provide('refreshPrescriptionInfo', refreshPrescriptionInfo);
 </script>
 
 <style></style>

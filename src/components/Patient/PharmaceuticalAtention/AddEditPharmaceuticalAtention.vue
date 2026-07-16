@@ -1,8 +1,18 @@
 <template>
-  <q-card style="max-width: 100vw">
-    <form @submit.prevent="submitMobilizer">
+  <q-card
+    class="pharmaceutical-attention-card"
+    :class="{ 'pharmaceutical-attention-card--mobile': isMobile }"
+    style="max-width: 100vw"
+  >
+    <form
+      @submit.prevent="submitMobilizer"
+      :class="{ 'pharmaceutical-attention-form--mobile': isMobile }"
+    >
       <q-card-section class="q-pa-none bg-green-2">
-        <div class="row items-center text-subtitle1 q-pa-md">
+        <div
+          class="row items-center text-subtitle1 q-pa-md"
+          :class="{ 'q-pa-sm': isMobile }"
+        >
           <q-icon
             :name="patient.gender == 'Feminino' ? 'female' : 'male'"
             size="md"
@@ -32,14 +42,19 @@
         :thumb-style="thumbStyle"
         :content-style="contentStyle"
         :content-active-style="contentActiveStyle"
-        style="height: 600px; width: 1200px"
-        class="q-pr-md"
+        :style="attentionScrollStyle"
+        class="pharmaceutical-attention-scroll"
+        :class="{ 'q-pr-md': !isMobile }"
       >
-        <div class="text-left text-h7 bold q-ml-sm q-pa-md q-my-lg">
+        <div
+          class="text-left text-h7 bold q-ml-sm q-pa-md"
+          :class="isMobile ? 'q-my-sm' : 'q-my-lg'"
+          v-show="!isMobile || screeningStep === 1"
+        >
           <q-input
             dense
             outlined
-            style="width: 350px"
+            :style="visitDateStyle"
             v-model="visitDate"
             ref="dataRef"
             :disable="editMode"
@@ -67,7 +82,7 @@
             </template>
           </q-input>
         </div>
-        <div class="q-mx-lg">
+        <div :class="isMobile ? 'q-mx-sm q-mb-sm' : 'q-mx-lg'">
           <q-stepper
             v-model="screeningStep"
             ref="stepper"
@@ -75,6 +90,9 @@
             color="primary"
             active-color="orange-7"
             animated
+            :alternative-labels="isMobile"
+            :flat="isMobile"
+            :class="{ 'pharmaceutical-attention-stepper--mobile': isMobile }"
           >
             <q-step
               :name="1"
@@ -82,10 +100,10 @@
               icon="show_chart"
               :done="screeningStep > 1"
             >
-              <div class="row q-mt-md">
+              <div class="row q-mt-md" :class="{ 'q-col-gutter-sm': isMobile }">
                 <q-input
                   outlined
-                  class="col"
+                  :class="isMobile ? 'col-6' : 'col'"
                   dense
                   v-model="vitalSignsScreening.height"
                   label="Altura *"
@@ -103,7 +121,7 @@
                 />
                 <q-input
                   outlined
-                  class="col q-ml-md"
+                  :class="isMobile ? 'col-6' : 'col q-ml-md'"
                   dense
                   v-model="vitalSignsScreening.weight"
                   type="number"
@@ -120,10 +138,10 @@
                   @update:model-value="getImcValue()"
                 />
               </div>
-              <div class="row q-mt-md">
+              <div class="row q-mt-md" :class="{ 'q-col-gutter-sm': isMobile }">
                 <q-input
                   outlined
-                  class="col"
+                  :class="isMobile ? 'col-6' : 'col'"
                   dense
                   type="number"
                   v-model="vitalSignsScreening.imc"
@@ -136,16 +154,16 @@
                   outlined
                   dense
                   v-model="imcDescription"
-                  class="col q-ml-md"
+                  :class="isMobile ? 'col-6' : 'col q-ml-md'"
                   filled
                   label="IMC-Descrição"
                   disable
                 />
               </div>
-              <div class="row q-mt-md">
+              <div class="row q-mt-md" :class="{ 'q-col-gutter-sm': isMobile }">
                 <q-input
                   outlined
-                  class="col"
+                  :class="isMobile ? 'col-6' : 'col'"
                   dense
                   v-model="vitalSignsScreening.systole"
                   mask="###"
@@ -162,7 +180,7 @@
                 />
                 <q-input
                   outlined
-                  class="col q-ml-md"
+                  :class="isMobile ? 'col-6' : 'col q-ml-md'"
                   dense
                   v-model="vitalSignsScreening.distort"
                   mask="###"
@@ -214,7 +232,7 @@
           </q-stepper>
         </div>
       </q-scroll-area>
-      <q-card-actions align="right" class="q-my-md">
+      <q-card-actions align="right" :class="isMobile ? 'q-pa-sm' : 'q-my-md'">
         <q-stepper-navigation>
           <q-btn label="Cancelar" color="red" @click="closeButtonActions()" />
           <q-btn
@@ -298,6 +316,23 @@ const thumbStyle = ref({
   width: '5px',
   opacity: 0.75,
 });
+
+const attentionScrollStyle = computed(() =>
+  isMobile.value
+    ? {
+        width: '100%',
+        flex: '1 1 auto',
+        minHeight: '0',
+      }
+    : {
+        height: '600px',
+        width: '1200px',
+      }
+);
+
+const visitDateStyle = computed(() => ({
+  width: isMobile.value ? 'min(350px, calc(100vw - 48px))' : '350px',
+}));
 
 // Inject
 const editPatientVisit = inject('showPatientVisit');
@@ -691,4 +726,89 @@ provide('adherenceScreening', adherenceScreening);
 provide('rAMScreening', rAMScreening);
 </script>
 
-<style></style>
+<style scoped>
+.pharmaceutical-attention-card--mobile {
+  width: 100vw;
+  height: 100vh;
+  max-width: none !important;
+  max-height: none;
+  overflow: hidden;
+}
+
+.pharmaceutical-attention-form--mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.pharmaceutical-attention-card--mobile .pharmaceutical-attention-scroll {
+  min-height: 0;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-stepper__header) {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-stepper__tab) {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 62px;
+  padding: 5px 2px;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-stepper__label) {
+  width: 100%;
+  min-width: 0;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-stepper__title) {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  font-size: 11px;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-stepper__dot) {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  font-size: 14px;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-stepper__step-inner) {
+  padding: 6px 8px;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-table__container) {
+  max-width: 100%;
+}
+
+.pharmaceutical-attention-card--mobile
+  :deep(.q-stepper__step-content .q-pa-md) {
+  padding: 4px;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-table__top) {
+  min-height: 34px;
+  padding: 4px 10px;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-table th),
+.pharmaceutical-attention-card--mobile :deep(.q-table td) {
+  height: 34px;
+  padding: 3px 10px;
+  font-size: 13px;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-radio) {
+  min-height: 32px;
+}
+
+.pharmaceutical-attention-card--mobile :deep(.q-radio__inner) {
+  font-size: 32px;
+}
+</style>
