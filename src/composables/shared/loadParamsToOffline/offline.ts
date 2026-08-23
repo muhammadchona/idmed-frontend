@@ -261,13 +261,17 @@ export function useOffline() {
       StockService.getMobile(),
       StockEntranceService.getMobile(),
     ]);
-    try {
-      await StockAlertService.syncMobileStockAlertSnapshot(clinicId);
-    } catch (error) {
-      // Stock remains usable offline even if the derived alert snapshot could
-      // not be downloaded. Stock Alert will use the clinic-aware local ledger.
-      console.warn('Unable to cache the mobile stock-alert snapshot', error);
-    }
+    // This is a derived dashboard snapshot, not part of the operational stock
+    // download above. Keep trying to cache the backend calculation, but do not
+    // hold the first-login bootstrap for a slow dashboard endpoint. When it is
+    // unavailable, Stock Alert already falls back to the clinic-aware ledger.
+    void StockAlertService.syncMobileStockAlertSnapshot(clinicId, 60000).catch(
+      () => {
+        console.info(
+          'Mobile stock-alert snapshot unavailable; using the local stock ledger.'
+        );
+      }
+    );
     return true;
   }
 

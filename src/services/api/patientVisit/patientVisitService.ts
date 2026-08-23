@@ -213,6 +213,18 @@ export default {
       );
       const bulkAddIfAny = (table: any, rows: any[]) =>
         rows.length > 0 ? table.bulkAdd(rows) : Promise.resolve();
+      const bulkAddNewOnly = async (table: any, rows: any[]) => {
+        if (rows.length === 0) return;
+
+        const existingRows = await table.bulkGet(
+          rows.map((row: any) => row.id)
+        );
+        const newRows = rows.filter(
+          (_row: any, index: number) => existingRows[index] === undefined
+        );
+
+        if (newRows.length > 0) await table.bulkAdd(newRows);
+      };
 
       await db.transaction(
         'rw',
@@ -239,9 +251,15 @@ export default {
             bulkAddIfAny(packDexie, storedPacks),
             bulkAddIfAny(packagedDrugDexie, storedPackagedDrugs),
             bulkAddIfAny(packagedDrugStockDexie, storedPackagedDrugStocks),
-            bulkAddIfAny(prescriptionDexie, storedPrescriptions),
-            bulkAddIfAny(prescribedDrugDexie, storedPrescribedDrugs),
-            bulkAddIfAny(prescriptionDetailsDexie, storedPrescriptionDetails),
+            // A dispense-only operation reuses its existing prescription and
+            // prescribed-drug IDs. The former sequential mobile save ignored
+            // those duplicate inserts and still saved the new pack/visit.
+            bulkAddNewOnly(prescriptionDexie, storedPrescriptions),
+            bulkAddNewOnly(prescribedDrugDexie, storedPrescribedDrugs),
+            bulkAddNewOnly(
+              prescriptionDetailsDexie,
+              storedPrescriptionDetails
+            ),
             bulkAddIfAny(
               vitalSignsScreeningtDexie,
               serialized.vitalSignsScreenings ?? []

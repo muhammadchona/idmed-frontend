@@ -196,10 +196,19 @@ export default {
   },
 
   async syncMobileStockAlertSnapshot(clinicId: string, timeout = 10000) {
+    const requestStartedAt = performance.now();
     const response = await api().get(
       `/dashBoard/getStockAlertAll/${clinicId}`,
-      { timeout }
+      {
+        timeout,
+        suppressGlobalNetworkNotification: true,
+      } as any
     );
+    console.info('Mobile stock-alert backend snapshot received.', {
+      clinicId,
+      itemCount: Array.isArray(response.data) ? response.data.length : 0,
+      elapsedMs: Math.round(performance.now() - requestStartedAt),
+    });
     const drugIds = response.data.map((item: any) => item.id).filter(Boolean);
     const drugs = await drugService.getDrugsByIds(drugIds);
     const drugsById = new Map(drugs.map((item: any) => [item.id, item]));

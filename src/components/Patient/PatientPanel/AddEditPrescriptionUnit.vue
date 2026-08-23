@@ -962,6 +962,16 @@ const prepareMobilePrescriptionContext = () => {
     context.lastPatientVisitDetails?.prescription ??
     null;
 
+  if (context.lastPrescription?.id) {
+    // The log/visit lookup is intentionally lightweight. Rehydrate the one
+    // selected prescription so remaining-duration validation can inspect all
+    // previous visit details and their packs exactly as before the refactor.
+    context.lastPrescription =
+      prescriptionService.getForMobilePrescriptionDisplay(
+        context.lastPrescription.id
+      ) ?? context.lastPrescription;
+  }
+
   if (context.lastPatientVisitDetails?.episode?.id) {
     context.patientServiceIdentifierFromEpisode = episodeService.getEpisodeById(
       context.lastPatientVisitDetails.episode.id
@@ -969,13 +979,15 @@ const prepareMobilePrescriptionContext = () => {
   }
 
   if (context.lastPrescription) {
-    context.lastPack =
-      context.lastPatientVisitDetails?.prescription?.id ===
-        context.lastPrescription.id && context.lastPatientVisitDetails?.pack
-        ? context.lastPatientVisitDetails.pack
-        : packService.getLastPackFromPatientVisitAndPrescription(
-            context.lastPrescription.id
-          );
+    const visitPack = context.lastPatientVisitDetails?.pack ?? null;
+    const hydratedLastPack =
+      packService.getLastPackForMobilePrescriptionDisplay(
+        context.lastPrescription.id
+      );
+
+    // The lightweight visit context can contain only the pack reference. The
+    // dispense-only flow needs packagedDrugs (and each drug) to build its rows.
+    context.lastPack = hydratedLastPack ?? visitPack;
   }
 
   mobilePrescriptionContext.value = context;
@@ -1101,8 +1113,9 @@ const init = () => {
     if (curPrescription.value.photo !== null) {
       handleImageCaptured(byteArrayToBase64(curPrescription.value.photo));
     }
-    if (lastPack.value !== null) {
-      lastPack.value.packagedDrugs.forEach((packagedDrug) => {
+    const lastPackagedDrugs = lastPack.value?.packagedDrugs ?? [];
+    if (lastPackagedDrugs.length > 0) {
+      lastPackagedDrugs.forEach((packagedDrug) => {
         let packagedDrugEdit = new PackagedDrug({ id: uuidv4() });
         packagedDrugEdit.drug = packagedDrug.drug;
         packagedDrugEdit.drug_id = packagedDrug.drug.id;
@@ -1371,8 +1384,9 @@ const addPackagedDrugs = () => {
     packagedDrug.timesPerDay = prescribedDrug.timesPerDay;
     packagedDrug.form = prescribedDrug.form;
 
-    if (lastPack.value !== null) {
-      lastPack.value.packagedDrugs.find((item) => {
+    const lastPackagedDrugs = lastPack.value?.packagedDrugs ?? [];
+    if (lastPackagedDrugs.length > 0) {
+      lastPackagedDrugs.find((item) => {
         if (item.drug_id === packagedDrug.drug_id) {
           const qtyRemain = getQtyRemain(
             packagedDrug,

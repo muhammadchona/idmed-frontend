@@ -1,6 +1,6 @@
 {
   "name": "org.csaude.idmed.frontend",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Sistema Inteligente de Dispensa de Medicamentos",
   "productName": "iDMED",
   "author": "colaco.nhongo, muhammad.chona, Ercilio.francisco, joao.mabjaia, voloide.tamele",
@@ -11,6 +11,8 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
+    "@capacitor/file-viewer": "^1.0.7",
+    "@capacitor/filesystem": "^7.1.8",
     "@quasar/cli": "^2.5.0",
     "@quasar/extras": "^1.17.0",
     "@sideway/address": "^5.0.0",

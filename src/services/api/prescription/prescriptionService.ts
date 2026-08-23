@@ -259,7 +259,9 @@ export default {
       .with('clinic')
       .with('doctor')
       .with('duration')
-      .with('patientVisitDetails')
+      .with('patientVisitDetails', (visitDetailsQuery: any) => {
+        visitDetailsQuery.with('pack');
+      })
       .with('prescriptionDetails', (detailsQuery: any) => {
         detailsQuery
           .with('therapeuticRegimen')

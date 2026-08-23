@@ -87,6 +87,12 @@ instance.interceptors.response.use(
   },
   function (error) {
     const originalRequest = error.config;
+    // Some mobile background requests have an explicit local fallback. Their
+    // caller still receives the rejection, but they must not create the global
+    // "server unavailable" banner intended for required API operations.
+    if ((originalRequest as any)?.suppressGlobalNetworkNotification) {
+      return Promise.reject(error);
+    }
     // const rToken = localStorage.getItem('id_token')
     const rToken = sessionStorage.getItem('refresh_token');
     if (rToken != null && rToken.length > 10) {
