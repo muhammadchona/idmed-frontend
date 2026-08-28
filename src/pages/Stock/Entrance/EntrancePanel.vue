@@ -979,17 +979,29 @@ const validateStock = (stock) => {
 
 const doSave = (stock) => {
   showloading();
+  const currentClinicId = clinicService.currClinic().id;
+  const currentStockCenterId = StockCenterService.getStockCenter().id;
   stock.unitsReceived = Number(stock.unitsReceived);
   stock.stockMoviment = stock.unitsReceived;
   stock.clinic = {};
-  stock.clinic.id = clinicService.currClinic().id;
+  stock.clinic.id = currentClinicId;
   stock.center = {};
-  stock.center.id = StockCenterService.getStockCenter().id;
+  stock.center.id = currentStockCenterId;
   stock.entrance = currStockEntrance;
   stock.enabled = false;
   stock.drug_id = stock.drug.id;
   // const entrance = currStockEntrance.value
   stock.entrance_id = currStockEntrance.value.id;
+  if (isMobile.value && !isOnline.value) {
+    // Persist both relation shapes used by downloaded and locally-created
+    // stocks. Empty scalar foreign keys previously hid direct mobile entries
+    // from clinic-scoped stock totals even though the nested clinic was valid.
+    stock.clinic_id = currentClinicId;
+    stock.clinicId = currentClinicId;
+    stock.stock_center_id = currentStockCenterId;
+    stock.centerId = currentStockCenterId;
+    stock.entranceId = currStockEntrance.value.id;
+  }
   // stock.entrance = entrance
   if (isCreationStep.value) {
     stock.id = uuidv4();

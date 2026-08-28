@@ -206,11 +206,15 @@
             >
               <template v-slot:action class="items-center">
                 <q-btn
+                  v-if="stockRefreshFailed"
                   dense
                   unelevated
                   color="primary"
-                  class="col hidden"
-                  label="Imprimir"
+                  class="col"
+                  icon="refresh"
+                  label="Actualizar Stock"
+                  :loading="submitting"
+                  @click="retryMobileStockRefresh"
                 />
               </template>
             </q-banner>
@@ -470,7 +474,7 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 const router = useRouter();
 const dateUtils = useDateUtils();
 const { closeLoading, showloading } = useLoading();
-const { alertSucess, alertError, alertWarningAction } = useSwal();
+const { alertSucess, alertError, alertWarning, alertWarningAction } = useSwal();
 const { isMobile } = useSystemUtils();
 const title = ref('Detalhe da Guia');
 const stockDistributionCount = inject('stockDistributionCount');
@@ -495,6 +499,7 @@ let submitting = false;
 const creationDate = ref('');
 const orderNumber = ref('');
 const notes = ref('');
+const stockRefreshFailed = ref(false);
 
 const step = ref('display');
 const guiaStep = ref('display');
@@ -566,20 +571,73 @@ const rejectRecord = (record) => {
   });
 };
 
-const doConfirmRecord = (record) => {
+const doConfirmRecord = async (record) => {
+  if (submitting) return;
+
+  const previousStatus = record.status;
+  const previousEnabled = record.enabled;
+  let confirmationAccepted = false;
+
+  submitting = true;
   showloading();
   record.enabled = false;
   record.status = 'C'; //confirmed
-  DrugDistributorService.updateDrugDistributorStatus(record, 'C')
-    .then((resp) => {
-      loadstockObjectsList();
-      closeLoading();
-      getStockDistributionCount(currClinic.value);
-      alertSucess('Operação efectuada com sucesso.');
-    })
-    .catch((error) => {
+
+  try {
+    await DrugDistributorService.updateDrugDistributorStatus(record, 'C');
+    confirmationAccepted = true;
+
+    await DrugDistributorService.refreshAcceptedDistributionStockMobile(
+      currClinic.value.id
+    );
+
+    stockRefreshFailed.value = false;
+    loadstockObjectsList();
+    getStockDistributionCount(currClinic.value);
+    alertSucess('Operação efectuada com sucesso.');
+  } catch (error) {
+    if (!confirmationAccepted) {
+      record.status = previousStatus;
+      record.enabled = previousEnabled;
       alertError('Ocorreu um erro inesperado, contacte o administrador!');
-    });
+    } else {
+      stockRefreshFailed.value = true;
+      console.error(
+        'Distribution confirmed, but the mobile stock refresh failed',
+        error
+      );
+      loadstockObjectsList();
+      getStockDistributionCount(currClinic.value);
+      alertWarning(
+        'A distribuição foi confirmada, mas não foi possível actualizar o stock local. Use o botão Actualizar Stock para tentar novamente.'
+      );
+    }
+  } finally {
+    submitting = false;
+    closeLoading();
+  }
+};
+
+const retryMobileStockRefresh = async () => {
+  if (submitting) return;
+
+  submitting = true;
+  showloading();
+  try {
+    await DrugDistributorService.refreshAcceptedDistributionStockMobile(
+      currClinic.value.id
+    );
+    stockRefreshFailed.value = false;
+    alertSucess('Stock local actualizado com sucesso.');
+  } catch (error) {
+    console.error('Unable to retry the mobile stock refresh', error);
+    alertWarning(
+      'Não foi possível actualizar o stock local. Verifique a ligação e tente novamente.'
+    );
+  } finally {
+    submitting = false;
+    closeLoading();
+  }
 };
 
 const doRejectRecord = (record) => {

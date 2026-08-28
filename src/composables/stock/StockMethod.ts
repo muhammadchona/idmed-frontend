@@ -35,6 +35,18 @@ export function useStock() {
     return 'stock';
   }
 
+  function getClinicId(record: any) {
+    return (
+      record?.clinic_id ||
+      record?.clinicId ||
+      record?.clinic?.id ||
+      record?.entrance?.clinic_id ||
+      record?.entrance?.clinicId ||
+      record?.entrance?.clinic?.id ||
+      ''
+    );
+  }
+
   // Drug File
 
   async function localDbGetStockBalanceByDrug(
@@ -44,8 +56,7 @@ export function useStock() {
     let balance = 0;
     const result = await StockService.getStocksByDrugIdMobile(drug.id);
     for (const item of result) {
-      const stockClinicId =
-        item.clinic_id ?? item.clinicId ?? item.clinic?.id ?? '';
+      const stockClinicId = getClinicId(item);
       if (clinicId && stockClinicId !== clinicId) continue;
 
       // The backend stock-alert balance starts with received units and applies
@@ -54,11 +65,7 @@ export function useStock() {
       // including it would subtract the same transfer twice.
       balance += Number(item.unitsReceived ?? item.stockMoviment ?? 0);
       for (const adjustment of item.adjustments ?? []) {
-        const adjustmentClinicId =
-          adjustment.clinic_id ??
-          adjustment.clinicId ??
-          adjustment.clinic?.id ??
-          '';
+        const adjustmentClinicId = getClinicId(adjustment);
         if (clinicId && adjustmentClinicId !== clinicId) continue;
 
         const operationId =
@@ -87,8 +94,7 @@ export function useStock() {
   ) {
     const result = await StockService.getStocksByDrugIdMobile(drug.id);
     return result.reduce((total: number, item: any) => {
-      const stockClinicId =
-        item.clinic_id ?? item.clinicId ?? item.clinic?.id ?? '';
+      const stockClinicId = getClinicId(item);
       if (clinicId && stockClinicId !== clinicId) return total;
       return total + Number(item.stockMoviment ?? 0);
     }, 0);
@@ -137,8 +143,7 @@ export function useStock() {
       const firstStock = stocks[0];
       const drugId =
         firstStock.drug_id ?? firstStock.drugId ?? firstStock.drug?.id;
-      const clinicId =
-        firstStock.clinic_id ?? firstStock.clinicId ?? firstStock.clinic?.id;
+      const clinicId = getClinicId(firstStock);
       const allocatedPackagedDrugIds = new Set(
         combinedRows
           .map(
@@ -264,48 +269,116 @@ export function useStock() {
 
   async function getAdjustmentsDrugFile(drug: any) {
     const recordFileList = [];
+    const addedAdjustmentIds = new Set<string>();
+    const currentClinicId = clinicService.currClinic()?.id;
+    const getOperationCode = (adjustment: any) => {
+      const operationId =
+        adjustment.operation_id ??
+        adjustment.operationId ??
+        adjustment.operation?.id;
+      return (
+        adjustment.operation?.code ??
+        StockOperationTypeService.getStockOperatinTypeById(operationId)?.code
+      );
+    };
+    const addAdjustmentRecord = (
+      adjustment: any,
+      eventDate: any,
+      adjustedStockDrugId: any,
+      fallbackStockId = ''
+    ) => {
+      const operationCode = getOperationCode(adjustment);
+      if (
+        adjustedStockDrugId !== drug.id ||
+        (operationCode !== 'AJUSTE_POSETIVO' &&
+          operationCode !== 'AJUSTE_NEGATIVO') ||
+        !eventDate
+      ) {
+        return;
+      }
+
+      // The same backend adjustment can be embedded in a Stock and also be
+      // available through a reference movement. Count it only once.
+      const adjustmentKey =
+        adjustment.id ??
+        [
+          fallbackStockId,
+          operationCode,
+          eventDate,
+          adjustment.adjustedValue,
+          adjustment.balance,
+        ].join(':');
+      if (addedAdjustmentIds.has(adjustmentKey)) return;
+      addedAdjustmentIds.add(adjustmentKey);
+
+      const recordFile = {};
+      recordFile.id = adjustment.id ?? uuidv4();
+      recordFile.code = operationCode;
+      recordFile.eventDate = eventDate;
+      recordFile.year = new Date(eventDate).getFullYear();
+      recordFile.month = dateUtils.returnEstatisticMonth(new Date(eventDate));
+      recordFile.moviment =
+        operationCode === 'AJUSTE_POSETIVO'
+          ? 'Ajuste Posetivo'
+          : 'Ajuste Negativo';
+      recordFile.orderNumber = adjustment.reference?.orderNumber ?? '';
+      recordFile.incomes = 0;
+      recordFile.outcomes = 0;
+      recordFile.posetiveAdjustment =
+        operationCode === 'AJUSTE_POSETIVO'
+          ? Number(adjustment.adjustedValue ?? 0)
+          : 0;
+      recordFile.negativeAdjustment =
+        operationCode === 'AJUSTE_NEGATIVO'
+          ? Number(adjustment.adjustedValue ?? 0)
+          : 0;
+      recordFile.loses = 0;
+      recordFile.balance = 0;
+      recordFile.stockId =
+        adjustment.adjusted_stock_id ??
+        adjustment.adjustedStock?.id ??
+        fallbackStockId;
+      recordFile.notes = adjustment.notes ?? '';
+      recordFileList.push(recordFile);
+    };
+
     const result =
       await ReferedStockMovimentService.getReferedStockMovimentsMobile();
-    for (const item of result) {
-      const recordFile = {};
-      for (const adjustment of item.adjustments) {
-        if (
-          adjustment.adjustedStock.drug_id === drug.id &&
-          (adjustment.operation.code === 'AJUSTE_POSETIVO' ||
-            adjustment.operation.code === 'AJUSTE_NEGATIVO')
-        ) {
-          recordFile.id = uuidv4();
-          recordFile.code = adjustment.operation.code;
-          recordFile.eventDate = item.date;
-          recordFile.year = new Date(item.date).getFullYear();
-          recordFile.month = dateUtils.returnEstatisticMonth(
-            new Date(item.date)
-          ); //new Date(item.date).getMonth();
-          recordFile.moviment =
-            adjustment.operation.code === 'AJUSTE_POSETIVO'
-              ? 'Ajuste Posetivo'
-              : 'Ajuste Negativo';
-          recordFile.orderNumber = '';
-          recordFile.incomes = 0;
-          recordFile.outcomes = 0;
-          recordFile.posetiveAdjustment =
-            adjustment.operation.code === 'AJUSTE_POSETIVO'
-              ? adjustment.adjustedValue
-              : 0;
-          recordFile.negativeAdjustment =
-            adjustment.operation.code === 'AJUSTE_NEGATIVO'
-              ? adjustment.adjustedValue
-              : 0;
-          recordFile.loses = 0;
-          recordFile.balance = 0;
-          recordFile.code = adjustment.operation.code;
-          recordFile.stockId = '';
-          recordFile.notes = '';
-          recordFileList.push(recordFile);
-        }
+    for (const item of result ?? []) {
+      for (const adjustment of item.adjustments ?? []) {
+        addAdjustmentRecord(
+          adjustment,
+          item.date ?? adjustment.captureDate,
+          adjustment.adjustedStock?.drug_id ??
+            adjustment.adjustedStock?.drugId ??
+            adjustment.adjustedStock?.drug?.id
+        );
       }
-      /*
-       */
+    }
+
+    // Distribution confirmations for an existing batch are returned by the
+    // backend as adjustments embedded in the receiving Stock. They do not
+    // create another Stock row/entrance relation, so the offline StockFile must
+    // read them directly from the downloaded stock ledger.
+    const stocks = await StockService.getStocksByDrugIdMobile(drug.id);
+    for (const stock of stocks) {
+      const stockClinicId = getClinicId(stock);
+      if (currentClinicId && stockClinicId !== currentClinicId) continue;
+
+      for (const adjustment of stock.adjustments ?? []) {
+        const adjustmentClinicId = getClinicId(adjustment);
+        // A stock downloaded for a sector can embed the source pharmacy's
+        // opposite adjustment. Only the receiving clinic's movement belongs in
+        // this tablet's StockFile.
+        if (currentClinicId && adjustmentClinicId !== currentClinicId) continue;
+
+        addAdjustmentRecord(
+          adjustment,
+          adjustment.captureDate,
+          stock.drug_id ?? stock.drugId ?? stock.drug?.id,
+          stock.id
+        );
+      }
     }
 
     const resultList = [];
@@ -621,44 +694,85 @@ export function useStock() {
 
   async function getAdjustmentsDrugFileBatch(stockId: any) {
     const recordFileList = [];
+    const addedAdjustmentIds = new Set<string>();
+    const currentClinicId = clinicService.currClinic()?.id;
+    const addAdjustmentRecord = (adjustment: any, eventDate: any) => {
+      const operationId =
+        adjustment.operation_id ??
+        adjustment.operationId ??
+        adjustment.operation?.id;
+      const operationCode =
+        adjustment.operation?.code ??
+        StockOperationTypeService.getStockOperatinTypeById(operationId)?.code;
+      if (
+        (operationCode !== 'AJUSTE_POSETIVO' &&
+          operationCode !== 'AJUSTE_NEGATIVO') ||
+        !eventDate
+      ) {
+        return;
+      }
+
+      const adjustmentKey =
+        adjustment.id ??
+        [
+          stockId,
+          operationCode,
+          eventDate,
+          adjustment.adjustedValue,
+          adjustment.balance,
+        ].join(':');
+      if (addedAdjustmentIds.has(adjustmentKey)) return;
+      addedAdjustmentIds.add(adjustmentKey);
+
+      const recordFile = {};
+      recordFile.id = adjustment.id ?? uuidv4();
+      recordFile.eventDate = eventDate;
+      recordFile.moviment =
+        operationCode === 'AJUSTE_POSETIVO'
+          ? 'Ajuste Posetivo'
+          : 'Ajuste Negativo';
+      recordFile.orderNumber = adjustment.reference?.orderNumber ?? '';
+      recordFile.incomes = 0;
+      recordFile.outcomes = 0;
+      recordFile.posetiveAdjustment =
+        operationCode === 'AJUSTE_POSETIVO'
+          ? Number(adjustment.adjustedValue ?? 0)
+          : 0;
+      recordFile.negativeAdjustment =
+        operationCode === 'AJUSTE_NEGATIVO'
+          ? Number(adjustment.adjustedValue ?? 0)
+          : 0;
+      recordFile.notes = adjustment.notes ?? '';
+      recordFile.loses = 0;
+      recordFile.balance = 0;
+      recordFile.code = operationCode;
+      recordFile.stockId = stockId;
+      recordFileList.push(recordFile);
+    };
 
     const result =
       await ReferedStockMovimentService.getReferedStockMovimentsMobile();
 
-    for (const item of result) {
-      const recordFile = {};
-      for (const adjustment of item.adjustments) {
-        if (
-          adjustment.adjustedStock.id === stockId &&
-          (adjustment.operation.code === 'AJUSTE_POSETIVO' ||
-            adjustment.operation.code === 'AJUSTE_NEGATIVO')
-        ) {
-          recordFile.id = uuidv4();
-          recordFile.eventDate = item.date;
-          recordFile.moviment =
-            adjustment.operation.code === 'AJUSTE_POSETIVO'
-              ? 'Ajuste Posetivo'
-              : 'Ajuste Negativo';
-          recordFile.orderNumber = '';
-          recordFile.incomes = 0;
-          recordFile.outcomes = 0;
-          recordFile.posetiveAdjustment =
-            adjustment.operation.code === 'AJUSTE_POSETIVO'
-              ? adjustment.adjustedValue
-              : 0;
-          recordFile.negativeAdjustment =
-            adjustment.operation.code === 'AJUSTE_NEGATIVO'
-              ? adjustment.adjustedValue
-              : 0;
-
-          recordFile.notes = '';
-          recordFile.loses = 0;
-          recordFile.code = adjustment.operation.code;
-          recordFileList.push(recordFile);
+    for (const item of result ?? []) {
+      for (const adjustment of item.adjustments ?? []) {
+        const adjustedStockId =
+          adjustment.adjusted_stock_id ?? adjustment.adjustedStock?.id;
+        if (adjustedStockId === stockId) {
+          addAdjustmentRecord(adjustment, item.date ?? adjustment.captureDate);
         }
       }
-      /*
-       */
+    }
+
+    const stocks = await StockService.getBystockMobile(stockId);
+    for (const stock of stocks) {
+      const stockClinicId = getClinicId(stock);
+      if (currentClinicId && stockClinicId !== currentClinicId) continue;
+
+      for (const adjustment of stock.adjustments ?? []) {
+        const adjustmentClinicId = getClinicId(adjustment);
+        if (currentClinicId && adjustmentClinicId !== currentClinicId) continue;
+        addAdjustmentRecord(adjustment, adjustment.captureDate);
+      }
     }
 
     const resultList = [];

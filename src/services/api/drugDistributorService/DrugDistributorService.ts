@@ -193,11 +193,31 @@ export default {
         console.log(record);
         drugDistributor.save(record);
         if (record.status === 'C') {
-          StockService.getFromBackEnd(0, currClinic.id);
-          StockEntranceService.getFromBackEnd(0, currClinic.id);
+          // The tablet offline flow waits for this refresh explicitly before
+          // reporting success. Keep the existing web/online behaviour intact.
+          if (!isMobile.value || isOnline.value) {
+            StockService.getFromBackEnd(0, currClinic.id);
+            StockEntranceService.getFromBackEnd(0, currClinic.id);
+          }
         }
         return resp.data;
       });
+  },
+
+  async refreshAcceptedDistributionStockMobile(clinicId: string) {
+    if (!isMobile.value || isOnline.value) return;
+
+    await Promise.all([
+      StockService.getFromBackEnd(0, clinicId),
+      StockEntranceService.getFromBackEnd(0, clinicId),
+    ]);
+
+    // Rehydrate the repositories from the data that was persisted in Dexie so
+    // subsequent offline screens use the accepted distribution immediately.
+    await Promise.all([
+      StockService.getMobile(),
+      StockEntranceService.getMobile(),
+    ]);
   },
 
   getDrugDistributorList(stockDistributorId: string, clinicId: string) {
