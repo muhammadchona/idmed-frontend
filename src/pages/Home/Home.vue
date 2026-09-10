@@ -213,7 +213,6 @@ import DrugDistributorService from 'src/services/api/drugDistributorService/Drug
 import patientService from 'src/services/api/patientService/patientService';
 import { LocalStorage, SessionStorage } from 'quasar';
 import userService from 'src/services/api/user/userService';
-import StockService from 'src/services/api/stockService/StockService';
 import {
   initializeMobileOfflineHomeOnce,
   initializeMobileOnlineHomeOnce,
@@ -237,7 +236,6 @@ const {
   loadParamsDataFromBackEndToPinia,
   saveParamsFromDexieToPinia,
   loadPatientDataToOffline,
-  loadStockDataToOffline,
 } = useOffline();
 const { alertWarningTitle } = useSwal();
 
@@ -317,12 +315,6 @@ onMounted(async () => {
             bootstrapStage = 'session_hydration';
           }
 
-          const stockCount = await StockService.getCountStockFromDexie();
-          if (stockCount <= 0) {
-            showloading();
-            await loadStockDataToOffline();
-          }
-
           updateOfflineBootstrapStage(clinicId, bootstrapStage);
           showloading();
           await saveParamsFromDexieToPinia();
@@ -337,15 +329,8 @@ onMounted(async () => {
         }
       }
 
-      // Stock is facility data, independent from whether patients were already
-      // bootstrapped. Repair tablets whose patient database exists while the
-      // operational stock database is empty.
-      const stockCount = await StockService.getCountStockFromDexie();
-      if (stockCount <= 0) {
-        showloading();
-        await loadStockDataToOffline();
-      }
-
+      // Operational stock is never downloaded during mobile bootstrap.
+      // The user registers the tablet's initial stock locally.
       showloading();
       await saveParamsFromDexieToPinia();
       closeLoading();

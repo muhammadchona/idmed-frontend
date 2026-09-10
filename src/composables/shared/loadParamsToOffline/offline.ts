@@ -43,16 +43,12 @@ import prescriptionDetailsService from 'src/services/api/prescriptionDetails/pre
 import rAMScreeningService from 'src/services/api/rAMScreening/rAMScreeningService';
 import tBScreeningService from 'src/services/api/tBScreening/tBScreeningService';
 import vitalSignsScreeningService from 'src/services/api/vitalSignsScreening/vitalSignsScreeningService';
-import clinicService from 'src/services/api/clinicService/clinicService';
 import NanosystemConfigsService from 'src/services/Synchronization/systemConfigs/NanosystemConfigsService';
-import StockService from 'src/services/api/stockService/StockService';
-import StockEntranceService from 'src/services/api/stockEntranceService/StockEntranceService';
 import NanoclinicService from 'src/services/Synchronization/clinicService/NanoclinicService';
 import NanomenuService from 'src/services/Synchronization/menu/NanomenuService';
 import StockDistributorService from 'src/services/api/stockDistributorService/StockDistributorService';
 import StockDistributorBatchService from 'src/services/api/stockDistributorBatchService/StockDistributorBatchService';
 import DrugDistributorService from 'src/services/api/drugDistributorService/DrugDistributorService';
-import StockAlertService from 'src/services/api/stockAlertService/StockAlertService';
 // import { useLoading } from '../loading/loading';
 
 // const { closeLoading, showloading } = useLoading();
@@ -216,8 +212,6 @@ export function useOffline() {
     NanoGroupTypeService.getFromBackEnd(0);
     NanosystemConfigsService.getFromBackEnd(0);
 
-    StockService.getFromBackEnd(0, clinicService.currClinic().id);
-    StockEntranceService.getFromBackEnd(0, clinicService.currClinic().id);
   }
 
   async function loadPatientDataToOffline() {
@@ -245,34 +239,6 @@ export function useOffline() {
     //   }
     // });
     return Boolean(patientsLoaded && visitDetailsLoaded && screeningsLoaded);
-  }
-
-  async function loadStockDataToOffline() {
-    const clinicId = clinicService.currClinic()?.id;
-    if (!clinicId) {
-      throw new Error('Unable to download stock without the current clinic');
-    }
-
-    await Promise.all([
-      StockService.getFromBackEnd(0, clinicId),
-      StockEntranceService.getFromBackEnd(0, clinicId),
-    ]);
-    await Promise.all([
-      StockService.getMobile(),
-      StockEntranceService.getMobile(),
-    ]);
-    // This is a derived dashboard snapshot, not part of the operational stock
-    // download above. Keep trying to cache the backend calculation, but do not
-    // hold the first-login bootstrap for a slow dashboard endpoint. When it is
-    // unavailable, Stock Alert already falls back to the clinic-aware ledger.
-    void StockAlertService.syncMobileStockAlertSnapshot(clinicId, 60000).catch(
-      () => {
-        console.info(
-          'Mobile stock-alert snapshot unavailable; using the local stock ledger.'
-        );
-      }
-    );
-    return true;
   }
 
   async function addBulkToMobile() {
@@ -303,7 +269,6 @@ export function useOffline() {
     StockDistributorBatchService.get(0);
     DrugDistributorService.get(0);
     StockDistributorService.get(0);
-    StockService.getStockDistributorWeb(clinicService.currClinic().id, 0);
   }
 
   function deleteStorageInfo() {
@@ -358,7 +323,6 @@ export function useOffline() {
     loadClinicsDataFromBackEndToPinia,
     loadSettingParamsToOffline,
     loadPatientDataToOffline,
-    loadStockDataToOffline,
     deleteStorageInfo,
     deleteStorageWithoutPatientInfo,
     loadSettingParamsInOfflineMode,

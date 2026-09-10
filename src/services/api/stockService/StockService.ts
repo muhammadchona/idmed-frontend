@@ -11,6 +11,7 @@ import packagedDrugStockService from '../packagedDrugStock/packagedDrugStockServ
 import InventoryStockAdjustmentService from '../stockAdjustment/InventoryStockAdjustmentService';
 import StockReferenceAdjustmentService from '../stockAdjustment/StockReferenceAdjustmentService';
 import clinicService from '../clinicService/clinicService';
+import StockEntrance from 'src/stores/models/stockentrance/StockEntrance';
 
 const { closeLoading, showloading } = useLoading();
 
@@ -18,6 +19,35 @@ const { isMobile, isOnline } = useSystemUtils();
 
 const stock = useRepo(Stock);
 const stockDexie = db[Stock.entity];
+const stockEntranceDexie = db[StockEntrance.entity];
+const mobileDistributionSourceStockRequests = new Map<string, Promise<any>>();
+
+const getDistributionSourceStockId = (batch: any) =>
+  batch?.stock_id ?? batch?.stockId ?? batch?.stock?.id;
+
+const getMobileDistributionSourceStock = async (batch: any) => {
+  const sourceStockId = getDistributionSourceStockId(batch);
+  if (!sourceStockId) {
+    throw new Error('A distribuição contém um lote inválido.');
+  }
+
+  if (batch?.stock?.batchNumber && batch?.stock?.expireDate) {
+    return batch.stock;
+  }
+
+  if (!mobileDistributionSourceStockRequests.has(sourceStockId)) {
+    const request = api()
+      .get(`/stock/${encodeURIComponent(sourceStockId)}`)
+      .then((response) => response.data)
+      .catch((error) => {
+        mobileDistributionSourceStockRequests.delete(sourceStockId);
+        throw error;
+      });
+    mobileDistributionSourceStockRequests.set(sourceStockId, request);
+  }
+
+  return mobileDistributionSourceStockRequests.get(sourceStockId);
+};
 
 export default {
   // Axios API call
@@ -342,9 +372,206 @@ export default {
   },
 
   async putMobile(params: any) {
-    return stockDexie.put(JSON.parse(JSON.stringify(params))).then(() => {
-      stock.save(JSON.parse(JSON.stringify(params)));
+    const serialized = JSON.parse(JSON.stringify(params));
+    const existing = await stockDexie.get(serialized.id);
+    if (
+      existing?.mobileDistributionBatchIds &&
+      !serialized.mobileDistributionBatchIds
+    ) {
+      serialized.mobileDistributionBatchIds =
+        existing.mobileDistributionBatchIds;
+    }
+    return stockDexie.put(serialized).then(() => {
+      stock.save(serialized);
     });
+  },
+
+  /**
+   * Applies only the batches contained in one confirmed distribution to the
+   * tablet ledger. The batch IDs stored on each local stock make retries
+   * idempotent without downloading the clinic's complete backend stock.
+   */
+  async applyConfirmedDistributionMobile(record: any, currentClinic: any) {
+    const batches = record?.stockDistributorBatchs ?? [];
+    if (!record?.id || !currentClinic?.id || batches.length === 0) {
+      throw new Error('A distribuição confirmada não contém lotes válidos.');
+    }
+
+    const stockDistributor = record.stockDistributor ?? {};
+    const clinicCopy = JSON.parse(JSON.stringify(currentClinic));
+    const now = new Date().toISOString();
+    const entranceId = `mobile-distribution-${
+      stockDistributor.id ?? record.id
+    }`;
+    let appliedBatches = 0;
+
+    /*
+     * Distribution batches only guarantee the source stock ID. Mobile does
+     * not download the complete backend stock, so hydrate only the source
+     * stocks referenced by this confirmed distribution. Do this before the
+     * Dexie transaction because an HTTP wait can close an IndexedDB
+     * transaction automatically.
+     */
+    const hydratedBatches = await Promise.all(
+      batches.map(async (batch: any) => {
+        const batchId = batch?.id;
+        const quantity = Number(batch?.quantity ?? 0);
+        const sourceStockId = getDistributionSourceStockId(batch);
+
+        if (
+          !batchId ||
+          !sourceStockId ||
+          !Number.isFinite(quantity) ||
+          quantity <= 0
+        ) {
+          throw new Error('A distribuição contém um lote inválido.');
+        }
+
+        const sourceStock = await getMobileDistributionSourceStock(batch);
+
+        const sourceDrug = sourceStock?.drug ?? record.drug;
+        const drugId =
+          record.drug_id ??
+          record.drugId ??
+          sourceDrug?.id ??
+          sourceStock?.drug_id ??
+          sourceStock?.drugId;
+
+        if (!sourceStock?.batchNumber || !drugId) {
+          throw new Error('A distribuição contém um lote inválido.');
+        }
+
+        // Pinia ORM relations are reactive model instances. IndexedDB cannot
+        // clone them, so persist a plain snapshot of the same drug data.
+        const drug = sourceDrug
+          ? JSON.parse(JSON.stringify(sourceDrug))
+          : { id: drugId };
+
+        return {
+          batchId,
+          quantity,
+          sourceStock,
+          drug,
+          drugId,
+        };
+      })
+    );
+
+    await db.transaction('rw', [stockDexie, stockEntranceDexie], async () => {
+      let entrance = await stockEntranceDexie.get(entranceId);
+
+      for (const hydratedBatch of hydratedBatches) {
+        const { batchId, quantity, sourceStock, drug, drugId } = hydratedBatch;
+        const batchNumber = sourceStock?.batchNumber;
+        const localStockId = `mobile-distribution-stock-${batchId}`;
+
+        /*
+         * A Stock row is one received-stock line and belongs to exactly one
+         * StockEntrance. Even when the physical batch already exists locally,
+         * this distribution is a new receipt and must therefore have its own
+         * row. Updating the previous row would increase the operational balance
+         * while attributing the received units to the previous entrance.
+         */
+        if (await stockDexie.get(localStockId)) continue;
+
+        const stocksWithBatch = await stockDexie
+          .where('batchNumber')
+          .equals(batchNumber)
+          .toArray();
+        const previouslyAppliedStock = stocksWithBatch.find((item: any) => {
+          const appliedIds = Array.isArray(
+            item.mobileDistributionBatchIds
+          )
+            ? item.mobileDistributionBatchIds
+            : [];
+          return appliedIds.includes(batchId);
+        });
+
+        // Compatibility with distributions applied by the previous mobile
+        // implementation. A stock already linked to this entrance has a valid
+        // receipt history and must not be inserted again.
+        const previouslyAppliedEntranceId =
+          previouslyAppliedStock?.entrance_id ??
+          previouslyAppliedStock?.entranceId ??
+          previouslyAppliedStock?.entrance?.id;
+        if (previouslyAppliedEntranceId === entranceId) continue;
+
+        if (!entrance) {
+          entrance = {
+            id: entranceId,
+            orderNumber: `Dist_${stockDistributor.orderNumber ?? record.id}`,
+            dateReceived: now,
+            creationDate: now,
+            clinic_id: currentClinic.id,
+            clinic: clinicCopy,
+            syncStatus: '',
+            isDistribution: true,
+            notes: 'Entrada criada a partir de distribuição confirmada',
+          };
+          await stockEntranceDexie.put(entrance);
+        }
+
+        const sourceCenter = sourceStock?.center ?? {};
+        const center = JSON.parse(JSON.stringify(sourceCenter));
+        const centerId =
+          sourceStock?.stock_center_id ??
+          sourceStock?.centerId ??
+          center?.id ??
+          null;
+
+        await stockDexie.put({
+          id: localStockId,
+          expireDate: sourceStock.expireDate,
+          auxExpireDate: sourceStock.auxExpireDate ?? '',
+          modified: false,
+          shelfNumber: sourceStock.shelfNumber ?? '',
+          unitsReceived: quantity,
+          // If the previous implementation already credited this batch, only
+          // repair its missing entrance history; do not credit the balance a
+          // second time. New confirmations receive the distributed quantity.
+          stockMoviment: previouslyAppliedStock ? 0 : quantity,
+          manufacture: sourceStock.manufacture ?? '',
+          batchNumber,
+          hasUnitsRemaining: false,
+          enabled: false,
+          syncStatus: '',
+          entrance_id: entranceId,
+          entranceId,
+          entrance,
+          stock_center_id: centerId,
+          centerId,
+          center,
+          drug_id: drugId,
+          drugId,
+          drug,
+          clinic_id: currentClinic.id,
+          clinicId: currentClinic.id,
+          clinic: clinicCopy,
+          mobileDistributionBatchIds: [batchId],
+        });
+
+        appliedBatches += 1;
+      }
+    });
+
+    await Promise.all([this.getMobile(), StockEntranceService.getMobile()]);
+    return appliedBatches;
+  },
+
+  /**
+   * Returns source-stock details for display without inserting the source
+   * clinic's stock into the tablet's operational ledger.
+   */
+  async getDistributionBatchStockDetailsMobile(record: any) {
+    if (!isMobile.value) return [];
+
+    const batches = record?.stockDistributorBatchs ?? [];
+    return Promise.all(
+      batches.map(async (batch: any) => ({
+        batchId: batch?.id,
+        stock: await getMobileDistributionSourceStock(batch),
+      }))
+    );
   },
 
   async getMobile() {
@@ -449,12 +676,14 @@ export default {
     });
   },
 
-  async hasStockMobile(drugg: any) {
+  async hasStockMobile(drugg: any, clinicId?: string) {
     try {
       const rows = await stockDexie.toArray();
       const stocks = rows.filter(
         (row) =>
-          (row.drug && row.drug.id === drugg.id) || row.drug_id === drugg.id
+          ((row.drug && row.drug.id === drugg.id) ||
+            row.drug_id === drugg.id) &&
+          (!clinicId || (row.clinic_id ?? row.clinic?.id) === clinicId)
       );
       return stocks.length > 0;
     } catch (error) {

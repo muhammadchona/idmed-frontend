@@ -40,7 +40,9 @@ onMounted(() => {
     StockDistributorService.get(0).then(() => {
       isExecutedDistributor.value = true;
     });
-    StockService.getStockDistributorWeb(clinic.id, 0);
+    if (website.value) {
+      StockService.getStockDistributorWeb(clinic.id, 0);
+    }
   } else if (isMobile.value) {
     StockEntranceService.getCountStockEntranceFromDexie().then((resp) => {
       if (resp <= 0) {
@@ -49,23 +51,37 @@ onMounted(() => {
         StockDistributorService.get(0).then(() => {
           isExecutedDistributor.value = true;
         });
-        StockService.getStockDistributorWeb(clinic.id, 0);
       }
     });
   }
 
-  StockService.get(0, clinic.id);
-  stockLevelService.get(0);
-
-  ReferedStockMovimentService.getAllByClinic(clinic.id, 0);
-  DestroyedStockService.getAllByClinic(clinic.id, 0);
-  InventoryStockAdjustmentService.getAllByClinic(clinic.id, 0);
-  InventoryService.getAllByClinic(clinic.id, 0).then(() => {
-    isExecutedInventory.value = true;
-  });
-  StockEntranceService.apiGetAllByClinicId(clinic.id, 0, 100).then(() => {
-    isExecutedEntrance.value = true;
-  });
+  if (isMobile.value) {
+    // A mobile installation owns a local operational ledger. Opening this
+    // screen must never replace it with the clinic's complete backend stock.
+    StockService.getMobile();
+    stockLevelService.getMobile();
+    ReferedStockMovimentService.getAllByClinicMobile(clinic.id);
+    DestroyedStockService.getAllByClinicMobile(clinic.id);
+    InventoryStockAdjustmentService.getAllByClinicMobile(clinic.id);
+    InventoryService.getMobile().then(() => {
+      isExecutedInventory.value = true;
+    });
+    StockEntranceService.getMobile().then(() => {
+      isExecutedEntrance.value = true;
+    });
+  } else {
+    StockService.get(0, clinic.id);
+    stockLevelService.get(0);
+    ReferedStockMovimentService.getAllByClinic(clinic.id, 0);
+    DestroyedStockService.getAllByClinic(clinic.id, 0);
+    InventoryStockAdjustmentService.getAllByClinic(clinic.id, 0);
+    InventoryService.getAllByClinic(clinic.id, 0).then(() => {
+      isExecutedInventory.value = true;
+    });
+    StockEntranceService.apiGetAllByClinicId(clinic.id, 0, 100).then(() => {
+      isExecutedEntrance.value = true;
+    });
+  }
 });
 provide('isExecutedStockAlert', isExecutedStockAlert);
 provide('isExecutedInventory', isExecutedInventory);

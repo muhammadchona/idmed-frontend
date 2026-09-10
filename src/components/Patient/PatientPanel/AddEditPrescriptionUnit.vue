@@ -1414,33 +1414,40 @@ const addPackagedDrugs = () => {
 const generatePacks = async (packagedDrug) => {
   const packagedDrugStocks = [];
 
-  let quantitySupplied = packagedDrug.quantitySupplied;
+  let remainingQuantity = Number(packagedDrug.quantitySupplied);
   const pickupDate = curPack.value.pickupDate;
   const stocks = await StockService.getValidStockByDrugAndPickUpDateOnline(
     packagedDrug.drug.id,
     pickupDate
   );
-  let i = 0;
-  while (quantitySupplied > 0) {
+
+  for (const currentStock of stocks) {
+    if (remainingQuantity <= 0) break;
+
+    const availableQuantity = Number(currentStock.stockMoviment ?? 0);
+    if (availableQuantity <= 0) continue;
+
+    const suppliedFromStock = Math.min(
+      remainingQuantity,
+      availableQuantity
+    );
     const packagedDrugStock = new PackagedDrugStock({ id: uuidv4() });
-
-    if (stocks[i].stockMoviment >= quantitySupplied) {
-      quantitySupplied = 0;
-      packagedDrugStock.quantitySupplied = packagedDrug.quantitySupplied;
-    } else {
-      quantitySupplied = Number(quantitySupplied - stocks[i].stockMoviment);
-      packagedDrugStock.quantitySupplied = stocks[i].stockMoviment;
-
-      i = i + 1;
-    }
+    packagedDrugStock.quantitySupplied = suppliedFromStock;
     packagedDrugStock.drug = {};
     packagedDrugStock.drug.id = packagedDrug.drug.id;
     packagedDrugStock.stock = {};
-    packagedDrugStock.stock.id = stocks[i].id;
+    packagedDrugStock.stock.id = currentStock.id;
     packagedDrugStock.creationDate = moment().format('YYYY-MM-DD');
-
     packagedDrugStocks.push(packagedDrugStock);
+    remainingQuantity -= suppliedFromStock;
   }
+
+  if (remainingQuantity > 0) {
+    throw new Error(
+      `Stock insuficiente para o medicamento ${packagedDrug.drug.id}.`
+    );
+  }
+
   packagedDrug.packagedDrugStocks = packagedDrugStocks;
 };
 

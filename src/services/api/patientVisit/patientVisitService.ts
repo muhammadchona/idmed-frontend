@@ -153,7 +153,7 @@ export default {
             const currentStock =
               stockUpdates.get(pcs.stock.id) ??
               StockService.getStockById(pcs.stock.id);
-            currentStock.stockMoviment -= pcd.quantitySupplied;
+            currentStock.stockMoviment -= pcs.quantitySupplied;
             stockUpdates.set(currentStock.id, currentStock);
 
             pcs.stock_id = pcs.stock.id;
@@ -211,6 +211,16 @@ export default {
       const serializedStockUpdates = JSON.parse(
         JSON.stringify([...stockUpdates.values()])
       );
+      const existingStockRows = await stockDexie.bulkGet(
+        serializedStockUpdates.map((item: any) => item.id)
+      );
+      serializedStockUpdates.forEach((item: any, index: number) => {
+        const appliedBatchIds =
+          existingStockRows[index]?.mobileDistributionBatchIds;
+        if (appliedBatchIds) {
+          item.mobileDistributionBatchIds = appliedBatchIds;
+        }
+      });
       const bulkAddIfAny = (table: any, rows: any[]) =>
         rows.length > 0 ? table.bulkAdd(rows) : Promise.resolve();
       const bulkAddNewOnly = async (table: any, rows: any[]) => {
@@ -309,7 +319,7 @@ export default {
     for (const pcd of pack.packagedDrugs) {
       for (const pcs of pcd.packagedDrugStocks) {
         const stock = StockService.getStockById(pcs.stock.id);
-        stock.stockMoviment -= pcd.quantitySupplied;
+        stock.stockMoviment -= pcs.quantitySupplied;
         StockService.patch(stock.id, stock);
         pcs.stock_id = pcs.stock.id;
         pcs.drug_id = pcs.drug.id;

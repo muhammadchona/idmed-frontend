@@ -66,6 +66,27 @@
               size="12px"
             />
           </div>
+          <div class="row" v-if="stockRefreshFailed">
+            <q-banner
+              dense
+              inline-actions
+              class="col text-white q-pa-none bg-orange-4 q-pr-sm"
+            >
+              A distribuição foi confirmada, mas ainda não foi aplicada no stock
+              local.
+              <template v-slot:action>
+                <q-btn
+                  dense
+                  unelevated
+                  color="primary"
+                  icon="refresh"
+                  label="Carregar Distribuição"
+                  :loading="submitting"
+                  @click="retryMobileDistributionStock"
+                />
+              </template>
+            </q-banner>
+          </div>
         </div>
       </div>
       <div class="col-12 q-px-md">
@@ -185,39 +206,21 @@
                   v-show="props.expand"
                 >
                   <q-td> </q-td>
-                  <q-td key="manufacture">{{ col.stock.manufacture }} </q-td>
-                  <q-td key="batchNumber"> {{ col.stock.batchNumber }}</q-td>
+                  <q-td key="manufacture"
+                    >{{ getBatchStockDetails(col).manufacture }}
+                  </q-td>
+                  <q-td key="batchNumber">
+                    {{ getBatchStockDetails(col).batchNumber }}</q-td
+                  >
                   <q-td key="quantity">
                     {{ col.quantity }}
                   </q-td>
                   <q-td key="expireDate">
-                    {{ formatDate(col.stock.expireDate) }}
+                    {{ formatDate(getBatchStockDetails(col).expireDate) }}
                   </q-td>
                 </q-tr>
               </template>
             </q-table>
-          </div>
-          <div class="row">
-            <q-banner
-              dense
-              inline-actions
-              style="padding-top: 2px; padding-bottom: 2px"
-              class="col text-white q-pa-none bg-orange-4 q-pr-sm"
-            >
-              <template v-slot:action class="items-center">
-                <q-btn
-                  v-if="stockRefreshFailed"
-                  dense
-                  unelevated
-                  color="primary"
-                  class="col"
-                  icon="refresh"
-                  label="Actualizar Stock"
-                  :loading="submitting"
-                  @click="retryMobileStockRefresh"
-                />
-              </template>
-            </q-banner>
           </div>
         </div>
       </div>
@@ -500,6 +503,9 @@ const creationDate = ref('');
 const orderNumber = ref('');
 const notes = ref('');
 const stockRefreshFailed = ref(false);
+const distributionPendingLocalStock = ref(null);
+const mobileBatchStockDetails = ref({});
+const pendingDistributionStorageKey = 'idmed:pending-mobile-distribution-stock';
 
 const step = ref('display');
 const guiaStep = ref('display');
@@ -576,23 +582,25 @@ const doConfirmRecord = async (record) => {
 
   const previousStatus = record.status;
   const previousEnabled = record.enabled;
-  let confirmationAccepted = false;
-
   submitting = true;
   showloading();
   record.enabled = false;
   record.status = 'C'; //confirmed
+  let confirmationAccepted = false;
 
   try {
     await DrugDistributorService.updateDrugDistributorStatus(record, 'C');
     confirmationAccepted = true;
-
-    await DrugDistributorService.refreshAcceptedDistributionStockMobile(
-      currClinic.value.id
-    );
-
+    distributionPendingLocalStock.value = record;
+    if (isMobile.value) {
+      localStorage.setItem(pendingDistributionStorageKey, record.id);
+    }
+    await DrugDistributorService.applyConfirmedDistributionStockMobile(record);
+    distributionPendingLocalStock.value = null;
+    localStorage.removeItem(pendingDistributionStorageKey);
     stockRefreshFailed.value = false;
     loadstockObjectsList();
+    await loadMobileDistributionBatchDetails();
     getStockDistributionCount(currClinic.value);
     alertSucess('Operação efectuada com sucesso.');
   } catch (error) {
@@ -603,13 +611,11 @@ const doConfirmRecord = async (record) => {
     } else {
       stockRefreshFailed.value = true;
       console.error(
-        'Distribution confirmed, but the mobile stock refresh failed',
+        'Distribution confirmed, but its local stock could not be applied',
         error
       );
-      loadstockObjectsList();
-      getStockDistributionCount(currClinic.value);
       alertWarning(
-        'A distribuição foi confirmada, mas não foi possível actualizar o stock local. Use o botão Actualizar Stock para tentar novamente.'
+        'A distribuição foi confirmada, mas não foi possível aplicá-la no stock local. Tente novamente.'
       );
     }
   } finally {
@@ -618,22 +624,23 @@ const doConfirmRecord = async (record) => {
   }
 };
 
-const retryMobileStockRefresh = async () => {
-  if (submitting) return;
+const retryMobileDistributionStock = async () => {
+  if (submitting || !distributionPendingLocalStock.value) return;
 
   submitting = true;
   showloading();
   try {
-    await DrugDistributorService.refreshAcceptedDistributionStockMobile(
-      currClinic.value.id
+    await DrugDistributorService.applyConfirmedDistributionStockMobile(
+      distributionPendingLocalStock.value
     );
+    distributionPendingLocalStock.value = null;
+    localStorage.removeItem(pendingDistributionStorageKey);
     stockRefreshFailed.value = false;
-    alertSucess('Stock local actualizado com sucesso.');
+    await loadMobileDistributionBatchDetails();
+    alertSucess('Distribuição aplicada no stock local com sucesso.');
   } catch (error) {
-    console.error('Unable to retry the mobile stock refresh', error);
-    alertWarning(
-      'Não foi possível actualizar o stock local. Verifique a ligação e tente novamente.'
-    );
+    console.error('Unable to apply the confirmed distribution locally', error);
+    alertWarning('Não foi possível aplicar a distribuição no stock local.');
   } finally {
     submitting = false;
     closeLoading();
@@ -741,9 +748,57 @@ const loadstockObjectsList = () => {
   );
 };
 
-onMounted(() => {
+const getBatchStockDetails = (batch) => {
+  if (!isMobile.value) return batch?.stock ?? {};
+  return mobileBatchStockDetails.value[batch?.id] ?? batch?.stock ?? {};
+};
+
+const loadMobileDistributionBatchDetails = async () => {
+  if (!isMobile.value) return;
+
+  const detailGroups = await Promise.all(
+    drugDistributorList.value.map(async (record) => {
+      try {
+        return await DrugDistributorService.getDistributionBatchStockDetailsMobile(
+          record
+        );
+      } catch (error) {
+        console.error(
+          'Unable to load mobile distribution batch details',
+          error
+        );
+        return [];
+      }
+    })
+  );
+
+  const details = {};
+  detailGroups.flat().forEach((detail) => {
+    if (detail?.batchId && detail?.stock) {
+      details[detail.batchId] = detail.stock;
+    }
+  });
+  mobileBatchStockDetails.value = details;
+};
+
+onMounted(async () => {
   init();
   loadstockObjectsList();
+  await loadMobileDistributionBatchDetails();
+  if (isMobile.value) {
+    const pendingDistributionId = localStorage.getItem(
+      pendingDistributionStorageKey
+    );
+    if (pendingDistributionId) {
+      const pendingDistribution = DrugDistributorService.getDrugDistributorById(
+        pendingDistributionId
+      );
+      if (pendingDistribution?.status === 'C') {
+        distributionPendingLocalStock.value = pendingDistribution;
+        stockRefreshFailed.value = true;
+      }
+    }
+  }
   //drugs.value = activeDrugs;
 });
 

@@ -495,9 +495,16 @@ const stock = computed(() => {
 });
 
 const displayedStockBalance = computed(() => {
-  if (!isOnline.value && drugEventList.value.length > 0) {
+  if (
+    !isOnline.value &&
+    !clinicService.isClinicSector(clinicService.currClinic()) &&
+    drugEventList.value.length > 0
+  ) {
     return drugEventList.value[0].balance;
   }
+  // A mobile ClinicSector uses the operational per-lot balance established by
+  // local stock entries. Web and other installations retain their existing
+  // stock-file presentation.
   return stock.value.stockMoviment;
 });
 
